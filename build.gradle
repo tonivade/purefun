@@ -3,8 +3,6 @@ archivesBaseName = 'zeromock-core'
 dependencies {
   compile 'com.google.code.gson:gson:2.8.2'
   compile 'com.github.tonivade:equalizer:0.2.0'
-  testCompile 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
-  testCompile 'org.junit.platform:junit-platform-runner:1.1.0'
   testCompile 'nl.jqno.equalsverifier:equalsverifier:2.4.3'
 }
 
