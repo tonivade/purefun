@@ -5,12 +5,9 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Bytes.asBytes;
+import static com.github.tonivade.zeromock.core.Combinators.orElse;
 
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public final class Handlers {
@@ -121,50 +118,7 @@ public final class Handlers {
     return dropOneLevel().andThen(service::execute).andThen(orElse(Responses::notFound));
   }
   
-  public static <T, U, R> Function<HttpRequest, BiTupple<T, U>> join(Function<HttpRequest, T> beginT, 
-                                                                     Function<HttpRequest, U> beginU) {
-    return request -> new BiTupple<>(beginT.apply(request), beginU.apply(request));
-  }
-  
-  public static <T, U, R> Function<BiTupple<T, U>, R> split(BiFunction<T, U, R> function) {
-    return tupple -> function.apply(tupple.get1(), tupple.get2());
-  }
-  
-  public static <T> Function<HttpRequest, T> force(Supplier<T> supplier) {
-    return value -> supplier.get();
-  }
-  
-  public static <T> Function<T, Void> force(Consumer<T> consumer) {
-    return value -> { consumer.accept(value); return null; };
-  }
-
-  public static <T> Function<Optional<T>, T> orElse(Supplier<T> supplier) {
-    return optional -> optional.orElseGet(supplier);
-  }
-
-  public static <T, R> Function<Optional<T>, Optional<R>> map(Function<T, R> mapper) {
-    return optional -> optional.map(mapper);
-  }
-  
   private static UnaryOperator<HttpRequest> dropOneLevel() {
     return request -> request.dropOneLevel();
-  }
-  
-  private static final class BiTupple<T, U> {
-    private final T t;
-    private final U u;
-
-    public BiTupple(T t, U u) {
-      this.t = t;
-      this.u = u;
-    }
-    
-    public T get1() {
-      return t;
-    }
-    
-    public U get2() {
-      return u;
-    }
   }
 }

@@ -27,6 +27,10 @@ public final class Extractors {
   }
   
   public static Function<String, Integer> asInteger() {
-    return string -> Integer.parseInt(string);
+    return Integer::parseInt;
+  }
+  
+  public static Function<String, Long> asLong() {
+    return Long::parseLong;
   }
 }
