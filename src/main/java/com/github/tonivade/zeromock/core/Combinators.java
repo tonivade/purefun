@@ -13,9 +13,12 @@ import java.util.function.Supplier;
 public final class Combinators {
   
   private Combinators() {}
+
+  public static Function<HttpRequest, HttpRequest> identity() {
+    return Function.identity();
+  }
   
-  public static <T, U, R> Function<HttpRequest, BiTupple<T, U>> join(Function<HttpRequest, T> beginT, 
-                                                                     Function<HttpRequest, U> beginU) {
+  public static <H, T, U, R> Function<H, BiTupple<T, U>> join(Function<H, T> beginT, Function<H, U> beginU) {
     return request -> new BiTupple<>(beginT.apply(request), beginU.apply(request));
   }
   
@@ -27,16 +30,20 @@ public final class Combinators {
     return value -> supplier.get();
   }
   
-  public static <T> Function<T, Void> force(Consumer<T> consumer) {
+  public static <T, R> Function<T, R> force(Consumer<T> consumer) {
     return value -> { consumer.accept(value); return null; };
-  }
-
-  public static <T> Function<Optional<T>, T> orElse(Supplier<T> supplier) {
-    return optional -> optional.orElseGet(supplier);
   }
 
   public static <T, R> Function<Optional<T>, Optional<R>> map(Function<T, R> mapper) {
     return optional -> optional.map(mapper);
+  }
+
+  public static <T, R> Function<Optional<T>, Optional<R>> flatMap(Function<T, Optional<R>> mapper) {
+    return optional -> optional.flatMap(mapper);
+  }
+
+  public static <T> Function<Optional<T>, T> orElse(Supplier<T> supplier) {
+    return optional -> optional.orElseGet(supplier);
   }
 
   private static final class BiTupple<T, U> {
