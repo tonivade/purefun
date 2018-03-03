@@ -97,22 +97,6 @@ public final class Handlers {
   public static Function<HttpRequest, HttpResponse> error(Function<HttpRequest, Bytes> handler) {
     return handler.andThen(Responses::error);
   }
-  
-  public static UnaryOperator<HttpResponse> contentType(String value) {
-    return response -> response.withHeader("Content-type", value);
-  }
-  
-  public static UnaryOperator<HttpResponse> contentPlain() {
-    return contentType("text/plain");
-  }
-  
-  public static UnaryOperator<HttpResponse> contentJson() {
-    return contentType("application/json");
-  }
-  
-  public static UnaryOperator<HttpResponse> contentXml() {
-    return contentType("text/xml");
-  }
 
   public static Function<HttpRequest, HttpResponse> delegate(HttpService service) {
     return dropOneLevel().andThen(service::execute).andThen(orElse(Responses::notFound));
