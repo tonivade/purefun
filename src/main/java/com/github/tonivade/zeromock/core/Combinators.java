@@ -4,14 +4,15 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static java.util.Objects.requireNonNull;
+import static tonivade.equalizer.Equalizer.equalizer;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import tonivade.equalizer.Equalizer;
 
 public final class Combinators {
   
@@ -54,8 +55,8 @@ public final class Combinators {
     private final U u;
 
     private BiTupple(T t, U u) {
-      this.t = t;
-      this.u = u;
+      this.t = requireNonNull(t);
+      this.u = requireNonNull(u);
     }
     
     public T get1() {
@@ -77,7 +78,7 @@ public final class Combinators {
     
     @Override
     public boolean equals(Object obj) {
-      return Equalizer.equalizer(this)
+      return equalizer(this)
           .append((a, b) -> Objects.equals(a.t, b.t))
           .append((a, b) -> Objects.equals(a.u, b.u))
           .applyTo(obj);
