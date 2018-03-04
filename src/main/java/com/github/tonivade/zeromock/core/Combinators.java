@@ -19,7 +19,7 @@ public final class Combinators {
   }
   
   public static <H, T, U, R> Function<H, BiTupple<T, U>> join(Function<H, T> beginT, Function<H, U> beginU) {
-    return request -> new BiTupple<>(beginT.apply(request), beginU.apply(request));
+    return request -> BiTupple.of(beginT.apply(request), beginU.apply(request));
   }
   
   public static <T, U, R> Function<BiTupple<T, U>, R> split(BiFunction<T, U, R> function) {
@@ -46,11 +46,11 @@ public final class Combinators {
     return optional -> optional.orElseGet(supplier);
   }
 
-  private static final class BiTupple<T, U> {
+  public static final class BiTupple<T, U> {
     private final T t;
     private final U u;
 
-    public BiTupple(T t, U u) {
+    private BiTupple(T t, U u) {
       this.t = t;
       this.u = u;
     }
@@ -61,6 +61,10 @@ public final class Combinators {
     
     public U get2() {
       return u;
+    }
+    
+    public static <T, U> BiTupple<T, U> of(T t, U u) {
+      return new BiTupple<T, U>(t, u);
     }
   }
 }
