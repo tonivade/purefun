@@ -12,14 +12,15 @@ import static com.github.tonivade.zeromock.core.Combinators.map;
 import static com.github.tonivade.zeromock.core.Combinators.orElse;
 import static com.github.tonivade.zeromock.core.Combinators.split;
 import static com.github.tonivade.zeromock.core.Requests.get;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.zeromock.core.Combinators.BiTupple;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class CombinatorsTest {
   @Test
@@ -105,5 +106,10 @@ public class CombinatorsTest {
     Optional<Object> optional = flatMap((String a) -> Optional.empty()).apply(Optional.of("asdf"));
     
     assertEquals(Optional.empty(), optional);
+  }
+  
+  @Test
+  public void equalsVerifier() {
+    EqualsVerifier.forClass(BiTupple.class).verify();
   }
 }

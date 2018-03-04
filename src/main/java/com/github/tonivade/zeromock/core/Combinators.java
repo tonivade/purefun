@@ -4,11 +4,14 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import tonivade.equalizer.Equalizer;
 
 public final class Combinators {
   
@@ -65,6 +68,24 @@ public final class Combinators {
     
     public static <T, U> BiTupple<T, U> of(T t, U u) {
       return new BiTupple<T, U>(t, u);
+    }
+    
+    @Override
+    public int hashCode() {
+      return Objects.hash(t, u);
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+      return Equalizer.equalizer(this)
+          .append((a, b) -> Objects.equals(a.t, b.t))
+          .append((a, b) -> Objects.equals(a.u, b.u))
+          .applyTo(obj);
+    }
+    
+    @Override
+    public String toString() {
+      return "BiTupple(" + t + ", " + u + ")";
     }
   }
 }
