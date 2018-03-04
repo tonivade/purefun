@@ -34,6 +34,10 @@ public final class Predicates {
     return request -> request.params().contains(name);
   }
   
+  public static Predicate<HttpRequest> param(String name, String value) {
+    return request -> request.params().get(name).map(param -> value.equals(param)).orElse(false);
+  }
+  
   public static Predicate<HttpRequest> header(String key, String value) {
     return request -> request.headers().get(key).contains(value);
   }
@@ -58,8 +62,7 @@ public final class Predicates {
     return method(PATCH);
   }
   
-  public static <T> Predicate<HttpRequest> equalTo(T value)
-  {
+  public static <T> Predicate<HttpRequest> equalTo(T value) {
     return request -> json(request, value.getClass()).equals(value);
   }
   

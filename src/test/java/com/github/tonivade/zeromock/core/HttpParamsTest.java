@@ -48,6 +48,14 @@ public class HttpParamsTest {
   }
   
   @Test
+  public void queryToParams() {
+    HttpParams params = new HttpParams("key1=value1&key2=value2");
+   
+    assertAll(() -> assertEquals(Optional.of("value1"), params.get("key1")),
+              () -> assertEquals(Optional.of("value2"), params.get("key2")));
+  }
+  
+  @Test
   public void equalsVerifier() {
     EqualsVerifier.forClass(HttpParams.class).verify();
   }
