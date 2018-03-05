@@ -10,6 +10,10 @@ public final class Extractors {
   
   private Extractors() {}
 
+  public static Function<HttpRequest, HttpRequest> identity() {
+    return Function.identity();
+  }
+
   public static Function<HttpRequest, Bytes> body() {
     return request -> request.body();
   }

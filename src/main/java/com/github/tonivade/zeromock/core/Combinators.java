@@ -17,10 +17,6 @@ import java.util.function.Supplier;
 public final class Combinators {
   
   private Combinators() {}
-
-  public static Function<HttpRequest, HttpRequest> identity() {
-    return Function.identity();
-  }
   
   public static <H, T, U, R> Function<H, BiTupple<T, U>> join(Function<H, T> beginT, Function<H, U> beginU) {
     return request -> BiTupple.of(beginT.apply(request), beginU.apply(request));

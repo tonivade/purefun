@@ -6,7 +6,6 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Combinators.flatMap;
 import static com.github.tonivade.zeromock.core.Combinators.force;
-import static com.github.tonivade.zeromock.core.Combinators.identity;
 import static com.github.tonivade.zeromock.core.Combinators.join;
 import static com.github.tonivade.zeromock.core.Combinators.map;
 import static com.github.tonivade.zeromock.core.Combinators.orElse;
@@ -23,11 +22,6 @@ import com.github.tonivade.zeromock.core.Combinators.BiTupple;
 import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class CombinatorsTest {
-  @Test
-  public void identityTest() {
-    assertEquals(get("/path"), identity().apply(get("/path")));
-  }
-
   @Test
   public void consumer() {
     StringBuffer buffer = new StringBuffer();
