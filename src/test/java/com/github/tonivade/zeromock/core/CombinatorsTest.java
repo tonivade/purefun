@@ -10,8 +10,8 @@ import static com.github.tonivade.zeromock.core.Combinators.join;
 import static com.github.tonivade.zeromock.core.Combinators.map;
 import static com.github.tonivade.zeromock.core.Combinators.orElse;
 import static com.github.tonivade.zeromock.core.Combinators.split;
-import static com.github.tonivade.zeromock.core.Requests.get;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
 
