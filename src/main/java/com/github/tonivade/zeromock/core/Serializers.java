@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Combinators.force;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
@@ -18,6 +20,10 @@ import com.google.gson.GsonBuilder;
 public final class Serializers {
   
   private Serializers() {}
+  
+  public static <T> Function<T, Bytes> empty() {
+    return force(Bytes::empty);
+  }
   
   public static <T> Function<T, Bytes> json() {
     return Serializers.<T>asJson().andThen(Bytes::asBytes);
