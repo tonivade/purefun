@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -37,16 +38,12 @@ public class HttpService {
   }
   
   public HttpService when(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
-    return add(new Mapping(matcher, handler));
-  }
-  
-  public MappingBuilder when(Predicate<HttpRequest> matcher) {
-    return new MappingBuilder(this).when(matcher);
-  }
-  
-  public HttpService add(Mapping mapping) {
-    addMapping(mapping);
+    addMapping(new Mapping(matcher, handler));
     return this;
+  }
+  
+  public MappingBuilder<HttpService> when(Predicate<HttpRequest> matcher) {
+    return new MappingBuilder<>(this::when).when(matcher);
   }
   
   public Optional<HttpResponse> execute(HttpRequest request) {
@@ -79,21 +76,21 @@ public class HttpService {
         .findFirst();
   }
 
-  public static final class MappingBuilder {
-    private final HttpService service;
+  public static final class MappingBuilder<T> {
+    private final BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher;
     private Predicate<HttpRequest> matcher;
     
-    public MappingBuilder(HttpService service) {
-      this.service = requireNonNull(service);
+    public MappingBuilder(BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher) {
+      this.finisher = requireNonNull(finisher);
     }
 
-    public MappingBuilder when(Predicate<HttpRequest> matcher) {
+    public MappingBuilder<T> when(Predicate<HttpRequest> matcher) {
       this.matcher = matcher;
       return this;
     }
 
-    public HttpService then(Function<HttpRequest, HttpResponse> handler) {
-      return service.add(new Mapping(matcher, handler));
+    public T then(Function<HttpRequest, HttpResponse> handler) {
+      return finisher.apply(matcher, handler);
     }
   }
   
