@@ -5,7 +5,6 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Handlers.delegate;
-import static com.github.tonivade.zeromock.core.Mappings.mapping;
 import static com.github.tonivade.zeromock.core.Predicates.startsWith;
 import static java.util.Objects.requireNonNull;
 
@@ -14,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import com.github.tonivade.zeromock.core.Mappings.Mapping;
 
 public class HttpService {
   
@@ -40,10 +37,14 @@ public class HttpService {
   }
   
   public HttpService when(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
-    return when(mapping(matcher).then(handler));
+    return add(new Mapping(matcher, handler));
   }
   
-  public HttpService when(Mapping mapping) {
+  public MappingBuilder when(Predicate<HttpRequest> matcher) {
+    return new MappingBuilder(this).when(matcher);
+  }
+  
+  public HttpService add(Mapping mapping) {
     addMapping(mapping);
     return this;
   }
@@ -76,5 +77,41 @@ public class HttpService {
     return mappings.stream()
         .filter(mapping -> mapping.test(request))
         .findFirst();
+  }
+
+  public static final class MappingBuilder {
+    private final HttpService service;
+    private Predicate<HttpRequest> matcher;
+    
+    public MappingBuilder(HttpService service) {
+      this.service = requireNonNull(service);
+    }
+
+    public MappingBuilder when(Predicate<HttpRequest> matcher) {
+      this.matcher = matcher;
+      return this;
+    }
+
+    public HttpService then(Function<HttpRequest, HttpResponse> handler) {
+      return service.add(new Mapping(matcher, handler));
+    }
+  }
+  
+  public static final class Mapping {
+    private final Predicate<HttpRequest> predicate;
+    private final Function<HttpRequest, HttpResponse> handler;
+
+    private Mapping(Predicate<HttpRequest> predicate, Function<HttpRequest, HttpResponse> handler) {
+      this.predicate = requireNonNull(predicate);
+      this.handler = requireNonNull(handler);
+    }
+
+    public boolean test(HttpRequest request) {
+      return predicate.test(request);
+    }
+
+    public HttpResponse execute(HttpRequest request) {
+      return handler.apply(request);
+    }
   }
 }

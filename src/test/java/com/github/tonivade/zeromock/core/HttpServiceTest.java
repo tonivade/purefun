@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.zeromock.core.Handlers;
 import com.github.tonivade.zeromock.core.HttpService;
-import com.github.tonivade.zeromock.core.Mappings;
 import com.github.tonivade.zeromock.core.Predicates;
 import com.github.tonivade.zeromock.core.Requests;
 import com.github.tonivade.zeromock.core.Responses;
@@ -29,14 +28,14 @@ public class HttpServiceTest {
   }
 
   @Test
-  public void whenMapping() {
-    HttpService service = new HttpService("service").when(Mappings.get("/ping").then(Handlers.ok("pong")));
+  public void whenThen() {
+    HttpService service = new HttpService("service").when(Predicates.get("/ping")).then(Handlers.ok("pong"));
     
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
   }
 
   @Test
-  public void whenPredicate() {
+  public void when() {
     HttpService service = new HttpService("service").when(Predicates.get("/ping"), Handlers.ok("pong"));
     
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
