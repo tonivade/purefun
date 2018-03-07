@@ -13,6 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public final class Combinators {
   
@@ -34,7 +35,7 @@ public final class Combinators {
     return value -> supplier.get();
   }
   
-  public static <T> Function<T, T> force(Consumer<T> consumer) {
+  public static <T> UnaryOperator<T> force(Consumer<T> consumer) {
     return value -> { consumer.accept(value); return value; };
   }
 
