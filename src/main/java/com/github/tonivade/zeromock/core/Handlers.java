@@ -8,6 +8,7 @@ import static com.github.tonivade.zeromock.core.Bytes.asBytes;
 import static com.github.tonivade.zeromock.core.Combinators.orElse;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public final class Handlers {
@@ -15,7 +16,7 @@ public final class Handlers {
   private Handlers() {}
 
   public static <T> Function<T, HttpResponse> ok() {
-    return x -> Responses.ok();
+    return force(Responses::ok);
   }
 
   public static Function<HttpRequest, HttpResponse> ok(String body) {
@@ -43,15 +44,15 @@ public final class Handlers {
   }
   
   public static <T> Function<T, HttpResponse> noContent() {
-    return x -> Responses.noContent();
+    return force(Responses::noContent);
   }
   
   public static <T> Function<T, HttpResponse> forbidden() {
-    return x -> Responses.forbidden();
+    return force(Responses::forbidden);
   }
 
   public static Function<HttpRequest, HttpResponse> badRequest() {
-    return x -> Responses.badRequest();
+    return force(Responses::badRequest);
   }
 
   public static Function<HttpRequest, HttpResponse> badRequest(String body) {
@@ -67,7 +68,7 @@ public final class Handlers {
   }
 
   public static <T> Function<T, HttpResponse> notFound() {
-    return x -> Responses.notFound();
+    return force(Responses::notFound);
   }
 
   public static Function<HttpRequest, HttpResponse> notFound(String body) {
@@ -83,7 +84,7 @@ public final class Handlers {
   }
 
   public static <T> Function<T, HttpResponse> error() {
-    return x -> Responses.error();
+    return force(Responses::error);
   }
 
   public static Function<HttpRequest, HttpResponse> error(String body) {
@@ -102,6 +103,10 @@ public final class Handlers {
     return dropOneLevel().andThen(service::execute).andThen(orElse(Responses::notFound));
   }
   
+  private static <T> Function<T, HttpResponse> force(Supplier<HttpResponse> supplier) {
+    return Combinators.<T, HttpResponse>adapt(supplier);
+  }
+
   private static UnaryOperator<HttpRequest> dropOneLevel() {
     return request -> request.dropOneLevel();
   }

@@ -31,11 +31,11 @@ public final class Combinators {
     return function;
   }
   
-  public static <T, R> Function<T, R> force(Supplier<R> supplier) {
+  public static <T, R> Function<T, R> adapt(Supplier<R> supplier) {
     return value -> supplier.get();
   }
   
-  public static <T> UnaryOperator<T> force(Consumer<T> consumer) {
+  public static <T> UnaryOperator<T> adapt(Consumer<T> consumer) {
     return value -> { consumer.accept(value); return value; };
   }
 

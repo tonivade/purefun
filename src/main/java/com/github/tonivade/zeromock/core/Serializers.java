@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Combinators.force;
+import static com.github.tonivade.zeromock.core.Combinators.adapt;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -22,7 +22,7 @@ public final class Serializers {
   private Serializers() {}
   
   public static <T> Function<T, Bytes> empty() {
-    return force(Bytes::empty);
+    return adapt(Bytes::empty);
   }
   
   public static <T> Function<T, Bytes> json() {

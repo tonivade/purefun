@@ -5,7 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Combinators.flatMap;
-import static com.github.tonivade.zeromock.core.Combinators.force;
+import static com.github.tonivade.zeromock.core.Combinators.adapt;
 import static com.github.tonivade.zeromock.core.Combinators.identity;
 import static com.github.tonivade.zeromock.core.Combinators.join;
 import static com.github.tonivade.zeromock.core.Combinators.map;
@@ -34,7 +34,7 @@ public class CombinatorsTest {
   public void consumer() {
     StringBuffer buffer = new StringBuffer();
 
-    String apply = force((String value) -> buffer.append(value)).apply("value");
+    String apply = adapt((String value) -> buffer.append(value)).apply("value");
 
     assertEquals("value", buffer.toString());
     assertEquals("value", apply);
@@ -42,14 +42,14 @@ public class CombinatorsTest {
   
   @Test
   public void supplier() {
-    String value = force(() -> "value").apply("xxx");
+    String value = adapt(() -> "value").apply("xxx");
 
     assertEquals("value", value);
   }
   
   @Test
   public void joinTest() {
-    BiTupple<String, String> tupple = join(force(() -> "a"), force(() -> "b")).apply("xxx");
+    BiTupple<String, String> tupple = join(adapt(() -> "a"), adapt(() -> "b")).apply("xxx");
     
     assertAll(() -> assertEquals("a", tupple.get1()),
               () -> assertEquals("b", tupple.get2()));
