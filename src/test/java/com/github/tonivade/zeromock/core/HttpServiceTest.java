@@ -35,15 +35,15 @@ public class HttpServiceTest {
   }
 
   @Test
-  public void when() {
-    HttpService service = new HttpService("service").when(Predicates.get("/ping"), Handlers.ok("pong"));
+  public void add() {
+    HttpService service = new HttpService("service").add(Predicates.get("/ping"), Handlers.ok("pong"));
     
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
   }
   
   @Test
   public void mount() {
-    HttpService service1 = new HttpService("service1").when(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service1 = new HttpService("service1").add(Predicates.get("/ping"), Handlers.ok("pong"));
     HttpService service2 = new HttpService("service2").mount("/path", service1);
     
     assertAll(() -> assertEquals(Optional.of(Responses.ok("pong")), service2.execute(Requests.get("/path/ping"))),
@@ -52,7 +52,7 @@ public class HttpServiceTest {
   
   @Test
   public void combine() {
-    HttpService service1 = new HttpService("service1").when(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service1 = new HttpService("service1").add(Predicates.get("/ping"), Handlers.ok("pong"));
     HttpService service2 = new HttpService("service2");
     
     assertEquals(Optional.of(Responses.ok("pong")), service1.combine(service2).execute(Requests.get("/ping")));
@@ -60,7 +60,7 @@ public class HttpServiceTest {
   
   @Test
   public void clear() {
-    HttpService service = new HttpService("service").when(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service = new HttpService("service").add(Predicates.get("/ping"), Handlers.ok("pong"));
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
     service.clear();
 

@@ -34,16 +34,16 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    return when(startsWith(path), delegate(service));
+    return add(startsWith(path), delegate(service));
   }
   
-  public HttpService when(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
+  public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
     addMapping(new Mapping(matcher, handler));
     return this;
   }
   
   public MappingBuilder<HttpService> when(Predicate<HttpRequest> matcher) {
-    return new MappingBuilder<>(this::when).when(matcher);
+    return new MappingBuilder<>(this::add).when(matcher);
   }
   
   public Optional<HttpResponse> execute(HttpRequest request) {
