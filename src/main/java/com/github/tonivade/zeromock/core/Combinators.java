@@ -26,12 +26,16 @@ public final class Combinators {
     return tupple -> function.apply(tupple.get1(), tupple.get2());
   }
   
+  public static <T, R> Function<T, R> identity(Function<T, R> function) {
+    return function;
+  }
+  
   public static <T, R> Function<T, R> force(Supplier<R> supplier) {
     return value -> supplier.get();
   }
   
-  public static <T, R> Function<T, R> force(Consumer<T> consumer) {
-    return value -> { consumer.accept(value); return null; };
+  public static <T> Function<T, T> force(Consumer<T> consumer) {
+    return value -> { consumer.accept(value); return value; };
   }
 
   public static <T, R> Function<Optional<T>, Optional<R>> map(Function<T, R> mapper) {
