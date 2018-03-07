@@ -39,6 +39,10 @@ public final class Combinators {
     return value -> { consumer.accept(value); return value; };
   }
 
+  public static <T> Function<T, Optional<T>> lift() {
+    return Optional::of;
+  }
+
   public static <T, R> Function<Optional<T>, Optional<R>> map(Function<T, R> mapper) {
     return optional -> optional.map(mapper);
   }

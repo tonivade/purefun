@@ -37,7 +37,7 @@ public class HttpService {
     return add(startsWith(path), delegate(service));
   }
   
-  public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
+  public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, Optional<HttpResponse>> handler) {
     addMapping(new Mapping(matcher, handler));
     return this;
   }
@@ -47,7 +47,7 @@ public class HttpService {
   }
   
   public Optional<HttpResponse> execute(HttpRequest request) {
-    return findMapping(request).map(mapping -> mapping.execute(request));
+    return findMapping(request).flatMap(mapping -> mapping.execute(request));
   }
   
   public HttpService combine(HttpService other) {
@@ -77,10 +77,10 @@ public class HttpService {
   }
 
   public static final class MappingBuilder<T> {
-    private final BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher;
+    private final BiFunction<Predicate<HttpRequest>, Function<HttpRequest, Optional<HttpResponse>>, T> finisher;
     private Predicate<HttpRequest> matcher;
     
-    public MappingBuilder(BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher) {
+    public MappingBuilder(BiFunction<Predicate<HttpRequest>, Function<HttpRequest, Optional<HttpResponse>>, T> finisher) {
       this.finisher = requireNonNull(finisher);
     }
 
@@ -89,16 +89,16 @@ public class HttpService {
       return this;
     }
 
-    public T then(Function<HttpRequest, HttpResponse> handler) {
+    public T then(Function<HttpRequest, Optional<HttpResponse>> handler) {
       return finisher.apply(matcher, handler);
     }
   }
   
   public static final class Mapping {
     private final Predicate<HttpRequest> predicate;
-    private final Function<HttpRequest, HttpResponse> handler;
+    private final Function<HttpRequest, Optional<HttpResponse>> handler;
 
-    private Mapping(Predicate<HttpRequest> predicate, Function<HttpRequest, HttpResponse> handler) {
+    private Mapping(Predicate<HttpRequest> predicate, Function<HttpRequest, Optional<HttpResponse>> handler) {
       this.predicate = requireNonNull(predicate);
       this.handler = requireNonNull(handler);
     }
@@ -107,7 +107,7 @@ public class HttpService {
       return predicate.test(request);
     }
 
-    public HttpResponse execute(HttpRequest request) {
+    public Optional<HttpResponse> execute(HttpRequest request) {
       return handler.apply(request);
     }
   }
