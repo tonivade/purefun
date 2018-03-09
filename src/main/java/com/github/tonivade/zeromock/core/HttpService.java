@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Handlers.delegate;
 import static com.github.tonivade.zeromock.core.Predicates.startsWith;
 import static java.util.Objects.requireNonNull;
 
@@ -34,11 +33,12 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    return add(startsWith(path), delegate(service));
+    addMapping(new ServiceMapping(path, service));
+    return this;
   }
   
   public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
-    addMapping(new Mapping(matcher, handler));
+    addMapping(new FunctionMapping(matcher, handler));
     return this;
   }
   
@@ -47,7 +47,7 @@ public class HttpService {
   }
   
   public Optional<HttpResponse> execute(HttpRequest request) {
-    return findMapping(request).map(mapping -> mapping.execute(request));
+    return findMapping(request).flatMap(mapping -> mapping.execute(request));
   }
   
   public HttpService combine(HttpService other) {
@@ -94,11 +94,17 @@ public class HttpService {
     }
   }
   
-  public static final class Mapping {
+  private static interface Mapping {
+    boolean test(HttpRequest request);
+
+    Optional<HttpResponse> execute(HttpRequest request);
+  }
+  
+  public static final class FunctionMapping implements Mapping {
     private final Predicate<HttpRequest> predicate;
     private final Function<HttpRequest, HttpResponse> handler;
 
-    private Mapping(Predicate<HttpRequest> predicate, Function<HttpRequest, HttpResponse> handler) {
+    private FunctionMapping(Predicate<HttpRequest> predicate, Function<HttpRequest, HttpResponse> handler) {
       this.predicate = requireNonNull(predicate);
       this.handler = requireNonNull(handler);
     }
@@ -107,8 +113,26 @@ public class HttpService {
       return predicate.test(request);
     }
 
-    public HttpResponse execute(HttpRequest request) {
-      return handler.apply(request);
+    public Optional<HttpResponse> execute(HttpRequest request) {
+      return Optional.of(handler.apply(request));
+    }
+  }
+  
+  public static final class ServiceMapping implements Mapping {
+    private final Predicate<HttpRequest> predicate;
+    private final HttpService service;
+
+    private ServiceMapping(String path, HttpService service) {
+      this.predicate = startsWith(requireNonNull(path));
+      this.service = requireNonNull(service);
+    }
+
+    public boolean test(HttpRequest request) {
+      return predicate.test(request);
+    }
+
+    public Optional<HttpResponse> execute(HttpRequest request) {
+      return service.execute(request.dropOneLevel());
     }
   }
 }

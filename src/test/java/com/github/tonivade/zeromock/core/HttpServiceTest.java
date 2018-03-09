@@ -47,6 +47,7 @@ public class HttpServiceTest {
     HttpService service2 = new HttpService("service2").mount("/path", service1);
     
     assertAll(() -> assertEquals(Optional.of(Responses.ok("pong")), service2.execute(Requests.get("/path/ping"))),
+              () -> assertEquals(Optional.empty(), service2.execute(Requests.get("/path/notfound"))),
               () -> assertEquals(Optional.empty(), service2.execute(Requests.get("/ping"))));
   }
   

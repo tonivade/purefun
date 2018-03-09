@@ -5,11 +5,9 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Bytes.asBytes;
-import static com.github.tonivade.zeromock.core.Combinators.orElse;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 public final class Handlers {
   
@@ -98,16 +96,8 @@ public final class Handlers {
   public static Function<HttpRequest, HttpResponse> error(Function<HttpRequest, Bytes> handler) {
     return handler.andThen(Responses::error);
   }
-
-  public static Function<HttpRequest, HttpResponse> delegate(HttpService service) {
-    return dropOneLevel().andThen(service::execute).andThen(orElse(Responses::notFound));
-  }
   
   private static <T> Function<T, HttpResponse> adapt(Supplier<HttpResponse> supplier) {
     return Combinators.<T, HttpResponse>adapt(supplier);
-  }
-
-  private static UnaryOperator<HttpRequest> dropOneLevel() {
-    return request -> request.dropOneLevel();
   }
 }
