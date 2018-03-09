@@ -16,7 +16,7 @@ public final class Handlers {
   private Handlers() {}
 
   public static <T> Function<T, HttpResponse> ok() {
-    return force(Responses::ok);
+    return adapt(Responses::ok);
   }
 
   public static Function<HttpRequest, HttpResponse> ok(String body) {
@@ -44,15 +44,15 @@ public final class Handlers {
   }
   
   public static <T> Function<T, HttpResponse> noContent() {
-    return force(Responses::noContent);
+    return adapt(Responses::noContent);
   }
   
   public static <T> Function<T, HttpResponse> forbidden() {
-    return force(Responses::forbidden);
+    return adapt(Responses::forbidden);
   }
 
   public static Function<HttpRequest, HttpResponse> badRequest() {
-    return force(Responses::badRequest);
+    return adapt(Responses::badRequest);
   }
 
   public static Function<HttpRequest, HttpResponse> badRequest(String body) {
@@ -68,7 +68,7 @@ public final class Handlers {
   }
 
   public static <T> Function<T, HttpResponse> notFound() {
-    return force(Responses::notFound);
+    return adapt(Responses::notFound);
   }
 
   public static Function<HttpRequest, HttpResponse> notFound(String body) {
@@ -84,7 +84,7 @@ public final class Handlers {
   }
 
   public static <T> Function<T, HttpResponse> error() {
-    return force(Responses::error);
+    return adapt(Responses::error);
   }
 
   public static Function<HttpRequest, HttpResponse> error(String body) {
@@ -103,7 +103,7 @@ public final class Handlers {
     return dropOneLevel().andThen(service::execute).andThen(orElse(Responses::notFound));
   }
   
-  private static <T> Function<T, HttpResponse> force(Supplier<HttpResponse> supplier) {
+  private static <T> Function<T, HttpResponse> adapt(Supplier<HttpResponse> supplier) {
     return Combinators.<T, HttpResponse>adapt(supplier);
   }
 
