@@ -33,12 +33,12 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    addMapping(new ServiceMapping(path, service));
+    addMapping(new Mapping(startsWith(path), dropOneLevel().andThen(service::execute)));
     return this;
   }
   
   public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
-    addMapping(new FunctionMapping(matcher, handler));
+    addMapping(new Mapping(matcher, handler.andThen(Optional::of)));
     return this;
   }
   
@@ -76,6 +76,10 @@ public class HttpService {
         .findFirst();
   }
 
+  private Function<HttpRequest, HttpRequest> dropOneLevel() {
+    return HttpRequest::dropOneLevel;
+  }
+
   public static final class MappingBuilder<T> {
     private final BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher;
     private Predicate<HttpRequest> matcher;
@@ -94,17 +98,11 @@ public class HttpService {
     }
   }
   
-  private static interface Mapping {
-    boolean test(HttpRequest request);
-
-    Optional<HttpResponse> execute(HttpRequest request);
-  }
-  
-  public static final class FunctionMapping implements Mapping {
+  public static final class Mapping {
     private final Predicate<HttpRequest> predicate;
-    private final Function<HttpRequest, HttpResponse> handler;
+    private final Function<HttpRequest, Optional<HttpResponse>> handler;
 
-    private FunctionMapping(Predicate<HttpRequest> predicate, Function<HttpRequest, HttpResponse> handler) {
+    private Mapping(Predicate<HttpRequest> predicate, Function<HttpRequest, Optional<HttpResponse>> handler) {
       this.predicate = requireNonNull(predicate);
       this.handler = requireNonNull(handler);
     }
@@ -114,25 +112,7 @@ public class HttpService {
     }
 
     public Optional<HttpResponse> execute(HttpRequest request) {
-      return Optional.of(handler.apply(request));
-    }
-  }
-  
-  public static final class ServiceMapping implements Mapping {
-    private final Predicate<HttpRequest> predicate;
-    private final HttpService service;
-
-    private ServiceMapping(String path, HttpService service) {
-      this.predicate = startsWith(requireNonNull(path));
-      this.service = requireNonNull(service);
-    }
-
-    public boolean test(HttpRequest request) {
-      return predicate.test(request);
-    }
-
-    public Optional<HttpResponse> execute(HttpRequest request) {
-      return service.execute(request.dropOneLevel());
+      return handler.apply(request);
     }
   }
 }
