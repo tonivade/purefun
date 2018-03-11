@@ -39,8 +39,7 @@ public class HttpService {
   }
   
   public HttpService exec(Function<HttpRequest, HttpResponse> handler) {
-    addMapping(new Mapping(all(), handler.andThen(Optional::of)));
-    return this;
+    return add(all(), handler);
   }
   
   public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
