@@ -50,6 +50,10 @@ public final class Responses {
     return badRequest(empty());
   }
 
+  public static HttpResponse badRequest(String body) {
+    return badRequest(asBytes(body));
+  }
+
   public static HttpResponse badRequest(Bytes body) {
     return new HttpResponse(BAD_REQUEST, body);
   }
@@ -58,12 +62,20 @@ public final class Responses {
     return notFound(empty());
   }
 
+  public static HttpResponse notFound(String body) {
+    return notFound(asBytes(body));
+  }
+
   public static HttpResponse notFound(Bytes body) {
     return new HttpResponse(NOT_FOUND, body);
   }
 
   public static HttpResponse error() {
     return error(empty());
+  }
+
+  public static HttpResponse error(String body) {
+    return error(asBytes(body));
   }
 
   public static HttpResponse error(Bytes body) {

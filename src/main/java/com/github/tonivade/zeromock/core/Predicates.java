@@ -17,6 +17,10 @@ import java.util.function.Predicate;
 public final class Predicates {
 
   private Predicates() {}
+  
+  public static Predicate<HttpRequest> all() {
+    return request -> true;
+  }
 
   public static Predicate<HttpRequest> method(HttpMethod method) {
     return request -> request.method().equals(method);
