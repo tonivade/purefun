@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Predicates.all;
 import static com.github.tonivade.zeromock.core.Predicates.startsWith;
 import static java.util.Objects.requireNonNull;
 
@@ -34,6 +35,11 @@ public class HttpService {
 
   public HttpService mount(String path, HttpService service) {
     addMapping(new Mapping(startsWith(path), dropOneLevel().andThen(service::execute)));
+    return this;
+  }
+  
+  public HttpService exec(Function<HttpRequest, HttpResponse> handler) {
+    addMapping(new Mapping(all(), handler.andThen(Optional::of)));
     return this;
   }
   

@@ -40,6 +40,13 @@ public class HttpServiceTest {
     
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
   }
+
+  @Test
+  public void exec() {
+    HttpService service = new HttpService("service").exec(Handlers.ok("pong"));
+    
+    assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
+  }
   
   @Test
   public void mount() {
