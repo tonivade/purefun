@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.zeromock.core.Handlers;
 import com.github.tonivade.zeromock.core.HttpService;
-import com.github.tonivade.zeromock.core.Predicates;
+import com.github.tonivade.zeromock.core.Matchers;
 import com.github.tonivade.zeromock.core.Requests;
 import com.github.tonivade.zeromock.core.Responses;
 
@@ -29,14 +29,14 @@ public class HttpServiceTest {
 
   @Test
   public void whenThen() {
-    HttpService service = new HttpService("service").when(Predicates.get("/ping")).then(Handlers.ok("pong"));
+    HttpService service = new HttpService("service").when(Matchers.get("/ping")).then(Handlers.ok("pong"));
     
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
   }
 
   @Test
   public void add() {
-    HttpService service = new HttpService("service").add(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service = new HttpService("service").add(Matchers.get("/ping"), Handlers.ok("pong"));
     
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
   }
@@ -50,7 +50,7 @@ public class HttpServiceTest {
   
   @Test
   public void mount() {
-    HttpService service1 = new HttpService("service1").add(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service1 = new HttpService("service1").add(Matchers.get("/ping"), Handlers.ok("pong"));
     HttpService service2 = new HttpService("service2").mount("/path", service1);
     
     assertAll(() -> assertEquals(Optional.of(Responses.ok("pong")), service2.execute(Requests.get("/path/ping"))),
@@ -60,7 +60,7 @@ public class HttpServiceTest {
   
   @Test
   public void combine() {
-    HttpService service1 = new HttpService("service1").add(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service1 = new HttpService("service1").add(Matchers.get("/ping"), Handlers.ok("pong"));
     HttpService service2 = new HttpService("service2");
     
     assertEquals(Optional.of(Responses.ok("pong")), service1.combine(service2).execute(Requests.get("/ping")));
@@ -68,7 +68,7 @@ public class HttpServiceTest {
   
   @Test
   public void clear() {
-    HttpService service = new HttpService("service").add(Predicates.get("/ping"), Handlers.ok("pong"));
+    HttpService service = new HttpService("service").add(Matchers.get("/ping"), Handlers.ok("pong"));
     assertEquals(Optional.of(Responses.ok("pong")), service.execute(Requests.get("/ping")));
     service.clear();
 

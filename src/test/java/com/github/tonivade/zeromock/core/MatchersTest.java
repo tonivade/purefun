@@ -4,21 +4,21 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Predicates.body;
-import static com.github.tonivade.zeromock.core.Predicates.delete;
-import static com.github.tonivade.zeromock.core.Predicates.get;
-import static com.github.tonivade.zeromock.core.Predicates.header;
-import static com.github.tonivade.zeromock.core.Predicates.param;
-import static com.github.tonivade.zeromock.core.Predicates.patch;
-import static com.github.tonivade.zeromock.core.Predicates.post;
-import static com.github.tonivade.zeromock.core.Predicates.put;
-import static com.github.tonivade.zeromock.core.Predicates.startsWith;
+import static com.github.tonivade.zeromock.core.Matchers.body;
+import static com.github.tonivade.zeromock.core.Matchers.delete;
+import static com.github.tonivade.zeromock.core.Matchers.get;
+import static com.github.tonivade.zeromock.core.Matchers.header;
+import static com.github.tonivade.zeromock.core.Matchers.param;
+import static com.github.tonivade.zeromock.core.Matchers.patch;
+import static com.github.tonivade.zeromock.core.Matchers.post;
+import static com.github.tonivade.zeromock.core.Matchers.put;
+import static com.github.tonivade.zeromock.core.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-public class PredicatesTest {
+public class MatchersTest {
   @Test
   public void methods() {
     assertAll(() -> assertTrue(get("/test")   .test(Requests.get("/test"))),

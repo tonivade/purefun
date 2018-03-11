@@ -14,9 +14,9 @@ import static com.github.tonivade.zeromock.core.HttpMethod.PUT;
 import java.lang.reflect.Type;
 import java.util.function.Predicate;
 
-public final class Predicates {
+public final class Matchers {
 
-  private Predicates() {}
+  private Matchers() {}
   
   public static Predicate<HttpRequest> all() {
     return request -> true;

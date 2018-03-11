@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Predicates.all;
-import static com.github.tonivade.zeromock.core.Predicates.startsWith;
+import static com.github.tonivade.zeromock.core.Matchers.all;
+import static com.github.tonivade.zeromock.core.Matchers.startsWith;
 import static java.util.Objects.requireNonNull;
 
 import java.util.LinkedList;
@@ -104,16 +104,16 @@ public class HttpService {
   }
   
   public static final class Mapping {
-    private final Predicate<HttpRequest> predicate;
+    private final Predicate<HttpRequest> matcher;
     private final Function<HttpRequest, Optional<HttpResponse>> handler;
 
-    private Mapping(Predicate<HttpRequest> predicate, Function<HttpRequest, Optional<HttpResponse>> handler) {
-      this.predicate = requireNonNull(predicate);
+    private Mapping(Predicate<HttpRequest> matcher, Function<HttpRequest, Optional<HttpResponse>> handler) {
+      this.matcher = requireNonNull(matcher);
       this.handler = requireNonNull(handler);
     }
 
     public boolean test(HttpRequest request) {
-      return predicate.test(request);
+      return matcher.test(request);
     }
 
     public Optional<HttpResponse> execute(HttpRequest request) {
