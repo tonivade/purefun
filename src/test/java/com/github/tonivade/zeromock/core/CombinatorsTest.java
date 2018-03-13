@@ -7,10 +7,10 @@ package com.github.tonivade.zeromock.core;
 import static com.github.tonivade.zeromock.core.Combinators.flatMap;
 import static com.github.tonivade.zeromock.core.Combinators.adapt;
 import static com.github.tonivade.zeromock.core.Combinators.identity;
-import static com.github.tonivade.zeromock.core.Combinators.join;
+import static com.github.tonivade.zeromock.core.Combinators.tupple;
 import static com.github.tonivade.zeromock.core.Combinators.map;
 import static com.github.tonivade.zeromock.core.Combinators.orElse;
-import static com.github.tonivade.zeromock.core.Combinators.split;
+import static com.github.tonivade.zeromock.core.Combinators.apply;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -48,16 +48,16 @@ public class CombinatorsTest {
   }
   
   @Test
-  public void joinTest() {
-    BiTupple<String, String> tupple = join(adapt(() -> "a"), adapt(() -> "b")).apply("xxx");
+  public void tuppleTest() {
+    BiTupple<String, String> tupple = tupple(adapt(() -> "a"), adapt(() -> "b")).apply("xxx");
     
     assertAll(() -> assertEquals("a", tupple.get1()),
               () -> assertEquals("b", tupple.get2()));
   }
   
   @Test
-  public void splitTest() {
-    String string = split((String a, String b) -> a + b).apply(BiTupple.of("a", "b"));
+  public void applyTest() {
+    String string = apply((String a, String b) -> a + b).apply(BiTupple.of("a", "b"));
     
     assertEquals("ab", string);
   }

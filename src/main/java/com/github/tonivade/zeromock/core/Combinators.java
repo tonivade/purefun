@@ -19,11 +19,11 @@ public final class Combinators {
   
   private Combinators() {}
   
-  public static <H, T, U, R> Function<H, BiTupple<T, U>> join(Function<H, T> beginT, Function<H, U> beginU) {
-    return request -> BiTupple.of(beginT.apply(request), beginU.apply(request));
+  public static <H, T, U, R> Function<H, BiTupple<T, U>> tupple(Function<H, T> beginT, Function<H, U> beginU) {
+    return value -> BiTupple.of(beginT.apply(value), beginU.apply(value));
   }
   
-  public static <T, U, R> Function<BiTupple<T, U>, R> split(BiFunction<T, U, R> function) {
+  public static <T, U, R> Function<BiTupple<T, U>, R> apply(BiFunction<T, U, R> function) {
     return tupple -> function.apply(tupple.get1(), tupple.get2());
   }
   
