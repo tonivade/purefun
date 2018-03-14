@@ -34,6 +34,10 @@ public final class HttpPath {
     return new HttpPath(value.stream().skip(1).collect(toList()));
   }
   
+  public int size() {
+    return value.size();
+  }
+  
   public Optional<PathElement> getAt(int position) {
     return value.size() > position ? Optional.of(value.get(position)): Optional.empty();
   }
@@ -43,16 +47,7 @@ public final class HttpPath {
   }
 
   public boolean startsWith(HttpPath other) {
-    for (int i = 0; i < other.value.size(); i++) {
-      if (!other.value.get(i).value.equals(this.value.get(i).value)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public String toPattern() {
-    return ROOT + value.stream().map(PathElement::toPattern).collect(joining(ROOT));
+    return Pattern.matches(other.toPattern() + ".*", this.toPattern());
   }
   
   public String toPath() {
@@ -74,6 +69,10 @@ public final class HttpPath {
   @Override
   public String toString() {
     return "Path(" + value.toString() + ")";
+  }
+
+  private String toPattern() {
+    return ROOT + value.stream().map(PathElement::toPattern).collect(joining(ROOT));
   }
   
   private static PathElement toPathElement(String value) {
