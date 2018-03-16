@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Combinators.lift;
 import static com.github.tonivade.zeromock.core.Matchers.all;
 import static com.github.tonivade.zeromock.core.Matchers.startsWith;
 import static java.util.Objects.requireNonNull;
@@ -34,16 +35,17 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    addMapping(new Mapping(startsWith(path), dropOneLevel().andThen(service::execute)));
+    addMapping(startsWith(path), dropOneLevel().andThen(service::execute));
     return this;
   }
   
   public HttpService exec(Function<HttpRequest, HttpResponse> handler) {
-    return add(all(), handler);
+    addMapping(all(), lift(handler));
+    return this;
   }
   
   public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
-    addMapping(new Mapping(matcher, handler.andThen(Optional::of)));
+    addMapping(matcher, lift(handler));
     return this;
   }
   
@@ -71,8 +73,9 @@ public class HttpService {
     mappings.clear();
   }
   
-  private void addMapping(Mapping mapping) {
-    mappings.add(mapping);
+  private void addMapping(Predicate<HttpRequest> matcher, 
+                          Function<HttpRequest, Optional<HttpResponse>> handler) {
+    mappings.add(new Mapping(matcher, handler));
   }
 
   private Optional<Mapping> findMapping(HttpRequest request) {

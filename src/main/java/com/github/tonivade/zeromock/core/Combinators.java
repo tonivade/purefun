@@ -50,6 +50,10 @@ public final class Combinators {
   public static <T> Function<Optional<T>, T> orElse(Supplier<T> supplier) {
     return optional -> optional.orElseGet(supplier);
   }
+  
+  public static <T, R> Function<T, Optional<R>> lift(Function<T, R> function) {
+    return function.andThen(Optional::of);
+  }
 
   public static final class BiTupple<T, U> {
     private final T t;
