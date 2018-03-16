@@ -27,11 +27,11 @@ public final class Matchers {
   }
   
   public static Predicate<HttpRequest> path(String url) {
-    return request -> request.path().match(new HttpPath(url));
+    return request -> request.path().match(HttpPath.from(url));
   }
   
   public static Predicate<HttpRequest> startsWith(String url) {
-    return request -> request.path().startsWith(new HttpPath(url));
+    return request -> request.path().startsWith(HttpPath.from(url));
   }
   
   public static Predicate<HttpRequest> param(String name) {

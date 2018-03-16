@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Combinators.identity;
 import static com.github.tonivade.zeromock.core.Combinators.lift;
 import static com.github.tonivade.zeromock.core.Matchers.all;
 import static com.github.tonivade.zeromock.core.Matchers.startsWith;
@@ -35,7 +36,7 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    addMapping(startsWith(path), dropOneLevel().andThen(service::execute));
+    addMapping(startsWith(path), identity(HttpRequest::dropOneLevel).andThen(service::execute));
     return this;
   }
   
@@ -82,10 +83,6 @@ public class HttpService {
     return mappings.stream()
         .filter(mapping -> mapping.test(request))
         .findFirst();
-  }
-
-  private Function<HttpRequest, HttpRequest> dropOneLevel() {
-    return HttpRequest::dropOneLevel;
   }
 
   public static final class MappingBuilder<T> {

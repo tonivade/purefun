@@ -5,6 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import static java.util.Collections.unmodifiableList;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static tonivade.equalizer.Equalizer.equalizer;
@@ -21,10 +22,6 @@ public final class HttpPath {
   private static final String PARAM_PREFIX = ":";
 
   private final List<PathElement> value;
-  
-  public HttpPath(String path) {
-    this(Stream.of(path.split(ROOT)).skip(1).map(HttpPath::toPathElement).collect(toList()));
-  }
   
   private HttpPath(List<PathElement> path) {
     this.value = unmodifiableList(path);
@@ -73,6 +70,20 @@ public final class HttpPath {
 
   private String toPattern() {
     return ROOT + value.stream().map(PathElement::toPattern).collect(joining(ROOT));
+  }
+
+  public static HttpPath of(String... path) {
+    if (isNull(path)) {
+      throw new IllegalArgumentException("invalid path definition: " + path);
+    }
+    return new HttpPath(Stream.of(path).map(HttpPath::toPathElement).collect(toList()));
+  }
+  
+  public static HttpPath from(String path) {
+    if (isNull(path) || path.isEmpty() || !path.startsWith(ROOT)) {
+      throw new IllegalArgumentException("invalid path: " + path);
+    }
+    return new HttpPath(Stream.of(path.split(ROOT)).skip(1).map(HttpPath::toPathElement).collect(toList()));
   }
   
   private static PathElement toPathElement(String value) {
