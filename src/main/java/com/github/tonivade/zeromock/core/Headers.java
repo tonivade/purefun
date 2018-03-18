@@ -4,25 +4,23 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.function.UnaryOperator;
-
 public final class Headers {
 
   private Headers() {}
   
-  public static UnaryOperator<HttpResponse> contentType(String value) {
+  public static Handler1<HttpResponse, HttpResponse> contentType(String value) {
     return response -> response.withHeader("Content-type", value);
   }
   
-  public static UnaryOperator<HttpResponse> contentPlain() {
+  public static Handler1<HttpResponse, HttpResponse> contentPlain() {
     return contentType("text/plain");
   }
   
-  public static UnaryOperator<HttpResponse> contentJson() {
+  public static Handler1<HttpResponse, HttpResponse> contentJson() {
     return contentType("application/json");
   }
   
-  public static UnaryOperator<HttpResponse> contentXml() {
+  public static Handler1<HttpResponse, HttpResponse> contentXml() {
     return contentType("text/xml");
   }
 }

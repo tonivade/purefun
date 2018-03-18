@@ -4,37 +4,35 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.function.Function;
-
 public final class Extractors {
   
   private Extractors() {}
 
-  public static Function<HttpRequest, HttpRequest> identity() {
-    return Function.identity();
+  public static Handler1<HttpRequest, HttpRequest> identity() {
+    return Handler1.identity();
   }
 
-  public static Function<HttpRequest, Bytes> body() {
+  public static Handler1<HttpRequest, Bytes> body() {
     return request -> request.body();
   }
 
-  public static Function<HttpRequest, String> queryParam(String name) {
+  public static Handler1<HttpRequest, String> queryParam(String name) {
     return request -> request.param(name);
   }
 
-  public static Function<HttpRequest, String> pathParam(int position) {
+  public static Handler1<HttpRequest, String> pathParam(int position) {
     return request -> request.pathParam(position);
   }
   
-  public static Function<Bytes, String> asString() {
+  public static Handler1<Bytes, String> asString() {
     return Bytes::asString;
   }
   
-  public static Function<String, Integer> asInteger() {
+  public static Handler1<String, Integer> asInteger() {
     return Integer::parseInt;
   }
   
-  public static Function<String, Long> asLong() {
+  public static Handler1<String, Long> asLong() {
     return Long::parseLong;
   }
 }

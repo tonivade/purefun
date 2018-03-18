@@ -21,20 +21,20 @@ import org.junit.jupiter.api.Test;
 public class MatchersTest {
   @Test
   public void methods() {
-    assertAll(() -> assertTrue(get("/test")   .test(Requests.get("/test"))),
-              () -> assertTrue(post("/test")  .test(Requests.post("/test"))),
-              () -> assertTrue(delete("/test").test(Requests.delete("/test"))),
-              () -> assertTrue(put("/test")   .test(Requests.put("/test"))),
-              () -> assertTrue(patch("/test") .test(Requests.patch("/test"))));
+    assertAll(() -> assertTrue(get("/test")   .match(Requests.get("/test"))),
+              () -> assertTrue(post("/test")  .match(Requests.post("/test"))),
+              () -> assertTrue(delete("/test").match(Requests.delete("/test"))),
+              () -> assertTrue(put("/test")   .match(Requests.put("/test"))),
+              () -> assertTrue(patch("/test") .match(Requests.patch("/test"))));
   }
 
   @Test
   public void parameters() {
-    assertAll(() -> assertTrue(param("key")             .test(Requests.get("/test").withParam("key", "value"))),
-              () -> assertTrue(param("key", "value")    .test(Requests.get("/test").withParam("key", "value"))),
-              () -> assertTrue(startsWith("/path")      .test(Requests.get("/path/test"))),
-              () -> assertTrue(get("/test/:id")         .test(Requests.get("/test/1"))),
-              () -> assertTrue(body("asdfg")            .test(Requests.get("/test").withBody("asdfg"))),
-              () -> assertTrue(header("header", "value").test(Requests.get("/test").withHeader("header", "value"))));
+    assertAll(() -> assertTrue(param("key")             .match(Requests.get("/test").withParam("key", "value"))),
+              () -> assertTrue(param("key", "value")    .match(Requests.get("/test").withParam("key", "value"))),
+              () -> assertTrue(startsWith("/path")      .match(Requests.get("/path/test"))),
+              () -> assertTrue(get("/test/:id")         .match(Requests.get("/test/1"))),
+              () -> assertTrue(body("asdfg")            .match(Requests.get("/test").withBody("asdfg"))),
+              () -> assertTrue(header("header", "value").match(Requests.get("/test").withHeader("header", "value"))));
   }
 }

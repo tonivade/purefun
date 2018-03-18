@@ -4,8 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Combinators.identity;
-import static com.github.tonivade.zeromock.core.Combinators.lift;
+import static com.github.tonivade.zeromock.core.Handler1.identity;
 import static com.github.tonivade.zeromock.core.Matchers.all;
 import static com.github.tonivade.zeromock.core.Matchers.startsWith;
 import static java.util.Objects.requireNonNull;
@@ -14,8 +13,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class HttpService {
   
@@ -36,26 +33,26 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    addMapping(startsWith(path), identity(HttpRequest::dropOneLevel).andThen(service::execute));
+    addMapping(startsWith(path), identity(HttpRequest::dropOneLevel).andThen(service::execute)::handle);
     return this;
   }
   
-  public HttpService exec(Function<HttpRequest, HttpResponse> handler) {
-    addMapping(all(), lift(handler));
+  public HttpService exec(Handler1<HttpRequest, HttpResponse> handler) {
+    addMapping(all(), handler.lift());
     return this;
   }
   
-  public HttpService add(Predicate<HttpRequest> matcher, Function<HttpRequest, HttpResponse> handler) {
-    addMapping(matcher, lift(handler));
+  public HttpService add(Matcher matcher, Handler1<HttpRequest, HttpResponse> handler) {
+    addMapping(matcher, handler.lift());
     return this;
   }
   
-  public MappingBuilder<HttpService> when(Predicate<HttpRequest> matcher) {
+  public MappingBuilder<HttpService> when(Matcher matcher) {
     return new MappingBuilder<>(this::add).when(matcher);
   }
   
   public Optional<HttpResponse> execute(HttpRequest request) {
-    return findMapping(request).flatMap(mapping -> mapping.execute(request));
+    return findMapping(request).flatMap(mapping -> mapping.handle(request));
   }
   
   public HttpService combine(HttpService other) {
@@ -74,50 +71,49 @@ public class HttpService {
     mappings.clear();
   }
   
-  private void addMapping(Predicate<HttpRequest> matcher, 
-                          Function<HttpRequest, Optional<HttpResponse>> handler) {
+  private void addMapping(Matcher matcher, OptionalHandler<HttpRequest, HttpResponse> handler) {
     mappings.add(new Mapping(matcher, handler));
   }
 
   private Optional<Mapping> findMapping(HttpRequest request) {
     return mappings.stream()
-        .filter(mapping -> mapping.test(request))
+        .filter(mapping -> mapping.match(request))
         .findFirst();
   }
 
   public static final class MappingBuilder<T> {
-    private final BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher;
-    private Predicate<HttpRequest> matcher;
+    private final BiFunction<Matcher, Handler1<HttpRequest, HttpResponse>, T> finisher;
+    private Matcher matcher;
     
-    public MappingBuilder(BiFunction<Predicate<HttpRequest>, Function<HttpRequest, HttpResponse>, T> finisher) {
+    public MappingBuilder(BiFunction<Matcher, Handler1<HttpRequest, HttpResponse>, T> finisher) {
       this.finisher = requireNonNull(finisher);
     }
 
-    public MappingBuilder<T> when(Predicate<HttpRequest> matcher) {
+    public MappingBuilder<T> when(Matcher matcher) {
       this.matcher = matcher;
       return this;
     }
 
-    public T then(Function<HttpRequest, HttpResponse> handler) {
+    public T then(Handler1<HttpRequest, HttpResponse> handler) {
       return finisher.apply(matcher, handler);
     }
   }
   
   public static final class Mapping {
-    private final Predicate<HttpRequest> matcher;
-    private final Function<HttpRequest, Optional<HttpResponse>> handler;
+    private final Matcher matcher;
+    private final OptionalHandler<HttpRequest, HttpResponse> handler;
 
-    private Mapping(Predicate<HttpRequest> matcher, Function<HttpRequest, Optional<HttpResponse>> handler) {
+    private Mapping(Matcher matcher, OptionalHandler<HttpRequest, HttpResponse> handler) {
       this.matcher = requireNonNull(matcher);
       this.handler = requireNonNull(handler);
     }
 
-    public boolean test(HttpRequest request) {
-      return matcher.test(request);
+    public boolean match(HttpRequest request) {
+      return matcher.match(request);
     }
 
-    public Optional<HttpResponse> execute(HttpRequest request) {
-      return handler.apply(request);
+    public Optional<HttpResponse> handle(HttpRequest request) {
+      return handler.handle(request);
     }
   }
 }

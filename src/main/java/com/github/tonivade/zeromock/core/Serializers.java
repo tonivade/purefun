@@ -4,12 +4,11 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Combinators.adapt;
+import static com.github.tonivade.zeromock.core.Handler1.adapt;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
-import java.util.function.Function;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -21,27 +20,27 @@ public final class Serializers {
   
   private Serializers() {}
   
-  public static <T> Function<T, Bytes> empty() {
+  public static <T> Handler1<T, Bytes> empty() {
     return adapt(Bytes::empty);
   }
   
-  public static <T> Function<T, Bytes> json() {
+  public static <T> Handler1<T, Bytes> json() {
     return Serializers.<T>asJson().andThen(Bytes::asBytes);
   }
   
-  public static <T> Function<T, Bytes> xml() {
+  public static <T> Handler1<T, Bytes> xml() {
     return Serializers.<T>asXml().andThen(Bytes::asBytes);
   }
 
-  public static <T> Function<T, Bytes> plain() {
+  public static <T> Handler1<T, Bytes> plain() {
     return Serializers.<T>asString().andThen(Bytes::asBytes);
   }
   
-  private static <T> Function<T, String> asJson() {
+  private static <T> Handler1<T, String> asJson() {
     return value -> new GsonBuilder().create().toJson(value);
   }
   
-  private static <T> Function<T, String> asXml() {
+  private static <T> Handler1<T, String> asXml() {
     return Serializers::toXml;
   }
   
@@ -57,7 +56,7 @@ public final class Serializers {
     }
   }
   
-  private static <T> Function<T, String> asString() {
+  private static <T> Handler1<T, String> asString() {
     return Object::toString;
   }
 }

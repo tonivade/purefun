@@ -12,101 +12,100 @@ import static com.github.tonivade.zeromock.core.HttpMethod.POST;
 import static com.github.tonivade.zeromock.core.HttpMethod.PUT;
 
 import java.lang.reflect.Type;
-import java.util.function.Predicate;
 
 public final class Matchers {
 
   private Matchers() {}
   
-  public static Predicate<HttpRequest> all() {
+  public static Matcher all() {
     return request -> true;
   }
 
-  public static Predicate<HttpRequest> method(HttpMethod method) {
+  public static Matcher method(HttpMethod method) {
     return request -> request.method().equals(method);
   }
   
-  public static Predicate<HttpRequest> path(String url) {
+  public static Matcher path(String url) {
     return request -> request.path().match(HttpPath.from(url));
   }
   
-  public static Predicate<HttpRequest> startsWith(String url) {
+  public static Matcher startsWith(String url) {
     return request -> request.path().startsWith(HttpPath.from(url));
   }
   
-  public static Predicate<HttpRequest> param(String name) {
+  public static Matcher param(String name) {
     return request -> request.params().contains(name);
   }
   
-  public static Predicate<HttpRequest> param(String name, String value) {
+  public static Matcher param(String name, String value) {
     return request -> request.params().get(name).map(param -> value.equals(param)).orElse(false);
   }
   
-  public static Predicate<HttpRequest> header(String key, String value) {
+  public static Matcher header(String key, String value) {
     return request -> request.headers().get(key).contains(value);
   }
   
-  public static Predicate<HttpRequest> get() {
+  public static Matcher get() {
     return method(GET);
   }
   
-  public static Predicate<HttpRequest> put() {
+  public static Matcher put() {
     return method(PUT);
   }
   
-  public static Predicate<HttpRequest> post() {
+  public static Matcher post() {
     return method(POST);
   }
   
-  public static Predicate<HttpRequest> delete() {
+  public static Matcher delete() {
     return method(DELETE);
   }
   
-  public static Predicate<HttpRequest> patch() {
+  public static Matcher patch() {
     return method(PATCH);
   }
   
-  public static <T> Predicate<HttpRequest> equalTo(T value) {
+  public static <T> Matcher equalTo(T value) {
     return request -> json(request, value.getClass()).equals(value);
   }
   
-  public static Predicate<HttpRequest> body(String body) {
+  public static Matcher body(String body) {
     return request -> asString(request.body()).equals(body);
   }
   
-  public static Predicate<HttpRequest> accept(String contentType) {
+  public static Matcher accept(String contentType) {
     return header("Accept", contentType);
   }
   
-  public static Predicate<HttpRequest> acceptsXml() {
+  public static Matcher acceptsXml() {
     return accept("text/xml");
   }
   
-  public static Predicate<HttpRequest> acceptsJson() {
+  public static Matcher acceptsJson() {
     return accept("application/json");
   }
   
-  public static Predicate<HttpRequest> get(String path) {
+  public static Matcher get(String path) {
     return get().and(path(path));
   }
   
-  public static Predicate<HttpRequest> put(String path) {
+  public static Matcher put(String path) {
     return put().and(path(path));
   }
   
-  public static Predicate<HttpRequest> post(String path) {
+  public static Matcher post(String path) {
     return post().and(path(path));
   }
   
-  public static Predicate<HttpRequest> patch(String path) {
+  public static Matcher patch(String path) {
     return patch().and(path(path));
   }
   
-  public static Predicate<HttpRequest> delete(String path) {
+  public static Matcher delete(String path) {
     return delete().and(path(path));
   }
 
   private static <T> T json(HttpRequest request, Type type) {
-    return Extractors.body().andThen(Deserializers.<T>json(type)).apply(request);
+    return Extractors.body().andThen(Deserializers.<T>json(type)).handle(request);
   }
 }
