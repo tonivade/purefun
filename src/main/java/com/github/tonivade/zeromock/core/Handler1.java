@@ -23,7 +23,7 @@ public interface Handler1<T, R> {
   }
   
   default OptionalHandler<T, R> lift() {
-    return value -> Optional.of(handle(value));
+    return value -> Optional.ofNullable(handle(value));
   }
   
   static <T, R> Handler1<T, R> adapt(Supplier<R> supplier) {
