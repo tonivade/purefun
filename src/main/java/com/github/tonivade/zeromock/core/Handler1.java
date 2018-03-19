@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @FunctionalInterface
@@ -32,12 +33,12 @@ public interface Handler1<T, R> {
   static <T> Handler1<T, T> adapt(Consumer<T> consumer) {
     return value -> { consumer.accept(value); return value; };
   }
+
+  static <T, R> Handler1<T, R> adapt(Function<T, R> function) {
+    return function::apply;
+  }
   
   static <T> Handler1<T, T> identity() {
     return value -> value;
-  }
-
-  static <T, R> Handler1<T, R> identity(Handler1<T, R> function) {
-    return function;
   }
 }

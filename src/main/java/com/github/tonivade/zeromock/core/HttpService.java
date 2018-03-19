@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Handler1.identity;
+import static com.github.tonivade.zeromock.core.Handler1.adapt;
 import static com.github.tonivade.zeromock.core.Matchers.all;
 import static com.github.tonivade.zeromock.core.Matchers.startsWith;
 import static java.util.Objects.requireNonNull;
@@ -33,7 +33,7 @@ public class HttpService {
   }
 
   public HttpService mount(String path, HttpService service) {
-    addMapping(startsWith(path), identity(HttpRequest::dropOneLevel).andThen(service::execute)::handle);
+    addMapping(startsWith(path), adapt(HttpRequest::dropOneLevel).andThen(service::execute)::handle);
     return this;
   }
   

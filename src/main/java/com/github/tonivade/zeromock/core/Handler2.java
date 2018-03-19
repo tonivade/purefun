@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import java.util.function.BiFunction;
+
 public interface Handler2<T, V, R> {
 
   R handle(T t, V v);
@@ -16,11 +18,11 @@ public interface Handler2<T, V, R> {
     return (t, v) -> after.handle(handle(t, v));
   }
   
-  default <U> Handler1<U, R> combine(Handler1<U, T> beforeT, Handler1<U, V> beforeV) {
+  default <U> Handler1<U, R> compose(Handler1<U, T> beforeT, Handler1<U, V> beforeV) {
     return value -> handle(beforeT.handle(value), beforeV.handle(value));
   }
   
-  static <T, V, R> Handler2<T, V, R> identity(Handler2<T, V, R> handler) {
-    return handler;
+  static <T, V, R> Handler2<T, V, R> adapt(BiFunction<T, V, R> handler) {
+    return handler::apply;
   }
 }
