@@ -5,6 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public interface OptionalHandler<T, R> extends Handler1<T, Optional<R>> {
@@ -15,6 +16,10 @@ public interface OptionalHandler<T, R> extends Handler1<T, Optional<R>> {
   
   default <V> OptionalHandler<T, V> flatMap(Handler1<R, Optional<V>> mapper) {
     return value -> handle(value).flatMap(mapper::handle);
+  }
+  
+  default OptionalHandler<T, R> filter(Predicate<R> predicate) {
+    return value -> handle(value).filter(predicate);
   }
   
   default Handler1<T, R> orElse(Supplier<R> supplier) {

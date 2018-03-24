@@ -34,6 +34,20 @@ public class OptionalHandlerTest {
   }
   
   @Test
+  public void filterTest() {
+    OptionalHandler<String, Integer> str2int = str -> Optional.of(str.length());
+    
+    assertEquals(Optional.of(5), str2int.filter(x -> x > 0).handle("asdfg"));
+  }
+  
+  @Test
+  public void filterEmptyTest() {
+    OptionalHandler<String, Integer> str2int = str -> Optional.of(str.length());
+    
+    assertEquals(Optional.empty(), str2int.filter(x -> x > 10).handle("asdfg"));
+  }
+  
+  @Test
   public void flatMapTest() {
     OptionalHandler<String, Integer> str2int = str -> Optional.of(str.length());
     
