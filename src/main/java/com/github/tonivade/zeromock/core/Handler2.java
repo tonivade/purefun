@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import java.util.function.BiFunction;
 
+@FunctionalInterface
 public interface Handler2<T, V, R> {
 
   R handle(T t, V v);

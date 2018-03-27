@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@FunctionalInterface
 public interface OptionalHandler<T, R> extends Handler1<T, Optional<R>> {
   
   default <V> OptionalHandler<T, V> map(Handler1<R, V> mapper) {
