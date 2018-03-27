@@ -37,7 +37,7 @@ public class HttpService {
     return this;
   }
   
-  public HttpService exec(Handler1<HttpRequest, HttpResponse> handler) {
+  public HttpService exec(RequestHandler handler) {
     addMapping(all(), handler.lift());
     return this;
   }
