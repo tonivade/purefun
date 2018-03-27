@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface Handler1<T, R> {
@@ -24,6 +25,10 @@ public interface Handler1<T, R> {
   
   default OptionalHandler<T, R> lift() {
     return value -> Optional.ofNullable(handle(value));
+  }
+  
+  default StreamHandler<T, R> stream() {
+    return value -> Stream.of(handle(value));
   }
   
   static <T, R> Handler1<T, R> adapt(Supplier<R> supplier) {

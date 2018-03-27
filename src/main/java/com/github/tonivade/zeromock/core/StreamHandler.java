@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
+@FunctionalInterface
 public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
   
   default <V> StreamHandler<T, V> map(Handler1<R, V> mapper) {

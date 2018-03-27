@@ -42,7 +42,7 @@ public class HttpService {
     return this;
   }
   
-  public HttpService add(Matcher matcher, Handler1<HttpRequest, HttpResponse> handler) {
+  public HttpService add(Matcher matcher, RequestHandler handler) {
     addMapping(matcher, handler.lift());
     return this;
   }
@@ -82,10 +82,10 @@ public class HttpService {
   }
 
   public static final class MappingBuilder<T> {
-    private final BiFunction<Matcher, Handler1<HttpRequest, HttpResponse>, T> finisher;
+    private final BiFunction<Matcher, RequestHandler, T> finisher;
     private Matcher matcher;
     
-    public MappingBuilder(BiFunction<Matcher, Handler1<HttpRequest, HttpResponse>, T> finisher) {
+    public MappingBuilder(BiFunction<Matcher, RequestHandler, T> finisher) {
       this.finisher = requireNonNull(finisher);
     }
 
@@ -94,7 +94,7 @@ public class HttpService {
       return this;
     }
 
-    public T then(Handler1<HttpRequest, HttpResponse> handler) {
+    public T then(RequestHandler handler) {
       return finisher.apply(matcher, handler);
     }
   }
