@@ -12,7 +12,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 public class HttpService {
   
@@ -82,10 +81,10 @@ public class HttpService {
   }
 
   public static final class MappingBuilder<T> {
-    private final BiFunction<Matcher, RequestHandler, T> finisher;
+    private final Handler2<Matcher, RequestHandler, T> finisher;
     private Matcher matcher;
     
-    public MappingBuilder(BiFunction<Matcher, RequestHandler, T> finisher) {
+    public MappingBuilder(Handler2<Matcher, RequestHandler, T> finisher) {
       this.finisher = requireNonNull(finisher);
     }
 
@@ -95,7 +94,7 @@ public class HttpService {
     }
 
     public T then(RequestHandler handler) {
-      return finisher.apply(matcher, handler);
+      return finisher.handle(matcher, handler);
     }
   }
   
