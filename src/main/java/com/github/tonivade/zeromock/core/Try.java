@@ -19,7 +19,7 @@ public abstract class Try<T> {
   }
   
   public static <T> Try<T> failure(String message) {
-    return new Failure<>(new RuntimeException(message));
+    return new Failure<>(new AssertionError(message));
   }
   
   public static <T> Try<T> failure(Throwable error) {
@@ -29,7 +29,7 @@ public abstract class Try<T> {
   public static <T> Try<T> of(Supplier<T> supplier) {
     try {
       return success(supplier.get());
-    } catch(Throwable error) {
+    } catch (Throwable error) {
       return failure(error);
     }
   }

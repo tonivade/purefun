@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 public class TryTest {
-  final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
 
   @Test
   public void mapSuccess() {
@@ -143,6 +143,6 @@ public class TryTest {
   }
   
   private String messageFailure() {
-    throw new RuntimeException("Hola mundo");
+    throw new AssertionError("Hola mundo");
   }
 }
