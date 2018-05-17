@@ -70,10 +70,8 @@ public abstract class Try<T> {
   }
 
   public Try<T> filter(Predicate<T> predicate) {
-    if (isSuccess()) {
-      if (predicate.test(get())) {
-        return this;
-      }
+    if (isSuccess() && predicate.test(get())) {
+      return this;
     }
     return failure("filtered");
   }
