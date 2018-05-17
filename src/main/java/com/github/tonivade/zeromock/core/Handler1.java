@@ -27,6 +27,10 @@ public interface Handler1<T, R> {
     return value -> Optional.ofNullable(handle(value));
   }
   
+  default TryHandler<T, R> liftTry() {
+    return value -> Try.of(() -> handle(value));
+  }
+  
   default StreamHandler<T, R> stream() {
     return value -> Stream.of(handle(value));
   }
