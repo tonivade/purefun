@@ -41,10 +41,24 @@ public class Handler1Test {
   }
   
   @Test
-  public void liftTest() {
-    Optional<Integer> result = str2int.lift().handle("asdfg");
+  public void liftOptionalTest() {
+    Optional<Integer> result = str2int.liftOptional().handle("asdfg");
 
     assertEquals(Optional.of(5), result);
+  }
+  
+  @Test
+  public void liftOptionTest() {
+    Option<Integer> result = str2int.liftOption().handle("asdfg");
+
+    assertEquals(Option.some(5), result);
+  }
+  
+  @Test
+  public void liftTryTest() {
+    Try<Integer> result = str2int.liftTry().handle("asdfg");
+
+    assertEquals(Try.success(5), result);
   }
   
   @Test

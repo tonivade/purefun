@@ -23,8 +23,12 @@ public interface Handler1<T, R> {
     return (V value) -> handle(before.handle(value));
   }
   
-  default OptionalHandler<T, R> lift() {
+  default OptionalHandler<T, R> liftOptional() {
     return value -> Optional.ofNullable(handle(value));
+  }
+  
+  default OptionHandler<T, R> liftOption() {
+    return value -> Option.of(() -> handle(value));
   }
   
   default TryHandler<T, R> liftTry() {

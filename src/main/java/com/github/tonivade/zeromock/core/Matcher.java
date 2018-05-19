@@ -5,23 +5,23 @@
 package com.github.tonivade.zeromock.core;
 
 @FunctionalInterface
-public interface Matcher {
+public interface Matcher<T> {
 
-  boolean match(HttpRequest request);
+  boolean match(T target);
   
-  default Matcher and(Matcher other) {
+  default Matcher<T> and(Matcher<T> other) {
     return request -> match(request) && other.match(request);
   }
   
-  default Matcher or(Matcher other) {
+  default Matcher<T> or(Matcher<T> other) {
     return request -> match(request) || other.match(request);
   }
   
-  default Matcher negate() {
+  default Matcher<T> negate() {
     return request -> !match(request);
   }
   
-  static Matcher not(Matcher matcher) {
+  static <T> Matcher<T> not(Matcher<T> matcher) {
     return matcher.negate();
   }
 }

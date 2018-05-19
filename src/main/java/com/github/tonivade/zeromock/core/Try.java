@@ -9,8 +9,8 @@ import static tonivade.equalizer.Equalizer.equalizer;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -73,8 +73,8 @@ public abstract class Try<T> {
     return this;
   }
 
-  public Try<T> filter(Predicate<T> predicate) {
-    if (isSuccess() && predicate.test(get())) {
+  public Try<T> filter(Matcher<T> matcher) {
+    if (isSuccess() && matcher.match(get())) {
       return this;
     }
     return failure("filtered");
@@ -94,7 +94,14 @@ public abstract class Try<T> {
     return Stream.empty();
   }
   
-  public static class Success<T> extends Try<T> {
+  public Optional<T> toOptional() {
+    if (isSuccess()) {
+      return Optional.of(get());
+    }
+    return Optional.empty();
+  }
+  
+  static final class Success<T> extends Try<T> {
     private final T value;
     
     public Success(T value) {
@@ -139,7 +146,7 @@ public abstract class Try<T> {
     }
   }
   
-  public static class Failure<T> extends Try<T> {
+  static final class Failure<T> extends Try<T> {
     private final Throwable cause;
     
     public Failure(Throwable cause) {

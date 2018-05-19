@@ -7,17 +7,17 @@ package com.github.tonivade.zeromock.core;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface TryHandler<T, R> extends Handler1<T, Try<R>> {
+public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
   
-  default <V> TryHandler<T, V> map(Handler1<R, V> mapper) {
+  default <V> OptionHandler<T, V> map(Handler1<R, V> mapper) {
     return value -> handle(value).map(mapper::handle);
   }
   
-  default <V> TryHandler<T, V> flatMap(Handler1<R, Try<V>> mapper) {
+  default <V> OptionHandler<T, V> flatMap(Handler1<R, Option<V>> mapper) {
     return value -> handle(value).flatMap(mapper::handle);
   }
   
-  default TryHandler<T, R> filter(Matcher<R> predicate) {
+  default OptionHandler<T, R> filter(Matcher<R> predicate) {
     return value -> handle(value).filter(predicate);
   }
   

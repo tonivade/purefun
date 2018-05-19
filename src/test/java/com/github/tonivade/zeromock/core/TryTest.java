@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -92,6 +93,7 @@ public class TryTest {
               () -> assertFalse(try1.isFailure()),
               () -> assertEquals("Hola mundo", try1.get()),
               () -> assertEquals(Try.success("Hola mundo"), try1),
+              () -> assertEquals(Optional.of("Hola mundo"), try1.toOptional()),
               () -> assertEquals(singletonList("Hola mundo"), try1.stream().collect(toList())),
               () -> assertThrows(IllegalStateException.class, () -> try1.getCause()),
               () -> {
@@ -112,6 +114,7 @@ public class TryTest {
     
     assertAll(() -> assertFalse(try1.isSuccess()),
               () -> assertTrue(try1.isFailure()),
+              () -> assertEquals(Optional.empty(), try1.toOptional()),
               () -> assertEquals(Try.failure("Hola mundo"), Try.failure("Hola mundo")),
               () -> assertEquals("Hola mundo", try1.getCause().getMessage()),
               () -> assertEquals(emptyList(), try1.stream().collect(toList())),
