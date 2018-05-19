@@ -5,6 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -25,5 +26,13 @@ public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
   
   default <A, V> Handler1<T, V> collect(Collector<R, A, V> collector) {
     return value -> handle(value).collect(collector);
+  }
+  
+  static <T, R> StreamHandler<T, R> adapt(Handler1<T, Stream<R>> handler) {
+    return handler::handle;
+  }
+  
+  static <T, R> StreamHandler<T, R> adapt(Supplier<Stream<R>> supplier) {
+    return value -> supplier.get();
   }
 }

@@ -24,4 +24,12 @@ public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
   default Handler1<T, R> orElse(Supplier<R> supplier) {
     return value -> handle(value).orElse(supplier);
   }
+  
+  static <T, R> OptionHandler<T, R> adapt(Handler1<T, Option<R>> handler) {
+    return handler::handle;
+  }
+  
+  static <T, R> OptionHandler<T, R> adapt(Supplier<Option<R>> supplier) {
+    return value -> supplier.get();
+  }
 }

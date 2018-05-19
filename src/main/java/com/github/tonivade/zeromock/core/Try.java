@@ -72,6 +72,13 @@ public abstract class Try<T> {
     }
     return this;
   }
+  
+  public Try<T> recover(Handler1<Throwable, T> handler) {
+    if (isFailure()) {
+      return Try.of(() -> handler.handle(getCause()));
+    }
+    return this;
+  }
 
   public Try<T> filter(Matcher<T> matcher) {
     if (isSuccess() && matcher.match(get())) {
@@ -105,7 +112,7 @@ public abstract class Try<T> {
     private final T value;
     
     private Success(T value) {
-      this.value = requireNonNull(value);
+      this.value = value;
     }
     
     @Override

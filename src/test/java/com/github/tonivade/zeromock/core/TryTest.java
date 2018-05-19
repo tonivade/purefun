@@ -7,6 +7,7 @@ package com.github.tonivade.zeromock.core;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -129,6 +130,13 @@ public class TryTest {
                 try1.onSuccess(ref::set);
                 assertNull(ref.get());
               });
+  }
+  
+  @Test
+  public void recover() {
+    Try<String> try1 = Try.<String>failure("error").recover(t -> "Hola mundo");
+
+    assertEquals(Try.success("Hola mundo"), try1);
   }
   
   @Test
