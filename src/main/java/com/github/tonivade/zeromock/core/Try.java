@@ -23,7 +23,7 @@ public abstract class Try<T> {
   }
   
   public static <T> Try<T> failure(String message) {
-    return new Failure<>(new AssertionError(message));
+    return failure(new AssertionError(message));
   }
   
   public static <T> Try<T> failure(Throwable error) {
@@ -104,7 +104,7 @@ public abstract class Try<T> {
   static final class Success<T> extends Try<T> {
     private final T value;
     
-    public Success(T value) {
+    private Success(T value) {
       this.value = requireNonNull(value);
     }
     
@@ -149,7 +149,7 @@ public abstract class Try<T> {
   static final class Failure<T> extends Try<T> {
     private final Throwable cause;
     
-    public Failure(Throwable cause) {
+    private Failure(Throwable cause) {
       this.cause = requireNonNull(cause);
     }
     

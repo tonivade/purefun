@@ -92,7 +92,7 @@ public abstract class Option<T> {
   static final class Some<T> extends Option<T> {
     private final T value;
     
-    public Some(T value) {
+    private Some(T value) {
       this.value = requireNonNull(value);
     }
     
@@ -130,6 +130,9 @@ public abstract class Option<T> {
   }
 
   static final class None<T> extends Option<T> {
+
+    private None() { }
+
     @Override
     public T get() {
       throw new IllegalStateException();
