@@ -1,7 +1,5 @@
 module com.github.tonivade.zeromock.core {
-  requires jdk.httpserver;
-  requires com.google.code.gson;
-  requires com.github.tonivade.equalizer;
-  
+  requires equalizer;
+
   exports com.github.tonivade.zeromock.core;
 }
