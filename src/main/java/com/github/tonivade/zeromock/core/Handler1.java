@@ -35,6 +35,14 @@ public interface Handler1<T, R> {
     return value -> Try.of(() -> handle(value));
   }
   
+  default <L> EitherHandler<T, L, R> liftRight() {
+    return value -> Either.right(handle(value));
+  }
+  
+  default <L> EitherHandler<T, R, L> liftLeft() {
+    return value -> Either.left(handle(value));
+  }
+  
   default StreamHandler<T, R> stream() {
     return value -> Stream.of(handle(value));
   }

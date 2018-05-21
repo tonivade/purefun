@@ -9,7 +9,6 @@ import static tonivade.equalizer.Equalizer.equalizer;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -87,6 +86,20 @@ public abstract class Try<T> {
     return failure("filtered");
   }
 
+  public Try<T> filterOrElse(Matcher<T> matcher, Supplier<Try<T>> supplier) {
+    if (isSuccess() && matcher.match(get())) {
+      return this;
+    }
+    return supplier.get();
+  }
+  
+  public <U> U fold(Handler1<Throwable, U> failureMapper, Handler1<T, U> successMapper) {
+    if (isSuccess()) {
+      return successMapper.handle(get());
+    }
+    return failureMapper.handle(getCause());
+  }
+
   public T orElse(Supplier<T> supplier) {
     if (isFailure()) {
       return supplier.get();
@@ -101,11 +114,11 @@ public abstract class Try<T> {
     return Stream.empty();
   }
   
-  public Optional<T> toOptional() {
+  public Option<T> toOption() {
     if (isSuccess()) {
-      return Optional.of(get());
+      return Option.some(get());
     }
-    return Optional.empty();
+    return Option.none();
   }
   
   static final class Success<T> extends Try<T> {

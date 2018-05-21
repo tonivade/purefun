@@ -7,12 +7,7 @@ package com.github.tonivade.zeromock.core;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -83,6 +78,27 @@ public class OptionTest {
     Option<String> option = Option.<String>none().filter(string -> string.startsWith("hola"));
     
     assertTrue(option.isEmpty());
+  }
+  
+  @Test
+  public void foldSome() {
+    String value = Option.some("hola").fold(() -> "or else", toUpperCase);
+   
+    assertEquals("HOLA", value);
+  }
+  
+  @Test
+  public void foldNone() {
+    String value = Option.<String>none().fold(() -> "or else", toUpperCase);
+   
+    assertEquals("or else", value);
+  }
+  
+  @Test
+  public void toOptional() {
+    Option<String> option = Option.some("hola");
+    
+    assertEquals(Optional.of("hola"), option.toOptional());
   }
 
   @Test

@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -77,6 +76,33 @@ public class TryTest {
     Try<String> try1 = Try.success("Hola mundo").filter(string -> string.startsWith("hola"));
     
     assertTrue(try1.isFailure());
+    assertEquals("filtered", try1.getCause().getMessage());
+  }
+
+  @Test
+  public void filterOrElseFilter() {
+    Try<String> try1 = Try.success("Hola mundo")
+        .filterOrElse(string -> string.startsWith("Hola"), () -> Try.<String>failure("filtered"));
+    
+    assertEquals(Try.success("Hola mundo"), try1);
+  }
+
+  @Test
+  public void filterOrElseNotFilter() {
+    Try<String> try1 = Try.success("Hola mundo")
+        .filterOrElse(string -> string.startsWith("hola"), () -> Try.<String>failure("filtered"));
+    
+    assertTrue(try1.isFailure());
+    assertEquals("filtered", try1.getCause().getMessage());
+  }
+
+  @Test
+  public void filterOrElseFailure() {
+    Try<String> try1 = Try.<String>failure("error")
+        .filterOrElse(string -> string.startsWith("hola"), () -> Try.<String>failure("or else"));
+    
+    assertTrue(try1.isFailure());
+    assertEquals("or else", try1.getCause().getMessage());
   }
 
   @Test
@@ -84,6 +110,20 @@ public class TryTest {
     Try<String> try1 = Try.<String>failure("Hola mundo").filter(string -> string.startsWith("hola"));
     
     assertTrue(try1.isFailure());
+  }
+  
+  @Test
+  public void foldSuccess() {
+    String value = Try.success("Hola mundo").fold(error -> "error", toUpperCase);
+    
+    assertEquals("HOLA MUNDO", value);
+  }
+  
+  @Test
+  public void foldFailure() {
+    String value = Try.<String>failure("Hola mundo").fold(error -> "error", toUpperCase);
+    
+    assertEquals("error", value);
   }
 
   @Test
@@ -94,7 +134,7 @@ public class TryTest {
               () -> assertFalse(try1.isFailure()),
               () -> assertEquals("Hola mundo", try1.get()),
               () -> assertEquals(Try.success("Hola mundo"), try1),
-              () -> assertEquals(Optional.of("Hola mundo"), try1.toOptional()),
+              () -> assertEquals(Option.some("Hola mundo"), try1.toOption()),
               () -> assertEquals(singletonList("Hola mundo"), try1.stream().collect(toList())),
               () -> assertThrows(IllegalStateException.class, () -> try1.getCause()),
               () -> {
@@ -115,7 +155,7 @@ public class TryTest {
     
     assertAll(() -> assertFalse(try1.isSuccess()),
               () -> assertTrue(try1.isFailure()),
-              () -> assertEquals(Optional.empty(), try1.toOptional()),
+              () -> assertEquals(Option.none(), try1.toOption()),
               () -> assertEquals(Try.failure("Hola mundo"), Try.failure("Hola mundo")),
               () -> assertEquals("Hola mundo", try1.getCause().getMessage()),
               () -> assertEquals(emptyList(), try1.stream().collect(toList())),
@@ -133,8 +173,15 @@ public class TryTest {
   }
   
   @Test
-  public void recover() {
+  public void recoverSuccess() {
     Try<String> try1 = Try.<String>failure("error").recover(t -> "Hola mundo");
+
+    assertEquals(Try.success("Hola mundo"), try1);
+  }
+  
+  @Test
+  public void recoverFailure() {
+    Try<String> try1 = Try.success("Hola mundo").recover(t -> "HOLA MUNDO");
 
     assertEquals(Try.success("Hola mundo"), try1);
   }

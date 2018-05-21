@@ -74,6 +74,13 @@ public abstract class Option<T> {
     }
     return get();
   }
+  
+  public <U> U fold(Supplier<U> orElse, Handler1<T, U> mapper) {
+    if (isPresent()) {
+      return mapper.handle(get());
+    }
+    return orElse.get();
+  }
 
   public Stream<T> stream() {
     if (isPresent()) {
