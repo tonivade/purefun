@@ -14,7 +14,7 @@ public class OptionHandlerTest {
   public void mapTest() {
     OptionHandler<String, Integer> str2int = str -> Option.some(str.length());
     
-    assertEquals(Option.some(10), str2int.handle("asdfg").map(a -> a * 2));
+    assertEquals(Option.some(10), str2int.map(a -> a * 2).handle("asdfg"));
   }
   
   @Test

@@ -12,6 +12,10 @@ public interface EitherHandler<T, L, R> extends Handler1<T, Either<L, R>>{
     return value -> handle(value).map(mapper::handle);
   }
   
+  default <V> EitherHandler<T, V, R> mapLeft(Handler1<L, V> mapper) {
+    return value -> handle(value).mapLeft(mapper::handle);
+  }
+  
   default <V> EitherHandler<T, L, V> flatMap(Handler1<R, Either<L, V>> mapper) {
     return value -> handle(value).flatMap(mapper::handle);
   }

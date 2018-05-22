@@ -16,7 +16,7 @@ public class OptionalHandlerTest {
   public void mapTest() {
     OptionalHandler<String, Integer> str2int = str -> Optional.of(str.length());
     
-    assertEquals(Optional.of(10), str2int.handle("asdfg").map(a -> a * 2));
+    assertEquals(Optional.of(10), str2int.map(a -> a * 2).handle("asdfg"));
   }
   
   @Test

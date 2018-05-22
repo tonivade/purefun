@@ -14,7 +14,7 @@ public class TryHandlerTest {
   public void mapTest() {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
     
-    assertEquals(Try.success(10), str2int.handle("asdfg").map(a -> a * 2));
+    assertEquals(Try.success(10), str2int.map(a -> a * 2).handle("asdfg"));
   }
   
   @Test
