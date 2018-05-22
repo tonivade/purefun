@@ -80,6 +80,17 @@ public abstract class Try<T> {
     }
     return this;
   }
+  
+  @SuppressWarnings("unchecked")
+  public <X extends Throwable> Try<T> recoverWith(Class<X> type, Handler1<X, T> handler) {
+    if (isFailure()) {
+      Throwable cause = getCause();
+      if (type.isAssignableFrom(cause.getClass())) {
+        return Try.of(() -> handler.handle((X) getCause()));
+      }
+    }
+    return this;
+  }
 
   public Try<T> filter(Matcher<T> matcher) {
     if (isSuccess() && matcher.match(get())) {

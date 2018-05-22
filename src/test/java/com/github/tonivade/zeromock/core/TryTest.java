@@ -175,15 +175,39 @@ public class TryTest {
   }
   
   @Test
-  public void recoverSuccess() {
+  public void recoverFailure() {
     Try<String> try1 = Try.<String>failure("error").recover(t -> "Hola mundo");
 
     assertEquals(Try.success("Hola mundo"), try1);
   }
   
   @Test
-  public void recoverFailure() {
+  public void recoverSuccess() {
     Try<String> try1 = Try.success("Hola mundo").recover(t -> "HOLA MUNDO");
+
+    assertEquals(Try.success("Hola mundo"), try1);
+  }
+  
+  @Test
+  public void recoverWithFailure() {
+    Try<String> try1 = Try.<String>failure(new NullPointerException())
+        .recoverWith(NullPointerException.class, t -> "Hola mundo");
+
+    assertEquals(Try.success("Hola mundo"), try1);
+  }
+  
+  @Test
+  public void recoverWithDifferentException() {
+    Try<String> try1 = Try.<String>failure(new Exception())
+        .recoverWith(NullPointerException.class, t -> "Hola mundo");
+
+    assertEquals(Exception.class, try1.getCause().getClass());
+  }
+  
+  @Test
+  public void recoverWithSuccess() {
+    Try<String> try1 = Try.success("Hola mundo")
+        .recoverWith(NullPointerException.class, t -> "HOLA MUNDO");
 
     assertEquals(Try.success("Hola mundo"), try1);
   }
