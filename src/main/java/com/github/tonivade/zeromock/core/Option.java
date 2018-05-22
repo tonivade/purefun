@@ -4,9 +4,10 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Equal.comparing;
+import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import static tonivade.equalizer.Equalizer.equalizer;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -126,8 +127,8 @@ public abstract class Option<T> {
     
     @Override
     public boolean equals(Object obj) {
-      return equalizer(this)
-          .append((a, b) -> Objects.equals(a.value, b.value))
+      return equal(this)
+          .append(comparing(Option::get))
           .applyTo(obj);
     }
     
@@ -163,7 +164,7 @@ public abstract class Option<T> {
     
     @Override
     public boolean equals(Object obj) {
-      return equalizer(this).applyTo(obj);
+      return equal(this).applyTo(obj);
     }
     
     @Override

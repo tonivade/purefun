@@ -4,8 +4,9 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Equal.comparing;
+import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.requireNonNull;
-import static tonivade.equalizer.Equalizer.equalizer;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -156,8 +157,8 @@ public abstract class Try<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return equalizer(this)
-          .append((a, b) -> Objects.equals(a.value, b.value))
+      return equal(this)
+          .append(comparing(Try::get))
           .applyTo(obj);
     }
     
@@ -201,7 +202,7 @@ public abstract class Try<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return equalizer(this)
+      return equal(this)
           .append((a, b) -> Objects.equals(a.cause.getMessage(), b.cause.getMessage()))
           .append((a, b) -> Arrays.deepEquals(a.cause.getStackTrace(), b.cause.getStackTrace()))
           .applyTo(obj);

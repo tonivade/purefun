@@ -1,6 +1,5 @@
 archivesBaseName = 'zeromock-core'
 
 dependencies {
-  compile libs.equalizer
   testCompile libs.equalsverifier
 }

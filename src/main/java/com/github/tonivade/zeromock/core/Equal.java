@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
+package com.github.tonivade.zeromock.core;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+
+public class Equal<T> {
+
+  private T target;
+  private List<Tester<T>> testers = new LinkedList<>();
+
+  private Equal(T target) {
+    this.target = requireNonNull(target);
+  }
+
+  public Equal<T> append(Tester<T> tester) {
+    this.testers.add(requireNonNull(tester));
+    return this;
+  }
+
+  @SuppressWarnings("unchecked")
+  public boolean applyTo(Object obj) {
+    if (isNull(obj)) {
+      return false;
+    }
+    if (sameObjects(obj)) {
+      return true;
+    }
+    return sameClasses(obj) && areEquals((T) obj);
+  }
+
+  private boolean areEquals(T other) {
+    return testers.stream().allMatch(tester -> tester.handle(target, other));
+  }
+
+  private boolean sameClasses(Object obj) {
+    return target.getClass() == obj.getClass();
+  }
+
+  private boolean sameObjects(Object obj) {
+    return target == obj;
+  }
+
+  public static <T> Equal<T> equal(T target) {
+    return new Equal<>(target);
+  }
+
+  @FunctionalInterface
+  public interface Tester<T> extends Handler2<T, T, Boolean> {
+  }
+
+  public static <T, V> Tester<T> comparing(Handler1<T, V> getter) {
+    return (a, b) -> Objects.equals(getter.handle(a), getter.handle(b));
+  }
+}

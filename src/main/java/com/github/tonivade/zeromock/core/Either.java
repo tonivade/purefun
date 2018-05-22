@@ -4,7 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static tonivade.equalizer.Equalizer.equalizer;
+import static com.github.tonivade.zeromock.core.Equal.comparing;
+import static com.github.tonivade.zeromock.core.Equal.equal;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -164,8 +165,8 @@ public abstract class Either<L, R> {
     
     @Override
     public boolean equals(Object obj) {
-      return equalizer(this)
-          .append((a, b) -> Objects.equals(a.left, b.left))
+      return equal(this)
+          .append(comparing(Either::getLeft))
           .applyTo(obj);
     }
     
@@ -209,8 +210,8 @@ public abstract class Either<L, R> {
     
     @Override
     public boolean equals(Object obj) {
-      return equalizer(this)
-          .append((a, b) -> Objects.equals(a.right, b.right))
+      return equal(this)
+          .append(comparing(Either::getRight))
           .applyTo(obj);
     }
     
