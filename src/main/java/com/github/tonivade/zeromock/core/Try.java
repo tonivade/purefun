@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 import static tonivade.equalizer.Equalizer.equalizer;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -145,7 +146,7 @@ public abstract class Try<T> {
     
     @Override
     public Throwable getCause() {
-      throw new IllegalStateException("success doesn't have any cause");
+      throw new NoSuchElementException("success doesn't have any cause");
     }
     
     @Override
@@ -185,7 +186,7 @@ public abstract class Try<T> {
     
     @Override
     public T get() {
-      throw new IllegalStateException("failure doesn't have any value");
+      throw new NoSuchElementException("failure doesn't have any value");
     }
     
     @Override

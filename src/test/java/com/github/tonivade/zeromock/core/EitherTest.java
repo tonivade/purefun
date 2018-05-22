@@ -169,7 +169,7 @@ public class EitherTest {
               () -> assertEquals(Either.right("Hola mundo"), either),
               () -> assertEquals(Option.some("Hola mundo"), either.toOption()),
               () -> assertEquals(singletonList("Hola mundo"), either.stream().collect(toList())),
-              () -> assertThrows(IllegalStateException.class, () -> either.getLeft()));
+              () -> assertThrows(NoSuchElementException.class, () -> either.getLeft()));
   }
 
   @Test
@@ -185,6 +185,6 @@ public class EitherTest {
               () -> assertEquals(Option.none(), either.toOption()),
               () -> assertEquals(emptyList(), either.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> either.get()),
-              () -> assertThrows(IllegalStateException.class, () -> either.getRight()));
+              () -> assertThrows(NoSuchElementException.class, () -> either.getRight()));
   }
 }

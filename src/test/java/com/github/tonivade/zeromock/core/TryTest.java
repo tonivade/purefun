@@ -7,7 +7,6 @@ package com.github.tonivade.zeromock.core;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -136,7 +136,7 @@ public class TryTest {
               () -> assertEquals(Try.success("Hola mundo"), try1),
               () -> assertEquals(Option.some("Hola mundo"), try1.toOption()),
               () -> assertEquals(singletonList("Hola mundo"), try1.stream().collect(toList())),
-              () -> assertThrows(IllegalStateException.class, () -> try1.getCause()),
+              () -> assertThrows(NoSuchElementException.class, () -> try1.getCause()),
               () -> {
                 AtomicReference<String> ref = new AtomicReference<>();
                 try1.onSuccess(ref::set);
@@ -159,7 +159,7 @@ public class TryTest {
               () -> assertEquals(Try.failure("Hola mundo"), Try.failure("Hola mundo")),
               () -> assertEquals("Hola mundo", try1.getCause().getMessage()),
               () -> assertEquals(emptyList(), try1.stream().collect(toList())),
-              () -> assertThrows(IllegalStateException.class, () -> try1.get()),
+              () -> assertThrows(NoSuchElementException.class, () -> try1.get()),
               () -> {
                 AtomicReference<Throwable> ref = new AtomicReference<>();
                 try1.onFailure(ref::set);

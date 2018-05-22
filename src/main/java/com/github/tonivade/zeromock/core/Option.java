@@ -8,6 +8,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static tonivade.equalizer.Equalizer.equalizer;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -142,7 +143,7 @@ public abstract class Option<T> {
 
     @Override
     public T get() {
-      throw new IllegalStateException();
+      throw new NoSuchElementException("get() in none");
     }
     
     @Override

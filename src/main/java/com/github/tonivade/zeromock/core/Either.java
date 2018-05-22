@@ -147,7 +147,7 @@ public abstract class Either<L, R> {
     
     @Override
     public R getRight() {
-      throw new IllegalStateException();
+      throw new NoSuchElementException("getRight() in left");
     }
     
     @Override
@@ -187,7 +187,7 @@ public abstract class Either<L, R> {
     
     @Override
     public L getLeft() {
-      throw new IllegalStateException();
+      throw new NoSuchElementException("getLeft() in right");
     }
     
     @Override
