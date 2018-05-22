@@ -49,6 +49,13 @@ public abstract class Either<L, R> {
     return Option.none();
   }
   
+  public <T, U> Either<T, U> bimap(Handler1<L, T> leftMapper, Handler1<R, U> rightMapper) {
+    if (isRight()) {
+      return right(rightMapper.handle(getRight()));
+    }
+    return left(leftMapper.handle(getLeft()));
+  }
+  
   @SuppressWarnings("unchecked")
   public <T> Either<L, T> map(Handler1<R, T> map) {
     if (isRight()) {

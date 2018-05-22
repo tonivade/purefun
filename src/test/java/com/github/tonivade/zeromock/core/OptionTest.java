@@ -114,6 +114,7 @@ public class OptionTest {
     assertAll(() -> assertTrue(option.isPresent()),
               () -> assertFalse(option.isEmpty()),
               () -> assertEquals("Hola mundo", option.get()),
+              () -> assertEquals("Some(Hola mundo)", option.toString()),
               () -> assertEquals(Optional.of("Hola mundo"), option.toOptional()),
               () -> assertEquals(Option.some("Hola mundo"), option),
               () -> assertEquals(singletonList("Hola mundo"), option.stream().collect(toList())),
@@ -130,6 +131,7 @@ public class OptionTest {
     
     assertAll(() -> assertFalse(option.isPresent()),
               () -> assertTrue(option.isEmpty()),
+              () -> assertEquals("None", option.toString()),
               () -> assertEquals(Option.none(), option),
               () -> assertEquals(Optional.empty(), option.toOptional()),
               () -> assertEquals(emptyList(), option.stream().collect(toList())),

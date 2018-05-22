@@ -132,6 +132,7 @@ public class TryTest {
    
     assertAll(() -> assertTrue(try1.isSuccess()),
               () -> assertFalse(try1.isFailure()),
+              () -> assertEquals("Success(Hola mundo)", try1.toString()),
               () -> assertEquals("Hola mundo", try1.get()),
               () -> assertEquals(Try.success("Hola mundo"), try1),
               () -> assertEquals(Option.some("Hola mundo"), try1.toOption()),
@@ -151,19 +152,20 @@ public class TryTest {
 
   @Test
   public void failure() {
-    Try<String> try1 = Try.failure("Hola mundo");
+    Try<String> try1 = Try.failure("error");
     
     assertAll(() -> assertFalse(try1.isSuccess()),
               () -> assertTrue(try1.isFailure()),
+              () -> assertEquals("Failure(java.lang.AssertionError: error)", try1.toString()),
               () -> assertEquals(Option.none(), try1.toOption()),
-              () -> assertEquals(Try.failure("Hola mundo"), Try.failure("Hola mundo")),
-              () -> assertEquals("Hola mundo", try1.getCause().getMessage()),
+              () -> assertEquals(Try.failure("error"), Try.failure("error")),
+              () -> assertEquals("error", try1.getCause().getMessage()),
               () -> assertEquals(emptyList(), try1.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> try1.get()),
               () -> {
                 AtomicReference<Throwable> ref = new AtomicReference<>();
                 try1.onFailure(ref::set);
-                assertEquals("Hola mundo", ref.get().getMessage());
+                assertEquals("error", ref.get().getMessage());
               },
               () -> {
                 AtomicReference<String> ref = new AtomicReference<>();

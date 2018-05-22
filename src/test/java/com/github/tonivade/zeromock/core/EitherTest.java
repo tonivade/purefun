@@ -21,6 +21,24 @@ public class EitherTest {
 
   private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
   private final Handler1<Integer, Integer> intDouble = i -> i * 2;
+  
+  @Test
+  public void bimapRight()
+  {
+    Either<Integer, String> either = 
+        Either.<Integer, String>right("Hola mundo").bimap(intDouble, toUpperCase);
+
+    assertEquals(Either.right("HOLA MUNDO"), either);
+  }
+  
+  @Test
+  public void bimapLeft()
+  {
+    Either<Integer, String> either = 
+        Either.<Integer, String>left(10).bimap(intDouble, toUpperCase);
+
+    assertEquals(Either.left(20), either);
+  }
 
   @Test
   public void mapRight() {
@@ -45,35 +63,40 @@ public class EitherTest {
 
   @Test
   public void mapLeftRight() {
-    Either<Integer, String> either = Either.<Integer, String>right("Hola mundo").mapLeft(intDouble);
+    Either<Integer, String> either = 
+        Either.<Integer, String>right("Hola mundo").mapLeft(intDouble);
     
     assertEquals(Either.right("Hola mundo"), either);
   }
 
   @Test
   public void flatMapRight() {
-    Either<Integer, String> either = Either.<Integer, String>right("Hola mundo").flatMap(toUpperCase.liftRight());
+    Either<Integer, String> either = 
+        Either.<Integer, String>right("Hola mundo").flatMap(toUpperCase.liftRight());
     
     assertEquals(Either.right("HOLA MUNDO"), either);
   }
 
   @Test
   public void flatMapRightLeft() {
-    Either<Integer, String> either = Either.<Integer, String>left(10).flatMap(toUpperCase.liftRight());
+    Either<Integer, String> either = 
+        Either.<Integer, String>left(10).flatMap(toUpperCase.liftRight());
     
     assertEquals(Either.left(10), either);
   }
 
   @Test
   public void flatMapLeft() {
-    Either<Integer, String> either = Either.<Integer, String>left(10).flatMapLeft(intDouble.liftLeft());
+    Either<Integer, String> either = 
+        Either.<Integer, String>left(10).flatMapLeft(intDouble.liftLeft());
     
     assertEquals(Either.left(20), either);
   }
 
   @Test
   public void flatMapLeftRight() {
-    Either<Integer, String> either = Either.<Integer, String>right("Hola mundo").flatMapLeft(intDouble.liftLeft());
+    Either<Integer, String> either = 
+        Either.<Integer, String>right("Hola mundo").flatMapLeft(intDouble.liftLeft());
     
     assertEquals(Either.right("Hola mundo"), either);
   }
@@ -162,6 +185,7 @@ public class EitherTest {
    
     assertAll(() -> assertTrue(either.isRight()),
               () -> assertFalse(either.isLeft()),
+              () -> assertEquals("Right(Hola mundo)", either.toString()),
               () -> assertEquals("Hola mundo", either.get()),
               () -> assertEquals("Hola mundo", either.getRight()),
               () -> assertEquals(Option.some("Hola mundo"), either.right()),
@@ -178,6 +202,7 @@ public class EitherTest {
    
     assertAll(() -> assertTrue(either.isLeft()),
               () -> assertFalse(either.isRight()),
+              () -> assertEquals("Left(10)", either.toString()),
               () -> assertEquals(Integer.valueOf(10), either.getLeft()),
               () -> assertEquals(Option.some(10), either.left()),
               () -> assertEquals(Option.none(), either.right()),
