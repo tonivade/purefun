@@ -21,7 +21,7 @@ public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
     return value -> handle(value).filter(predicate);
   }
   
-  default Handler1<T, R> orElse(Supplier<R> supplier) {
+  default Handler1<T, R> orElse(Handler0<R> supplier) {
     return value -> handle(value).orElse(supplier);
   }
   

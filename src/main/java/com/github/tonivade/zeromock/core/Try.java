@@ -12,7 +12,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public abstract class Try<T> {
@@ -35,9 +34,9 @@ public abstract class Try<T> {
     return new Failure<>(error);
   }
   
-  public static <T> Try<T> of(Supplier<T> supplier) {
+  public static <T> Try<T> of(Handler0<T> supplier) {
     try {
-      return success(supplier.get());
+      return success(supplier.handle());
     } catch (Throwable error) {
       return failure(error);
     }
@@ -103,11 +102,11 @@ public abstract class Try<T> {
     return failure("filtered");
   }
 
-  public Try<T> filterOrElse(Matcher<T> matcher, Supplier<Try<T>> supplier) {
+  public Try<T> filterOrElse(Matcher<T> matcher, Handler0<Try<T>> supplier) {
     if (isSuccess() && matcher.match(get())) {
       return this;
     }
-    return supplier.get();
+    return supplier.handle();
   }
   
   public <U> U fold(Handler1<Throwable, U> failureMapper, Handler1<T, U> successMapper) {
@@ -117,11 +116,11 @@ public abstract class Try<T> {
     return failureMapper.handle(getCause());
   }
 
-  public T orElse(Supplier<T> supplier) {
+  public T orElse(Handler0<T> supplier) {
     if (isSuccess()) {
       return get();
     }
-    return supplier.get();
+    return supplier.handle();
   }
 
   public Stream<T> stream() {

@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -20,8 +18,8 @@ public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
     return value -> handle(value).flatMap(mapper::handle);
   }
   
-  default StreamHandler<T, R> filter(Predicate<R> predicate) {
-    return value -> handle(value).filter(predicate);
+  default StreamHandler<T, R> filter(Matcher<R> predicate) {
+    return value -> handle(value).filter(predicate::match);
   }
   
   default <A, V> Handler1<T, V> collect(Collector<R, A, V> collector) {
@@ -32,7 +30,7 @@ public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
     return handler::handle;
   }
   
-  static <T, R> StreamHandler<T, R> adapt(Supplier<Stream<R>> supplier) {
-    return value -> supplier.get();
+  static <T, R> StreamHandler<T, R> adapt(Handler0<Stream<R>> supplier) {
+    return value -> supplier.handle();
   }
 }

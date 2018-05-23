@@ -25,7 +25,7 @@ public interface TryHandler<T, R> extends Handler1<T, Try<R>> {
     return value -> handle(value).filter(predicate);
   }
   
-  default Handler1<T, R> orElse(Supplier<R> supplier) {
+  default Handler1<T, R> orElse(Handler0<R> supplier) {
     return value -> handle(value).orElse(supplier);
   }
   

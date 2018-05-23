@@ -9,7 +9,6 @@ import static com.github.tonivade.zeromock.core.Equal.equal;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public abstract class Either<L, R> {
@@ -103,18 +102,18 @@ public abstract class Either<L, R> {
     return Option.none();
   }
 
-  public Either<L, R> filterOrElse(Matcher<R> matcher, Supplier<Either<L, R>> orElse) {
+  public Either<L, R> filterOrElse(Matcher<R> matcher, Handler0<Either<L, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;
     }
-    return orElse.get();
+    return orElse.handle();
   }
 
-  public R orElse(Supplier<R> orElse) {
+  public R orElse(Handler0<R> orElse) {
     if (isRight()) {
       return getRight();
     }
-    return orElse.get();
+    return orElse.handle();
   }
   
   public <T> T fold(Handler1<L, T> leftMapper, Handler1<R, T> rightMapper) {

@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public abstract class Option<T> {
@@ -28,8 +27,8 @@ public abstract class Option<T> {
     return new None<>();
   }
 
-  public static <T> Option<T> of(Supplier<T> supplier) {
-    T value = supplier.get();
+  public static <T> Option<T> of(Handler0<T> supplier) {
+    T value = supplier.handle();
     if (nonNull(value)) {
       return some(value);
     }
@@ -70,18 +69,18 @@ public abstract class Option<T> {
     return none();
   }
 
-  public T orElse(Supplier<T> supplier) {
+  public T orElse(Handler0<T> supplier) {
     if (isEmpty()) {
-      return supplier.get();
+      return supplier.handle();
     }
     return get();
   }
   
-  public <U> U fold(Supplier<U> orElse, Handler1<T, U> mapper) {
+  public <U> U fold(Handler0<U> orElse, Handler1<T, U> mapper) {
     if (isPresent()) {
       return mapper.handle(get());
     }
-    return orElse.get();
+    return orElse.handle();
   }
 
   public Stream<T> stream() {
