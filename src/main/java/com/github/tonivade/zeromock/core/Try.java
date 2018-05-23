@@ -148,7 +148,7 @@ public abstract class Try<T> {
     private final T value;
     
     private Success(T value) {
-      this.value = value;
+      this.value = requireNonNull(value);
     }
     
     @Override
@@ -216,17 +216,17 @@ public abstract class Try<T> {
       return cause;
     }
     
-    @Override
-    public int hashCode() {
-      return Objects.hash(cause.getMessage(), cause.getStackTrace());
-    }
-    
     private String getMessage() {
       return cause.getMessage();
     }
     
     private StackTraceElement[] getStackTrace() {
       return cause.getStackTrace();
+    }
+    
+    @Override
+    public int hashCode() {
+      return Objects.hash(cause.getMessage(), cause.getStackTrace());
     }
 
     @Override
