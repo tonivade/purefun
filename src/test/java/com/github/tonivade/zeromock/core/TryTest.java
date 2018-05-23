@@ -193,8 +193,8 @@ public class TryTest {
   
   @Test
   public void recoverWithFailure() {
-    Try<String> try1 = Try.<String>failure(new NullPointerException())
-        .recoverWith(NullPointerException.class, t -> "Hola mundo");
+    Try<String> try1 = Try.<String>failure(new IllegalArgumentException())
+        .recoverWith(IllegalArgumentException.class, t -> "Hola mundo");
 
     assertEquals(Try.success("Hola mundo"), try1);
   }
