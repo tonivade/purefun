@@ -10,27 +10,19 @@ import java.util.stream.Stream;
 @FunctionalInterface
 public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
   
-  default <V> StreamHandler<T, V> map(Handler1<R, V> mapper) {
-    return value -> handle(value).map(mapper::handle);
+  default <V> StreamHandler<T, V> map(Handler1<R, V> handler) {
+    return value -> handle(value).map(handler::handle);
   }
   
-  default <V> StreamHandler<T, V> flatMap(Handler1<R, Stream<V>> mapper) {
-    return value -> handle(value).flatMap(mapper::handle);
+  default <V> StreamHandler<T, V> flatMap(Handler1<R, Stream<V>> handler) {
+    return value -> handle(value).flatMap(handler::handle);
   }
   
-  default StreamHandler<T, R> filter(Matcher<R> predicate) {
-    return value -> handle(value).filter(predicate::match);
+  default StreamHandler<T, R> filter(Matcher<R> matcher) {
+    return value -> handle(value).filter(matcher::match);
   }
   
   default <A, V> Handler1<T, V> collect(Collector<R, A, V> collector) {
     return value -> handle(value).collect(collector);
-  }
-  
-  static <T, R> StreamHandler<T, R> adapt(Handler1<T, Stream<R>> handler) {
-    return handler::handle;
-  }
-  
-  static <T, R> StreamHandler<T, R> adapt(Handler0<Stream<R>> supplier) {
-    return value -> supplier.handle();
   }
 }

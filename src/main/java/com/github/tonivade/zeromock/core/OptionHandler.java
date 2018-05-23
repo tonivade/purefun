@@ -4,32 +4,22 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.function.Supplier;
-
 @FunctionalInterface
 public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
   
-  default <V> OptionHandler<T, V> map(Handler1<R, V> mapper) {
-    return value -> handle(value).map(mapper::handle);
+  default <V> OptionHandler<T, V> map(Handler1<R, V> handler) {
+    return value -> handle(value).map(handler::handle);
   }
   
-  default <V> OptionHandler<T, V> flatMap(Handler1<R, Option<V>> mapper) {
-    return value -> handle(value).flatMap(mapper::handle);
+  default <V> OptionHandler<T, V> flatMap(Handler1<R, Option<V>> handler) {
+    return value -> handle(value).flatMap(handler::handle);
   }
   
-  default OptionHandler<T, R> filter(Matcher<R> predicate) {
-    return value -> handle(value).filter(predicate);
+  default OptionHandler<T, R> filter(Matcher<R> matcher) {
+    return value -> handle(value).filter(matcher);
   }
   
-  default Handler1<T, R> orElse(Handler0<R> supplier) {
-    return value -> handle(value).orElse(supplier);
-  }
-  
-  static <T, R> OptionHandler<T, R> adapt(Handler1<T, Option<R>> handler) {
-    return handler::handle;
-  }
-  
-  static <T, R> OptionHandler<T, R> adapt(Supplier<Option<R>> supplier) {
-    return value -> supplier.get();
+  default Handler1<T, R> orElse(Handler0<R> handler) {
+    return value -> handle(value).orElse(handler);
   }
 }

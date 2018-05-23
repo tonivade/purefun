@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import java.util.function.Supplier;
 
+@FunctionalInterface
 public interface Handler0<T> {
   
   T handle();

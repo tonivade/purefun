@@ -26,12 +26,4 @@ public interface OptionalHandler<T, R> extends Handler1<T, Optional<R>> {
   default Handler1<T, R> orElse(Supplier<R> supplier) {
     return value -> handle(value).orElseGet(supplier);
   }
-  
-  static <T, R> OptionalHandler<T, R> adapt(Handler1<T, Optional<R>> handler) {
-    return handler::handle;
-  }
-  
-  static <T, R> OptionalHandler<T, R> adapt(Supplier<Optional<R>> supplier) {
-    return value -> supplier.get();
-  }
 }
