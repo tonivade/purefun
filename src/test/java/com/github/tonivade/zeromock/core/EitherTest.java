@@ -7,11 +7,7 @@ package com.github.tonivade.zeromock.core;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 
@@ -175,6 +171,20 @@ public class EitherTest {
     String value = Either.<Integer, String>left(10).fold(String::valueOf, toUpperCase);
     
     assertEquals("10", value);
+  }
+  
+  @Test
+  public void swapRight() {
+    Either<String, Integer> either = Either.<Integer, String>right("Hola mundo").swap();
+
+    assertEquals(Either.left("Hola mundo"), either);
+  }
+  
+  @Test
+  public void swapLeft() {
+    Either<Integer, String> either = Either.<String, Integer>left("Hola mundo").swap();
+
+    assertEquals(Either.right("Hola mundo"), either);
   }
 
   @Test

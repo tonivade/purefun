@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 public class TryTest {
+  
   private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
 
   @Test
@@ -136,6 +137,7 @@ public class TryTest {
               () -> assertEquals("Hola mundo", try1.get()),
               () -> assertEquals(Try.success("Hola mundo"), try1),
               () -> assertEquals(Option.some("Hola mundo"), try1.toOption()),
+              () -> assertEquals(Either.right("Hola mundo"), try1.toEither()),
               () -> assertEquals(singletonList("Hola mundo"), try1.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> try1.getCause()),
               () -> {
@@ -157,8 +159,9 @@ public class TryTest {
     assertAll(() -> assertFalse(try1.isSuccess()),
               () -> assertTrue(try1.isFailure()),
               () -> assertEquals("Failure(java.lang.Exception: error)", try1.toString()),
-              () -> assertEquals(Option.none(), try1.toOption()),
               () -> assertEquals(Try.failure("error"), Try.failure("error")),
+              () -> assertEquals(Option.none(), try1.toOption()),
+              () -> assertEquals(Either.left(try1.getCause()), try1.toEither()),
               () -> assertEquals("error", try1.getCause().getMessage()),
               () -> assertEquals(emptyList(), try1.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> try1.get()),
