@@ -42,14 +42,14 @@ public class EitherHandlerTest {
   public void orElseRight() {
     EitherHandler<String, String, Integer> str2int = str -> Either.right(str.length());
     
-    assertEquals(Either.right(5), str2int.orElse(() -> Either.right(50)).handle("asdfg"));
+    assertEquals(Integer.valueOf(5), str2int.orElse(() -> 50).handle("asdfg"));
   }
   
   @Test
   public void orElseLeft() {
     EitherHandler<String, String, Integer> str2int = str -> Either.left("error");
     
-    assertEquals(Either.right(50), str2int.orElse(() -> Either.right(50)).handle("asdfg"));
+    assertEquals(Integer.valueOf(50), str2int.orElse(() -> 50).handle("asdfg"));
   }
   
   @Test

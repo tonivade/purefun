@@ -7,6 +7,7 @@ package com.github.tonivade.zeromock.core;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -58,5 +59,9 @@ public class Equal<T> {
 
   public static <T, V> Tester<T> comparing(Handler1<T, V> getter) {
     return (a, b) -> Objects.equals(getter.handle(a), getter.handle(b));
+  }
+
+  public static <T, V> Tester<T> comparingArray(Handler1<T, V[]> getter) {
+    return (a, b) -> Arrays.deepEquals(getter.handle(a), getter.handle(b));
   }
 }

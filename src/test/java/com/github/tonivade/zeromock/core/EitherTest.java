@@ -151,18 +151,16 @@ public class EitherTest {
   
   @Test
   public void orElseRight() {
-    Either<Integer, String> either = Either.<Integer, String>right("Hola mundo")
-        .orElse(() -> Either.<Integer, String>right("or else"));
+    String value = Either.<Integer, String>right("Hola mundo").orElse(() -> "or else");
     
-    assertEquals(Either.right("Hola mundo"), either);
+    assertEquals("Hola mundo", value);
   }
   
   @Test
   public void orElseLeft() {
-    Either<Integer, String> either = Either.<Integer, String>left(10)
-        .orElse(() -> Either.<Integer, String>right("or else"));
+    String value = Either.<Integer, String>left(10).orElse(() -> "or else");
     
-    assertEquals(Either.right("or else"), either);
+    assertEquals("or else", value);
   }
   
   @Test

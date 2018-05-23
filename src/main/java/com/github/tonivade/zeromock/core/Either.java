@@ -50,6 +50,13 @@ public abstract class Either<L, R> {
     return Option.none();
   }
   
+  public Either<R, L> swap() {
+    if (isRight()) {
+      return left(getRight());
+    }
+    return right(getLeft());
+  }
+  
   public <T, U> Either<T, U> bimap(Handler1<L, T> leftMapper, Handler1<R, U> rightMapper) {
     if (isRight()) {
       return right(rightMapper.handle(getRight()));
@@ -103,9 +110,9 @@ public abstract class Either<L, R> {
     return orElse.get();
   }
 
-  public Either<L, R> orElse(Supplier<Either<L, R>> orElse) {
+  public R orElse(Supplier<R> orElse) {
     if (isRight()) {
-      return this;
+      return getRight();
     }
     return orElse.get();
   }

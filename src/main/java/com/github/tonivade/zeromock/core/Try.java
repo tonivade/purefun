@@ -5,10 +5,10 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
+import static com.github.tonivade.zeromock.core.Equal.comparingArray;
 import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -24,7 +24,11 @@ public abstract class Try<T> {
   }
   
   public static <T> Try<T> failure(String message) {
-    return failure(new AssertionError(message));
+    return failure(new Exception(message));
+  }
+
+  public static <T> Try<T> failure() {
+    return failure(new Exception());
   }
   
   public static <T> Try<T> failure(Throwable error) {
@@ -114,10 +118,10 @@ public abstract class Try<T> {
   }
 
   public T orElse(Supplier<T> supplier) {
-    if (isFailure()) {
-      return supplier.get();
+    if (isSuccess()) {
+      return get();
     }
-    return get();
+    return supplier.get();
   }
 
   public Stream<T> stream() {
@@ -125,6 +129,13 @@ public abstract class Try<T> {
       return Stream.of(get());
     }
     return Stream.empty();
+  }
+  
+  public Either<Throwable, T> toEither() {
+    if (isSuccess()) {
+      return Either.right(get());
+    }
+    return Either.left(getCause());
   }
   
   public Option<T> toOption() {
@@ -210,12 +221,20 @@ public abstract class Try<T> {
     public int hashCode() {
       return Objects.hash(cause.getMessage(), cause.getStackTrace());
     }
+    
+    private String getMessage() {
+      return cause.getMessage();
+    }
+    
+    private StackTraceElement[] getStackTrace() {
+      return cause.getStackTrace();
+    }
 
     @Override
     public boolean equals(Object obj) {
       return equal(this)
-          .append((a, b) -> Objects.equals(a.cause.getMessage(), b.cause.getMessage()))
-          .append((a, b) -> Arrays.deepEquals(a.cause.getStackTrace(), b.cause.getStackTrace()))
+          .append(comparing(Failure::getMessage))
+          .append(comparingArray(Failure::getStackTrace))
           .applyTo(obj);
     }
     

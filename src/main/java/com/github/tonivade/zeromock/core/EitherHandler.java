@@ -24,7 +24,7 @@ public interface EitherHandler<T, L, R> extends Handler1<T, Either<L, R>>{
     return value -> handle(value).filter(predicate);
   }
   
-  default EitherHandler<T, L, R> orElse(Supplier<Either<L, R>> supplier) {
+  default Handler1<T, R> orElse(Supplier<R> supplier) {
     return value -> handle(value).orElse(supplier);
   }
   

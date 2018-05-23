@@ -156,7 +156,7 @@ public class TryTest {
     
     assertAll(() -> assertFalse(try1.isSuccess()),
               () -> assertTrue(try1.isFailure()),
-              () -> assertEquals("Failure(java.lang.AssertionError: error)", try1.toString()),
+              () -> assertEquals("Failure(java.lang.Exception: error)", try1.toString()),
               () -> assertEquals(Option.none(), try1.toOption()),
               () -> assertEquals(Try.failure("error"), Try.failure("error")),
               () -> assertEquals("error", try1.getCause().getMessage()),
