@@ -23,7 +23,11 @@ public interface TryHandler<T, R> extends Handler1<T, Try<R>> {
     return value -> handle(value).filter(matcher);
   }
   
-  default Handler1<T, R> orElse(Handler0<R> matcher) {
-    return value -> handle(value).orElse(matcher);
+  default Handler1<T, R> orElse(Handler0<R> handler) {
+    return value -> handle(value).orElse(handler);
+  }
+  
+  static <T, R> TryHandler<T, R> adapt(Handler1<T, Try<R>> handler) {
+    return handler::handle;
   }
 }

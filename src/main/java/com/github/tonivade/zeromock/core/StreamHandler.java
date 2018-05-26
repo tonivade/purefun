@@ -25,4 +25,8 @@ public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
   default <A, V> Handler1<T, V> collect(Collector<R, A, V> collector) {
     return value -> handle(value).collect(collector);
   }
+  
+  static <T, R> StreamHandler<T, R> adapt(Handler1<T, Stream<R>> handler) {
+    return handler::handle;
+  }
 }

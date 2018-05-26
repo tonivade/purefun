@@ -25,4 +25,8 @@ public interface EitherHandler<T, L, R> extends Handler1<T, Either<L, R>>{
   default Handler1<T, R> orElse(Handler0<R> handler) {
     return value -> handle(value).orElse(handler);
   }
+  
+  static <T, L, R> EitherHandler<T, L, R> adapt(Handler1<T, Either<L, R>> handler) {
+    return handler::handle;
+  }
 }
