@@ -34,6 +34,10 @@ public abstract class Option<T> {
     }
     return none();
   }
+
+  public static <T> Option<T> from(Optional<T> optional) {
+    return optional.map(Option::some).orElseGet(() -> Option.none());
+  }
   
   public abstract T get();
   public abstract boolean isPresent();
