@@ -43,6 +43,10 @@ public interface Handler1<T, R> {
     return value -> Either.left(handle(value));
   }
   
+  default SequenceHandler<T, R> liftSequence() {
+    return value -> InmutableList.of(handle(value));
+  }
+  
   default StreamHandler<T, R> stream() {
     return value -> Stream.of(handle(value));
   }

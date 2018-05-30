@@ -6,108 +6,98 @@ package com.github.tonivade.zeromock.core;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class InmutableList<E> {
+public interface InmutableList<E> extends Sequence<E> {
   
-  private InmutableList() { }
+  List<E> toList();
   
-  public abstract Stream<E> stream();
-  public abstract int size();
-  public abstract List<E> toMutable();
-  public abstract boolean contains(E value);
+  default int size() {
+    return (int) stream().count();
+  }
+  
+  default boolean contains(E element) {
+    return stream().filter(e -> e.equals(element)).findFirst().isPresent();
+  }
 
-  public Option<E> head() {
+  default Option<E> head() {
     return Option.from(stream().findFirst());
   }
   
-  public InmutableList<E> tail() {
-    return InmutableList.of(stream().skip(1));
-  }
-
-  public void forEach(Consumer<E> consumer) {
-    stream().forEach(consumer);
+  default InmutableList<E> tail() {
+    return InmutableList.from(stream().skip(1));
   }
   
-  public InmutableList<E> add(E element) {
+  default InmutableList<E> add(E element) {
     return concat(InmutableList.of(element));
   }
 
-  public InmutableList<E> concat(InmutableList<E> other) {
-    return InmutableList.of(Stream.concat(stream(), other.stream()));
+  default InmutableList<E> concat(InmutableList<E> other) {
+    return InmutableList.from(Stream.concat(stream(), other.stream()));
   }
 
-  public <R> InmutableList<R> map(Handler1<E, R> mapper) {
-    return InmutableList.of(stream().map(mapper::handle));
+  default <R> InmutableList<R> map(Handler1<E, R> mapper) {
+    return InmutableList.from(stream().map(mapper::handle));
   }
 
-  public <R> InmutableList<R> flatMap(Handler1<E, InmutableList<R>> mapper) {
-    return InmutableList.of(stream().flatMap(asStream(mapper)::handle));
+  default <R> InmutableList<R> flatMap(Handler1<E, Sequence<R>> mapper) {
+    return InmutableList.from(stream().flatMap(asStream(mapper)::handle));
   }
 
-  public InmutableList<E> filter(Matcher<E> matcher) {
-    return InmutableList.of(stream().filter(matcher::match));
+  default InmutableList<E> filter(Matcher<E> matcher) {
+    return InmutableList.from(stream().filter(matcher::match));
   }
   
-  public InmutableList<E> skip(int n) {
-    return InmutableList.of(stream().skip(n));
+  default InmutableList<E> skip(int n) {
+    return InmutableList.from(stream().skip(n));
   }
 
-  public boolean isEmpty() {
+  default boolean isEmpty() {
     return size() == 0;
   }
   
-  public static <T> InmutableList<T> of(List<T> list) {
+  static <T> InmutableList<T> from(List<T> list) {
     return new JavaBasedInmutableList<>(list);
   }
   
-  public static <T> InmutableList<T> of(Stream<T> stream) {
-    return new JavaBasedInmutableList<>(stream.collect(toList()));
+  static <T> InmutableList<T> from(Stream<T> stream) {
+    return new JavaBasedInmutableList<>(stream.collect(Collectors.toList()));
   }
   
   @SafeVarargs
-  public static <T> InmutableList<T> of(T... elements) {
+  static <T> InmutableList<T> of(T... elements) {
     return new JavaBasedInmutableList<>(asList(elements));
   }
 
-  public static <T> InmutableList<T> empty() {
+  static <T> InmutableList<T> empty() {
     return new JavaBasedInmutableList<>(emptyList());
   }
   
-  private static <T, R> StreamHandler<T, R> asStream(Handler1<T, InmutableList<R>> listHandler) {
-    return listHandler.andThen(InmutableList::stream)::handle;
+  static <T, R> StreamHandler<T, R> asStream(Handler1<T, Sequence<R>> listHandler) {
+    return listHandler.andThen(Sequence::stream)::handle;
   }
 
-  private static final class JavaBasedInmutableList<E> extends InmutableList<E> {
+  static final class JavaBasedInmutableList<E> implements InmutableList<E> {
     private final List<E> backend;
     
     private JavaBasedInmutableList(List<E> backend) {
-      this.backend = Objects.requireNonNull(backend);
+      this.backend = requireNonNull(backend);
     }
     
     @Override
-    public Stream<E> stream() {
-      return backend.stream();
+    public Iterator<E> iterator() {
+      return backend.iterator();
     }
     
     @Override
-    public int size() {
-      return backend.size();
-    }
-    
-    @Override
-    public boolean contains(E value) {
-      return backend.contains(value);
-    }
-    
-    @Override
-    public List<E> toMutable() {
+    public List<E> toList() {
       return new ArrayList<>(backend);
     }
     
