@@ -20,6 +20,10 @@ public interface SequenceHandler<T, R> extends Handler1<T, Sequence<R>> {
   default SequenceHandler<T, R> filter(Matcher<R> matcher) {
     return value -> handle(value).filter(matcher::match);
   }
+
+  default StreamHandler<T, R> toStreamHandler() {
+    return value -> handle(value).stream();
+  }
   
   static <T, R> StreamHandler<T, R> adapt(Handler1<T, Stream<R>> handler) {
     return handler::handle;

@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -19,52 +21,39 @@ public interface InmutableList<E> extends Sequence<E> {
   
   List<E> toList();
   
-  default int size() {
-    return (int) stream().count();
-  }
-  
-  default boolean contains(E element) {
-    return stream().filter(e -> e.equals(element)).findFirst().isPresent();
-  }
+  InmutableList<E> add(E element);
+
+  InmutableList<E> addAll(InmutableList<E> other);
 
   default Option<E> head() {
     return Option.from(stream().findFirst());
   }
   
   default InmutableList<E> tail() {
-    return InmutableList.from(stream().skip(1));
-  }
-  
-  default InmutableList<E> add(E element) {
-    return concat(InmutableList.of(element));
-  }
-
-  default InmutableList<E> concat(InmutableList<E> other) {
-    return InmutableList.from(Stream.concat(stream(), other.stream()));
-  }
-
-  default <R> InmutableList<R> map(Handler1<E, R> mapper) {
-    return InmutableList.from(stream().map(mapper::handle));
-  }
-
-  default <R> InmutableList<R> flatMap(Handler1<E, Sequence<R>> mapper) {
-    return InmutableList.from(stream().flatMap(asStream(mapper)::handle));
-  }
-
-  default InmutableList<E> filter(Matcher<E> matcher) {
-    return InmutableList.from(stream().filter(matcher::match));
+    return skip(1);
   }
   
   default InmutableList<E> skip(int n) {
     return InmutableList.from(stream().skip(n));
   }
 
-  default boolean isEmpty() {
-    return size() == 0;
+  @Override
+  default <R> InmutableList<R> map(Handler1<E, R> mapper) {
+    return InmutableList.from(stream().map(mapper::handle));
+  }
+
+  @Override
+  default <R> InmutableList<R> flatMap(SequenceHandler<E, R> mapper) {
+    return InmutableList.from(stream().flatMap(mapper.toStreamHandler()::handle));
+  }
+
+  @Override
+  default InmutableList<E> filter(Matcher<E> matcher) {
+    return InmutableList.from(stream().filter(matcher::match));
   }
   
-  static <T> InmutableList<T> from(List<T> list) {
-    return new JavaBasedInmutableList<>(list);
+  static <T> InmutableList<T> from(Collection<T> collection) {
+    return new JavaBasedInmutableList<>(new ArrayList<>(collection));
   }
   
   static <T> InmutableList<T> from(Stream<T> stream) {
@@ -79,16 +68,31 @@ public interface InmutableList<E> extends Sequence<E> {
   static <T> InmutableList<T> empty() {
     return new JavaBasedInmutableList<>(emptyList());
   }
-  
-  static <T, R> StreamHandler<T, R> asStream(Handler1<T, Sequence<R>> listHandler) {
-    return listHandler.andThen(Sequence::stream)::handle;
-  }
 
   static final class JavaBasedInmutableList<E> implements InmutableList<E> {
     private final List<E> backend;
     
     private JavaBasedInmutableList(List<E> backend) {
       this.backend = requireNonNull(backend);
+    }
+    
+    @Override
+    public int size() {
+      return backend.size();
+    }
+    
+    @Override
+    public InmutableList<E> add(E element) {
+      List<E> newList = new ArrayList<>(backend);
+      newList.add(element);
+      return new JavaBasedInmutableList<>(newList);
+    }
+    
+    @Override
+    public InmutableList<E> addAll(InmutableList<E> other) {
+      List<E> newList = new ArrayList<>(backend);
+      newList.addAll(other.toList());
+      return new JavaBasedInmutableList<>(newList);
     }
     
     @Override
@@ -108,7 +112,7 @@ public interface InmutableList<E> extends Sequence<E> {
     
     @Override
     public boolean equals(Object obj) {
-      return Equal.equal(this)
+      return equal(this)
           .append((a, b) -> Objects.equals(a.backend, b.backend))
           .applyTo(obj);
     }

@@ -9,14 +9,19 @@ import java.util.stream.StreamSupport;
 
 public interface Sequence<E> extends Iterable<E> {
 
+  int size();
+
+  <R> Sequence<R> map(Handler1<E, R> mapper);
+
+  <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);
+
+  Sequence<E> filter(Matcher<E> matcher);
+
   default Stream<E> stream() {
     return StreamSupport.stream(spliterator(), false);
   }
 
-  <R> Sequence<R> map(Handler1<E, R> mapper);
-
-  <R> Sequence<R> flatMap(Handler1<E, Sequence<R>> mapper);
-
-  Sequence<E> filter(Matcher<E> matcher);
-
+  default boolean isEmpty() {
+    return size() == 0;
+  }
 }
