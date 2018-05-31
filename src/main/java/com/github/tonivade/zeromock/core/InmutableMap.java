@@ -49,7 +49,7 @@ public interface InmutableMap<K, V> {
     return size() == 0;
   }
 
-  static class JavaBasedInmutableMap<K, V> implements InmutableMap<K, V> {
+  public class JavaBasedInmutableMap<K, V> implements InmutableMap<K, V> {
     private final Map<K, V> backend;
     
     private JavaBasedInmutableMap(Map<K, V> backend) {

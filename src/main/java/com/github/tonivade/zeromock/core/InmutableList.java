@@ -69,7 +69,7 @@ public interface InmutableList<E> extends Sequence<E> {
     return new JavaBasedInmutableList<>(emptyList());
   }
 
-  static final class JavaBasedInmutableList<E> implements InmutableList<E> {
+  public final class JavaBasedInmutableList<E> implements InmutableList<E> {
     private final List<E> backend;
     
     private JavaBasedInmutableList(List<E> backend) {

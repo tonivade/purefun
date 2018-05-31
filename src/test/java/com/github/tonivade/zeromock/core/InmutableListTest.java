@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 public class InmutableListTest {
   
-  final Handler1<String, String> toUpperCase = String::toUpperCase;
+  private final Handler1<String, String> toUpperCase = String::toUpperCase;
   
   @Test
   public void notEmptyList() {
