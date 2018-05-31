@@ -21,8 +21,6 @@ public interface InmutableSet<E> extends Sequence<E> {
   
   Set<E> toSet();
 
-  boolean contains(E element);
-  
   InmutableSet<E> append(E element);
   InmutableSet<E> remove(E element);
 

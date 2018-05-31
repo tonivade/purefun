@@ -75,6 +75,15 @@ public interface InmutableMap<K, V> {
     return size() == 0;
   }
 
+  @SafeVarargs
+  static <K, V> InmutableMap<K, V> of(Tupple2<K, V> ... entries) {
+    return from(InmutableSet.of(entries));
+  }
+
+  static <K, V> Tupple2<K, V> entry(K key, V value) {
+    return Tupple2.of(key, value);
+  }
+
   static <K, V> InmutableMap<K, V> from(Map<K, V> map) {
     return new JavaBasedInmutableMap<>(map);
   }

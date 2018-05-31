@@ -12,6 +12,8 @@ import java.util.stream.StreamSupport;
 public interface Sequence<E> extends Iterable<E> {
 
   int size();
+  
+  boolean contains(E element);
 
   <R> Sequence<R> map(Handler1<E, R> mapper);
 

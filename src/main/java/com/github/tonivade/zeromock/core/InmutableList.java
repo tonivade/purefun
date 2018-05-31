@@ -82,6 +82,11 @@ public interface InmutableList<E> extends Sequence<E> {
     }
     
     @Override
+    public boolean contains(E element) {
+      return backend.contains(element);
+    }
+    
+    @Override
     public InmutableList<E> append(E element) {
       List<E> newList = new ArrayList<>(backend);
       newList.add(element);
