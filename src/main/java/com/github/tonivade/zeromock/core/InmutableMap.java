@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 public interface InmutableMap<K, V> {
   
@@ -21,8 +22,13 @@ public interface InmutableMap<K, V> {
   
   Sequence<V> values();
   InmutableSet<K> keys();
+  InmutableSet<Tupple2<K, V>> entries();
   
   int size();
+  
+  default void forEach(BiConsumer<K, V> consumer) {
+    entries().forEach(tupple -> consumer.accept(tupple.get1(), tupple.get2()));
+  }
   
   default boolean containsKey(K key) {
     return get(key).isPresent();
@@ -87,6 +93,11 @@ public interface InmutableMap<K, V> {
     @Override
     public InmutableSet<K> keys() {
       return InmutableSet.from(backend.keySet());
+    }
+    
+    @Override
+    public InmutableSet<Tupple2<K, V>> entries() {
+      return InmutableSet.from(backend.entrySet()).map(Tupple2::from);
     }
     
     @Override
