@@ -11,52 +11,50 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public abstract class Either<L, R> {
-
-  private Either() { }
+public interface Either<L, R> {
   
-  public static <L, R> Either<L, R> left(L value) {
+  static <L, R> Either<L, R> left(L value) {
     return new Left<L, R>(value);
   }
   
-  public static <L, R> Either<L, R> right(R value) {
+  static <L, R> Either<L, R> right(R value) {
     return new Right<L, R>(value);
   }
   
-  public abstract boolean isLeft();
-  public abstract boolean isRight();
-  public abstract L getLeft();
-  public abstract R getRight();
+  boolean isLeft();
+  boolean isRight();
+  L getLeft();
+  R getRight();
 
-  public R get() {
+  default R get() {
     if (isRight()) {
       return getRight();
     }
     throw new NoSuchElementException("get() on left");
   }
   
-  public Option<L> left() {
+  default Option<L> left() {
     if (isLeft()) {
       return Option.some(getLeft());
     }
     return Option.none();
   }
   
-  public Option<R> right() {
+  default Option<R> right() {
     if (isRight()) {
       return Option.some(getRight());
     }
     return Option.none();
   }
   
-  public Either<R, L> swap() {
+  default Either<R, L> swap() {
     if (isRight()) {
       return left(getRight());
     }
     return right(getLeft());
   }
   
-  public <T, U> Either<T, U> bimap(Handler1<L, T> leftMapper, Handler1<R, U> rightMapper) {
+  default <T, U> Either<T, U> bimap(Handler1<L, T> leftMapper, Handler1<R, U> rightMapper) {
     if (isRight()) {
       return right(rightMapper.handle(getRight()));
     }
@@ -64,7 +62,7 @@ public abstract class Either<L, R> {
   }
   
   @SuppressWarnings("unchecked")
-  public <T> Either<L, T> map(Handler1<R, T> map) {
+  default <T> Either<L, T> map(Handler1<R, T> map) {
     if (isRight()) {
       return right(map.handle(getRight()));
     }
@@ -72,7 +70,7 @@ public abstract class Either<L, R> {
   }
   
   @SuppressWarnings("unchecked")
-  public <T> Either<T, R> mapLeft(Handler1<L, T> map) {
+  default <T> Either<T, R> mapLeft(Handler1<L, T> map) {
     if (isLeft()) {
       return left(map.handle(getLeft()));
     }
@@ -80,7 +78,7 @@ public abstract class Either<L, R> {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> Either<L, T> flatMap(Handler1<R, Either<L, T>> map) {
+  default <T> Either<L, T> flatMap(Handler1<R, Either<L, T>> map) {
     if (isRight()) {
       return map.handle(getRight());
     }
@@ -88,56 +86,57 @@ public abstract class Either<L, R> {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> Either<T, R> flatMapLeft(Handler1<L, Either<T, R>> map) {
+  default <T> Either<T, R> flatMapLeft(Handler1<L, Either<T, R>> map) {
     if (isLeft()) {
       return map.handle(getLeft());
     }
     return (Either<T, R>) this;
   }
 
-  public Option<Either<L, R>> filter(Matcher<R> matcher) {
+  default Option<Either<L, R>> filter(Matcher<R> matcher) {
     if (isRight() && matcher.match(getRight())) {
       return Option.some(this);
     }
     return Option.none();
   }
 
-  public Either<L, R> filterOrElse(Matcher<R> matcher, Handler0<Either<L, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher<R> matcher, Handler0<Either<L, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;
     }
     return orElse.handle();
   }
 
-  public R orElse(Handler0<R> orElse) {
+  default R orElse(Handler0<R> orElse) {
     if (isRight()) {
       return getRight();
     }
     return orElse.handle();
   }
   
-  public <T> T fold(Handler1<L, T> leftMapper, Handler1<R, T> rightMapper) {
+  default <T> T fold(Handler1<L, T> leftMapper, Handler1<R, T> rightMapper) {
     if (isRight()) {
       return rightMapper.handle(getRight());
     }
     return leftMapper.handle(getLeft());
   }
 
-  public Stream<R> stream() {
+  default Stream<R> stream() {
     if (isRight()) {
       return Stream.of(getRight());
     }
     return Stream.empty();
   }
   
-  public Option<R> toOption() {
+  default Option<R> toOption() {
     if (isRight()) {
       return Option.some(getRight());
     }
     return Option.none();
   }
   
-  static final class Left<L, R> extends Either<L, R> {
+  final class Left<L, R> implements Either<L, R> {
+
     private L left;
     
     private Left(L value) {
@@ -182,7 +181,8 @@ public abstract class Either<L, R> {
     }
   }
 
-  static final class Right<L, R> extends Either<L, R> {
+  final class Right<L, R> implements Either<L, R> {
+
     private R right;
     
     private Right(R value) {

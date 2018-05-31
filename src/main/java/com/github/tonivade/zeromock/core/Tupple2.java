@@ -28,6 +28,18 @@ public final class Tupple2<T, U> {
   public U get2() {
     return value2;
   }
+  
+  public <R> Tupple2<R, U> map1(Handler1<T, R> mapper) {
+    return bimap(mapper, Handler1.identity());
+  }
+  
+  public <R> Tupple2<T, R> map2(Handler1<U, R> mapper) {
+    return bimap(Handler1.identity(), mapper);
+  }
+  
+  public <R, V> Tupple2<R, V> bimap(Handler1<T, R> mapper1, Handler1<U, V> mapper2) {
+    return Tupple2.of(mapper1.handle(value1), mapper2.handle(value2));
+  }
 
   public static <T, U> Tupple2<T, U> of(T value1, U value2) {
     return new Tupple2<T, U>(value1, value2);

@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -16,6 +18,18 @@ public interface Sequence<E> extends Iterable<E> {
   <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);
 
   Sequence<E> filter(Matcher<E> matcher);
+  
+  default Option<E> reduce(Handler2<E, E, E> operator) {
+    return Option.from(stream().reduce(operator::handle));
+  }
+  
+  default E fold(E initial, Handler2<E, E, E> operator) {
+    return stream().reduce(initial, operator::handle);
+  }
+  
+  default <G> InmutableMap<G, InmutableList<E>> groupBy(Handler1<E, G> getter) {
+    return InmutableMap.from(stream().collect(groupingBy(getter::handle))).mapValues(InmutableList::from);
+  }
 
   default Stream<E> stream() {
     return StreamSupport.stream(spliterator(), false);

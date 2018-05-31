@@ -21,19 +21,19 @@ public interface InmutableList<E> extends Sequence<E> {
   
   List<E> toList();
   
-  InmutableList<E> add(E element);
+  InmutableList<E> append(E element);
 
-  InmutableList<E> addAll(InmutableList<E> other);
+  InmutableList<E> appendAll(InmutableList<E> other);
 
   default Option<E> head() {
     return Option.from(stream().findFirst());
   }
   
   default InmutableList<E> tail() {
-    return skip(1);
+    return drop(1);
   }
   
-  default InmutableList<E> skip(int n) {
+  default InmutableList<E> drop(int n) {
     return InmutableList.from(stream().skip(n));
   }
 
@@ -82,14 +82,14 @@ public interface InmutableList<E> extends Sequence<E> {
     }
     
     @Override
-    public InmutableList<E> add(E element) {
+    public InmutableList<E> append(E element) {
       List<E> newList = new ArrayList<>(backend);
       newList.add(element);
       return new JavaBasedInmutableList<>(newList);
     }
     
     @Override
-    public InmutableList<E> addAll(InmutableList<E> other) {
+    public InmutableList<E> appendAll(InmutableList<E> other) {
       List<E> newList = new ArrayList<>(backend);
       newList.addAll(other.toList());
       return new JavaBasedInmutableList<>(newList);

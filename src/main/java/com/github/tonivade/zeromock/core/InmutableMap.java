@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public interface InmutableMap<K, V> {
   
@@ -30,6 +31,14 @@ public interface InmutableMap<K, V> {
     entries().forEach(tupple -> consumer.accept(tupple.get1(), tupple.get2()));
   }
   
+  default <T> InmutableMap<T, V> mapKeys(Handler1<K, T> mapper) {
+    return InmutableMap.from(entries().map(tupple -> tupple.map1(mapper)));
+  }
+  
+  default <T> InmutableMap<K, T> mapValues(Handler1<V, T> mapper) {
+    return InmutableMap.from(entries().map(tupple -> tupple.map2(mapper)));
+  }
+  
   default boolean containsKey(K key) {
     return get(key).isPresent();
   }
@@ -47,6 +56,14 @@ public interface InmutableMap<K, V> {
   
   default boolean isEmpty() {
     return size() == 0;
+  }
+
+  static <K, V> InmutableMap<K, V> from(Map<K, V> map) {
+    return new JavaBasedInmutableMap<>(map);
+  }
+
+  static <K, V> InmutableMap<K, V> from(InmutableSet<Tupple2<K, V>> entries) {
+    return new JavaBasedInmutableMap<>(entries.stream().collect(Collectors.toMap(Tupple2::get1, Tupple2::get2)));
   }
 
   final class JavaBasedInmutableMap<K, V> implements InmutableMap<K, V> {

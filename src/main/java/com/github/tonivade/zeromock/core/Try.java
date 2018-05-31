@@ -14,27 +14,25 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public abstract class Try<T> {
+public interface Try<T> {
   
-  private Try() { }
-  
-  public static <T> Try<T> success(T value) {
+  static <T> Try<T> success(T value) {
     return new Success<>(value);
   }
   
-  public static <T> Try<T> failure(String message) {
+  static <T> Try<T> failure(String message) {
     return failure(new Exception(message));
   }
 
-  public static <T> Try<T> failure() {
+  static <T> Try<T> failure() {
     return failure(new Exception());
   }
   
-  public static <T> Try<T> failure(Throwable error) {
+  static <T> Try<T> failure(Throwable error) {
     return new Failure<>(error);
   }
   
-  public static <T> Try<T> of(Handler0<T> supplier) {
+  static <T> Try<T> of(Handler0<T> supplier) {
     try {
       return success(supplier.handle());
     } catch (Throwable error) {
@@ -42,13 +40,13 @@ public abstract class Try<T> {
     }
   }
 
-  public abstract T get();
-  public abstract Throwable getCause();
-  public abstract boolean isSuccess();
-  public abstract boolean isFailure();
+  T get();
+  Throwable getCause();
+  boolean isSuccess();
+  boolean isFailure();
   
   @SuppressWarnings("unchecked")
-  public <R> Try<R> map(Handler1<T, R> map) {
+  default <R> Try<R> map(Handler1<T, R> map) {
     if (isSuccess()) {
       return success(map.handle(get()));
     }
@@ -56,28 +54,28 @@ public abstract class Try<T> {
   }
 
   @SuppressWarnings("unchecked")
-  public <R> Try<R> flatMap(Handler1<T, Try<R>> map) {
+  default <R> Try<R> flatMap(Handler1<T, Try<R>> map) {
     if (isSuccess()) {
       return map.handle(get());
     }
     return (Try<R>) this;
   }
 
-  public Try<T> onFailure(Consumer<Throwable> consumer) {
+  default Try<T> onFailure(Consumer<Throwable> consumer) {
     if (isFailure()) {
       consumer.accept(getCause());
     }
     return this;
   }
   
-  public Try<T> onSuccess(Consumer<T> consumer) {
+  default Try<T> onSuccess(Consumer<T> consumer) {
     if (isSuccess()) {
       consumer.accept(get());
     }
     return this;
   }
   
-  public Try<T> recover(Handler1<Throwable, T> handler) {
+  default Try<T> recover(Handler1<Throwable, T> handler) {
     if (isFailure()) {
       return Try.of(() -> handler.handle(getCause()));
     }
@@ -85,7 +83,7 @@ public abstract class Try<T> {
   }
   
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> Try<T> recoverWith(Class<X> type, Handler1<X, T> handler) {
+  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Handler1<X, T> handler) {
     if (isFailure()) {
       Throwable cause = getCause();
       if (type.isAssignableFrom(cause.getClass())) {
@@ -95,56 +93,56 @@ public abstract class Try<T> {
     return this;
   }
 
-  public Try<T> filter(Matcher<T> matcher) {
+  default Try<T> filter(Matcher<T> matcher) {
     if (isSuccess() && matcher.match(get())) {
       return this;
     }
     return failure("filtered");
   }
 
-  public Try<T> filterOrElse(Matcher<T> matcher, Handler0<Try<T>> supplier) {
+  default Try<T> filterOrElse(Matcher<T> matcher, Handler0<Try<T>> supplier) {
     if (isSuccess() && matcher.match(get())) {
       return this;
     }
     return supplier.handle();
   }
   
-  public <U> U fold(Handler1<Throwable, U> failureMapper, Handler1<T, U> successMapper) {
+  default <U> U fold(Handler1<Throwable, U> failureMapper, Handler1<T, U> successMapper) {
     if (isSuccess()) {
       return successMapper.handle(get());
     }
     return failureMapper.handle(getCause());
   }
 
-  public T orElse(Handler0<T> supplier) {
+  default T orElse(Handler0<T> supplier) {
     if (isSuccess()) {
       return get();
     }
     return supplier.handle();
   }
 
-  public Stream<T> stream() {
+  default Stream<T> stream() {
     if (isSuccess()) {
       return Stream.of(get());
     }
     return Stream.empty();
   }
   
-  public Either<Throwable, T> toEither() {
+  default Either<Throwable, T> toEither() {
     if (isSuccess()) {
       return Either.right(get());
     }
     return Either.left(getCause());
   }
   
-  public Option<T> toOption() {
+  default Option<T> toOption() {
     if (isSuccess()) {
       return Option.some(get());
     }
     return Option.none();
   }
   
-  static final class Success<T> extends Try<T> {
+  final class Success<T> implements Try<T> {
     private final T value;
     
     private Success(T value) {
@@ -189,7 +187,7 @@ public abstract class Try<T> {
     }
   }
   
-  static final class Failure<T> extends Try<T> {
+  final class Failure<T> implements Try<T> {
     private final Throwable cause;
     
     private Failure(Throwable cause) {
