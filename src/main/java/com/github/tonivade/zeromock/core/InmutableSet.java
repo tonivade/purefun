@@ -62,7 +62,7 @@ public interface InmutableSet<E> extends Sequence<E> {
     return new JavaBasedInmutableSet<>(emptySet());
   }
 
-  public final class JavaBasedInmutableSet<E> implements InmutableSet<E> {
+  final class JavaBasedInmutableSet<E> implements InmutableSet<E> {
     private final Set<E> backend;
     
     private JavaBasedInmutableSet(Set<E> backend) {
