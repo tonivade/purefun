@@ -77,6 +77,13 @@ public interface Option<T> {
     }
     return get();
   }
+
+  default <X extends Throwable> T orElseThrow(Handler0<X> supplier) throws X { 
+    if (isEmpty()) {
+      throw supplier.handle();
+    }
+    return get();
+  }
   
   default <U> U fold(Handler0<U> orElse, Handler1<T, U> mapper) {
     if (isPresent()) {

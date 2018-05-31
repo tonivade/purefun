@@ -5,6 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.equal;
+import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface InmutableMap<K, V> {
   
@@ -39,6 +41,14 @@ public interface InmutableMap<K, V> {
     return InmutableMap.from(entries().map(tupple -> tupple.map2(mapper)));
   }
   
+  default InmutableMap<K, V> filterKeys(Matcher<K> filter) {
+    return InmutableMap.from(entries().filter(tupple -> filter.match(tupple.get1())));
+  }
+  
+  default InmutableMap<K, V> filterValues(Matcher<V> filter) {
+    return InmutableMap.from(entries().filter(tupple -> filter.match(tupple.get2())));
+  }
+  
   default boolean containsKey(K key) {
     return get(key).isPresent();
   }
@@ -46,6 +56,13 @@ public interface InmutableMap<K, V> {
   default InmutableMap<K, V> putIfAbsent(K key, V value) {
     if (containsKey(key)) {
       return this;
+    }
+    return put(key, value);
+  }
+  
+  default InmutableMap<K, V> merge(K key, V value, Handler2<V, V, V> merger) {
+    if (containsKey(key)) {
+      return put(key, merger.handle(getOrDefault(key, () -> value), value));
     }
     return put(key, value);
   }
@@ -60,6 +77,14 @@ public interface InmutableMap<K, V> {
 
   static <K, V> InmutableMap<K, V> from(Map<K, V> map) {
     return new JavaBasedInmutableMap<>(map);
+  }
+
+  static <K, V> InmutableMap<K,V> empty() {
+    return new JavaBasedInmutableMap<>(emptyMap());
+  }
+
+  static <K, V> InmutableMap<K, V> from(Stream<Tupple2<K, V>> entries) {
+    return from(InmutableSet.from(entries));
   }
 
   static <K, V> InmutableMap<K, V> from(InmutableSet<Tupple2<K, V>> entries) {
