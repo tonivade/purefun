@@ -23,7 +23,7 @@ public interface InmutableSet<E> extends Sequence<E> {
 
   boolean contains(E element);
   
-  InmutableSet<E> add(E element);
+  InmutableSet<E> append(E element);
   InmutableSet<E> remove(E element);
 
   InmutableSet<E> union(InmutableSet<E> other);
@@ -80,7 +80,7 @@ public interface InmutableSet<E> extends Sequence<E> {
     }
     
     @Override
-    public InmutableSet<E> add(E element) {
+    public InmutableSet<E> append(E element) {
       Set<E> newSet = new HashSet<>(backend);
       newSet.add(element);
       return new JavaBasedInmutableSet<>(newSet);
