@@ -43,7 +43,7 @@ public class InmutableMapTest {
     assertAll(() -> assertEquals(0, map.size()),
               () -> assertTrue(map.isEmpty()),
               () -> assertEquals(Option.none(), map.get("z")),
-              () -> assertEquals("aaa", map.getOrDefault("a", () -> "zzz")),
+              () -> assertEquals("zzz", map.getOrDefault("a", () -> "zzz")),
               () -> assertEquals(InmutableSet.empty(), map.keys()),
               () -> assertEquals(InmutableList.empty(), map.values()),
               () -> assertEquals(InmutableSet.empty(), map.entries())
