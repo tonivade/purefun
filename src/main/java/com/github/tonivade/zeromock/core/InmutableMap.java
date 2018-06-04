@@ -97,7 +97,8 @@ public interface InmutableMap<K, V> {
   }
 
   static <K, V> InmutableMap<K, V> from(InmutableSet<Tupple2<K, V>> entries) {
-    return new JavaBasedInmutableMap<>(entries.stream().collect(Collectors.toMap(Tupple2::get1, Tupple2::get2)));
+    return new JavaBasedInmutableMap<>(entries.stream()
+        .collect(Collectors.toMap(Tupple2::get1, Tupple2::get2)));
   }
 
   final class JavaBasedInmutableMap<K, V> implements InmutableMap<K, V> {

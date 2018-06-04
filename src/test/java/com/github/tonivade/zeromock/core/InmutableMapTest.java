@@ -23,6 +23,10 @@ public class InmutableMapTest {
               () -> assertFalse(map.isEmpty()),
               () -> assertEquals(Option.some("aaa"), map.get("a")),
               () -> assertEquals(Option.none(), map.get("z")),
+              () -> assertTrue(map.containsKey("a")),
+              () -> assertFalse(map.containsKey("z")),
+              () -> assertEquals(Option.some("aaa"), map.putIfAbsent("a", "zzz").get("a")),
+              () -> assertEquals(Option.some("zzz"), map.putIfAbsent("z", "zzz").get("z")),
               () -> assertEquals("aaa", map.getOrDefault("a", () -> "zzz")),
               () -> assertEquals("zzz", map.getOrDefault("z", () -> "zzz")),
               () -> assertEquals(InmutableSet.of("a", "b", "c"), map.keys()),
@@ -30,6 +34,7 @@ public class InmutableMapTest {
               () -> assertTrue(map.values().contains("aaa")),
               () -> assertTrue(map.values().contains("bbb")),
               () -> assertTrue(map.values().contains("ccc")),
+              () -> assertEquals(InmutableMap.of(entry("c", "ccc")), map.remove("a").remove("b")),
               () -> assertEquals(InmutableSet.of(entry("a", "aaa"), 
                                                  entry("b", "bbb"), 
                                                  entry("c", "ccc")), map.entries())
@@ -46,7 +51,12 @@ public class InmutableMapTest {
               () -> assertEquals("zzz", map.getOrDefault("a", () -> "zzz")),
               () -> assertEquals(InmutableSet.empty(), map.keys()),
               () -> assertEquals(InmutableList.empty(), map.values()),
-              () -> assertEquals(InmutableSet.empty(), map.entries())
+              () -> assertEquals(InmutableSet.empty(), map.entries()),
+              () -> assertEquals(InmutableMap.of(entry("a", "aaa")), map.put("a", "aaa")),
+              () -> assertEquals(InmutableMap.of(entry("A", "aaa")), 
+                                 map.put("a", "aaa").mapKeys(String::toUpperCase)),
+              () -> assertEquals(InmutableMap.of(entry("a", "AAA")), 
+                                 map.put("a", "aaa").mapValues(String::toUpperCase))
               );
   }
 }
