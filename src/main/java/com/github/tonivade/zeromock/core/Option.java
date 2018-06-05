@@ -51,7 +51,7 @@ public interface Option<T> extends Functor<T> {
   }
 
   @SuppressWarnings("unchecked")
-  default <R> Option<R> flatMap(Handler1<T, Option<R>> map) {
+  default <R> Option<R> flatMap(OptionHandler<T, R> map) {
     if (isPresent()) {
       return map.handle(get());
     }

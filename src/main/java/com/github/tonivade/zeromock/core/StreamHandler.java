@@ -14,7 +14,7 @@ public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
     return value -> handle(value).map(handler::handle);
   }
   
-  default <V> StreamHandler<T, V> flatMap(Handler1<R, Stream<V>> handler) {
+  default <V> StreamHandler<T, V> flatMap(StreamHandler<R, V> handler) {
     return value -> handle(value).flatMap(handler::handle);
   }
   

@@ -22,7 +22,7 @@ public class StreamHandlerTest {
   @Test
   public void flatMapTest() {
     StreamHandler<String, String> handler = string -> Stream.of(string);
-    Handler1<String, Stream<Integer>> str2int = string -> Stream.of(string.length());
+    StreamHandler<String, Integer> str2int = string -> Stream.of(string.length());
     
     assertEquals(asList(5), handler.flatMap(str2int).collect(toList()).handle("asdfg"));
   }

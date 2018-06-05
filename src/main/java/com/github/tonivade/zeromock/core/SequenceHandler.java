@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.stream.Stream;
-
 @FunctionalInterface
 public interface SequenceHandler<T, R> extends Handler1<T, Sequence<R>> {
   
@@ -13,7 +11,7 @@ public interface SequenceHandler<T, R> extends Handler1<T, Sequence<R>> {
     return value -> handle(value).map(handler::handle);
   }
   
-  default <V> SequenceHandler<T, V> flatMap(Handler1<R, Sequence<V>> handler) {
+  default <V> SequenceHandler<T, V> flatMap(SequenceHandler<R, V> handler) {
     return value -> handle(value).flatMap(handler::handle);
   }
   
@@ -25,7 +23,7 @@ public interface SequenceHandler<T, R> extends Handler1<T, Sequence<R>> {
     return value -> handle(value).stream();
   }
   
-  static <T, R> StreamHandler<T, R> adapt(Handler1<T, Stream<R>> handler) {
+  static <T, R> SequenceHandler<T, R> adapt(Handler1<T, Sequence<R>> handler) {
     return handler::handle;
   }
 }

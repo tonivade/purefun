@@ -9,12 +9,13 @@ import static java.util.stream.Collectors.groupingBy;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public interface Sequence<E> extends Iterable<E> {
+public interface Sequence<E> extends Iterable<E>, Functor<E> {
 
   int size();
   
   boolean contains(E element);
 
+  @Override
   <R> Sequence<R> map(Handler1<E, R> mapper);
 
   <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);

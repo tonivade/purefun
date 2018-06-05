@@ -11,7 +11,7 @@ public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
     return value -> handle(value).map(handler::handle);
   }
   
-  default <V> OptionHandler<T, V> flatMap(Handler1<R, Option<V>> handler) {
+  default <V> OptionHandler<T, V> flatMap(OptionHandler<R, V> handler) {
     return value -> handle(value).flatMap(handler::handle);
   }
   

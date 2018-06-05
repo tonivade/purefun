@@ -17,7 +17,7 @@ public class InmutableSetTest {
   private final Handler1<String, String> toUpperCase = String::toUpperCase;
   
   @Test
-  public void notEmptyList() {
+  public void notEmptySet() {
     InmutableSet<String> set = InmutableSet.of("a", "b", "c");
     
     assertAll(() -> assertEquals(3, set.size()),
@@ -63,5 +63,10 @@ public class InmutableSetTest {
               () -> assertEquals(InmutableSet.empty(), set.map(toUpperCase)),
               () -> assertEquals(InmutableSet.empty(), set.flatMap(toUpperCase.liftSequence())),
               () -> assertEquals(InmutableSet.empty(), set.filter(e -> e.length() > 1)));
+  }
+  
+  @Test
+  public void listLaws() {
+    FunctorLaws.verifyLaws(InmutableSet.of("a", "b", "c"));
   }
 }

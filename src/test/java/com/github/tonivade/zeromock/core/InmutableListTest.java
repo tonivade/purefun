@@ -1,10 +1,7 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Handler1.identity;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,5 +59,10 @@ public class InmutableListTest {
               () -> assertEquals(InmutableList.empty(), list.map(toUpperCase)),
               () -> assertEquals(InmutableList.empty(), list.flatMap(toUpperCase.liftSequence())),
               () -> assertEquals(InmutableList.empty(), list.filter(e -> e.length() > 1)));
+  }
+  
+  @Test
+  public void listLaws() {
+    FunctorLaws.verifyLaws(InmutableList.of("a", "b", "c"));
   }
 }

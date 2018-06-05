@@ -15,7 +15,7 @@ public interface OptionalHandler<T, R> extends Handler1<T, Optional<R>> {
     return value -> handle(value).map(mapper::handle);
   }
   
-  default <V> OptionalHandler<T, V> flatMap(Handler1<R, Optional<V>> mapper) {
+  default <V> OptionalHandler<T, V> flatMap(OptionalHandler<R, V> mapper) {
     return value -> handle(value).flatMap(mapper::handle);
   }
   

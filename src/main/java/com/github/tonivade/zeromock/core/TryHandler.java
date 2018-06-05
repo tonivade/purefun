@@ -11,7 +11,7 @@ public interface TryHandler<T, R> extends Handler1<T, Try<R>> {
     return value -> handle(value).map(handler::handle);
   }
   
-  default <V> TryHandler<T, V> flatMap(Handler1<R, Try<V>> handler) {
+  default <V> TryHandler<T, V> flatMap(TryHandler<R, V> handler) {
     return value -> handle(value).flatMap(handler::handle);
   }
   
