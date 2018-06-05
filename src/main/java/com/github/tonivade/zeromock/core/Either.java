@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public interface Either<L, R> {
+public interface Either<L, R> extends Functor<R> {
   
   static <L, R> Either<L, R> left(L value) {
     return new Left<L, R>(value);
@@ -61,6 +61,7 @@ public interface Either<L, R> {
     return left(leftMapper.handle(getLeft()));
   }
   
+  @Override
   @SuppressWarnings("unchecked")
   default <T> Either<L, T> map(Handler1<R, T> map) {
     if (isRight()) {

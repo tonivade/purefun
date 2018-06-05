@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Handler1.identity;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 public class EitherTest {
 
   private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Handler1<String, String> toLowerCase = string -> string.toLowerCase();
   private final Handler1<Integer, Integer> intDouble = i -> i * 2;
   
   @Test
@@ -219,5 +221,26 @@ public class EitherTest {
               () -> assertEquals(emptyList(), either.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> either.get()),
               () -> assertThrows(NoSuchElementException.class, () -> either.getRight()));
+  }
+  
+  @Test
+  public void rightLaws() {
+    FunctorLaws.verifyLaws(Either.right("Hola"));
+  }
+  
+  @Test
+  public void leftLaws() {
+    Either<String, Integer> either = Either.left("Hola");
+
+    assertAll(() -> assertEquals(either, 
+                                 either.mapLeft(identity()), 
+                                 "identity law"),
+              () -> assertEquals(either.mapLeft(toUpperCase).mapLeft(toLowerCase), 
+                                 either.mapLeft(toUpperCase.andThen(toLowerCase)), 
+                                 "composition law"),
+              () -> assertEquals(either.mapLeft(toUpperCase).mapLeft(toLowerCase.andThen(toUpperCase)), 
+                                 either.mapLeft(toUpperCase.andThen(toLowerCase)).mapLeft(toUpperCase), 
+                                 "associativity law")
+              );
   }
 }

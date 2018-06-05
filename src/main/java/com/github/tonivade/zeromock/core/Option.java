@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public interface Option<T> {
+public interface Option<T> extends Functor<T> {
   
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -41,6 +41,7 @@ public interface Option<T> {
   boolean isPresent();
   boolean isEmpty();
   
+  @Override
   @SuppressWarnings("unchecked")
   default <R> Option<R> map(Handler1<T, R> map) {
     if (isPresent()) {

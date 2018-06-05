@@ -229,6 +229,11 @@ public class TryTest {
     assertTrue(try1.isSuccess());
   }
   
+  @Test
+  public void tryLaws() {
+    FunctorLaws.verifyLaws(Try.success("Hola mundo"));
+  }
+  
   private String message() {
     return "Hola mundo";
   }

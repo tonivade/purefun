@@ -157,6 +157,11 @@ public class OptionTest {
     assertTrue(option.isPresent());
   }
   
+  @Test
+  public void optionLaws() {
+    FunctorLaws.verifyLaws(Option.some("Hola mundo"));
+  }
+  
   private String message() {
     return "Hola mundo";
   }

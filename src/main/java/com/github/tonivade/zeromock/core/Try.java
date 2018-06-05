@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public interface Try<T> {
+public interface Try<T> extends Functor<T> {
   
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -45,6 +45,7 @@ public interface Try<T> {
   boolean isSuccess();
   boolean isFailure();
   
+  @Override
   @SuppressWarnings("unchecked")
   default <R> Try<R> map(Handler1<T, R> map) {
     if (isSuccess()) {
