@@ -8,7 +8,7 @@ public class State<S, A> {
   
   private final Handler1<S, Tupple2<A, S>> runState;
   
-  private State(Handler1<S, Tupple2<A, S>> runState) {
+  public State(Handler1<S, Tupple2<A, S>> runState) {
     this.runState = runState;
   }
   
@@ -16,9 +16,12 @@ public class State<S, A> {
     return new State<>(state -> Tupple2.of(value, state));
   }
   
+  public static <S, A> State<S, A> state(Handler1<S, A> handler) {
+    return new State<>(state -> Tupple2.of(handler.handle(state), state));
+  }
+  
   public <R> State<S, R> flatMap(Handler1<A, State<S, R>> map) {
-    return new State<>(state ->
-    {
+    return new State<>(state -> {
       Tupple2<A, S> tempState = run(state);
       return map.handle(tempState.get1()).run(tempState.get2()); 
     });
