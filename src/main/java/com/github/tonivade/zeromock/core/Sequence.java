@@ -30,6 +30,10 @@ public interface Sequence<E> extends Iterable<E>, Functor<E> {
     return stream().reduce(initial, operator::handle);
   }
   
+  default <U> U fold(U initial, Handler2<U, E, U> combinator, Operator2<U> operator) {
+    return stream().reduce(initial, combinator::handle, operator::handle);
+  }
+  
   default <G> InmutableMap<G, InmutableList<E>> groupBy(Handler1<E, G> getter) {
     return InmutableMap.from(stream().collect(groupingBy(getter::handle))).mapValues(InmutableList::from);
   }

@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Nothing.nothing;
+
 public class State<S, A> {
   
   private final Handler1<S, Tupple2<S, A>> runState;
@@ -16,8 +18,27 @@ public class State<S, A> {
     return new State<>(state -> Tupple2.of(state, value));
   }
   
+  public static <S> State<S, S> get() {
+    return new State<>(state -> Tupple2.of(state, state));
+  }
+  
+  public static <S> State<S, Nothing> set(S value) {
+    return new State<>(state -> Tupple2.of(value, nothing()));
+  }
+  
   public static <S, A> State<S, A> state(Handler1<S, A> handler) {
     return new State<>(state -> Tupple2.of(state, handler.handle(state)));
+  }
+  
+  public static <S, A> State<S, InmutableList<A>> compose(InmutableList<State<S, A>> states) {
+    return states.fold(unit(InmutableList.empty()), 
+                       (sa, sb) -> map2(sa, sb, (a, b) -> a.append(b)), 
+                       (sa, sb) -> map2(sa, sb, (a, b) -> a.appendAll(b)));
+  }
+  
+  public static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, 
+                                              Handler2<A, B, C> mapper) {
+    return sa.flatMap(a -> sb.map(b -> mapper.handle(a, b)));
   }
   
   public <R> State<S, R> flatMap(Handler1<A, State<S, R>> map) {
