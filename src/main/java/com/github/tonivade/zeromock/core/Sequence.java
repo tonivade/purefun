@@ -9,7 +9,7 @@ import static java.util.stream.Collectors.groupingBy;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public interface Sequence<E> extends Iterable<E>, Functor<E> {
+public interface Sequence<E> extends Iterable<E>, Functor<E>, Filter<E> {
 
   int size();
   
@@ -20,6 +20,7 @@ public interface Sequence<E> extends Iterable<E>, Functor<E> {
 
   <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);
 
+  @Override
   Sequence<E> filter(Matcher<E> matcher);
   
   default Option<E> reduce(Handler2<E, E, E> operator) {

@@ -26,7 +26,7 @@ public class State<S, A> {
     return new State<>(state -> Tupple2.of(value, nothing()));
   }
   
-  public static <S> State<S, Nothing> modify(Handler1<S, S> handler) {
+  public static <S> State<S, Nothing> modify(Operator1<S> handler) {
     return new State<>(state -> Tupple2.of(handler.handle(state), nothing()));
   }
   
@@ -42,7 +42,7 @@ public class State<S, A> {
   
   public static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, 
                                               Handler2<A, B, C> mapper) {
-    return sa.flatMap(a -> sb.map(b -> mapper.handle(a, b)));
+    return sa.flatMap(a -> sb.map(b -> mapper.curried().handle(a).handle(b)));
   }
   
   public <R> State<S, R> flatMap(Handler1<A, State<S, R>> map) {

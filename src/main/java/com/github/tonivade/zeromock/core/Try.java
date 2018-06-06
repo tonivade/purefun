@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public interface Try<T> extends Functor<T> {
+public interface Try<T> extends Functor<T>, Filter<T>, Holder<T> {
   
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -40,7 +40,6 @@ public interface Try<T> extends Functor<T> {
     }
   }
 
-  T get();
   Throwable getCause();
   boolean isSuccess();
   boolean isFailure();
@@ -94,6 +93,7 @@ public interface Try<T> extends Functor<T> {
     return this;
   }
 
+  @Override
   default Try<T> filter(Matcher<T> matcher) {
     if (isSuccess() && matcher.match(get())) {
       return this;

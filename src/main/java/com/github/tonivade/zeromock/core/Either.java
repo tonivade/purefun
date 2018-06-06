@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public interface Either<L, R> extends Functor<R> {
+public interface Either<L, R> extends Functor<R>, Holder<R> {
   
   static <L, R> Either<L, R> left(L value) {
     return new Left<L, R>(value);
@@ -26,6 +26,7 @@ public interface Either<L, R> extends Functor<R> {
   L getLeft();
   R getRight();
 
+  @Override
   default R get() {
     if (isRight()) {
       return getRight();
