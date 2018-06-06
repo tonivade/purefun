@@ -28,6 +28,11 @@ public class StateTest {
   }
   
   @Test
+  public void modify() {
+    assertEquals(Tupple2.of("ABC", nothing()), State.<String>modify(String::toUpperCase).run("abc"));
+  }
+  
+  @Test
   public void flatMap() {
     State<InmutableList<String>, Nothing> state = 
         unit("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
@@ -49,15 +54,15 @@ public class StateTest {
     assertEquals(Tupple2.of(nothing(), InmutableList.of("a", "b", "c")), result);
   }
 
-  private State<InmutableList<String>, String> unit(String value) {
+  private static State<InmutableList<String>, String> unit(String value) {
     return State.<InmutableList<String>, String>unit(value);
   }
 
-  private Handler1<String, State<InmutableList<String>, String>> append(String nextVal) {
+  private static <T> Handler1<T, State<InmutableList<T>, T>> append(T nextVal) {
     return value -> new State<>(state -> Tupple2.of(state.append(value), nextVal));
   }
   
-  private Handler1<String, State<InmutableList<String>, Nothing>> end() {
+  private static <T> Handler1<T, State<InmutableList<T>, Nothing>> end() {
     return value -> new State<>(state -> Tupple2.of(state.append(value), nothing()));
   }
 }

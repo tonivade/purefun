@@ -26,6 +26,10 @@ public class State<S, A> {
     return new State<>(state -> Tupple2.of(value, nothing()));
   }
   
+  public static <S> State<S, Nothing> modify(Handler1<S, S> handler) {
+    return new State<>(state -> Tupple2.of(handler.handle(state), nothing()));
+  }
+  
   public static <S, A> State<S, A> state(Handler1<S, A> handler) {
     return new State<>(state -> Tupple2.of(state, handler.handle(state)));
   }
