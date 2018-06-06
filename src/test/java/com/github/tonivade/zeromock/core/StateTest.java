@@ -11,12 +11,19 @@ import org.junit.jupiter.api.Test;
 public class StateTest {
   
   @Test
-  public void concat() {
-    State<InmutableList<String>, String> concat = State.<InmutableList<String>, String>unit("a")
-        .flatMap(value -> new State<>(state -> Tupple2.of(value, state.append(value))));
+  public void test() {
+    State<InmutableList<String>, String> state = unit("a").flatMap(append("b")).flatMap(append("c"));
     
-    Tupple2<String, InmutableList<String>> run = concat.run(InmutableList.empty());
+    Tupple2<InmutableList<String>, String> result = state.run(InmutableList.empty());
     
-    assertEquals(Tupple2.of("a", InmutableList.of("a")), run);
+    assertEquals(Tupple2.of(InmutableList.of("a", "b"), "c"), result);
+  }
+
+  private State<InmutableList<String>, String> unit(String value) {
+    return State.<InmutableList<String>, String>unit(value);
+  }
+
+  private Handler1<String, State<InmutableList<String>, String>> append(String nextVal) {
+    return value -> new State<>(state -> Tupple2.of(state.append(value), nextVal));
   }
 }

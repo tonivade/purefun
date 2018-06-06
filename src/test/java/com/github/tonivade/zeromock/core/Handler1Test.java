@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Handler1.adapt;
 import static com.github.tonivade.zeromock.core.Handler1.identity;
+import static com.github.tonivade.zeromock.core.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
@@ -63,9 +64,9 @@ public class Handler1Test {
   
   @Test
   public void adaptSupplier() {
-    Handler1<Void, String> handler = adapt(() -> "asdfg");
+    Handler1<Nothing, String> handler = adapt(() -> "asdfg");
 
-    assertEquals("asdfg", handler.handle(null));
+    assertEquals("asdfg", handler.handle(nothing()));
   }
   
   @Test
