@@ -9,12 +9,14 @@ import static java.util.stream.Collectors.groupingBy;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public interface Sequence<E> extends Iterable<E>, Functor<E>, Filter<E> {
+public interface Sequence<E> extends Iterable<E>, Functor<E>, Filter<E>, Foldable<E> {
 
   int size();
   
   boolean contains(E element);
 
+  Sequence<E> reverse();
+  
   @Override
   <R> Sequence<R> map(Handler1<E, R> mapper);
 
@@ -23,16 +25,27 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filter<E> {
   @Override
   Sequence<E> filter(Matcher<E> matcher);
   
-  default Option<E> reduce(Handler2<E, E, E> operator) {
+  @Override
+  default Option<E> reduce(Operator2<E> operator) {
     return Option.from(stream().reduce(operator::handle));
   }
   
-  default E fold(E initial, Handler2<E, E, E> operator) {
+  @Override
+  default E fold(E initial, Operator2<E> operator) {
     return stream().reduce(initial, operator::handle);
   }
   
-  default <U> U fold(U initial, Handler2<U, E, U> combinator, Operator2<U> operator) {
-    return stream().reduce(initial, combinator::handle, operator::handle);
+  @Override
+  default <U> U foldLeft(U initial, Handler2<U, E, U> combinator) {
+    U accumulator = initial;
+    for (E element : this) {
+      accumulator = combinator.handle(accumulator, element);
+    }
+    return accumulator;
+  }
+
+  default <U> U foldRight(U initial, Handler2<E, U, U> combinator) {
+    return reverse().foldLeft(initial, (acc, e) -> combinator.handle(e, acc));
   }
   
   default <G> InmutableMap<G, InmutableList<E>> groupBy(Handler1<E, G> getter) {

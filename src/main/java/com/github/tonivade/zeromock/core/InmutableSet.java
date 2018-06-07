@@ -78,36 +78,41 @@ public interface InmutableSet<E> extends Sequence<E> {
     }
     
     @Override
+    public InmutableSet<E> reverse() {
+      return this;
+    }
+    
+    @Override
     public InmutableSet<E> append(E element) {
-      Set<E> newSet = new HashSet<>(backend);
+      Set<E> newSet = toSet();
       newSet.add(element);
       return new JavaBasedInmutableSet<>(newSet);
     }
     
     @Override
     public InmutableSet<E> remove(E element) {
-      Set<E> newSet = new HashSet<>(backend);
+      Set<E> newSet = toSet();
       newSet.remove(element);
       return new JavaBasedInmutableSet<>(newSet);
     }
     
     @Override
     public InmutableSet<E> union(InmutableSet<E> other) {
-      Set<E> newSet = new HashSet<>(backend);
+      Set<E> newSet = toSet();
       newSet.addAll(other.toSet());
       return new JavaBasedInmutableSet<>(newSet);
     }
     
     @Override
     public InmutableSet<E> intersection(InmutableSet<E> other) {
-      Set<E> newSet = new HashSet<>(backend);
+      Set<E> newSet = toSet();
       newSet.retainAll(other.toSet());
       return new JavaBasedInmutableSet<>(newSet);
     }
     
     @Override
     public InmutableSet<E> difference(InmutableSet<E> other) {
-      Set<E> newSet = new HashSet<>(backend);
+      Set<E> newSet = toSet();
       newSet.removeAll(other.toSet());
       return new JavaBasedInmutableSet<>(newSet);
     }

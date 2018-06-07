@@ -35,9 +35,7 @@ public class State<S, A> {
   }
   
   public static <S, A> State<S, InmutableList<A>> compose(InmutableList<State<S, A>> states) {
-    return states.fold(unit(InmutableList.empty()), 
-                       (sa, sb) -> map2(sa, sb, (a, b) -> a.append(b)), 
-                       (sa, sb) -> map2(sa, sb, (a, b) -> a.appendAll(b)));
+    return states.foldLeft(unit(InmutableList.empty()), (sa, sb) -> map2(sa, sb, (acc, a) -> acc.append(a)));
   }
   
   public static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, 
