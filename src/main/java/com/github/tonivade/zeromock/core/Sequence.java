@@ -9,7 +9,7 @@ import static java.util.stream.Collectors.groupingBy;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public interface Sequence<E> extends Iterable<E>, Functor<E>, Filter<E>, Foldable<E> {
+public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Foldable<E> {
 
   int size();
   

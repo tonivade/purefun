@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
-public interface Filter<T> {
+public interface Filterable<T> {
 
-  Filter<T> filter(Matcher<T> matcher);
+  Filterable<T> filter(Matcher<T> matcher);
 
 }

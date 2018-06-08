@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public interface Try<T> extends Functor<T>, Filter<T>, Holder<T> {
+public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   
   static <T> Try<T> success(T value) {
     return new Success<>(value);

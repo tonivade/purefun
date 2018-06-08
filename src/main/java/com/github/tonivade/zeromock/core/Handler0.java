@@ -16,6 +16,6 @@ public interface Handler0<T> {
   }
   
   static <T> Handler0<T> adapt(Supplier<T> supplier) {
-    return () -> supplier.get();
+    return supplier::get;
   }
 }

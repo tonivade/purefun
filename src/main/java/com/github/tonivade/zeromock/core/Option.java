@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public interface Option<T> extends Functor<T>, Filter<T>, Holder<T> {
+public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   
   static <T> Option<T> some(T value) {
     return new Some<>(value);
