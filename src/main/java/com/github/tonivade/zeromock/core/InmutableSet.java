@@ -21,7 +21,9 @@ public interface InmutableSet<E> extends Sequence<E> {
   
   Set<E> toSet();
 
+  @Override
   InmutableSet<E> append(E element);
+  @Override
   InmutableSet<E> remove(E element);
 
   InmutableSet<E> union(InmutableSet<E> other);

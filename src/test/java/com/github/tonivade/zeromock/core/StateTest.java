@@ -5,6 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Nothing.nothing;
+import static com.github.tonivade.zeromock.core.State.state;
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,8 +24,8 @@ public class StateTest {
   }
   
   @Test
-  public void state() {
-    assertEquals("ABC", State.<String, String>state(String::toUpperCase).eval("abc"));
+  public void gets() {
+    assertEquals("ABC", State.<String, String>gets(String::toUpperCase).eval("abc"));
   }
   
   @Test
@@ -59,10 +60,10 @@ public class StateTest {
   }
 
   private static <T> Handler1<T, State<InmutableList<T>, T>> append(T nextVal) {
-    return value -> new State<>(state -> Tupple2.of(state.append(value), nextVal));
+    return value -> state(state -> Tupple2.of(state.append(value), nextVal));
   }
   
   private static <T> Handler1<T, State<InmutableList<T>, Nothing>> end() {
-    return value -> new State<>(state -> Tupple2.of(state.append(value), nothing()));
+    return value -> state(state -> Tupple2.of(state.append(value), nothing()));
   }
 }

@@ -63,36 +63,32 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
   }
   
   @Override
-  @SuppressWarnings("unchecked")
   default <T> Either<L, T> map(Handler1<R, T> map) {
     if (isRight()) {
       return right(map.handle(getRight()));
     }
-    return (Either<L, T>) this;
+    return left(getLeft());
   }
   
-  @SuppressWarnings("unchecked")
   default <T> Either<T, R> mapLeft(Handler1<L, T> map) {
     if (isLeft()) {
       return left(map.handle(getLeft()));
     }
-    return (Either<T, R>) this;
+    return right(getRight());
   }
 
-  @SuppressWarnings("unchecked")
   default <T> Either<L, T> flatMap(Handler1<R, Either<L, T>> map) {
     if (isRight()) {
       return map.handle(getRight());
     }
-    return (Either<L, T>) this;
+    return left(getLeft());
   }
 
-  @SuppressWarnings("unchecked")
   default <T> Either<T, R> flatMapLeft(Handler1<L, Either<T, R>> map) {
     if (isLeft()) {
       return map.handle(getLeft());
     }
-    return (Either<T, R>) this;
+    return right(getRight());
   }
 
   default Option<Either<L, R>> filter(Matcher<R> matcher) {

@@ -24,6 +24,7 @@ public interface InmutableList<E> extends Sequence<E> {
   List<E> toList();
   
   InmutableList<E> append(E element);
+  InmutableList<E> remove(E element);
 
   InmutableList<E> appendAll(InmutableList<E> other);
   
@@ -108,6 +109,13 @@ public interface InmutableList<E> extends Sequence<E> {
     public InmutableList<E> append(E element) {
       List<E> newList = toList();
       newList.add(element);
+      return new JavaBasedInmutableList<>(newList);
+    }
+    
+    @Override
+    public InmutableList<E> remove(E element) {
+      List<E> newList = toList();
+      newList.remove(element);
       return new JavaBasedInmutableList<>(newList);
     }
     

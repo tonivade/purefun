@@ -14,6 +14,8 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   int size();
   
   boolean contains(E element);
+  Sequence<E> append(E element);
+  Sequence<E> remove(E element);
 
   Sequence<E> reverse();
   
@@ -58,5 +60,15 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
 
   default boolean isEmpty() {
     return size() == 0;
+  }
+  
+  @SafeVarargs
+  static <E> InmutableList<E> listOf(E... elements) {
+    return InmutableList.of(elements);
+  }
+  
+  @SafeVarargs
+  static <E> InmutableSet<E> setOf(E... elements) {
+    return InmutableSet.of(elements);
   }
 }
