@@ -42,12 +42,13 @@ public class ValidationTest {
               () -> assertFalse(valid.isInvalid()),
               () -> assertEquals(Integer.valueOf(1), valid.get()),
               () -> assertThrows(NoSuchElementException.class, () -> valid.getError()),
-              () -> assertEquals(Validation.valid(3), valid.map(i -> i + 2)),
-              () -> assertEquals(Validation.valid(1), valid.mapError(String::toUpperCase)),
+              () -> assertEquals(valid(3), valid.map(i -> i + 2)),
+              () -> assertEquals(valid(1), valid.mapError(String::toUpperCase)),
               () -> assertEquals(valid("1"), valid.flatMap(i -> valid(valueOf(i)))),
               () -> assertEquals("1", valid.fold(i -> valueOf(i), identity())),
               () -> assertEquals(some(valid(1)), valid.filter(i -> i > 0)),
               () -> assertEquals(none(), valid.filter(i -> i > 1)),
+              () -> assertEquals(Either.right(1), valid.toEither()),
               () -> assertEquals("Valid(1)", valid.toString())
         );
   }
@@ -60,12 +61,13 @@ public class ValidationTest {
               () -> assertTrue(invalid.isInvalid()),
               () -> assertEquals("error", invalid.getError()),
               () -> assertThrows(NoSuchElementException.class, () -> invalid.get()),
-              () -> assertEquals(Validation.invalid("error"), invalid.map(i -> i + 2)),
-              () -> assertEquals(Validation.invalid("ERROR"), invalid.mapError(String::toUpperCase)),
+              () -> assertEquals(invalid("error"), invalid.map(i -> i + 2)),
+              () -> assertEquals(invalid("ERROR"), invalid.mapError(String::toUpperCase)),
               () -> assertEquals(invalid("error"), invalid.flatMap(i -> valid(valueOf(i)))),
               () -> assertEquals("error", invalid.fold(i -> valueOf(i), identity())),
               () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 0)),
               () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 1)),
+              () -> assertEquals(Either.left("error"), invalid.toEither()),
               () -> assertEquals("Invalid(error)", invalid.toString())
         );
   }

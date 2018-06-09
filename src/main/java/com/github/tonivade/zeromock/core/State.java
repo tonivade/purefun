@@ -6,7 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Nothing.nothing;
 
-public class State<S, A> {
+public final class State<S, A> {
   
   private final Handler1<S, Tupple2<S, A>> runState;
   

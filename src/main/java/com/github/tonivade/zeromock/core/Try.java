@@ -136,6 +136,13 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return Either.left(getCause());
   }
   
+  default <E> Validation<E, T> toValidation(Handler1<Throwable, E> map) {
+    if (isSuccess()) {
+      return Validation.valid(get());
+    }
+    return Validation.invalid(map.handle(getCause()));
+  }
+  
   default Option<T> toOption() {
     if (isSuccess()) {
       return Option.some(get());

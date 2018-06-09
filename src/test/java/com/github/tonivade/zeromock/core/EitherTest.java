@@ -191,36 +191,38 @@ public class EitherTest {
 
   @Test
   public void right() {
-    Either<Integer, String> either = Either.right("Hola mundo");
+    Either<Integer, String> right = Either.right("Hola mundo");
    
-    assertAll(() -> assertTrue(either.isRight()),
-              () -> assertFalse(either.isLeft()),
-              () -> assertEquals("Right(Hola mundo)", either.toString()),
-              () -> assertEquals("Hola mundo", either.get()),
-              () -> assertEquals("Hola mundo", either.getRight()),
-              () -> assertEquals(Option.some("Hola mundo"), either.right()),
-              () -> assertEquals(Option.none(), either.left()),
-              () -> assertEquals(Either.right("Hola mundo"), either),
-              () -> assertEquals(Option.some("Hola mundo"), either.toOption()),
-              () -> assertEquals(singletonList("Hola mundo"), either.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> either.getLeft()));
+    assertAll(() -> assertTrue(right.isRight()),
+              () -> assertFalse(right.isLeft()),
+              () -> assertEquals("Right(Hola mundo)", right.toString()),
+              () -> assertEquals("Hola mundo", right.get()),
+              () -> assertEquals("Hola mundo", right.getRight()),
+              () -> assertEquals(Option.some("Hola mundo"), right.right()),
+              () -> assertEquals(Option.none(), right.left()),
+              () -> assertEquals(Either.right("Hola mundo"), right),
+              () -> assertEquals(Option.some("Hola mundo"), right.toOption()),
+              () -> assertEquals(Validation.valid("Hola mundo"), right.toValidation()),
+              () -> assertEquals(singletonList("Hola mundo"), right.stream().collect(toList())),
+              () -> assertThrows(NoSuchElementException.class, () -> right.getLeft()));
   }
 
   @Test
   public void left() {
-    Either<Integer, String> either = Either.left(10);
+    Either<Integer, String> left = Either.left(10);
    
-    assertAll(() -> assertTrue(either.isLeft()),
-              () -> assertFalse(either.isRight()),
-              () -> assertEquals("Left(10)", either.toString()),
-              () -> assertEquals(Integer.valueOf(10), either.getLeft()),
-              () -> assertEquals(Option.some(10), either.left()),
-              () -> assertEquals(Option.none(), either.right()),
-              () -> assertEquals(Either.left(10), either),
-              () -> assertEquals(Option.none(), either.toOption()),
-              () -> assertEquals(emptyList(), either.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> either.get()),
-              () -> assertThrows(NoSuchElementException.class, () -> either.getRight()));
+    assertAll(() -> assertTrue(left.isLeft()),
+              () -> assertFalse(left.isRight()),
+              () -> assertEquals("Left(10)", left.toString()),
+              () -> assertEquals(Integer.valueOf(10), left.getLeft()),
+              () -> assertEquals(Option.some(10), left.left()),
+              () -> assertEquals(Option.none(), left.right()),
+              () -> assertEquals(Either.left(10), left),
+              () -> assertEquals(Option.none(), left.toOption()),
+              () -> assertEquals(Validation.invalid(10), left.toValidation()),
+              () -> assertEquals(emptyList(), left.stream().collect(toList())),
+              () -> assertThrows(NoSuchElementException.class, () -> left.get()),
+              () -> assertThrows(NoSuchElementException.class, () -> left.getRight()));
   }
   
   @Test

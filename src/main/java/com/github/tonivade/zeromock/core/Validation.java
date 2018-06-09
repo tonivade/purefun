@@ -75,6 +75,13 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     }
     return invalid(validation.getError());
   }
+  
+  default Either<E, T> toEither() {
+    if (isValid()) {
+      return Either.right(get());
+    }
+    return Either.left(getError());
+  }
 
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1, 
                                                         Validation<E, T2> validation2, 

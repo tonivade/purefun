@@ -133,6 +133,13 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return Option.none();
   }
   
+  default Validation<L, R> toValidation() {
+    if (isRight()) {
+      return Validation.valid(getRight());
+    }
+    return Validation.invalid(getLeft());
+  }
+  
   final class Left<L, R> implements Either<L, R> {
 
     private L left;

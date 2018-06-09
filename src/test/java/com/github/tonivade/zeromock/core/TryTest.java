@@ -129,50 +129,52 @@ public class TryTest {
 
   @Test
   public void success() {
-    Try<String> try1 = Try.success("Hola mundo");
+    Try<String> success = Try.success("Hola mundo");
    
-    assertAll(() -> assertTrue(try1.isSuccess()),
-              () -> assertFalse(try1.isFailure()),
-              () -> assertEquals("Success(Hola mundo)", try1.toString()),
-              () -> assertEquals("Hola mundo", try1.get()),
-              () -> assertEquals(Try.success("Hola mundo"), try1),
-              () -> assertEquals(Option.some("Hola mundo"), try1.toOption()),
-              () -> assertEquals(Either.right("Hola mundo"), try1.toEither()),
-              () -> assertEquals(singletonList("Hola mundo"), try1.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> try1.getCause()),
+    assertAll(() -> assertTrue(success.isSuccess()),
+              () -> assertFalse(success.isFailure()),
+              () -> assertEquals("Success(Hola mundo)", success.toString()),
+              () -> assertEquals("Hola mundo", success.get()),
+              () -> assertEquals(Try.success("Hola mundo"), success),
+              () -> assertEquals(Option.some("Hola mundo"), success.toOption()),
+              () -> assertEquals(Validation.valid("Hola mundo"), success.toValidation(t -> t.getMessage())),
+              () -> assertEquals(Either.right("Hola mundo"), success.toEither()),
+              () -> assertEquals(singletonList("Hola mundo"), success.stream().collect(toList())),
+              () -> assertThrows(NoSuchElementException.class, () -> success.getCause()),
               () -> {
                 AtomicReference<String> ref = new AtomicReference<>();
-                try1.onSuccess(ref::set);
+                success.onSuccess(ref::set);
                 assertEquals("Hola mundo", ref.get());
               },
               () -> {
                 AtomicReference<Throwable> ref = new AtomicReference<>();
-                try1.onFailure(ref::set);
+                success.onFailure(ref::set);
                 assertNull(ref.get());
               });
   }
 
   @Test
   public void failure() {
-    Try<String> try1 = Try.failure("error");
+    Try<String> failure = Try.failure("error");
     
-    assertAll(() -> assertFalse(try1.isSuccess()),
-              () -> assertTrue(try1.isFailure()),
-              () -> assertEquals("Failure(java.lang.Exception: error)", try1.toString()),
+    assertAll(() -> assertFalse(failure.isSuccess()),
+              () -> assertTrue(failure.isFailure()),
+              () -> assertEquals("Failure(java.lang.Exception: error)", failure.toString()),
               () -> assertEquals(Try.failure("error"), Try.failure("error")),
-              () -> assertEquals(Option.none(), try1.toOption()),
-              () -> assertEquals(Either.left(try1.getCause()), try1.toEither()),
-              () -> assertEquals("error", try1.getCause().getMessage()),
-              () -> assertEquals(emptyList(), try1.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> try1.get()),
+              () -> assertEquals(Option.none(), failure.toOption()),
+              () -> assertEquals(Validation.invalid("error"), failure.toValidation(t -> t.getMessage())),
+              () -> assertEquals(Either.left(failure.getCause()), failure.toEither()),
+              () -> assertEquals("error", failure.getCause().getMessage()),
+              () -> assertEquals(emptyList(), failure.stream().collect(toList())),
+              () -> assertThrows(NoSuchElementException.class, () -> failure.get()),
               () -> {
                 AtomicReference<Throwable> ref = new AtomicReference<>();
-                try1.onFailure(ref::set);
+                failure.onFailure(ref::set);
                 assertEquals("error", ref.get().getMessage());
               },
               () -> {
                 AtomicReference<String> ref = new AtomicReference<>();
-                try1.onSuccess(ref::set);
+                failure.onSuccess(ref::set);
                 assertNull(ref.get());
               });
   }
