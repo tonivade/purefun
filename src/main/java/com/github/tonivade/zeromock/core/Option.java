@@ -21,8 +21,9 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return new Some<>(value);
   }
   
+  @SuppressWarnings("unchecked")
   static <T> Option<T> none() {
-    return new None<>();
+    return (Option<T>) None.INSTANCE;
   }
 
   static <T> Option<T> of(Handler0<T> supplier) {
@@ -146,6 +147,8 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   }
 
   final class None<T> implements Option<T> {
+    
+    private static final None<?> INSTANCE = new None<>();
 
     private None() { }
 
@@ -171,7 +174,7 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     
     @Override
     public boolean equals(Object obj) {
-      return equal(this).applyTo(obj);
+      return this == obj;
     }
     
     @Override

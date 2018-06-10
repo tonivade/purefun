@@ -109,36 +109,36 @@ public class OptionTest {
 
   @Test
   public void some() {
-    Option<String> option = Option.some("Hola mundo");
+    Option<String> some = Option.some("Hola mundo");
    
-    assertAll(() -> assertTrue(option.isPresent()),
-              () -> assertFalse(option.isEmpty()),
-              () -> assertEquals("Hola mundo", option.get()),
-              () -> assertEquals("Some(Hola mundo)", option.toString()),
-              () -> assertEquals(Optional.of("Hola mundo"), option.toOptional()),
-              () -> assertEquals(Option.some("Hola mundo"), option),
-              () -> assertEquals(singletonList("Hola mundo"), option.stream().collect(toList())),
+    assertAll(() -> assertTrue(some.isPresent()),
+              () -> assertFalse(some.isEmpty()),
+              () -> assertEquals("Hola mundo", some.get()),
+              () -> assertEquals("Some(Hola mundo)", some.toString()),
+              () -> assertEquals(Optional.of("Hola mundo"), some.toOptional()),
+              () -> assertEquals(Option.some("Hola mundo"), some),
+              () -> assertEquals(singletonList("Hola mundo"), some.stream().collect(toList())),
               () -> {
                 AtomicReference<String> ref = new AtomicReference<>();
-                option.ifPresent(ref::set);
+                some.ifPresent(ref::set);
                 assertEquals("Hola mundo", ref.get());
               });
   }
 
   @Test
   public void failure() {
-    Option<String> option = Option.none();
+    Option<String> none = Option.none();
     
-    assertAll(() -> assertFalse(option.isPresent()),
-              () -> assertTrue(option.isEmpty()),
-              () -> assertEquals("None", option.toString()),
-              () -> assertEquals(Option.none(), option),
-              () -> assertEquals(Optional.empty(), option.toOptional()),
-              () -> assertEquals(emptyList(), option.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> option.get()),
+    assertAll(() -> assertFalse(none.isPresent()),
+              () -> assertTrue(none.isEmpty()),
+              () -> assertEquals("None", none.toString()),
+              () -> assertEquals(Option.none(), none),
+              () -> assertEquals(Optional.empty(), none.toOptional()),
+              () -> assertEquals(emptyList(), none.stream().collect(toList())),
+              () -> assertThrows(NoSuchElementException.class, () -> none.get()),
               () -> {
                 AtomicReference<String> ref = new AtomicReference<>();
-                option.ifPresent(ref::set);
+                none.ifPresent(ref::set);
                 assertNull(ref.get());
               });
   }
