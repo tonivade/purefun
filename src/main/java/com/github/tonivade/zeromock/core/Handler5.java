@@ -4,20 +4,20 @@
  */
 package com.github.tonivade.zeromock.core;
 
-public interface Handler5<T1, T2, T3, T4, T5, R> {
+public interface Handler5<A, B, C, D, E, R> {
 
-  R handle(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
+  R handle(A t1, B t2, C t3, D t4, E t5);
   
-  default Handler1<T1, Handler1<T2, Handler1<T3, Handler1<T4, Handler1<T5, R>>>>> curried() {
+  default Handler1<A, Handler1<B, Handler1<C, Handler1<D, Handler1<E, R>>>>> curried() {
     return t1 -> t2 -> t3 -> t4 -> t5 -> handle(t1, t2, t3, t4, t5);
   }
   
-  default <U> Handler5<T1, T2, T3, T4, T5, U> andThen(Handler1<R, U> after) {
+  default <U> Handler5<A, B, C, D, E, U> andThen(Handler1<R, U> after) {
     return (t1, t2, t3, t4, t5) -> after.handle(handle(t1, t2, t3, t4, t5));
   }
   
-  default <U> Handler1<U, R> compose(Handler1<U, T1> beforeT1, Handler1<U, T2> beforeT2, 
-      Handler1<U, T3> beforeT3, Handler1<U, T4> beforeT4, Handler1<U, T5> beforeT5) {
+  default <U> Handler1<U, R> compose(Handler1<U, A> beforeT1, Handler1<U, B> beforeT2, 
+      Handler1<U, C> beforeT3, Handler1<U, D> beforeT4, Handler1<U, E> beforeT5) {
     return value -> handle(beforeT1.handle(value), beforeT2.handle(value), 
         beforeT3.handle(value), beforeT4.handle(value), beforeT5.handle(value));
   }
