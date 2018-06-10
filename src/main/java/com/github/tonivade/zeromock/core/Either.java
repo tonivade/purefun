@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.equal;
+import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -142,10 +143,10 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
   
   final class Left<L, R> implements Either<L, R> {
 
-    private L left;
+    private L value;
     
     private Left(L value) {
-      left = value;
+      this.value = requireNonNull(value);
     }
 
     @Override
@@ -160,7 +161,7 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public L getLeft() {
-      return left;
+      return value;
     }
     
     @Override
@@ -170,7 +171,7 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public int hashCode() {
-      return Objects.hash(left);
+      return Objects.hash(value);
     }
     
     @Override
@@ -182,16 +183,16 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public String toString() {
-      return "Left(" + left + ")";
+      return "Left(" + value + ")";
     }
   }
 
   final class Right<L, R> implements Either<L, R> {
 
-    private R right;
+    private R value;
     
     private Right(R value) {
-      right = value;
+      this.value = requireNonNull(value);
     }
 
     @Override
@@ -211,12 +212,12 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public R getRight() {
-      return right;
+      return value;
     }
     
     @Override
     public int hashCode() {
-      return Objects.hash(right);
+      return Objects.hash(value);
     }
     
     @Override
@@ -228,7 +229,7 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public String toString() {
-      return "Right(" + right + ")";
+      return "Right(" + value + ")";
     }
   }
 }
