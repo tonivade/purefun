@@ -52,7 +52,6 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return failure(getCause());
   }
 
-  @SuppressWarnings("unchecked")
   default <R> Try<R> flatMap(Handler1<T, Try<R>> map) {
     if (isSuccess()) {
       return map.handle(get());
