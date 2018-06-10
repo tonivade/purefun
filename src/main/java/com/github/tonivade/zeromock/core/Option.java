@@ -41,20 +41,18 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   boolean isEmpty();
   
   @Override
-  @SuppressWarnings("unchecked")
   default <R> Option<R> map(Handler1<T, R> map) {
     if (isPresent()) {
       return some(map.handle(get()));
     }
-    return (Option<R>) this;
+    return none();
   }
 
-  @SuppressWarnings("unchecked")
   default <R> Option<R> flatMap(OptionHandler<T, R> map) {
     if (isPresent()) {
       return map.handle(get());
     }
-    return (Option<R>) this;
+    return none();
   }
 
   default Option<T> ifPresent(Consumer<T> consumer) {

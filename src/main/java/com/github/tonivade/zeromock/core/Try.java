@@ -45,12 +45,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   boolean isFailure();
   
   @Override
-  @SuppressWarnings("unchecked")
   default <R> Try<R> map(Handler1<T, R> map) {
     if (isSuccess()) {
       return success(map.handle(get()));
     }
-    return (Try<R>) this;
+    return failure(getCause());
   }
 
   @SuppressWarnings("unchecked")
@@ -58,7 +57,7 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     if (isSuccess()) {
       return map.handle(get());
     }
-    return (Try<R>) this;
+    return failure(getCause());
   }
 
   default Try<T> onFailure(Consumer<Throwable> consumer) {
