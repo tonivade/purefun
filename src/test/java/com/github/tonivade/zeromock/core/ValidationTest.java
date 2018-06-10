@@ -15,11 +15,7 @@ import static com.github.tonivade.zeromock.core.Validation.map4;
 import static com.github.tonivade.zeromock.core.Validation.map5;
 import static com.github.tonivade.zeromock.core.Validation.valid;
 import static java.lang.String.valueOf;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 
@@ -46,6 +42,9 @@ public class ValidationTest {
               () -> assertEquals("1", valid.fold(i -> valueOf(i), identity())),
               () -> assertEquals(some(valid(1)), valid.filter(i -> i > 0)),
               () -> assertEquals(none(), valid.filter(i -> i > 1)),
+              () -> assertEquals(valid(1), valid.filterOrElse(i -> i > 0, () -> valid(10))),
+              () -> assertEquals(valid(10), valid.filterOrElse(i -> i > 1, () -> valid(10))),
+              () -> assertEquals(Integer.valueOf(1), valid.orElse(() -> 10)),
               () -> assertEquals(Either.right(1), valid.toEither()),
               () -> assertEquals("Valid(1)", valid.toString())
         );
@@ -65,6 +64,8 @@ public class ValidationTest {
               () -> assertEquals("error", invalid.fold(i -> valueOf(i), identity())),
               () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 0)),
               () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 1)),
+              () -> assertEquals(invalid("error"), invalid.filterOrElse(i -> i > 1, () -> valid(10))),
+              () -> assertEquals(Integer.valueOf(10), invalid.orElse(() -> 10)),
               () -> assertEquals(Either.left("error"), invalid.toEither()),
               () -> assertEquals("Invalid(error)", invalid.toString())
         );
@@ -101,5 +102,10 @@ public class ValidationTest {
               () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4", "error5")), 
                   map5(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), invalid("error5"), sum5))
         );
+  }
+  
+  @Test
+  public void functorLaws() {
+    FunctorLaws.verifyLaws(valid("value"));
   }
 }

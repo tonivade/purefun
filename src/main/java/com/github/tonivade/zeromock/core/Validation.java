@@ -56,6 +56,20 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     return Option.none();
   }
   
+  default Validation<E, T> filterOrElse(Matcher<T> matcher, Handler0<Validation<E, T>> orElse) {
+    if (isInvalid() || matcher.match(get())) {
+      return this;
+    }
+    return orElse.handle();
+  }
+  
+  default T orElse(Handler0<T> orElse) {
+    if (isValid()) {
+      return get();
+    }
+    return orElse.handle();
+  }
+  
   default <U> U fold(Handler1<T, U> validMap, Handler1<E, U> invalidMap) {
     if (isValid()) {
       return validMap.handle(get());
@@ -63,17 +77,17 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     return invalidMap.handle(getError());
   }
  
-  default <R> Validation<Sequence<E>, R> ap(Validation<Sequence<E>, Handler1<T, R>> validation) {
-    if (isValid() && validation.isValid()) {
-      return valid(validation.get().handle(get()));
+  default <R> Validation<Sequence<E>, R> ap(Validation<Sequence<E>, Handler1<T, R>> other) {
+    if (this.isValid() && other.isValid()) {
+      return valid(other.get().handle(get()));
     } 
-    if (isInvalid() && validation.isInvalid()) {
-      return invalid(validation.getError().append(getError()));
+    if (this.isInvalid() && other.isInvalid()) {
+      return invalid(other.getError().append(getError()));
     }
-    if (isInvalid() && validation.isValid()) {
+    if (this.isInvalid() && other.isValid()) {
       return invalid(listOf(getError()));
     }
-    return invalid(validation.getError());
+    return invalid(other.getError());
   }
   
   default Either<E, T> toEither() {
@@ -165,7 +179,7 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     
     private final E error;
     
-    public Invalid(E error) {
+    private Invalid(E error) {
       this.error = requireNonNull(error);
     }
     

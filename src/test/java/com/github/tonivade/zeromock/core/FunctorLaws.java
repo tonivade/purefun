@@ -13,7 +13,7 @@ public class FunctorLaws {
   private final static Handler1<String, String> toUpperCase = String::toUpperCase;
   private final static Handler1<String, String> toLowerCase = String::toLowerCase;
   
-  public static <T> void verifyLaws(Functor<String> functor) {
+  public static void verifyLaws(Functor<String> functor) {
     assertAll(() -> assertEquals(functor, 
                                  functor.map(identity()), 
                                  "identity law"),
