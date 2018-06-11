@@ -93,14 +93,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
 
   @Override
   default Try<T> filter(Matcher<T> matcher) {
-    if (isSuccess() && matcher.match(get())) {
-      return this;
-    }
-    return failure("filtered");
+    return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
   }
 
   default Try<T> filterOrElse(Matcher<T> matcher, Handler0<Try<T>> supplier) {
-    if (isSuccess() && matcher.match(get())) {
+    if (isFailure() || matcher.match(get())) {
       return this;
     }
     return supplier.handle();

@@ -103,14 +103,15 @@ public class TryTest {
         .filterOrElse(string -> string.startsWith("hola"), () -> Try.<String>failure("or else"));
     
     assertTrue(try1.isFailure());
-    assertEquals("or else", try1.getCause().getMessage());
+    assertEquals("error", try1.getCause().getMessage());
   }
 
   @Test
   public void filterFailure() {
-    Try<String> try1 = Try.<String>failure("Hola mundo").filter(string -> string.startsWith("hola"));
+    Try<String> try1 = Try.<String>failure("error").filter(string -> string.startsWith("hola"));
     
     assertTrue(try1.isFailure());
+    assertEquals("error", try1.getCause().getMessage());
   }
   
   @Test
