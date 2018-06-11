@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Sequence.listOf;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -44,7 +46,7 @@ public interface Handler1<T, R> {
   }
   
   default SequenceHandler<T, R> liftSequence() {
-    return value -> InmutableList.of(handle(value));
+    return value -> listOf(handle(value));
   }
   
   default StreamHandler<T, R> stream() {

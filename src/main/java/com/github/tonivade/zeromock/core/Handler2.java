@@ -14,6 +14,10 @@ public interface Handler2<T, V, R> {
   default Handler1<T, Handler1<V, R>> curried() {
     return t -> v -> handle(t, v);
   }
+
+  default Handler1<Tupple2<T, V>, R> tuppled() {
+    return tupple -> handle(tupple.get1(), tupple.get2());
+  }
   
   default <U> Handler2<T, V, U> andThen(Handler1<R, U> after) {
     return (t, v) -> after.handle(handle(t, v));

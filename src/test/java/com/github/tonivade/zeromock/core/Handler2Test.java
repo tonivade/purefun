@@ -23,6 +23,13 @@ public class Handler2Test {
 
     assertEquals("asdfg", handler.handle("asd").handle("fg"));
   }
+  
+  @Test
+  public void tuppledTest() {
+    Handler1<Tupple2<String, String>, String> tuppled = concat.tuppled();
+    
+    assertEquals("asdfg", tuppled.handle(Tupple2.of("asd", "fg")));
+  }
 
   @Test
   public void andThenTest() {
