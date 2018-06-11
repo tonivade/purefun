@@ -10,11 +10,15 @@ import java.util.function.Supplier;
 public interface Handler0<T> {
   
   T handle();
-
+  
   default <V> Handler1<V, T> toHandler1() {
     return value -> handle();
   }
   
+  static <T> Handler0<T> unit(T value) {
+    return () -> value;
+  }
+
   static <T> Handler0<T> adapt(Supplier<T> supplier) {
     return supplier::get;
   }

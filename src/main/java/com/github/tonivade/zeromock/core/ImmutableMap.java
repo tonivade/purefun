@@ -5,6 +5,7 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.equal;
+import static com.github.tonivade.zeromock.core.Handler0.unit;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
@@ -62,7 +63,7 @@ public interface ImmutableMap<K, V> {
   
   default ImmutableMap<K, V> merge(K key, V value, Handler2<V, V, V> merger) {
     if (containsKey(key)) {
-      return put(key, merger.handle(getOrDefault(key, () -> value), value));
+      return put(key, merger.handle(getOrDefault(key, unit(value)), value));
     }
     return put(key, value);
   }
