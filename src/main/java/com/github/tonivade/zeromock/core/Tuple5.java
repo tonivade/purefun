@@ -10,7 +10,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-public class Tuple5<A, B, C, D, E> {
+public final class Tuple5<A, B, C, D, E> {
 
   private final A value1;
   private final B value2;
