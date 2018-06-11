@@ -11,42 +11,42 @@ import static java.util.Objects.requireNonNull;
 import java.util.Map;
 import java.util.Objects;
 
-public final class Tuple2<T, U> {
+public final class Tuple2<A, B> {
 
-  private final T value1;
-  private final U value2;
+  private final A value1;
+  private final B value2;
 
-  private Tuple2(T value1, U value2) {
+  private Tuple2(A value1, B value2) {
     this.value1 = requireNonNull(value1);
     this.value2 = requireNonNull(value2);
   }
 
-  public T get1() {
+  public A get1() {
     return value1;
   }
 
-  public U get2() {
+  public B get2() {
     return value2;
   }
   
-  public <R> Tuple2<R, U> map1(Handler1<T, R> mapper) {
+  public <C> Tuple2<C, B> map1(Handler1<A, C> mapper) {
     return bimap(mapper, Handler1.identity());
   }
   
-  public <R> Tuple2<T, R> map2(Handler1<U, R> mapper) {
+  public <C> Tuple2<A, C> map2(Handler1<B, C> mapper) {
     return bimap(Handler1.identity(), mapper);
   }
   
-  public <R, V> Tuple2<R, V> bimap(Handler1<T, R> mapper1, Handler1<U, V> mapper2) {
+  public <C, D> Tuple2<C, D> bimap(Handler1<A, C> mapper1, Handler1<B, D> mapper2) {
     return Tuple2.of(mapper1.handle(value1), mapper2.handle(value2));
   }
 
-  public static <T, U> Tuple2<T, U> of(T value1, U value2) {
-    return new Tuple2<T, U>(value1, value2);
+  public static <A, B> Tuple2<A, B> of(A value1, B value2) {
+    return new Tuple2<A, B>(value1, value2);
   }
 
-  public static <T, U> Tuple2<T, U> from(Map.Entry<T, U> entry) {
-    return new Tuple2<T, U>(entry.getKey(), entry.getValue());
+  public static <A, B> Tuple2<A, B> from(Map.Entry<A, B> entry) {
+    return new Tuple2<A, B>(entry.getKey(), entry.getValue());
   }
 
   @Override

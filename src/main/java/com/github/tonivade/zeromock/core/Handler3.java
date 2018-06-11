@@ -12,6 +12,10 @@ public interface Handler3<A, B, C, R> {
     return t1 -> t2 -> t3 -> handle(t1, t2, t3);
   }
   
+  default Handler1<Tuple3<A, B, C>, R> tupled() {
+    return tuple -> handle(tuple.get1(), tuple.get2(), tuple.get3());
+  }
+  
   default <U> Handler3<A, B, C, U> andThen(Handler1<R, U> after) {
     return (t1, t2, t3) -> after.handle(handle(t1, t2, t3));
   }

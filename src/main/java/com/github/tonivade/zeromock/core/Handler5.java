@@ -12,6 +12,10 @@ public interface Handler5<A, B, C, D, E, R> {
     return t1 -> t2 -> t3 -> t4 -> t5 -> handle(t1, t2, t3, t4, t5);
   }
   
+  default Handler1<Tuple5<A, B, C, D, E>, R> tupled() {
+    return tuple -> handle(tuple.get1(), tuple.get2(), tuple.get3(), tuple.get4(), tuple.get5());
+  }
+  
   default <U> Handler5<A, B, C, D, E, U> andThen(Handler1<R, U> after) {
     return (t1, t2, t3, t4, t5) -> after.handle(handle(t1, t2, t3, t4, t5));
   }
