@@ -25,10 +25,10 @@ public class Handler2Test {
   }
   
   @Test
-  public void tuppledTest() {
-    Handler1<Tupple2<String, String>, String> tuppled = concat.tuppled();
+  public void tupledTest() {
+    Handler1<Tuple2<String, String>, String> tupled = concat.tupled();
     
-    assertEquals("asdfg", tuppled.handle(Tupple2.of("asd", "fg")));
+    assertEquals("asdfg", tupled.handle(Tuple2.of("asd", "fg")));
   }
 
   @Test

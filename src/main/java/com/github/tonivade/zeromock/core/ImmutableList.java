@@ -19,65 +19,65 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface InmutableList<E> extends Sequence<E> {
+public interface ImmutableList<E> extends Sequence<E> {
   
   List<E> toList();
   
-  InmutableList<E> append(E element);
-  InmutableList<E> remove(E element);
+  ImmutableList<E> append(E element);
+  ImmutableList<E> remove(E element);
 
-  InmutableList<E> appendAll(InmutableList<E> other);
+  ImmutableList<E> appendAll(ImmutableList<E> other);
   
-  InmutableList<E> sort(Comparator<E> comparator);
+  ImmutableList<E> sort(Comparator<E> comparator);
 
   default Option<E> head() {
     return Option.from(stream().findFirst());
   }
   
-  default InmutableList<E> tail() {
+  default ImmutableList<E> tail() {
     return drop(1);
   }
   
-  default InmutableList<E> drop(int n) {
-    return InmutableList.from(stream().skip(n));
+  default ImmutableList<E> drop(int n) {
+    return ImmutableList.from(stream().skip(n));
   }
 
   @Override
-  default <R> InmutableList<R> map(Handler1<E, R> mapper) {
-    return InmutableList.from(stream().map(mapper::handle));
+  default <R> ImmutableList<R> map(Handler1<E, R> mapper) {
+    return ImmutableList.from(stream().map(mapper::handle));
   }
 
   @Override
-  default <R> InmutableList<R> flatMap(SequenceHandler<E, R> mapper) {
-    return InmutableList.from(stream().flatMap(mapper.toStreamHandler()::handle));
+  default <R> ImmutableList<R> flatMap(SequenceHandler<E, R> mapper) {
+    return ImmutableList.from(stream().flatMap(mapper.toStreamHandler()::handle));
   }
 
   @Override
-  default InmutableList<E> filter(Matcher<E> matcher) {
-    return InmutableList.from(stream().filter(matcher::match));
+  default ImmutableList<E> filter(Matcher<E> matcher) {
+    return ImmutableList.from(stream().filter(matcher::match));
   }
   
-  static <T> InmutableList<T> from(Collection<T> collection) {
-    return new JavaBasedInmutableList<>(new ArrayList<>(collection));
+  static <T> ImmutableList<T> from(Collection<T> collection) {
+    return new JavaBasedImmutableList<>(new ArrayList<>(collection));
   }
   
-  static <T> InmutableList<T> from(Stream<T> stream) {
-    return new JavaBasedInmutableList<>(stream.collect(Collectors.toList()));
+  static <T> ImmutableList<T> from(Stream<T> stream) {
+    return new JavaBasedImmutableList<>(stream.collect(Collectors.toList()));
   }
   
   @SafeVarargs
-  static <T> InmutableList<T> of(T... elements) {
-    return new JavaBasedInmutableList<>(asList(elements));
+  static <T> ImmutableList<T> of(T... elements) {
+    return new JavaBasedImmutableList<>(asList(elements));
   }
 
-  static <T> InmutableList<T> empty() {
-    return new JavaBasedInmutableList<>(emptyList());
+  static <T> ImmutableList<T> empty() {
+    return new JavaBasedImmutableList<>(emptyList());
   }
 
-  final class JavaBasedInmutableList<E> implements InmutableList<E> {
+  final class JavaBasedImmutableList<E> implements ImmutableList<E> {
     private final List<E> backend;
     
-    private JavaBasedInmutableList(List<E> backend) {
+    private JavaBasedImmutableList(List<E> backend) {
       this.backend = requireNonNull(backend);
     }
     
@@ -92,38 +92,38 @@ public interface InmutableList<E> extends Sequence<E> {
     }
     
     @Override
-    public InmutableList<E> reverse() {
+    public ImmutableList<E> reverse() {
       List<E> newList = toList();
       Collections.reverse(newList);
-      return new JavaBasedInmutableList<>(newList);
+      return new JavaBasedImmutableList<>(newList);
     }
     
     @Override
-    public InmutableList<E> sort(Comparator<E> comparator) {
+    public ImmutableList<E> sort(Comparator<E> comparator) {
       List<E> newList = toList();
       Collections.sort(newList, comparator);
-      return new JavaBasedInmutableList<>(newList);
+      return new JavaBasedImmutableList<>(newList);
     }
     
     @Override
-    public InmutableList<E> append(E element) {
+    public ImmutableList<E> append(E element) {
       List<E> newList = toList();
       newList.add(element);
-      return new JavaBasedInmutableList<>(newList);
+      return new JavaBasedImmutableList<>(newList);
     }
     
     @Override
-    public InmutableList<E> remove(E element) {
+    public ImmutableList<E> remove(E element) {
       List<E> newList = toList();
       newList.remove(element);
-      return new JavaBasedInmutableList<>(newList);
+      return new JavaBasedImmutableList<>(newList);
     }
     
     @Override
-    public InmutableList<E> appendAll(InmutableList<E> other) {
+    public ImmutableList<E> appendAll(ImmutableList<E> other) {
       List<E> newList = toList();
       newList.addAll(other.toList());
-      return new JavaBasedInmutableList<>(newList);
+      return new JavaBasedImmutableList<>(newList);
     }
     
     @Override
@@ -150,7 +150,7 @@ public interface InmutableList<E> extends Sequence<E> {
     
     @Override
     public String toString() {
-      return "InmutableList(" + backend + ")";
+      return "ImmutableList(" + backend + ")";
     }
   }
 }

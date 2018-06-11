@@ -15,8 +15,8 @@ public interface Handler2<T, V, R> {
     return t -> v -> handle(t, v);
   }
 
-  default Handler1<Tupple2<T, V>, R> tuppled() {
-    return tupple -> handle(tupple.get1(), tupple.get2());
+  default Handler1<Tuple2<T, V>, R> tupled() {
+    return tuple -> handle(tuple.get1(), tuple.get2());
   }
   
   default <U> Handler2<T, V, U> andThen(Handler1<R, U> after) {

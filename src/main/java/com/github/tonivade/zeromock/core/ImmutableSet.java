@@ -17,55 +17,55 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface InmutableSet<E> extends Sequence<E> {
+public interface ImmutableSet<E> extends Sequence<E> {
   
   Set<E> toSet();
 
   @Override
-  InmutableSet<E> append(E element);
+  ImmutableSet<E> append(E element);
   @Override
-  InmutableSet<E> remove(E element);
+  ImmutableSet<E> remove(E element);
 
-  InmutableSet<E> union(InmutableSet<E> other);
-  InmutableSet<E> intersection(InmutableSet<E> other);
-  InmutableSet<E> difference(InmutableSet<E> other);
+  ImmutableSet<E> union(ImmutableSet<E> other);
+  ImmutableSet<E> intersection(ImmutableSet<E> other);
+  ImmutableSet<E> difference(ImmutableSet<E> other);
 
   @Override
-  default <R> InmutableSet<R> map(Handler1<E, R> mapper) {
-    return InmutableSet.from(stream().map(mapper::handle));
+  default <R> ImmutableSet<R> map(Handler1<E, R> mapper) {
+    return ImmutableSet.from(stream().map(mapper::handle));
   }
 
   @Override
-  default <R> InmutableSet<R> flatMap(SequenceHandler<E, R> mapper) {
-    return InmutableSet.from(stream().flatMap(mapper.toStreamHandler()::handle));
+  default <R> ImmutableSet<R> flatMap(SequenceHandler<E, R> mapper) {
+    return ImmutableSet.from(stream().flatMap(mapper.toStreamHandler()::handle));
   }
 
   @Override
-  default InmutableSet<E> filter(Matcher<E> matcher) {
-    return InmutableSet.from(stream().filter(matcher::match));
-  }
-  
-  static <T> InmutableSet<T> from(Collection<T> collection) {
-    return new JavaBasedInmutableSet<>(new HashSet<>(collection));
+  default ImmutableSet<E> filter(Matcher<E> matcher) {
+    return ImmutableSet.from(stream().filter(matcher::match));
   }
   
-  static <T> InmutableSet<T> from(Stream<T> stream) {
-    return new JavaBasedInmutableSet<>(stream.collect(Collectors.toSet()));
+  static <T> ImmutableSet<T> from(Collection<T> collection) {
+    return new JavaBasedImmutableSet<>(new HashSet<>(collection));
+  }
+  
+  static <T> ImmutableSet<T> from(Stream<T> stream) {
+    return new JavaBasedImmutableSet<>(stream.collect(Collectors.toSet()));
   }
   
   @SafeVarargs
-  static <T> InmutableSet<T> of(T... elements) {
-    return new JavaBasedInmutableSet<>(new HashSet<>(asList(elements)));
+  static <T> ImmutableSet<T> of(T... elements) {
+    return new JavaBasedImmutableSet<>(new HashSet<>(asList(elements)));
   }
 
-  static <T> InmutableSet<T> empty() {
-    return new JavaBasedInmutableSet<>(emptySet());
+  static <T> ImmutableSet<T> empty() {
+    return new JavaBasedImmutableSet<>(emptySet());
   }
 
-  final class JavaBasedInmutableSet<E> implements InmutableSet<E> {
+  final class JavaBasedImmutableSet<E> implements ImmutableSet<E> {
     private final Set<E> backend;
     
-    private JavaBasedInmutableSet(Set<E> backend) {
+    private JavaBasedImmutableSet(Set<E> backend) {
       this.backend = requireNonNull(backend);
     }
     
@@ -80,43 +80,43 @@ public interface InmutableSet<E> extends Sequence<E> {
     }
     
     @Override
-    public InmutableSet<E> reverse() {
+    public ImmutableSet<E> reverse() {
       return this;
     }
     
     @Override
-    public InmutableSet<E> append(E element) {
+    public ImmutableSet<E> append(E element) {
       Set<E> newSet = toSet();
       newSet.add(element);
-      return new JavaBasedInmutableSet<>(newSet);
+      return new JavaBasedImmutableSet<>(newSet);
     }
     
     @Override
-    public InmutableSet<E> remove(E element) {
+    public ImmutableSet<E> remove(E element) {
       Set<E> newSet = toSet();
       newSet.remove(element);
-      return new JavaBasedInmutableSet<>(newSet);
+      return new JavaBasedImmutableSet<>(newSet);
     }
     
     @Override
-    public InmutableSet<E> union(InmutableSet<E> other) {
+    public ImmutableSet<E> union(ImmutableSet<E> other) {
       Set<E> newSet = toSet();
       newSet.addAll(other.toSet());
-      return new JavaBasedInmutableSet<>(newSet);
+      return new JavaBasedImmutableSet<>(newSet);
     }
     
     @Override
-    public InmutableSet<E> intersection(InmutableSet<E> other) {
+    public ImmutableSet<E> intersection(ImmutableSet<E> other) {
       Set<E> newSet = toSet();
       newSet.retainAll(other.toSet());
-      return new JavaBasedInmutableSet<>(newSet);
+      return new JavaBasedImmutableSet<>(newSet);
     }
     
     @Override
-    public InmutableSet<E> difference(InmutableSet<E> other) {
+    public ImmutableSet<E> difference(ImmutableSet<E> other) {
       Set<E> newSet = toSet();
       newSet.removeAll(other.toSet());
-      return new JavaBasedInmutableSet<>(newSet);
+      return new JavaBasedImmutableSet<>(newSet);
     }
     
     @Override
@@ -143,7 +143,7 @@ public interface InmutableSet<E> extends Sequence<E> {
     
     @Override
     public String toString() {
-      return "InmutableSet(" + backend + ")";
+      return "ImmutableSet(" + backend + ")";
     }
   }
 }

@@ -50,8 +50,8 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
     return reverse().foldLeft(initial, (acc, e) -> combinator.handle(e, acc));
   }
   
-  default <G> InmutableMap<G, InmutableList<E>> groupBy(Handler1<E, G> getter) {
-    return InmutableMap.from(stream().collect(groupingBy(getter::handle))).mapValues(InmutableList::from);
+  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Handler1<E, G> getter) {
+    return ImmutableMap.from(stream().collect(groupingBy(getter::handle))).mapValues(ImmutableList::from);
   }
 
   default Stream<E> stream() {
@@ -63,12 +63,12 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   }
   
   @SafeVarargs
-  static <E> InmutableList<E> listOf(E... elements) {
-    return InmutableList.of(elements);
+  static <E> ImmutableList<E> listOf(E... elements) {
+    return ImmutableList.of(elements);
   }
   
   @SafeVarargs
-  static <E> InmutableSet<E> setOf(E... elements) {
-    return InmutableSet.of(elements);
+  static <E> ImmutableSet<E> setOf(E... elements) {
+    return ImmutableSet.of(elements);
   }
 }

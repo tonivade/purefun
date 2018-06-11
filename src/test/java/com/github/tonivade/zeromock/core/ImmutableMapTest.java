@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.InmutableMap.entry;
+import static com.github.tonivade.zeromock.core.ImmutableMap.entry;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-public class InmutableMapTest {
+public class ImmutableMapTest {
 
   @Test
   public void nonEmptyMap() {
-    InmutableMap<String, String> map = InmutableMap.of(entry("a", "aaa"), 
+    ImmutableMap<String, String> map = ImmutableMap.of(entry("a", "aaa"), 
                                                        entry("b", "bbb"),
                                                        entry("c", "ccc"));
     assertAll(() -> assertEquals(3, map.size()),
@@ -29,13 +29,13 @@ public class InmutableMapTest {
               () -> assertEquals(Option.some("zzz"), map.putIfAbsent("z", "zzz").get("z")),
               () -> assertEquals("aaa", map.getOrDefault("a", () -> "zzz")),
               () -> assertEquals("zzz", map.getOrDefault("z", () -> "zzz")),
-              () -> assertEquals(InmutableSet.of("a", "b", "c"), map.keys()),
+              () -> assertEquals(ImmutableSet.of("a", "b", "c"), map.keys()),
               () -> assertEquals(3, map.values().size()),
               () -> assertTrue(map.values().contains("aaa")),
               () -> assertTrue(map.values().contains("bbb")),
               () -> assertTrue(map.values().contains("ccc")),
-              () -> assertEquals(InmutableMap.of(entry("c", "ccc")), map.remove("a").remove("b")),
-              () -> assertEquals(InmutableSet.of(entry("a", "aaa"), 
+              () -> assertEquals(ImmutableMap.of(entry("c", "ccc")), map.remove("a").remove("b")),
+              () -> assertEquals(ImmutableSet.of(entry("a", "aaa"), 
                                                  entry("b", "bbb"), 
                                                  entry("c", "ccc")), map.entries())
               );
@@ -43,19 +43,19 @@ public class InmutableMapTest {
 
   @Test
   public void empty() {
-    InmutableMap<String, String> map = InmutableMap.empty();
+    ImmutableMap<String, String> map = ImmutableMap.empty();
     
     assertAll(() -> assertEquals(0, map.size()),
               () -> assertTrue(map.isEmpty()),
               () -> assertEquals(Option.none(), map.get("z")),
               () -> assertEquals("zzz", map.getOrDefault("a", () -> "zzz")),
-              () -> assertEquals(InmutableSet.empty(), map.keys()),
-              () -> assertEquals(InmutableList.empty(), map.values()),
-              () -> assertEquals(InmutableSet.empty(), map.entries()),
-              () -> assertEquals(InmutableMap.of(entry("a", "aaa")), map.put("a", "aaa")),
-              () -> assertEquals(InmutableMap.of(entry("A", "aaa")), 
+              () -> assertEquals(ImmutableSet.empty(), map.keys()),
+              () -> assertEquals(ImmutableList.empty(), map.values()),
+              () -> assertEquals(ImmutableSet.empty(), map.entries()),
+              () -> assertEquals(ImmutableMap.of(entry("a", "aaa")), map.put("a", "aaa")),
+              () -> assertEquals(ImmutableMap.of(entry("A", "aaa")), 
                                  map.put("a", "aaa").mapKeys(String::toUpperCase)),
-              () -> assertEquals(InmutableMap.of(entry("a", "AAA")), 
+              () -> assertEquals(ImmutableMap.of(entry("a", "AAA")), 
                                  map.put("a", "aaa").mapValues(String::toUpperCase))
               );
   }
