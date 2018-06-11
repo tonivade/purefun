@@ -30,14 +30,14 @@ public final class Tuple2<A, B> {
   }
   
   public <C> Tuple2<C, B> map1(Handler1<A, C> mapper) {
-    return bimap(mapper, Handler1.identity());
+    return map(mapper, Handler1.identity());
   }
   
   public <C> Tuple2<A, C> map2(Handler1<B, C> mapper) {
-    return bimap(Handler1.identity(), mapper);
+    return map(Handler1.identity(), mapper);
   }
   
-  public <C, D> Tuple2<C, D> bimap(Handler1<A, C> mapper1, Handler1<B, D> mapper2) {
+  public <C, D> Tuple2<C, D> map(Handler1<A, C> mapper1, Handler1<B, D> mapper2) {
     return Tuple2.of(mapper1.handle(value1), mapper2.handle(value2));
   }
 

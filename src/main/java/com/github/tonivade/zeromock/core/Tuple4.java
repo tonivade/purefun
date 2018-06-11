@@ -39,6 +39,29 @@ public final class Tuple4<A, B, C, D> {
   public D get4() {
     return value4;
   }
+  
+  public <R> Tuple4<R, B, C, D> map1(Handler1<A, R> mapper) {
+    return Tuple4.of(mapper.handle(value1), value2, value3, value4);
+  }
+  
+  public <R> Tuple4<A, R, C, D> map2(Handler1<B, R> mapper) {
+    return Tuple4.of(value1, mapper.handle(value2), value3, value4);
+  }
+  
+  public <R> Tuple4<A, B, R, D> map3(Handler1<C, R> mapper) {
+    return Tuple4.of(value1, value2, mapper.handle(value3), value4);
+  }
+  
+  public <R> Tuple4<A, B, C, R> map4(Handler1<D, R> mapper) {
+    return Tuple4.of(value1, value2, value3, mapper.handle(value4));
+  }
+  
+  public <E, F, G, H> Tuple4<E, F, G, H> map(Handler1<A, E> map1, 
+                                             Handler1<B, F> map2, 
+                                             Handler1<C, G> map3, 
+                                             Handler1<D, H> map4) {
+    return Tuple4.of(map1.handle(value1), map2.handle(value2), map3.handle(value3), map4.handle(value4));
+  }
 
   public static <A, B, C, D> Tuple4<A, B, C, D> of(A value1, B value2, C value3, D value4) {
     return new Tuple4<A, B, C, D>(value1, value2, value3, value4);

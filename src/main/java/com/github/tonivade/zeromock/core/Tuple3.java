@@ -33,6 +33,22 @@ public final class Tuple3<A, B, C> {
   public C get3() {
     return value3;
   }
+  
+  public <R> Tuple3<R, B, C> map1(Handler1<A, R> mapper) {
+    return Tuple3.of(mapper.handle(value1), value2, value3);
+  }
+  
+  public <R> Tuple3<A, R, C> map2(Handler1<B, R> mapper) {
+    return Tuple3.of(value1, mapper.handle(value2), value3);
+  }
+  
+  public <R> Tuple3<A, B, R> map3(Handler1<C, R> mapper) {
+    return Tuple3.of(value1, value2, mapper.handle(value3));
+  }
+  
+  public <D, E, F> Tuple3<D, E, F> map(Handler1<A, D> map1, Handler1<B, E> map2, Handler1<C, F> map3) {
+    return Tuple3.of(map1.handle(value1), map2.handle(value2), map3.handle(value3));
+  }
 
   public static <A, B, C> Tuple3<A, B, C> of(A value1, B value2, C value3) {
     return new Tuple3<A, B, C>(value1, value2, value3);
