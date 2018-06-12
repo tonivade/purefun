@@ -1,7 +1,10 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Handler1.identity;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +33,8 @@ public class ImmutableListTest {
               () -> assertEquals(ImmutableList.of("c"), list.drop(2)),
               () -> assertEquals(ImmutableList.empty(), list.drop(10)),
               () -> assertEquals(ImmutableList.of("a", "b", "c", "z"), list.append("z")),
+              () -> assertEquals(ImmutableList.of("a", "b"), list.remove("c")),
+              () -> assertEquals(ImmutableList.of("a", "b", "c"), list.remove("z")),
               () -> assertEquals(ImmutableList.of("a", "b", "c", "z"), list.appendAll(ImmutableList.of("z"))),
               () -> assertEquals(ImmutableList.of("a", "b", "c"), list.map(identity())),
               () -> assertEquals(ImmutableList.of("A", "B", "C"), list.map(toUpperCase)),
