@@ -19,11 +19,11 @@ public final class Tuple1<A> {
   }
   
   public <B> Tuple1<B> map(Handler1<A, B> mapper) {
-    return new Tuple1<B>(mapper.handle(value1));
+    return new Tuple1<>(mapper.handle(value1));
   }
 
   public static <A> Tuple1<A> of(A value1) {
-    return new Tuple1<A>(value1);
+    return new Tuple1<>(value1);
   }
 
   @Override

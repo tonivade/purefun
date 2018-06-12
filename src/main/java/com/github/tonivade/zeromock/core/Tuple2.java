@@ -42,11 +42,11 @@ public final class Tuple2<A, B> {
   }
 
   public static <A, B> Tuple2<A, B> of(A value1, B value2) {
-    return new Tuple2<A, B>(value1, value2);
+    return new Tuple2<>(value1, value2);
   }
 
   public static <A, B> Tuple2<A, B> from(Map.Entry<A, B> entry) {
-    return new Tuple2<A, B>(entry.getKey(), entry.getValue());
+    return Tuple2.of(entry.getKey(), entry.getValue());
   }
 
   @Override

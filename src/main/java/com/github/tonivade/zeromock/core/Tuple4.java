@@ -64,7 +64,7 @@ public final class Tuple4<A, B, C, D> {
   }
 
   public static <A, B, C, D> Tuple4<A, B, C, D> of(A value1, B value2, C value3, D value4) {
-    return new Tuple4<A, B, C, D>(value1, value2, value3, value4);
+    return new Tuple4<>(value1, value2, value3, value4);
   }
 
   @Override

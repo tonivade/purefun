@@ -35,7 +35,7 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   }
 
   static <T> Option<T> from(Optional<T> optional) {
-    return optional.map(Option::some).orElseGet(() -> Option.none());
+    return optional.map(Option::some).orElseGet(Option::none);
   }
   
   boolean isPresent();

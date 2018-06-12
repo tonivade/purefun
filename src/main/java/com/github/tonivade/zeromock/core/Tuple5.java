@@ -75,7 +75,7 @@ public final class Tuple5<A, B, C, D, E> {
   }
 
   public static <A, B, C, D, E> Tuple5<A, B, C, D, E> of(A value1, B value2, C value3, D value4, E value5) {
-    return new Tuple5<A, B, C, D, E>(value1, value2, value3, value4, value5);
+    return new Tuple5<>(value1, value2, value3, value4, value5);
   }
 
   @Override

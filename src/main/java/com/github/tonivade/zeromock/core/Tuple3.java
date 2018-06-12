@@ -51,7 +51,7 @@ public final class Tuple3<A, B, C> {
   }
 
   public static <A, B, C> Tuple3<A, B, C> of(A value1, B value2, C value3) {
-    return new Tuple3<A, B, C>(value1, value2, value3);
+    return new Tuple3<>(value1, value2, value3);
   }
 
   @Override

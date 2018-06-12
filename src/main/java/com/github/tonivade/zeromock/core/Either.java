@@ -15,11 +15,11 @@ import java.util.stream.Stream;
 public interface Either<L, R> extends Functor<R>, Holder<R> {
   
   static <L, R> Either<L, R> left(L value) {
-    return new Left<L, R>(value);
+    return new Left<>(value);
   }
   
   static <L, R> Either<L, R> right(R value) {
-    return new Right<L, R>(value);
+    return new Right<>(value);
   }
   
   boolean isLeft();
