@@ -35,7 +35,7 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   static <T> Try<T> of(Handler0<T> supplier) {
     try {
       return success(supplier.handle());
-    } catch (Throwable error) {
+    } catch (Exception error) {
       return failure(error);
     }
   }

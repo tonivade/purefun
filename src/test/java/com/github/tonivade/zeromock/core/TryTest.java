@@ -242,6 +242,6 @@ public class TryTest {
   }
   
   private String messageFailure() {
-    throw new AssertionError("Hola mundo");
+    throw new UnsupportedOperationException("Hola mundo");
   }
 }
