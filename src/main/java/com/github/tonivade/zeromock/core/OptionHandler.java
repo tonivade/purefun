@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Producer.unit;
+
 @FunctionalInterface
 public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
   
@@ -17,6 +19,10 @@ public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
   
   default OptionHandler<T, R> filter(Matcher<R> matcher) {
     return value -> handle(value).filter(matcher);
+  }
+  
+  default Handler1<T, R> orElse(R value) {
+    return orElse(unit(value));
   }
   
   default Handler1<T, R> orElse(Producer<R> handler) {

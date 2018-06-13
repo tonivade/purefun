@@ -44,7 +44,7 @@ public class ValidationTest {
               () -> assertEquals(none(), valid.filter(i -> i > 1)),
               () -> assertEquals(valid(1), valid.filterOrElse(i -> i > 0, () -> valid(10))),
               () -> assertEquals(valid(10), valid.filterOrElse(i -> i > 1, () -> valid(10))),
-              () -> assertEquals(Integer.valueOf(1), valid.orElse(() -> 10)),
+              () -> assertEquals(Integer.valueOf(1), valid.orElse(10)),
               () -> assertEquals(Either.right(1), valid.toEither()),
               () -> assertEquals("Valid(1)", valid.toString())
         );
@@ -65,7 +65,7 @@ public class ValidationTest {
               () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 0)),
               () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 1)),
               () -> assertEquals(invalid("error"), invalid.filterOrElse(i -> i > 1, () -> valid(10))),
-              () -> assertEquals(Integer.valueOf(10), invalid.orElse(() -> 10)),
+              () -> assertEquals(Integer.valueOf(10), invalid.orElse(10)),
               () -> assertEquals(Either.left("error"), invalid.toEither()),
               () -> assertEquals("Invalid(error)", invalid.toString())
         );

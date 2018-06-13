@@ -53,14 +53,14 @@ public class OptionTest {
 
   @Test
   public void orElseSome() {
-    String value = Option.some("Hola mundo").orElse(() -> "Adios!");
+    String value = Option.some("Hola mundo").orElse("Adios!");
     
     assertEquals("Hola mundo", value);
   }
 
   @Test
   public void orElseNone() {
-    String value = Option.<String>none().orElse(() -> "Adios!");
+    String value = Option.<String>none().orElse("Adios!");
     
     assertEquals("Adios!", value);
   }

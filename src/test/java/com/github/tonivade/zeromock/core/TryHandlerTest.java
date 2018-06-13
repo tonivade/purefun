@@ -29,7 +29,7 @@ public class TryHandlerTest {
   public void orElseTest() {
     TryHandler<String, Integer> str2int = str -> Try.failure("error");
     
-    assertEquals(Integer.valueOf(0), str2int.orElse(() -> 0).handle("asdfg"));
+    assertEquals(Integer.valueOf(0), str2int.orElse(0).handle("asdfg"));
   }
   
   @Test

@@ -28,7 +28,7 @@ public class OptionHandlerTest {
   public void orElseTest() {
     OptionHandler<String, Integer> str2int = str -> Option.none();
     
-    assertEquals(Integer.valueOf(0), str2int.orElse(() -> 0).handle("asdfg"));
+    assertEquals(Integer.valueOf(0), str2int.orElse(0).handle("asdfg"));
   }
   
   @Test

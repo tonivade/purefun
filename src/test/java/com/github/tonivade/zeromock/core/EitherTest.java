@@ -149,14 +149,14 @@ public class EitherTest {
   
   @Test
   public void orElseRight() {
-    String value = Either.<Integer, String>right("Hola mundo").orElse(() -> "or else");
+    String value = Either.<Integer, String>right("Hola mundo").orElse("or else");
     
     assertEquals("Hola mundo", value);
   }
   
   @Test
   public void orElseLeft() {
-    String value = Either.<Integer, String>left(10).orElse(() -> "or else");
+    String value = Either.<Integer, String>left(10).orElse("or else");
     
     assertEquals("or else", value);
   }

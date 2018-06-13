@@ -53,14 +53,14 @@ public class TryTest {
 
   @Test
   public void orElseSuccess() {
-    String value = Try.success("Hola mundo").orElse(() -> "Adios!");
+    String value = Try.success("Hola mundo").orElse("Adios!");
     
     assertEquals("Hola mundo", value);
   }
 
   @Test
   public void orElseFailure() {
-    String value = Try.<String>failure("Hola mundo").orElse(() -> "Adios!");
+    String value = Try.<String>failure("Hola mundo").orElse("Adios!");
     
     assertEquals("Adios!", value);
   }
