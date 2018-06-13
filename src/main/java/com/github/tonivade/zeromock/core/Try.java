@@ -109,6 +109,10 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return failureMapper.handle(getCause());
   }
 
+  default T orElse(T value) {
+    return orElse(Producer.unit(value));
+  }
+
   default T orElse(Producer<T> supplier) {
     if (isSuccess()) {
       return get();

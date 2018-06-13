@@ -62,6 +62,10 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     }
     return orElse.get();
   }
+
+  default T orElse(T value) {
+    return orElse(Producer.unit(value));
+  }
   
   default T orElse(Producer<T> orElse) {
     if (isValid()) {

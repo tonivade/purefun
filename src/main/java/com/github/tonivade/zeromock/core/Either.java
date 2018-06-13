@@ -106,6 +106,10 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return orElse.get();
   }
 
+  default R orElse(R value) {
+    return orElse(Producer.unit(value));
+  }
+
   default R orElse(Producer<R> orElse) {
     if (isRight()) {
       return getRight();

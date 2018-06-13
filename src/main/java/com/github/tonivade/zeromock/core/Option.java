@@ -70,6 +70,10 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return none();
   }
 
+  default T orElse(T value) {
+    return orElse(Producer.unit(value));
+  }
+
   default T orElse(Producer<T> supplier) {
     if (isEmpty()) {
       return supplier.get();
