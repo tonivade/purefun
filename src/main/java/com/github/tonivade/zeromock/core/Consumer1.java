@@ -8,6 +8,7 @@ import static com.github.tonivade.zeromock.core.Nothing.nothing;
 
 import java.util.function.Consumer;
 
+@FunctionalInterface
 public interface Consumer1<T> {
 
   void apply(T value);

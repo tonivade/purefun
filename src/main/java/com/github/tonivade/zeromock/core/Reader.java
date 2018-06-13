@@ -16,11 +16,11 @@ public final class Reader<R, A> implements Functor<A> {
   
   @Override
   public <B> Reader<R, B> map(Handler1<A, B> map) {
-    return new Reader<>(reader -> map.handle(eval(reader)));
+    return reader(reader -> map.handle(eval(reader)));
   }
   
   public <B> Reader<R, B> flatMap(Handler1<A, Reader<R, B>> map) {
-    return new Reader<>(reader -> map.handle(eval(reader)).eval(reader));
+    return reader(reader -> map.handle(eval(reader)).eval(reader));
   }
   
   public A eval(R reader) {
