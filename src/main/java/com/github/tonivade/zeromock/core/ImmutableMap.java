@@ -5,14 +5,13 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.equal;
-import static com.github.tonivade.zeromock.core.Handler0.unit;
+import static com.github.tonivade.zeromock.core.Producer.unit;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,8 +29,8 @@ public interface ImmutableMap<K, V> {
   
   int size();
   
-  default void forEach(BiConsumer<K, V> consumer) {
-    entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
+  default void forEach(Consumer2<K, V> consumer) {
+    entries().forEach(tuple -> consumer.apply(tuple.get1(), tuple.get2()));
   }
   
   default <T> ImmutableMap<T, V> mapKeys(Handler1<K, T> mapper) {
@@ -68,7 +67,7 @@ public interface ImmutableMap<K, V> {
     return put(key, value);
   }
   
-  default V getOrDefault(K key, Handler0<V> supplier) {
+  default V getOrDefault(K key, Producer<V> supplier) {
     return get(key).orElse(supplier);
   }
   

@@ -99,18 +99,18 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return Option.none();
   }
 
-  default Either<L, R> filterOrElse(Matcher<R> matcher, Handler0<Either<L, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher<R> matcher, Producer<Either<L, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;
     }
-    return orElse.handle();
+    return orElse.get();
   }
 
-  default R orElse(Handler0<R> orElse) {
+  default R orElse(Producer<R> orElse) {
     if (isRight()) {
       return getRight();
     }
-    return orElse.handle();
+    return orElse.get();
   }
   
   default <T> T fold(Handler1<L, T> leftMapper, Handler1<R, T> rightMapper) {

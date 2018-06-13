@@ -12,7 +12,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
@@ -26,8 +25,8 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return (Option<T>) None.INSTANCE;
   }
 
-  static <T> Option<T> of(Handler0<T> supplier) {
-    T value = supplier.handle();
+  static <T> Option<T> of(Producer<T> supplier) {
+    T value = supplier.get();
     if (nonNull(value)) {
       return some(value);
     }
@@ -56,9 +55,9 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return none();
   }
 
-  default Option<T> ifPresent(Consumer<T> consumer) {
+  default Option<T> ifPresent(Consumer1<T> consumer) {
     if (isPresent()) {
-      consumer.accept(get());
+      consumer.apply(get());
     }
     return this;
   }
@@ -71,25 +70,25 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return none();
   }
 
-  default T orElse(Handler0<T> supplier) {
+  default T orElse(Producer<T> supplier) {
     if (isEmpty()) {
-      return supplier.handle();
+      return supplier.get();
     }
     return get();
   }
 
-  default <X extends Throwable> T orElseThrow(Handler0<X> supplier) throws X { 
+  default <X extends Throwable> T orElseThrow(Producer<X> supplier) throws X { 
     if (isEmpty()) {
-      throw supplier.handle();
+      throw supplier.get();
     }
     return get();
   }
   
-  default <U> U fold(Handler0<U> orElse, Handler1<T, U> mapper) {
+  default <U> U fold(Producer<U> orElse, Handler1<T, U> mapper) {
     if (isPresent()) {
       return mapper.handle(get());
     }
-    return orElse.handle();
+    return orElse.get();
   }
 
   default Stream<T> stream() {

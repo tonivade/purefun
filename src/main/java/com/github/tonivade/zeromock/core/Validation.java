@@ -56,18 +56,18 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     return Option.none();
   }
   
-  default Validation<E, T> filterOrElse(Matcher<T> matcher, Handler0<Validation<E, T>> orElse) {
+  default Validation<E, T> filterOrElse(Matcher<T> matcher, Producer<Validation<E, T>> orElse) {
     if (isInvalid() || matcher.match(get())) {
       return this;
     }
-    return orElse.handle();
+    return orElse.get();
   }
   
-  default T orElse(Handler0<T> orElse) {
+  default T orElse(Producer<T> orElse) {
     if (isValid()) {
       return get();
     }
-    return orElse.handle();
+    return orElse.get();
   }
   
   default <U> U fold(Handler1<T, U> validMap, Handler1<E, U> invalidMap) {

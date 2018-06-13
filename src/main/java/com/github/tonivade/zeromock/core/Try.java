@@ -11,7 +11,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
@@ -32,9 +31,9 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return new Failure<>(error);
   }
   
-  static <T> Try<T> of(Handler0<T> supplier) {
+  static <T> Try<T> of(Producer<T> supplier) {
     try {
-      return success(supplier.handle());
+      return success(supplier.get());
     } catch (Exception error) {
       return failure(error);
     }
@@ -59,16 +58,16 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return failure(getCause());
   }
 
-  default Try<T> onFailure(Consumer<Throwable> consumer) {
+  default Try<T> onFailure(Consumer1<Throwable> consumer) {
     if (isFailure()) {
-      consumer.accept(getCause());
+      consumer.apply(getCause());
     }
     return this;
   }
   
-  default Try<T> onSuccess(Consumer<T> consumer) {
+  default Try<T> onSuccess(Consumer1<T> consumer) {
     if (isSuccess()) {
-      consumer.accept(get());
+      consumer.apply(get());
     }
     return this;
   }
@@ -96,11 +95,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
   }
 
-  default Try<T> filterOrElse(Matcher<T> matcher, Handler0<Try<T>> supplier) {
+  default Try<T> filterOrElse(Matcher<T> matcher, Producer<Try<T>> supplier) {
     if (isFailure() || matcher.match(get())) {
       return this;
     }
-    return supplier.handle();
+    return supplier.get();
   }
   
   default <U> U fold(Handler1<Throwable, U> failureMapper, Handler1<T, U> successMapper) {
@@ -110,11 +109,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return failureMapper.handle(getCause());
   }
 
-  default T orElse(Handler0<T> supplier) {
+  default T orElse(Producer<T> supplier) {
     if (isSuccess()) {
       return get();
     }
-    return supplier.handle();
+    return supplier.get();
   }
 
   default Stream<T> stream() {

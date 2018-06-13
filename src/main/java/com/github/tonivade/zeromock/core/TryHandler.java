@@ -23,7 +23,7 @@ public interface TryHandler<T, R> extends Handler1<T, Try<R>> {
     return value -> handle(value).filter(matcher);
   }
   
-  default Handler1<T, R> orElse(Handler0<R> handler) {
+  default Handler1<T, R> orElse(Producer<R> handler) {
     return value -> handle(value).orElse(handler);
   }
   

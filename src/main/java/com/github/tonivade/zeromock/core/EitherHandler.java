@@ -23,7 +23,7 @@ public interface EitherHandler<T, L, R> extends Handler1<T, Either<L, R>>{
     return value -> handle(value).filter(matcher);
   }
   
-  default Handler1<T, R> orElse(Handler0<R> handler) {
+  default Handler1<T, R> orElse(Producer<R> handler) {
     return value -> handle(value).orElse(handler);
   }
   
