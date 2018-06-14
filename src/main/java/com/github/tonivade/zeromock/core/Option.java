@@ -57,7 +57,7 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
 
   default Option<T> ifPresent(Consumer1<T> consumer) {
     if (isPresent()) {
-      consumer.apply(get());
+      consumer.accept(get());
     }
     return this;
   }

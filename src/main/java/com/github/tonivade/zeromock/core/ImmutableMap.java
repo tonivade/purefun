@@ -30,7 +30,7 @@ public interface ImmutableMap<K, V> {
   int size();
   
   default void forEach(Consumer2<K, V> consumer) {
-    entries().forEach(tuple -> consumer.apply(tuple.get1(), tuple.get2()));
+    entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
   }
   
   default <T> ImmutableMap<T, V> mapKeys(Function1<K, T> mapper) {

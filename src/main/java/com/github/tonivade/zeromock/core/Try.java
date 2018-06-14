@@ -60,14 +60,14 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
 
   default Try<T> onFailure(Consumer1<Throwable> consumer) {
     if (isFailure()) {
-      consumer.apply(getCause());
+      consumer.accept(getCause());
     }
     return this;
   }
   
   default Try<T> onSuccess(Consumer1<T> consumer) {
     if (isSuccess()) {
-      consumer.apply(get());
+      consumer.accept(get());
     }
     return this;
   }

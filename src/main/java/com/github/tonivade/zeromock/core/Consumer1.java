@@ -9,13 +9,17 @@ import static com.github.tonivade.zeromock.core.Nothing.nothing;
 @FunctionalInterface
 public interface Consumer1<T> {
 
-  void apply(T value);
+  void accept(T value);
   
   default Function1<T, Nothing> asFunction() {
-    return value -> { apply(value); return nothing(); };
+    return value -> { accept(value); return nothing(); };
+  }
+  
+  default Consumer1<T> andThen(Consumer1<T> after) {
+    return value -> { accept(value); after.accept(value); };
   }
   
   default Function1<T, T> bypass() {
-    return value -> { apply(value); return value; };
+    return value -> { accept(value); return value; };
   }
 }
