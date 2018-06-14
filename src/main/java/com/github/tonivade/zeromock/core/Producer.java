@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.function.Supplier;
-
 @FunctionalInterface
 public interface Producer<T> {
   
@@ -17,9 +15,5 @@ public interface Producer<T> {
   
   static <T> Producer<T> unit(T value) {
     return () -> value;
-  }
-
-  static <T> Producer<T> adapt(Supplier<T> supplier) {
-    return supplier::get;
   }
 }

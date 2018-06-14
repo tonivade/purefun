@@ -7,12 +7,12 @@ package com.github.tonivade.zeromock.core;
 @FunctionalInterface
 public interface SequenceHandler<T, R> extends Function1<T, Sequence<R>> {
   
-  default <V> SequenceHandler<T, V> map(Function1<R, V> handler) {
-    return value -> apply(value).map(handler::apply);
+  default <V> SequenceHandler<T, V> map(Function1<R, V> mapper) {
+    return value -> apply(value).map(mapper::apply);
   }
   
-  default <V> SequenceHandler<T, V> flatMap(SequenceHandler<R, V> handler) {
-    return value -> apply(value).flatMap(handler::apply);
+  default <V> SequenceHandler<T, V> flatMap(SequenceHandler<R, V> mapper) {
+    return value -> apply(value).flatMap(mapper::apply);
   }
   
   default SequenceHandler<T, R> filter(Matcher<R> matcher) {

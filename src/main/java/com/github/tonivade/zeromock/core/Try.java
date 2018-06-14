@@ -44,16 +44,16 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   boolean isFailure();
   
   @Override
-  default <R> Try<R> map(Function1<T, R> map) {
+  default <R> Try<R> map(Function1<T, R> mapper) {
     if (isSuccess()) {
-      return success(map.apply(get()));
+      return success(mapper.apply(get()));
     }
     return failure(getCause());
   }
 
-  default <R> Try<R> flatMap(Function1<T, Try<R>> map) {
+  default <R> Try<R> flatMap(Function1<T, Try<R>> mapper) {
     if (isSuccess()) {
-      return map.apply(get());
+      return mapper.apply(get());
     }
     return failure(getCause());
   }
@@ -72,19 +72,19 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return this;
   }
   
-  default Try<T> recover(Function1<Throwable, T> handler) {
+  default Try<T> recover(Function1<Throwable, T> mapper) {
     if (isFailure()) {
-      return Try.of(() -> handler.apply(getCause()));
+      return Try.of(() -> mapper.apply(getCause()));
     }
     return this;
   }
   
   @SuppressWarnings("unchecked")
-  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<X, T> handler) {
+  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
     if (isFailure()) {
       Throwable cause = getCause();
       if (type.isAssignableFrom(cause.getClass())) {
-        return Try.of(() -> handler.apply((X) getCause()));
+        return Try.of(() -> mapper.apply((X) getCause()));
       }
     }
     return this;
@@ -95,11 +95,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
   }
 
-  default Try<T> filterOrElse(Matcher<T> matcher, Producer<Try<T>> supplier) {
+  default Try<T> filterOrElse(Matcher<T> matcher, Producer<Try<T>> producer) {
     if (isFailure() || matcher.match(get())) {
       return this;
     }
-    return supplier.get();
+    return producer.get();
   }
   
   default <U> U fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
@@ -113,11 +113,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return orElse(Producer.unit(value));
   }
 
-  default T orElse(Producer<T> supplier) {
+  default T orElse(Producer<T> producer) {
     if (isSuccess()) {
       return get();
     }
-    return supplier.get();
+    return producer.get();
   }
 
   default Stream<T> stream() {

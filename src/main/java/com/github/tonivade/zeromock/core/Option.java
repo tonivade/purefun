@@ -25,8 +25,8 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return (Option<T>) None.INSTANCE;
   }
 
-  static <T> Option<T> of(Producer<T> supplier) {
-    T value = supplier.get();
+  static <T> Option<T> of(Producer<T> producer) {
+    T value = producer.get();
     if (nonNull(value)) {
       return some(value);
     }
@@ -41,16 +41,16 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   boolean isEmpty();
   
   @Override
-  default <R> Option<R> map(Function1<T, R> map) {
+  default <R> Option<R> map(Function1<T, R> mapper) {
     if (isPresent()) {
-      return some(map.apply(get()));
+      return some(mapper.apply(get()));
     }
     return none();
   }
 
-  default <R> Option<R> flatMap(OptionHandler<T, R> map) {
+  default <R> Option<R> flatMap(OptionHandler<T, R> mapper) {
     if (isPresent()) {
-      return map.apply(get());
+      return mapper.apply(get());
     }
     return none();
   }
@@ -74,16 +74,16 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return orElse(Producer.unit(value));
   }
 
-  default T orElse(Producer<T> supplier) {
+  default T orElse(Producer<T> producer) {
     if (isEmpty()) {
-      return supplier.get();
+      return producer.get();
     }
     return get();
   }
 
-  default <X extends Throwable> T orElseThrow(Producer<X> supplier) throws X { 
+  default <X extends Throwable> T orElseThrow(Producer<X> producer) throws X { 
     if (isEmpty()) {
-      throw supplier.get();
+      throw producer.get();
     }
     return get();
   }

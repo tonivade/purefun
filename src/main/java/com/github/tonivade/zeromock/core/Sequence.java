@@ -50,8 +50,8 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
   
-  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<E, G> getter) {
-    return ImmutableMap.from(stream().collect(groupingBy(getter::apply))).mapValues(ImmutableList::from);
+  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<E, G> selector) {
+    return ImmutableMap.from(stream().collect(groupingBy(selector::apply))).mapValues(ImmutableList::from);
   }
 
   default Stream<E> stream() {

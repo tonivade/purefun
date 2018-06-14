@@ -10,12 +10,12 @@ import java.util.stream.Stream;
 @FunctionalInterface
 public interface StreamHandler<T, R> extends Function1<T, Stream<R>> {
   
-  default <V> StreamHandler<T, V> map(Function1<R, V> handler) {
-    return value -> apply(value).map(handler::apply);
+  default <V> StreamHandler<T, V> map(Function1<R, V> mapper) {
+    return value -> apply(value).map(mapper::apply);
   }
   
-  default <V> StreamHandler<T, V> flatMap(StreamHandler<R, V> handler) {
-    return value -> apply(value).flatMap(handler::apply);
+  default <V> StreamHandler<T, V> flatMap(StreamHandler<R, V> mapper) {
+    return value -> apply(value).flatMap(mapper::apply);
   }
   
   default StreamHandler<T, R> filter(Matcher<R> matcher) {

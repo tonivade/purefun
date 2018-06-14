@@ -30,12 +30,12 @@ public final class State<S, A> {
     return new State<>(state -> Tuple2.of(value, nothing()));
   }
   
-  public static <S> State<S, Nothing> modify(Operator1<S> handler) {
-    return new State<>(state -> Tuple2.of(handler.apply(state), nothing()));
+  public static <S> State<S, Nothing> modify(Operator1<S> mapper) {
+    return new State<>(state -> Tuple2.of(mapper.apply(state), nothing()));
   }
   
-  public static <S, A> State<S, A> gets(Function1<S, A> handler) {
-    return new State<>(state -> Tuple2.of(state, handler.apply(state)));
+  public static <S, A> State<S, A> gets(Function1<S, A> mapper) {
+    return new State<>(state -> Tuple2.of(state, mapper.apply(state)));
   }
   
   public static <S, A> State<S, ImmutableList<A>> compose(Sequence<State<S, A>> states) {
@@ -47,12 +47,12 @@ public final class State<S, A> {
     return sa.flatMap(a -> sb.map(b -> mapper.curried().apply(a).apply(b)));
   }
   
-  public <R> State<S, R> flatMap(Function1<A, State<S, R>> map) {
-    return new State<>(state -> apply(run(state), map));
+  public <R> State<S, R> flatMap(Function1<A, State<S, R>> mapper) {
+    return new State<>(state -> apply(run(state), mapper));
   }
   
-  public <R> State<S, R> map(Function1<A, R> map) {
-    return flatMap(value -> unit(map.apply(value)));
+  public <R> State<S, R> map(Function1<A, R> mapper) {
+    return flatMap(value -> unit(mapper.apply(value)));
   }
  
   public Tuple2<S, A> run(S state) {
@@ -63,7 +63,7 @@ public final class State<S, A> {
     return run(state).get2();
   }
 
-  private static <S, A, R> Tuple2<S, R> apply(Tuple2<S, A> state, Function1<A, State<S, R>> map) {
-    return map.apply(state.get2()).run(state.get1());
+  private static <S, A, R> Tuple2<S, R> apply(Tuple2<S, A> state, Function1<A, State<S, R>> mapper) {
+    return mapper.apply(state.get2()).run(state.get1());
   }
 }

@@ -15,12 +15,12 @@ public final class Reader<R, A> implements Functor<A> {
   }
   
   @Override
-  public <B> Reader<R, B> map(Function1<A, B> map) {
-    return reader(reader -> map.apply(eval(reader)));
+  public <B> Reader<R, B> map(Function1<A, B> mapper) {
+    return reader(reader -> mapper.apply(eval(reader)));
   }
   
-  public <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> map) {
-    return reader(reader -> map.apply(eval(reader)).eval(reader));
+  public <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
+    return reader(reader -> mapper.apply(eval(reader)).eval(reader));
   }
   
   public A eval(R reader) {
