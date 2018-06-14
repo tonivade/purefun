@@ -13,7 +13,7 @@ public interface Consumer1<T> {
 
   void apply(T value);
   
-  default Handler1<T, Nothing> toHandler1() {
+  default Handler1<T, Nothing> toHandler() {
     return value -> { apply(value); return nothing(); };
   }
   
