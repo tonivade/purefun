@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Handler1.identity;
+import static com.github.tonivade.zeromock.core.Function1.identity;
 import static com.github.tonivade.zeromock.core.Option.none;
 import static com.github.tonivade.zeromock.core.Option.some;
 import static com.github.tonivade.zeromock.core.Sequence.listOf;

@@ -14,7 +14,7 @@ public class TryHandlerTest {
   public void mapTest() {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
     
-    assertEquals(Try.success(10), str2int.map(a -> a * 2).handle("asdfg"));
+    assertEquals(Try.success(10), str2int.map(a -> a * 2).apply("asdfg"));
   }
   
   @Test
@@ -22,21 +22,21 @@ public class TryHandlerTest {
     TryHandler<String, Integer> str2int = str -> Try.failure("error");
     
     assertEquals(Try.failure("error").isFailure(), 
-                 str2int.map(a -> a * 2).handle("asdfg").isFailure());
+                 str2int.map(a -> a * 2).apply("asdfg").isFailure());
   }
   
   @Test
   public void orElseTest() {
     TryHandler<String, Integer> str2int = str -> Try.failure("error");
     
-    assertEquals(Integer.valueOf(0), str2int.orElse(0).handle("asdfg"));
+    assertEquals(Integer.valueOf(0), str2int.orElse(0).apply("asdfg"));
   }
   
   @Test
   public void filterTest() {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
     
-    assertEquals(Try.success(5), str2int.filter(x -> x > 0).handle("asdfg"));
+    assertEquals(Try.success(5), str2int.filter(x -> x > 0).apply("asdfg"));
   }
   
   @Test
@@ -44,14 +44,14 @@ public class TryHandlerTest {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
     
     assertEquals(Try.failure("error").isFailure(), 
-                 str2int.filter(x -> x > 10).handle("asdfg").isFailure());
+                 str2int.filter(x -> x > 10).apply("asdfg").isFailure());
   }
   
   @Test
   public void flatMapTest() {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
     
-    assertEquals(Try.success(10), str2int.flatMap(a -> Try.success(a * 2)).handle("asdfg"));
+    assertEquals(Try.success(10), str2int.flatMap(a -> Try.success(a * 2)).apply("asdfg"));
   }
   
   @Test
@@ -59,13 +59,13 @@ public class TryHandlerTest {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
     
     assertEquals(Try.failure("error").isFailure(), 
-                 str2int.flatMap(a -> Try.failure("error")).handle("asdfg").isFailure());
+                 str2int.flatMap(a -> Try.failure("error")).apply("asdfg").isFailure());
   }
   
   @Test
   public void recover() {
     TryHandler<String, Integer> str2int = str -> Try.failure("error");
     
-    assertEquals(Try.success(5), str2int.recover(t -> 5).handle(null));
+    assertEquals(Try.success(5), str2int.recover(t -> 5).apply(null));
   }
 }

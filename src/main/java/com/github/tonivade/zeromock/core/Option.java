@@ -41,16 +41,16 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   boolean isEmpty();
   
   @Override
-  default <R> Option<R> map(Handler1<T, R> map) {
+  default <R> Option<R> map(Function1<T, R> map) {
     if (isPresent()) {
-      return some(map.handle(get()));
+      return some(map.apply(get()));
     }
     return none();
   }
 
   default <R> Option<R> flatMap(OptionHandler<T, R> map) {
     if (isPresent()) {
-      return map.handle(get());
+      return map.apply(get());
     }
     return none();
   }
@@ -88,9 +88,9 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return get();
   }
   
-  default <U> U fold(Producer<U> orElse, Handler1<T, U> mapper) {
+  default <U> U fold(Producer<U> orElse, Function1<T, U> mapper) {
     if (isPresent()) {
-      return mapper.handle(get());
+      return mapper.apply(get());
     }
     return orElse.get();
   }

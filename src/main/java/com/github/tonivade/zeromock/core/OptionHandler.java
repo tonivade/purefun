@@ -7,29 +7,25 @@ package com.github.tonivade.zeromock.core;
 import static com.github.tonivade.zeromock.core.Producer.unit;
 
 @FunctionalInterface
-public interface OptionHandler<T, R> extends Handler1<T, Option<R>> {
+public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
   
-  default <V> OptionHandler<T, V> map(Handler1<R, V> handler) {
-    return value -> handle(value).map(handler::handle);
+  default <V> OptionHandler<T, V> map(Function1<R, V> handler) {
+    return value -> apply(value).map(handler::apply);
   }
   
   default <V> OptionHandler<T, V> flatMap(OptionHandler<R, V> handler) {
-    return value -> handle(value).flatMap(handler::handle);
+    return value -> apply(value).flatMap(handler::apply);
   }
   
   default OptionHandler<T, R> filter(Matcher<R> matcher) {
-    return value -> handle(value).filter(matcher);
+    return value -> apply(value).filter(matcher);
   }
   
-  default Handler1<T, R> orElse(R value) {
+  default Function1<T, R> orElse(R value) {
     return orElse(unit(value));
   }
   
-  default Handler1<T, R> orElse(Producer<R> handler) {
-    return value -> handle(value).orElse(handler);
-  }
-  
-  static <T, R> OptionHandler<T, R> adapt(Handler1<T, Option<R>> handler) {
-    return handler::handle;
+  default Function1<T, R> orElse(Producer<R> handler) {
+    return value -> apply(value).orElse(handler);
   }
 }

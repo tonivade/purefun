@@ -18,8 +18,8 @@ public final class Tuple1<A> {
     return value1;
   }
   
-  public <B> Tuple1<B> map(Handler1<A, B> mapper) {
-    return new Tuple1<>(mapper.handle(value1));
+  public <B> Tuple1<B> map(Function1<A, B> mapper) {
+    return new Tuple1<>(mapper.apply(value1));
   }
 
   public static <A> Tuple1<A> of(A value1) {

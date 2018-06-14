@@ -10,7 +10,7 @@ public interface Foldable<T> {
   
   T fold(T initial, Operator2<T> operator);
   
-  <V> V foldLeft(V initial, Handler2<V, T, V> combinator);
+  <V> V foldLeft(V initial, Function2<V, T, V> combinator);
 
-  <V> V foldRight(V initial, Handler2<T, V, V> combinator);
+  <V> V foldRight(V initial, Function2<T, V, V> combinator);
 }

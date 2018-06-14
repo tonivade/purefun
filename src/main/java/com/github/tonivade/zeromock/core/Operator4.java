@@ -5,6 +5,6 @@
 package com.github.tonivade.zeromock.core;
 
 @FunctionalInterface
-public interface Operator4<T> extends Handler4<T, T, T, T, T> {
+public interface Operator4<T> extends Function4<T, T, T, T, T> {
 
 }

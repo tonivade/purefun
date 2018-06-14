@@ -38,7 +38,7 @@ public class Equal<T> {
   }
 
   private boolean areEquals(T other) {
-    return testers.stream().allMatch(tester -> tester.handle(target, other));
+    return testers.stream().allMatch(tester -> tester.apply(target, other));
   }
 
   private boolean sameClasses(Object obj) {
@@ -54,14 +54,14 @@ public class Equal<T> {
   }
 
   @FunctionalInterface
-  public interface Tester<T> extends Handler2<T, T, Boolean> {
+  public interface Tester<T> extends Function2<T, T, Boolean> {
   }
 
-  public static <T, V> Tester<T> comparing(Handler1<T, V> getter) {
-    return (a, b) -> Objects.equals(getter.handle(a), getter.handle(b));
+  public static <T, V> Tester<T> comparing(Function1<T, V> getter) {
+    return (a, b) -> Objects.equals(getter.apply(a), getter.apply(b));
   }
 
-  public static <T, V> Tester<T> comparingArray(Handler1<T, V[]> getter) {
-    return (a, b) -> Arrays.deepEquals(getter.handle(a), getter.handle(b));
+  public static <T, V> Tester<T> comparingArray(Function1<T, V[]> getter) {
+    return (a, b) -> Arrays.deepEquals(getter.apply(a), getter.apply(b));
   }
 }

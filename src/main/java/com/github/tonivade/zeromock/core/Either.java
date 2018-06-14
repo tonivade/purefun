@@ -56,38 +56,38 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return right(getLeft());
   }
   
-  default <T, U> Either<T, U> bimap(Handler1<L, T> leftMapper, Handler1<R, U> rightMapper) {
+  default <T, U> Either<T, U> bimap(Function1<L, T> leftMapper, Function1<R, U> rightMapper) {
     if (isRight()) {
-      return right(rightMapper.handle(getRight()));
+      return right(rightMapper.apply(getRight()));
     }
-    return left(leftMapper.handle(getLeft()));
+    return left(leftMapper.apply(getLeft()));
   }
   
   @Override
-  default <T> Either<L, T> map(Handler1<R, T> map) {
+  default <T> Either<L, T> map(Function1<R, T> map) {
     if (isRight()) {
-      return right(map.handle(getRight()));
+      return right(map.apply(getRight()));
     }
     return left(getLeft());
   }
   
-  default <T> Either<T, R> mapLeft(Handler1<L, T> map) {
+  default <T> Either<T, R> mapLeft(Function1<L, T> map) {
     if (isLeft()) {
-      return left(map.handle(getLeft()));
+      return left(map.apply(getLeft()));
     }
     return right(getRight());
   }
 
-  default <T> Either<L, T> flatMap(Handler1<R, Either<L, T>> map) {
+  default <T> Either<L, T> flatMap(Function1<R, Either<L, T>> map) {
     if (isRight()) {
-      return map.handle(getRight());
+      return map.apply(getRight());
     }
     return left(getLeft());
   }
 
-  default <T> Either<T, R> flatMapLeft(Handler1<L, Either<T, R>> map) {
+  default <T> Either<T, R> flatMapLeft(Function1<L, Either<T, R>> map) {
     if (isLeft()) {
-      return map.handle(getLeft());
+      return map.apply(getLeft());
     }
     return right(getRight());
   }
@@ -117,11 +117,11 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return orElse.get();
   }
   
-  default <T> T fold(Handler1<L, T> leftMapper, Handler1<R, T> rightMapper) {
+  default <T> T fold(Function1<L, T> leftMapper, Function1<R, T> rightMapper) {
     if (isRight()) {
-      return rightMapper.handle(getRight());
+      return rightMapper.apply(getRight());
     }
-    return leftMapper.handle(getLeft());
+    return leftMapper.apply(getLeft());
   }
 
   default Stream<R> stream() {

@@ -33,11 +33,11 @@ public interface ImmutableMap<K, V> {
     entries().forEach(tuple -> consumer.apply(tuple.get1(), tuple.get2()));
   }
   
-  default <T> ImmutableMap<T, V> mapKeys(Handler1<K, T> mapper) {
+  default <T> ImmutableMap<T, V> mapKeys(Function1<K, T> mapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map1(mapper)));
   }
   
-  default <T> ImmutableMap<K, T> mapValues(Handler1<V, T> mapper) {
+  default <T> ImmutableMap<K, T> mapValues(Function1<V, T> mapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map2(mapper)));
   }
   
@@ -60,9 +60,9 @@ public interface ImmutableMap<K, V> {
     return put(key, value);
   }
   
-  default ImmutableMap<K, V> merge(K key, V value, Handler2<V, V, V> merger) {
+  default ImmutableMap<K, V> merge(K key, V value, Function2<V, V, V> merger) {
     if (containsKey(key)) {
-      return put(key, merger.handle(getOrDefault(key, unit(value)), value));
+      return put(key, merger.apply(getOrDefault(key, unit(value)), value));
     }
     return put(key, value);
   }

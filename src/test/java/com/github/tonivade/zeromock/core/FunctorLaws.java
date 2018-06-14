@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Handler1.identity;
+import static com.github.tonivade.zeromock.core.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FunctorLaws {
 
-  private final static Handler1<String, String> toUpperCase = String::toUpperCase;
-  private final static Handler1<String, String> toLowerCase = String::toLowerCase;
+  private final static Function1<String, String> toUpperCase = String::toUpperCase;
+  private final static Function1<String, String> toLowerCase = String::toLowerCase;
   
   public static void verifyLaws(Functor<String> functor) {
     assertAll(() -> assertEquals(functor, 

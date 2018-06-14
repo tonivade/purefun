@@ -9,25 +9,21 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface OptionalHandler<T, R> extends Handler1<T, Optional<R>> {
+public interface OptionalHandler<T, R> extends Function1<T, Optional<R>> {
   
-  default <V> OptionalHandler<T, V> map(Handler1<R, V> mapper) {
-    return value -> handle(value).map(mapper::handle);
+  default <V> OptionalHandler<T, V> map(Function1<R, V> mapper) {
+    return value -> apply(value).map(mapper::apply);
   }
   
   default <V> OptionalHandler<T, V> flatMap(OptionalHandler<R, V> mapper) {
-    return value -> handle(value).flatMap(mapper::handle);
+    return value -> apply(value).flatMap(mapper::apply);
   }
   
   default OptionalHandler<T, R> filter(Predicate<R> predicate) {
-    return value -> handle(value).filter(predicate);
+    return value -> apply(value).filter(predicate);
   }
   
-  default Handler1<T, R> orElse(Supplier<R> supplier) {
-    return value -> handle(value).orElseGet(supplier);
-  }
-  
-  static <T, R> OptionalHandler<T, R> adapt(Handler1<T, Optional<R>> handler) {
-    return handler::handle;
+  default Function1<T, R> orElse(Supplier<R> supplier) {
+    return value -> apply(value).orElseGet(supplier);
   }
 }

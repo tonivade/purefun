@@ -11,7 +11,7 @@ public interface Producer<T> {
   
   T get();
   
-  default <V> Handler1<V, T> toHandler1() {
+  default <V> Function1<V, T> asFunction() {
     return value -> get();
   }
   

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Handler1.identity;
+import static com.github.tonivade.zeromock.core.Function1.identity;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -16,9 +16,9 @@ import org.junit.jupiter.api.Test;
 
 public class EitherTest {
 
-  private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
-  private final Handler1<String, String> toLowerCase = string -> string.toLowerCase();
-  private final Handler1<Integer, Integer> intDouble = i -> i * 2;
+  private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Function1<String, String> toLowerCase = string -> string.toLowerCase();
+  private final Function1<Integer, Integer> intDouble = i -> i * 2;
   
   @Test
   public void bimapRight()

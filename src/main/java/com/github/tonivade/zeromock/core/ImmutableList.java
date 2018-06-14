@@ -43,13 +43,13 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableList<R> map(Handler1<E, R> mapper) {
-    return ImmutableList.from(stream().map(mapper::handle));
+  default <R> ImmutableList<R> map(Function1<E, R> mapper) {
+    return ImmutableList.from(stream().map(mapper::apply));
   }
 
   @Override
   default <R> ImmutableList<R> flatMap(SequenceHandler<E, R> mapper) {
-    return ImmutableList.from(stream().flatMap(mapper.toStreamHandler()::handle));
+    return ImmutableList.from(stream().flatMap(mapper.toStreamHandler()::apply));
   }
 
   @Override

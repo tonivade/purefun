@@ -28,23 +28,23 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
   E getError();
   
   @Override
-  default <R> Validation<E, R> map(Handler1<T, R> map) {
+  default <R> Validation<E, R> map(Function1<T, R> map) {
     if (isValid()) {
-      return valid(map.handle(get()));
+      return valid(map.apply(get()));
     }
     return invalid(getError());
   }
   
-  default <U> Validation<U, T> mapError(Handler1<E, U> map) {
+  default <U> Validation<U, T> mapError(Function1<E, U> map) {
     if (isInvalid()) {
-      return invalid(map.handle(getError()));
+      return invalid(map.apply(getError()));
     }
     return valid(get());
   }
   
-  default <R> Validation<E, R> flatMap(Handler1<T, Validation<E, R>> map) {
+  default <R> Validation<E, R> flatMap(Function1<T, Validation<E, R>> map) {
     if (isValid()) {
-      return map.handle(get());
+      return map.apply(get());
     }
     return invalid(getError());
   }
@@ -74,16 +74,16 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     return orElse.get();
   }
   
-  default <U> U fold(Handler1<T, U> validMap, Handler1<E, U> invalidMap) {
+  default <U> U fold(Function1<T, U> validMap, Function1<E, U> invalidMap) {
     if (isValid()) {
-      return validMap.handle(get());
+      return validMap.apply(get());
     }
-    return invalidMap.handle(getError());
+    return invalidMap.apply(getError());
   }
  
-  default <R> Validation<Sequence<E>, R> ap(Validation<Sequence<E>, Handler1<T, R>> other) {
+  default <R> Validation<Sequence<E>, R> ap(Validation<Sequence<E>, Function1<T, R>> other) {
     if (this.isValid() && other.isValid()) {
-      return valid(other.get().handle(get()));
+      return valid(other.get().apply(get()));
     } 
     if (this.isInvalid() && other.isInvalid()) {
       return invalid(other.getError().append(getError()));
@@ -103,24 +103,24 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
 
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1, 
                                                         Validation<E, T2> validation2, 
-                                                        Handler2<T1, T2, R> map) {
+                                                        Function2<T1, T2, R> map) {
     return validation2.ap(validation1.ap(valid(map.curried())));
   }
 
   static <E, T1, T2, T3, R> Validation<Sequence<E>, R> map3(Validation<E, T1> validation1, 
                                                             Validation<E, T2> validation2, 
                                                             Validation<E, T3> validation3, 
-                                                            Handler3<T1, T2, T3, R> map) {
-    return validation3.ap(map2(validation1, validation2, (t1, t2) -> map.curried().handle(t1).handle(t2)));
+                                                            Function3<T1, T2, T3, R> map) {
+    return validation3.ap(map2(validation1, validation2, (t1, t2) -> map.curried().apply(t1).apply(t2)));
   }
 
   static <E, T1, T2, T3, T4, R> Validation<Sequence<E>, R> map4(Validation<E, T1> validation1, 
                                                                 Validation<E, T2> validation2, 
                                                                 Validation<E, T3> validation3, 
                                                                 Validation<E, T4> validation4, 
-                                                                Handler4<T1, T2, T3, T4, R> map) {
+                                                                Function4<T1, T2, T3, T4, R> map) {
     return validation4.ap(map3(validation1, validation2, validation3, 
-        (t1, t2, t3) -> map.curried().handle(t1).handle(t2).handle(t3)));
+        (t1, t2, t3) -> map.curried().apply(t1).apply(t2).apply(t3)));
   }
 
   static <E, T1, T2, T3, T4, T5, R> Validation<Sequence<E>, R> map5(Validation<E, T1> validation1, 
@@ -128,9 +128,9 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
                                                                     Validation<E, T3> validation3, 
                                                                     Validation<E, T4> validation4, 
                                                                     Validation<E, T5> validation5, 
-                                                                    Handler5<T1, T2, T3, T4, T5, R> map) {
+                                                                    Function5<T1, T2, T3, T4, T5, R> map) {
     return validation5.ap(map4(validation1, validation2, validation3, validation4, 
-        (t1, t2, t3, t4) -> map.curried().handle(t1).handle(t2).handle(t3).handle(t4)));
+        (t1, t2, t3, t4) -> map.curried().apply(t1).apply(t2).apply(t3).apply(t4)));
   }
   
   final class Valid<E, T> implements Validation<E, T> {

@@ -59,11 +59,11 @@ public class StateTest {
     return State.<ImmutableList<String>, String>unit(value);
   }
 
-  private static <T> Handler1<T, State<ImmutableList<T>, T>> append(T nextVal) {
+  private static <T> Function1<T, State<ImmutableList<T>, T>> append(T nextVal) {
     return value -> state(state -> Tuple2.of(state.append(value), nextVal));
   }
   
-  private static <T> Handler1<T, State<ImmutableList<T>, Nothing>> end() {
+  private static <T> Function1<T, State<ImmutableList<T>, Nothing>> end() {
     return value -> state(state -> Tuple2.of(state.append(value), nothing()));
   }
 }

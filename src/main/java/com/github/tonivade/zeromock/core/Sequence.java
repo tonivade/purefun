@@ -20,7 +20,7 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   Sequence<E> reverse();
   
   @Override
-  <R> Sequence<R> map(Handler1<E, R> mapper);
+  <R> Sequence<R> map(Function1<E, R> mapper);
 
   <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);
 
@@ -29,29 +29,29 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   
   @Override
   default Option<E> reduce(Operator2<E> operator) {
-    return Option.from(stream().reduce(operator::handle));
+    return Option.from(stream().reduce(operator::apply));
   }
   
   @Override
   default E fold(E initial, Operator2<E> operator) {
-    return stream().reduce(initial, operator::handle);
+    return stream().reduce(initial, operator::apply);
   }
   
   @Override
-  default <U> U foldLeft(U initial, Handler2<U, E, U> combinator) {
+  default <U> U foldLeft(U initial, Function2<U, E, U> combinator) {
     U accumulator = initial;
     for (E element : this) {
-      accumulator = combinator.handle(accumulator, element);
+      accumulator = combinator.apply(accumulator, element);
     }
     return accumulator;
   }
 
-  default <U> U foldRight(U initial, Handler2<E, U, U> combinator) {
-    return reverse().foldLeft(initial, (acc, e) -> combinator.handle(e, acc));
+  default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
+    return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
   
-  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Handler1<E, G> getter) {
-    return ImmutableMap.from(stream().collect(groupingBy(getter::handle))).mapValues(ImmutableList::from);
+  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<E, G> getter) {
+    return ImmutableMap.from(stream().collect(groupingBy(getter::apply))).mapValues(ImmutableList::from);
   }
 
   default Stream<E> stream() {

@@ -1,6 +1,6 @@
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Handler1.identity;
+import static com.github.tonivade.zeromock.core.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 public class ImmutableSetTest {
   
-  private final Handler1<String, String> toUpperCase = String::toUpperCase;
+  private final Function1<String, String> toUpperCase = String::toUpperCase;
   
   @Test
   public void notEmptySet() {

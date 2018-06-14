@@ -46,32 +46,32 @@ public final class Tuple5<A, B, C, D, E> {
     return value5;
   }
   
-  public <R> Tuple5<R, B, C, D, E> map1(Handler1<A, R> mapper) {
-    return Tuple5.of(mapper.handle(value1), value2, value3, value4, value5);
+  public <R> Tuple5<R, B, C, D, E> map1(Function1<A, R> mapper) {
+    return Tuple5.of(mapper.apply(value1), value2, value3, value4, value5);
   }
   
-  public <R> Tuple5<A, R, C, D, E> map2(Handler1<B, R> mapper) {
-    return Tuple5.of(value1, mapper.handle(value2), value3, value4, value5);
+  public <R> Tuple5<A, R, C, D, E> map2(Function1<B, R> mapper) {
+    return Tuple5.of(value1, mapper.apply(value2), value3, value4, value5);
   }
   
-  public <R> Tuple5<A, B, R, D, E> map3(Handler1<C, R> mapper) {
-    return Tuple5.of(value1, value2, mapper.handle(value3), value4, value5);
+  public <R> Tuple5<A, B, R, D, E> map3(Function1<C, R> mapper) {
+    return Tuple5.of(value1, value2, mapper.apply(value3), value4, value5);
   }
   
-  public <R> Tuple5<A, B, C, R, E> map4(Handler1<D, R> mapper) {
-    return Tuple5.of(value1, value2, value3, mapper.handle(value4), value5);
+  public <R> Tuple5<A, B, C, R, E> map4(Function1<D, R> mapper) {
+    return Tuple5.of(value1, value2, value3, mapper.apply(value4), value5);
   }
   
-  public <R> Tuple5<A, B, C, D, R> map5(Handler1<E, R> mapper) {
-    return Tuple5.of(value1, value2, value3, value4, mapper.handle(value5));
+  public <R> Tuple5<A, B, C, D, R> map5(Function1<E, R> mapper) {
+    return Tuple5.of(value1, value2, value3, value4, mapper.apply(value5));
   }
   
-  public <F, G, H, I, J> Tuple5<F, G, H, I, J> map(Handler1<A, F> map1, 
-                                                   Handler1<B, G> map2, 
-                                                   Handler1<C, H> map3, 
-                                                   Handler1<D, I> map4, 
-                                                   Handler1<E, J> map5) {
-    return Tuple5.of(map1.handle(value1), map2.handle(value2), map3.handle(value3), map4.handle(value4), map5.handle(value5));
+  public <F, G, H, I, J> Tuple5<F, G, H, I, J> map(Function1<A, F> map1, 
+                                                   Function1<B, G> map2, 
+                                                   Function1<C, H> map3, 
+                                                   Function1<D, I> map4, 
+                                                   Function1<E, J> map5) {
+    return Tuple5.of(map1.apply(value1), map2.apply(value2), map3.apply(value3), map4.apply(value4), map5.apply(value5));
   }
 
   public static <A, B, C, D, E> Tuple5<A, B, C, D, E> of(A value1, B value2, C value3, D value4, E value5) {

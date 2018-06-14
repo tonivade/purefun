@@ -29,16 +29,16 @@ public final class Tuple2<A, B> {
     return value2;
   }
   
-  public <C> Tuple2<C, B> map1(Handler1<A, C> mapper) {
-    return map(mapper, Handler1.identity());
+  public <C> Tuple2<C, B> map1(Function1<A, C> mapper) {
+    return map(mapper, Function1.identity());
   }
   
-  public <C> Tuple2<A, C> map2(Handler1<B, C> mapper) {
-    return map(Handler1.identity(), mapper);
+  public <C> Tuple2<A, C> map2(Function1<B, C> mapper) {
+    return map(Function1.identity(), mapper);
   }
   
-  public <C, D> Tuple2<C, D> map(Handler1<A, C> mapper1, Handler1<B, D> mapper2) {
-    return Tuple2.of(mapper1.handle(value1), mapper2.handle(value2));
+  public <C, D> Tuple2<C, D> map(Function1<A, C> mapper1, Function1<B, D> mapper2) {
+    return Tuple2.of(mapper1.apply(value1), mapper2.apply(value2));
   }
 
   public static <A, B> Tuple2<A, B> of(A value1, B value2) {

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 public class TryTest {
   
-  private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
 
   @Test
   public void mapSuccess() {

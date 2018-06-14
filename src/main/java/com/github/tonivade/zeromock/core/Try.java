@@ -44,16 +44,16 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   boolean isFailure();
   
   @Override
-  default <R> Try<R> map(Handler1<T, R> map) {
+  default <R> Try<R> map(Function1<T, R> map) {
     if (isSuccess()) {
-      return success(map.handle(get()));
+      return success(map.apply(get()));
     }
     return failure(getCause());
   }
 
-  default <R> Try<R> flatMap(Handler1<T, Try<R>> map) {
+  default <R> Try<R> flatMap(Function1<T, Try<R>> map) {
     if (isSuccess()) {
-      return map.handle(get());
+      return map.apply(get());
     }
     return failure(getCause());
   }
@@ -72,19 +72,19 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return this;
   }
   
-  default Try<T> recover(Handler1<Throwable, T> handler) {
+  default Try<T> recover(Function1<Throwable, T> handler) {
     if (isFailure()) {
-      return Try.of(() -> handler.handle(getCause()));
+      return Try.of(() -> handler.apply(getCause()));
     }
     return this;
   }
   
   @SuppressWarnings("unchecked")
-  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Handler1<X, T> handler) {
+  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<X, T> handler) {
     if (isFailure()) {
       Throwable cause = getCause();
       if (type.isAssignableFrom(cause.getClass())) {
-        return Try.of(() -> handler.handle((X) getCause()));
+        return Try.of(() -> handler.apply((X) getCause()));
       }
     }
     return this;
@@ -102,11 +102,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return supplier.get();
   }
   
-  default <U> U fold(Handler1<Throwable, U> failureMapper, Handler1<T, U> successMapper) {
+  default <U> U fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
     if (isSuccess()) {
-      return successMapper.handle(get());
+      return successMapper.apply(get());
     }
-    return failureMapper.handle(getCause());
+    return failureMapper.apply(getCause());
   }
 
   default T orElse(T value) {
@@ -134,11 +134,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return Either.left(getCause());
   }
   
-  default <E> Validation<E, T> toValidation(Handler1<Throwable, E> map) {
+  default <E> Validation<E, T> toValidation(Function1<Throwable, E> map) {
     if (isSuccess()) {
       return Validation.valid(get());
     }
-    return Validation.invalid(map.handle(getCause()));
+    return Validation.invalid(map.apply(getCause()));
   }
   
   default Option<T> toOption() {

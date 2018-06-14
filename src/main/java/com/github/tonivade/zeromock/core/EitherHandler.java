@@ -5,29 +5,25 @@
 package com.github.tonivade.zeromock.core;
 
 @FunctionalInterface
-public interface EitherHandler<T, L, R> extends Handler1<T, Either<L, R>>{
+public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
 
-  default <V> EitherHandler<T, L, V> map(Handler1<R, V> handler) {
-    return value -> handle(value).map(handler::handle);
+  default <V> EitherHandler<T, L, V> map(Function1<R, V> handler) {
+    return value -> apply(value).map(handler::apply);
   }
   
-  default <V> EitherHandler<T, V, R> mapLeft(Handler1<L, V> handler) {
-    return value -> handle(value).mapLeft(handler::handle);
+  default <V> EitherHandler<T, V, R> mapLeft(Function1<L, V> handler) {
+    return value -> apply(value).mapLeft(handler::apply);
   }
   
   default <V> EitherHandler<T, L, V> flatMap(EitherHandler<R, L, V> handler) {
-    return value -> handle(value).flatMap(handler::handle);
+    return value -> apply(value).flatMap(handler::apply);
   }
   
   default OptionHandler<T, Either<L, R>> filter(Matcher<R> matcher) {
-    return value -> handle(value).filter(matcher);
+    return value -> apply(value).filter(matcher);
   }
   
-  default Handler1<T, R> orElse(Producer<R> handler) {
-    return value -> handle(value).orElse(handler);
-  }
-  
-  static <T, L, R> EitherHandler<T, L, R> adapt(Handler1<T, Either<L, R>> handler) {
-    return handler::handle;
+  default Function1<T, R> orElse(Producer<R> handler) {
+    return value -> apply(value).orElse(handler);
   }
 }

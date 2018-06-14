@@ -8,25 +8,21 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 @FunctionalInterface
-public interface StreamHandler<T, R> extends Handler1<T, Stream<R>> {
+public interface StreamHandler<T, R> extends Function1<T, Stream<R>> {
   
-  default <V> StreamHandler<T, V> map(Handler1<R, V> handler) {
-    return value -> handle(value).map(handler::handle);
+  default <V> StreamHandler<T, V> map(Function1<R, V> handler) {
+    return value -> apply(value).map(handler::apply);
   }
   
   default <V> StreamHandler<T, V> flatMap(StreamHandler<R, V> handler) {
-    return value -> handle(value).flatMap(handler::handle);
+    return value -> apply(value).flatMap(handler::apply);
   }
   
   default StreamHandler<T, R> filter(Matcher<R> matcher) {
-    return value -> handle(value).filter(matcher::match);
+    return value -> apply(value).filter(matcher::match);
   }
   
-  default <A, V> Handler1<T, V> collect(Collector<R, A, V> collector) {
-    return value -> handle(value).collect(collector);
-  }
-  
-  static <T, R> StreamHandler<T, R> adapt(Handler1<T, Stream<R>> handler) {
-    return handler::handle;
+  default <A, V> Function1<T, V> collect(Collector<R, A, V> collector) {
+    return value -> apply(value).collect(collector);
   }
 }

@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 public class OptionTest {
-  private final Handler1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
 
   @Test
   public void mapSome() {

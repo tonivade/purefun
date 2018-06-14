@@ -31,13 +31,13 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> difference(ImmutableSet<E> other);
 
   @Override
-  default <R> ImmutableSet<R> map(Handler1<E, R> mapper) {
-    return ImmutableSet.from(stream().map(mapper::handle));
+  default <R> ImmutableSet<R> map(Function1<E, R> mapper) {
+    return ImmutableSet.from(stream().map(mapper::apply));
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(SequenceHandler<E, R> mapper) {
-    return ImmutableSet.from(stream().flatMap(mapper.toStreamHandler()::handle));
+    return ImmutableSet.from(stream().flatMap(mapper.toStreamHandler()::apply));
   }
 
   @Override
