@@ -27,8 +27,8 @@ public interface Function1<T, R> {
   }
   
   @SuppressWarnings("unchecked")
-  default OptionalHandler<T, R> asOptional() {
-    return value -> (Optional<R>) apply(value);
+  default <V> OptionalHandler<T, V> asOptional(Class<V> inside) {
+    return value -> (Optional<V>) apply(value);
   }
   
   default OptionHandler<T, R> liftOption() {
@@ -36,8 +36,8 @@ public interface Function1<T, R> {
   }
   
   @SuppressWarnings("unchecked")
-  default OptionHandler<T, R> asOption() {
-    return value -> (Option<R>) apply(value);
+  default <V> OptionHandler<T, V> asOption(Class<V> inside) {
+    return value -> (Option<V>) apply(value);
   }
   
   default TryHandler<T, R> liftTry() {
@@ -45,8 +45,8 @@ public interface Function1<T, R> {
   }
   
   @SuppressWarnings("unchecked")
-  default TryHandler<T, R> asTry() {
-    return value -> (Try<R>) apply(value);
+  default <V> TryHandler<T, V> asTry(Class<V> inside) {
+    return value -> (Try<V>) apply(value);
   }
   
   default <L> EitherHandler<T, L, R> liftRight() {
@@ -62,8 +62,8 @@ public interface Function1<T, R> {
   }
   
   @SuppressWarnings("unchecked")
-  default SequenceHandler<T, R> asSequence() {
-    return value -> (Sequence<R>) apply(value);
+  default <V> SequenceHandler<T, V> asSequence(Class<V> inside) {
+    return value -> (Sequence<V>) apply(value);
   }
   
   default StreamHandler<T, R> stream() {
