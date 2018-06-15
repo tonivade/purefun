@@ -17,6 +17,17 @@ public interface OptionalHandler<T, R> extends Function1<T, Optional<R>> {
     return value -> apply(value).flatMap(mapper::apply);
   }
   
+  @SuppressWarnings("unchecked")
+  default <V> OptionalHandler<T, V> flatten() {
+    return value -> {
+      Optional<R> result = apply(value);
+      if (result.isPresent()) {
+        return (Optional<V>) result.get();
+      }
+      return Optional.empty();
+    };
+  }
+  
   default OptionalHandler<T, R> filter(Matcher<R> matcher) {
     return value -> apply(value).filter(matcher::match);
   }
