@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.equal;
+import static com.github.tonivade.zeromock.core.OptionHandler.identity;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -111,10 +112,11 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   
   @SuppressWarnings("unchecked")
   default <V> Option<V> flatten() {
-    if (isPresent()) {
-      return (Option<V>) get();
+    try {
+      return ((Option<Option<V>>) this).flatMap(identity());
+    } catch (ClassCastException e) {
+      throw new UnsupportedOperationException("cannot be flattened");
     }
-    return none();
   }
 
   final class Some<T> implements Option<T> {

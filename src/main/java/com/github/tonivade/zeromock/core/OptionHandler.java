@@ -32,4 +32,8 @@ public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
   default Function1<T, R> orElse(Producer<R> producer) {
     return value -> apply(value).orElse(producer);
   }
+  
+  static <T> OptionHandler<Option<T>, T> identity() {
+    return Function1.<Option<T>>identity()::apply;
+  }
 }

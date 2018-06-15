@@ -36,4 +36,8 @@ public interface TryHandler<T, R> extends Function1<T, Try<R>> {
   default Function1<T, R> orElse(Producer<R> producer) {
     return value -> apply(value).orElse(producer);
   }
+
+  static <T> TryHandler<Try<T>, T> identity() {
+    return Function1.<Try<T>>identity()::apply;
+  }
 }

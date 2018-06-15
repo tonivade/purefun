@@ -30,4 +30,8 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
   default Function1<T, R> orElse(Producer<R> producer) {
     return value -> apply(value).orElse(producer);
   }
+
+  static <L, R> Function1<Either<L, R>, Either<L, R>> identity() {
+    return Function1.<Either<L, R>>identity()::apply;
+  }
 }

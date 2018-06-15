@@ -7,12 +7,7 @@ package com.github.tonivade.zeromock.core;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -160,6 +155,20 @@ public class OptionTest {
   @Test
   public void optionLaws() {
     FunctorLaws.verifyLaws(Option.some("Hola mundo"));
+  }
+  
+  @Test
+  public void flatten() {
+    Option<Option<String>> optionOfOption = Option.some(Option.some("asdf"));
+    
+    assertEquals(Option.some("asdf"), optionOfOption.flatten());
+  }
+  
+  @Test
+  public void flattenError() {
+    Option<String> option = Option.some("asdf");
+    
+    assertThrows(UnsupportedOperationException.class, () -> option.flatten());
   }
   
   private String message() {

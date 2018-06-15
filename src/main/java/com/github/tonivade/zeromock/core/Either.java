@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.EitherHandler.identity;
 import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.requireNonNull;
@@ -147,10 +148,11 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
   
   @SuppressWarnings("unchecked")
   default <V> Either<L, V> flatten() {
-    if (isRight()) {
-      return (Either<L, V>) get();
+    try {
+      return ((Either<L, Either<L, V>>) this).flatMap(identity());
+    } catch (ClassCastException e) {
+      throw new UnsupportedOperationException("cannot be flattened");
     }
-    return left(getLeft());
   }
   
   final class Left<L, R> implements Either<L, R> {

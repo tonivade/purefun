@@ -231,6 +231,20 @@ public class TryTest {
     
     assertTrue(try1.isSuccess());
   }
+
+  @Test
+  public void flatten() {
+    Try<Try<String>> tryOfTry = Try.success(Try.success("asdf"));
+    
+    assertEquals(Try.success("asdf"), tryOfTry.flatten());
+  }
+  
+  @Test
+  public void flattenError() {
+    Try<String> try1 = Try.success("asdf");
+    
+    assertThrows(UnsupportedOperationException.class, () -> try1.flatten());
+  }
   
   @Test
   public void tryLaws() {

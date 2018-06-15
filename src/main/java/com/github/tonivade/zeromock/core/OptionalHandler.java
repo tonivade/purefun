@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static java.util.function.Function.identity;
+
 import java.util.Optional;
 
 @FunctionalInterface
@@ -19,13 +21,7 @@ public interface OptionalHandler<T, R> extends Function1<T, Optional<R>> {
   
   @SuppressWarnings("unchecked")
   default <V> OptionalHandler<T, V> flatten() {
-    return value -> {
-      Optional<R> result = apply(value);
-      if (result.isPresent()) {
-        return (Optional<V>) result.get();
-      }
-      return Optional.empty();
-    };
+    return value -> ((Optional<Optional<V>>) apply(value)).flatMap(identity());
   }
   
   default OptionalHandler<T, R> filter(Matcher<R> matcher) {

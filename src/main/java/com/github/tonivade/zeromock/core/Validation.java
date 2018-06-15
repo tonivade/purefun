@@ -6,6 +6,7 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.equal;
+import static com.github.tonivade.zeromock.core.Function1.identity;
 import static com.github.tonivade.zeromock.core.Sequence.listOf;
 import static java.util.Objects.requireNonNull;
 
@@ -103,10 +104,11 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
   
   @SuppressWarnings("unchecked")
   default <V> Validation<E, V> flatten() {
-    if (isValid()) {
-      return (Validation<E, V>) get();
+    try {
+      return ((Validation<E, Validation<E, V>>) this).flatMap(identity());
+    } catch (ClassCastException e) {
+      throw new UnsupportedOperationException("cannot be flattened");
     }
-    return invalid(getError());
   }
 
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1, 

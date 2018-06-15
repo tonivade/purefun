@@ -7,6 +7,7 @@ package com.github.tonivade.zeromock.core;
 import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.comparingArray;
 import static com.github.tonivade.zeromock.core.Equal.equal;
+import static com.github.tonivade.zeromock.core.TryHandler.identity;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -150,10 +151,11 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   
   @SuppressWarnings("unchecked")
   default <V> Try<V> flatten() {
-    if (isSuccess()) {
-      return (Try<V>) get();
+    try {
+      return ((Try<Try<V>>) this).flatMap(identity());
+    } catch (ClassCastException e) {
+      throw new UnsupportedOperationException("cannot be flattened");
     }
-    return failure(getCause());
   }
   
   final class Success<T> implements Try<T> {
