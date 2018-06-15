@@ -19,6 +19,10 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
     return value -> apply(value).flatMap(mapper::apply);
   }
   
+  default <V> EitherHandler<T, L, V> flatten() {
+    return value -> apply(value).flatten();
+  }
+  
   default OptionHandler<T, Either<L, R>> filter(Matcher<R> matcher) {
     return value -> apply(value).filter(matcher);
   }

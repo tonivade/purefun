@@ -108,6 +108,14 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     }
     return Optional.empty();
   }
+  
+  @SuppressWarnings("unchecked")
+  default <V> Option<V> flatten() {
+    if (isPresent()) {
+      return (Option<V>) get();
+    }
+    return none();
+  }
 
   final class Some<T> implements Option<T> {
     private final T value;

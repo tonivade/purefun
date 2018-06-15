@@ -145,6 +145,14 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return Validation.invalid(getLeft());
   }
   
+  @SuppressWarnings("unchecked")
+  default <V> Either<L, V> flatten() {
+    if (isRight()) {
+      return (Either<L, V>) get();
+    }
+    return left(getLeft());
+  }
+  
   final class Left<L, R> implements Either<L, R> {
 
     private L value;

@@ -26,27 +26,12 @@ public interface Function1<T, R> {
     return value -> Optional.ofNullable(apply(value));
   }
   
-  @SuppressWarnings("unchecked")
-  default <V> OptionalHandler<T, V> asOptional(Class<V> inside) {
-    return value -> (Optional<V>) apply(value);
-  }
-  
   default OptionHandler<T, R> liftOption() {
     return value -> Option.of(() -> apply(value));
   }
   
-  @SuppressWarnings("unchecked")
-  default <V> OptionHandler<T, V> asOption(Class<V> inside) {
-    return value -> (Option<V>) apply(value);
-  }
-  
   default TryHandler<T, R> liftTry() {
     return value -> Try.of(() -> apply(value));
-  }
-  
-  @SuppressWarnings("unchecked")
-  default <V> TryHandler<T, V> asTry(Class<V> inside) {
-    return value -> (Try<V>) apply(value);
   }
   
   default <L> EitherHandler<T, L, R> liftRight() {
@@ -59,11 +44,6 @@ public interface Function1<T, R> {
   
   default SequenceHandler<T, R> liftSequence() {
     return value -> listOf(apply(value));
-  }
-  
-  @SuppressWarnings("unchecked")
-  default <V> SequenceHandler<T, V> asSequence(Class<V> inside) {
-    return value -> (Sequence<V>) apply(value);
   }
   
   default StreamHandler<T, R> stream() {

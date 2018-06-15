@@ -17,6 +17,10 @@ public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
     return value -> apply(value).flatMap(mapper::apply);
   }
   
+  default <V> OptionHandler<T, V> flatten() {
+    return value -> apply(value).flatten();
+  }
+  
   default OptionHandler<T, R> filter(Matcher<R> matcher) {
     return value -> apply(value).filter(matcher);
   }

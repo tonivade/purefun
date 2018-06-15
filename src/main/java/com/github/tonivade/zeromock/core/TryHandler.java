@@ -17,6 +17,10 @@ public interface TryHandler<T, R> extends Function1<T, Try<R>> {
     return value -> apply(value).flatMap(mapper::apply);
   }
   
+  default <V> TryHandler<T, V> flatten() {
+    return value -> apply(value).flatten();
+  }
+  
   default TryHandler<T, R> recover(Function1<Throwable, R> mapper) {
     return value -> apply(value).recover(mapper);
   }

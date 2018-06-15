@@ -8,4 +8,5 @@ public interface Holder<T> {
 
   T get();
 
+  <V> Holder<V> flatten();
 }

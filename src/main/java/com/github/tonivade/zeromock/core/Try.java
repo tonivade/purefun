@@ -148,6 +148,14 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return Option.none();
   }
   
+  @SuppressWarnings("unchecked")
+  default <V> Try<V> flatten() {
+    if (isSuccess()) {
+      return (Try<V>) get();
+    }
+    return failure(getCause());
+  }
+  
   final class Success<T> implements Try<T> {
     private final T value;
     

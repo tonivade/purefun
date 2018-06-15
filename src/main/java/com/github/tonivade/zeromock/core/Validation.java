@@ -100,6 +100,14 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     }
     return Either.left(getError());
   }
+  
+  @SuppressWarnings("unchecked")
+  default <V> Validation<E, V> flatten() {
+    if (isValid()) {
+      return (Validation<E, V>) get();
+    }
+    return invalid(getError());
+  }
 
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1, 
                                                         Validation<E, T2> validation2, 
