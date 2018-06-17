@@ -6,8 +6,11 @@ used in the rest of the project.
 Initially the module only holds a few basic interfaces and it has grown to become an entire
 functional programming library (well, a humble one).
 
-Also, I have to say that this library is largely inspired in vavr library (thanks to the author)
- and also in scala standard library.
+Working in this library helps me to learn and understand some important concepts
+of functional programming.
+
+Finally, I have to say thanks to vavr library author, this library is largely inspired in his work,
+and also to Scala standard library authors. Their awesome work help me a lot.
 
 ## Data types
 
@@ -126,4 +129,18 @@ Reader<ImmutableList<String>, String> read2 = Reader.reader(list -> list.tail().
 String result = read2.eval(ImmutableList.of("a", "b", "c"));
 
 assertEqual("b", result);
+```
+
+## Equal
+
+This class helps to create readable `equals` methods. An example:
+
+```
+  @Override
+  public boolean equals(Object obj) {
+    return equal(this)
+        .append(comparing(Data::getId))
+        .append(comparing(Data::getValue))
+        .applyTo(obj);
+  }
 ```
