@@ -10,7 +10,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-public final class Tuple5<A, B, C, D, E> {
+public final class Tuple5<A, B, C, D, E> implements Tuple {
 
   private final A value1;
   private final B value2;
@@ -44,6 +44,11 @@ public final class Tuple5<A, B, C, D, E> {
   
   public E get5() {
     return value5;
+  }
+  
+  @Override
+  public Sequence<?> toSequence() {
+    return Sequence.listOf(value1, value2, value3, value4, value5);
   }
   
   public <R> Tuple5<R, B, C, D, E> map1(Function1<A, R> mapper) {

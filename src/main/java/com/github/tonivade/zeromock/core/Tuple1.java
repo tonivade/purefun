@@ -6,7 +6,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-public final class Tuple1<A> {
+public final class Tuple1<A> implements Tuple {
 
   private final A value1;
 
@@ -16,6 +16,11 @@ public final class Tuple1<A> {
 
   public A get1() {
     return value1;
+  }
+  
+  @Override
+  public Sequence<?> toSequence() {
+    return Sequence.listOf(value1);
   }
   
   public <B> Tuple1<B> map(Function1<A, B> mapper) {

@@ -10,7 +10,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-public final class Tuple4<A, B, C, D> {
+public final class Tuple4<A, B, C, D> implements Tuple {
 
   private final A value1;
   private final B value2;
@@ -38,6 +38,11 @@ public final class Tuple4<A, B, C, D> {
   
   public D get4() {
     return value4;
+  }
+  
+  @Override
+  public Sequence<?> toSequence() {
+    return Sequence.listOf(value1, value2, value3, value4);
   }
   
   public <R> Tuple4<R, B, C, D> map1(Function1<A, R> mapper) {

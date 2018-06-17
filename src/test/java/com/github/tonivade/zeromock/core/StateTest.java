@@ -5,8 +5,8 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Nothing.nothing;
+import static com.github.tonivade.zeromock.core.Sequence.listOf;
 import static com.github.tonivade.zeromock.core.State.state;
-import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ public class StateTest {
     
     Tuple2<ImmutableList<String>, Nothing> result = state.run(ImmutableList.empty());
     
-    assertEquals(Tuple2.of(ImmutableList.of("a", "b", "c"), nothing()), result);
+    assertEquals(Tuple2.of(listOf("a", "b", "c"), nothing()), result);
   }
   
   @Test
@@ -50,18 +50,18 @@ public class StateTest {
     State<Nothing, String> sc = State.unit("c");
     
     Tuple2<Nothing, ImmutableList<String>> result = 
-        State.compose(ImmutableList.of(sa, sb, sc)).run(nothing());
+        State.compose(listOf(sa, sb, sc)).run(nothing());
     
-    assertEquals(Tuple2.of(nothing(), ImmutableList.of("a", "b", "c")), result);
+    assertEquals(Tuple2.of(nothing(), listOf("a", "b", "c")), result);
   }
   
   @Test
-  public void testName() {
-    State<ImmutableList<String>, Option<String>> read = State.state(state -> Tuple2.of(state.tail(), state.head()));
+  public void run() {
+    State<ImmutableList<String>, Option<String>> read = state(state -> Tuple2.of(state.tail(), state.head()));
   
-    Tuple2<ImmutableList<String>, Option<String>> result = read.run(ImmutableList.of("a", "b", "c"));
+    Tuple2<ImmutableList<String>, Option<String>> result = read.run(listOf("a", "b", "c"));
     
-    assertEquals(Tuple2.of(ImmutableList.of("b", "c"), Option.some("a")), result);
+    assertEquals(Tuple2.of(listOf("b", "c"), Option.some("a")), result);
   }
 
   private static State<ImmutableList<String>, String> unit(String value) {

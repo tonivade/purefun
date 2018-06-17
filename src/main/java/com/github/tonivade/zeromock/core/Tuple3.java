@@ -10,7 +10,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-public final class Tuple3<A, B, C> {
+public final class Tuple3<A, B, C> implements Tuple {
 
   private final A value1;
   private final B value2;
@@ -32,6 +32,11 @@ public final class Tuple3<A, B, C> {
   
   public C get3() {
     return value3;
+  }
+  
+  @Override
+  public Sequence<?> toSequence() {
+    return Sequence.listOf(value1, value2, value3);
   }
   
   public <R> Tuple3<R, B, C> map1(Function1<A, R> mapper) {

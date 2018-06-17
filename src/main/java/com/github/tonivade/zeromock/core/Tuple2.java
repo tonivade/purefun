@@ -11,7 +11,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Map;
 import java.util.Objects;
 
-public final class Tuple2<A, B> {
+public final class Tuple2<A, B> implements Tuple {
 
   private final A value1;
   private final B value2;
@@ -27,6 +27,11 @@ public final class Tuple2<A, B> {
 
   public B get2() {
     return value2;
+  }
+  
+  @Override
+  public Sequence<?> toSequence() {
+    return Sequence.listOf(value1, value2);
   }
   
   public <C> Tuple2<C, B> map1(Function1<A, C> mapper) {
