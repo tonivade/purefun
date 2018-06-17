@@ -35,7 +35,7 @@ public final class Tuple3<A, B, C> implements Tuple {
   }
   
   @Override
-  public Sequence<?> toSequence() {
+  public Sequence<Object> toSequence() {
     return Sequence.listOf(value1, value2, value3);
   }
   

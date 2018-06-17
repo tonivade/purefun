@@ -19,7 +19,7 @@ public final class Tuple1<A> implements Tuple {
   }
   
   @Override
-  public Sequence<?> toSequence() {
+  public Sequence<Object> toSequence() {
     return Sequence.listOf(value1);
   }
   

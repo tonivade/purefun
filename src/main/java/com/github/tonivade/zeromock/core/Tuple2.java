@@ -29,7 +29,7 @@ public final class Tuple2<A, B> implements Tuple {
   }
   
   @Override
-  public Sequence<?> toSequence() {
+  public Sequence<Object> toSequence() {
     return Sequence.listOf(value1, value2);
   }
   

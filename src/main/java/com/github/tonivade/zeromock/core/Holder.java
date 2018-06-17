@@ -4,11 +4,9 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import java.util.NoSuchElementException;
-
 public interface Holder<T> {
 
-  T get() throws NoSuchElementException;
+  T get();
 
-  <V> Holder<V> flatten() throws UnsupportedOperationException;
+  <V> Holder<V> flatten();
 }

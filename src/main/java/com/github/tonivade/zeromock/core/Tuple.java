@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface Tuple {
   
-  Sequence<?> toSequence();
+  Sequence<Object> toSequence();
 
   static <A> Tuple1<A> of(A value1) {
     return Tuple1.of(value1);
