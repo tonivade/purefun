@@ -24,4 +24,8 @@ public interface Function2<T, V, R> {
   default <U> Function1<U, R> compose(Function1<U, T> beforeT, Function1<U, V> beforeV) {
     return value -> apply(beforeT.apply(value), beforeV.apply(value));
   }
+  
+  static <T, V, R> Function2<T, V, R> of(Function2<T, V, R> reference) {
+    return reference;
+  }
 }

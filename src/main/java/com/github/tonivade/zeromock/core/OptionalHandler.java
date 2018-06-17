@@ -11,6 +11,11 @@ import java.util.Optional;
 @FunctionalInterface
 public interface OptionalHandler<T, R> extends Function1<T, Optional<R>> {
   
+  @Override
+  default <V> OptionalHandler<V, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
+  
   default <V> OptionalHandler<T, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
   }
@@ -30,5 +35,9 @@ public interface OptionalHandler<T, R> extends Function1<T, Optional<R>> {
   
   default Function1<T, R> orElse(Producer<R> producer) {
     return value -> apply(value).orElseGet(producer::get);
+  }
+  
+  static <T, R> OptionalHandler<T, R> of(Function1<T, Optional<R>> reference) {
+    return reference::apply;
   }
 }

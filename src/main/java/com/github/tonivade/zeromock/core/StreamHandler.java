@@ -11,6 +11,11 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface StreamHandler<T, R> extends Function1<T, Stream<R>> {
+
+  @Override
+  default <V> StreamHandler<V, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
   
   default <V> StreamHandler<T, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
@@ -35,5 +40,9 @@ public interface StreamHandler<T, R> extends Function1<T, Stream<R>> {
   
   default <A, V> Function1<T, V> collect(Collector<R, A, V> collector) {
     return value -> apply(value).collect(collector);
+  }
+  
+  static <T, R> StreamHandler<T, R> of(Function1<T, Stream<R>> reference) {
+    return reference::apply;
   }
 }

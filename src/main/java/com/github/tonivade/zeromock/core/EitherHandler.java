@@ -7,6 +7,11 @@ package com.github.tonivade.zeromock.core;
 @FunctionalInterface
 public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
 
+  @Override
+  default <V> EitherHandler<V, L, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
+
   default <V> EitherHandler<T, L, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
   }
@@ -33,5 +38,9 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
 
   static <L, R> Function1<Either<L, R>, Either<L, R>> identity() {
     return Function1.<Either<L, R>>identity()::apply;
+  }
+  
+  static <T, L, R> EitherHandler<T, L, R> of(Function1<T, Either<L, R>> reference) {
+    return reference::apply;
   }
 }

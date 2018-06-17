@@ -20,4 +20,8 @@ public interface Producer<T> {
   static <T> Producer<T> unit(T value) {
     return () -> value;
   }
+  
+  static <T> Producer<T> of(Producer<T> reference) {
+    return reference;
+  }
 }

@@ -9,6 +9,11 @@ import static com.github.tonivade.zeromock.core.Producer.unit;
 @FunctionalInterface
 public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
   
+  @Override
+  default <V> OptionHandler<V, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
+  
   default <V> OptionHandler<T, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
   }
@@ -31,6 +36,10 @@ public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
   
   default Function1<T, R> orElse(Producer<R> producer) {
     return value -> apply(value).orElse(producer);
+  }
+  
+  static <T, R> OptionHandler<T, R> of(Function1<T, Option<R>> reference) {
+    return reference::apply;
   }
   
   static <T> OptionHandler<Option<T>, T> identity() {

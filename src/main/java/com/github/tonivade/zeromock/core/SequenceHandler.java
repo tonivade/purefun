@@ -6,6 +6,11 @@ package com.github.tonivade.zeromock.core;
 
 @FunctionalInterface
 public interface SequenceHandler<T, R> extends Function1<T, Sequence<R>> {
+
+  @Override
+  default <V> SequenceHandler<V, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
   
   default <V> SequenceHandler<T, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
@@ -29,5 +34,9 @@ public interface SequenceHandler<T, R> extends Function1<T, Sequence<R>> {
 
   static <T> SequenceHandler<Sequence<T>, T> identity() {
     return Function1.<Sequence<T>>identity()::apply;
+  }
+  
+  static <T, R> SequenceHandler<T, R> of(Function1<T, Sequence<R>> reference) {
+    return reference::apply;
   }
 }

@@ -53,4 +53,8 @@ public interface Function1<T, R> {
   static <T> Function1<T, T> identity() {
     return value -> value;
   }
+  
+  static <T, R> Function1<T, R> of(Function1<T, R> reference) {
+    return reference;
+  }
 }

@@ -22,4 +22,8 @@ public interface Consumer1<T> {
   default Function1<T, T> bypass() {
     return value -> { accept(value); return value; };
   }
+  
+  static <T> Consumer1<T> of(Consumer1<T> reference) {
+    return reference;
+  }
 }

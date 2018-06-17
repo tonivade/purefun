@@ -8,6 +8,11 @@ import static com.github.tonivade.zeromock.core.Producer.unit;
 
 @FunctionalInterface
 public interface TryHandler<T, R> extends Function1<T, Try<R>> {
+
+  @Override
+  default <V> TryHandler<V, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
   
   default <V> TryHandler<T, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
@@ -39,5 +44,9 @@ public interface TryHandler<T, R> extends Function1<T, Try<R>> {
 
   static <T> TryHandler<Try<T>, T> identity() {
     return Function1.<Try<T>>identity()::apply;
+  }
+  
+  static <T, R> TryHandler<T, R> of(Function1<T, Try<R>> reference) {
+    return reference::apply;
   }
 }

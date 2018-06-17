@@ -18,4 +18,8 @@ public interface Consumer2<T, V> {
   default Function2<T, V, Nothing> asFunction() {
     return (value1, value2) -> { accept(value1, value2); return nothing(); };
   }
+  
+  static <T, V> Consumer2<T, V> of(Consumer2<T, V> reference) {
+    return reference;
+  }
 }
