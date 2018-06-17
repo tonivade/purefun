@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static java.util.function.Function.identity;
+
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -18,8 +20,17 @@ public interface StreamHandler<T, R> extends Function1<T, Stream<R>> {
     return value -> apply(value).flatMap(mapper::apply);
   }
   
+  @SuppressWarnings("unchecked")
+  default <V> StreamHandler<T, V> flatten() {
+    return value -> ((Stream<Stream<V>>) apply(value)).flatMap(identity());
+  }
+  
   default StreamHandler<T, R> filter(Matcher<R> matcher) {
     return value -> apply(value).filter(matcher::match);
+  }
+  
+  default SequenceHandler<T, R> toSequenceHandler() {
+    return value -> ImmutableList.from(apply(value));
   }
   
   default <A, V> Function1<T, V> collect(Collector<R, A, V> collector) {

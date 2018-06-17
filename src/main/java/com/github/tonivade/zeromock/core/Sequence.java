@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.SequenceHandler.identity;
 import static java.util.stream.Collectors.groupingBy;
 
 import java.util.stream.Stream;
@@ -23,6 +24,15 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   <R> Sequence<R> map(Function1<E, R> mapper);
 
   <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);
+  
+  @SuppressWarnings("unchecked")
+  default <V> Sequence<V> flatten() {
+    try {
+      return ((Sequence<Sequence<V>>) this).flatMap(identity());
+    } catch (ClassCastException e) {
+      throw new UnsupportedOperationException("cannot be flattened");
+    }
+  }
 
   @Override
   Sequence<E> filter(Matcher<E> matcher);

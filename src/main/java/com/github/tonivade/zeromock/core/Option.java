@@ -62,6 +62,13 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     }
     return this;
   }
+  
+  default Option<T> ifEmpty(Runnable run) {
+    if (isEmpty()) {
+      run.run();
+    }
+    return this;
+  }
 
   @Override
   default Option<T> filter(Matcher<T> matcher) {

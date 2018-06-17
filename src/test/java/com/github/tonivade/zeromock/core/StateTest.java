@@ -54,6 +54,15 @@ public class StateTest {
     
     assertEquals(Tuple2.of(nothing(), ImmutableList.of("a", "b", "c")), result);
   }
+  
+  @Test
+  public void testName() {
+    State<ImmutableList<String>, Option<String>> read = State.state(state -> Tuple2.of(state.tail(), state.head()));
+  
+    Tuple2<ImmutableList<String>, Option<String>> result = read.run(ImmutableList.of("a", "b", "c"));
+    
+    assertEquals(Tuple2.of(ImmutableList.of("b", "c"), Option.some("a")), result);
+  }
 
   private static State<ImmutableList<String>, String> unit(String value) {
     return State.<ImmutableList<String>, String>unit(value);
