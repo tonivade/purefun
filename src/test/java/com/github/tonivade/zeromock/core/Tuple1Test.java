@@ -13,10 +13,10 @@ public class Tuple1Test {
   
   @Test
   public void tuple() {
-    Tuple1<String> tuple = Tuple1.of("value");
+    Tuple1<String> tuple = Tuple.of("value");
 
-    assertAll(() -> assertEquals(Tuple1.of("value"), tuple),
-              () -> assertEquals(Tuple1.of("VALUE"), tuple.map(String::toUpperCase)),
+    assertAll(() -> assertEquals(Tuple.of("value"), tuple),
+              () -> assertEquals(Tuple.of("VALUE"), tuple.map(String::toUpperCase)),
               () -> assertEquals("value", tuple.get1()),
               () -> assertEquals("Tuple1(value)", tuple.toString())
         );

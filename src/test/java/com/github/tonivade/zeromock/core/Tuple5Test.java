@@ -16,15 +16,15 @@ public class Tuple5Test {
   
   @Test
   public void tuple() {
-    Tuple5<String, Integer, LocalDate, Nothing, Double> tuple = Tuple5.of("value", 10, LocalDate.of(2018, 11, 5), nothing(), 1.0);
+    Tuple5<String, Integer, LocalDate, Nothing, Double> tuple = Tuple.of("value", 10, LocalDate.of(2018, 11, 5), nothing(), 1.0);
 
-    assertAll(() -> assertEquals(Tuple5.of("value", 10, LocalDate.of(2018, 11, 5), nothing(), 1.0), tuple),
-              () -> assertEquals(Tuple5.of("VALUE", 10, LocalDate.of(2018, 11, 5), nothing(), 1.0), tuple.map1(String::toUpperCase)),
-              () -> assertEquals(Tuple5.of("value", 100, LocalDate.of(2018, 11, 5), nothing(), 1.0), tuple.map2(i -> i * i)),
-              () -> assertEquals(Tuple5.of("value", 10, LocalDate.of(2018, 11, 6), nothing(), 1.0), tuple.map3(date -> date.plusDays(1))),
-              () -> assertEquals(Tuple5.of("value", 10, LocalDate.of(2018, 11, 5), "Nothing", 1.0), tuple.map4(Object::toString)),
-              () -> assertEquals(Tuple5.of("value", 10, LocalDate.of(2018, 11, 5), nothing(), 2.0), tuple.map5(d -> d + d)),
-              () -> assertEquals(Tuple5.of("VALUE", 100, LocalDate.of(2018, 11, 6), "Nothing", 2.0), 
+    assertAll(() -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018, 11, 5), nothing(), 1.0), tuple),
+              () -> assertEquals(Tuple.of("VALUE", 10, LocalDate.of(2018, 11, 5), nothing(), 1.0), tuple.map1(String::toUpperCase)),
+              () -> assertEquals(Tuple.of("value", 100, LocalDate.of(2018, 11, 5), nothing(), 1.0), tuple.map2(i -> i * i)),
+              () -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018, 11, 6), nothing(), 1.0), tuple.map3(date -> date.plusDays(1))),
+              () -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018, 11, 5), "Nothing", 1.0), tuple.map4(Object::toString)),
+              () -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018, 11, 5), nothing(), 2.0), tuple.map5(d -> d + d)),
+              () -> assertEquals(Tuple.of("VALUE", 100, LocalDate.of(2018, 11, 6), "Nothing", 2.0), 
                   tuple.map(String::toUpperCase, i -> i * i, date -> date.plusDays(1), Object::toString, d -> d + d)),
               () -> assertEquals("value", tuple.get1()),
               () -> assertEquals(Integer.valueOf(10), tuple.get2()),

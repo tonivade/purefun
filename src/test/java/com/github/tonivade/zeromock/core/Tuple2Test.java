@@ -13,12 +13,12 @@ public class Tuple2Test {
   
   @Test
   public void tuple() {
-    Tuple2<String, Integer> tuple = Tuple2.of("value", 10);
+    Tuple2<String, Integer> tuple = Tuple.of("value", 10);
 
-    assertAll(() -> assertEquals(Tuple2.of("value", 10), tuple),
-              () -> assertEquals(Tuple2.of("VALUE", 10), tuple.map1(String::toUpperCase)),
-              () -> assertEquals(Tuple2.of("value", 100), tuple.map2(i -> i * i)),
-              () -> assertEquals(Tuple2.of("VALUE", 100), tuple.map(String::toUpperCase, i -> i * i)),
+    assertAll(() -> assertEquals(Tuple.of("value", 10), tuple),
+              () -> assertEquals(Tuple.of("VALUE", 10), tuple.map1(String::toUpperCase)),
+              () -> assertEquals(Tuple.of("value", 100), tuple.map2(i -> i * i)),
+              () -> assertEquals(Tuple.of("VALUE", 100), tuple.map(String::toUpperCase, i -> i * i)),
               () -> assertEquals("value", tuple.get1()),
               () -> assertEquals(Integer.valueOf(10), tuple.get2()),
               () -> assertEquals("Tuple2(value, 10)", tuple.toString())
