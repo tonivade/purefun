@@ -149,7 +149,7 @@ public interface ImmutableMap<K, V> {
     
     @Override
     public ImmutableSet<Tuple2<K, V>> entries() {
-      return ImmutableSet.from(backend.entrySet()).map(Tuple2::from);
+      return ImmutableSet.from(backend.entrySet()).map(Tuple::from);
     }
     
     @Override

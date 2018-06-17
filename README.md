@@ -20,7 +20,7 @@ All this data types implements this methods: `get`, `map`, `flatMap`, `filter`, 
 
 Is an alternative to `Optional` of Java standard library. It can contains two values, a `some` or a `none`
 
-```
+```java
 Option<String> some = Option.some("Hello world");
 
 Option<String> none = Option.none();
@@ -30,7 +30,7 @@ Option<String> none = Option.none();
 
 Is an implementation of scala `Try` in Java. It can contains two values, a `success` or a `failure`.
 
-```
+```java
 Try<String> success = Try.success("Hello world");
 
 Try<String> failure = Try.failure(new RuntimeException("Error"));
@@ -40,7 +40,7 @@ Try<String> failure = Try.failure(new RuntimeException("Error"));
 
 Is an implementation of scala `Either` in Java.
 
-```
+```java
 Either<Integer, String> right = Either.right("Hello world");
 
 Either<Integer, String> left = Either.left(100);
@@ -51,21 +51,22 @@ Either<Integer, String> left = Either.left(100);
 This type represents two different states, valid or invalid, an also it allows to combine several
 validations using `map2` to `map5` methods.
 
-```
+```java
 Validation<String, String> name = Validation.valid("John Smith");
 Validation<String, String> email = Validation.valid("john.smith@example.net");
 
-Valdation<String, Person> person = Valiidation.map2(name, email, Person::new); // Person has a constructor with two String parameters, name and email.
+// Person has a constructor with two String parameters, name and email.
+Valdation<String, Person> person = Validation.map2(name, email, Person::new); 
 ```
 
 ## Tuples
 
 These classes allow to hold some values together, as tuples. There are tuples from 1 to 5.
 
-```
-Tuple1<String> tuple1 = Tuple1.of("Hello world");
+```java
+Tuple1<String> tuple1 = Tuple.of("Hello world");
 
-Tuple2<String, Integer> tuple2 = Tuple2.of("John Smith", 100);
+Tuple2<String, Integer> tuple2 = Tuple.of("John Smith", 100);
 ```
 
 ## Data structures
@@ -110,12 +111,12 @@ Is the traditional State Modad from FP languages, like Haskel or Scala. It allow
 operations over a state. The state should be a immutable class. It recives an state and generates
 a tuple with the new state and an intermediate result.
 
-```
-State<ImmutableList<String>, Option<String>> read = State.state(list -> Tuple2.of(list.tail(), list.head()));
+```java
+State<ImmutableList<String>, Option<String>> read = State.state(list -> Tuple.of(list.tail(), list.head()));
   
-Tuple2<ImmutableList<String>, Option<String>> result = read.run(ImmutableList.of("a", "b", "c"));
+Tuple<ImmutableList<String>, Option<String>> result = read.run(ImmutableList.of("a", "b", "c"));
     
-assertEquals(Tuple2.of(ImmutableList.of("b", "c"), Option.some("a")), result);
+assertEquals(Tuple.of(ImmutableList.of("b", "c"), Option.some("a")), result);
 ```
 
 ### Reader Monad
@@ -123,7 +124,7 @@ assertEquals(Tuple2.of(ImmutableList.of("b", "c"), Option.some("a")), result);
 This is an implementation of Reader Monad. It allows to combine operations over a common input.
 It can be used to inject dependencies.
 
-```
+```java
 Reader<ImmutableList<String>, String> read2 = Reader.reader(list -> list.tail().head().orElse(""));
 
 String result = read2.eval(ImmutableList.of("a", "b", "c"));

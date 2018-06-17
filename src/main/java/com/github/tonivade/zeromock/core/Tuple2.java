@@ -8,7 +8,6 @@ import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Map;
 import java.util.Objects;
 
 public final class Tuple2<A, B> implements Tuple {
@@ -48,10 +47,6 @@ public final class Tuple2<A, B> implements Tuple {
 
   public static <A, B> Tuple2<A, B> of(A value1, B value2) {
     return new Tuple2<>(value1, value2);
-  }
-
-  public static <A, B> Tuple2<A, B> from(Map.Entry<A, B> entry) {
-    return Tuple2.of(entry.getKey(), entry.getValue());
   }
 
   @Override

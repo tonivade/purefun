@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import java.util.Map;
+
 public interface Tuple {
   
   Sequence<?> toSequence();
@@ -26,5 +28,9 @@ public interface Tuple {
 
   static <A, B, C, D, E> Tuple5<A, B, C, D, E> of(A value1, B value2, C value3, D value4, E value5) {
     return Tuple5.of(value1, value2, value3, value4, value5);
+  }
+
+  static <A, B> Tuple2<A, B> from(Map.Entry<A, B> entry) {
+    return Tuple2.of(entry.getKey(), entry.getValue());
   }
 }
