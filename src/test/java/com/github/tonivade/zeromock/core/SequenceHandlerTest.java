@@ -36,7 +36,7 @@ public class SequenceHandlerTest {
   
   @Test
   public void filterEmptyTest() {
-    SequenceHandler<String, String> handler = string -> Sequence.listOf(string);
+    SequenceHandler<String, String> handler = string -> listOf(string);
     
     assertEquals(ImmutableList.empty(), handler.filter(x -> x.length() > 5).apply("asdfg"));
   }
