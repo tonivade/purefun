@@ -13,8 +13,8 @@ public interface Producer<T> {
     return value -> get();
   }
   
-  default <R> Function1<T, R> andThen(Function1<T, R> after) {
-    return value -> after.apply(get());
+  default <R> Producer<R> andThen(Function1<T, R> after) {
+    return () -> after.apply(get());
   }
   
   static <T> Producer<T> unit(T value) {
