@@ -5,7 +5,6 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
-import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
@@ -79,7 +78,7 @@ public final class Tuple4<A, B, C, D> implements Tuple {
 
   @Override
   public boolean equals(Object obj) {
-    return equal(this)
+    return Equal.of(this)
         .append(comparing(Tuple4::get1))
         .append(comparing(Tuple4::get2))
         .append(comparing(Tuple4::get3))

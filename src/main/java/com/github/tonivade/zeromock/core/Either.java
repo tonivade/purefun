@@ -6,7 +6,6 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.EitherHandler.identity;
 import static com.github.tonivade.zeromock.core.Equal.comparing;
-import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -190,7 +189,7 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append(comparing(Either::getLeft))
           .applyTo(obj);
     }
@@ -236,7 +235,7 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append(comparing(Either::getRight))
           .applyTo(obj);
     }

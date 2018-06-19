@@ -5,7 +5,6 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
-import static com.github.tonivade.zeromock.core.Equal.equal;
 import static com.github.tonivade.zeromock.core.OptionHandler.identity;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -155,7 +154,7 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append(comparing(Option::get))
           .applyTo(obj);
     }

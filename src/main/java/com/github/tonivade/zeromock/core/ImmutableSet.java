@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Equal.equal;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
@@ -136,7 +135,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
     
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append((a, b) -> Objects.equals(a.backend, b.backend))
           .applyTo(obj);
     }

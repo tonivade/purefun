@@ -6,7 +6,6 @@ package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static com.github.tonivade.zeromock.core.Equal.comparingArray;
-import static com.github.tonivade.zeromock.core.Equal.equal;
 import static com.github.tonivade.zeromock.core.TryHandler.identity;
 import static java.util.Objects.requireNonNull;
 
@@ -192,7 +191,7 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append(comparing(Try::get))
           .applyTo(obj);
     }
@@ -245,7 +244,7 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append(comparing(Failure::getMessage))
           .append(comparingArray(Failure::getStackTrace))
           .applyTo(obj);

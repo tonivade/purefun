@@ -12,10 +12,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class Equal<T> {
+public final class Equal<T> {
 
-  private T target;
-  private List<Tester<T>> testers = new LinkedList<>();
+  private final T target;
+  private final List<Tester<T>> testers = new LinkedList<>();
 
   private Equal(T target) {
     this.target = requireNonNull(target);
@@ -49,7 +49,7 @@ public class Equal<T> {
     return target == obj;
   }
 
-  public static <T> Equal<T> equal(T target) {
+  public static <T> Equal<T> of(T target) {
     return new Equal<>(target);
   }
 

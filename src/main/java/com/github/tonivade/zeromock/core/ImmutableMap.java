@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.zeromock.core;
 
-import static com.github.tonivade.zeromock.core.Equal.equal;
 import static com.github.tonivade.zeromock.core.Producer.unit;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
@@ -159,7 +158,7 @@ public interface ImmutableMap<K, V> {
     
     @Override
     public boolean equals(Object obj) {
-      return equal(this)
+      return Equal.of(this)
           .append((a, b) -> Objects.equals(a.backend, b.backend))
           .applyTo(obj);
     }
