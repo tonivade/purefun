@@ -5,7 +5,6 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
-import static com.github.tonivade.zeromock.core.Equal.of;
 import static com.github.tonivade.zeromock.core.Function1.identity;
 import static com.github.tonivade.zeromock.core.Sequence.listOf;
 import static java.util.Objects.requireNonNull;
@@ -178,7 +177,7 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return of(this)
+      return Equal.of(this)
           .append(comparing(Valid::get))
           .applyTo(obj);
     }
