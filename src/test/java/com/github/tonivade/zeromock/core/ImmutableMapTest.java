@@ -31,6 +31,8 @@ public class ImmutableMapTest {
               () -> assertEquals("zzz", map.getOrDefault("z", () -> "zzz")),
               () -> assertEquals(ImmutableSet.of("a", "b", "c"), map.keys()),
               () -> assertEquals(3, map.values().size()),
+              () -> assertEquals(map.put("a", "aaaz"), map.merge("a", "z", (a, b) -> a + b)),
+              () -> assertEquals(map.put("z", "a"), map.merge("z", "a", (a, b) -> a + b)),
               () -> assertTrue(map.values().contains("aaa")),
               () -> assertTrue(map.values().contains("bbb")),
               () -> assertTrue(map.values().contains("ccc")),

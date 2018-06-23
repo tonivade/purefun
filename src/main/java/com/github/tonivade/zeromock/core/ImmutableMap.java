@@ -59,7 +59,7 @@ public interface ImmutableMap<K, V> {
     return put(key, value);
   }
   
-  default ImmutableMap<K, V> merge(K key, V value, Function2<V, V, V> merger) {
+  default ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
     if (containsKey(key)) {
       return put(key, merger.apply(getOrDefault(key, unit(value)), value));
     }
