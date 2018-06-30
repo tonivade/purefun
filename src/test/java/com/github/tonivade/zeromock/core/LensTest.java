@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 public class LensTest {
+
   private final Lens<Employee, String> nameLens = Lens.of(Employee::getName, Employee::withName);
   private final Lens<Employee, Address> addressLens = Lens.of(Employee::getAddress, Employee::withAddress);
   private final Lens<Address, String> cityLens = Lens.of(Address::getCity, Address::withCity);
@@ -21,6 +22,14 @@ public class LensTest {
               () -> assertEquals("Madrid", cityAddressLens.get(employee)),
               () -> assertEquals(employee.withAddress(new Address("Alicante")),
                                  cityAddressLens.set(employee, "Alicante")));
+  }
+
+  @Test
+  public void lensLaws() {
+    Employee employee = new Employee("pepe", new Address("Madrid"));
+
+    assertAll(() -> assertEquals(employee, nameLens.set(employee, nameLens.get(employee))),
+              () -> assertEquals("paco", nameLens.get(nameLens.set(employee, "paco"))));
   }
 }
 
