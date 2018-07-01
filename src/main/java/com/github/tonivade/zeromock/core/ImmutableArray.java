@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.zeromock.core;
 
 import static java.util.Objects.requireNonNull;
@@ -23,14 +27,15 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> remove(E element);
   @Override
   ImmutableArray<E> appendAll(Sequence<E> other);
-  
+
   ImmutableArray<E> sort(Comparator<E> comparator);
 
-  Option<E> get(int position);
-  
-  ImmutableArray<E> set(int position, E element);
-  ImmutableArray<E> add(int position, E element);
-  
+  E get(int position);
+  ImmutableArray<E> remove(int position);
+  ImmutableArray<E> replace(int position, E element);
+  ImmutableArray<E> insert(int position, E element);
+  ImmutableArray<E> insertAll(int position, Sequence<E> elements);
+
   default ImmutableArray<E> drop(int n) {
     return ImmutableArray.from(stream().skip(n));
   }
@@ -49,15 +54,15 @@ public interface ImmutableArray<E> extends Sequence<E> {
   default ImmutableArray<E> filter(Matcher<E> matcher) {
     return ImmutableArray.from(stream().filter(matcher::match));
   }
-  
+
   static <T> ImmutableArray<T> from(Collection<T> collection) {
     return new JavaBasedImmutableArray<>(new ArrayList<>(collection));
   }
-  
+
   static <T> ImmutableArray<T> from(Stream<T> stream) {
     return new JavaBasedImmutableArray<>(stream.collect(Collectors.toList()));
   }
-  
+
   @SafeVarargs
   static <T> ImmutableArray<T> of(T... elements) {
     return new JavaBasedImmutableArray<>(Arrays.asList(elements));
@@ -66,7 +71,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   static <T> ImmutableArray<T> empty() {
     return new JavaBasedImmutableArray<>(Collections.emptyList());
   }
-  
+
   final class JavaBasedImmutableArray<E> implements ImmutableArray<E> {
 
     private final List<E> backend;
@@ -128,45 +133,58 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public Option<E> get(int position) {
-      return Try.of(() -> backend.get(position)).toOption();
+    public E get(int position) {
+      return backend.get(position);
     }
 
     @Override
-    public ImmutableArray<E> set(int position, E element) {
+    public ImmutableArray<E> replace(int position, E element) {
       List<E> list = toList();
       list.set(position, element);
       return new JavaBasedImmutableArray<>(list);
     }
-    
+
     @Override
-    public ImmutableArray<E> add(int position, E element) {
+    public ImmutableArray<E> remove(int position) {
+      List<E> list = toList();
+      list.remove(position);
+      return new JavaBasedImmutableArray<>(list);
+    }
+
+    @Override
+    public ImmutableArray<E> insert(int position, E element) {
       List<E> list = toList();
       list.add(position, element);
       return new JavaBasedImmutableArray<>(list);
     }
-    
+
+    @Override
+    public ImmutableArray<E> insertAll(int position, Sequence<E> elements) {
+      List<E> list = toList();
+      list.addAll(position, elements.stream().collect(Collectors.toList()));
+      return new JavaBasedImmutableArray<>(list);
+    }
+
     @Override
     public List<E> toList() {
       return new ArrayList<>(backend);
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hash(backend);
     }
-    
+
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
           .append((a, b) -> Objects.equals(a.backend, b.backend))
           .applyTo(obj);
     }
-    
+
     @Override
     public String toString() {
       return "ImmutableArray(" + backend + ")";
     }
-    
   }
 }
