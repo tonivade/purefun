@@ -17,6 +17,7 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   boolean contains(E element);
   Sequence<E> append(E element);
   Sequence<E> remove(E element);
+  Sequence<E> appendAll(Sequence<E> other);
 
   Sequence<E> reverse();
   

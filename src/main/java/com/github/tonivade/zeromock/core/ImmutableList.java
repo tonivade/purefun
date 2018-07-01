@@ -22,10 +22,12 @@ public interface ImmutableList<E> extends Sequence<E> {
   
   List<E> toList();
   
+  @Override
   ImmutableList<E> append(E element);
+  @Override
   ImmutableList<E> remove(E element);
-
-  ImmutableList<E> appendAll(ImmutableList<E> other);
+  @Override
+  ImmutableList<E> appendAll(Sequence<E> other);
   
   ImmutableList<E> sort(Comparator<E> comparator);
 
@@ -119,9 +121,11 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
     
     @Override
-    public ImmutableList<E> appendAll(ImmutableList<E> other) {
+    public ImmutableList<E> appendAll(Sequence<E> other) {
       List<E> newList = toList();
-      newList.addAll(other.toList());
+      for (E element : other) {
+        newList.add(element);
+      }
       return new JavaBasedImmutableList<>(newList);
     }
     
