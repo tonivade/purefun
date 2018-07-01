@@ -26,10 +26,10 @@ public class PrismTest {
 
     assertAll(() -> assertEquals(some, someString.getOption(some)),
               () -> assertEquals(some, someString.reverseGet("a")),
-              () -> assertEquals(Option.some("A"), someString.modify(some, String::toUpperCase)),
-              () -> assertEquals(Option.some("A"), someString.modifyOption(some, String::toUpperCase).flatten()),
-              () -> assertEquals(Option.some("A"), someString.set(some, "A")),
-              () -> assertEquals(Option.some("A"), someString.setOption(some, "A").flatten()),
+              () -> assertEquals(Option.some("A"), someString.modify(String::toUpperCase).apply(some)),
+              () -> assertEquals(Option.some("A"), someString.modifyOption(String::toUpperCase).apply(some).flatten()),
+              () -> assertEquals(Option.some("A"), someString.set("A").apply(some)),
+              () -> assertEquals(Option.some("A"), someString.setOption("A").apply(some).flatten()),
               () -> assertEquals(Either.right("a"), someString.getOrModify(some)),
               () -> assertEquals(Either.left(none), someString.getOrModify(none))
         );
@@ -43,11 +43,11 @@ public class PrismTest {
 
     assertAll(() -> assertEquals(Option.some(5), someStringToInteger.getOption(five)),
               () -> assertEquals(five, someStringToInteger.reverseGet(5)),
-              () -> assertEquals(Option.some("6"), someStringToInteger.modify(five, i -> i + 1)),
-              () -> assertEquals(Option.some("6"), someStringToInteger.modifyOption(five, i -> i + 1).flatten()),
-              () -> assertEquals(Option.some("4"), someStringToInteger.set(five, 4)),
-              () -> assertEquals(Option.some("4"), someStringToInteger.setOption(five, 4).flatten()),
-              () -> assertEquals(some, someStringToInteger.set(some, 4)),
+              () -> assertEquals(Option.some("6"), someStringToInteger.modify(i -> i + 1).apply(five)),
+              () -> assertEquals(Option.some("6"), someStringToInteger.modifyOption(i -> i + 1).apply(five).flatten()),
+              () -> assertEquals(Option.some("4"), someStringToInteger.set(4).apply(five)),
+              () -> assertEquals(Option.some("4"), someStringToInteger.setOption(4).apply(five).flatten()),
+              () -> assertEquals(some, someStringToInteger.set(4).apply(some)),
               () -> assertEquals(Either.right(5), someStringToInteger.getOrModify(five)),
               () -> assertEquals(Either.left(none), someString.getOrModify(none))
         );

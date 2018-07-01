@@ -32,20 +32,20 @@ public final class Prism<T, R> {
     return getOption(target).fold(() -> Either.left(target), value -> Either.right(value));
   }
 
-  public T modify(T target, Operator1<R> mapper) {
-    return modifyOption(target, mapper).orElse(target);
+  public Operator1<T> modify(Operator1<R> mapper) {
+    return target -> modifyOption(mapper).apply(target).orElse(target);
   }
 
-  public T set(T target, R value) {
-    return modify(target, ignore -> value);
+  public Operator1<T> set(R value) {
+    return modify(ignore -> value);
   }
 
-  public Option<T> modifyOption(T target, Operator1<R> mapper) {
-    return getOption(target).map(mapper).map(reverseGet);
+  public OptionHandler<T, T> modifyOption(Operator1<R> mapper) {
+    return target -> getOption(target).map(mapper).map(reverseGet);
   }
 
-  public Option<T> setOption(T target, R value) {
-    return modifyOption(target, ignore -> value);
+  public OptionHandler<T, T> setOption(R value) {
+    return modifyOption(ignore -> value);
   }
 
   public <V> Prism<T, V> compose(Prism<R, V> other) {

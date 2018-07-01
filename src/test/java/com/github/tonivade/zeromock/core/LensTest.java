@@ -8,6 +8,8 @@ import static com.github.tonivade.zeromock.core.Equal.comparing;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Objects;
+
 import org.junit.jupiter.api.Test;
 
 public class LensTest {
@@ -61,6 +63,11 @@ class Employee {
   public Employee withAddress(Address newAddress) {
     return new Employee(name, newAddress);
   }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, address);
+  }
 
   @Override
   public boolean equals(Object obj) {
@@ -82,8 +89,13 @@ class Address {
     return city;
   }
 
-  public Address withCity(String city) {
-    return new Address(city);
+  public Address withCity(String newCity) {
+    return new Address(newCity);
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(city);
   }
 
   @Override
