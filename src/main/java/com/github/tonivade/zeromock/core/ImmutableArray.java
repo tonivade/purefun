@@ -76,7 +76,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     private final List<E> backend;
 
-    public JavaBasedImmutableArray(List<E> backend) {
+    private JavaBasedImmutableArray(List<E> backend) {
       this.backend = requireNonNull(backend);
     }
 
