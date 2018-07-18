@@ -5,13 +5,14 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Nothing.nothing;
+import static java.util.Objects.requireNonNull;
 
 public final class State<S, A> {
   
   private final Function1<S, Tuple2<S, A>> runState;
   
   private State(Function1<S, Tuple2<S, A>> runState) {
-    this.runState = runState;
+    this.runState = requireNonNull(runState);
   }
   
   public static <S, A> State<S, A> state(Function1<S, Tuple2<S, A>> runState) {

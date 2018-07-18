@@ -18,17 +18,14 @@ public class ReaderTest {
   
   @Test
   public void flatMap() {
-    ImmutableList<String> list = listOf("a", "b", "c");
-    
-    String eval = begin("<")
+    Reader<ImmutableList<String>, String> reader = begin("<")
         .flatMap(str -> read1(str))
         .flatMap(str -> read2(str))
         .flatMap(str -> read3(str))
         .flatMap(str -> end(str, ">"))
-        .map(String::toUpperCase)
-        .eval(list);
+        .map(String::toUpperCase);
     
-    assertEquals("<ABC>", eval);
+    assertEquals("<ABC>", reader.eval(listOf("a", "b", "c")));
   }
  
   private Reader<ImmutableList<String>, String> begin(String str) {
