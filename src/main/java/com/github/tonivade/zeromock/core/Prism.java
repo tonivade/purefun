@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.zeromock.core;
 
+import static com.github.tonivade.zeromock.core.Producer.unit;
 import static java.util.Objects.requireNonNull;
 
 public final class Prism<T, R> {
@@ -29,7 +30,7 @@ public final class Prism<T, R> {
   }
 
   public Either<T, R> getOrModify(T target) {
-    return getOption(target).fold(() -> Either.left(target), value -> Either.right(value));
+    return getOption(target).fold(unit(Either.left(target)), Either::right);
   }
 
   public Operator1<T> modify(Operator1<R> mapper) {
