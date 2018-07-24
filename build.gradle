@@ -1,5 +1,21 @@
-archivesBaseName = 'zeromock-core'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+jar {
+  baseName = 'purefun'
+  version = '0.1.0-SNAPSHOT'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories { 
+  mavenLocal() 
+  mavenCentral() 
+}
 
 dependencies {
-  testCompile libs.equalsverifier
+  testCompile 'nl.jqno.equalsverifier:equalsverifier:2.4.5'
+  testCompile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
 }
+

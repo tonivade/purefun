@@ -5,13 +5,12 @@
 package com.github.tonivade.zeromock.core;
 
 import static com.github.tonivade.zeromock.core.Equal.comparing;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Objects;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
@@ -30,27 +29,27 @@ public class EqualTest {
 
   @Test
   public void areEquals() {
-    assertThat(data1, equalTo(data2));
+    assertEquals(data1, data2);
   }
 
   @Test
   public void notEquals() {
-    assertThat(data1, not(equalTo(data3)));
+    assertNotEquals(data1, data3);
   }
 
   @Test
   public void sameObjects() {
-    assertThat(data1, equalTo(data1));
+    assertEquals(data1, data1);
   }
 
   @Test
   public void differentClasses() {
-    assertThat(data1, not(equalTo(new Object())));
+    assertNotEquals(data1, new Object());
   }
 
   @Test
   public void notEqualsToNull() {
-    assertThat(data1, not(equalTo(null)));
+    assertNotEquals(data1, null);
   }
 }
 

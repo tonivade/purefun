@@ -1,4 +1,4 @@
-# Zeromock Core
+# Purefun
 
 This module is the core of the zeromock project. It defines all the basic classes and interfaces 
 used in the rest of the project.
