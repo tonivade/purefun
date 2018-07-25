@@ -9,9 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple1;
-
 public class Tuple1Test {
   
   @Test

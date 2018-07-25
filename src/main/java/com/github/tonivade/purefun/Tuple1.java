@@ -1,9 +1,12 @@
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Equal.comparing;
+import static com.github.tonivade.purefun.type.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
+
+import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Equal;
 
 public final class Tuple1<A> implements Tuple {
 

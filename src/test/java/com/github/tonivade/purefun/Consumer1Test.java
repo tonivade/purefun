@@ -14,9 +14,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Nothing;
-
 public class Consumer1Test {
 
   @Test

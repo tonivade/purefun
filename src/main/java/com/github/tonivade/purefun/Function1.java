@@ -4,10 +4,20 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Sequence.listOf;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import com.github.tonivade.purefun.handler.EitherHandler;
+import com.github.tonivade.purefun.handler.OptionHandler;
+import com.github.tonivade.purefun.handler.OptionalHandler;
+import com.github.tonivade.purefun.handler.SequenceHandler;
+import com.github.tonivade.purefun.handler.StreamHandler;
+import com.github.tonivade.purefun.handler.TryHandler;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
 public interface Function1<T, R> {

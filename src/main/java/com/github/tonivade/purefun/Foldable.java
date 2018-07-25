@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.type.Option;
+
 public interface Foldable<T> {
 
   Option<T> reduce(Operator2<T> operator);
