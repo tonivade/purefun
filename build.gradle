@@ -1,9 +1,41 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'jacoco'
+apply plugin: 'com.bmuschko.nexus'
 
-jar {
-  baseName = 'purefun'
-  version = '0.1.0-SNAPSHOT'
+group = 'com.github.tonivade'
+version = '0.1.0-SNAPSHOT'
+archivesBaseName = 'purefun'
+
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
+  }
+}
+
+jacoco {
+  toolVersion = '0.8.0'
+}
+
+test {
+  useJUnitPlatform()
+
+  jacoco {
+    destinationFile = file("${buildDir}/jacoco/test.exec")
+  }
+}
+
+jacocoTestReport {
+  reports {
+    xml.enabled = true
+    html.enabled = true
+    xml.destination file("${buildDir}/reports/jacoco/report.xml")
+  }
 }
 
 sourceCompatibility = 1.8
@@ -12,6 +44,9 @@ targetCompatibility = 1.8
 repositories { 
   mavenLocal() 
   mavenCentral() 
+  maven {
+    url = 'https://oss.sonatype.org/content/repositories/snapshots'
+  }
 }
 
 dependencies {
@@ -19,3 +54,46 @@ dependencies {
   testCompile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
 }
 
+
+modifyPom {
+  project {
+    name 'Pure Fun'
+    description 'Functional Programming Library for Java'
+    url 'https://github.com/tonivade/purefun'
+    inceptionYear '2018'
+
+    scm {
+      url 'https://github.com/tonivade/purefun'
+      connection 'scm:https://github.com/tonivade/purefun.git'
+      developerConnection 'scm:git://github.com/tonivade/purefun.git'
+    }
+
+    licenses {
+      license {
+        name 'The MIT License (MIT)'
+        url 'https://github.com/tonivade/purefun/blob/master/LICENSE'
+        distribution 'repo'
+      }
+    }
+
+    developers {
+      developer {
+        id 'tonivade'
+        name 'Antonio Muñoz'
+        email 'antoniogmc@gmail.com'
+      }
+    }
+  }
+}
+
+extraArchive {
+  sources = true
+  tests = false
+  javadoc = true
+}
+
+nexus {
+  sign = true
+  repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+  snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots'
+}
