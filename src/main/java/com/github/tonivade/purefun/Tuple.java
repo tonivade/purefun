@@ -6,6 +6,8 @@ package com.github.tonivade.purefun;
 
 import java.util.Map;
 
+import com.github.tonivade.purefun.data.Sequence;
+
 public interface Tuple {
   
   Sequence<Object> toSequence();

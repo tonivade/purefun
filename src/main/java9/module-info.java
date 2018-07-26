@@ -1,3 +1,3 @@
-module com.github.tonivade.zeromock.core {
-  exports com.github.tonivade.zeromock.core;
+module com.github.tonivade.purefun {
+  exports com.github.tonivade.purefun;
 }

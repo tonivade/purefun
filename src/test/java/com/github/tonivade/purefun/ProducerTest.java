@@ -5,11 +5,9 @@
 package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-
-import com.github.tonivade.purefun.Producer;
 
 public class ProducerTest {
 

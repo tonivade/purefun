@@ -8,9 +8,6 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Functor;
-
 public class FunctorLaws {
 
   private final static Function1<String, String> toUpperCase = String::toUpperCase;

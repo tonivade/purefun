@@ -11,9 +11,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Option;
-import com.github.tonivade.purefun.Try;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 public class Function1Test {
   
