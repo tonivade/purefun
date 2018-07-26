@@ -110,6 +110,25 @@ public interface ImmutableMap<K, V> {
         .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2)));
   }
 
+  static <K, V> Builder<K, V> builder() {
+    return new Builder<>();
+  }
+
+  final class Builder<K, V> {
+    private final Map<K, V> map = new HashMap<>();
+
+    private Builder() { }
+
+    public Builder<K, V> put(K key, V value) {
+      map.put(key, value);
+      return this;
+    }
+
+    public ImmutableMap<K, V> build() {
+      return from(map);
+    }
+  }
+
   final class JavaBasedImmutableMap<K, V> implements ImmutableMap<K, V> {
     private final Map<K, V> backend;
     

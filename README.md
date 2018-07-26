@@ -1,10 +1,10 @@
 # Purefun
 
-This module is the core of the zeromock project. It defines all the basic classes and interfaces 
+This module was developed as the core of the zeromock project. It defines all the basic classes and interfaces 
 used in the rest of the project.
 
 Initially the module only holds a few basic interfaces and it has grown to become an entire
-functional programming library (well, a humble one).
+functional programming library (well, a humble one), and now is an independent library.
 
 Working in this library helps me to learn and understand some important concepts
 of functional programming.
@@ -56,7 +56,7 @@ Validation<String, String> name = Validation.valid("John Smith");
 Validation<String, String> email = Validation.valid("john.smith@example.net");
 
 // Person has a constructor with two String parameters, name and email.
-Valdation<String, Person> person = Validation.map2(name, email, Person::new); 
+Valdation<Sequence<String>, Person> person = Validation.map2(name, email, Person::new); 
 ```
 
 ## Tuples
@@ -86,8 +86,6 @@ It represents a linked list. It has a head and a tail.
 It represents a set of elements. This elements cannot be duplicated.
 
 ### ImmutableArray
-
-TODO: not implemented yet
 
 It represents an array. You can access to the elements by its position in the array.
 
@@ -139,7 +137,7 @@ This class helps to create readable `equals` methods. An example:
 ```
   @Override
   public boolean equals(Object obj) {
-    return equal(this)
+    return Equal.of(this)
         .append(comparing(Data::getId))
         .append(comparing(Data::getValue))
         .applyTo(obj);
