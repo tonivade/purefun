@@ -54,6 +54,11 @@ dependencies {
   testCompile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
 }
 
+jar {
+  manifest {
+    attributes('Automatic-Module-Name': 'com.github.tonivade.purefun')
+  }
+}
 
 modifyPom {
   project {
