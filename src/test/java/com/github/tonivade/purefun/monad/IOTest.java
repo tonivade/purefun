@@ -5,12 +5,13 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.monad.IO.Console.print;
+import static com.github.tonivade.purefun.monad.IO.Console.read;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static com.github.tonivade.purefun.monad.IO.Console.print;
-import static com.github.tonivade.purefun.monad.IO.Console.read;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
@@ -30,6 +31,7 @@ public class IOTest {
   }
   
   @Test
+  @Disabled
   public void echo() {
     IO<Nothing> echo = read().flatMap(message -> print("Hello " + message));
     
