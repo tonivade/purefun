@@ -147,3 +147,7 @@ This class helps to create readable `equals` methods. An example:
         .applyTo(obj);
   }
 ```
+
+## License
+
+purefun is released under MIT license
