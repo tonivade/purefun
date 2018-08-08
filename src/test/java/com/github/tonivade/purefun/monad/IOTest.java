@@ -38,6 +38,7 @@ public class IOTest {
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
     executor.run(echo);
-    executor.verify("write your name\nHello Toni\nend\n");
+
+    assertEquals("write your name\nHello Toni\nend\n", executor.getOutput());
   }
 }

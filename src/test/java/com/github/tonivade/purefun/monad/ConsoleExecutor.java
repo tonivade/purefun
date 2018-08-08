@@ -1,7 +1,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,8 +17,8 @@ public class ConsoleExecutor {
     return this;
   }
   
-  public void verify(String expected) {
-    assertEquals(expected, new String(output.toByteArray(), UTF_8));
+  public String getOutput() {
+    return new String(output.toByteArray(), UTF_8);
   }
   
   public <T> T run(IO<T> program) {
