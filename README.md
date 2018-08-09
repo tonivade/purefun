@@ -134,11 +134,24 @@ String result = read2.eval(ImmutableList.of("a", "b", "c"));
 assertEqual("b", result);
 ```
 
+### IO Monad
+
+This is a experimental implementation of IO Monad in java. Inspired in this [work](https://gist.github.com/joergrathlev/f17092d3470dcf732be6).
+
+```java
+  IO<Nothing> echo = print("write your name")
+      .andThen(read())
+      .flatMap(name -> print("Hello " + name))
+      .andThen(print("end"));
+      
+  echo.unsafeRunSync();
+```
+
 ## Equal
 
 This class helps to create readable `equals` methods. An example:
 
-```
+```java
   @Override
   public boolean equals(Object obj) {
     return Equal.of(this)
