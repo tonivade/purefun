@@ -16,6 +16,10 @@ of functional programming.
 Finally, I have to say thanks to vavr library author, this library is largely inspired in his work,
 and also to Scala standard library authors. Their awesome work help me a lot.
 
+## Disclaimer
+
+This project is not ready to be used in production, I use it to learn functional programming concepts by my self, but, if you want to you it, use it at your own risk. Anyway if you think is useful for you, go ahead, also any feedback and PR are wellcome.
+
 ## Data types
 
 All this data types implements this methods: `get`, `map`, `flatMap`, `filter`, `fold` and `flatten`.
@@ -139,10 +143,10 @@ assertEqual("b", result);
 This is a experimental implementation of IO Monad in java. Inspired in this [work](https://gist.github.com/joergrathlev/f17092d3470dcf732be6).
 
 ```java
-  IO<Nothing> echo = print("write your name")
-      .andThen(read())
-      .flatMap(name -> print("Hello " + name))
-      .andThen(print("end"));
+  IO<Nothing> echo = Console.print("write your name")
+      .andThen(Console.read())
+      .flatMap(name -> Console.print("Hello " + name))
+      .andThen(Console.print("end"));
       
   echo.unsafeRunSync();
 ```
