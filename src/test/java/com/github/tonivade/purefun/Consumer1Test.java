@@ -33,7 +33,7 @@ public class Consumer1Test {
 
     Consumer1<String> add = Consumer1.of(strings::add);
 
-    String string = add.bypass().apply("value");
+    String string = add.peek().apply("value");
 
     assertAll(() -> assertEquals(asList("value"), strings),
               () -> assertEquals("value", string));

@@ -4,40 +4,32 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.data.Sequence.listOf;
-
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.handler.EitherHandler;
 import com.github.tonivade.purefun.handler.OptionHandler;
 import com.github.tonivade.purefun.handler.OptionalHandler;
-import com.github.tonivade.purefun.handler.SequenceHandler;
 import com.github.tonivade.purefun.handler.StreamHandler;
 import com.github.tonivade.purefun.handler.TryHandler;
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface Function1<T, R> {
+public interface CheckedFunction1<T, R> {
 
-  R apply(T value);
-  
-  default <V> Function1<T, V> andThen(Function1<R, V> after) {
+  R apply(T value) throws Exception;
+
+  default <V> CheckedFunction1<T, V> andThen(CheckedFunction1<R, V> after) {
     return (T value) -> after.apply(apply(value));
   }
   
-  default <V> Function1<V, R> compose(Function1<V, T> before) {
+  default <V> CheckedFunction1<V, R> compose(CheckedFunction1<V, T> before) {
     return (V value) -> apply(before.apply(value));
   }
   
   default OptionalHandler<T, R> liftOptional() {
-    return value -> Optional.ofNullable(apply(value));
+    return liftTry().toOption().toOptional();
   }
   
   default OptionHandler<T, R> liftOption() {
-    return value -> Option.of(() -> apply(value));
+    return liftTry().toOption();
   }
   
   default TryHandler<T, R> liftTry() {
@@ -48,27 +40,15 @@ public interface Function1<T, R> {
     return liftTry().toEither();
   }
   
-  default <L> EitherHandler<T, L, R> liftRight() {
-    return value -> Either.right(apply(value));
-  }
-  
-  default <L> EitherHandler<T, R, L> liftLeft() {
-    return value -> Either.left(apply(value));
-  }
-  
-  default SequenceHandler<T, R> sequence() {
-    return value -> listOf(apply(value));
-  }
-  
   default StreamHandler<T, R> stream() {
-    return value -> Stream.of(apply(value));
+    return liftTry().andThen(Try::stream)::apply;
   }
   
   static <T> Function1<T, T> identity() {
     return value -> value;
   }
   
-  static <T, R> Function1<T, R> of(Function1<T, R> reference) {
+  static <T, R> CheckedFunction1<T, R> of(CheckedFunction1<T, R> reference) {
     return reference;
   }
 }

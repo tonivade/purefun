@@ -17,6 +17,8 @@ import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 
 public interface Either<L, R> extends Functor<R>, Holder<R> {
   
@@ -135,6 +137,13 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
       return Stream.of(getRight());
     }
     return Stream.empty();
+  }
+
+  default Sequence<R> sequence() {
+    if (isRight()) {
+      return ImmutableList.of(get());
+    }
+    return ImmutableList.empty();
   }
   
   default Option<R> toOption() {
