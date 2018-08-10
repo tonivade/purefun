@@ -44,8 +44,12 @@ public interface CheckedFunction1<T, R> {
     return liftTry().andThen(Try::stream)::apply;
   }
   
-  static <T> Function1<T, T> identity() {
+  static <T> CheckedFunction1<T, T> identity() {
     return value -> value;
+  }
+  
+  static <T> CheckedFunction1<T, T> failure(String message) {
+    return value -> { throw new Exception(message); };
   }
   
   static <T, R> CheckedFunction1<T, R> of(CheckedFunction1<T, R> reference) {
