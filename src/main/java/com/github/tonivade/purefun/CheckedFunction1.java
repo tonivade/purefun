@@ -19,39 +19,39 @@ public interface CheckedFunction1<T, R> {
   default <V> CheckedFunction1<T, V> andThen(CheckedFunction1<R, V> after) {
     return (T value) -> after.apply(apply(value));
   }
-  
+
   default <V> CheckedFunction1<V, R> compose(CheckedFunction1<V, T> before) {
     return (V value) -> apply(before.apply(value));
   }
-  
+
   default OptionalHandler<T, R> liftOptional() {
     return liftTry().toOption().toOptional();
   }
-  
+
   default OptionHandler<T, R> liftOption() {
     return liftTry().toOption();
   }
-  
+
   default TryHandler<T, R> liftTry() {
     return value -> Try.of(() -> apply(value));
   }
-  
+
   default EitherHandler<T, Throwable, R> liftEither() {
     return liftTry().toEither();
   }
-  
+
   default StreamHandler<T, R> stream() {
     return liftTry().andThen(Try::stream)::apply;
   }
-  
+
   static <T> CheckedFunction1<T, T> identity() {
     return value -> value;
   }
-  
-  static <T> CheckedFunction1<T, T> failure(String message) {
-    return value -> { throw new Exception(message); };
+
+  static <T, X extends Exception> CheckedFunction1<T, T> failure(Producer<X> supplier) {
+    return value -> { throw supplier.get(); };
   }
-  
+
   static <T, R> CheckedFunction1<T, R> of(CheckedFunction1<T, R> reference) {
     return reference;
   }
