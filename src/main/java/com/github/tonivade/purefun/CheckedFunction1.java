@@ -44,6 +44,20 @@ public interface CheckedFunction1<T, R> {
     return liftTry().andThen(Try::stream)::apply;
   }
 
+  default Function1<T, R> recover(Function1<Throwable, R> mapper) {
+    return value -> {
+      try {
+        return apply(value);
+      } catch(Exception e) {
+        return mapper.apply(e);
+      }
+    };
+  }
+
+  default Function1<T, R> unchecked(Function1<Throwable, R> mapper) {
+    return recover(CheckedFunction1::sneakyThrow);
+  }
+
   static <T> CheckedFunction1<T, T> identity() {
     return value -> value;
   }
@@ -54,5 +68,11 @@ public interface CheckedFunction1<T, R> {
 
   static <T, R> CheckedFunction1<T, R> of(CheckedFunction1<T, R> reference) {
     return reference;
+  }
+
+  // XXX: https://www.baeldung.com/java-sneaky-throws
+  @SuppressWarnings("unchecked")
+  static <X extends Throwable, R> R sneakyThrow(Throwable t) throws X {
+    throw (X) t;
   }
 }
