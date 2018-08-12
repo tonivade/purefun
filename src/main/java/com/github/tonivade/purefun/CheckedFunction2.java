@@ -4,10 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
-
 @FunctionalInterface
 public interface CheckedFunction2<T, V, R> {
 
@@ -27,18 +23,6 @@ public interface CheckedFunction2<T, V, R> {
 
   default <U> CheckedFunction1<U, R> compose(CheckedFunction1<U, T> beforeT, CheckedFunction1<U, V> beforeV) {
     return value -> apply(beforeT.apply(value), beforeV.apply(value));
-  }
-
-  default Function2<T, V, Try<R>> liftTry() {
-    return (t, v) -> Try.of(() -> apply(t, v));
-  }
-
-  default Function2<T, V, Either<Throwable, R>> liftEither() {
-    return liftTry().andThen(Try::toEither);
-  }
-
-  default Function2<T, V, Option<R>> liftOption() {
-    return liftTry().andThen(Try::toOption);
   }
 
   static <T, V, R> CheckedFunction2<T, V, R> of(CheckedFunction2<T, V, R> reference) {

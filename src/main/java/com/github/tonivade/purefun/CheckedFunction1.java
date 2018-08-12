@@ -4,13 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-import com.github.tonivade.purefun.handler.EitherHandler;
-import com.github.tonivade.purefun.handler.OptionHandler;
-import com.github.tonivade.purefun.handler.OptionalHandler;
-import com.github.tonivade.purefun.handler.StreamHandler;
-import com.github.tonivade.purefun.handler.TryHandler;
-import com.github.tonivade.purefun.type.Try;
-
 @FunctionalInterface
 public interface CheckedFunction1<T, R> {
 
@@ -24,26 +17,6 @@ public interface CheckedFunction1<T, R> {
     return (V value) -> apply(before.apply(value));
   }
 
-  default OptionalHandler<T, R> liftOptional() {
-    return liftTry().toOption().toOptional();
-  }
-
-  default OptionHandler<T, R> liftOption() {
-    return liftTry().toOption();
-  }
-
-  default TryHandler<T, R> liftTry() {
-    return value -> Try.of(() -> apply(value));
-  }
-
-  default EitherHandler<T, Throwable, R> liftEither() {
-    return liftTry().toEither();
-  }
-
-  default StreamHandler<T, R> stream() {
-    return liftTry().andThen(Try::stream)::apply;
-  }
-
   default Function1<T, R> recover(Function1<Throwable, R> mapper) {
     return value -> {
       try {
@@ -54,7 +27,7 @@ public interface CheckedFunction1<T, R> {
     };
   }
 
-  default Function1<T, R> unchecked(Function1<Throwable, R> mapper) {
+  default Function1<T, R> unchecked() {
     return recover(CheckedFunction1::sneakyThrow);
   }
 
