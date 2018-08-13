@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.monad.Console.console;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -56,38 +57,40 @@ public interface IO<T> extends Functor<T> {
     return sequence.fold(noop(), IO::andThen).andThen(noop());
   }
   
-  final class Console {
+  final class ConsoleIO {
     
-    private static final ThreadLocal<Console> console = ThreadLocal.withInitial(Console::new);
-    
-    private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-    private final PrintWriter writer = new PrintWriter(System.out);
-    
-    private Console() {}
-
-    public static IO<Nothing> print(String message) {
+    public static IO<Nothing> println(String message) {
       return exec(() -> console().println(message));
     }
 
-    public static IO<String> read() {
-      return IO.of(() -> console().readLine());
+    public static IO<String> readln() {
+      return IO.of(() -> console().readln());
     }
+  }
+}
 
-    private static Console console() {
-      return console.get();
-    }
+final class Console {
+  private static final ThreadLocal<Console> console = ThreadLocal.withInitial(Console::new);
 
-    private void println(String message) {
-      writer.println(message);
-      writer.flush();
-    }
+  private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+  private final PrintWriter writer = new PrintWriter(System.out);
 
-    private String readLine() {
-      try {
-        return reader.readLine();
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+  private Console() {}
+
+  protected static Console console() {
+    return console.get();
+  }
+
+  protected void println(String message) {
+    writer.println(message);
+    writer.flush();
+  }
+
+  protected String readln() {
+    try {
+      return reader.readLine();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 }

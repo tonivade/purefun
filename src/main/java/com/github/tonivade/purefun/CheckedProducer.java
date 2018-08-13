@@ -17,10 +17,6 @@ public interface CheckedProducer<T> {
     return () -> after.apply(get());
   }
 
-  static <T> CheckedProducer<T> unit(T value) {
-    return () -> value;
-  }
-
   default Producer<T> recover(Function1<Throwable, T> mapper) {
     return () -> {
       try {
@@ -33,6 +29,14 @@ public interface CheckedProducer<T> {
 
   default Producer<T> unchecked() {
     return recover(CheckedFunction1::sneakyThrow);
+  }
+
+  static <T> CheckedProducer<T> unit(T value) {
+    return () -> value;
+  }
+
+  static <T, X extends Exception> CheckedProducer<T> failure(Producer<X> supplier) {
+    return () -> { throw supplier.get(); };
   }
 
   static <T> CheckedProducer<T> of(CheckedProducer<T> reference) {

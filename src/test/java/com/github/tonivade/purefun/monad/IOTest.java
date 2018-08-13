@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.monad.IO.Console.print;
-import static com.github.tonivade.purefun.monad.IO.Console.read;
+import static com.github.tonivade.purefun.monad.IO.ConsoleIO.println;
+import static com.github.tonivade.purefun.monad.IO.ConsoleIO.readln;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,16 +25,15 @@ public class IOTest {
         () -> assertEquals("HOLA MUNDO", unit.map(String::toUpperCase).unsafeRunSync()),
         () -> assertArrayEquals(new String[] { "hola", "mundo" },
             unit.flatMap(string -> IO.of(() -> string.split(" "))).unsafeRunSync()),
-        () -> assertEquals(Integer.valueOf(100), unit.andThen(IO.of(() -> 100)).unsafeRunSync())
-        );
+        () -> assertEquals(Integer.valueOf(100), unit.andThen(IO.of(() -> 100)).unsafeRunSync()));
   }
   
   @Test
   public void echo() {
-    IO<Nothing> echo = print("write your name")
-      .andThen(read())
-      .flatMap(name -> print("Hello " + name))
-      .andThen(print("end"));
+    IO<Nothing> echo = println("write your name")
+      .andThen(readln())
+      .flatMap(name -> println("Hello " + name))
+      .andThen(println("end"));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
     executor.run(echo);
