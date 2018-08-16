@@ -30,7 +30,7 @@ public interface Producer<T> {
   }
   
   default Producer<Either<Throwable, T>> liftEither() {
-    return () -> Try.of(this::get).toEither();
+    return liftTry().andThen(Try::toEither);
   }
   
   static <T> Producer<T> unit(T value) {
