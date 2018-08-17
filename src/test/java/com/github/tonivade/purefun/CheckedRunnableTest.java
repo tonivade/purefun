@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 public class CheckedRunnableTest {
 
   @Test
-  void failure() {
+  public void failure() {
     CheckedRunnable task = CheckedRunnable.failure(IllegalAccessException::new);
 
     assertAll(() -> assertThrows(IllegalAccessException.class, task::run),
@@ -30,7 +30,7 @@ public class CheckedRunnableTest {
   }
 
   @Test
-  void success() {
+  public void success() {
     CheckedRunnable task = CheckedRunnable.of(() -> System.out.println("hello world"));
 
     assertAll(() -> assertDoesNotThrow(task::run),
