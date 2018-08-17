@@ -15,17 +15,25 @@ public interface CheckedRunnable extends Recoverable {
     return () -> { run(); return nothing(); };
   }
 
-  default Runnable recover(Function1<Throwable, Nothing> mapper) {
+  default Runnable recover(Consumer1<Throwable> mapper) {
     return () -> {
       try {
         run();
       } catch(Exception e) {
-        mapper.apply(e);
+        mapper.accept(e);
       }
     };
   }
 
   default Runnable unchecked() {
     return recover(this::sneakyThrow);
+  }
+
+  static <X extends Exception> CheckedRunnable failure(Producer<X> supplier) {
+    return () -> { throw supplier.get(); };
+  }
+
+  static CheckedRunnable of(CheckedRunnable runnable) {
+    return runnable;
   }
 }
