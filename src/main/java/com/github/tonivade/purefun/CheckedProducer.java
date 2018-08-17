@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface CheckedProducer<T> {
+public interface CheckedProducer<T> extends Recoverable {
 
   T get() throws Exception;
 
@@ -28,7 +28,7 @@ public interface CheckedProducer<T> {
   }
 
   default Producer<T> unchecked() {
-    return recover(CheckedFunction1::sneakyThrow);
+    return recover(this::sneakyThrow);
   }
 
   static <T> CheckedProducer<T> unit(T value) {

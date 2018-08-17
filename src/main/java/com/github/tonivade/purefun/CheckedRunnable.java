@@ -10,9 +10,23 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface CheckedRunnable {
+public interface CheckedRunnable extends Recoverable {
 
   void run() throws Exception;
+
+  default Runnable recover(Function1<Throwable, Nothing> mapper) {
+    return () -> {
+      try {
+        run();
+      } catch(Exception e) {
+        mapper.apply(e);
+      }
+    };
+  }
+
+  default Runnable unchecked() {
+    return recover(this::sneakyThrow);
+  }
 
   default Producer<Try<Nothing>> liftTry() {
     return () -> Try.of(() -> { run(); return nothing(); });

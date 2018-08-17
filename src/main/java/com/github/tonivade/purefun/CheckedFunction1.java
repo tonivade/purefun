@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface CheckedFunction1<T, R> {
+public interface CheckedFunction1<T, R> extends Recoverable {
 
   R apply(T value) throws Exception;
 
@@ -28,7 +28,7 @@ public interface CheckedFunction1<T, R> {
   }
 
   default Function1<T, R> unchecked() {
-    return recover(CheckedFunction1::sneakyThrow);
+    return recover(this::sneakyThrow);
   }
 
   static <T> CheckedFunction1<T, T> identity() {
@@ -41,11 +41,5 @@ public interface CheckedFunction1<T, R> {
 
   static <T, R> CheckedFunction1<T, R> of(CheckedFunction1<T, R> reference) {
     return reference;
-  }
-
-  // XXX: https://www.baeldung.com/java-sneaky-throws
-  @SuppressWarnings("unchecked")
-  static <X extends Throwable, R> R sneakyThrow(Throwable t) throws X {
-    throw (X) t;
   }
 }
