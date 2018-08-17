@@ -56,7 +56,7 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("a", "b", "c", "z"), array.appendAll(arrayOf("z"))),
               () -> assertEquals(arrayOf("a", "b", "c"), array.map(identity())),
               () -> assertEquals(arrayOf("A", "B", "C"), array.map(toUpperCase)),
-              () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.liftSequence())),
+              () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), arrayOf(array).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> array.flatten()),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
@@ -90,7 +90,7 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("z"), array.appendAll(arrayOf("z"))),
               () -> assertEquals(ImmutableArray.empty(), array.map(identity())),
               () -> assertEquals(ImmutableArray.empty(), array.map(toUpperCase)),
-              () -> assertEquals(ImmutableArray.empty(), array.flatMap(toUpperCase.liftSequence())),
+              () -> assertEquals(ImmutableArray.empty(), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(ImmutableArray.empty(), arrayOf(array).flatten()),
               () -> assertEquals(ImmutableArray.empty(), array.flatten()),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1))

@@ -4,6 +4,10 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
+
 @FunctionalInterface
 public interface Producer<T> {
   
@@ -15,6 +19,18 @@ public interface Producer<T> {
   
   default <R> Producer<R> andThen(Function1<T, R> after) {
     return () -> after.apply(get());
+  }
+  
+  default Producer<Option<T>> liftOption() {
+    return () -> Option.of(this::get);
+  }
+  
+  default Producer<Try<T>> liftTry() {
+    return () -> Try.of(this::get);
+  }
+  
+  default Producer<Either<Throwable, T>> liftEither() {
+    return liftTry().andThen(Try::toEither);
   }
   
   static <T> Producer<T> unit(T value) {

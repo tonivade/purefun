@@ -52,7 +52,7 @@ public class ImmutableListTest {
               () -> assertEquals(listOf("a", "b", "c", "z"), list.appendAll(listOf("z"))),
               () -> assertEquals(listOf("a", "b", "c"), list.map(identity())),
               () -> assertEquals(listOf("A", "B", "C"), list.map(toUpperCase)),
-              () -> assertEquals(listOf("A", "B", "C"), list.flatMap(toUpperCase.liftSequence())),
+              () -> assertEquals(listOf("A", "B", "C"), list.flatMap(toUpperCase.sequence())),
               () -> assertEquals(listOf("a", "b", "c"), listOf(list).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> list.flatten()),
               () -> assertEquals(listOf("a", "b", "c"), list.filter(e -> e.length() > 0)),
@@ -81,7 +81,7 @@ public class ImmutableListTest {
               () -> assertEquals(listOf("z"), list.appendAll(listOf("z"))),
               () -> assertEquals(ImmutableList.empty(), list.map(identity())),
               () -> assertEquals(ImmutableList.empty(), list.map(toUpperCase)),
-              () -> assertEquals(ImmutableList.empty(), list.flatMap(toUpperCase.liftSequence())),
+              () -> assertEquals(ImmutableList.empty(), list.flatMap(toUpperCase.sequence())),
               () -> assertEquals(ImmutableList.empty(), listOf(list).flatten()),
               () -> assertEquals(ImmutableList.empty(), list.flatten()),
               () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1)));

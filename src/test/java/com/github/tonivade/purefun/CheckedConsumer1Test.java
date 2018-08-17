@@ -14,24 +14,24 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class Consumer1Test {
+public class CheckedConsumer1Test {
 
   @Test
-  public void andThen() {
+  public void andThen() throws Exception {
     List<String> strings = new LinkedList<String>();
 
-    Consumer1<String> add = Consumer1.of(strings::add);
-    Consumer1<String> composite = add.andThen(add);
+    CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
+    CheckedConsumer1<String> composite = add.andThen(add);
     composite.accept("value");
     
     assertEquals(asList("value", "value"), strings);
   }
   
   @Test
-  public void peek() {
+  public void peek() throws Exception {
     List<String> strings = new LinkedList<String>();
 
-    Consumer1<String> add = Consumer1.of(strings::add);
+    CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
 
     String string = add.peek().apply("value");
 
@@ -40,10 +40,10 @@ public class Consumer1Test {
   }
   
   @Test
-  public void asFunction() {
+  public void asFunction() throws Exception {
     List<String> strings = new LinkedList<String>();
 
-    Consumer1<String> add = Consumer1.of(strings::add);
+    CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
 
     Nothing nothing = add.asFunction().apply("value");
 

@@ -52,7 +52,7 @@ public class ImmutableSetTest {
               () -> assertEquals(setOf("c"), set.difference(setOf("a", "b"))),
               () -> assertEquals(setOf("a", "b", "c"), set.map(identity())),
               () -> assertEquals(setOf("A", "B", "C"), set.map(toUpperCase)),
-              () -> assertEquals(setOf("A", "B", "C"), set.flatMap(toUpperCase.liftSequence())),
+              () -> assertEquals(setOf("A", "B", "C"), set.flatMap(toUpperCase.sequence())),
               () -> assertEquals(setOf("a", "b", "c"), setOf(set).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> set.flatten()),
               () -> assertEquals(setOf("a", "b", "c"), set.filter(e -> e.length() > 0)),
@@ -76,7 +76,7 @@ public class ImmutableSetTest {
               () -> assertEquals(ImmutableSet.empty(), set.remove("c")),
               () -> assertEquals(ImmutableSet.empty(), set.map(identity())),
               () -> assertEquals(ImmutableSet.empty(), set.map(toUpperCase)),
-              () -> assertEquals(ImmutableSet.empty(), set.flatMap(toUpperCase.liftSequence())),
+              () -> assertEquals(ImmutableSet.empty(), set.flatMap(toUpperCase.sequence())),
               () -> assertEquals(ImmutableSet.empty(), setOf(set).flatten()),
               () -> assertEquals(ImmutableSet.empty(), set.flatten()),
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)));

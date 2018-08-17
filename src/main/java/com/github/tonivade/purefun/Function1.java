@@ -44,6 +44,10 @@ public interface Function1<T, R> {
     return value -> Try.of(() -> apply(value));
   }
   
+  default EitherHandler<T, Throwable, R> liftEither() {
+    return liftTry().toEither();
+  }
+  
   default <L> EitherHandler<T, L, R> liftRight() {
     return value -> Either.right(apply(value));
   }
@@ -52,7 +56,7 @@ public interface Function1<T, R> {
     return value -> Either.left(apply(value));
   }
   
-  default SequenceHandler<T, R> liftSequence() {
+  default SequenceHandler<T, R> sequence() {
     return value -> listOf(apply(value));
   }
   

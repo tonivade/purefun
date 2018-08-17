@@ -13,6 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
@@ -20,6 +21,8 @@ import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 
 public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
   
@@ -39,7 +42,7 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return new Failure<>(error);
   }
   
-  static <T> Try<T> of(Producer<T> supplier) {
+  static <T> Try<T> of(CheckedProducer<T> supplier) {
     try {
       return success(supplier.get());
     } catch (Exception error) {
@@ -133,6 +136,13 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
       return Stream.of(get());
     }
     return Stream.empty();
+  }
+
+  default Sequence<T> sequence() {
+    if (isSuccess()) {
+      return ImmutableList.of(get());
+    }
+    return ImmutableList.empty();
   }
   
   default Either<Throwable, T> toEither() {

@@ -21,6 +21,8 @@ import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.handler.OptionHandler;
 
 public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
@@ -116,6 +118,13 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
       return Stream.of(get());
     }
     return Stream.empty();
+  }
+
+  default Sequence<T> sequence() {
+    if (isPresent()) {
+      return ImmutableList.of(get());
+    }
+    return ImmutableList.empty();
   }
   
   default Optional<T> toOptional() {
