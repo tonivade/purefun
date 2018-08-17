@@ -6,13 +6,14 @@ package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Try;
-
 @FunctionalInterface
 public interface CheckedRunnable extends Recoverable {
 
   void run() throws Exception;
+
+  default CheckedProducer<Nothing> asProducer() {
+    return () -> { run(); return nothing(); };
+  }
 
   default Runnable recover(Function1<Throwable, Nothing> mapper) {
     return () -> {
@@ -26,13 +27,5 @@ public interface CheckedRunnable extends Recoverable {
 
   default Runnable unchecked() {
     return recover(this::sneakyThrow);
-  }
-
-  default Producer<Try<Nothing>> liftTry() {
-    return () -> Try.of(() -> { run(); return nothing(); });
-  }
-
-  default Producer<Either<Throwable, Nothing>> liftEither() {
-    return liftTry().andThen(Try::toEither);
   }
 }

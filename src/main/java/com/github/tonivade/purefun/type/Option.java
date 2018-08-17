@@ -26,11 +26,11 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.handler.OptionHandler;
 
 public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
-  
+
   static <T> Option<T> some(T value) {
     return new Some<>(value);
   }
-  
+
   @SuppressWarnings("unchecked")
   static <T> Option<T> none() {
     return (Option<T>) None.INSTANCE;
@@ -47,10 +47,10 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   static <T> Option<T> from(Optional<T> optional) {
     return optional.map(Option::some).orElseGet(Option::none);
   }
-  
+
   boolean isPresent();
   boolean isEmpty();
-  
+
   @Override
   default <R> Option<R> map(Function1<T, R> mapper) {
     if (isPresent()) {
@@ -72,7 +72,7 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     }
     return this;
   }
-  
+
   default Option<T> ifEmpty(Runnable run) {
     if (isEmpty()) {
       run.run();
@@ -99,13 +99,13 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return get();
   }
 
-  default <X extends Throwable> T orElseThrow(Producer<X> producer) throws X { 
+  default <X extends Throwable> T orElseThrow(Producer<X> producer) throws X {
     if (isEmpty()) {
       throw producer.get();
     }
     return get();
   }
-  
+
   default <U> U fold(Producer<U> orElse, Function1<T, U> mapper) {
     if (isPresent()) {
       return mapper.apply(get());
@@ -126,14 +126,15 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     }
     return ImmutableList.empty();
   }
-  
+
   default Optional<T> toOptional() {
     if (isPresent()) {
       return Optional.of(get());
     }
     return Optional.empty();
   }
-  
+
+  @Override
   @SuppressWarnings("unchecked")
   default <V> Option<V> flatten() {
     try {
@@ -145,38 +146,38 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
 
   final class Some<T> implements Option<T> {
     private final T value;
-    
+
     private Some(T value) {
       this.value = requireNonNull(value);
     }
-    
+
     @Override
     public T get() {
       return value;
     }
-    
+
     @Override
     public boolean isEmpty() {
       return false;
     }
-    
+
     @Override
     public boolean isPresent() {
       return true;
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hash(value);
     }
-    
+
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
           .append(comparing(Option::get))
           .applyTo(obj);
     }
-    
+
     @Override
     public String toString() {
       return "Some(" + value + ")";
@@ -184,7 +185,7 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
   }
 
   final class None<T> implements Option<T> {
-    
+
     private static final None<?> INSTANCE = new None<>();
 
     private None() { }
@@ -193,27 +194,27 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     public T get() {
       throw new NoSuchElementException("get() in none");
     }
-    
+
     @Override
     public boolean isEmpty() {
       return true;
     }
-    
+
     @Override
     public boolean isPresent() {
       return false;
     }
-    
+
     @Override
     public int hashCode() {
       return 1;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
       return this == obj;
     }
-    
+
     @Override
     public String toString() {
       return "None";
