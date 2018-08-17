@@ -4,7 +4,7 @@ apply plugin: 'jacoco'
 apply plugin: 'com.bmuschko.nexus'
 
 group = 'com.github.tonivade'
-version = '0.2.0'
+version = '0.3.0-SNAPSHOT'
 archivesBaseName = 'purefun'
 
 buildscript {
