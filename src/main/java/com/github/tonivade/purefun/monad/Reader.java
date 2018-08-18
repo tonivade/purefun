@@ -4,37 +4,28 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static java.util.Objects.requireNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Functor;
 
-public final class Reader<R, A> implements Functor<A> {
-  
-  private final Function1<R, A> run;
+@FunctionalInterface
+public interface Reader<R, A> extends Functor<A> {
 
-  private Reader(Function1<R, A> run) {
-    this.run = requireNonNull(run);
-  }
-  
+  A run(R reader);
+
   @Override
-  public <B> Reader<R, B> map(Function1<A, B> mapper) {
-    return reader(reader -> mapper.apply(eval(reader)));
+  default <B> Reader<R, B> map(Function1<A, B> mapper) {
+    return reader -> mapper.apply(run(reader));
   }
-  
-  public <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
-    return reader(reader -> mapper.apply(eval(reader)).eval(reader));
+
+  default <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
+    return reader -> mapper.apply(run(reader)).run(reader);
   }
-  
-  public A eval(R reader) {
-    return run.apply(reader);
+
+  static <R, A> Reader<R, A> unit(A value) {
+    return reader -> value;
   }
-  
-  public static <R, A> Reader<R, A> unit(A value) {
-    return reader(reader -> value);
-  }
-  
-  public static <R, A> Reader<R, A> reader(Function1<R, A> run) {
-    return new Reader<>(run);
+
+  static <R, A> Reader<R, A> reader(Function1<R, A> run) {
+    return run::apply;
   }
 }
