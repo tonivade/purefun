@@ -24,7 +24,7 @@ public class ReaderTest {
         .flatMap(str -> end(str, ">"))
         .map(String::toUpperCase);
 
-    assertEquals("<ABC>", reader.run(listOf("a", "b", "c")));
+    assertEquals("<ABC>", reader.eval(listOf("a", "b", "c")));
   }
 
   private Reader<ImmutableList<String>, String> begin(String str) {

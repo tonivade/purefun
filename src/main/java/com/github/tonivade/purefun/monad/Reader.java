@@ -10,15 +10,15 @@ import com.github.tonivade.purefun.Functor;
 @FunctionalInterface
 public interface Reader<R, A> extends Functor<A> {
 
-  A run(R reader);
+  A eval(R reader);
 
   @Override
   default <B> Reader<R, B> map(Function1<A, B> mapper) {
-    return reader -> mapper.apply(run(reader));
+    return reader -> mapper.apply(eval(reader));
   }
 
   default <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
-    return reader -> mapper.apply(run(reader)).run(reader);
+    return reader -> mapper.apply(eval(reader)).eval(reader);
   }
 
   static <R, A> Reader<R, A> unit(A value) {
