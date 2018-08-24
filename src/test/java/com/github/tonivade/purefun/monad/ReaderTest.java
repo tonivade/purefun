@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.Reader.reader;
-import static com.github.tonivade.purefun.monad.Reader.unit;
+import static com.github.tonivade.purefun.monad.Reader.pure;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ public class ReaderTest {
   }
 
   private Reader<ImmutableList<String>, String> begin(String str) {
-    return unit(str);
+    return pure(str);
   }
 
   private Reader<ImmutableList<String>, String> read1(String str) {

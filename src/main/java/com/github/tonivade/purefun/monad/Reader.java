@@ -21,7 +21,7 @@ public interface Reader<R, A> extends Functor<A> {
     return reader -> mapper.apply(eval(reader)).eval(reader);
   }
 
-  static <R, A> Reader<R, A> unit(A value) {
+  static <R, A> Reader<R, A> pure(A value) {
     return reader -> value;
   }
 

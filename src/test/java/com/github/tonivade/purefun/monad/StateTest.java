@@ -32,7 +32,7 @@ public class StateTest {
 
   @Test
   public void gets() {
-    assertEquals("ABC", State.<String, String>gets(String::toUpperCase).eval("abc"));
+    assertEquals("ABC", State.<String, String>inspect(String::toUpperCase).eval("abc"));
   }
 
   @Test
@@ -52,9 +52,9 @@ public class StateTest {
 
   @Test
   public void compose() {
-    State<Nothing, String> sa = State.unit("a");
-    State<Nothing, String> sb = State.unit("b");
-    State<Nothing, String> sc = State.unit("c");
+    State<Nothing, String> sa = State.pure("a");
+    State<Nothing, String> sb = State.pure("b");
+    State<Nothing, String> sc = State.pure("c");
 
     Tuple2<Nothing, Sequence<String>> result = State.compose(listOf(sa, sb, sc)).run(nothing());
 
@@ -71,7 +71,7 @@ public class StateTest {
   }
 
   private static State<ImmutableList<String>, String> unit(String value) {
-    return State.<ImmutableList<String>, String>unit(value);
+    return State.<ImmutableList<String>, String>pure(value);
   }
 
   private static <T> Function1<T, State<ImmutableList<T>, T>> append(T nextVal) {

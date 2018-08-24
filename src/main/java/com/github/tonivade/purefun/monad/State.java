@@ -22,7 +22,7 @@ public interface State<S, A> extends Functor<A> {
 
   @Override
   default <R> State<S, R> map(Function1<A, R> mapper) {
-    return flatMap(value -> unit(mapper.apply(value)));
+    return flatMap(value -> pure(mapper.apply(value)));
   }
 
   default <R> State<S, R> flatMap(Function1<A, State<S, R>> mapper) {
@@ -40,7 +40,7 @@ public interface State<S, A> extends Functor<A> {
     return runState::apply;
   }
 
-  static <S, A> State<S, A> unit(A value) {
+  static <S, A> State<S, A> pure(A value) {
     return state -> Tuple2.of(state, value);
   }
 
@@ -56,12 +56,12 @@ public interface State<S, A> extends Functor<A> {
     return state -> Tuple2.of(mapper.apply(state), nothing());
   }
 
-  static <S, A> State<S, A> gets(Function1<S, A> mapper) {
+  static <S, A> State<S, A> inspect(Function1<S, A> mapper) {
     return state -> Tuple2.of(state, mapper.apply(state));
   }
 
   static <S, A> State<S, Sequence<A>> compose(Sequence<State<S, A>> states) {
-    return states.foldLeft(unit(empty()), (sa, sb) -> map2(sa, sb, (acc, a) -> acc.append(a)));
+    return states.foldLeft(pure(empty()), (sa, sb) -> map2(sa, sb, (acc, a) -> acc.append(a)));
   }
 
   static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, Function2<A, B, C> mapper) {
