@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static com.github.tonivade.purefun.data.SequenceKind.narrowK;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 
@@ -19,7 +20,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.handler.SequenceHandler;
+import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.type.Equal;
 
 public interface ImmutableSet<E> extends Sequence<E> {
@@ -43,8 +44,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableSet<R> flatMap(SequenceHandler<E, R> mapper) {
-    return ImmutableSet.from(stream().flatMap(mapper.toStreamHandler()::apply));
+  default <R> ImmutableSet<R> flatMap(Function1<E, ? extends Monad<SequenceKind.µ, R>> mapper) {
+    return ImmutableSet.from(stream().flatMap(element -> narrowK(mapper.apply(element)).stream()));
   }
 
   @Override

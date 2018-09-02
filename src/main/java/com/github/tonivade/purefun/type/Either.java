@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.EitherHandler.identity;
+import static com.github.tonivade.purefun.type.EitherKind.narrowK;
 import static com.github.tonivade.purefun.type.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
@@ -13,14 +14,14 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Either<L, R> extends Functor<R>, Holder<R> {
+public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -86,16 +87,17 @@ public interface Either<L, R> extends Functor<R>, Holder<R> {
     return right(getRight());
   }
 
-  default <T> Either<L, T> flatMap(Function1<R, Either<L, T>> map) {
+  @Override
+  default <T> Either<L, T> flatMap(Function1<R, ? extends Monad2<EitherKind.µ, L, T>> map) {
     if (isRight()) {
-      return map.apply(getRight());
+      return narrowK(map.apply(getRight()));
     }
     return left(getLeft());
   }
 
-  default <T> Either<T, R> flatMapLeft(Function1<L, Either<T, R>> map) {
+  default <T> Either<T, R> flatMapLeft(Function1<L, ? extends Monad2<EitherKind.µ, T, R>> map) {
     if (isLeft()) {
-      return map.apply(getLeft());
+      return narrowK(map.apply(getLeft()));
     }
     return right(getRight());
   }

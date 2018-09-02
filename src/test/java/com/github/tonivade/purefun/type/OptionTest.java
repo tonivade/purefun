@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MonadLaws;
 
 public class OptionTest {
   private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
@@ -29,91 +30,91 @@ public class OptionTest {
   @Test
   public void mapSome() {
     Option<String> option = Option.some("Hola mundo").map(toUpperCase);
-    
+
     assertEquals(Option.some("HOLA MUNDO"), option);
   }
 
   @Test
   public void mapNone() {
     Option<String> option = Option.<String>none().map(toUpperCase);
-    
+
     assertTrue(option.isEmpty());
   }
 
   @Test
   public void flatMapSome() {
     Option<String> option = Option.some("Hola mundo").flatMap(toUpperCase.liftOption());
-    
+
     assertEquals(Option.some("HOLA MUNDO"), option);
   }
 
   @Test
   public void flatMapNone() {
     Option<String> option = Option.<String>none().flatMap(toUpperCase.liftOption());
-    
+
     assertTrue(option.isEmpty());
   }
 
   @Test
   public void orElseSome() {
     String value = Option.some("Hola mundo").orElse("Adios!");
-    
+
     assertEquals("Hola mundo", value);
   }
 
   @Test
   public void orElseNone() {
     String value = Option.<String>none().orElse("Adios!");
-    
+
     assertEquals("Adios!", value);
   }
 
   @Test
   public void notFilter() {
     Option<String> option = Option.some("Hola mundo").filter(string -> string.startsWith("Hola"));
-    
+
     assertEquals(Option.some("Hola mundo"), option);
   }
 
   @Test
   public void filter() {
     Option<String> option = Option.some("Hola mundo").filter(string -> string.startsWith("hola"));
-    
+
     assertTrue(option.isEmpty());
   }
 
   @Test
   public void filterFailure() {
     Option<String> option = Option.<String>none().filter(string -> string.startsWith("hola"));
-    
+
     assertTrue(option.isEmpty());
   }
-  
+
   @Test
   public void foldSome() {
     String value = Option.some("hola").fold(() -> "or else", toUpperCase);
-   
+
     assertEquals("HOLA", value);
   }
-  
+
   @Test
   public void foldNone() {
     String value = Option.<String>none().fold(() -> "or else", toUpperCase);
-   
+
     assertEquals("or else", value);
   }
-  
+
   @Test
   public void toOptional() {
     Option<String> option = Option.some("hola");
-    
+
     assertEquals(Optional.of("hola"), option.toOptional());
   }
 
   @Test
   public void some() {
     Option<String> some = Option.some("Hola mundo");
-   
+
     assertAll(() -> assertTrue(some.isPresent()),
               () -> assertFalse(some.isEmpty()),
               () -> assertEquals("Hola mundo", some.get()),
@@ -131,7 +132,7 @@ public class OptionTest {
   @Test
   public void failure() {
     Option<String> none = Option.none();
-    
+
     assertAll(() -> assertFalse(none.isPresent()),
               () -> assertTrue(none.isEmpty()),
               () -> assertEquals("None", none.toString()),
@@ -145,44 +146,45 @@ public class OptionTest {
                 assertNull(ref.get());
               });
   }
-  
+
   @Test
   public void optionOfNone() {
     Option<String> option = Option.of(this::messageNull);
-    
+
     assertTrue(option.isEmpty());
   }
-  
+
   @Test
   public void optionOfSome() {
     Option<String> option = Option.of(this::message);
-    
+
     assertTrue(option.isPresent());
   }
-  
+
   @Test
   public void optionLaws() {
     FunctorLaws.verifyLaws(Option.some("Hola mundo"));
+    MonadLaws.verifyLaws(Option.some("Hola mundo"), Option::some);
   }
-  
+
   @Test
   public void flatten() {
     Option<Option<String>> optionOfOption = Option.some(Option.some("asdf"));
-    
+
     assertEquals(Option.some("asdf"), optionOfOption.flatten());
   }
-  
+
   @Test
   public void flattenError() {
     Option<String> option = Option.some("asdf");
-    
+
     assertThrows(UnsupportedOperationException.class, () -> option.flatten());
   }
-  
+
   private String message() {
     return "Hola mundo";
   }
-  
+
   private String messageNull() {
     return null;
   }

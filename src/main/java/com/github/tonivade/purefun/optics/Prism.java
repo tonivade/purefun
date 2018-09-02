@@ -15,15 +15,15 @@ import com.github.tonivade.purefun.type.Option;
 
 public final class Prism<T, R> {
 
-  private final Function1<T, Option<R>> getOption;
+  private final OptionHandler<T, R> getOption;
   private final Function1<R, T> reverseGet;
 
-  private Prism(Function1<T, Option<R>> getOption, Function1<R, T> reverseGet) {
+  private Prism(OptionHandler<T, R> getOption, Function1<R, T> reverseGet) {
     this.getOption = requireNonNull(getOption);
     this.reverseGet = requireNonNull(reverseGet);
   }
 
-  public static <T, R> Prism<T, R> of(Function1<T, Option<R>> getOption, Function1<R, T> reverseGet) {
+  public static <T, R> Prism<T, R> of(OptionHandler<T, R> getOption, Function1<R, T> reverseGet) {
     return new Prism<>(getOption, reverseGet);
   }
 

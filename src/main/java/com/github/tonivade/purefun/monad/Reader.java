@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.monad.ReaderKind.narrowK;
+
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Functor;
+import com.github.tonivade.purefun.Monad2;
 
 @FunctionalInterface
-public interface Reader<R, A> extends Functor<A> {
+public interface Reader<R, A> extends Monad2<ReaderKind.µ, R, A> {
 
   A eval(R reader);
 
@@ -17,8 +19,9 @@ public interface Reader<R, A> extends Functor<A> {
     return reader -> mapper.apply(eval(reader));
   }
 
-  default <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
-    return reader -> mapper.apply(eval(reader)).eval(reader);
+  @Override
+  default <B> Reader<R, B> flatMap(Function1<A, ? extends Monad2<ReaderKind.µ, R, B>> mapper) {
+    return reader -> narrowK(mapper.apply(eval(reader))).eval(reader);
   }
 
   static <R, A> Reader<R, A> pure(A value) {

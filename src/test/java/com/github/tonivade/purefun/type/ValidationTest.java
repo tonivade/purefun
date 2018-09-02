@@ -41,7 +41,7 @@ public class ValidationTest {
   @Test
   public void validTest() {
     Validation<String, Integer> valid =  valid(1);
-    
+
     assertAll(() -> assertTrue(valid.isValid()),
               () -> assertFalse(valid.isInvalid()),
               () -> assertEquals(Integer.valueOf(1), valid.get()),
@@ -63,7 +63,7 @@ public class ValidationTest {
   @Test
   public void invalidTest() {
     Validation<String, Integer> invalid =  invalid("error");
-    
+
     assertAll(() -> assertFalse(invalid.isValid()),
               () -> assertTrue(invalid.isInvalid()),
               () -> assertEquals("error", invalid.getError()),
@@ -80,7 +80,7 @@ public class ValidationTest {
               () -> assertEquals("Invalid(error)", invalid.toString())
         );
   }
-  
+
   @Test
   public void map2Test() {
     assertAll(() -> assertEquals(valid(3), map2(valid(1), valid(2), sum2)),
@@ -89,31 +89,31 @@ public class ValidationTest {
               () -> assertEquals(invalid(listOf("error1", "error2")), map2(invalid("error1"), invalid("error2"), sum2))
         );
   }
-  
+
   @Test
   public void map3Test() {
     assertAll(() -> assertEquals(valid(6), map3(valid(1), valid(2), valid(3), sum3)),
-              () -> assertEquals(invalid(listOf("error1", "error2", "error3")), 
+              () -> assertEquals(invalid(listOf("error1", "error2", "error3")),
                   map3(invalid("error1"), invalid("error2"), invalid("error3"), sum3))
         );
   }
-  
+
   @Test
   public void map4Test() {
     assertAll(() -> assertEquals(valid(10), map4(valid(1), valid(2), valid(3), valid(4), sum4)),
-              () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4")), 
+              () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4")),
                   map4(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), sum4))
         );
   }
-  
+
   @Test
   public void map5Test() {
     assertAll(() -> assertEquals(valid(15), map5(valid(1), valid(2), valid(3), valid(4), valid(5), sum5)),
-              () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4", "error5")), 
+              () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4", "error5")),
                   map5(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), invalid("error5"), sum5))
         );
   }
-  
+
   @Test
   public void functorLaws() {
     FunctorLaws.verifyLaws(valid("value"));

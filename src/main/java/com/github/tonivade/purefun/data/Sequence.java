@@ -14,13 +14,12 @@ import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Foldable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Operator2;
-import com.github.tonivade.purefun.handler.SequenceHandler;
 import com.github.tonivade.purefun.type.Option;
 
-public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Foldable<E> {
+public interface Sequence<E> extends Iterable<E>, Monad<SequenceKind.µ, E>, Filterable<E>, Foldable<E> {
 
   int size();
 
@@ -34,7 +33,8 @@ public interface Sequence<E> extends Iterable<E>, Functor<E>, Filterable<E>, Fol
   @Override
   <R> Sequence<R> map(Function1<E, R> mapper);
 
-  <R> Sequence<R> flatMap(SequenceHandler<E, R> mapper);
+  @Override
+  <R> Sequence<R> flatMap(Function1<E, ? extends Monad<SequenceKind.µ, R>> mapper);
 
   @SuppressWarnings("unchecked")
   default <V> Sequence<V> flatten() {

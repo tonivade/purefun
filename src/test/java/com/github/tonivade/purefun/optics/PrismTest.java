@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.handler.OptionHandler.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

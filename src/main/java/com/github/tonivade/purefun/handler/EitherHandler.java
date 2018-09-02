@@ -20,23 +20,23 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
   default <V> EitherHandler<T, L, V> map(Function1<R, V> mapper) {
     return value -> apply(value).map(mapper::apply);
   }
-  
+
   default <V> EitherHandler<T, V, R> mapLeft(Function1<L, V> mapper) {
     return value -> apply(value).mapLeft(mapper::apply);
   }
-  
+
   default <V> EitherHandler<T, L, V> flatMap(EitherHandler<R, L, V> mapper) {
     return value -> apply(value).flatMap(mapper::apply);
   }
-  
+
   default <V> EitherHandler<T, L, V> flatten() {
     return value -> apply(value).flatten();
   }
-  
+
   default OptionHandler<T, Either<L, R>> filter(Matcher<R> matcher) {
     return value -> apply(value).filter(matcher);
   }
-  
+
   default Function1<T, R> orElse(Producer<R> producer) {
     return value -> apply(value).orElse(producer);
   }
@@ -44,7 +44,7 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
   static <L, R> Function1<Either<L, R>, Either<L, R>> identity() {
     return Function1.<Either<L, R>>identity()::apply;
   }
-  
+
   static <T, L, R> EitherHandler<T, L, R> of(Function1<T, Either<L, R>> reference) {
     return reference::apply;
   }

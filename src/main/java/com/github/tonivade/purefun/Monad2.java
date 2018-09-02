@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Functor<W extends Witness, T> extends Higher<W, T> {
+public interface Monad2<W extends Witness, T, V> extends Higher2<W, T, V>, Functor<W, V> {
 
-  <R> Functor<W, R> map(Function1<T, R> map);
+  <R> Monad2<W, T, R> flatMap(Function1<V, ? extends Monad2<W, T, R>> map);
 
 }

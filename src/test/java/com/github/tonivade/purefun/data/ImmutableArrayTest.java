@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MonadLaws;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableArrayTest {
@@ -100,5 +101,6 @@ public class ImmutableArrayTest {
   @Test
   public void arrayLaws() {
     FunctorLaws.verifyLaws(arrayOf("a", "b", "c"));
+    MonadLaws.verifyLaws(arrayOf("a", "b", "c"), Sequence::arrayOf);
   }
 }
