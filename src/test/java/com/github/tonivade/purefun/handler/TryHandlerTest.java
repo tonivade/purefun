@@ -24,7 +24,7 @@ public class TryHandlerTest {
     TryHandler<String, Integer> str2int = str -> Try.failure("error");
 
     assertEquals(Try.failure("error").isFailure(),
-                 str2int.map(a -> a * 2).applyK("asdfg").isFailure());
+                 str2int.map(a -> a * 2).apply("asdfg").isFailure());
   }
 
   @Test
@@ -46,7 +46,7 @@ public class TryHandlerTest {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
 
     assertEquals(Try.failure("error").isFailure(),
-                 str2int.filter(x -> x > 10).applyK("asdfg").isFailure());
+                 str2int.filter(x -> x > 10).apply("asdfg").isFailure());
   }
 
   @Test
@@ -61,7 +61,7 @@ public class TryHandlerTest {
     TryHandler<String, Integer> str2int = str -> Try.success(str.length());
 
     assertEquals(Try.failure("error").isFailure(),
-                 str2int.flatMap(a -> Try.failure("error")).applyK("asdfg").isFailure());
+                 str2int.flatMap(a -> Try.failure("error")).apply("asdfg").isFailure());
   }
 
   @Test

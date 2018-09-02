@@ -28,7 +28,7 @@ public final class Prism<T, R> {
   }
 
   public Option<R> getOption(T target) {
-    return getOption.applyK(target);
+    return getOption.apply(target);
   }
 
   public T reverseGet(R value) {
@@ -40,7 +40,7 @@ public final class Prism<T, R> {
   }
 
   public Operator1<T> modify(Operator1<R> mapper) {
-    return target -> modifyOption(mapper).applyK(target).orElse(target);
+    return target -> modifyOption(mapper).apply(target).orElse(target);
   }
 
   public Operator1<T> set(R value) {

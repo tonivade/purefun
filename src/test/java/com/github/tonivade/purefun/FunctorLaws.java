@@ -12,16 +12,16 @@ public class FunctorLaws {
 
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;
-  
-  public static void verifyLaws(Functor<String> functor) {
-    assertAll(() -> assertEquals(functor, 
-                                 functor.map(identity()), 
+
+  public static <W> void verifyLaws(Functor<W, String> functor) {
+    assertAll(() -> assertEquals(functor,
+                                 functor.map(identity()),
                                  "identity law"),
-              () -> assertEquals(functor.map(toUpperCase).map(toLowerCase), 
-                                 functor.map(toUpperCase.andThen(toLowerCase)), 
+              () -> assertEquals(functor.map(toUpperCase).map(toLowerCase),
+                                 functor.map(toUpperCase.andThen(toLowerCase)),
                                  "composition law"),
-              () -> assertEquals(functor.map(toUpperCase).map(toLowerCase.andThen(toUpperCase)), 
-                                 functor.map(toUpperCase.andThen(toLowerCase)).map(toUpperCase), 
+              () -> assertEquals(functor.map(toUpperCase).map(toLowerCase.andThen(toUpperCase)),
+                                 functor.map(toUpperCase.andThen(toLowerCase)).map(toUpperCase),
                                  "associativity law")
               );
   }

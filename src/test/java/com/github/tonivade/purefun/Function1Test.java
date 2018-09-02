@@ -50,14 +50,14 @@ public class Function1Test {
 
   @Test
   public void liftOptionTest() {
-    Option<Integer> result = str2int.liftOption().applyK("asdfg");
+    Option<Integer> result = str2int.liftOption().apply("asdfg");
 
     assertEquals(Option.some(5), result);
   }
 
   @Test
   public void liftTryTest() {
-    Try<Integer> result = str2int.liftTry().applyK("asdfg");
+    Try<Integer> result = str2int.liftTry().apply("asdfg");
 
     assertEquals(Try.success(5), result);
   }
