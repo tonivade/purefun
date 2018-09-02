@@ -19,16 +19,17 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MonadLaws;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableListTest {
-  
+
   private final Function1<String, String> toUpperCase = String::toUpperCase;
-  
+
   @Test
   public void notEmptyList() {
     ImmutableList<String> list = listOf("a", "b", "c");
-    
+
     assertAll(() -> assertEquals(3, list.size()),
               () -> assertEquals(Option.some("a"), list.head()),
               () -> assertEquals(listOf("b", "c"), list.tail()),
@@ -59,11 +60,11 @@ public class ImmutableListTest {
               () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1))
               );
   }
-  
+
   @Test
   public void emptyList() {
     ImmutableList<String> list = ImmutableList.empty();
-    
+
     assertAll(() -> assertEquals(0, list.size()),
               () -> assertEquals(Option.none(), list.head()),
               () -> assertEquals(ImmutableList.empty(), list.tail()),
@@ -86,9 +87,10 @@ public class ImmutableListTest {
               () -> assertEquals(ImmutableList.empty(), list.flatten()),
               () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1)));
   }
-  
+
   @Test
   public void listLaws() {
     FunctorLaws.verifyLaws(listOf("a", "b", "c"));
+    MonadLaws.verifyLaws(listOf("a", "b", "c"), Sequence::listOf);
   }
 }

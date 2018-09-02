@@ -21,16 +21,17 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MonadLaws;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableSetTest {
-  
+
   private final Function1<String, String> toUpperCase = String::toUpperCase;
-  
+
   @Test
   public void notEmptySet() {
     ImmutableSet<String> set = setOf("a", "b", "c");
-    
+
     assertAll(() -> assertEquals(3, set.size()),
               () -> assertFalse(set.isEmpty()),
               () -> assertTrue(set.contains("a")),
@@ -58,11 +59,11 @@ public class ImmutableSetTest {
               () -> assertEquals(setOf("a", "b", "c"), set.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)));
   }
-  
+
   @Test
   public void emptyList() {
     ImmutableSet<String> set = ImmutableSet.empty();
-    
+
     assertAll(() -> assertEquals(0, set.size()),
               () -> assertTrue(set.isEmpty()),
               () -> assertFalse(set.contains("z")),
@@ -81,9 +82,10 @@ public class ImmutableSetTest {
               () -> assertEquals(ImmutableSet.empty(), set.flatten()),
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)));
   }
-  
+
   @Test
-  public void listLaws() {
+  public void setLaws() {
     FunctorLaws.verifyLaws(setOf("a", "b", "c"));
+    MonadLaws.verifyLaws(setOf("a", "b", "c"), Sequence::setOf);
   }
 }

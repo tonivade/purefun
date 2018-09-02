@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,17 +12,25 @@ public class FunctorLaws {
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;
 
-  public static <W> void verifyLaws(Functor<W, String> functor) {
-    assertAll(() -> assertEquals(functor,
-                                 functor.map(identity()),
-                                 "identity law"),
-              () -> assertEquals(functor.map(toUpperCase).map(toLowerCase),
-                                 functor.map(toUpperCase.andThen(toLowerCase)),
-                                 "composition law"),
-              () -> assertEquals(functor.map(toUpperCase).map(toLowerCase.andThen(toUpperCase)),
-                                 functor.map(toUpperCase.andThen(toLowerCase)).map(toUpperCase),
-                                 "associativity law")
-              );
+  public static <W extends Witness> void verifyLaws(Functor<W, String> functor) {
+    assertAll(() -> identity(functor),
+              () -> composition(functor),
+              () -> associativity(functor));
   }
 
+  private static <W extends Witness> void identity(Functor<W, String> functor) {
+    assertEquals(functor, functor.map(Function1.identity()), "identity law");
+  }
+
+  private static <W extends Witness> void composition(Functor<W, String> functor) {
+    assertEquals(functor.map(toUpperCase).map(toLowerCase),
+                 functor.map(toUpperCase.andThen(toLowerCase)),
+                 "composition law");
+  }
+
+  private static <W extends Witness> void associativity(Functor<W, String> functor) {
+    assertEquals(functor.map(toUpperCase).map(toLowerCase.andThen(toUpperCase)),
+                 functor.map(toUpperCase.andThen(toLowerCase)).map(toUpperCase),
+                 "associativity law");
+  }
 }

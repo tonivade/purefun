@@ -5,10 +5,11 @@
 package com.github.tonivade.purefun.type;
 
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Witness;
 
 public interface EitherKind<L, R> extends Higher2<EitherKind.µ, L, R> {
 
-  final class µ {}
+  final class µ implements Witness {}
 
   static <L, R> Either<L, R> narrowK(Higher2<EitherKind.µ, L, R> hkt) {
     return (Either<L, R>) hkt;

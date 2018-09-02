@@ -5,10 +5,11 @@
 package com.github.tonivade.purefun.monad;
 
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Witness;
 
 public interface ReaderKind<R, A> extends Higher2<ReaderKind.µ, R, A>{
 
-  final class µ {}
+  final class µ implements Witness {}
 
   static <R, A> Reader<R, A> narrowK(Higher2<ReaderKind.µ, R, A> hkt) {
     return (Reader<R, A>) hkt;
