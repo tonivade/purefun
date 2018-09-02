@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Higher;
 
-final class OptionKind<T> implements Option<T>, Higher<OptionKind.µ, T> {
+public final class OptionKind<T> implements Option<T>, Higher<OptionKind.µ, T> {
 
   public static final class µ {}
 

@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Higher;
 
-final class TryKind<T> implements Try<T>, Higher<TryKind.µ, T> {
+public final class TryKind<T> implements Try<T>, Higher<TryKind.µ, T> {
 
   public static final class µ {}
 

@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Higher2;
 
-final class EitherKind<L, R> implements Either<L, R>, Higher2<EitherKind.µ, L, R> {
+public final class EitherKind<L, R> implements Either<L, R>, Higher2<EitherKind.µ, L, R> {
 
   public static final class µ {}
 

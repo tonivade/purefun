@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad;
 
-public class SequenceKind<T> implements Sequence<T>, Higher<SequenceKind.µ, T> {
+public final class SequenceKind<T> implements Sequence<T>, Higher<SequenceKind.µ, T> {
 
   public static final class µ {}
 
