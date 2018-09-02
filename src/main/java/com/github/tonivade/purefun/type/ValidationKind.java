@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Higher2;
 
-public class ValidationKind<E, T> implements Validation<E, T>, Higher2<ValidationKind.µ, E, T> {
+final class ValidationKind<E, T> implements Validation<E, T>, Higher2<ValidationKind.µ, E, T> {
 
   public static final class µ {}
 

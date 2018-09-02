@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Tuple2;
 
-public class StateKind<S, A> implements State<S, A>, Higher2<StateKind.µ, S, A>{
+final class StateKind<S, A> implements State<S, A>, Higher2<StateKind.µ, S, A>{
 
   public static final class µ {}
 

@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Higher;
 
-public class IOKind<T> implements IO<T>, Higher<IOKind.µ, T>{
+final class IOKind<T> implements IO<T>, Higher<IOKind.µ, T>{
 
   public static final class µ {}
 

@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Higher2;
 
-public class ReaderKind<R, A> implements Reader<R, A>, Higher2<ReaderKind.µ, R, A>{
+final class ReaderKind<R, A> implements Reader<R, A>, Higher2<ReaderKind.µ, R, A>{
 
   public static final class µ {}
 
