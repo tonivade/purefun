@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.type.ValidationKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -17,13 +18,13 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
-import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Validation<E, T> extends Holder<T>, Functor<T> {
+public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -53,9 +54,10 @@ public interface Validation<E, T> extends Holder<T>, Functor<T> {
     return valid(get());
   }
 
-  default <R> Validation<E, R> flatMap(Function1<T, Validation<E, R>> mapper) {
+  @Override
+  default <R> Validation<E, R> flatMap(Function1<T, ? extends Monad2<ValidationKind.µ, E, R>> mapper) {
     if (isValid()) {
-      return mapper.apply(get());
+      return narrowK(mapper.apply(get()));
     }
     return invalid(getError());
   }

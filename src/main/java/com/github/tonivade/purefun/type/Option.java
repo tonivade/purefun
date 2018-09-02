@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.OptionHandler.identity;
 import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.type.OptionKind.narrowK;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -17,15 +18,14 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.handler.OptionHandler;
 
-public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
+public interface Option<T> extends Monad<OptionKind.µ, T>, Filterable<T>, Holder<T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -59,9 +59,10 @@ public interface Option<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return none();
   }
 
-  default <R> Option<R> flatMap(OptionHandler<T, R> mapper) {
+  @Override
+  default <R> Option<R> flatMap(Function1<T, ? extends Monad<OptionKind.µ, R>> map) {
     if (isPresent()) {
-      return mapper.apply(get());
+      return narrowK(map.apply(get()));
     }
     return none();
   }

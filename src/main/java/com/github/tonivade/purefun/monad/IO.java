@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Console.console;
+import static com.github.tonivade.purefun.monad.IOKind.narrowK;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,29 +15,30 @@ import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Functor;
+import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
-public interface IO<T> extends Functor<T> {
+public interface IO<T> extends Monad<IOKind.µ, T> {
 
   T unsafeRunSync();
-  
+
   @Override
   default <R> IO<R> map(Function1<T, R> map) {
     return () -> map.apply(unsafeRunSync());
   }
-  
-  default <R> IO<R> flatMap(Function1<T, IO<R>> map) {
-    return () -> map.apply(unsafeRunSync()).unsafeRunSync();
+
+  @Override
+  default <R> IO<R> flatMap(Function1<T, ? extends Monad<IOKind.µ, R>> map) {
+    return () -> narrowK(map.apply(unsafeRunSync())).unsafeRunSync();
   }
-  
+
   default <R> IO<R> andThen(IO<R> after) {
     return flatMap(ignore -> after);
   }
-  
+
   static <T> IO<T> unit(T value) {
     return () -> value;
   }
@@ -48,17 +50,17 @@ public interface IO<T> extends Functor<T> {
   static <T> IO<T> of(Producer<T> producer) {
     return () -> producer.get();
   }
-  
+
   static IO<Nothing> noop() {
     return unit(nothing());
   }
-  
+
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
     return sequence.fold(noop(), IO::andThen).andThen(noop());
   }
-  
+
   final class ConsoleIO {
-    
+
     public static IO<Nothing> println(String message) {
       return exec(() -> console().println(message));
     }

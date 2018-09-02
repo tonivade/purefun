@@ -15,49 +15,49 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 public class Function1Test {
-  
+
   private final Function1<String, String> identity = identity();
   private final Function1<String, Integer> str2int = string -> string.length();
   private final Function1<Integer, String> int2str = integer -> String.valueOf(integer);
-  
+
   @Test
   public void andThenTest() {
     String result = str2int.andThen(int2str).apply("asdfg");
-    
+
     assertEquals("5", result);
   }
-  
+
   @Test
   public void composeTest() {
     String result = int2str.compose(str2int).apply("asdfg");
-    
+
     assertEquals("5", result);
   }
-  
+
   @Test
   public void identityTest() {
     String result = identity.apply("5");
-    
+
     assertEquals("5", result);
   }
-  
+
   @Test
   public void liftOptionalTest() {
     Optional<Integer> result = str2int.liftOptional().apply("asdfg");
 
     assertEquals(Optional.of(5), result);
   }
-  
+
   @Test
   public void liftOptionTest() {
-    Option<Integer> result = str2int.liftOption().apply("asdfg");
+    Option<Integer> result = str2int.liftOption().applyK("asdfg");
 
     assertEquals(Option.some(5), result);
   }
-  
+
   @Test
   public void liftTryTest() {
-    Try<Integer> result = str2int.liftTry().apply("asdfg");
+    Try<Integer> result = str2int.liftTry().applyK("asdfg");
 
     assertEquals(Try.success(5), result);
   }

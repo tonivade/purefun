@@ -51,14 +51,14 @@ public class CheckedFunction1Test {
 
   @Test
   public void liftOptionTest() {
-    Option<Integer> result = str2int.unchecked().liftOption().apply("asdfg");
+    Option<Integer> result = str2int.unchecked().liftOption().applyK("asdfg");
 
     assertEquals(Option.some(5), result);
   }
 
   @Test
   public void liftTrySuccessTest() {
-    Try<Integer> result = str2int.unchecked().liftTry().apply("asdfg");
+    Try<Integer> result = str2int.unchecked().liftTry().applyK("asdfg");
 
     assertEquals(Try.success(5), result);
   }
@@ -66,7 +66,7 @@ public class CheckedFunction1Test {
   @Test
   public void liftTryFailureTest() {
     Try<Nothing> result =
-        CheckedFunction1.<Nothing, Exception>failure(Exception::new).unchecked().liftTry().apply(nothing());
+        CheckedFunction1.<Nothing, Exception>failure(Exception::new).unchecked().liftTry().applyK(nothing());
 
     assertTrue(result.isFailure());
   }

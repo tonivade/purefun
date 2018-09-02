@@ -5,34 +5,41 @@
 package com.github.tonivade.purefun.handler;
 
 import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.type.OptionKind.narrowK;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionKind;
 
 @FunctionalInterface
-public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
+public interface OptionHandler<T, R> extends Function1<T, Monad<OptionKind.µ, R>> {
+
+  default Option<R> applyK(T value) {
+    return narrowK(apply(value));
+  }
 
   @Override
   default <V> OptionHandler<V, R> compose(Function1<V, T> before) {
-    return value -> apply(before.apply(value));
+    return value -> applyK(before.apply(value));
   }
 
   default <V> OptionHandler<T, V> map(Function1<R, V> mapper) {
-    return value -> apply(value).map(mapper::apply);
+    return value -> applyK(value).map(mapper::apply);
   }
 
   default <V> OptionHandler<T, V> flatMap(OptionHandler<R, V> mapper) {
-    return value -> apply(value).flatMap(mapper::apply);
+    return value -> applyK(value).flatMap(mapper::apply);
   }
 
   default <V> OptionHandler<T, V> flatten() {
-    return value -> apply(value).flatten();
+    return value -> applyK(value).flatten();
   }
 
   default OptionHandler<T, R> filter(Matcher<R> matcher) {
-    return value -> apply(value).filter(matcher);
+    return value -> applyK(value).filter(matcher);
   }
 
   default Function1<T, R> orElse(R value) {
@@ -40,11 +47,11 @@ public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
   }
 
   default Function1<T, R> orElse(Producer<R> producer) {
-    return value -> apply(value).orElse(producer);
+    return value -> applyK(value).orElse(producer);
   }
 
   default OptionalHandler<T, R> toOptional() {
-    return value -> apply(value).toOptional();
+    return value -> applyK(value).toOptional();
   }
 
   static <T, R> OptionHandler<T, R> of(Function1<T, Option<R>> reference) {

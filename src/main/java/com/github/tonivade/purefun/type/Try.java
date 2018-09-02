@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.handler.TryHandler.identity;
 import static com.github.tonivade.purefun.type.Equal.comparing;
 import static com.github.tonivade.purefun.type.Equal.comparingArray;
+import static com.github.tonivade.purefun.type.TryKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -17,14 +18,14 @@ import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Functor;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
+public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -62,9 +63,10 @@ public interface Try<T> extends Functor<T>, Filterable<T>, Holder<T> {
     return failure(getCause());
   }
 
-  default <R> Try<R> flatMap(Function1<T, Try<R>> mapper) {
+  @Override
+  default <R> Try<R> flatMap(Function1<T, ? extends Monad<TryKind.µ, R>> mapper) {
     if (isSuccess()) {
-      return mapper.apply(get());
+      return narrowK(mapper.apply(get()));
     }
     return failure(getCause());
   }

@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.handler.OptionHandler.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,11 +32,11 @@ public class PrismTest {
               () -> assertEquals(some, someString.reverseGet("a")),
               () -> assertEquals(Option.some("A"), someString.modify(String::toUpperCase).apply(some)),
               () -> assertEquals(none, someString.modify(String::toUpperCase).apply(none)),
-              () -> assertEquals(Option.some("A"), someString.modifyOption(String::toUpperCase).apply(some).flatten()),
+              () -> assertEquals(Option.some("A"), someString.modifyOption(String::toUpperCase).applyK(some).flatten()),
               () -> assertEquals(none, someString.modifyOption(String::toUpperCase).apply(none)),
               () -> assertEquals(Option.some("A"), someString.set("A").apply(some)),
               () -> assertEquals(none, someString.set("A").apply(none)),
-              () -> assertEquals(Option.some("A"), someString.setOption("A").apply(some).flatten()),
+              () -> assertEquals(Option.some("A"), someString.setOption("A").applyK(some).flatten()),
               () -> assertEquals(none, someString.setOption("A").apply(none)),
               () -> assertEquals(Either.right("a"), someString.getOrModify(some)),
               () -> assertEquals(Either.left(none), someString.getOrModify(none))
@@ -54,12 +54,12 @@ public class PrismTest {
               () -> assertEquals(five, someStringToInteger.reverseGet(5)),
               () -> assertEquals(Option.some("6"), someStringToInteger.modify(i -> i + 1).apply(five)),
               () -> assertEquals(none, someStringToInteger.modify(i -> i + 1).apply(none)),
-              () -> assertEquals(Option.some("6"), someStringToInteger.modifyOption(i -> i + 1).apply(five).flatten()),
+              () -> assertEquals(Option.some("6"), someStringToInteger.modifyOption(i -> i + 1).applyK(five).flatten()),
               () -> assertEquals(none, someStringToInteger.modifyOption(i -> i + 1).apply(none)),
               () -> assertEquals(Option.some("4"), someStringToInteger.set(4).apply(five)),
               () -> assertEquals(none, someStringToInteger.set(4).apply(none)),
-              () -> assertEquals(Option.some("4"), someStringToInteger.setOption(4).apply(five).flatten()),
-              () -> assertEquals(none, someStringToInteger.setOption(4).apply(none).flatten()),
+              () -> assertEquals(Option.some("4"), someStringToInteger.setOption(4).applyK(five).flatten()),
+              () -> assertEquals(none, someStringToInteger.setOption(4).applyK(none).flatten()),
               () -> assertEquals(some, someStringToInteger.set(4).apply(some)),
               () -> assertEquals(Either.right(5), someStringToInteger.getOrModify(five)),
               () -> assertEquals(Either.left(none), someString.getOrModify(none))
