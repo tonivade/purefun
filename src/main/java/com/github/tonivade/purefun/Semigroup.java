@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+@FunctionalInterface
 public interface Semigroup<T> {
 
   T combine(T t1, T t2);

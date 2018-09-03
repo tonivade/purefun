@@ -17,7 +17,7 @@ public final class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
   private final A value;
   private final L log;
 
-  public Writer(Monoid<L> monoid, L log, A value) {
+  private Writer(Monoid<L> monoid, L log, A value) {
     this.monoid = requireNonNull(monoid);
     this.log = requireNonNull(log);
     this.value = requireNonNull(value);
@@ -44,5 +44,9 @@ public final class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
 
   public static <L, A> Writer<L, A> pure(Monoid<L> monoid, A value) {
     return new Writer<>(monoid, monoid.zero(), value);
+  }
+
+  public static <L, A> Writer<L, A> writer(Monoid<L> monoid, L log, A value) {
+    return new Writer<>(monoid, log, value);
   }
 }
