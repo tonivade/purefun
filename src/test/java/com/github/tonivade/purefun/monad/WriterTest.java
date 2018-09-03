@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.monad.Writer.writer;
+import static com.github.tonivade.purefun.monad.Writer.listWriter;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,12 +17,11 @@ public class WriterTest {
 
   @Test
   public void writerTest() {
-    Writer<ImmutableList<String>, Integer> writer = Writer.<String, Integer>pure(5)
-        .flatMap(value -> writer("add 5", value + 5))
-        .flatMap(value -> writer("plus 2", value * 2));
+    Writer<ImmutableList<String>, Integer> writer = Writer.<String, Integer>listPure(5)
+        .flatMap(value -> listWriter("add 5", value + 5))
+        .flatMap(value -> listWriter("plus 2", value * 2));
 
     assertAll(() -> assertEquals(Integer.valueOf(20), writer.getValue()),
               () -> assertEquals(listOf("add 5", "plus 2"), writer.getLog()));
-
   }
 }

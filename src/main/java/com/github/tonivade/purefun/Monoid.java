@@ -17,16 +17,16 @@ public interface Monoid<T> extends Semigroup<T> {
   }
   
   @SuppressWarnings("unchecked")
-  static <T> Monoid<ImmutableList<T>> listMonoid() {
-    return Monoid.class.cast(MonoidInstances.listMonoid);
+  static <T> Monoid<ImmutableList<T>> list() {
+    return Monoid.class.cast(MonoidInstances.list);
   }
   
-  static Monoid<String> stringMonoid() {
-    return MonoidInstances.stringMonoid;
+  static Monoid<String> string() {
+    return MonoidInstances.string;
   }
   
-  static Monoid<Integer> integerMonoid() {
-    return MonoidInstances.integerMonoid;
+  static Monoid<Integer> integer() {
+    return MonoidInstances.integer;
   }
 
   final class GenericMonoid<T> implements Monoid<T> {
@@ -52,7 +52,7 @@ public interface Monoid<T> extends Semigroup<T> {
 
 interface MonoidInstances {
   @SuppressWarnings("rawtypes")
-  Monoid listMonoid = Monoid.of(ImmutableList::empty, ImmutableList::appendAll);
-  Monoid<String> stringMonoid = Monoid.of(unit(""), (a, b) -> a + b);
-  Monoid<Integer> integerMonoid = Monoid.of(unit(0), (a, b) -> a + b);
+  Monoid<ImmutableList> list = Monoid.of(ImmutableList::empty, SemigroupInstances.list);
+  Monoid<String> string = Monoid.of(unit(""), SemigroupInstances.string);
+  Monoid<Integer> integer = Monoid.of(unit(0), SemigroupInstances.integer);
 }
