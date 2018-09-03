@@ -51,7 +51,8 @@ public interface Monoid<T> extends Semigroup<T> {
 }
 
 interface MonoidInstances {
-  Monoid<ImmutableList<?>> listMonoid = Monoid.of(ImmutableList::empty, ImmutableList::appendAll);
+  @SuppressWarnings("rawtypes")
+  Monoid listMonoid = Monoid.of(ImmutableList::empty, ImmutableList::appendAll);
   Monoid<String> stringMonoid = Monoid.of(unit(""), (a, b) -> a + b);
   Monoid<Integer> integerMonoid = Monoid.of(unit(0), (a, b) -> a + b);
 }
