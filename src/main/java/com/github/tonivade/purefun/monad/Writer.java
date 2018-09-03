@@ -4,20 +4,23 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.Monoid.listMonoid;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.WriterKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Monoid;
+import com.github.tonivade.purefun.data.ImmutableList;
 
-public final class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
+public class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
 
   private final Monoid<L> monoid;
   private final A value;
   private final L log;
 
-  private Writer(Monoid<L> monoid, L log, A value) {
+  protected Writer(Monoid<L> monoid, L log, A value) {
     this.monoid = requireNonNull(monoid);
     this.log = requireNonNull(log);
     this.value = requireNonNull(value);
@@ -46,7 +49,15 @@ public final class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
     return new Writer<>(monoid, monoid.zero(), value);
   }
 
+  public static <T, A> Writer<ImmutableList<T>, A> pure(A value) {
+    return pure(listMonoid(), value);
+  }
+
   public static <L, A> Writer<L, A> writer(Monoid<L> monoid, L log, A value) {
     return new Writer<>(monoid, log, value);
+  }
+  
+  public static <T, A> Writer<ImmutableList<T>, A> writer(T log, A value) {
+    return writer(listMonoid(), listOf(log), value);
   }
 }
