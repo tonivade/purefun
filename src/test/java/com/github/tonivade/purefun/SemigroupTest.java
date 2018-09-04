@@ -16,7 +16,7 @@ import org.junit.jupiter.api.TestFactory;
 
 public class SemigroupTest {
 
-  final Semigroup<Integer> semigroup = Semigroup.integer();
+  private final Semigroup<Integer> semigroup = Semigroup.integer();
   
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.TestFactory;
 
 public class MonoidTest {
 
-  final Monoid<Integer> monoid = Monoid.integer();
+  private final Monoid<Integer> monoid = Monoid.integer();
   
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {
