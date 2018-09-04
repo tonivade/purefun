@@ -11,7 +11,7 @@ public interface Semigroup<T> {
 
   T combine(T t1, T t2);
   
-  static <T> Semigroup<T> semigroup(Operator2<T> combine) {
+  static <T> Semigroup<T> of(Operator2<T> combine) {
     return combine::apply;
   }
   
