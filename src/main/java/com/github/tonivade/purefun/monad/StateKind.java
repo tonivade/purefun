@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.monad;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Witness;
 
-public interface StateKind<S, A> extends Higher2<StateKind.µ, S, A>{
+public interface StateKind<S, A> extends Higher2<StateKind.µ, S, A> {
 
   final class µ implements Witness {}
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -22,12 +23,12 @@ public class StateTest {
 
   @Test
   public void get() {
-    assertEquals(Tuple2.of("abc", "abc"), State.get().run("abc"));
+    assertEquals(Tuple.of("abc", "abc"), State.get().run("abc"));
   }
 
   @Test
   public void set() {
-    assertEquals(Tuple2.of("abc", nothing()), State.set("abc").run("zzz"));
+    assertEquals(Tuple.of("abc", nothing()), State.set("abc").run("zzz"));
   }
 
   @Test
@@ -37,7 +38,7 @@ public class StateTest {
 
   @Test
   public void modify() {
-    assertEquals(Tuple2.of("ABC", nothing()), State.<String>modify(String::toUpperCase).run("abc"));
+    assertEquals(Tuple.of("ABC", nothing()), State.<String>modify(String::toUpperCase).run("abc"));
   }
 
   @Test
@@ -47,7 +48,7 @@ public class StateTest {
 
     Tuple2<ImmutableList<String>, Nothing> result = state.run(ImmutableList.empty());
 
-    assertEquals(Tuple2.of(listOf("a", "b", "c"), nothing()), result);
+    assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result);
   }
 
   @Test
@@ -58,16 +59,16 @@ public class StateTest {
 
     Tuple2<Nothing, Sequence<String>> result = State.compose(listOf(sa, sb, sc)).run(nothing());
 
-    assertEquals(Tuple2.of(nothing(), listOf("a", "b", "c")), result);
+    assertEquals(Tuple.of(nothing(), listOf("a", "b", "c")), result);
   }
 
   @Test
   public void run() {
-    State<ImmutableList<String>, Option<String>> read = state(state -> Tuple2.of(state.tail(), state.head()));
+    State<ImmutableList<String>, Option<String>> read = state(state -> Tuple.of(state.tail(), state.head()));
 
     Tuple2<ImmutableList<String>, Option<String>> result = read.run(listOf("a", "b", "c"));
 
-    assertEquals(Tuple2.of(listOf("b", "c"), Option.some("a")), result);
+    assertEquals(Tuple.of(listOf("b", "c"), Option.some("a")), result);
   }
 
   private static State<ImmutableList<String>, String> unit(String value) {
@@ -75,10 +76,10 @@ public class StateTest {
   }
 
   private static <T> Function1<T, State<ImmutableList<T>, T>> append(T nextVal) {
-    return value -> state(state -> Tuple2.of(state.append(value), nextVal));
+    return value -> state(state -> Tuple.of(state.append(value), nextVal));
   }
 
   private static <T> Function1<T, State<ImmutableList<T>, Nothing>> end() {
-    return value -> state(state -> Tuple2.of(state.append(value), nothing()));
+    return value -> state(state -> Tuple.of(state.append(value), nothing()));
   }
 }

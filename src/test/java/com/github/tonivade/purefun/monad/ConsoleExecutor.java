@@ -29,12 +29,20 @@ public class ConsoleExecutor {
     InputStream savedInput = System.in;
     PrintStream savedOutput = System.out;
     try {
-      System.setIn(new ByteArrayInputStream(input.toString().getBytes(UTF_8)));
-      System.setOut(new PrintStream(output));
+      System.setIn(mockInput());
+      System.setOut(mockOutput());
       return program.unsafeRunSync();
     } finally {
       System.setIn(savedInput);
       System.setOut(savedOutput);
     }
+  }
+
+  private PrintStream mockOutput() {
+    return new PrintStream(output);
+  }
+
+  private ByteArrayInputStream mockInput() {
+    return new ByteArrayInputStream(input.toString().getBytes(UTF_8));
   }
 }

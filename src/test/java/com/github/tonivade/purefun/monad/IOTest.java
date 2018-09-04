@@ -36,6 +36,7 @@ public class IOTest {
       .andThen(println("end"));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
+
     executor.run(echo);
 
     assertEquals("write your name\nHello Toni\nend\n", executor.getOutput());

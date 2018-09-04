@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.monad;
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Witness;
 
-public interface IOKind<T> extends Higher<IOKind.µ, T>{
+public interface IOKind<T> extends Higher<IOKind.µ, T> {
 
   final class µ implements Witness {}
 
