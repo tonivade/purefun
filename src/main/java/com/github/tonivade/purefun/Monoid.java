@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Producer.unit;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.data.ImmutableList;
 
@@ -34,8 +35,8 @@ public interface Monoid<T> extends Semigroup<T> {
     private final Semigroup<T> combine;
 
     private GenericMonoid(Producer<T> zero, Semigroup<T> combine) {
-      this.zero = zero;
-      this.combine = combine;
+      this.zero = requireNonNull(zero);
+      this.combine = requireNonNull(combine);
     }
 
     @Override
