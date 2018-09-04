@@ -138,6 +138,19 @@ String result = read2.eval(ImmutableList.of("a", "b", "c"));
 assertEqual("b", result);
 ```
 
+### Writer Monad
+
+It allow to combine operations over a common output.
+
+```java
+Writer<ImmutableList<String>, Integer> writer = Writer.<String, Integer>listPure(5)
+    .flatMap(value -> listWriter("add 5", value + 5))
+    .flatMap(value -> listWriter("plus 2", value * 2));
+
+assertAll(() -> assertEquals(Integer.valueOf(20), writer.getValue()),
+          () -> assertEquals(listOf("add 5", "plus 2"), writer.getLog()));
+```
+
 ### IO Monad
 
 This is a experimental implementation of IO Monad in java. Inspired in this [work](https://gist.github.com/joergrathlev/f17092d3470dcf732be6).
@@ -149,6 +162,55 @@ This is a experimental implementation of IO Monad in java. Inspired in this [wor
       .andThen(Console.print("end"));
       
   echo.unsafeRunSync();
+```
+
+## Algebra
+
+Some algebraic data types
+
+### Semigroup
+
+It represents a binary operation over a type.
+
+```java
+T combine(T t1, T t2)
+```
+
+There are instances for lists, strings and integers.
+
+### Monoid
+
+Extends Semigroup adding a zero operation that represent an identity.
+
+```java
+T zero()
+T combine(T t1, T t2)
+```
+
+There are instances for lists, strings and integers.
+
+### Functor
+
+It represent the arrow between two categories, encapsulates a data type that can be mapped to other data type. 
+
+```java
+interface Functor<W extends Witness, T> extends Higher<W, T> {
+
+  <R> Functor<W, R> map(Function1<T, R> map);
+
+}
+```
+
+### Monad
+
+It is difficult to explain what a monad is, many people have tried and this is my humble attempt. It is something that allows to sequence operations, in a functional way, but simulating the imperative style. For example, State, Reader, Writer and IO monads are ways to combine operations.
+
+```java
+interface Monad<W extends Witness, T> extends Higher<W, T>, Functor<W, T> {
+
+  <R> Monad<W, R> flatMap(Function1<T, ? extends Monad<W, R>> map);
+
+}
 ```
 
 ## Equal
