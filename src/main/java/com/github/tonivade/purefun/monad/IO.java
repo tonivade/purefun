@@ -48,7 +48,7 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
   }
 
   static <T> IO<T> of(Producer<T> producer) {
-    return () -> producer.get();
+    return producer::get;
   }
 
   static IO<Nothing> noop() {
@@ -60,7 +60,9 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
   }
 
   final class ConsoleIO {
-
+    
+    private ConsoleIO() {}
+    
     public static IO<Nothing> println(String message) {
       return exec(() -> console().println(message));
     }
@@ -72,7 +74,7 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
 }
 
 final class Console {
-  private static final ThreadLocal<Console> console = ThreadLocal.withInitial(Console::new);
+  private static final ThreadLocal<Console> current = ThreadLocal.withInitial(Console::new);
 
   private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
   private final PrintWriter writer = new PrintWriter(System.out);
@@ -80,7 +82,7 @@ final class Console {
   private Console() {}
 
   protected static Console console() {
-    return console.get();
+    return current.get();
   }
 
   protected void println(String message) {
