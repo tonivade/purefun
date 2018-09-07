@@ -1,8 +1,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.monad.Free.liftF;
-import static com.github.tonivade.purefun.monad.IOProgram.read;
-import static com.github.tonivade.purefun.monad.IOProgram.write;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +12,7 @@ public class FreeTest {
 
   @Test
   public void echo() {
-    Free<IOProgram.µ, Nothing> echo = read().flatMap(value -> write(value));
+    Free<IOProgram.µ, Nothing> echo = IOProgram.read().flatMap(IOProgram::write);
 
     echo.foldMap(Nothing.nothing());
   }
