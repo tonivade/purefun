@@ -1,16 +1,20 @@
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.monad.Free.liftF;
+import static com.github.tonivade.purefun.monad.IOProgram.read;
+import static com.github.tonivade.purefun.monad.IOProgram.write;
+
+import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Witness;
 
-import org.junit.jupiter.api.Test;
-
 public class FreeTest {
 
   @Test
-  public void test() {
-    Free<IOProgram.µ, Nothing> echo = Free.liftF(new Read()).flatMap(x -> Free.liftF(new Write(x)));
+  public void echo() {
+    Free<IOProgram.µ, Nothing> echo = read().flatMap(value -> write(value));
 
     echo.foldMap(Nothing.nothing());
   }
@@ -18,15 +22,24 @@ public class FreeTest {
 
 interface IOProgram<T> extends Higher<IOProgram.µ, T> {
   final class µ implements Witness {}
-}
 
-final class Read implements IOProgram<String> {
-}
+  static Free<IOProgram.µ, String> read() {
+    return liftF(new Read());
+  }
 
-final class Write implements IOProgram<Nothing> {
-  final String value;
+  static Free<IOProgram.µ, Nothing> write(String value) {
+    return liftF(new Write(value));
+  }
 
-  public Write(String value) {
-    this.value = value;
+  final class Read implements IOProgram<String> {
+    private Read() {}
+  }
+
+  final class Write implements IOProgram<Nothing> {
+    final String value;
+
+    private Write(String value) {
+      this.value = value;
+    }
   }
 }
