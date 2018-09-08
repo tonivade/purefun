@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
@@ -88,7 +89,7 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
   }
 
   @Override
-  default <T> Either<L, T> flatMap(Function1<R, ? extends Monad2<EitherKind.µ, L, T>> map) {
+  default <T> Either<L, T> flatMap(Function1<R, ? extends Higher2<EitherKind.µ, L, T>> map) {
     if (isRight()) {
       return narrowK(map.apply(getRight()));
     }

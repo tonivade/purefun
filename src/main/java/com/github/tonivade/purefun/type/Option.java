@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad;
@@ -60,7 +61,7 @@ public interface Option<T> extends Monad<OptionKind.µ, T>, Filterable<T>, Holde
   }
 
   @Override
-  default <R> Option<R> flatMap(Function1<T, ? extends Monad<OptionKind.µ, R>> map) {
+  default <R> Option<R> flatMap(Function1<T, ? extends Higher<OptionKind.µ, R>> map) {
     if (isPresent()) {
       return narrowK(map.apply(get()));
     }

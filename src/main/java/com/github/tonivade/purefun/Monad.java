@@ -6,6 +6,6 @@ package com.github.tonivade.purefun;
 
 public interface Monad<W extends Witness, T> extends Functor<W, T> {
 
-  <R> Monad<W, R> flatMap(Function1<T, ? extends Monad<W, R>> map);
+  <R> Monad<W, R> flatMap(Function1<T, ? extends Higher<W, R>> map);
 
 }

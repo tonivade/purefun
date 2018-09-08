@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.monad.ReaderKind.narrowK;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 
 @FunctionalInterface
@@ -20,7 +21,7 @@ public interface Reader<R, A> extends Monad2<ReaderKind.µ, R, A> {
   }
 
   @Override
-  default <B> Reader<R, B> flatMap(Function1<A, ? extends Monad2<ReaderKind.µ, R, B>> mapper) {
+  default <B> Reader<R, B> flatMap(Function1<A, ? extends Higher2<ReaderKind.µ, R, B>> mapper) {
     return reader -> narrowK(mapper.apply(eval(reader))).eval(reader);
   }
 
