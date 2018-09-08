@@ -208,7 +208,7 @@ It is difficult to explain what a monad is, many people have tried and this is m
 ```java
 interface Monad<W extends Witness, T> extends Higher<W, T>, Functor<W, T> {
 
-  <R> Monad<W, R> flatMap(Function1<T, ? extends Monad<W, R>> map);
+  <R> Monad<W, R> flatMap(Function1<T, ? extends Higher<W, R>> map);
 
 }
 ```
