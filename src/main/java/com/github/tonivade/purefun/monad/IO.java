@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
@@ -31,7 +32,7 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
   }
 
   @Override
-  default <R> IO<R> flatMap(Function1<T, ? extends Monad<IOKind.µ, R>> map) {
+  default <R> IO<R> flatMap(Function1<T, ? extends Higher<IOKind.µ, R>> map) {
     return () -> narrowK(map.apply(unsafeRunSync())).unsafeRunSync();
   }
 
@@ -60,9 +61,9 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
   }
 
   final class ConsoleIO {
-    
+
     private ConsoleIO() {}
-    
+
     public static IO<Nothing> println(String message) {
       return exec(() -> console().println(message));
     }

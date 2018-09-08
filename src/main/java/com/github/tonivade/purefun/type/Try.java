@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad;
@@ -64,7 +65,7 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
   }
 
   @Override
-  default <R> Try<R> flatMap(Function1<T, ? extends Monad<TryKind.µ, R>> mapper) {
+  default <R> Try<R> flatMap(Function1<T, ? extends Higher<TryKind.µ, R>> mapper) {
     if (isSuccess()) {
       return narrowK(mapper.apply(get()));
     }

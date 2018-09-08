@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
@@ -55,7 +56,7 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
   }
 
   @Override
-  default <R> Validation<E, R> flatMap(Function1<T, ? extends Monad2<ValidationKind.µ, E, R>> mapper) {
+  default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<ValidationKind.µ, E, R>> mapper) {
     if (isValid()) {
       return narrowK(mapper.apply(get()));
     }

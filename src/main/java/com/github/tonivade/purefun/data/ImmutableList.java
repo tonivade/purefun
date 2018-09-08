@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.type.Equal;
 import com.github.tonivade.purefun.type.Option;
 
@@ -56,7 +56,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableList<R> flatMap(Function1<E, ? extends Monad<SequenceKind.µ, R>> mapper) {
+  default <R> ImmutableList<R> flatMap(Function1<E, ? extends Higher<SequenceKind.µ, R>> mapper) {
     return ImmutableList.from(stream().flatMap(element -> narrowK(mapper.apply(element)).stream()));
   }
 

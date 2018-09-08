@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Foldable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Operator2;
@@ -34,7 +35,7 @@ public interface Sequence<E> extends Iterable<E>, Monad<SequenceKind.µ, E>, Fil
   <R> Sequence<R> map(Function1<E, R> mapper);
 
   @Override
-  <R> Sequence<R> flatMap(Function1<E, ? extends Monad<SequenceKind.µ, R>> mapper);
+  <R> Sequence<R> flatMap(Function1<E, ? extends Higher<SequenceKind.µ, R>> mapper);
 
   @SuppressWarnings("unchecked")
   default <V> Sequence<V> flatten() {
