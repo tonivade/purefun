@@ -5,13 +5,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.monad.Console.console;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher;
@@ -57,44 +50,5 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
 
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
     return sequence.fold(noop(), IO::andThen).andThen(noop());
-  }
-
-  final class ConsoleIO {
-
-    private ConsoleIO() {}
-
-    public static IO<Nothing> println(String message) {
-      return exec(() -> console().println(message));
-    }
-
-    public static IO<String> readln() {
-      return IO.of(() -> console().readln());
-    }
-  }
-}
-
-final class Console {
-  private static final ThreadLocal<Console> current = ThreadLocal.withInitial(Console::new);
-
-  private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-  private final PrintWriter writer = new PrintWriter(System.out);
-
-  private Console() {}
-
-  protected static Console console() {
-    return current.get();
-  }
-
-  protected void println(String message) {
-    writer.println(message);
-    writer.flush();
-  }
-
-  protected String readln() {
-    try {
-      return reader.readLine();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

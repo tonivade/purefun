@@ -4,8 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.monad.IO.ConsoleIO.println;
-import static com.github.tonivade.purefun.monad.IO.ConsoleIO.readln;
+import static com.github.tonivade.purefun.monad.IOKind.narrowK;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,8 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.typeclasses.Console;
 
 public class IOTest {
+  
+  private final Console<IOKind.µ> console = Console.io();
   
   @Test
   public void unit() {
@@ -30,10 +32,10 @@ public class IOTest {
   
   @Test
   public void echo() {
-    IO<Nothing> echo = println("write your name")
-      .andThen(readln())
-      .flatMap(name -> println("Hello " + name))
-      .andThen(println("end"));
+    IO<Nothing> echo = narrowK(console.println("write your name"))
+        .andThen(narrowK(console.readln()))
+        .flatMap(name -> narrowK(console.println("Hello " + name)))
+        .andThen(narrowK(console.println("end")));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 

@@ -7,8 +7,6 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Free.liftF;
-import static com.github.tonivade.purefun.monad.IO.ConsoleIO.println;
-import static com.github.tonivade.purefun.monad.IO.ConsoleIO.readln;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -17,10 +15,13 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.typeclasses.Console;
 
 public class FreeTest {
 
@@ -41,15 +42,14 @@ public class FreeTest {
 
   @Test
   public void interpret() {
-    Higher<IOKind.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
-                                                     IOProgram.functor,
-                                                     new IOProgramInterperter());
+    Higher<Higher<StateKind.µ, ImmutableList<String>>, Nothing> foldMap = 
+        echo.foldMap(new StateMonad(), IOProgram.functor, new IOProgramState());
+    
+    State<ImmutableList<String>, Nothing> state = StateKind.narrowK(foldMap);
+    
+    Tuple2<ImmutableList<String>, Nothing> run = state.run(ImmutableList.of("Toni"));
 
-    ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
-
-    executor.run(IOKind.narrowK(foldMap));
-
-    assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());
+    assertEquals(ImmutableList.of("what's your name?", "Hello Toni", "end"), run.get1());
   }
 
   private <R> String showProgram(Free<IOProgram.µ, R> program) {
@@ -127,36 +127,42 @@ interface IOProgram<T> extends Higher<IOProgram.µ, T> {
   }
 }
 
-class IOProgramInterperter implements Transformer<IOProgram.µ, IOKind.µ> {
+class IOProgramState implements Transformer<IOProgram.µ, Higher<StateKind.µ, ImmutableList<String>>> {
+  private final Console<Higher<StateKind.µ, ImmutableList<String>>> console = Console.state();
+
   @Override
-  public <X> IO<X> apply(Higher<IOProgram.µ, X> from) {
+  public <X> State<ImmutableList<String>, X> apply(Higher<IOProgram.µ, X> from) {
     IOProgram<X> program = IOProgram.narrowK(from);
     if (program instanceof IOProgram.Read) {
-      return readln().map(program.asRead().next);
+      return StateKind.narrowK(console.readln())
+          .map(program.asRead().next);
     }
     if (program instanceof IOProgram.Write) {
-      return println(program.asWrite().value).map(ignore -> program.asWrite().next);
+      return StateKind.narrowK(console.println(program.asWrite().value))
+          .map(ignore -> program.asWrite().next);
     }
     throw new IllegalStateException();
   }
 }
 
-class IOMonad implements Monad<IOKind.µ> {
+class StateMonad implements Monad<Higher<StateKind.µ, ImmutableList<String>>> {
 
   @Override
-  public <T> IO<T> pure(T value) {
-    return IO.unit(value);
+  public <T> State<ImmutableList<String>, T> pure(T value) {
+    return State.pure(value);
   }
 
   @Override
-  public <T, R> IO<R> map(Higher<IOKind.µ, T> value, Function1<T, R> map) {
-    return IOKind.narrowK(value).map(map);
+  public <T, R> State<ImmutableList<String>, R> map(
+      Higher<Higher<StateKind.µ, ImmutableList<String>>, T> value, Function1<T, R> map) {
+    return StateKind.narrowK(value).map(map);
   }
 
   @Override
-  public <T, R> IO<R> flatMap(Higher<IOKind.µ, T> value,
-                              Function1<T, ? extends Higher<IOKind.µ, R>> map) {
-    return IOKind.narrowK(value).flatMap(map);
+  public <T, R> State<ImmutableList<String>, R> flatMap(
+      Higher<Higher<StateKind.µ, ImmutableList<String>>, T> value,
+      Function1<T, ? extends Higher<Higher<StateKind.µ, ImmutableList<String>>, R>> map) {
+    return StateKind.narrowK(value).flatMap(map.andThen(StateKind::narrowK));
   }
 }
 
