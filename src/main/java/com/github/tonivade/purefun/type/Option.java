@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.OptionHandler.identity;
 import static com.github.tonivade.purefun.type.Equal.comparing;
-import static com.github.tonivade.purefun.type.OptionKind.narrowK;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -63,7 +62,7 @@ public interface Option<T> extends Monad<OptionKind.µ, T>, Filterable<T>, Holde
   @Override
   default <R> Option<R> flatMap(Function1<T, ? extends Higher<OptionKind.µ, R>> map) {
     if (isPresent()) {
-      return narrowK(map.apply(get()));
+      return map.andThen(OptionKind::narrowK).apply(get());
     }
     return none();
   }

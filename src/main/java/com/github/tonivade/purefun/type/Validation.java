@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Equal.comparing;
-import static com.github.tonivade.purefun.type.ValidationKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -58,7 +57,7 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
   @Override
   default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<ValidationKind.µ, E, R>> mapper) {
     if (isValid()) {
-      return narrowK(mapper.apply(get()));
+      return mapper.andThen(ValidationKind::narrowK).apply(get());
     }
     return invalid(getError());
   }

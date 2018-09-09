@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionKind;
 import com.github.tonivade.purefun.type.Try;

@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
+import com.github.tonivade.purefun.algebra.Semigroup;
+
 public class SemigroupTest {
 
   private final Semigroup<Integer> semigroup = Semigroup.integer();

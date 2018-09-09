@@ -5,13 +5,12 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.monad.WriterKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
-import com.github.tonivade.purefun.Monoid;
+import com.github.tonivade.purefun.algebra.Monoid;
 import com.github.tonivade.purefun.data.ImmutableList;
 
 public class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
@@ -41,7 +40,7 @@ public class Writer<L, A> implements Monad2<WriterKind.µ, L, A> {
 
   @Override
   public <B> Writer<L, B> flatMap(Function1<A, ? extends Higher2<WriterKind.µ, L, B>> map) {
-    Writer<L, B> apply = narrowK(map.apply(value));
+    Writer<L, B> apply = map.andThen(WriterKind::narrowK).apply(value);
     return new Writer<>(monoid, monoid.combine(log, apply.log), apply.value);
   }
 

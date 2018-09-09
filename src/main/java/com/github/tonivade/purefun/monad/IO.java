@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Console.console;
-import static com.github.tonivade.purefun.monad.IOKind.narrowK;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,7 +32,7 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
 
   @Override
   default <R> IO<R> flatMap(Function1<T, ? extends Higher<IOKind.µ, R>> map) {
-    return () -> narrowK(map.apply(unsafeRunSync())).unsafeRunSync();
+    return () -> map.andThen(IOKind::narrowK).apply(unsafeRunSync()).unsafeRunSync();
   }
 
   default <R> IO<R> andThen(IO<R> after) {

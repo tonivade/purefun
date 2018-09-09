@@ -2,11 +2,12 @@
  * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.algebra;
 
 import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 
 public interface Monoid<T> extends Semigroup<T> {

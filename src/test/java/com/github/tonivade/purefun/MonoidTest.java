@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
+import com.github.tonivade.purefun.algebra.Monoid;
+
 public class MonoidTest {
 
   private final Monoid<Integer> monoid = Monoid.integer();

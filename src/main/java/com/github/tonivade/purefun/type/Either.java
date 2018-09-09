@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.EitherHandler.identity;
-import static com.github.tonivade.purefun.type.EitherKind.narrowK;
 import static com.github.tonivade.purefun.type.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
@@ -91,14 +90,14 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
   @Override
   default <T> Either<L, T> flatMap(Function1<R, ? extends Higher2<EitherKind.µ, L, T>> map) {
     if (isRight()) {
-      return narrowK(map.apply(getRight()));
+      return map.andThen(EitherKind::narrowK).apply(getRight());
     }
     return left(getLeft());
   }
 
   default <T> Either<T, R> flatMapLeft(Function1<L, ? extends Higher2<EitherKind.µ, T, R>> map) {
     if (isLeft()) {
-      return narrowK(map.apply(getLeft()));
+      return map.andThen(EitherKind::narrowK).apply(getLeft());
     }
     return right(getRight());
   }
