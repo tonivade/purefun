@@ -18,8 +18,6 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.State;
 
 public interface Console<W extends Witness> {
