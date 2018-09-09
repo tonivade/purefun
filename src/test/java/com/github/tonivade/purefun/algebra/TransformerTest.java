@@ -1,10 +1,15 @@
-package com.github.tonivade.purefun;
+/*
+ * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
+package com.github.tonivade.purefun.algebra;
 
+import static com.github.tonivade.purefun.type.OptionKind.narrowK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.algebra.Transformer;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionKind;
 import com.github.tonivade.purefun.type.Try;
@@ -23,6 +28,6 @@ public class TransformerTest {
 class OptionToTry implements Transformer<OptionKind.µ, TryKind.µ> {
   @Override
   public <X> Try<X> apply(Higher<OptionKind.µ, X> from) {
-    return OptionKind.narrowK(from).map(Try::success).orElse(Try::failure);
+    return narrowK(from).map(Try::success).orElse(Try::failure);
   }
 }

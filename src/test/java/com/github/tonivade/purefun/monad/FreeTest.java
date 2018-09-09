@@ -7,6 +7,8 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Free.liftF;
+import static com.github.tonivade.purefun.monad.IO.ConsoleIO.println;
+import static com.github.tonivade.purefun.monad.IO.ConsoleIO.readln;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -30,17 +32,17 @@ public class FreeTest {
 
   @Test
   public void showProgram() {
-    assertEquals("write(\"what's your name?\") then "
-               + "(text <- read() "
-               + "then write(\"Hello $text\") "
-               + "then (write(\"end\") "
-               + "then (return(Nothing))))", showProgram(echo));
+    assertEquals("write(\"what's your name?\") "
+                 + "then (text <- read() "
+                   + "then (write(\"Hello $text\") "
+                     + "then (write(\"end\") "
+                       + "then (return(Nothing)))))", showProgram(echo));
   }
 
   @Test
   public void interpret() {
     Higher<IOKind.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
-                                                     new IOProgramFunctor(),
+                                                     IOProgram.functor,
                                                      new IOProgramInterperter());
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
@@ -50,13 +52,11 @@ public class FreeTest {
     assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());
   }
 
-  private <R> String showProgram(Free<IOProgram.µ, R> echo) {
-    return echo.resume(IOProgram.functor)
-        .fold(left -> {
-                IOProgram<Free<IOProgram.µ, R>> program = (IOProgram<Free<IOProgram.µ, R>>) left;
-                return program.fold((value, next) -> "write(\"" + value + "\") then (" + showProgram(next) + ")",
-                                    (next) -> "text <- read() then " + showProgram(next));
-              },
+  private <R> String showProgram(Free<IOProgram.µ, R> program) {
+    return program.resume(IOProgram.functor)
+        .fold(left -> IOProgram.narrowK(left)
+                        .fold((value, next) -> "write(\"" + value + "\") then (" + showProgram(next) + ")",
+                              (next) -> "text <- read() then (" + showProgram(next) + ")"),
               right -> "return(" + right + ")");
   }
 }
@@ -132,10 +132,10 @@ class IOProgramInterperter implements Transformer<IOProgram.µ, IOKind.µ> {
   public <X> IO<X> apply(Higher<IOProgram.µ, X> from) {
     IOProgram<X> program = IOProgram.narrowK(from);
     if (program instanceof IOProgram.Read) {
-      return IO.ConsoleIO.readln().map(program.asRead().next);
+      return readln().map(program.asRead().next);
     }
     if (program instanceof IOProgram.Write) {
-      return IO.ConsoleIO.println(program.asWrite().value).map(x -> program.asWrite().next);
+      return println(program.asWrite().value).map(ignore -> program.asWrite().next);
     }
     throw new IllegalStateException();
   }

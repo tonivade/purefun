@@ -9,6 +9,7 @@ import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.IdKind;
 
+@FunctionalInterface
 public interface Functor<F extends Witness> {
 
   <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
