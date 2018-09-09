@@ -18,9 +18,9 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOKind;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
-import com.github.tonivade.purefun.monad.StateKind;
+import com.github.tonivade.purefun.monad.State;
 
 public interface Console<W extends Witness> {
   
@@ -28,16 +28,16 @@ public interface Console<W extends Witness> {
   
   Higher<W, Nothing> println(String text);
   
-  static Console<IOKind.µ> io() {
+  static Console<IO.µ> io() {
     return new ConsoleIO();
   }
   
-  static Console<Higher<StateKind.µ, ImmutableList<String>>> state() {
+  static Console<Higher<State.µ, ImmutableList<String>>> state() {
     return new ConsoleState();
   }
 }
 
-class ConsoleState implements Console<Higher<StateKind.µ, ImmutableList<String>>> {
+class ConsoleState implements Console<Higher<State.µ, ImmutableList<String>>> {
 
   @Override
   public State<ImmutableList<String>, String> readln() {
@@ -50,7 +50,7 @@ class ConsoleState implements Console<Higher<StateKind.µ, ImmutableList<String>
   }
 }
 
-class ConsoleIO implements Console<IOKind.µ> {
+class ConsoleIO implements Console<IO.µ> {
   
   private final SystemConsole console = new SystemConsole();
 

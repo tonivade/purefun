@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.data.SequenceKind.narrowK;
+import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 
@@ -44,7 +44,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableSet<R> flatMap(Function1<E, ? extends Higher<SequenceKind.µ, R>> mapper) {
+  default <R> ImmutableSet<R> flatMap(Function1<E, ? extends Higher<Sequence.µ, R>> mapper) {
     return ImmutableSet.from(stream().flatMap(element -> narrowK(mapper.apply(element)).stream()));
   }
 

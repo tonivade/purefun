@@ -6,8 +6,11 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Monad;
+import com.github.tonivade.purefun.Witness;
 
-public final class Id<T> implements Monad<IdKind.µ, T>, Holder<T> {
+public final class Id<T> implements Monad<Id.µ, T>, Holder<T> {
+
+  public static final class µ implements Witness {}
 
   private final T value;
 
@@ -40,7 +43,11 @@ public final class Id<T> implements Monad<IdKind.µ, T>, Holder<T> {
   }
 
   @Override
-  public <R> Id<R> flatMap(Function1<T, ? extends Higher<IdKind.µ, R>> map) {
-    return map.andThen(IdKind::narrowK).apply(value);
+  public <R> Id<R> flatMap(Function1<T, ? extends Higher<Id.µ, R>> map) {
+    return map.andThen(Id::narrowK).apply(value);
+  }
+
+  public static <T> Id<T> narrowK(Higher<Id.µ, T> hkt) {
+    return (Id<T>) hkt;
   }
 }

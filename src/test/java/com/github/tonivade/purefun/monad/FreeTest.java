@@ -42,10 +42,10 @@ public class FreeTest {
 
   @Test
   public void interpret() {
-    Higher<Higher<StateKind.µ, ImmutableList<String>>, Nothing> foldMap = 
+    Higher<Higher<State.µ, ImmutableList<String>>, Nothing> foldMap = 
         echo.foldMap(new StateMonad(), IOProgram.functor, new IOProgramState());
     
-    State<ImmutableList<String>, Nothing> state = StateKind.narrowK(foldMap);
+    State<ImmutableList<String>, Nothing> state = State.narrowK(foldMap);
     
     Tuple2<ImmutableList<String>, Nothing> run = state.run(ImmutableList.of("Toni"));
 
@@ -127,25 +127,25 @@ interface IOProgram<T> extends Higher<IOProgram.µ, T> {
   }
 }
 
-class IOProgramState implements Transformer<IOProgram.µ, Higher<StateKind.µ, ImmutableList<String>>> {
-  private final Console<Higher<StateKind.µ, ImmutableList<String>>> console = Console.state();
+class IOProgramState implements Transformer<IOProgram.µ, Higher<State.µ, ImmutableList<String>>> {
+  private final Console<Higher<State.µ, ImmutableList<String>>> console = Console.state();
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Higher<IOProgram.µ, X> from) {
     IOProgram<X> program = IOProgram.narrowK(from);
     if (program instanceof IOProgram.Read) {
-      return StateKind.narrowK(console.readln())
+      return State.narrowK(console.readln())
           .map(program.asRead().next);
     }
     if (program instanceof IOProgram.Write) {
-      return StateKind.narrowK(console.println(program.asWrite().value))
+      return State.narrowK(console.println(program.asWrite().value))
           .map(ignore -> program.asWrite().next);
     }
     throw new IllegalStateException();
   }
 }
 
-class StateMonad implements Monad<Higher<StateKind.µ, ImmutableList<String>>> {
+class StateMonad implements Monad<Higher<State.µ, ImmutableList<String>>> {
 
   @Override
   public <T> State<ImmutableList<String>, T> pure(T value) {
@@ -154,15 +154,15 @@ class StateMonad implements Monad<Higher<StateKind.µ, ImmutableList<String>>> {
 
   @Override
   public <T, R> State<ImmutableList<String>, R> map(
-      Higher<Higher<StateKind.µ, ImmutableList<String>>, T> value, Function1<T, R> map) {
-    return StateKind.narrowK(value).map(map);
+      Higher<Higher<State.µ, ImmutableList<String>>, T> value, Function1<T, R> map) {
+    return State.narrowK(value).map(map);
   }
 
   @Override
   public <T, R> State<ImmutableList<String>, R> flatMap(
-      Higher<Higher<StateKind.µ, ImmutableList<String>>, T> value,
-      Function1<T, ? extends Higher<Higher<StateKind.µ, ImmutableList<String>>, R>> map) {
-    return StateKind.narrowK(value).flatMap(map.andThen(StateKind::narrowK));
+      Higher<Higher<State.µ, ImmutableList<String>>, T> value,
+      Function1<T, ? extends Higher<Higher<State.µ, ImmutableList<String>>, R>> map) {
+    return State.narrowK(value).flatMap(map.andThen(State::narrowK));
   }
 }
 

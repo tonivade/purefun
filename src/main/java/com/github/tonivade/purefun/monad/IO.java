@@ -11,10 +11,13 @@ import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
-public interface IO<T> extends Monad<IOKind.µ, T> {
+public interface IO<T> extends Monad<IO.µ, T> {
+
+  final class µ implements Witness {}
 
   T unsafeRunSync();
 
@@ -24,8 +27,8 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
   }
 
   @Override
-  default <R> IO<R> flatMap(Function1<T, ? extends Higher<IOKind.µ, R>> map) {
-    return () -> map.andThen(IOKind::narrowK).apply(unsafeRunSync()).unsafeRunSync();
+  default <R> IO<R> flatMap(Function1<T, ? extends Higher<IO.µ, R>> map) {
+    return () -> map.andThen(IO::narrowK).apply(unsafeRunSync()).unsafeRunSync();
   }
 
   default <R> IO<R> andThen(IO<R> after) {
@@ -50,5 +53,9 @@ public interface IO<T> extends Monad<IOKind.µ, T> {
 
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
     return sequence.fold(noop(), IO::andThen).andThen(noop());
+  }
+
+  static <T> IO<T> narrowK(Higher<IO.µ, T> hkt) {
+    return (IO<T>) hkt;
   }
 }

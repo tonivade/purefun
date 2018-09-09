@@ -22,10 +22,13 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Option<T> extends Monad<OptionKind.µ, T>, Filterable<T>, Holder<T> {
+public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T> {
+  
+  final class µ implements Witness {}
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -34,6 +37,10 @@ public interface Option<T> extends Monad<OptionKind.µ, T>, Filterable<T>, Holde
   @SuppressWarnings("unchecked")
   static <T> Option<T> none() {
     return (Option<T>) None.INSTANCE;
+  }
+
+  static <T> Option<T> narrowK(Higher<Option.µ, T> hkt) {
+    return (Option<T>) hkt;
   }
 
   static <T> Option<T> of(Producer<T> producer) {
@@ -60,9 +67,9 @@ public interface Option<T> extends Monad<OptionKind.µ, T>, Filterable<T>, Holde
   }
 
   @Override
-  default <R> Option<R> flatMap(Function1<T, ? extends Higher<OptionKind.µ, R>> map) {
+  default <R> Option<R> flatMap(Function1<T, ? extends Higher<Option.µ, R>> map) {
     if (isPresent()) {
-      return map.andThen(OptionKind::narrowK).apply(get());
+      return map.andThen(Option::narrowK).apply(get());
     }
     return none();
   }

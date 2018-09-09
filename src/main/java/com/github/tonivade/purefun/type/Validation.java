@@ -17,14 +17,18 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E, T> {
+public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T> {
+
+  final class µ implements Witness {}
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -32,6 +36,14 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
 
   static <E, T> Validation<E, T> invalid(E error) {
     return new Invalid<>(error);
+  }
+
+  static <E, T> Validation<E, T> narrowK(Higher2<Validation.µ, E, T> hkt) {
+    return (Validation<E, T>) hkt;
+  }
+
+  static <E, T> Validation<E, T> narrowK(Higher<Higher<Validation.µ, E>, T> hkt) {
+    return (Validation<E, T>) hkt;
   }
 
   boolean isValid();
@@ -55,9 +67,9 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
   }
 
   @Override
-  default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<ValidationKind.µ, E, R>> mapper) {
+  default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<Validation.µ, E, R>> mapper) {
     if (isValid()) {
-      return mapper.andThen(ValidationKind::narrowK).apply(get());
+      return mapper.andThen(Validation::narrowK).apply(get());
     }
     return invalid(getError());
   }

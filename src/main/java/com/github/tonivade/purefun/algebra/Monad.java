@@ -8,8 +8,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdKind;
-import com.github.tonivade.purefun.type.IdKind.µ;
+import com.github.tonivade.purefun.type.Id.µ;
 
 public interface Monad<F extends Witness> extends Functor<F> {
 
@@ -22,17 +21,17 @@ public interface Monad<F extends Witness> extends Functor<F> {
     return flatMap(value, map.andThen(this::pure));
   }
 
-  static Monad<IdKind.µ> id() {
-    return new Monad<IdKind.µ>() {
+  static Monad<Id.µ> id() {
+    return new Monad<Id.µ>() {
       @Override
       public <T> Higher<µ, T> pure(T value) {
         return Id.of(value);
       }
 
       @Override
-      public <T, R> Higher<IdKind.µ, R> flatMap(Higher<IdKind.µ, T> value,
-                                                Function1<T, ? extends Higher<IdKind.µ, R>> map) {
-        return IdKind.narrowK(value).flatMap(map);
+      public <T, R> Higher<Id.µ, R> flatMap(Higher<Id.µ, T> value,
+                                                Function1<T, ? extends Higher<Id.µ, R>> map) {
+        return Id.narrowK(value).flatMap(map);
       }
     };
   }

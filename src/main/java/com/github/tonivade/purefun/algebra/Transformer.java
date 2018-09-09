@@ -7,8 +7,7 @@ package com.github.tonivade.purefun.algebra;
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdKind;
-import com.github.tonivade.purefun.type.IdKind.µ;
+import com.github.tonivade.purefun.type.Id.µ;
 
 public interface Transformer<F extends Witness, T extends Witness> {
 
@@ -32,11 +31,11 @@ public interface Transformer<F extends Witness, T extends Witness> {
     };
   }
 
-  static Transformer<IdKind.µ, IdKind.µ> id() {
-    return new Transformer<IdKind.µ, IdKind.µ>() {
+  static Transformer<Id.µ, Id.µ> id() {
+    return new Transformer<Id.µ, Id.µ>() {
       @Override
       public <X> Id<X> apply(Higher<µ, X> from) {
-        return IdKind.narrowK(from);
+        return Id.narrowK(from);
       }
     };
   }

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.monad.IOKind.narrowK;
+import static com.github.tonivade.purefun.monad.IO.narrowK;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.typeclasses.Console;
 
 public class IOTest {
   
-  private final Console<IOKind.µ> console = Console.io();
+  private final Console<IO.µ> console = Console.io();
   
   @Test
   public void unit() {

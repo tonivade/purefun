@@ -16,7 +16,9 @@ import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Either;
 
-public interface Free<F extends Witness, T> extends Monad2<FreeKind.µ, F, T> {
+public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
+
+  final class µ implements Witness {}
 
   static <F extends Witness, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
@@ -30,13 +32,21 @@ public interface Free<F extends Witness, T> extends Monad2<FreeKind.µ, F, T> {
     return suspend(functor.map(value, Free::pure));
   }
 
+  static <F extends Witness, T> Free<F, T> narrowK(Higher2<Free.µ, F, T> hkt) {
+    return (Free<F, T>) hkt;
+  }
+
+  static <F extends Witness, T> Free<F, T> narrowK(Higher<Higher<Free.µ, F>, T> hkt) {
+    return (Free<F, T>) hkt;
+  }
+
   @Override
   default <R> Free<F, R> map(Function1<T, R> map) {
     return flatMap(map.andThen(Free::pure));
   }
 
   @Override
-  <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<FreeKind.µ, F, R>> map);
+  <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map);
 
   default Either<Higher<F, Free<F, T>>, T> resume(Functor<F> functor) {
     return FreeModule.resume(this, functor);
@@ -59,7 +69,7 @@ public interface Free<F extends Witness, T> extends Monad2<FreeKind.µ, F, T> {
     }
 
     @Override
-    public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<FreeKind.µ, F, R>> map) {
+    public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
       return new FlatMap<>(this, map);
     }
   }
@@ -73,32 +83,32 @@ public interface Free<F extends Witness, T> extends Monad2<FreeKind.µ, F, T> {
     }
 
     @Override
-    public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<FreeKind.µ, F, R>> map) {
+    public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
       return new FlatMap<>(this, map);
     }
   }
 
   final class FlatMap<F extends Witness, T, R> implements Free<F, R> {
 
-    final Higher2<FreeKind.µ, F, T> value;
-    final Function1<T, ? extends Higher2<FreeKind.µ, F, R>> map;
+    final Higher2<Free.µ, F, T> value;
+    final Function1<T, ? extends Higher2<Free.µ, F, R>> map;
 
-    private FlatMap(Higher2<FreeKind.µ, F, T> value, Function1<T, ? extends Higher2<FreeKind.µ, F, R>> map) {
+    private FlatMap(Higher2<Free.µ, F, T> value, Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
       this.value = requireNonNull(value);
       this.map = requireNonNull(map);
     }
 
     @Override
-    public <X> Free<F, X> flatMap(Function1<R, ? extends Higher2<FreeKind.µ, F, X>> map) {
+    public <X> Free<F, X> flatMap(Function1<R, ? extends Higher2<Free.µ, F, X>> map) {
       return new FlatMap<>(value, free -> new FlatMap<>(narrowFn().apply(free), map));
     }
 
     Function1<T, Free<F, R>> narrowFn() {
-      return map.andThen(FreeKind::narrowK);
+      return map.andThen(Free::narrowK);
     }
 
     Free<F, T> narrowK() {
-      return FreeKind.narrowK(value);
+      return Free.narrowK(value);
     }
   }
 }
