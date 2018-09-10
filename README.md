@@ -204,9 +204,9 @@ Finally, after hours of hard coding, I managed to implement a Free monad. This i
 ```java 
   Free<IOProgram.µ, Nothing> echo =
       IOProgram.write("what's your name?")
-        .flatMap(ignore -> IOProgram.read())
+        .andThen(IOProgram.read())
         .flatMap(text -> IOProgram.write("Hello " + text))
-        .flatMap(ignore -> IOProgram.write("end"));
+        .andThen(IOProgram.write("end"));
 
   Higher<IOKind.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
                                                    new IOProgramFunctor(),
