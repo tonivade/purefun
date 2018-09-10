@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.algebra.Monoid;
 import com.github.tonivade.purefun.data.ImmutableList;
 
-public class Writer<L, A> implements Monad2<Writer.µ, L, A> {
+public final class Writer<L, A> implements Monad2<Writer.µ, L, A> {
 
   public static final class µ implements Witness {}
 
@@ -23,7 +23,7 @@ public class Writer<L, A> implements Monad2<Writer.µ, L, A> {
   private final A value;
   private final L log;
 
-  protected Writer(Monoid<L> monoid, L log, A value) {
+  private Writer(Monoid<L> monoid, L log, A value) {
     this.monoid = requireNonNull(monoid);
     this.log = requireNonNull(log);
     this.value = requireNonNull(value);

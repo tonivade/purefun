@@ -100,14 +100,6 @@ Validation<String, String> email = Validation.valid("john.smith@example.net");
 Valdation<Sequence<String>, Person> person = Validation.map2(name, email, Person::new); 
 ```
 
-### Id
-
-This type is only a wrapper and it doesn't add any additional functionality.
-
-```java
-Id<String> id = Id.of("Hello world!");
-```
-
 ## Tuples
 
 These classes allow to hold some values together, as tuples. There are tuples from 1 to 5.

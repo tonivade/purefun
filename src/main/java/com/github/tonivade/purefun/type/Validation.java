@@ -136,6 +136,8 @@ public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T>
     }
   }
 
+  ValidationModule module();
+
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1,
                                                         Validation<E, T2> validation2,
                                                         Function2<T1, T2, R> mapper) {
@@ -197,6 +199,11 @@ public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T>
     }
 
     @Override
+    public ValidationModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -243,6 +250,11 @@ public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T>
     }
 
     @Override
+    public ValidationModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(error);
     }
@@ -259,4 +271,8 @@ public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T>
       return "Invalid(" + error + ")";
     }
   }
+}
+
+interface ValidationModule {
+
 }

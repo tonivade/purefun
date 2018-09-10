@@ -27,7 +27,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T> {
-  
+
   final class µ implements Witness {}
 
   static <T> Option<T> some(T value) {
@@ -152,6 +152,8 @@ public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T>
     }
   }
 
+  OptionModule module();
+
   final class Some<T> implements Option<T> {
     private final T value;
 
@@ -172,6 +174,11 @@ public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T>
     @Override
     public boolean isPresent() {
       return true;
+    }
+
+    @Override
+    public OptionModule module() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -214,6 +221,11 @@ public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T>
     }
 
     @Override
+    public OptionModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return 1;
     }
@@ -228,4 +240,8 @@ public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T>
       return "None";
     }
   }
+}
+
+interface OptionModule {
+
 }

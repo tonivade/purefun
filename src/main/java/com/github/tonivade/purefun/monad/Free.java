@@ -48,6 +48,10 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
   @Override
   <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map);
 
+  default <R> Free<F, R> andThen(Free<F, R> next) {
+    return flatMap(ignore -> next);
+  }
+
   default Either<Higher<F, Free<F, T>>, T> resume(Functor<F> functor) {
     return FreeModule.resume(this, functor);
   }
@@ -60,6 +64,8 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
               right -> monad.pure(right));
   }
 
+  FreeModule module();
+
   final class Pure<F extends Witness, T> implements Free<F, T> {
 
     final T value;
@@ -71,6 +77,11 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     @Override
     public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
       return new FlatMap<>(this, map);
+    }
+
+    @Override
+    public FreeModule module() {
+      throw new UnsupportedOperationException();
     }
   }
 
@@ -85,6 +96,11 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     @Override
     public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
       return new FlatMap<>(this, map);
+    }
+
+    @Override
+    public FreeModule module() {
+      throw new UnsupportedOperationException();
     }
   }
 
@@ -109,6 +125,11 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
 
     Free<F, T> narrowK() {
       return Free.narrowK(value);
+    }
+
+    @Override
+    public FreeModule module() {
+      throw new UnsupportedOperationException();
     }
   }
 }

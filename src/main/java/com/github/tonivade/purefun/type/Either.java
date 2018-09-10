@@ -184,6 +184,8 @@ public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
     }
   }
 
+  EitherModule module();
+
   final class Left<L, R> implements Either<L, R> {
 
     private L value;
@@ -210,6 +212,11 @@ public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
     @Override
     public R getRight() {
       throw new NoSuchElementException("getRight() in left");
+    }
+
+    @Override
+    public EitherModule module() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -259,6 +266,11 @@ public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
     }
 
     @Override
+    public EitherModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -275,4 +287,8 @@ public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
       return "Right(" + value + ")";
     }
   }
+}
+
+interface EitherModule {
+
 }

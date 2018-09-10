@@ -27,9 +27,9 @@ public class FreeTest {
 
   final Free<IOProgram.µ, Nothing> echo =
       IOProgram.write("what's your name?")
-        .flatMap(ignore -> IOProgram.read())
+        .andThen(IOProgram.read())
         .flatMap(text -> IOProgram.write("Hello " + text))
-        .flatMap(ignore -> IOProgram.write("end"));
+        .andThen(IOProgram.write("end"));
 
   @Test
   public void showProgram() {
@@ -41,15 +41,29 @@ public class FreeTest {
   }
 
   @Test
-  public void interpret() {
-    Higher<Higher<State.µ, ImmutableList<String>>, Nothing> foldMap = 
+  public void interpretState() {
+    Higher<Higher<State.µ, ImmutableList<String>>, Nothing> foldMap =
         echo.foldMap(new StateMonad(), IOProgram.functor, new IOProgramState());
-    
+
     State<ImmutableList<String>, Nothing> state = State.narrowK(foldMap);
-    
+
     Tuple2<ImmutableList<String>, Nothing> run = state.run(ImmutableList.of("Toni"));
 
     assertEquals(ImmutableList.of("what's your name?", "Hello Toni", "end"), run.get1());
+  }
+
+  @Test
+  public void interpretIO() {
+    Higher<IO.µ, Nothing> foldMap =
+        echo.foldMap(new IOMonad(), IOProgram.functor, new IOProgramIO());
+
+    IO<Nothing> echoIO = IO.narrowK(foldMap);
+
+    ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
+
+    executor.run(echoIO);
+
+    assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());
   }
 
   private <R> String showProgram(Free<IOProgram.µ, R> program) {
@@ -128,6 +142,7 @@ interface IOProgram<T> extends Higher<IOProgram.µ, T> {
 }
 
 class IOProgramState implements Transformer<IOProgram.µ, Higher<State.µ, ImmutableList<String>>> {
+
   private final Console<Higher<State.µ, ImmutableList<String>>> console = Console.state();
 
   @Override
@@ -139,6 +154,25 @@ class IOProgramState implements Transformer<IOProgram.µ, Higher<State.µ, Immut
     }
     if (program instanceof IOProgram.Write) {
       return State.narrowK(console.println(program.asWrite().value))
+          .map(ignore -> program.asWrite().next);
+    }
+    throw new IllegalStateException();
+  }
+}
+
+class IOProgramIO implements Transformer<IOProgram.µ, IO.µ> {
+
+  private final Console<IO.µ> console = Console.io();
+
+  @Override
+  public <X> IO<X> apply(Higher<IOProgram.µ, X> from) {
+    IOProgram<X> program = IOProgram.narrowK(from);
+    if (program instanceof IOProgram.Read) {
+      return IO.narrowK(console.readln())
+          .map(program.asRead().next);
+    }
+    if (program instanceof IOProgram.Write) {
+      return IO.narrowK(console.println(program.asWrite().value))
           .map(ignore -> program.asWrite().next);
     }
     throw new IllegalStateException();
@@ -163,6 +197,24 @@ class StateMonad implements Monad<Higher<State.µ, ImmutableList<String>>> {
       Higher<Higher<State.µ, ImmutableList<String>>, T> value,
       Function1<T, ? extends Higher<Higher<State.µ, ImmutableList<String>>, R>> map) {
     return State.narrowK(value).flatMap(map.andThen(State::narrowK));
+  }
+}
+
+class IOMonad implements Monad<IO.µ> {
+
+  @Override
+  public <T> IO<T> pure(T value) {
+    return IO.unit(value);
+  }
+
+  @Override
+  public <T, R> IO<R> map(Higher<IO.µ, T> value, Function1<T, R> map) {
+    return IO.narrowK(value).map(map);
+  }
+
+  @Override
+  public <T, R> IO<R> flatMap(Higher<IO.µ, T> value, Function1<T, ? extends Higher<IO.µ, R>> map) {
+    return IO.narrowK(value).flatMap(map.andThen(IO::narrowK));
   }
 }
 

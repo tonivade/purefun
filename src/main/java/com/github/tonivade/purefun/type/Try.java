@@ -185,6 +185,8 @@ public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
     }
   }
 
+  TryModule module();
+
   final class Success<T> implements Try<T> {
     private final T value;
 
@@ -210,6 +212,11 @@ public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
     @Override
     public Throwable getCause() {
       throw new NoSuchElementException("success doesn't have any cause");
+    }
+
+    @Override
+    public TryModule module() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -266,6 +273,11 @@ public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
     }
 
     @Override
+    public TryModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(cause.getMessage(), cause.getStackTrace());
     }
@@ -283,4 +295,8 @@ public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
       return "Failure(" + cause + ")";
     }
   }
+}
+
+interface TryModule {
+
 }
