@@ -2,16 +2,14 @@
  * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.type;
+package com.github.tonivade.purefun.algebra;
 
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Witness;
 
-public interface TryKind<T> extends Higher<TryKind.µ, T> {
+public interface Functor<F extends Witness> {
 
-  final class µ implements Witness {}
+  <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
 
-  static <T> Try<T> narrowK(Higher<TryKind.µ, T> hkt) {
-    return (Try<T>) hkt;
-  }
 }

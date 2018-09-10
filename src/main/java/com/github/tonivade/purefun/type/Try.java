@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.handler.TryHandler.identity;
 import static com.github.tonivade.purefun.type.Equal.comparing;
 import static com.github.tonivade.purefun.type.Equal.comparingArray;
-import static com.github.tonivade.purefun.type.TryKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -23,10 +22,13 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
+public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
+
+  final class µ implements Witness {}
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -52,6 +54,10 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
     }
   }
 
+  static <T> Try<T> narrowK(Higher<Try.µ, T> hkt) {
+    return (Try<T>) hkt;
+  }
+
   Throwable getCause();
   boolean isSuccess();
   boolean isFailure();
@@ -65,9 +71,9 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
   }
 
   @Override
-  default <R> Try<R> flatMap(Function1<T, ? extends Higher<TryKind.µ, R>> mapper) {
+  default <R> Try<R> flatMap(Function1<T, ? extends Higher<Try.µ, R>> mapper) {
     if (isSuccess()) {
-      return narrowK(mapper.apply(get()));
+      return mapper.andThen(Try::narrowK).apply(get());
     }
     return failure(getCause());
   }
@@ -179,6 +185,8 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
     }
   }
 
+  TryModule module();
+
   final class Success<T> implements Try<T> {
     private final T value;
 
@@ -204,6 +212,11 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
     @Override
     public Throwable getCause() {
       throw new NoSuchElementException("success doesn't have any cause");
+    }
+
+    @Override
+    public TryModule module() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -260,6 +273,11 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
     }
 
     @Override
+    public TryModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(cause.getMessage(), cause.getStackTrace());
     }
@@ -277,4 +295,8 @@ public interface Try<T> extends Monad<TryKind.µ, T>, Filterable<T>, Holder<T> {
       return "Failure(" + cause + ")";
     }
   }
+}
+
+interface TryModule {
+
 }

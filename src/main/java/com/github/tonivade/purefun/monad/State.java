@@ -6,19 +6,22 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
-import static com.github.tonivade.purefun.monad.StateKind.narrowK;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
-public interface State<S, A> extends Monad2<StateKind.µ, S, A> {
+public interface State<S, A> extends Monad2<State.µ, S, A> {
+
+  final class µ implements Witness {}
 
   Tuple2<S, A> run(S state);
 
@@ -28,10 +31,10 @@ public interface State<S, A> extends Monad2<StateKind.µ, S, A> {
   }
 
   @Override
-  default <R> State<S, R> flatMap(Function1<A, ? extends Higher2<StateKind.µ, S, R>> mapper) {
+  default <R> State<S, R> flatMap(Function1<A, ? extends Higher2<State.µ, S, R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
-      return narrowK(mapper.apply(run.get2())).run(run.get1());
+      return mapper.andThen(State::narrowK).apply(run.get2()).run(run.get1());
     };
   }
 
@@ -69,5 +72,13 @@ public interface State<S, A> extends Monad2<StateKind.µ, S, A> {
 
   static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, Function2<A, B, C> mapper) {
     return sa.flatMap(a -> sb.map(b -> mapper.curried().apply(a).apply(b)));
+  }
+
+  static <S, A> State<S, A> narrowK(Higher2<State.µ, S, A> hkt) {
+    return (State<S, A>) hkt;
+  }
+
+  static <S, A> State<S, A> narrowK(Higher<Higher<State.µ, S>, A> hkt) {
+    return (State<S, A>) hkt;
   }
 }

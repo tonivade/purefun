@@ -4,14 +4,16 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.monad.ReaderKind.narrowK;
-
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
+import com.github.tonivade.purefun.Witness;
 
 @FunctionalInterface
-public interface Reader<R, A> extends Monad2<ReaderKind.µ, R, A> {
+public interface Reader<R, A> extends Monad2<Reader.µ, R, A> {
+
+  final class µ implements Witness {}
 
   A eval(R reader);
 
@@ -21,8 +23,8 @@ public interface Reader<R, A> extends Monad2<ReaderKind.µ, R, A> {
   }
 
   @Override
-  default <B> Reader<R, B> flatMap(Function1<A, ? extends Higher2<ReaderKind.µ, R, B>> mapper) {
-    return reader -> narrowK(mapper.apply(eval(reader))).eval(reader);
+  default <B> Reader<R, B> flatMap(Function1<A, ? extends Higher2<Reader.µ, R, B>> mapper) {
+    return reader -> mapper.andThen(Reader::narrowK).apply(eval(reader)).eval(reader);
   }
 
   static <R, A> Reader<R, A> pure(A value) {
@@ -31,5 +33,13 @@ public interface Reader<R, A> extends Monad2<ReaderKind.µ, R, A> {
 
   static <R, A> Reader<R, A> reader(Function1<R, A> run) {
     return run::apply;
+  }
+
+  static <R, A> Reader<R, A> narrowK(Higher2<Reader.µ, R, A> hkt) {
+    return (Reader<R, A>) hkt;
+  }
+
+  static <R, A> Reader<R, A> narrowK(Higher<Higher<Reader.µ, R>, A> hkt) {
+    return (Reader<R, A>) hkt;
   }
 }

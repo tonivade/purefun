@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Equal.comparing;
-import static com.github.tonivade.purefun.type.ValidationKind.narrowK;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -18,14 +17,18 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E, T> {
+public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T> {
+
+  final class µ implements Witness {}
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -33,6 +36,14 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
 
   static <E, T> Validation<E, T> invalid(E error) {
     return new Invalid<>(error);
+  }
+
+  static <E, T> Validation<E, T> narrowK(Higher2<Validation.µ, E, T> hkt) {
+    return (Validation<E, T>) hkt;
+  }
+
+  static <E, T> Validation<E, T> narrowK(Higher<Higher<Validation.µ, E>, T> hkt) {
+    return (Validation<E, T>) hkt;
   }
 
   boolean isValid();
@@ -56,9 +67,9 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
   }
 
   @Override
-  default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<ValidationKind.µ, E, R>> mapper) {
+  default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<Validation.µ, E, R>> mapper) {
     if (isValid()) {
-      return narrowK(mapper.apply(get()));
+      return mapper.andThen(Validation::narrowK).apply(get());
     }
     return invalid(getError());
   }
@@ -125,6 +136,8 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
     }
   }
 
+  ValidationModule module();
+
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1,
                                                         Validation<E, T2> validation2,
                                                         Function2<T1, T2, R> mapper) {
@@ -186,6 +199,11 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
     }
 
     @Override
+    public ValidationModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -232,6 +250,11 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
     }
 
     @Override
+    public ValidationModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(error);
     }
@@ -248,4 +271,8 @@ public interface Validation<E, T> extends Holder<T>, Monad2<ValidationKind.µ, E
       return "Invalid(" + error + ")";
     }
   }
+}
+
+interface ValidationModule {
+
 }

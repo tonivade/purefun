@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.EitherHandler.identity;
-import static com.github.tonivade.purefun.type.EitherKind.narrowK;
 import static com.github.tonivade.purefun.type.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
@@ -14,15 +13,19 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
+public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
+
+  final class µ implements Witness {}
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -30,6 +33,14 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
 
   static <L, R> Either<L, R> right(R value) {
     return new Right<>(value);
+  }
+
+  static <L, R> Either<L, R> narrowK(Higher2<Either.µ, L, R> hkt) {
+    return (Either<L, R>) hkt;
+  }
+
+  static <L, R> Either<L, R> narrowK(Higher<Higher<Either.µ, L>, R> hkt) {
+    return (Either<L, R>) hkt;
   }
 
   boolean isLeft();
@@ -89,16 +100,16 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
   }
 
   @Override
-  default <T> Either<L, T> flatMap(Function1<R, ? extends Higher2<EitherKind.µ, L, T>> map) {
+  default <T> Either<L, T> flatMap(Function1<R, ? extends Higher2<Either.µ, L, T>> map) {
     if (isRight()) {
-      return narrowK(map.apply(getRight()));
+      return map.andThen(Either::narrowK).apply(getRight());
     }
     return left(getLeft());
   }
 
-  default <T> Either<T, R> flatMapLeft(Function1<L, ? extends Higher2<EitherKind.µ, T, R>> map) {
+  default <T> Either<T, R> flatMapLeft(Function1<L, ? extends Higher2<Either.µ, T, R>> map) {
     if (isLeft()) {
-      return narrowK(map.apply(getLeft()));
+      return map.andThen(Either::narrowK).apply(getLeft());
     }
     return right(getRight());
   }
@@ -173,6 +184,8 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
     }
   }
 
+  EitherModule module();
+
   final class Left<L, R> implements Either<L, R> {
 
     private L value;
@@ -199,6 +212,11 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
     @Override
     public R getRight() {
       throw new NoSuchElementException("getRight() in left");
+    }
+
+    @Override
+    public EitherModule module() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -248,6 +266,11 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
     }
 
     @Override
+    public EitherModule module() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -264,4 +287,8 @@ public interface Either<L, R> extends Monad2<EitherKind.µ, L, R>, Holder<R> {
       return "Right(" + value + ")";
     }
   }
+}
+
+interface EitherModule {
+
 }
