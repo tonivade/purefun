@@ -17,16 +17,16 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad;
+import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T> {
+public interface Option<T> extends Monad1<Option.µ, T>, Filterable<T>, Holder<T> {
 
   final class µ implements Witness {}
 
@@ -39,7 +39,7 @@ public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T>
     return (Option<T>) None.INSTANCE;
   }
 
-  static <T> Option<T> narrowK(Higher<Option.µ, T> hkt) {
+  static <T> Option<T> narrowK(Higher1<Option.µ, T> hkt) {
     return (Option<T>) hkt;
   }
 
@@ -67,7 +67,7 @@ public interface Option<T> extends Monad<Option.µ, T>, Filterable<T>, Holder<T>
   }
 
   @Override
-  default <R> Option<R> flatMap(Function1<T, ? extends Higher<Option.µ, R>> map) {
+  default <R> Option<R> flatMap(Function1<T, ? extends Higher1<Option.µ, R>> map) {
     if (isPresent()) {
       return map.andThen(Option::narrowK).apply(get());
     }

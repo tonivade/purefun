@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.monad;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Witness;
@@ -24,11 +24,11 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     return new Pure<>(value);
   }
 
-  static <F extends Witness, T> Free<F, T> suspend(Higher<F, Free<F, T>> value) {
+  static <F extends Witness, T> Free<F, T> suspend(Higher1<F, Free<F, T>> value) {
     return new Suspend<>(value);
   }
 
-  static <F extends Witness, T> Free<F, T> liftF(Functor<F> functor, Higher<F, T> value) {
+  static <F extends Witness, T> Free<F, T> liftF(Functor<F> functor, Higher1<F, T> value) {
     return suspend(functor.map(value, Free::pure));
   }
 
@@ -36,7 +36,7 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     return (Free<F, T>) hkt;
   }
 
-  static <F extends Witness, T> Free<F, T> narrowK(Higher<Higher<Free.µ, F>, T> hkt) {
+  static <F extends Witness, T> Free<F, T> narrowK(Higher1<Higher1<Free.µ, F>, T> hkt) {
     return (Free<F, T>) hkt;
   }
 
@@ -52,11 +52,11 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     return flatMap(ignore -> next);
   }
 
-  default Either<Higher<F, Free<F, T>>, T> resume(Functor<F> functor) {
+  default Either<Higher1<F, Free<F, T>>, T> resume(Functor<F> functor) {
     return FreeModule.resume(this, functor);
   }
 
-  default <G extends Witness> Higher<G, T> foldMap(Monad<G> monad,
+  default <G extends Witness> Higher1<G, T> foldMap(Monad<G> monad,
                                                    Functor<F> functor,
                                                    Transformer<F, G> interpreter) {
     return resume(functor)
@@ -87,9 +87,9 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
 
   final class Suspend<F extends Witness, T> implements Free<F, T> {
 
-    final Higher<F, Free<F, T>> value;
+    final Higher1<F, Free<F, T>> value;
 
-    private Suspend(Higher<F, Free<F, T>> value) {
+    private Suspend(Higher1<F, Free<F, T>> value) {
       this.value = requireNonNull(value);
     }
 
@@ -149,7 +149,7 @@ interface FreeModule {
     return (Free.FlatMap<F, X, T>) free;
   }
 
-  static <X1, X2, F extends Witness, T> Either<Higher<F, Free<F, T>>, T> resume(Free<F, T> current, Functor<F> functor) {
+  static <X1, X2, F extends Witness, T> Either<Higher1<F, Free<F, T>>, T> resume(Free<F, T> current, Functor<F> functor) {
     while (true) {
       if (current instanceof Free.Suspend) {
         return Either.left(asSuspend(current).value);

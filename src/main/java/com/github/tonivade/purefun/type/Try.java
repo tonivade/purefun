@@ -17,16 +17,16 @@ import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad;
+import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
+public interface Try<T> extends Monad1<Try.µ, T>, Filterable<T>, Holder<T> {
 
   final class µ implements Witness {}
 
@@ -54,7 +54,7 @@ public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
     }
   }
 
-  static <T> Try<T> narrowK(Higher<Try.µ, T> hkt) {
+  static <T> Try<T> narrowK(Higher1<Try.µ, T> hkt) {
     return (Try<T>) hkt;
   }
 
@@ -71,7 +71,7 @@ public interface Try<T> extends Monad<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 
   @Override
-  default <R> Try<R> flatMap(Function1<T, ? extends Higher<Try.µ, R>> mapper) {
+  default <R> Try<R> flatMap(Function1<T, ? extends Higher1<Try.µ, R>> mapper) {
     if (isSuccess()) {
       return mapper.andThen(Try::narrowK).apply(get());
     }

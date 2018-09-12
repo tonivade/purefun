@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.type.Equal;
 
@@ -52,7 +52,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableArray<R> flatMap(Function1<E, ? extends Higher<Sequence.µ, R>> mapper) {
+  default <R> ImmutableArray<R> flatMap(Function1<E, ? extends Higher1<Sequence.µ, R>> mapper) {
     return ImmutableArray.from(stream().flatMap(element -> narrowK(mapper.apply(element)).stream()));
   }
 

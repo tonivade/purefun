@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Witness;
@@ -22,20 +22,20 @@ import com.github.tonivade.purefun.monad.State;
 
 public interface Console<W extends Witness> {
   
-  Higher<W, String> readln();
+  Higher1<W, String> readln();
   
-  Higher<W, Nothing> println(String text);
+  Higher1<W, Nothing> println(String text);
   
   static Console<IO.µ> io() {
     return new ConsoleIO();
   }
   
-  static Console<Higher<State.µ, ImmutableList<String>>> state() {
+  static Console<Higher1<State.µ, ImmutableList<String>>> state() {
     return new ConsoleState();
   }
 }
 
-class ConsoleState implements Console<Higher<State.µ, ImmutableList<String>>> {
+class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
 
   @Override
   public State<ImmutableList<String>, String> readln() {

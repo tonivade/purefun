@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Witness;
@@ -42,7 +42,7 @@ public class FreeTest {
 
   @Test
   public void interpretState() {
-    Higher<Higher<State.µ, ImmutableList<String>>, Nothing> foldMap =
+    Higher1<Higher1<State.µ, ImmutableList<String>>, Nothing> foldMap =
         echo.foldMap(new StateMonad(), IOProgram.functor, new IOProgramState());
 
     State<ImmutableList<String>, Nothing> state = State.narrowK(foldMap);
@@ -54,7 +54,7 @@ public class FreeTest {
 
   @Test
   public void interpretIO() {
-    Higher<IO.µ, Nothing> foldMap =
+    Higher1<IO.µ, Nothing> foldMap =
         echo.foldMap(new IOMonad(), IOProgram.functor, new IOProgramIO());
 
     IO<Nothing> echoIO = IO.narrowK(foldMap);
@@ -75,7 +75,7 @@ public class FreeTest {
   }
 }
 
-interface IOProgram<T> extends Higher<IOProgram.µ, T> {
+interface IOProgram<T> extends Higher1<IOProgram.µ, T> {
   final class µ implements Witness {}
 
   <R> R fold(Function2<String, T, R> write, Function1<T, R> read);
@@ -128,7 +128,7 @@ interface IOProgram<T> extends Higher<IOProgram.µ, T> {
     }
   }
 
-  static <T> IOProgram<T> narrowK(Higher<IOProgram.µ, T> value) {
+  static <T> IOProgram<T> narrowK(Higher1<IOProgram.µ, T> value) {
     return (IOProgram<T>) value;
   }
 
@@ -141,12 +141,12 @@ interface IOProgram<T> extends Higher<IOProgram.µ, T> {
   }
 }
 
-class IOProgramState implements Transformer<IOProgram.µ, Higher<State.µ, ImmutableList<String>>> {
+class IOProgramState implements Transformer<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
 
-  private final Console<Higher<State.µ, ImmutableList<String>>> console = Console.state();
+  private final Console<Higher1<State.µ, ImmutableList<String>>> console = Console.state();
 
   @Override
-  public <X> State<ImmutableList<String>, X> apply(Higher<IOProgram.µ, X> from) {
+  public <X> State<ImmutableList<String>, X> apply(Higher1<IOProgram.µ, X> from) {
     IOProgram<X> program = IOProgram.narrowK(from);
     if (program instanceof IOProgram.Read) {
       return State.narrowK(console.readln())
@@ -165,7 +165,7 @@ class IOProgramIO implements Transformer<IOProgram.µ, IO.µ> {
   private final Console<IO.µ> console = Console.io();
 
   @Override
-  public <X> IO<X> apply(Higher<IOProgram.µ, X> from) {
+  public <X> IO<X> apply(Higher1<IOProgram.µ, X> from) {
     IOProgram<X> program = IOProgram.narrowK(from);
     if (program instanceof IOProgram.Read) {
       return IO.narrowK(console.readln())
@@ -179,7 +179,7 @@ class IOProgramIO implements Transformer<IOProgram.µ, IO.µ> {
   }
 }
 
-class StateMonad implements Monad<Higher<State.µ, ImmutableList<String>>> {
+class StateMonad implements Monad<Higher1<State.µ, ImmutableList<String>>> {
 
   @Override
   public <T> State<ImmutableList<String>, T> pure(T value) {
@@ -188,14 +188,14 @@ class StateMonad implements Monad<Higher<State.µ, ImmutableList<String>>> {
 
   @Override
   public <T, R> State<ImmutableList<String>, R> map(
-      Higher<Higher<State.µ, ImmutableList<String>>, T> value, Function1<T, R> map) {
+      Higher1<Higher1<State.µ, ImmutableList<String>>, T> value, Function1<T, R> map) {
     return State.narrowK(value).map(map);
   }
 
   @Override
   public <T, R> State<ImmutableList<String>, R> flatMap(
-      Higher<Higher<State.µ, ImmutableList<String>>, T> value,
-      Function1<T, ? extends Higher<Higher<State.µ, ImmutableList<String>>, R>> map) {
+      Higher1<Higher1<State.µ, ImmutableList<String>>, T> value,
+      Function1<T, ? extends Higher1<Higher1<State.µ, ImmutableList<String>>, R>> map) {
     return State.narrowK(value).flatMap(map.andThen(State::narrowK));
   }
 }
@@ -208,12 +208,12 @@ class IOMonad implements Monad<IO.µ> {
   }
 
   @Override
-  public <T, R> IO<R> map(Higher<IO.µ, T> value, Function1<T, R> map) {
+  public <T, R> IO<R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
     return IO.narrowK(value).map(map);
   }
 
   @Override
-  public <T, R> IO<R> flatMap(Higher<IO.µ, T> value, Function1<T, ? extends Higher<IO.µ, R>> map) {
+  public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
     return IO.narrowK(value).flatMap(map.andThen(IO::narrowK));
   }
 }
@@ -221,7 +221,7 @@ class IOMonad implements Monad<IO.µ> {
 class IOProgramFunctor implements Functor<IOProgram.µ> {
 
   @Override
-  public <T, R> IOProgram<R> map(Higher<IOProgram.µ, T> value, Function1<T, R> map) {
+  public <T, R> IOProgram<R> map(Higher1<IOProgram.µ, T> value, Function1<T, R> map) {
     IOProgram<T> program = IOProgram.narrowK(value);
     if (program instanceof IOProgram.Read) {
       return new IOProgram.Read<>(program.asRead().next.andThen(map));

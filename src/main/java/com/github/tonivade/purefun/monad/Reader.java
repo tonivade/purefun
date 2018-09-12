@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Witness;
@@ -39,7 +39,7 @@ public interface Reader<R, A> extends Monad2<Reader.µ, R, A> {
     return (Reader<R, A>) hkt;
   }
 
-  static <R, A> Reader<R, A> narrowK(Higher<Higher<Reader.µ, R>, A> hkt) {
+  static <R, A> Reader<R, A> narrowK(Higher1<Higher1<Reader.µ, R>, A> hkt) {
     return (Reader<R, A>) hkt;
   }
 }

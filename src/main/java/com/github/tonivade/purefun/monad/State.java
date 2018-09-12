@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Nothing;
@@ -78,7 +78,7 @@ public interface State<S, A> extends Monad2<State.µ, S, A> {
     return (State<S, A>) hkt;
   }
 
-  static <S, A> State<S, A> narrowK(Higher<Higher<State.µ, S>, A> hkt) {
+  static <S, A> State<S, A> narrowK(Higher1<Higher1<State.µ, S>, A> hkt) {
     return (State<S, A>) hkt;
   }
 }

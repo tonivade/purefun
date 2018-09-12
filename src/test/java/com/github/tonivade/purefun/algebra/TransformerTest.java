@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.algebra;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
@@ -23,14 +23,14 @@ public class TransformerTest {
 
   @Test
   public void andThen() {
-    Higher<Option.µ, String> some = new OptionToTry().andThen(new TryToOption()).apply(Option.some("hello world!"));
+    Higher1<Option.µ, String> some = new OptionToTry().andThen(new TryToOption()).apply(Option.some("hello world!"));
 
     assertEquals(Option.some("hello world!"), some);
   }
 
   @Test
   public void compose() {
-    Higher<Try.µ, String> some = new OptionToTry().compose(new TryToOption()).apply(Try.success("hello world!"));
+    Higher1<Try.µ, String> some = new OptionToTry().compose(new TryToOption()).apply(Try.success("hello world!"));
 
     assertEquals(Try.success("hello world!"), some);
   }
@@ -38,14 +38,14 @@ public class TransformerTest {
 
 class OptionToTry implements Transformer<Option.µ, Try.µ> {
   @Override
-  public <X> Try<X> apply(Higher<Option.µ, X> from) {
+  public <X> Try<X> apply(Higher1<Option.µ, X> from) {
     return Option.narrowK(from).map(Try::success).orElse(Try::failure);
   }
 }
 
 class TryToOption implements Transformer<Try.µ, Option.µ> {
   @Override
-  public <X> Option<X> apply(Higher<Try.µ, X> from) {
+  public <X> Option<X> apply(Higher1<Try.µ, X> from) {
     return Try.narrowK(from).toOption();
   }
 }

@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
@@ -39,7 +39,7 @@ public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
     return (Either<L, R>) hkt;
   }
 
-  static <L, R> Either<L, R> narrowK(Higher<Higher<Either.µ, L>, R> hkt) {
+  static <L, R> Either<L, R> narrowK(Higher1<Higher1<Either.µ, L>, R> hkt) {
     return (Either<L, R>) hkt;
   }
 

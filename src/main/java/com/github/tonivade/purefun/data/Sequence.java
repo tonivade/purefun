@@ -14,14 +14,14 @@ import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Foldable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad;
+import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Option;
 
-public interface Sequence<E> extends Iterable<E>, Monad<Sequence.µ, E>, Filterable<E>, Foldable<E> {
+public interface Sequence<E> extends Iterable<E>, Monad1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
 
   final class µ implements Witness {}
 
@@ -38,7 +38,7 @@ public interface Sequence<E> extends Iterable<E>, Monad<Sequence.µ, E>, Filtera
   <R> Sequence<R> map(Function1<E, R> mapper);
 
   @Override
-  <R> Sequence<R> flatMap(Function1<E, ? extends Higher<Sequence.µ, R>> mapper);
+  <R> Sequence<R> flatMap(Function1<E, ? extends Higher1<Sequence.µ, R>> mapper);
 
   @SuppressWarnings("unchecked")
   default <V> Sequence<V> flatten() {
@@ -115,7 +115,7 @@ public interface Sequence<E> extends Iterable<E>, Monad<Sequence.µ, E>, Filtera
     return ImmutableSet.of(elements);
   }
 
-  static <T> Sequence<T> narrowK(Higher<Sequence.µ, T> hkt) {
+  static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {
     return (Sequence<T>) hkt;
   }
 }

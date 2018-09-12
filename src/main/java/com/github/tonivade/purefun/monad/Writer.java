@@ -8,7 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Witness;
@@ -68,7 +68,7 @@ public final class Writer<L, A> implements Monad2<Writer.µ, L, A> {
     return (Writer<L, T>) hkt;
   }
 
-  public static <L, T> Writer<L, T> narrowK(Higher<Higher<Writer.µ, L>, T> hkt) {
+  public static <L, T> Writer<L, T> narrowK(Higher1<Higher1<Writer.µ, L>, T> hkt) {
     return (Writer<L, T>) hkt;
   }
 }
