@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.Producer.unit;
 import static com.github.tonivade.purefun.handler.OptionHandler.identity;
 import static com.github.tonivade.purefun.type.Equal.comparing;
 import static java.util.Objects.nonNull;
@@ -23,6 +24,7 @@ import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -150,6 +152,22 @@ public interface Option<T> extends Monad1<Option.µ, T>, Filterable<T>, Holder<T
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+  
+  static Monad<Option.µ> monad() {
+    return new Monad<Option.µ>() {
+
+      @Override
+      public <T> Option<T> pure(T value) {
+        return Option.of(unit(value));
+      }
+
+      @Override
+      public <T, R> Option<R> flatMap(Higher1<Option.µ, T> value, 
+                                      Function1<T, ? extends Higher1<Option.µ, R>> map) {
+        return narrowK(value).flatMap(map);
+      }
+    };
   }
 
   OptionModule module();

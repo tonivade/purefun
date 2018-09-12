@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.algebra.Monad;
 
 public class OptionTest {
   private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
@@ -179,6 +180,21 @@ public class OptionTest {
     Option<String> option = Option.some("asdf");
 
     assertThrows(UnsupportedOperationException.class, () -> option.flatten());
+  }
+  
+  @Test
+  public void monad() {
+    Monad<Option.µ> monad = Option.monad();
+
+    Option<String> some = Option.some("asdf");
+    Option<String> none = Option.none();
+    
+    assertAll(() -> assertEquals(Option.some("ASDF"), monad.map(some, toUpperCase)),
+              () -> assertEquals(Option.some("ASDF"), monad.flatMap(some, toUpperCase.liftOption())),
+              () -> assertEquals(some, monad.pure("asdf")),
+              () -> assertEquals(none, monad.pure(null)),
+              () -> assertEquals(none, monad.map(none, toUpperCase)),
+              () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption())));
   }
 
   private String message() {
