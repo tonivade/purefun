@@ -8,9 +8,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Witness;
 
-public interface Monad<F extends Witness> extends Functor<F>, Applicative<F> {
-
-  <T> Higher1<F, T> pure(T value);
+public interface Monad<F extends Witness> extends Applicative<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
 
