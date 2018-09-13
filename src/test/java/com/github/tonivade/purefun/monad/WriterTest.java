@@ -11,13 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.data.Sequence;
 
 public class WriterTest {
 
   @Test
   public void writerTest() {
-    Writer<ImmutableList<String>, Integer> writer = Writer.<String, Integer>listPure(5)
+    Writer<Higher1<Sequence.µ, String>, Integer> writer = Writer.<String, Integer>listPure(5)
         .flatMap(value -> listWriter("add 5", value + 5))
         .flatMap(value -> listWriter("plus 2", value * 2));
 

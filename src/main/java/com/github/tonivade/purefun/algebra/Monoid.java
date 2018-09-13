@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.data.ImmutableList;
 
 public interface Monoid<T> extends Semigroup<T> {
 
@@ -17,44 +16,32 @@ public interface Monoid<T> extends Semigroup<T> {
   static <T> Monoid<T> of(Producer<T> zero, Semigroup<T> combine) {
     return new GenericMonoid<>(zero, combine);
   }
-  
-  @SuppressWarnings("unchecked")
-  static <T> Monoid<ImmutableList<T>> list() {
-    return Monoid.class.cast(MonoidInstances.list);
-  }
-  
+
   static Monoid<String> string() {
-    return MonoidInstances.string;
+    return Monoid.of(unit(""), Semigroup.string());
   }
-  
+
   static Monoid<Integer> integer() {
-    return MonoidInstances.integer;
-  }
-
-  final class GenericMonoid<T> implements Monoid<T> {
-    private final Producer<T> zero;
-    private final Semigroup<T> combine;
-
-    private GenericMonoid(Producer<T> zero, Semigroup<T> combine) {
-      this.zero = requireNonNull(zero);
-      this.combine = requireNonNull(combine);
-    }
-
-    @Override
-    public T zero() {
-      return zero.get();
-    }
-
-    @Override
-    public T combine(T t1, T t2) {
-      return combine.combine(t1, t2);
-    }
+    return Monoid.of(unit(0), Semigroup.integer());
   }
 }
 
-interface MonoidInstances {
-  @SuppressWarnings("rawtypes")
-  Monoid<ImmutableList> list = Monoid.of(ImmutableList::empty, SemigroupInstances.list);
-  Monoid<String> string = Monoid.of(unit(""), SemigroupInstances.string);
-  Monoid<Integer> integer = Monoid.of(unit(0), SemigroupInstances.integer);
+class GenericMonoid<T> implements Monoid<T> {
+  private final Producer<T> zero;
+  private final Semigroup<T> semigroup;
+
+  GenericMonoid(Producer<T> zero, Semigroup<T> semigroup) {
+    this.zero = requireNonNull(zero);
+    this.semigroup = requireNonNull(semigroup);
+  }
+
+  @Override
+  public T zero() {
+    return zero.get();
+  }
+
+  @Override
+  public T combine(T t1, T t2) {
+    return semigroup.combine(t1, t2);
+  }
 }

@@ -13,7 +13,8 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.algebra.Monoid;
-import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.algebra.MonoidK;
+import com.github.tonivade.purefun.data.Sequence;
 
 public final class Writer<L, A> implements Monad2<Writer.µ, L, A> {
 
@@ -56,12 +57,12 @@ public final class Writer<L, A> implements Monad2<Writer.µ, L, A> {
     return new Writer<>(monoid, log, value);
   }
 
-  public static <T, A> Writer<ImmutableList<T>, A> listPure(A value) {
-    return pure(Monoid.list(), value);
+  public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listPure(A value) {
+    return pure(MonoidK.<T>sequence(), value);
   }
 
-  public static <T, A> Writer<ImmutableList<T>, A> listWriter(T log, A value) {
-    return writer(Monoid.list(), listOf(log), value);
+  public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listWriter(T log, A value) {
+    return writer(MonoidK.<T>sequence(), listOf(log), value);
   }
 
   public static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {
