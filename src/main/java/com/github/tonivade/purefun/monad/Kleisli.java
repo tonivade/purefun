@@ -31,10 +31,6 @@ public interface Kleisli<F extends Witness, Z, A> {
     return value -> monad.flatMap(run(value), a -> other.run(a));
   }
 
-  static <F extends Witness, Z, A> Kleisli<F, Z, A> of(Function1<Z, Higher1<F, A>> function) {
-    return function::apply;
-  }
-
   static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
     return map.andThen(monad::pure)::apply;
   }

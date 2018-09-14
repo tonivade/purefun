@@ -8,22 +8,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Try;
 
 public class KleisliTest {
 
   @Test
   public void compose() {
-    Function1<String, Integer> toIntF = Integer::parseInt;
-    Function1<Integer, Double> halfF = i -> i / 2.;
-
-    Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), toIntF);
-    Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), halfF);
+    Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
+    Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
 
     Higher1<Try.µ, Double> result = toInt.compose(Try.monad(), half).run("123");
 
     assertEquals(Try.success(61.5), result);
+  }
+
+  @Test
+  public void flatMap() {
+    Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
+    Kleisli<Try.µ, String, Double> toDouble = Kleisli.lift(Try.monad(), Double::parseDouble);
+
+    Kleisli<Try.µ, String, Tuple2<Integer, Double>> flatMap =
+        toInt.flatMap(Try.monad(), integer -> toDouble.map(Try.monad(), double_ -> Tuple.of(integer, double_)));
+
+    assertEquals(Try.success(Tuple.of(123, 123.)), flatMap.run("123"));
   }
 }
