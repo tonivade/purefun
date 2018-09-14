@@ -208,11 +208,24 @@ Finally, after hours of hard coding, I managed to implement a Free monad. This i
         .flatMap(text -> IOProgram.write("Hello " + text))
         .andThen(IOProgram.write("end"));
 
-  Higher<IOKind.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
+  Higher<IO.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
                                                    new IOProgramFunctor(),
                                                    new IOProgramInterperter());
 
-  IOKind.narrowK(foldMap).unsafeRunSync();
+  IO.narrowK(foldMap).unsafeRunSync();
+```
+
+### Kleisli
+
+Also I implemented the Kleisli composition for functions that returns monadic values like `Option`, `Try` or `Either`.
+
+```java
+  Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
+  Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
+
+  Higher1<Try.µ, Double> result = toInt.compose(Try.monad(), half).run("123");
+
+  assertEquals(Try.success(61.5), result);
 ```
 
 ## Algebra
@@ -231,22 +244,48 @@ There are instances for lists, strings and integers.
 
 ### Monoid
 
-Extends Semigroup adding a zero operation that represent an identity.
+Extends `Semigroup` adding a zero operation that represent an identity.
 
 ```java
 T zero();
 T combine(T t1, T t2);
 ```
 
-There are instances for lists, strings and integers.
+There are instances for strings and integers.
+
+### SemigroupK
+
+It represents a `Semigroup` but defined for a kind, like a List, so it extends a regular `Semigroup`.
+
+### MonoidK
+
+The same like `SemigroupK` but for a `Monoid`.
 
 ### Functor
 
-With higher kinded types simulation, we can represent a `Functor` in Java
+With higher kinded types simulation, we can represent a `Functor` in Java.
 
 ```java
 public interface Functor<F extends Witness> {
   <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
+}
+```
+
+### Applicative
+
+Also an `Applicative`
+
+```java
+public interface Applicative<F extends Witness> extends Functor<F> {
+
+  <T> Higher<F, T> pure(T value);
+
+  <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply);
+  
+  @Override
+  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
+    return ap(value, pure(map));
+  }
 }
 ```
 
@@ -255,15 +294,18 @@ public interface Functor<F extends Witness> {
 Also a `Monad`
 
 ```java
-public interface Monad<F extends Witness> extends Functor<F> {
+public interface Monad<F extends Witness> extends Applicative<F> {
 
-  <T> Higher<F, T> pure(T value);
-
-  <T, R> Higher<F, R> flatMap(Higher<F, T> value, Function1<T, ? extends Higher<F, R>> map);
+  <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
 
   @Override
-  default <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map) {
+  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
     return flatMap(value, map.andThen(this::pure));
+  }
+  
+  @Override
+  default <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply) {
+    return flatMap(apply, map -> map(value, map));
   }
 }
 ```
