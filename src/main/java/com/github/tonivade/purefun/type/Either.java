@@ -5,25 +5,27 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.EitherHandler.identity;
-import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad2;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Equal;
 
-public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
+public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
   final class µ implements Kind {}
 
@@ -182,6 +184,22 @@ public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <L> Monad<Higher1<Either.µ, L>> monad() {
+    return new Monad<Higher1<Either.µ, L>>() {
+
+      @Override
+      public <T> Either<L, T> pure(T value) {
+        return Either.right(value);
+      }
+
+      @Override
+      public <T, R> Either<L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
+                                         Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
+        return Either.narrowK(value).flatMap(map.andThen(Either::narrowK));
+      }
+    };
   }
 
   EitherModule module();

@@ -6,16 +6,17 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 
+import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Monad1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
-public interface IO<T> extends Monad1<IO.µ, T> {
+public interface IO<T> extends FlatMap1<IO.µ, T> {
 
   final class µ implements Kind {}
 
@@ -57,5 +58,20 @@ public interface IO<T> extends Monad1<IO.µ, T> {
 
   static <T> IO<T> narrowK(Higher1<IO.µ, T> hkt) {
     return (IO<T>) hkt;
+  }
+
+  static Monad<IO.µ> monad() {
+    return new Monad<IO.µ>() {
+
+      @Override
+      public <T> IO<T> pure(T value) {
+        return IO.unit(value);
+      }
+
+      @Override
+      public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
+        return narrowK(value).flatMap(map);
+      }
+    };
   }
 }

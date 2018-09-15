@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -12,7 +12,7 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.type.Equal;
+import com.github.tonivade.purefun.typeclasses.Equal;
 
 public class LensTest {
 

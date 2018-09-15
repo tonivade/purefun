@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.OptionHandler.identity;
-import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -20,14 +20,15 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad1;
+import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Equal;
 
-public interface Option<T> extends Monad1<Option.µ, T>, Filterable<T>, Holder<T> {
+public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder<T> {
 
   final class µ implements Kind {}
 

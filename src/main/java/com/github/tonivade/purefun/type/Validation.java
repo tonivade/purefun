@@ -6,12 +6,13 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
@@ -20,13 +21,14 @@ import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad2;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Equal;
 
-public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T> {
+public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, T> {
 
   final class µ implements Kind {}
 
@@ -134,6 +136,22 @@ public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T>
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <E> Monad<Higher1<Validation.µ, E>> monad() {
+    return new Monad<Higher1<Validation.µ, E>>() {
+
+      @Override
+      public <T> Validation<E, T> pure(T value) {
+        return Validation.valid(value);
+      }
+
+      @Override
+      public <T, R> Validation<E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
+                                             Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
+        return Validation.narrowK(value).flatMap(map.andThen(Validation::narrowK));
+      }
+    };
   }
 
   ValidationModule module();

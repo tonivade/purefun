@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.type.Equal;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Equal;
 
 public interface ImmutableList<E> extends Sequence<E> {
 

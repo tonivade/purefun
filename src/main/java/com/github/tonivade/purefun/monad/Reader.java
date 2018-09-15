@@ -4,14 +4,15 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.algebra.Monad;
 
 @FunctionalInterface
-public interface Reader<R, A> extends Monad2<Reader.µ, R, A> {
+public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {
 
   final class µ implements Kind {}
 
@@ -41,5 +42,21 @@ public interface Reader<R, A> extends Monad2<Reader.µ, R, A> {
 
   static <R, A> Reader<R, A> narrowK(Higher1<Higher1<Reader.µ, R>, A> hkt) {
     return (Reader<R, A>) hkt;
+  }
+
+  static <V> Monad<Higher1<Reader.µ, V>> monad() {
+    return new Monad<Higher1<Reader.µ, V>>() {
+
+      @Override
+      public <T> Reader<V, T> pure(T value) {
+        return Reader.pure(value);
+      }
+
+      @Override
+      public <T, R> Reader<V, R> flatMap(Higher1<Higher1<Reader.µ, V>, T> value,
+                                         Function1<T, ? extends Higher1<Higher1<Reader.µ, V>, R>> map) {
+        return narrowK(value).flatMap(map.andThen(Reader::narrowK));
+      }
+    };
   }
 }

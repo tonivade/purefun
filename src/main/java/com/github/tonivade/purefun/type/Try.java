@@ -5,8 +5,8 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.TryHandler.identity;
-import static com.github.tonivade.purefun.type.Equal.comparing;
-import static com.github.tonivade.purefun.type.Equal.comparingArray;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparingArray;
 import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
@@ -20,14 +20,15 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
-import com.github.tonivade.purefun.Monad1;
+import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Equal;
 
-public interface Try<T> extends Monad1<Try.µ, T>, Filterable<T>, Holder<T> {
+public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
   final class µ implements Kind {}
 

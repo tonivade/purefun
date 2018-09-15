@@ -11,10 +11,10 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Monad3;
+import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.algebra.Monad;
 
-public final class Kleisli<F extends Kind, Z, A> implements Monad3<Kleisli.µ, F, Z, A> {
+public final class Kleisli<F extends Kind, Z, A> implements FlatMap3<Kleisli.µ, F, Z, A> {
 
   public static final class µ implements Kind {}
 

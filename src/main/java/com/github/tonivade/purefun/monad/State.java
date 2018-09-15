@@ -7,19 +7,20 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
+import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Monad2;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
-public interface State<S, A> extends Monad2<State.µ, S, A> {
+public interface State<S, A> extends FlatMap2<State.µ, S, A> {
 
   final class µ implements Kind {}
 
@@ -80,5 +81,21 @@ public interface State<S, A> extends Monad2<State.µ, S, A> {
 
   static <S, A> State<S, A> narrowK(Higher1<Higher1<State.µ, S>, A> hkt) {
     return (State<S, A>) hkt;
+  }
+
+  static <V> Monad<Higher1<State.µ, V>> monad() {
+    return new Monad<Higher1<State.µ, V>>() {
+
+      @Override
+      public <T> State<V, T> pure(T value) {
+        return State.pure(value);
+      }
+
+      @Override
+      public <T, R> State<V, R> flatMap(Higher1<Higher1<State.µ, V>, T> value,
+                                        Function1<T, ? extends Higher1<Higher1<State.µ, V>, R>> map) {
+        return narrowK(value).flatMap(map.andThen(State::narrowK));
+      }
+    };
   }
 }

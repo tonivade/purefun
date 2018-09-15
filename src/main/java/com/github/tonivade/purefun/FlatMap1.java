@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Monad2<W extends Kind, T, V> extends Higher2<W, T, V>, Functor<Higher1<W, T>, V> {
+public interface FlatMap1<W extends Kind, T> extends Mappeable<W, T> {
 
-  <R> Monad2<W, T, R> flatMap(Function1<V, ? extends Higher2<W, T, R>> map);
+  <R> FlatMap1<W, R> flatMap(Function1<T, ? extends Higher1<W, R>> map);
 
 }

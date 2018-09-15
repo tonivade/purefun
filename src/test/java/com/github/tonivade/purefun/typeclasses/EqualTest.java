@@ -2,15 +2,17 @@
  * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.type;
+package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.type.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.typeclasses.Equal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
