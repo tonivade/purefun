@@ -4,34 +4,58 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static java.util.Objects.requireNonNull;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.Monad3;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Monad;
 
-@FunctionalInterface
-public interface Kleisli<F extends Witness, Z, A> {
+public final class Kleisli<F extends Witness, Z, A> implements Monad3<Kleisli.µ, F, Z, A> {
 
-  Higher1<F, A> run(Z value);
+  public static final class µ implements Witness {}
 
-  default <B> Kleisli<F, Z, B> flatMap(Monad<F> monad, Function1<A, Kleisli<F, Z, B>> map) {
-    return value -> monad.flatMap(run(value), a -> map.apply(a).run(value));
+  private final Monad<F> monad;
+  private final Function1<Z, Higher1<F, A>> run;
+
+  private Kleisli(Monad<F> monad, Function1<Z, Higher1<F, A>> run) {
+    this.monad = requireNonNull(monad);
+    this.run = requireNonNull(run);
   }
 
-  default <B> Kleisli<F, Z, B> map(Functor<F> functor, Function1<A, B> map) {
-    return value -> functor.map(run(value), map);
+  public Higher1<F, A> run(Z value) {
+    return run.apply(value);
   }
 
-  default <X> Kleisli<F, X, A> local(Function1<X, Z> map) {
-    return map.andThen(this::run)::apply;
+  @Override
+  public <R> Kleisli<F, Z, R> map(Function1<A, R> map) {
+    return Kleisli.of(monad, value -> monad.map(run(value), map));
   }
 
-  default <B> Kleisli<F, Z, B> compose(Monad<F> monad, Kleisli<F, A, B> other) {
-    return value -> monad.flatMap(run(value), a -> other.run(a));
+  @Override
+  public <R> Kleisli<F, Z, R> flatMap(Function1<A, ? extends Higher3<Kleisli.µ, F, Z, R>> map) {
+    return Kleisli.of(monad, value -> monad.flatMap(run(value), a -> map.andThen(Kleisli::narrowK).apply(a).run(value)));
   }
 
-  static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
-    return map.andThen(monad::pure)::apply;
+  public <B> Kleisli<F, Z, B> compose(Kleisli<F, A, B> other) {
+    return Kleisli.of(monad, value -> monad.flatMap(run(value), a -> other.run(a)));
+  }
+
+  public <X> Kleisli<F, X, A> local(Function1<X, Z> map) {
+    return Kleisli.of(monad, map.andThen(this::run)::apply);
+  }
+
+  public static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
+    return Kleisli.of(monad, map.andThen(monad::pure)::apply);
+  }
+
+  public static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {
+    return new Kleisli<>(monad, run);
+  }
+
+  public static <F extends Witness, A, B> Kleisli<F, A, B> narrowK(Higher3<Kleisli.µ, F, A, B> hkt) {
+    return (Kleisli<F, A, B>) hkt;
   }
 }

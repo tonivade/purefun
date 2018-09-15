@@ -58,11 +58,11 @@ public final class Writer<L, A> implements Monad2<Writer.µ, L, A> {
   }
 
   public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listPure(A value) {
-    return pure(MonoidK.<T>sequence(), value);
+    return pure(MonoidK.sequence(), value);
   }
 
   public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listWriter(T log, A value) {
-    return writer(MonoidK.<T>sequence(), listOf(log), value);
+    return writer(MonoidK.sequence(), listOf(log), value);
   }
 
   public static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {

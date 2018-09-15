@@ -20,7 +20,7 @@ public class KleisliTest {
     Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
     Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
 
-    Higher1<Try.µ, Double> result = toInt.compose(Try.monad(), half).run("123");
+    Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
 
     assertEquals(Try.success(61.5), result);
   }
@@ -31,7 +31,7 @@ public class KleisliTest {
     Kleisli<Try.µ, String, Double> toDouble = Kleisli.lift(Try.monad(), Double::parseDouble);
 
     Kleisli<Try.µ, String, Tuple2<Integer, Double>> flatMap =
-        toInt.flatMap(Try.monad(), integer -> toDouble.map(Try.monad(), double_ -> Tuple.of(integer, double_)));
+        toInt.flatMap(integer -> toDouble.map(double_ -> Tuple.of(integer, double_)));
 
     assertEquals(Try.success(Tuple.of(123, 123.)), flatMap.run("123"));
   }
