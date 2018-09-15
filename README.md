@@ -27,7 +27,7 @@ This project is not ready to be used in production, I use it to learn functional
 It represent the arrow between two categories, encapsulates a data type that can be mapped to other data type. 
 
 ```java
-interface Functor<W extends Witness, T> extends Higher<W, T> {
+interface Functor<W extends Kind, T> extends Higher<W, T> {
   <R> Functor<W, R> map(Function1<T, R> map);
 }
 ```
@@ -37,7 +37,7 @@ interface Functor<W extends Witness, T> extends Higher<W, T> {
 It is difficult to explain what a monad is, many people have tried and this is my humble attempt. It is something that allows to combine operations, in a functional way, but simulating the imperative style. For example, `State`, `Reader`, `Writer` and `IO` monads are ways to combine operations.
 
 ```java
-interface Monad<W extends Witness, T> extends Higher<W, T>, Functor<W, T> {
+interface Monad<W extends Kind, T> extends Higher<W, T>, Functor<W, T> {
   <R> Monad<W, R> flatMap(Function1<T, ? extends Higher<W, R>> map);
 }
 ```
@@ -266,7 +266,7 @@ The same like `SemigroupK` but for a `Monoid`.
 With higher kinded types simulation, we can represent a `Functor` in Java.
 
 ```java
-public interface Functor<F extends Witness> {
+public interface Functor<F extends Kind> {
   <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
 }
 ```
@@ -276,7 +276,7 @@ public interface Functor<F extends Witness> {
 Also an `Applicative`
 
 ```java
-public interface Applicative<F extends Witness> extends Functor<F> {
+public interface Applicative<F extends Kind> extends Functor<F> {
 
   <T> Higher<F, T> pure(T value);
 
@@ -294,7 +294,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
 Also a `Monad`
 
 ```java
-public interface Monad<F extends Witness> extends Applicative<F> {
+public interface Monad<F extends Kind> extends Applicative<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
 
@@ -315,7 +315,7 @@ public interface Monad<F extends Witness> extends Applicative<F> {
 It represents a natural transformation between two different kinds.
 
 ```java
-public interface Transformer<F extends Witness, T extends Witness> {
+public interface Transformer<F extends Kind, T extends Kind> {
   <X> Higher<T, X> apply(Higher<F, X> from);
 }
 ```
