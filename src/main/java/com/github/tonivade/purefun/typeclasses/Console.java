@@ -13,23 +13,23 @@ import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 
 public interface Console<W extends Kind> {
-  
+
   Higher1<W, String> readln();
-  
+
   Higher1<W, Nothing> println(String text);
-  
+
   static Console<IO.µ> io() {
     return new ConsoleIO();
   }
-  
+
   static Console<Higher1<State.µ, ImmutableList<String>>> state() {
     return new ConsoleState();
   }
@@ -48,8 +48,8 @@ class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> 
   }
 }
 
-class ConsoleIO implements Console<IO.µ> {
-  
+final class ConsoleIO implements Console<IO.µ> {
+
   private final SystemConsole console = new SystemConsole();
 
   @Override
@@ -76,11 +76,11 @@ final class SystemConsole {
       throw new UncheckedIOException(e);
     }
   }
-  
+
   private BufferedReader reader() {
     return new BufferedReader(new InputStreamReader(System.in));
   }
-  
+
   private PrintWriter writer() {
     return new PrintWriter(System.out, true);
   }
