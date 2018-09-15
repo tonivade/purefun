@@ -41,7 +41,7 @@ public final class Kleisli<F extends Kind, Z, A> implements Monad3<Kleisli.µ, F
   }
 
   public <B> Kleisli<F, Z, B> compose(Kleisli<F, A, B> other) {
-    return Kleisli.of(monad, value -> monad.flatMap(run(value), a -> other.run(a)));
+    return Kleisli.of(monad, value -> monad.flatMap(run(value), other::run));
   }
 
   public <X> Kleisli<F, X, A> local(Function1<X, Z> map) {

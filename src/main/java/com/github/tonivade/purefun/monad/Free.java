@@ -9,8 +9,8 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
@@ -57,11 +57,11 @@ public interface Free<F extends Kind, T> extends Monad2<Free.µ, F, T> {
   }
 
   default <G extends Kind> Higher1<G, T> foldMap(Monad<G> monad,
-                                                   Functor<F> functor,
-                                                   Transformer<F, G> interpreter) {
+                                                 Functor<F> functor,
+                                                 Transformer<F, G> interpreter) {
     return resume(functor)
         .fold(left -> monad.flatMap(interpreter.apply(left), free -> free.foldMap(monad, functor, interpreter)),
-              right -> monad.pure(right));
+              monad::pure);
   }
 
   FreeModule module();
