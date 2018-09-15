@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.algebra.Semigroup;
 
 public class SemigroupTest {
 
-  private final Semigroup<Integer> semigroup = Semigroup.integer();
+  private final Semigroup<Integer> semigroup = Semigroup.of((a, b) -> a + b);
   
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {

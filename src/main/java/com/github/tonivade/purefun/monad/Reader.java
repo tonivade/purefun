@@ -8,12 +8,12 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 
 @FunctionalInterface
 public interface Reader<R, A> extends Monad2<Reader.µ, R, A> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   A eval(R reader);
 

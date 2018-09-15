@@ -189,12 +189,13 @@ public class OptionTest {
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();
     
-    assertAll(() -> assertEquals(Option.some("ASDF"), monad.map(some, toUpperCase)),
-              () -> assertEquals(Option.some("ASDF"), monad.flatMap(some, toUpperCase.liftOption())),
+    assertAll(() -> assertEquals(some.map(toUpperCase), monad.map(some, toUpperCase)),
+              () -> assertEquals(some.map(toUpperCase), monad.flatMap(some, toUpperCase.liftOption())),
               () -> assertEquals(some, monad.pure("asdf")),
-              () -> assertEquals(none, monad.pure(null)),
               () -> assertEquals(none, monad.map(none, toUpperCase)),
-              () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption())));
+              () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption())),
+              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase)))
+              );
   }
 
   private String message() {

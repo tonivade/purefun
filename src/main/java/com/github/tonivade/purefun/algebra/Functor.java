@@ -6,9 +6,9 @@ package com.github.tonivade.purefun.algebra;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 
-public interface Functor<F extends Witness> {
+public interface Functor<F extends Kind> {
 
   <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map);
 

@@ -10,33 +10,33 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Either;
 
-public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
+public interface Free<F extends Kind, T> extends Monad2<Free.µ, F, T> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
-  static <F extends Witness, T> Free<F, T> pure(T value) {
+  static <F extends Kind, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
   }
 
-  static <F extends Witness, T> Free<F, T> suspend(Higher1<F, Free<F, T>> value) {
+  static <F extends Kind, T> Free<F, T> suspend(Higher1<F, Free<F, T>> value) {
     return new Suspend<>(value);
   }
 
-  static <F extends Witness, T> Free<F, T> liftF(Functor<F> functor, Higher1<F, T> value) {
+  static <F extends Kind, T> Free<F, T> liftF(Functor<F> functor, Higher1<F, T> value) {
     return suspend(functor.map(value, Free::pure));
   }
 
-  static <F extends Witness, T> Free<F, T> narrowK(Higher2<Free.µ, F, T> hkt) {
+  static <F extends Kind, T> Free<F, T> narrowK(Higher2<Free.µ, F, T> hkt) {
     return (Free<F, T>) hkt;
   }
 
-  static <F extends Witness, T> Free<F, T> narrowK(Higher1<Higher1<Free.µ, F>, T> hkt) {
+  static <F extends Kind, T> Free<F, T> narrowK(Higher1<Higher1<Free.µ, F>, T> hkt) {
     return (Free<F, T>) hkt;
   }
 
@@ -56,7 +56,7 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     return FreeModule.resume(this, functor);
   }
 
-  default <G extends Witness> Higher1<G, T> foldMap(Monad<G> monad,
+  default <G extends Kind> Higher1<G, T> foldMap(Monad<G> monad,
                                                    Functor<F> functor,
                                                    Transformer<F, G> interpreter) {
     return resume(functor)
@@ -66,7 +66,7 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
 
   FreeModule module();
 
-  final class Pure<F extends Witness, T> implements Free<F, T> {
+  final class Pure<F extends Kind, T> implements Free<F, T> {
 
     final T value;
 
@@ -85,7 +85,7 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     }
   }
 
-  final class Suspend<F extends Witness, T> implements Free<F, T> {
+  final class Suspend<F extends Kind, T> implements Free<F, T> {
 
     final Higher1<F, Free<F, T>> value;
 
@@ -104,7 +104,7 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
     }
   }
 
-  final class FlatMap<F extends Witness, T, R> implements Free<F, R> {
+  final class FlatMap<F extends Kind, T, R> implements Free<F, R> {
 
     final Higher2<Free.µ, F, T> value;
     final Function1<T, ? extends Higher2<Free.µ, F, R>> map;
@@ -136,20 +136,20 @@ public interface Free<F extends Witness, T> extends Monad2<Free.µ, F, T> {
 
 interface FreeModule {
 
-  static <F extends Witness, T> Free.Pure<F, T> asPure(Free<F, T> free) {
+  static <F extends Kind, T> Free.Pure<F, T> asPure(Free<F, T> free) {
     return (Free.Pure<F, T>) free;
   }
 
-  static <F extends Witness, T> Free.Suspend<F, T> asSuspend(Free<F, T> free) {
+  static <F extends Kind, T> Free.Suspend<F, T> asSuspend(Free<F, T> free) {
     return (Free.Suspend<F, T>) free;
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Witness, T, X> Free.FlatMap<F, X, T> asFlatMap(Free<F, T> free) {
+  static <F extends Kind, T, X> Free.FlatMap<F, X, T> asFlatMap(Free<F, T> free) {
     return (Free.FlatMap<F, X, T>) free;
   }
 
-  static <X1, X2, F extends Witness, T> Either<Higher1<F, Free<F, T>>, T> resume(Free<F, T> current, Functor<F> functor) {
+  static <X1, X2, F extends Kind, T> Either<Higher1<F, Free<F, T>>, T> resume(Free<F, T> current, Functor<F> functor) {
     while (true) {
       if (current instanceof Free.Suspend) {
         return Either.left(asSuspend(current).value);

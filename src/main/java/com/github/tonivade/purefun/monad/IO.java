@@ -11,13 +11,13 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
 public interface IO<T> extends Monad1<IO.µ, T> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   T unsafeRunSync();
 

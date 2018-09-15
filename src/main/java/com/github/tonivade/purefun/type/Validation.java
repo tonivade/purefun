@@ -23,12 +23,12 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.Sequence;
 
 public interface Validation<E, T> extends Holder<T>, Monad2<Validation.µ, E, T> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);

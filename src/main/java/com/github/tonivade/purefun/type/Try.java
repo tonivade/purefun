@@ -22,13 +22,14 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 public interface Try<T> extends Monad1<Try.µ, T>, Filterable<T>, Holder<T> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -183,6 +184,22 @@ public interface Try<T> extends Monad1<Try.µ, T>, Filterable<T>, Holder<T> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static Monad<Try.µ> monad() {
+    return new Monad<Try.µ>() {
+
+      @Override
+      public <T> Try<T> pure(T value) {
+        return Try.success(value);
+      }
+
+      @Override
+      public <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
+                                   Function1<T, ? extends Higher1<Try.µ, R>> map) {
+        return narrowK(value).flatMap(map);
+      }
+    };
   }
 
   TryModule module();
