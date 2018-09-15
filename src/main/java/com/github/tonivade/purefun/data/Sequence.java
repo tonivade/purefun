@@ -18,12 +18,12 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Operator2;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Option;
 
 public interface Sequence<E> extends Iterable<E>, Monad1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   int size();
 

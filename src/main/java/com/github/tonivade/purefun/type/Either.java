@@ -19,13 +19,13 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 public interface Either<L, R> extends Monad2<Either.µ, L, R>, Holder<R> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);

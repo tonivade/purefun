@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Monad3<W extends Witness, T, V, U> extends Higher3<W, T, V, U>, Functor<Higher1<Higher1<W, T>, V>, U> {
+public interface Monad3<W extends Kind, T, V, U> extends Higher3<W, T, V, U>, Functor<Higher1<Higher1<W, T>, V>, U> {
 
   <R> Monad3<W, T, V, R> flatMap(Function1<U, ? extends Higher3<W, T, V, R>> map);
 

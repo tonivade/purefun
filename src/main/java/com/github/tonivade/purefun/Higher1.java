@@ -4,6 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Higher1<W extends Witness, T> extends Witness {
+public interface Higher1<W extends Kind, T> extends Kind {
 
 }

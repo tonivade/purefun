@@ -11,14 +11,14 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Monad2;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.algebra.Monoid;
 import com.github.tonivade.purefun.algebra.MonoidK;
 import com.github.tonivade.purefun.data.Sequence;
 
 public final class Writer<L, A> implements Monad2<Writer.µ, L, A> {
 
-  public static final class µ implements Witness {}
+  public static final class µ implements Kind {}
 
   private final Monoid<L> monoid;
   private final A value;

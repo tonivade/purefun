@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Functor<W extends Witness, T> extends Higher1<W, T> {
+public interface Functor<W extends Kind, T> extends Higher1<W, T> {
 
   <R> Functor<W, R> map(Function1<T, R> map);
 

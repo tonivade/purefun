@@ -15,13 +15,13 @@ import com.github.tonivade.purefun.Monad2;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
 public interface State<S, A> extends Monad2<State.µ, S, A> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   Tuple2<S, A> run(S state);
 

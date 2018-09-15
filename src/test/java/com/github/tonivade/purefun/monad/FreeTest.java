@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
@@ -76,7 +76,7 @@ public class FreeTest {
 }
 
 interface IOProgram<T> extends Higher1<IOProgram.µ, T> {
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   <R> R fold(Function2<String, T, R> write, Function1<T, R> read);
 

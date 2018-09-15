@@ -4,6 +4,4 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Witness {
-
-}
+public interface Kind {}

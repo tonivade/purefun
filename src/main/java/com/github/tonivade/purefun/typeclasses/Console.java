@@ -15,12 +15,12 @@ import java.io.UncheckedIOException;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 
-public interface Console<W extends Witness> {
+public interface Console<W extends Kind> {
   
   Higher1<W, String> readln();
   

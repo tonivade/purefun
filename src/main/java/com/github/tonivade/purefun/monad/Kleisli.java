@@ -8,14 +8,15 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Monad3;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.algebra.Monad;
 
-public final class Kleisli<F extends Witness, Z, A> implements Monad3<Kleisli.µ, F, Z, A> {
+public final class Kleisli<F extends Kind, Z, A> implements Monad3<Kleisli.µ, F, Z, A> {
 
-  public static final class µ implements Witness {}
+  public static final class µ implements Kind {}
 
   private final Monad<F> monad;
   private final Function1<Z, Higher1<F, A>> run;
@@ -47,15 +48,23 @@ public final class Kleisli<F extends Witness, Z, A> implements Monad3<Kleisli.µ
     return Kleisli.of(monad, map.andThen(this::run)::apply);
   }
 
-  public static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
+  public static <F extends Kind, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
     return Kleisli.of(monad, map.andThen(monad::pure)::apply);
   }
 
-  public static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {
+  public static <F extends Kind, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {
     return new Kleisli<>(monad, run);
   }
 
-  public static <F extends Witness, A, B> Kleisli<F, A, B> narrowK(Higher3<Kleisli.µ, F, A, B> hkt) {
+  public static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher3<Kleisli.µ, F, A, B> hkt) {
+    return (Kleisli<F, A, B>) hkt;
+  }
+
+  public static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher2<Higher1<Kleisli.µ, F>, A, B> hkt) {
+    return (Kleisli<F, A, B>) hkt;
+  }
+
+  public static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher1<Higher1<Higher1<Kleisli.µ, F>, A>, B> hkt) {
     return (Kleisli<F, A, B>) hkt;
   }
 }

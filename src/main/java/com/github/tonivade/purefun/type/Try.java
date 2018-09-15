@@ -22,14 +22,14 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.Monad1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 public interface Try<T> extends Monad1<Try.µ, T>, Filterable<T>, Holder<T> {
 
-  final class µ implements Witness {}
+  final class µ implements Kind {}
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
