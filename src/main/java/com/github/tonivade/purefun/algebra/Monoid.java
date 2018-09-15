@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.algebra;
 
-import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Producer;
@@ -15,14 +14,6 @@ public interface Monoid<T> extends Semigroup<T> {
 
   static <T> Monoid<T> of(Producer<T> zero, Semigroup<T> combine) {
     return new GenericMonoid<>(zero, combine);
-  }
-
-  static Monoid<String> string() {
-    return Monoid.of(unit(""), Semigroup.string());
-  }
-
-  static Monoid<Integer> integer() {
-    return Monoid.of(unit(0), Semigroup.integer());
   }
 }
 

@@ -17,7 +17,7 @@ public interface MonoidK<W extends Witness, T> extends SemigroupK<W, T>, Monoid<
   }
 
   static <T> MonoidK<Sequence.µ, T> sequence() {
-    return new GenericMonoidK<>(ImmutableList::empty, SemigroupK.sequence());
+    return MonoidK.of(ImmutableList::empty, SemigroupK.sequence());
   }
 }
 

@@ -14,12 +14,4 @@ public interface Semigroup<T> {
   static <T> Semigroup<T> of(Operator2<T> combine) {
     return combine::apply;
   }
-
-  static Semigroup<String> string() {
-    return String::concat;
-  }
-
-  static Semigroup<Integer> integer() {
-    return (a, b) -> a + b;
-  }
 }

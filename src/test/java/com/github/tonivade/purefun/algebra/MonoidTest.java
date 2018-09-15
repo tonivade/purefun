@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.algebra;
 
+import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -14,11 +15,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
-import com.github.tonivade.purefun.algebra.Monoid;
-
 public class MonoidTest {
 
-  private final Monoid<Integer> monoid = Monoid.integer();
+  private final Monoid<Integer> monoid = Monoid.of(unit(0), (a, b) -> a + b);
   
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {
