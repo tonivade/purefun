@@ -223,7 +223,7 @@ Also I implemented the Kleisli composition for functions that returns monadic va
   Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
   Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
 
-  Higher1<Try.µ, Double> result = toInt.compose(Try.monad(), half).run("123");
+  Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
 
   assertEquals(Try.success(61.5), result);
 ```

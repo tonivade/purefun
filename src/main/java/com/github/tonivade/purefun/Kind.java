@@ -4,4 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Kind {}
+public interface Kind {
+  
+}

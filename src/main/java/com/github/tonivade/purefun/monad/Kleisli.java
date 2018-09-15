@@ -64,7 +64,9 @@ public final class Kleisli<F extends Kind, Z, A> implements Monad3<Kleisli.µ, F
     return (Kleisli<F, A, B>) hkt;
   }
 
+  @SuppressWarnings("unchecked")
   public static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher1<Higher1<Higher1<Kleisli.µ, F>, A>, B> hkt) {
+    // XXX: I don't know why, but compiler says here there's an unsafe cast
     return (Kleisli<F, A, B>) hkt;
   }
 }
