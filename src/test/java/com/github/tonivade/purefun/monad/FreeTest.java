@@ -15,11 +15,10 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -149,12 +148,10 @@ class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, Im
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Higher1<IOProgram.µ, X> from) {
-    Matcher<IOProgram<X>> isRead = Matcher.instanceOf(IOProgram.Read.class);
-    Matcher<IOProgram<X>> isWriter = Matcher.instanceOf(IOProgram.Write.class);
     return Pattern.<IOProgram<X>, State<ImmutableList<String>, X>>build()
-      .when(isRead)
+      .when(instanceOf(IOProgram.Read.class))
         .then(program -> State.narrowK(console.readln()).map(program.asRead().next))
-      .when(isWriter)
+      .when(instanceOf(IOProgram.Write.class))
         .then(program -> State.narrowK(console.println(program.asWrite().value)).map(ignore -> program.asWrite().next))
       .apply(IOProgram.narrowK(from));
   }

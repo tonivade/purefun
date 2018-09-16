@@ -12,28 +12,30 @@ import java.util.Objects;
 public interface Matcher<T> {
 
   boolean match(T target);
-  
+
   default Matcher<T> and(Matcher<T> other) {
     return value -> match(value) && other.match(value);
   }
-  
+
   default Matcher<T> or(Matcher<T> other) {
     return value -> match(value) || other.match(value);
   }
-  
+
   default Matcher<T> negate() {
     return value -> !match(value);
   }
-  
+
   static <T> Matcher<T> not(Matcher<T> matcher) {
     return matcher.negate();
   }
-  
-  static <T> Matcher<T> instanceOf(Class<? extends T> type) {
+
+  // XXX: when I change Class<?> for Class<? extends T>
+  // javac complains about this, it cannot infer type parameters but inside eclipse works fine
+  static <T> Matcher<T> instanceOf(Class<?> type) {
     Objects.requireNonNull(type);
     return value -> nonNull(value) && type.isAssignableFrom(value.getClass());
   }
-  
+
   static <T> Matcher<T> otherwise() {
     return value -> true;
   }
