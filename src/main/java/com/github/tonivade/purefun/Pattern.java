@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.type.Option;
 
-public final class Pattern<T, R> {
+public final class Pattern<T, R> implements Function1<T, R> {
 
   private final ImmutableList<Case<T, R>> cases;
 
@@ -33,8 +33,10 @@ public final class Pattern<T, R> {
     return new CaseBuilder<>(this::add).when(Matcher.otherwise());
   }
 
-  public R apply(T value) {
-    return findCase(value).map(case_ -> case_.apply(value))
+  @Override
+  public R apply(T target) {
+    return findCase(target)
+        .map(case_ -> case_.apply(target))
         .orElseThrow(IllegalStateException::new);
   }
 
@@ -42,11 +44,12 @@ public final class Pattern<T, R> {
     return new Pattern<>(cases.append(new Case<>(matcher, handler)));
   }
 
-  private Option<Case<T, R>> findCase(T value) {
-    return cases.filter(mapping -> mapping.match(value)).head();
+  private Option<Case<T, R>> findCase(T target) {
+    return cases.filter(case_ -> case_.match(target)).head();
   }
 
   public static final class Case<T, R> {
+
     private final Matcher<T> matcher;
     private final Function1<T, R> handler;
 
@@ -84,6 +87,13 @@ public final class Pattern<T, R> {
 
     public B then(Function1<T, R> handler) {
       return finisher.apply(matcher, handler);
+    }
+
+    // XXX: I have to rename this method because eclipse complains, it says that there are ambiguous.
+    // javac compiler works fine.
+    // related bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=522380
+    public B returns(R value) {
+      return then(target -> value);
     }
   }
 }
