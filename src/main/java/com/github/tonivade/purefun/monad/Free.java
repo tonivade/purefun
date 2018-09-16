@@ -76,7 +76,7 @@ public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
 
     @Override
     public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
-      return new FlatMap<>(this, map);
+      return new FlatMapped<>(this, map);
     }
 
     @Override
@@ -95,7 +95,7 @@ public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
 
     @Override
     public <R> Free<F, R> flatMap(Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
-      return new FlatMap<>(this, map);
+      return new FlatMapped<>(this, map);
     }
 
     @Override
@@ -104,19 +104,19 @@ public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
     }
   }
 
-  final class FlatMap<F extends Kind, T, R> implements Free<F, R> {
+  final class FlatMapped<F extends Kind, T, R> implements Free<F, R> {
 
     final Higher2<Free.µ, F, T> value;
     final Function1<T, ? extends Higher2<Free.µ, F, R>> map;
 
-    private FlatMap(Higher2<Free.µ, F, T> value, Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
+    private FlatMapped(Higher2<Free.µ, F, T> value, Function1<T, ? extends Higher2<Free.µ, F, R>> map) {
       this.value = requireNonNull(value);
       this.map = requireNonNull(map);
     }
 
     @Override
     public <X> Free<F, X> flatMap(Function1<R, ? extends Higher2<Free.µ, F, X>> map) {
-      return new FlatMap<>(value, free -> new FlatMap<>(narrowFn().apply(free), map));
+      return new FlatMapped<>(value, free -> new FlatMapped<>(narrowFn().apply(free), map));
     }
 
     Function1<T, Free<F, R>> narrowFn() {
@@ -145,8 +145,8 @@ interface FreeModule {
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Kind, T, X> Free.FlatMap<F, X, T> asFlatMap(Free<F, T> free) {
-    return (Free.FlatMap<F, X, T>) free;
+  static <F extends Kind, T, X> Free.FlatMapped<F, X, T> asFlatMapped(Free<F, T> free) {
+    return (Free.FlatMapped<F, X, T>) free;
   }
 
   static <X1, X2, F extends Kind, T> Either<Higher1<F, Free<F, T>>, T> resume(Free<F, T> current, Functor<F> functor) {
@@ -156,7 +156,7 @@ interface FreeModule {
       } else if (current instanceof Free.Pure) {
         return Either.right(asPure(current).value);
       }
-      Free.FlatMap<F, X1, T> flatMap1 = asFlatMap(current);
+      Free.FlatMapped<F, X1, T> flatMap1 = asFlatMapped(current);
       Free<F, X1> innerFree1 = flatMap1.narrowK();
       if (innerFree1 instanceof Free.Suspend) {
         return Either.left(functor.map(asSuspend(innerFree1).value,
@@ -165,7 +165,7 @@ interface FreeModule {
       if (innerFree1 instanceof Free.Pure) {
         current = flatMap1.narrowFn().apply(asPure(innerFree1).value);
       } else {
-        Free.FlatMap<F, X2, X1> flatMap2 = asFlatMap(innerFree1);
+        Free.FlatMapped<F, X2, X1> flatMap2 = asFlatMapped(innerFree1);
         Free<F, X2> innerValue2 = flatMap2.narrowK();
         current = innerValue2.flatMap(x2 -> flatMap2.narrowFn().apply(x2).flatMap(flatMap1.map));
       }

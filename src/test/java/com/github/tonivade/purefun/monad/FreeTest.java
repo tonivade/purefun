@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Matcher.instanceOf;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Free.liftF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,10 +16,11 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Pattern;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher;
 import com.github.tonivade.purefun.algebra.Functor;
-import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -43,7 +45,7 @@ public class FreeTest {
   @Test
   public void interpretState() {
     Higher1<Higher1<State.µ, ImmutableList<String>>, Nothing> foldMap =
-        echo.foldMap(new StateMonad(), IOProgram.functor, new IOProgramState());
+        echo.foldMap(State.monad(), IOProgram.functor, new IOProgramToState());
 
     State<ImmutableList<String>, Nothing> state = State.narrowK(foldMap);
 
@@ -55,7 +57,7 @@ public class FreeTest {
   @Test
   public void interpretIO() {
     Higher1<IO.µ, Nothing> foldMap =
-        echo.foldMap(new IOMonad(), IOProgram.functor, new IOProgramIO());
+        echo.foldMap(IO.monad(), IOProgram.functor, new IOProgramToIO());
 
     IO<Nothing> echoIO = IO.narrowK(foldMap);
 
@@ -141,80 +143,35 @@ interface IOProgram<T> extends Higher1<IOProgram.µ, T> {
   }
 }
 
-class IOProgramState implements Transformer<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
+class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
 
   private final Console<Higher1<State.µ, ImmutableList<String>>> console = Console.state();
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Higher1<IOProgram.µ, X> from) {
-    IOProgram<X> program = IOProgram.narrowK(from);
-    if (program instanceof IOProgram.Read) {
-      return State.narrowK(console.readln())
-          .map(program.asRead().next);
-    }
-    if (program instanceof IOProgram.Write) {
-      return State.narrowK(console.println(program.asWrite().value))
-          .map(ignore -> program.asWrite().next);
-    }
-    throw new IllegalStateException();
+    Matcher<IOProgram<X>> isRead = Matcher.instanceOf(IOProgram.Read.class);
+    Matcher<IOProgram<X>> isWriter = Matcher.instanceOf(IOProgram.Write.class);
+    return Pattern.<IOProgram<X>, State<ImmutableList<String>, X>>build()
+      .when(isRead)
+        .then(program -> State.narrowK(console.readln()).map(program.asRead().next))
+      .when(isWriter)
+        .then(program -> State.narrowK(console.println(program.asWrite().value)).map(ignore -> program.asWrite().next))
+      .apply(IOProgram.narrowK(from));
   }
 }
 
-class IOProgramIO implements Transformer<IOProgram.µ, IO.µ> {
+class IOProgramToIO implements Transformer<IOProgram.µ, IO.µ> {
 
   private final Console<IO.µ> console = Console.io();
 
   @Override
   public <X> IO<X> apply(Higher1<IOProgram.µ, X> from) {
-    IOProgram<X> program = IOProgram.narrowK(from);
-    if (program instanceof IOProgram.Read) {
-      return IO.narrowK(console.readln())
-          .map(program.asRead().next);
-    }
-    if (program instanceof IOProgram.Write) {
-      return IO.narrowK(console.println(program.asWrite().value))
-          .map(ignore -> program.asWrite().next);
-    }
-    throw new IllegalStateException();
-  }
-}
-
-class StateMonad implements Monad<Higher1<State.µ, ImmutableList<String>>> {
-
-  @Override
-  public <T> State<ImmutableList<String>, T> pure(T value) {
-    return State.pure(value);
-  }
-
-  @Override
-  public <T, R> State<ImmutableList<String>, R> map(
-      Higher1<Higher1<State.µ, ImmutableList<String>>, T> value, Function1<T, R> map) {
-    return State.narrowK(value).map(map);
-  }
-
-  @Override
-  public <T, R> State<ImmutableList<String>, R> flatMap(
-      Higher1<Higher1<State.µ, ImmutableList<String>>, T> value,
-      Function1<T, ? extends Higher1<Higher1<State.µ, ImmutableList<String>>, R>> map) {
-    return State.narrowK(value).flatMap(map.andThen(State::narrowK));
-  }
-}
-
-class IOMonad implements Monad<IO.µ> {
-
-  @Override
-  public <T> IO<T> pure(T value) {
-    return IO.unit(value);
-  }
-
-  @Override
-  public <T, R> IO<R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
-    return IO.narrowK(value).map(map);
-  }
-
-  @Override
-  public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
-    return IO.narrowK(value).flatMap(map.andThen(IO::narrowK));
+    return Pattern.<IOProgram<X>, IO<X>>build()
+      .when(instanceOf(IOProgram.Read.class))
+        .then(program -> IO.narrowK(console.readln()).map(program.asRead().next))
+      .when(instanceOf(IOProgram.Write.class))
+        .then(program -> IO.narrowK(console.println(program.asWrite().value)).map(ignore -> program.asWrite().next))
+      .apply(IOProgram.narrowK(from));
   }
 }
 
@@ -222,14 +179,11 @@ class IOProgramFunctor implements Functor<IOProgram.µ> {
 
   @Override
   public <T, R> IOProgram<R> map(Higher1<IOProgram.µ, T> value, Function1<T, R> map) {
-    IOProgram<T> program = IOProgram.narrowK(value);
-    if (program instanceof IOProgram.Read) {
-      return new IOProgram.Read<>(program.asRead().next.andThen(map));
-    }
-    if (program instanceof IOProgram.Write) {
-      return new IOProgram.Write<>(program.asWrite().value,
-                                   map.apply(program.asWrite().next));
-    }
-    throw new IllegalStateException();
+    return Pattern.<IOProgram<T>, IOProgram<R>>build()
+      .when(instanceOf(IOProgram.Read.class))
+        .then(program -> new IOProgram.Read<>(program.asRead().next.andThen(map)))
+      .when(instanceOf(IOProgram.Write.class))
+        .then(program -> new IOProgram.Write<>(program.asWrite().value, map.apply(program.asWrite().next)))
+      .apply(IOProgram.narrowK(value));
   }
 }
