@@ -29,6 +29,10 @@ public final class Pattern<T, R> {
     return new CaseBuilder<>(this::add).when(matcher);
   }
 
+  public CaseBuilder<Pattern<T, R>, T, R> otherwise() {
+    return new CaseBuilder<>(this::add).when(Matcher.otherwise());
+  }
+
   public R apply(T value) {
     return findCase(value).map(case_ -> case_.apply(value))
         .orElseThrow(IllegalStateException::new);

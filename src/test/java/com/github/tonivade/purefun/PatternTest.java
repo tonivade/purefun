@@ -4,12 +4,13 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Matcher.otherwise;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Sequence.setOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ public class PatternTest {
     Pattern<Object, String> pattern = Pattern.<Object, String>build()
       .when(isNumber).then(number -> "is number")
       .when(isString).then(string -> "is string")
-      .when(otherwise()).then(object -> "something else");
+      .otherwise().then(object -> "something else");
 
 
     assertAll(() -> assertEquals("is number", pattern.apply(1)),
@@ -46,11 +47,74 @@ public class PatternTest {
         .when(isList).then(list -> "is a list")
         .when(isSet).then(set -> "is a set")
         .when(isArray).then(array -> "is an array")
-        .when(otherwise()).then(object -> "something else");
+        .otherwise().then(object -> "something else");
 
     assertAll(() -> assertEquals("is a list", pattern.apply(listOf("1"))),
               () -> assertEquals("is a set", pattern.apply(setOf("a"))),
               () -> assertEquals("is an array", pattern.apply(arrayOf("a"))),
               () -> assertEquals("something else", pattern.apply(null)));
+  }
+
+  @Test
+  public void is() {
+    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
+        .when(Matcher.is("hola")).then(value -> true)
+        .otherwise().then(value -> false);
+
+    assertAll(() -> assertTrue(pattern.apply("hola")),
+              () -> assertFalse(pattern.apply("hello")));
+  }
+
+  @Test
+  public void isIn() {
+    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
+        .when(Matcher.isIn("hola", "hello", "ciao")).then(value -> true)
+        .otherwise().then(value -> false);
+
+    assertAll(() -> assertTrue(pattern.apply("hola")),
+              () -> assertTrue(pattern.apply("hello")),
+              () -> assertTrue(pattern.apply("ciao")),
+              () -> assertFalse(pattern.apply("hi")));
+  }
+
+  @Test
+  public void isNotNull() {
+    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
+        .when(Matcher.isNotNull()).then(value -> true)
+        .otherwise().then(value -> false);
+
+    assertAll(() -> assertTrue(pattern.apply("hola")),
+              () -> assertFalse(pattern.apply(null)));
+  }
+
+  @Test
+  public void isNull() {
+    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
+        .when(Matcher.isNull()).then(value -> true)
+        .otherwise().then(value -> false);
+
+    assertAll(() -> assertTrue(pattern.apply(null)),
+              () -> assertFalse(pattern.apply("hello")));
+  }
+
+  @Test
+  public void allOf() {
+    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
+        .when(Matcher.allOf(Matcher.isNotNull(), Matcher.is("hola"))).then(value -> true)
+        .otherwise().then(value -> false);
+
+    assertAll(() -> assertTrue(pattern.apply("hola")),
+              () -> assertFalse(pattern.apply("hello")));
+  }
+
+  @Test
+  public void anyOf() {
+    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
+        .when(Matcher.anyOf(Matcher.is("hello"), Matcher.is("hola"))).then(value -> true)
+        .otherwise().then(value -> false);
+
+    assertAll(() -> assertTrue(pattern.apply("hola")),
+              () -> assertTrue(pattern.apply("hello")),
+              () -> assertFalse(pattern.apply("ciao")));
   }
 }
