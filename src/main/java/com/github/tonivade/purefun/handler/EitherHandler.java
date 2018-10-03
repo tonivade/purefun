@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.handler;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
@@ -33,7 +33,7 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
     return value -> apply(value).flatten();
   }
 
-  default OptionHandler<T, Either<L, R>> filter(Matcher<R> matcher) {
+  default OptionHandler<T, Either<L, R>> filter(Matcher1<R> matcher) {
     return value -> apply(value).filter(matcher);
   }
 

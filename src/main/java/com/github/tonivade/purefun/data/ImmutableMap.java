@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
@@ -50,11 +50,11 @@ public interface ImmutableMap<K, V> {
     return ImmutableMap.from(entries().map(tuple -> tuple.map2(mapper)));
   }
   
-  default ImmutableMap<K, V> filterKeys(Matcher<K> filter) {
+  default ImmutableMap<K, V> filterKeys(Matcher1<K> filter) {
     return ImmutableMap.from(entries().filter(tuple -> filter.match(tuple.get1())));
   }
   
-  default ImmutableMap<K, V> filterValues(Matcher<V> filter) {
+  default ImmutableMap<K, V> filterValues(Matcher1<V> filter) {
     return ImmutableMap.from(entries().filter(tuple -> filter.match(tuple.get2())));
   }
   

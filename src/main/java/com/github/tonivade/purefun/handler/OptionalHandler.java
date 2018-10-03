@@ -9,7 +9,7 @@ import static java.util.function.Function.identity;
 import java.util.Optional;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 
 @FunctionalInterface
@@ -33,7 +33,7 @@ public interface OptionalHandler<T, R> extends Function1<T, Optional<R>> {
     return value -> ((Optional<Optional<V>>) apply(value)).flatMap(identity());
   }
   
-  default OptionalHandler<T, R> filter(Matcher<R> matcher) {
+  default OptionalHandler<T, R> filter(Matcher1<R> matcher) {
     return value -> apply(value).filter(matcher::match);
   }
   

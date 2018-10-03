@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.Sequence;
@@ -76,14 +76,14 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     return invalid(getError());
   }
 
-  default Option<Validation<E, T>> filter(Matcher<T> matcher) {
+  default Option<Validation<E, T>> filter(Matcher1<T> matcher) {
     if (isInvalid() || matcher.match(get())) {
       return Option.some(this);
     }
     return Option.none();
   }
 
-  default Validation<E, T> filterOrElse(Matcher<T> matcher, Producer<Validation<E, T>> orElse) {
+  default Validation<E, T> filterOrElse(Matcher1<T> matcher, Producer<Validation<E, T>> orElse) {
     if (isInvalid() || matcher.match(get())) {
       return this;
     }

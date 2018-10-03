@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Matcher.instanceOf;
+import static com.github.tonivade.purefun.Matcher1.instanceOf;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Free.liftF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Pattern;
+import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Transformer;
@@ -148,7 +148,7 @@ class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, Im
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Higher1<IOProgram.µ, X> from) {
-    return Pattern.<IOProgram<X>, State<ImmutableList<String>, X>>build()
+    return Pattern1.<IOProgram<X>, State<ImmutableList<String>, X>>build()
       .when(instanceOf(IOProgram.Read.class))
         .then(program -> State.narrowK(console.readln()).map(program.asRead().next))
       .when(instanceOf(IOProgram.Write.class))
@@ -163,7 +163,7 @@ class IOProgramToIO implements Transformer<IOProgram.µ, IO.µ> {
 
   @Override
   public <X> IO<X> apply(Higher1<IOProgram.µ, X> from) {
-    return Pattern.<IOProgram<X>, IO<X>>build()
+    return Pattern1.<IOProgram<X>, IO<X>>build()
       .when(instanceOf(IOProgram.Read.class))
         .then(program -> IO.narrowK(console.readln()).map(program.asRead().next))
       .when(instanceOf(IOProgram.Write.class))
@@ -176,7 +176,7 @@ class IOProgramFunctor implements Functor<IOProgram.µ> {
 
   @Override
   public <T, R> IOProgram<R> map(Higher1<IOProgram.µ, T> value, Function1<T, R> map) {
-    return Pattern.<IOProgram<T>, IOProgram<R>>build()
+    return Pattern1.<IOProgram<T>, IOProgram<R>>build()
       .when(instanceOf(IOProgram.Read.class))
         .then(program -> new IOProgram.Read<>(program.asRead().next.andThen(map)))
       .when(instanceOf(IOProgram.Write.class))

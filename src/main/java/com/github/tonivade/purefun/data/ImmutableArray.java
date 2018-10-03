@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
 public interface ImmutableArray<E> extends Sequence<E> {
@@ -57,7 +57,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   @Override
-  default ImmutableArray<E> filter(Matcher<E> matcher) {
+  default ImmutableArray<E> filter(Matcher1<E> matcher) {
     return ImmutableArray.from(stream().filter(matcher::match));
   }
 

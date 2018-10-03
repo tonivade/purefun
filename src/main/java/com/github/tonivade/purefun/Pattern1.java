@@ -9,28 +9,28 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.type.Option;
 
-public final class Pattern<T, R> implements Function1<T, R> {
+public final class Pattern1<T, R> implements Function1<T, R> {
 
   private final ImmutableList<Case<T, R>> cases;
 
-  private Pattern() {
+  private Pattern1() {
     this(ImmutableList.empty());
   }
 
-  private Pattern(ImmutableList<Case<T, R>> cases) {
+  private Pattern1(ImmutableList<Case<T, R>> cases) {
     this.cases = requireNonNull(cases);
   }
 
-  public static <T, R> Pattern<T, R> build() {
-    return new Pattern<>();
+  public static <T, R> Pattern1<T, R> build() {
+    return new Pattern1<>();
   }
 
-  public CaseBuilder<Pattern<T, R>, T, R> when(Matcher<T> matcher) {
+  public CaseBuilder<Pattern1<T, R>, T, R> when(Matcher1<T> matcher) {
     return new CaseBuilder<>(this::add).when(matcher);
   }
 
-  public CaseBuilder<Pattern<T, R>, T, R> otherwise() {
-    return new CaseBuilder<>(this::add).when(Matcher.otherwise());
+  public CaseBuilder<Pattern1<T, R>, T, R> otherwise() {
+    return new CaseBuilder<>(this::add).when(Matcher1.otherwise());
   }
 
   @Override
@@ -40,8 +40,8 @@ public final class Pattern<T, R> implements Function1<T, R> {
         .orElseThrow(IllegalStateException::new);
   }
 
-  private Pattern<T, R> add(Matcher<T> matcher, Function1<T, R> handler) {
-    return new Pattern<>(cases.append(new Case<>(matcher, handler)));
+  Pattern1<T, R> add(Matcher1<T> matcher, Function1<T, R> handler) {
+    return new Pattern1<>(cases.append(new Case<>(matcher, handler)));
   }
 
   private Option<Case<T, R>> findCase(T target) {
@@ -50,10 +50,10 @@ public final class Pattern<T, R> implements Function1<T, R> {
 
   public static final class Case<T, R> {
 
-    private final Matcher<T> matcher;
+    private final Matcher1<T> matcher;
     private final Function1<T, R> handler;
 
-    private Case(Matcher<T> matcher, Function1<T, R> handler) {
+    Case(Matcher1<T> matcher, Function1<T, R> handler) {
       this.matcher = requireNonNull(matcher);
       this.handler = requireNonNull(handler);
     }
@@ -67,21 +67,21 @@ public final class Pattern<T, R> implements Function1<T, R> {
     }
   }
 
-  public static final class CaseBuilder<B, T, R> {
+  public static class CaseBuilder<B, T, R> {
 
-    private final Function2<Matcher<T>, Function1<T, R>, B> finisher;
-    private final Matcher<T> matcher;
+    protected final Function2<Matcher1<T>, Function1<T, R>, B> finisher;
+    protected final Matcher1<T> matcher;
 
-    private CaseBuilder(Function2<Matcher<T>, Function1<T, R>, B> finisher) {
+    CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
       this(finisher, null);
     }
 
-    private CaseBuilder(Function2<Matcher<T>, Function1<T, R>, B> finisher, Matcher<T> matcher) {
+    CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
       this.finisher = requireNonNull(finisher);
       this.matcher = matcher;
     }
 
-    public CaseBuilder<B, T, R> when(Matcher<T> matcher) {
+    public CaseBuilder<B, T, R> when(Matcher1<T> matcher) {
       return new CaseBuilder<>(finisher, matcher);
     }
 

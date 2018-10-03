@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.handler;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
@@ -28,7 +28,7 @@ public interface SequenceHandler<T, R> extends Function1<T, Sequence<R>> {
     return value -> apply(value).flatten();
   }
   
-  default SequenceHandler<T, R> filter(Matcher<R> matcher) {
+  default SequenceHandler<T, R> filter(Matcher1<R> matcher) {
     return value -> apply(value).filter(matcher::match);
   }
 

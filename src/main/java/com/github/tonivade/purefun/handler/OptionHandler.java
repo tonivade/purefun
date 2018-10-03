@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.handler;
 import static com.github.tonivade.purefun.Producer.unit;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
 
@@ -31,7 +31,7 @@ public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
     return value -> apply(value).flatten();
   }
 
-  default OptionHandler<T, R> filter(Matcher<R> matcher) {
+  default OptionHandler<T, R> filter(Matcher1<R> matcher) {
     return value -> apply(value).filter(matcher);
   }
 
