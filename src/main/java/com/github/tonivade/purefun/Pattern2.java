@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.Pattern1.CaseBuilder;
+import java.util.Objects;
 
 public class Pattern2<A, B, R> implements Function2<A, B, R> {
 
@@ -37,27 +37,30 @@ public class Pattern2<A, B, R> implements Function2<A, B, R> {
     return new CaseBuilder2<>(this::add).when(Matcher2.otherwise());
   }
 
-  private Pattern2<A, B, R> add(Matcher1<Tuple2<A, B>> matcher, Function1<Tuple2<A, B>, R> handler) {
-    return new Pattern2<>(pattern.add(matcher, handler));
+  private Pattern2<A, B, R> add(Matcher2<A, B> matcher, Function2<A, B, R> handler) {
+    return new Pattern2<>(pattern.add(matcher.tupled(), handler.tupled()));
   }
-  
-  public static class CaseBuilder2<B, T, V, R> extends CaseBuilder<B, Tuple2<T, V>, R> {
 
-    CaseBuilder2(Function2<Matcher1<Tuple2<T, V>>, Function1<Tuple2<T, V>, R>, B> finisher) {
-      super(finisher);
+  public final static class CaseBuilder2<B, T, V, R> {
+
+    private final Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher;
+    private final Matcher2<T, V> matcher;
+
+    private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher) {
+      this(finisher, null);
     }
-    
-    CaseBuilder2(Function2<Matcher1<Tuple2<T, V>>, Function1<Tuple2<T, V>, R>, B> finisher, 
-                 Matcher1<Tuple2<T, V>> matcher) {
-      super(finisher, matcher);
+
+    private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher, Matcher2<T, V> matcher) {
+      this.finisher = requireNonNull(finisher);
+      this.matcher = matcher;
     }
-    
+
     public CaseBuilder2<B, T, V, R> when(Matcher2<T, V> matcher) {
-      return new CaseBuilder2<>(finisher, matcher.tupled());
+      return new CaseBuilder2<>(finisher, matcher);
     }
-    
+
     public B then(Function2<T, V, R> handler) {
-      return super.then(handler.tupled());
+      return finisher.apply(requireNonNull(matcher), requireNonNull(handler));
     }
 
     public B returns(R value) {

@@ -40,7 +40,7 @@ public final class Pattern1<T, R> implements Function1<T, R> {
         .orElseThrow(IllegalStateException::new);
   }
 
-  Pattern1<T, R> add(Matcher1<T> matcher, Function1<T, R> handler) {
+  protected Pattern1<T, R> add(Matcher1<T> matcher, Function1<T, R> handler) {
     return new Pattern1<>(cases.append(new Case<>(matcher, handler)));
   }
 
@@ -67,16 +67,16 @@ public final class Pattern1<T, R> implements Function1<T, R> {
     }
   }
 
-  public static class CaseBuilder<B, T, R> {
+  public static final class CaseBuilder<B, T, R> {
 
-    protected final Function2<Matcher1<T>, Function1<T, R>, B> finisher;
-    protected final Matcher1<T> matcher;
+    private final Function2<Matcher1<T>, Function1<T, R>, B> finisher;
+    private final Matcher1<T> matcher;
 
-    CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
+    private CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
       this(finisher, null);
     }
 
-    CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
+    private CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
       this.finisher = requireNonNull(finisher);
       this.matcher = matcher;
     }
