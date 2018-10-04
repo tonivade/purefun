@@ -45,12 +45,13 @@ public class Pattern2<A, B, R> implements Function2<A, B, R> {
     private final Matcher2<T, V> matcher;
 
     private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher) {
-      this(finisher, null);
+      this.finisher = requireNonNull(finisher);
+      this.matcher = null;
     }
 
     private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher, Matcher2<T, V> matcher) {
       this.finisher = requireNonNull(finisher);
-      this.matcher = matcher;
+      this.matcher = requireNonNull(matcher);
     }
 
     public CaseBuilder2<B, T, V, R> when(Matcher2<T, V> matcher) {
@@ -58,7 +59,7 @@ public class Pattern2<A, B, R> implements Function2<A, B, R> {
     }
 
     public B then(Function2<T, V, R> handler) {
-      return finisher.apply(requireNonNull(matcher), requireNonNull(handler));
+      return finisher.apply(matcher, handler);
     }
 
     public B returns(R value) {

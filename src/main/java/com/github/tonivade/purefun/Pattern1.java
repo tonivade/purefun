@@ -73,12 +73,13 @@ public final class Pattern1<T, R> implements Function1<T, R> {
     private final Matcher1<T> matcher;
 
     private CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
-      this(finisher, null);
+      this.finisher = requireNonNull(finisher);
+      this.matcher = null;
     }
 
     private CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
       this.finisher = requireNonNull(finisher);
-      this.matcher = matcher;
+      this.matcher = requireNonNull(matcher);
     }
 
     public CaseBuilder<B, T, R> when(Matcher1<T> matcher) {
@@ -86,7 +87,7 @@ public final class Pattern1<T, R> implements Function1<T, R> {
     }
 
     public B then(Function1<T, R> handler) {
-      return finisher.apply(requireNonNull(matcher), requireNonNull(handler));
+      return finisher.apply(matcher, handler);
     }
 
     // XXX: I have to rename this method because eclipse complains, it says that there are ambiguous.
