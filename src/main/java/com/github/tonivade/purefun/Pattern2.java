@@ -6,8 +6,6 @@ package com.github.tonivade.purefun;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
-
 public class Pattern2<A, B, R> implements Function2<A, B, R> {
 
   private final Pattern1<Tuple2<A, B>, R> pattern;
@@ -17,7 +15,7 @@ public class Pattern2<A, B, R> implements Function2<A, B, R> {
   }
 
   private Pattern2(Pattern1<Tuple2<A, B>, R> pattern) {
-    this.pattern = Objects.requireNonNull(pattern);
+    this.pattern = requireNonNull(pattern);
   }
 
   @Override
