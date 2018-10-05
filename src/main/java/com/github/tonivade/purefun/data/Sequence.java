@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Foldable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Kind;
@@ -50,7 +50,7 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   }
 
   @Override
-  Sequence<E> filter(Matcher<E> matcher);
+  Sequence<E> filter(Matcher1<E> matcher);
 
   @Override
   default Option<E> reduce(Operator2<E> operator) {

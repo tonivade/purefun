@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.handler;
 import static com.github.tonivade.purefun.Producer.unit;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Try;
 
@@ -35,7 +35,7 @@ public interface TryHandler<T, R> extends Function1<T, Try<R>> {
     return value -> apply(value).recover(mapper);
   }
 
-  default TryHandler<T, R> filter(Matcher<R> matcher) {
+  default TryHandler<T, R> filter(Matcher1<R> matcher) {
     return value -> apply(value).filter(matcher);
   }
 

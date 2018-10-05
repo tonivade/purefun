@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
@@ -61,7 +61,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   @Override
-  default ImmutableList<E> filter(Matcher<E> matcher) {
+  default ImmutableList<E> filter(Matcher1<E> matcher) {
     return ImmutableList.from(stream().filter(matcher::match));
   }
 

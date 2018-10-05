@@ -6,6 +6,6 @@ package com.github.tonivade.purefun;
 
 public interface Filterable<T> {
 
-  Filterable<T> filter(Matcher<T> matcher);
+  Filterable<T> filter(Matcher1<T> matcher);
 
 }

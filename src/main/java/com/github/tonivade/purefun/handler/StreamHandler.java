@@ -10,7 +10,7 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.data.ImmutableList;
 
 @FunctionalInterface
@@ -34,7 +34,7 @@ public interface StreamHandler<T, R> extends Function1<T, Stream<R>> {
     return value -> ((Stream<Stream<V>>) apply(value)).flatMap(identity());
   }
   
-  default StreamHandler<T, R> filter(Matcher<R> matcher) {
+  default StreamHandler<T, R> filter(Matcher1<R> matcher) {
     return value -> apply(value).filter(matcher::match);
   }
   

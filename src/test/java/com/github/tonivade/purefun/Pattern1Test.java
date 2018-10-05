@@ -19,14 +19,14 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.ImmutableSet;
 import com.github.tonivade.purefun.data.Sequence;
 
-public class PatternTest {
+public class Pattern1Test {
 
   @Test
   public void instanceOf() {
-    Matcher<Object> isNumber = Matcher.instanceOf(Number.class);
-    Matcher<Object> isString = Matcher.instanceOf(String.class);
+    Matcher1<Object> isNumber = Matcher1.instanceOf(Number.class);
+    Matcher1<Object> isString = Matcher1.instanceOf(String.class);
 
-    Pattern<Object, String> pattern = Pattern.<Object, String>build()
+    Pattern1<Object, String> pattern = Pattern1.<Object, String>build()
       .when(isNumber).returns("is number")
       .when(isString).returns("is string")
       .otherwise().then(object -> "something else");
@@ -39,11 +39,11 @@ public class PatternTest {
 
   @Test
   public void instanceOfWithTypeParams() {
-    Matcher<Sequence<?>> isList = Matcher.instanceOf(ImmutableList.class);
-    Matcher<Sequence<?>> isSet = Matcher.instanceOf(ImmutableSet.class);
-    Matcher<Sequence<?>> isArray = Matcher.instanceOf(ImmutableArray.class);
+    Matcher1<Sequence<?>> isList = Matcher1.instanceOf(ImmutableList.class);
+    Matcher1<Sequence<?>> isSet = Matcher1.instanceOf(ImmutableSet.class);
+    Matcher1<Sequence<?>> isArray = Matcher1.instanceOf(ImmutableArray.class);
 
-    Pattern<Sequence<?>, String> pattern = Pattern.<Sequence<?>, String>build()
+    Pattern1<Sequence<?>, String> pattern = Pattern1.<Sequence<?>, String>build()
         .when(isList).returns("is a list")
         .when(isSet).returns("is a set")
         .when(isArray).returns("is an array")
@@ -57,8 +57,8 @@ public class PatternTest {
 
   @Test
   public void is() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.is("hola")).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.is("hola")).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),
@@ -67,8 +67,8 @@ public class PatternTest {
 
   @Test
   public void isNot() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.is("hola").negate()).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.is("hola").negate()).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hello")),
@@ -77,8 +77,8 @@ public class PatternTest {
 
   @Test
   public void isIn() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.isIn("hola", "hello", "ciao")).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.isIn("hola", "hello", "ciao")).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),
@@ -89,8 +89,8 @@ public class PatternTest {
 
   @Test
   public void isNotNull() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.isNotNull()).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.isNotNull()).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),
@@ -99,8 +99,8 @@ public class PatternTest {
 
   @Test
   public void isNull() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.isNull()).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.isNull()).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply(null)),
@@ -109,8 +109,8 @@ public class PatternTest {
 
   @Test
   public void allOf() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.allOf(Matcher.isNotNull(), Matcher.is("hola"))).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.allOf(Matcher1.isNotNull(), Matcher1.is("hola"))).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),
@@ -118,8 +118,8 @@ public class PatternTest {
   }
   @Test
   public void and() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.<String>isNotNull().and(Matcher.is("hola"))).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.<String>isNotNull().and(Matcher1.is("hola"))).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),
@@ -128,8 +128,8 @@ public class PatternTest {
 
   @Test
   public void anyOf() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.anyOf(Matcher.is("hello"), Matcher.is("hola"))).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.anyOf(Matcher1.is("hello"), Matcher1.is("hola"))).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),
@@ -139,8 +139,8 @@ public class PatternTest {
 
   @Test
   public void or() {
-    Pattern<String, Boolean> pattern = Pattern.<String, Boolean>build()
-        .when(Matcher.is("hello").or(Matcher.is("hola"))).returns(true)
+    Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
+        .when(Matcher1.is("hello").or(Matcher1.is("hola"))).returns(true)
         .otherwise().returns(false);
 
     assertAll(() -> assertTrue(pattern.apply("hola")),

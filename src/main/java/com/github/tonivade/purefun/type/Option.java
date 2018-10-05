@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
@@ -91,7 +91,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 
   @Override
-  default Option<T> filter(Matcher<T> matcher) {
+  default Option<T> filter(Matcher1<T> matcher) {
     if (isPresent() && matcher.match(get())) {
       return this;
     }

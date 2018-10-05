@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Matcher;
+import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -116,14 +116,14 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     return right(getRight());
   }
 
-  default Option<Either<L, R>> filter(Matcher<R> matcher) {
+  default Option<Either<L, R>> filter(Matcher1<R> matcher) {
     if (isRight() && matcher.match(getRight())) {
       return Option.some(this);
     }
     return Option.none();
   }
 
-  default Either<L, R> filterOrElse(Matcher<R> matcher, Producer<Either<L, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher1<R> matcher, Producer<Either<L, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;
     }
