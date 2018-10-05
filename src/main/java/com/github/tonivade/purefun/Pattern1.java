@@ -25,12 +25,12 @@ public final class Pattern1<T, R> implements Function1<T, R> {
     return new Pattern1<>();
   }
 
-  public CaseBuilder<Pattern1<T, R>, T, R> when(Matcher1<T> matcher) {
-    return new CaseBuilder<>(this::add).when(matcher);
+  public CaseBuilder1<Pattern1<T, R>, T, R> when(Matcher1<T> matcher) {
+    return new CaseBuilder1<>(this::add).when(matcher);
   }
 
-  public CaseBuilder<Pattern1<T, R>, T, R> otherwise() {
-    return new CaseBuilder<>(this::add).when(Matcher1.otherwise());
+  public CaseBuilder1<Pattern1<T, R>, T, R> otherwise() {
+    return new CaseBuilder1<>(this::add).when(Matcher1.otherwise());
   }
 
   @Override
@@ -67,23 +67,23 @@ public final class Pattern1<T, R> implements Function1<T, R> {
     }
   }
 
-  public static final class CaseBuilder<B, T, R> {
+  public static final class CaseBuilder1<B, T, R> {
 
     private final Function2<Matcher1<T>, Function1<T, R>, B> finisher;
     private final Matcher1<T> matcher;
 
-    private CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
+    private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
       this.finisher = requireNonNull(finisher);
       this.matcher = null;
     }
 
-    private CaseBuilder(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
+    private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
       this.finisher = requireNonNull(finisher);
       this.matcher = requireNonNull(matcher);
     }
 
-    public CaseBuilder<B, T, R> when(Matcher1<T> matcher) {
-      return new CaseBuilder<>(finisher, matcher);
+    public CaseBuilder1<B, T, R> when(Matcher1<T> matcher) {
+      return new CaseBuilder1<>(finisher, matcher);
     }
 
     public B then(Function1<T, R> handler) {
