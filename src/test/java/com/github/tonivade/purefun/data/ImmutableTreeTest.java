@@ -4,65 +4,83 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.data.ImmutableTree.entry;
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.Sequence.treeOf;
+import static java.util.Collections.emptyNavigableSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MonadLaws;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableTreeTest {
 
+  private final Function1<String, String> toUpperCase = String::toUpperCase;
+
   @Test
-  public void nonEmptyTree() {
-    ImmutableTree<String, String> tree = ImmutableTree.of(entry("a", "aaa"),
-                                                         entry("b", "bbb"),
-                                                         entry("c", "ccc"));
+  public void notEmptyTree() {
+    ImmutableTree<String> tree = ImmutableTree.of("a", "b", "c");
+
     assertAll(() -> assertEquals(3, tree.size()),
               () -> assertFalse(tree.isEmpty()),
-              () -> assertEquals(Option.some("aaa"), tree.get("a")),
-              () -> assertEquals(Option.none(), tree.get("z")),
-              () -> assertTrue(tree.containsKey("a")),
-              () -> assertFalse(tree.containsKey("z")),
-              () -> assertEquals(Option.some("aaa"), tree.putIfAbsent("a", "zzz").get("a")),
-              () -> assertEquals(Option.some("zzz"), tree.putIfAbsent("z", "zzz").get("z")),
-              () -> assertEquals("aaa", tree.getOrDefault("a", () -> "zzz")),
-              () -> assertEquals("zzz", tree.getOrDefault("z", () -> "zzz")),
-              () -> assertEquals(ImmutableSet.of("a", "b", "c"), tree.keys()),
-              () -> assertEquals(3, tree.values().size()),
-              () -> assertEquals(tree.put("a", "aaaz"), tree.merge("a", "z", (a, b) -> a + b)),
-              () -> assertEquals(tree.put("z", "a"), tree.merge("z", "a", (a, b) -> a + b)),
-              () -> assertTrue(tree.values().contains("aaa")),
-              () -> assertTrue(tree.values().contains("bbb")),
-              () -> assertTrue(tree.values().contains("ccc")),
-              () -> assertEquals(ImmutableTree.of(entry("c", "ccc")), tree.remove("a").remove("b")),
-              () -> assertEquals(ImmutableSet.of(entry("a", "aaa"),
-                                                 entry("b", "bbb"),
-                                                 entry("c", "ccc")), tree.entries())
-              );
+              () -> assertTrue(tree.contains("a")),
+              () -> assertFalse(tree.contains("z")),
+              () -> assertEquals("abc", tree.fold("", (a, b) -> a + b)),
+              () -> assertEquals("cba", tree.foldRight("", (a, b) -> a + b)),
+              () -> assertEquals("abc", tree.foldLeft("", (a, b) -> a + b)),
+              () -> assertEquals(Option.some("abc"), tree.reduce((a, b) -> a + b)),
+              () -> assertEquals(treeOf("a", "b", "c"), tree),
+              () -> assertEquals(ImmutableTree.from(Arrays.asList("a", "b", "c")), tree),
+              () -> assertEquals(new TreeSet<>(Arrays.asList("a", "b", "c")), tree.toNavigableSet()),
+              () -> assertEquals(treeOf("a", "b", "c"), tree.append("c")),
+              () -> assertEquals(treeOf("a", "b", "c", "z"), tree.append("z")),
+              () -> assertEquals(treeOf("a", "b"), tree.remove("c")),
+              () -> assertEquals(treeOf("a", "b", "c"), tree.remove("z")),
+              () -> assertEquals(treeOf("a", "b", "c"), tree.map(identity())),
+              () -> assertEquals(treeOf("A", "B", "C"), tree.map(toUpperCase)),
+              () -> assertEquals(treeOf("A", "B", "C"), tree.flatMap(toUpperCase.sequence())),
+              () -> assertEquals(treeOf("a", "b", "c"), treeOf(tree).flatten()),
+              () -> assertThrows(UnsupportedOperationException.class, () -> tree.flatten()),
+              () -> assertEquals(treeOf("a", "b", "c"), tree.filter(e -> e.length() > 0)),
+              () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)));
   }
 
   @Test
-  public void empty() {
-    ImmutableTree<String, String> tree = ImmutableTree.empty();
+  public void emptyTree() {
+    ImmutableTree<String> tree = ImmutableTree.empty();
 
     assertAll(() -> assertEquals(0, tree.size()),
               () -> assertTrue(tree.isEmpty()),
-              () -> assertEquals(Option.none(), tree.get("z")),
-              () -> assertEquals("zzz", tree.getOrDefault("a", () -> "zzz")),
-              () -> assertEquals(ImmutableSet.empty(), tree.keys()),
-              () -> assertEquals(ImmutableList.empty(), tree.values()),
-              () -> assertEquals(ImmutableSet.empty(), tree.entries()),
-              () -> assertEquals(ImmutableTree.of(entry("a", "aaa")), tree.put("a", "aaa")),
-              () -> assertEquals(ImmutableTree.of(entry("A", "AAA")),
-                                 tree.put("a", "aaa").map(String::toUpperCase, String::toUpperCase)),
-              () -> assertEquals(ImmutableTree.of(entry("A", "aaa")),
-                                 tree.put("a", "aaa").mapKeys(String::toUpperCase)),
-              () -> assertEquals(ImmutableTree.of(entry("a", "AAA")),
-                                 tree.put("a", "aaa").mapValues(String::toUpperCase))
-              );
+              () -> assertFalse(tree.contains("z")),
+              () -> assertEquals("", tree.fold("", (a, b) -> a + b)),
+              () -> assertEquals(Option.none(), tree.reduce((a, b) -> a + b)),
+              () -> assertEquals(ImmutableTree.empty(), tree),
+              () -> assertEquals(ImmutableTree.from(Collections.emptyList()), tree),
+              () -> assertEquals(emptyNavigableSet(), tree.toNavigableSet()),
+              () -> assertEquals(treeOf("z"), tree.append("z")),
+              () -> assertEquals(ImmutableTree.empty(), tree.remove("c")),
+              () -> assertEquals(ImmutableTree.empty(), tree.map(identity())),
+              () -> assertEquals(ImmutableTree.empty(), tree.map(toUpperCase)),
+              () -> assertEquals(ImmutableTree.empty(), tree.flatMap(toUpperCase.sequence())),
+              () -> assertEquals(ImmutableTree.empty(), treeOf(tree).flatten()),
+              () -> assertEquals(ImmutableTree.empty(), tree.flatten()),
+              () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)));
+  }
+
+  @Test
+  public void setLaws() {
+    FunctorLaws.verifyLaws(treeOf("a", "b", "c"));
+    MonadLaws.verifyLaws(treeOf("a", "b", "c"), Sequence::treeOf);
   }
 }

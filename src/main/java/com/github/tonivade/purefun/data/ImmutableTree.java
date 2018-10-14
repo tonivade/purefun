@@ -4,167 +4,171 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Producer.unit;
-import static java.util.Collections.emptyNavigableMap;
+import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Objects.requireNonNull;
 
-import java.util.NavigableMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.NavigableSet;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.BinaryOperator;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Operator2;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
-public interface ImmutableTree<K extends Comparable<K>, V> {
+public interface ImmutableTree<E> extends Sequence<E> {
 
-  NavigableMap<K, V> toNavigableMap();
+  NavigableSet<E> toNavigableSet();
 
-  ImmutableTree<K, V> put(K key, V value);
-  ImmutableTree<K, V> remove(K key);
-  Option<V> get(K key);
+  @Override
+  ImmutableTree<E> append(E element);
+  @Override
+  ImmutableTree<E> remove(E element);
+  @Override
+  ImmutableTree<E> appendAll(Sequence<E> other);
 
-  Sequence<V> values();
-  ImmutableSet<K> keys();
-  ImmutableSet<Tuple2<K, V>> entries();
+  Option<E> head();
+  Option<E> tail();
+  ImmutableTree<E> headTree(E value);
+  ImmutableTree<E> tailTree(E value);
+  Option<E> higher(E value);
+  Option<E> lower(E value);
+  Option<E> ceiling(E value);
+  Option<E> floor(E value);
 
-  int size();
-
-  default void forEach(Consumer2<K, V> consumer) {
-    entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
+  @Override
+  default <R> ImmutableTree<R> map(Function1<E, R> mapper) {
+    return ImmutableTree.from(stream().map(mapper::apply));
   }
 
-  default <A extends Comparable<A>, B> ImmutableTree<A, B> map(Function1<K, A> keyMapper, Function1<V, B> valueMapper) {
-    return ImmutableTree.from(entries().map(tuple -> tuple.map(keyMapper, valueMapper)));
+  @Override
+  default <R> ImmutableTree<R> flatMap(Function1<E, ? extends Higher1<Sequence.µ, R>> mapper) {
+    return ImmutableTree.from(stream().flatMap(element -> narrowK(mapper.apply(element)).stream()));
   }
 
-  default <A extends Comparable<A>> ImmutableTree<A, V> mapKeys(Function1<K, A> mapper) {
-    return ImmutableTree.from(entries().map(tuple -> tuple.map1(mapper)));
+  @Override
+  default ImmutableTree<E> filter(Matcher1<E> matcher) {
+    return ImmutableTree.from(stream().filter(matcher::match));
   }
 
-  default <A> ImmutableTree<K, A> mapValues(Function1<V, A> mapper) {
-    return ImmutableTree.from(entries().map(tuple -> tuple.map2(mapper)));
+  static <T> ImmutableTree<T> from(Collection<T> collection) {
+    return new JavaBasedImmutableTree<>(new TreeSet<>(collection));
   }
 
-  default ImmutableTree<K, V> filterKeys(Matcher1<K> filter) {
-    return ImmutableTree.from(entries().filter(tuple -> filter.match(tuple.get1())));
-  }
-
-  default ImmutableTree<K, V> filterValues(Matcher1<V> filter) {
-    return ImmutableTree.from(entries().filter(tuple -> filter.match(tuple.get2())));
-  }
-
-  default boolean containsKey(K key) {
-    return get(key).isPresent();
-  }
-
-  default ImmutableTree<K, V> putIfAbsent(K key, V value) {
-    if (containsKey(key)) {
-      return this;
-    }
-    return put(key, value);
-  }
-
-  default ImmutableTree<K, V> merge(K key, V value, Operator2<V> merger) {
-    if (containsKey(key)) {
-      return put(key, merger.apply(getOrDefault(key, unit(value)), value));
-    }
-    return put(key, value);
-  }
-
-  default V getOrDefault(K key, Producer<V> supplier) {
-    return get(key).orElse(supplier);
-  }
-
-  default boolean isEmpty() {
-    return size() == 0;
+  static <T> ImmutableTree<T> from(Stream<T> stream) {
+    return new JavaBasedImmutableTree<>(stream.collect(Collectors.toCollection(TreeSet::new)));
   }
 
   @SafeVarargs
-  static <K extends Comparable<K>, V> ImmutableTree<K, V> of(Tuple2<K, V>... entries) {
-    return from(ImmutableSet.of(entries));
+  static <T> ImmutableTree<T> of(T... elements) {
+    return new JavaBasedImmutableTree<>(new TreeSet<>(Arrays.asList(elements)));
   }
 
-  static <K extends Comparable<K>, V> Tuple2<K, V> entry(K key, V value) {
-    return Tuple2.of(key, value);
+  static <T> ImmutableTree<T> empty() {
+    return new JavaBasedImmutableTree<>(Collections.emptyNavigableSet());
   }
 
-  static <K extends Comparable<K>, V> ImmutableTree<K, V> from(NavigableMap<K, V> map) {
-    return new JavaBasedImmutableTree<>(map);
-  }
+  final class JavaBasedImmutableTree<E> implements ImmutableTree<E> {
 
-  static <K extends Comparable<K>, V> ImmutableTree<K, V> empty() {
-    return new JavaBasedImmutableTree<>(emptyNavigableMap());
-  }
+    private final NavigableSet<E> backend;
 
-  static <K extends Comparable<K>, V> ImmutableTree<K, V> from(Stream<Tuple2<K, V>> entries) {
-    return from(ImmutableSet.from(entries));
-  }
-
-  static <K extends Comparable<K>, V> ImmutableTree<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
-    return new JavaBasedImmutableTree<K, V>(entries.stream()
-        .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2, ImmutableTreeModule.throwingMerge(), TreeMap::new)));
-  }
-
-  final class JavaBasedImmutableTree<K extends Comparable<K>, V> implements ImmutableTree<K, V> {
-
-    private final NavigableMap<K, V> backend;
-
-    private JavaBasedImmutableTree(NavigableMap<K, V> backend) {
+    private JavaBasedImmutableTree(NavigableSet<E> backend) {
       this.backend = requireNonNull(backend);
-    }
-
-    @Override
-    public NavigableMap<K, V> toNavigableMap() {
-      return new TreeMap<>(backend);
-    }
-
-    @Override
-    public ImmutableTree<K, V> put(K key, V value) {
-      NavigableMap<K, V> newMap = toNavigableMap();
-      newMap.put(key, value);
-      return new JavaBasedImmutableTree<>(newMap);
-    }
-
-    @Override
-    public ImmutableTree<K, V> remove(K key) {
-      NavigableMap<K, V> newMap = toNavigableMap();
-      newMap.remove(key);
-      return new JavaBasedImmutableTree<>(newMap);
-    }
-
-    @Override
-    public Option<V> get(K key) {
-      return Option.of(() -> backend.get(key));
-    }
-
-    @Override
-    public Sequence<V> values() {
-      return ImmutableList.from(backend.values());
-    }
-
-    @Override
-    public ImmutableSet<K> keys() {
-      return ImmutableSet.from(backend.keySet());
-    }
-
-    @Override
-    public ImmutableSet<Tuple2<K, V>> entries() {
-      return ImmutableSet.from(backend.entrySet()).map(Tuple::from);
     }
 
     @Override
     public int size() {
       return backend.size();
+    }
+
+    @Override
+    public boolean contains(E element) {
+      return backend.contains(element);
+    }
+
+    @Override
+    public ImmutableTree<E> reverse() {
+      return this;
+    }
+
+    @Override
+    public ImmutableTree<E> append(E element) {
+      NavigableSet<E> newSet = toNavigableSet();
+      newSet.add(element);
+      return new JavaBasedImmutableTree<>(newSet);
+    }
+
+    @Override
+    public ImmutableTree<E> appendAll(Sequence<E> other) {
+      NavigableSet<E> newSet = toNavigableSet();
+      for (E element : other) {
+        newSet.add(element);
+      }
+      return new JavaBasedImmutableTree<>(newSet);
+    }
+
+    @Override
+    public ImmutableTree<E> remove(E element) {
+      NavigableSet<E> newSet = toNavigableSet();
+      newSet.remove(element);
+      return new JavaBasedImmutableTree<>(newSet);
+    }
+
+    @Override
+    public Option<E> head() {
+      return Option.of(backend::first);
+    }
+
+    @Override
+    public Option<E> tail() {
+      return Option.of(backend::last);
+    }
+
+    @Override
+    public ImmutableTree<E> headTree(E toElement) {
+      return new JavaBasedImmutableTree<>(backend.headSet(toElement, false));
+    }
+
+    @Override
+    public ImmutableTree<E> tailTree(E fromElement) {
+      return new JavaBasedImmutableTree<>(backend.tailSet(fromElement, false));
+    }
+
+    @Override
+    public Option<E> higher(E value) {
+      return Option.of(() -> backend.higher(value));
+    }
+
+    @Override
+    public Option<E> lower(E value) {
+      return Option.of(() -> backend.lower(value));
+    }
+
+    @Override
+    public Option<E> ceiling(E value) {
+      return Option.of(() -> backend.ceiling(value));
+    }
+
+    @Override
+    public Option<E> floor(E value) {
+      return Option.of(() -> backend.floor(value));
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+      return backend.iterator();
+    }
+
+    @Override
+    public NavigableSet<E> toNavigableSet() {
+      return new TreeSet<>(backend);
     }
 
     @Override
@@ -184,12 +188,4 @@ public interface ImmutableTree<K extends Comparable<K>, V> {
       return "ImmutableTree(" + backend + ")";
     }
   }
-}
-
-interface ImmutableTreeModule {
-
-  static <V> BinaryOperator<V> throwingMerge() {
-    return (a, b) -> { throw new IllegalArgumentException(); };
-  }
-
 }

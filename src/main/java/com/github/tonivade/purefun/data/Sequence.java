@@ -11,14 +11,14 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.github.tonivade.purefun.Filterable;
+import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Foldable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.FlatMap1;
-import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.type.Option;
 
 public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
@@ -113,6 +113,11 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   @SafeVarargs
   static <E> ImmutableSet<E> setOf(E... elements) {
     return ImmutableSet.of(elements);
+  }
+
+  @SafeVarargs
+  static <E> ImmutableTree<E> treeOf(E... elements) {
+    return ImmutableTree.of(elements);
   }
 
   static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {
