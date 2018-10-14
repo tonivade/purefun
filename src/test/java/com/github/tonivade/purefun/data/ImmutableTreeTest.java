@@ -103,7 +103,7 @@ public class ImmutableTreeTest {
   }
 
   @Test
-  public void setLaws() {
+  public void treeLaws() {
     FunctorLaws.verifyLaws(treeOf("a", "b", "c"));
     MonadLaws.verifyLaws(treeOf("a", "b", "c"), Sequence::treeOf);
   }
