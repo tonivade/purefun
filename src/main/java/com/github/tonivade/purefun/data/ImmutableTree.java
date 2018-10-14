@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
 public interface ImmutableTree<E> extends Sequence<E> {
@@ -123,12 +124,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public Option<E> head() {
-      return Option.of(backend::first);
+      return Try.of(backend::first).toOption();
     }
 
     @Override
     public Option<E> tail() {
-      return Option.of(backend::last);
+      return Try.of(backend::last).toOption();
     }
 
     @Override

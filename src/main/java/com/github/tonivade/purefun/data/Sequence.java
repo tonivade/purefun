@@ -92,6 +92,10 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
     return ImmutableSet.from(stream());
   }
 
+  default ImmutableTree<E> asTree() {
+    return ImmutableTree.from(stream());
+  }
+
   default Stream<E> stream() {
     return StreamSupport.stream(spliterator(), false);
   }

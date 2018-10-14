@@ -50,10 +50,22 @@ public class ImmutableTreeTest {
               () -> assertEquals(treeOf("a", "b", "c"), tree.map(identity())),
               () -> assertEquals(treeOf("A", "B", "C"), tree.map(toUpperCase)),
               () -> assertEquals(treeOf("A", "B", "C"), tree.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(treeOf("a", "b", "c"), treeOf(tree).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> tree.flatten()),
               () -> assertEquals(treeOf("a", "b", "c"), tree.filter(e -> e.length() > 0)),
-              () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)));
+              () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)),
+              () -> assertEquals(Option.some("a"), tree.head()),
+              () -> assertEquals(Option.some("c"), tree.tail()),
+              () -> assertEquals(treeOf("b", "c"), tree.tailTree("a")),
+              () -> assertEquals(treeOf("a", "b"), tree.headTree("c")),
+              () -> assertEquals(Option.some("b"), tree.higher("a")),
+              () -> assertEquals(Option.none(), tree.higher("c")),
+              () -> assertEquals(Option.none(), tree.lower("a")),
+              () -> assertEquals(Option.some("b"), tree.lower("c")),
+              () -> assertEquals(Option.some("a"), tree.floor("a")),
+              () -> assertEquals(Option.some("c"), tree.floor("c")),
+              () -> assertEquals(Option.some("a"), tree.ceiling("a")),
+              () -> assertEquals(Option.some("c"), tree.ceiling("c"))
+              );
   }
 
   @Test
@@ -73,9 +85,21 @@ public class ImmutableTreeTest {
               () -> assertEquals(ImmutableTree.empty(), tree.map(identity())),
               () -> assertEquals(ImmutableTree.empty(), tree.map(toUpperCase)),
               () -> assertEquals(ImmutableTree.empty(), tree.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(ImmutableTree.empty(), treeOf(tree).flatten()),
               () -> assertEquals(ImmutableTree.empty(), tree.flatten()),
-              () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)));
+              () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)),
+              () -> assertEquals(Option.none(), tree.head()),
+              () -> assertEquals(Option.none(), tree.tail()),
+              () -> assertEquals(ImmutableTree.empty(), tree.tailTree("a")),
+              () -> assertEquals(ImmutableTree.empty(), tree.headTree("c")),
+              () -> assertEquals(Option.none(), tree.higher("a")),
+              () -> assertEquals(Option.none(), tree.higher("c")),
+              () -> assertEquals(Option.none(), tree.lower("a")),
+              () -> assertEquals(Option.none(), tree.lower("c")),
+              () -> assertEquals(Option.none(), tree.floor("a")),
+              () -> assertEquals(Option.none(), tree.floor("c")),
+              () -> assertEquals(Option.none(), tree.ceiling("a")),
+              () -> assertEquals(Option.none(), tree.ceiling("c"))
+              );
   }
 
   @Test
