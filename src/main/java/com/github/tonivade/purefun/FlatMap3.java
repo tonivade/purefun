@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-public interface FlatMap3<W extends Kind, T, V, U> extends Higher3<W, T, V, U>, Mappeable<Higher1<Higher1<W, T>, V>, U> {
+public interface FlatMap3<W extends Kind, T, V, U> extends Higher3<W, T, V, U>, Mappable<Higher1<Higher1<W, T>, V>, U> {
 
   <R> FlatMap3<W, T, V, R> flatMap(Function1<U, ? extends Higher3<W, T, V, R>> map);
 

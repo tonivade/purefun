@@ -22,29 +22,56 @@ This project is not ready to be used in production, I use it to learn functional
 
 ## Base Interfaces
 
-### Functor
+### Higher Kinded types
 
-It represent the arrow between two categories, encapsulates a data type that can be mapped to other data type. 
+In this project I have implemented some patterns of functional programming that need Higher Kinded Types. In Java
+there are not such thing, but it can be simulated using a especial codification of kinds.
+
+In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified like this `Monad<F extends Kind>`. 
+Then we can define a type using a special codification like this:
 
 ```java
-interface Functor<W extends Kind, T> extends Higher<W, T> {
-  <R> Functor<W, R> map(Function1<T, R> map);
+interface SomeType<T> extends Higher1<SomeType.µ, T> {
+
+  interface µ extends Kind {}
+  
+  static SomeType<T> narrowK(Higher1<SomeType.µ, T> hkt) {
+    return (SomeType<T>) hkt;
+  }
 }
 ```
 
-### Monad
+It can be triky but, but in the end is easy to work with. By the way, I tried to hide this details to the user of the library.
+
+So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't 
+necessary to implement the library.
+
+### Mappable
+
+It represent the arrow between two categories, in other words, it encapsulates a data type that can be mapped to other data type. 
+
+```java
+interface Mappable<W extends Kind, T> extends Higher1<W, T> {
+  <R> Mappable<W, R> map(Function1<T, R> map);
+}
+```
+
+### FlatMap1,2,3
+
+These interfaces define the method `flatMap` for the kinds 1, 2 and 3, so it can be called as `Monad` also, so as not to create
+confusion I named `FlatMap`.
 
 It is difficult to explain what a monad is, many people have tried and this is my humble attempt. It is something that allows to combine operations, in a functional way, but simulating the imperative style. For example, `State`, `Reader`, `Writer` and `IO` monads are ways to combine operations.
 
 ```java
-interface Monad<W extends Kind, T> extends Higher<W, T>, Functor<W, T> {
-  <R> Monad<W, R> flatMap(Function1<T, ? extends Higher<W, R>> map);
+interface FlatMap1<W extends Kind, T> extends Higher1<W, T>, Mappable<W, T> {
+  <R> FlatMap1<W, R> flatMap(Function1<T, ? extends Higher1<W, R>> map);
 }
 ```
 
 ### Holder
 
-It represent a type that can hold a value. It defines these methods: `get` and `flatten`.
+It represent a type that can hold any value. It defines these methods: `get` and `flatten`.
 
 ### Filterable
 
@@ -56,7 +83,8 @@ It represent a type that can be folded. It defined these methods: `reduce`, `fol
 
 ## Data types
 
-All these data types implement `Monad` base interface and implement these methods: `get`, `map`, `flatMap`, `filter`, `fold` and `flatten`.
+All these data types implement `FlatMap` and `Mappable` base interface and implement these methods: `get`, `map`, `flatMap`, 
+`filter`, `fold` and `flatten`.
 
 ### Option
 
