@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
@@ -29,12 +28,15 @@ public interface ImmutableMap<K, V> {
   Map<K, V> toMap();
 
   ImmutableMap<K, V> put(K key, V value);
+  ImmutableMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other);
   ImmutableMap<K, V> remove(K key);
   Option<V> get(K key);
 
   Sequence<V> values();
   ImmutableSet<K> keys();
   ImmutableSet<Tuple2<K, V>> entries();
+
+  ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger);
 
   int size();
 
@@ -69,13 +71,6 @@ public interface ImmutableMap<K, V> {
   default ImmutableMap<K, V> putIfAbsent(K key, V value) {
     if (containsKey(key)) {
       return this;
-    }
-    return put(key, value);
-  }
-
-  default ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
-    if (containsKey(key)) {
-      return put(key, merger.apply(getOrDefault(key, unit(value)), value));
     }
     return put(key, value);
   }
@@ -119,6 +114,7 @@ public interface ImmutableMap<K, V> {
   }
 
   final class Builder<K, V> {
+
     private final Map<K, V> map = new HashMap<>();
 
     private Builder() { }
@@ -129,7 +125,7 @@ public interface ImmutableMap<K, V> {
     }
 
     public ImmutableMap<K, V> build() {
-      return from(map);
+      return ImmutableMap.from(map);
     }
   }
 
@@ -158,6 +154,13 @@ public interface ImmutableMap<K, V> {
     }
 
     @Override
+    public ImmutableMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
+      Map<K, V> newMap = toMap();
+      newMap.putAll(ImmutableMap.from(other).toMap());
+      return new JavaBasedImmutableMap<>(newMap);
+    }
+
+    @Override
     public ImmutableMap<K, V> remove(K key) {
       Map<K, V> newMap = toMap();
       newMap.remove(key);
@@ -167,6 +170,13 @@ public interface ImmutableMap<K, V> {
     @Override
     public Option<V> get(K key) {
       return Option.of(() -> backend.get(key));
+    }
+
+    @Override
+    public ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
+      Map<K, V> newMap = toMap();
+      newMap.merge(key, value, merger::apply);
+      return new JavaBasedImmutableMap<>(newMap);
     }
 
     @Override

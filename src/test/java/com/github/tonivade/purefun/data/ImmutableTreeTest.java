@@ -30,7 +30,7 @@ public class ImmutableTreeTest {
 
   @Test
   public void notEmptyTree() {
-    ImmutableTree<String> tree = ImmutableTree.of("a", "b", "c");
+    ImmutableTree<String> tree = ImmutableTree.of("c", "b", "a");
 
     assertAll(() -> assertEquals(3, tree.size()),
               () -> assertFalse(tree.isEmpty()),

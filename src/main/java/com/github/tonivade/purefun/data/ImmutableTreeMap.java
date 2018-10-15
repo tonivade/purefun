@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.Collections.emptyNavigableMap;
 import static java.util.Objects.requireNonNull;
 
@@ -23,6 +22,7 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
 public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
@@ -32,16 +32,45 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   @Override
   ImmutableTreeMap<K, V> put(K key, V value);
   @Override
+  ImmutableTreeMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other);
+  @Override
   ImmutableTreeMap<K, V> remove(K key);
 
-  ImmutableTreeMap<K, V> headTree(K toKey);
-  ImmutableTreeMap<K, V> tailTree(K fromKey);
-  Option<Tuple2<K, V>> head();
-  Option<Tuple2<K, V>> tail();
-  Option<Tuple2<K, V>> higher(K key);
-  Option<Tuple2<K, V>> lower(K key);
-  Option<Tuple2<K, V>> floor(K key);
-  Option<Tuple2<K, V>> ceiling(K key);
+  @Override
+  ImmutableTreeMap<K, V> merge(K key, V value, Operator2<V> merger);
+
+  ImmutableTreeMap<K, V> headMap(K toKey);
+  ImmutableTreeMap<K, V> tailMap(K fromKey);
+  Option<Tuple2<K, V>> headEntry();
+  Option<Tuple2<K, V>> tailEntry();
+  Option<Tuple2<K, V>> higherEntry(K key);
+  Option<Tuple2<K, V>> lowerEntry(K key);
+  Option<Tuple2<K, V>> floorEntry(K key);
+  Option<Tuple2<K, V>> ceilingEntry(K key);
+
+  default Option<K> headKey() {
+    return headEntry().map(Tuple2::get1);
+  }
+
+  default Option<K> tailKey() {
+    return tailEntry().map(Tuple2::get1);
+  }
+
+  default Option<K> higherKey(K key) {
+    return higherEntry(key).map(Tuple2::get1);
+  }
+
+  default Option<K> lowerKey(K key) {
+    return lowerEntry(key).map(Tuple2::get1);
+  }
+
+  default Option<K> floorKey(K key) {
+    return floorEntry(key).map(Tuple2::get1);
+  }
+
+  default Option<K> ceilingKey(K key) {
+    return floorEntry(key).map(Tuple2::get1);
+  }
 
   @Override
   default <A, B> ImmutableTreeMap<A, B> map(Function1<K, A> keyMapper, Function1<V, B> valueMapper) {
@@ -72,14 +101,6 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   default ImmutableTreeMap<K, V> putIfAbsent(K key, V value) {
     if (containsKey(key)) {
       return this;
-    }
-    return put(key, value);
-  }
-
-  @Override
-  default ImmutableTreeMap<K, V> merge(K key, V value, Operator2<V> merger) {
-    if (containsKey(key)) {
-      return put(key, merger.apply(getOrDefault(key, unit(value)), value));
     }
     return put(key, value);
   }
@@ -120,6 +141,26 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
         .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2, ImmutableTreeModule.throwingMerge(), TreeMap::new)));
   }
 
+  static <K, V> Builder<K, V> builder() {
+    return new Builder<>();
+  }
+
+  final class Builder<K, V> {
+
+    private final NavigableMap<K, V> map = new TreeMap<>();
+
+    private Builder() { }
+
+    public Builder<K, V> put(K key, V value) {
+      map.put(key, value);
+      return this;
+    }
+
+    public ImmutableTreeMap<K, V> build() {
+      return ImmutableTreeMap.from(map);
+    }
+  }
+
   final class JavaBasedImmutableTreeMap<K, V> implements ImmutableTreeMap<K, V> {
 
     private final NavigableMap<K, V> backend;
@@ -146,6 +187,13 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     }
 
     @Override
+    public ImmutableTreeMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
+      NavigableMap<K, V> newMap = toNavigableMap();
+      newMap.putAll(ImmutableTreeMap.from(other).toMap());
+      return new JavaBasedImmutableTreeMap<>(newMap);
+    }
+
+    @Override
     public ImmutableTreeMap<K, V> remove(K key) {
       NavigableMap<K, V> newMap = toNavigableMap();
       newMap.remove(key);
@@ -158,43 +206,50 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     }
 
     @Override
-    public ImmutableTreeMap<K, V> headTree(K toKey) {
+    public ImmutableTreeMap<K, V> merge(K key, V value, Operator2<V> merger) {
+      NavigableMap<K, V> newMap = toNavigableMap();
+      newMap.merge(key, value, merger::apply);
+      return new JavaBasedImmutableTreeMap<>(newMap);
+    }
+
+    @Override
+    public ImmutableTreeMap<K, V> headMap(K toKey) {
       return new JavaBasedImmutableTreeMap<>(backend.headMap(toKey, false));
     }
 
     @Override
-    public ImmutableTreeMap<K, V> tailTree(K fromKey) {
+    public ImmutableTreeMap<K, V> tailMap(K fromKey) {
       return new JavaBasedImmutableTreeMap<>(backend.tailMap(fromKey, false));
     }
 
     @Override
-    public Option<Tuple2<K, V>> head() {
-      return Option.of(() -> Tuple.from(backend.firstEntry()));
+    public Option<Tuple2<K, V>> headEntry() {
+      return Try.of(() -> Tuple.from(backend.firstEntry())).toOption();
     }
 
     @Override
-    public Option<Tuple2<K, V>> tail() {
-      return Option.of(() -> Tuple.from(backend.lastEntry()));
+    public Option<Tuple2<K, V>> tailEntry() {
+      return Try.of(() -> Tuple.from(backend.lastEntry())).toOption();
     }
 
     @Override
-    public Option<Tuple2<K, V>> higher(K key) {
-      return Option.of(() -> Tuple.from(backend.higherEntry(key)));
+    public Option<Tuple2<K, V>> higherEntry(K key) {
+      return Try.of(() -> Tuple.from(backend.higherEntry(key))).toOption();
     }
 
     @Override
-    public Option<Tuple2<K, V>> lower(K key) {
-      return Option.of(() -> Tuple.from(backend.lowerEntry(key)));
+    public Option<Tuple2<K, V>> lowerEntry(K key) {
+      return Try.of(() -> Tuple.from(backend.lowerEntry(key))).toOption();
     }
 
     @Override
-    public Option<Tuple2<K, V>> floor(K key) {
-      return Option.of(() -> Tuple.from(backend.floorEntry(key)));
+    public Option<Tuple2<K, V>> floorEntry(K key) {
+      return Try.of(() -> Tuple.from(backend.floorEntry(key))).toOption();
     }
 
     @Override
-    public Option<Tuple2<K, V>> ceiling(K key) {
-      return Option.of(() -> Tuple.from(backend.ceilingEntry(key)));
+    public Option<Tuple2<K, V>> ceilingEntry(K key) {
+      return Try.of(() -> Tuple.from(backend.ceilingEntry(key))).toOption();
     }
 
     @Override

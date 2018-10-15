@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.data.ImmutableMap.entry;
+import static com.github.tonivade.purefun.data.Sequence.setOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,7 +42,10 @@ public class ImmutableMapTest {
               () -> assertEquals(ImmutableMap.of(entry("c", "ccc")), map.remove("a").remove("b")),
               () -> assertEquals(ImmutableSet.of(entry("a", "aaa"),
                                                  entry("b", "bbb"),
-                                                 entry("c", "ccc")), map.entries())
+                                                 entry("c", "ccc")), map.entries()),
+              () -> assertEquals(map, ImmutableMap.of(entry("a", "aaa")).putAll(setOf(entry("b", "bbb"),
+                                                                                      entry("c", "ccc")))),
+              () -> assertEquals(map, ImmutableMap.builder().put("a", "aaa").put("b", "bbb").put("c", "ccc").build())
               );
   }
 
