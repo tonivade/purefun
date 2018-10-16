@@ -35,7 +35,7 @@ public interface Console<W extends Kind> {
   }
 }
 
-class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
+final class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
 
   @Override
   public State<ImmutableList<String>, String> readln() {
@@ -66,12 +66,14 @@ final class ConsoleIO implements Console<IO.µ> {
 final class SystemConsole {
 
   void println(String message) {
-    writer().println(message);
+    try (PrintWriter writer = writer()) {
+      writer.println(message);
+    }
   }
 
   String readln() {
-    try {
-      return reader().readLine();
+    try (BufferedReader reader = reader()) {
+      return reader.readLine();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
