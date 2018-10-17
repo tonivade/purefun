@@ -66,14 +66,12 @@ final class ConsoleIO implements Console<IO.µ> {
 final class SystemConsole {
 
   void println(String message) {
-    try (PrintWriter writer = writer()) {
-      writer.println(message);
-    }
+    writer().println(message);
   }
 
   String readln() {
-    try (BufferedReader reader = reader()) {
-      return reader.readLine();
+    try {
+      return reader().readLine();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
