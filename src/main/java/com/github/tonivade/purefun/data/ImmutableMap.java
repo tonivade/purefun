@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -129,7 +130,10 @@ public interface ImmutableMap<K, V> {
     }
   }
 
-  final class JavaBasedImmutableMap<K, V> implements ImmutableMap<K, V> {
+  final class JavaBasedImmutableMap<K, V> implements ImmutableMap<K, V>, Serializable {
+
+    private static final long serialVersionUID = -1236334562860351635L;
+
     private final Map<K, V> backend;
 
     private JavaBasedImmutableMap(Map<K, V> backend) {

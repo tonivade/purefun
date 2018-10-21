@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -86,7 +87,9 @@ public interface ImmutableList<E> extends Sequence<E> {
     return new JavaBasedImmutableList<>(emptyList());
   }
 
-  final class JavaBasedImmutableList<E> implements ImmutableList<E> {
+  final class JavaBasedImmutableList<E> implements ImmutableList<E>, Serializable {
+
+    private static final long serialVersionUID = -7468103369804662814L;
 
     private final List<E> backend;
 

@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.handler.EitherHandler.identity;
 import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -204,7 +205,9 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
   EitherModule module();
 
-  final class Left<L, R> implements Either<L, R> {
+  final class Left<L, R> implements Either<L, R>, Serializable {
+
+    private static final long serialVersionUID = 7040154642166638129L;
 
     private L value;
 

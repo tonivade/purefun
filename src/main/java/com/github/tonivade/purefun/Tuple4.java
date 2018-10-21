@@ -7,12 +7,15 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
-public final class Tuple4<A, B, C, D> implements Tuple {
+public final class Tuple4<A, B, C, D> implements Tuple, Serializable {
+
+  private static final long serialVersionUID = -2725249702715042810L;
 
   private final A value1;
   private final B value2;
@@ -33,39 +36,39 @@ public final class Tuple4<A, B, C, D> implements Tuple {
   public B get2() {
     return value2;
   }
-  
+
   public C get3() {
     return value3;
   }
-  
+
   public D get4() {
     return value4;
   }
-  
+
   @Override
   public Sequence<Object> toSequence() {
     return Sequence.listOf(value1, value2, value3, value4);
   }
-  
+
   public <R> Tuple4<R, B, C, D> map1(Function1<A, R> mapper) {
     return Tuple4.of(mapper.apply(value1), value2, value3, value4);
   }
-  
+
   public <R> Tuple4<A, R, C, D> map2(Function1<B, R> mapper) {
     return Tuple4.of(value1, mapper.apply(value2), value3, value4);
   }
-  
+
   public <R> Tuple4<A, B, R, D> map3(Function1<C, R> mapper) {
     return Tuple4.of(value1, value2, mapper.apply(value3), value4);
   }
-  
+
   public <R> Tuple4<A, B, C, R> map4(Function1<D, R> mapper) {
     return Tuple4.of(value1, value2, value3, mapper.apply(value4));
   }
-  
-  public <E, F, G, H> Tuple4<E, F, G, H> map(Function1<A, E> map1, 
-                                             Function1<B, F> map2, 
-                                             Function1<C, G> map3, 
+
+  public <E, F, G, H> Tuple4<E, F, G, H> map(Function1<A, E> map1,
+                                             Function1<B, F> map2,
+                                             Function1<C, G> map3,
                                              Function1<D, H> map4) {
     return Tuple4.of(map1.apply(value1), map2.apply(value2), map3.apply(value3), map4.apply(value4));
   }

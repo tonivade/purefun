@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,13 +17,13 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
+import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.FlatMap1;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -172,7 +173,10 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
 
   OptionModule module();
 
-  final class Some<T> implements Option<T> {
+  final class Some<T> implements Option<T>, Serializable {
+
+    private static final long serialVersionUID = 7757183287962895363L;
+
     private final T value;
 
     private Some(T value) {
@@ -217,7 +221,9 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     }
   }
 
-  final class None<T> implements Option<T> {
+  final class None<T> implements Option<T>, Serializable {
+
+    private static final long serialVersionUID = 7202112931010040785L;
 
     private static final None<?> INSTANCE = new None<>();
 

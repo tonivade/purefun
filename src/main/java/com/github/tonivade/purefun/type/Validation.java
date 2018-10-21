@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -188,7 +189,9 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
         (t1, t2, t3, t4) -> mapper.curried().apply(t1).apply(t2).apply(t3).apply(t4)));
   }
 
-  final class Valid<E, T> implements Validation<E, T> {
+  final class Valid<E, T> implements Validation<E, T>, Serializable {
+
+    private static final long serialVersionUID = -4276395187736455243L;
 
     private final T value;
 
@@ -239,7 +242,9 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     }
   }
 
-  final class Invalid<E, T> implements Validation<E, T> {
+  final class Invalid<E, T> implements Validation<E, T>, Serializable {
+
+    private static final long serialVersionUID = -5116403366555721062L;
 
     private final E error;
 

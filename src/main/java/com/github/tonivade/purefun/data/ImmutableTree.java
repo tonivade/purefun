@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,7 +82,9 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return new JavaBasedImmutableTree<>(Collections.emptyNavigableSet());
   }
 
-  final class JavaBasedImmutableTree<E> implements ImmutableTree<E> {
+  final class JavaBasedImmutableTree<E> implements ImmutableTree<E>, Serializable {
+
+    private static final long serialVersionUID = -328223831102407507L;
 
     private final NavigableSet<E> backend;
 

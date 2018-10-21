@@ -7,12 +7,15 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
-public final class Tuple5<A, B, C, D, E> implements Tuple {
+public final class Tuple5<A, B, C, D, E> implements Tuple, Serializable {
+
+  private static final long serialVersionUID = 4097431156050938896L;
 
   private final A value1;
   private final B value2;
@@ -35,48 +38,48 @@ public final class Tuple5<A, B, C, D, E> implements Tuple {
   public B get2() {
     return value2;
   }
-  
+
   public C get3() {
     return value3;
   }
-  
+
   public D get4() {
     return value4;
   }
-  
+
   public E get5() {
     return value5;
   }
-  
+
   @Override
   public Sequence<Object> toSequence() {
     return Sequence.listOf(value1, value2, value3, value4, value5);
   }
-  
+
   public <R> Tuple5<R, B, C, D, E> map1(Function1<A, R> mapper) {
     return Tuple5.of(mapper.apply(value1), value2, value3, value4, value5);
   }
-  
+
   public <R> Tuple5<A, R, C, D, E> map2(Function1<B, R> mapper) {
     return Tuple5.of(value1, mapper.apply(value2), value3, value4, value5);
   }
-  
+
   public <R> Tuple5<A, B, R, D, E> map3(Function1<C, R> mapper) {
     return Tuple5.of(value1, value2, mapper.apply(value3), value4, value5);
   }
-  
+
   public <R> Tuple5<A, B, C, R, E> map4(Function1<D, R> mapper) {
     return Tuple5.of(value1, value2, value3, mapper.apply(value4), value5);
   }
-  
+
   public <R> Tuple5<A, B, C, D, R> map5(Function1<E, R> mapper) {
     return Tuple5.of(value1, value2, value3, value4, mapper.apply(value5));
   }
-  
-  public <F, G, H, I, J> Tuple5<F, G, H, I, J> map(Function1<A, F> map1, 
-                                                   Function1<B, G> map2, 
-                                                   Function1<C, H> map3, 
-                                                   Function1<D, I> map4, 
+
+  public <F, G, H, I, J> Tuple5<F, G, H, I, J> map(Function1<A, F> map1,
+                                                   Function1<B, G> map2,
+                                                   Function1<C, H> map3,
+                                                   Function1<D, I> map4,
                                                    Function1<E, J> map5) {
     return Tuple5.of(map1.apply(value1), map2.apply(value2), map3.apply(value3), map4.apply(value4), map5.apply(value5));
   }

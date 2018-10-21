@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -75,7 +76,9 @@ public interface ImmutableSet<E> extends Sequence<E> {
     return new JavaBasedImmutableSet<>(emptySet());
   }
 
-  final class JavaBasedImmutableSet<E> implements ImmutableSet<E> {
+  final class JavaBasedImmutableSet<E> implements ImmutableSet<E>, Serializable {
+
+    private static final long serialVersionUID = -4111867323115030715L;
 
     private final Set<E> backend;
 

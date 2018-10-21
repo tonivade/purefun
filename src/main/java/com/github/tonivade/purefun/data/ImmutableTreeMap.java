@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static java.util.Collections.emptyNavigableMap;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
@@ -161,7 +162,9 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     }
   }
 
-  final class JavaBasedImmutableTreeMap<K, V> implements ImmutableTreeMap<K, V> {
+  final class JavaBasedImmutableTreeMap<K, V> implements ImmutableTreeMap<K, V>, Serializable {
+
+    private static final long serialVersionUID = 8618845296089216532L;
 
     private final NavigableMap<K, V> backend;
 

@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static com.github.tonivade.purefun.typeclasses.Equal.comparingArray;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -16,13 +17,13 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
+import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.FlatMap1;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -205,7 +206,10 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
   TryModule module();
 
-  final class Success<T> implements Try<T> {
+  final class Success<T> implements Try<T>, Serializable {
+
+    private static final long serialVersionUID = -3934628369477099278L;
+
     private final T value;
 
     private Success(T value) {
@@ -255,7 +259,10 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     }
   }
 
-  final class Failure<T> implements Try<T> {
+  final class Failure<T> implements Try<T>, Serializable {
+
+    private static final long serialVersionUID = -8155444386075553318L;
+
     private final Throwable cause;
 
     private Failure(Throwable cause) {

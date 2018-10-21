@@ -3,12 +3,15 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Equal;
 
-public final class Tuple1<A> implements Tuple {
+public final class Tuple1<A> implements Tuple, Serializable {
+
+  private static final long serialVersionUID = 6343431593011527978L;
 
   private final A value1;
 
@@ -19,12 +22,12 @@ public final class Tuple1<A> implements Tuple {
   public A get1() {
     return value1;
   }
-  
+
   @Override
   public Sequence<Object> toSequence() {
     return Sequence.listOf(value1);
   }
-  
+
   public <B> Tuple1<B> map(Function1<A, B> mapper) {
     return new Tuple1<>(mapper.apply(value1));
   }
