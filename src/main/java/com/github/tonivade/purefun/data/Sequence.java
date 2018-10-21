@@ -31,6 +31,7 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   Sequence<E> append(E element);
   Sequence<E> remove(E element);
   Sequence<E> appendAll(Sequence<E> other);
+  Sequence<E> removeAll(Sequence<E> other);
 
   Sequence<E> reverse();
 

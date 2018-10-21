@@ -34,6 +34,11 @@ public interface ImmutableTree<E> extends Sequence<E> {
   ImmutableTree<E> remove(E element);
   @Override
   ImmutableTree<E> appendAll(Sequence<E> other);
+  @Override
+  ImmutableTree<E> removeAll(Sequence<E> other);
+
+  @Override
+  ImmutableTree<E> reverse();
 
   Option<E> head();
   Option<E> tail();
@@ -107,6 +112,13 @@ public interface ImmutableTree<E> extends Sequence<E> {
     }
 
     @Override
+    public ImmutableTree<E> remove(E element) {
+      NavigableSet<E> newSet = toNavigableSet();
+      newSet.remove(element);
+      return new JavaBasedImmutableTree<>(newSet);
+    }
+
+    @Override
     public ImmutableTree<E> appendAll(Sequence<E> other) {
       NavigableSet<E> newSet = toNavigableSet();
       for (E element : other) {
@@ -116,9 +128,11 @@ public interface ImmutableTree<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableTree<E> remove(E element) {
+    public ImmutableTree<E> removeAll(Sequence<E> other) {
       NavigableSet<E> newSet = toNavigableSet();
-      newSet.remove(element);
+      for (E element : other) {
+        newSet.remove(element);
+      }
       return new JavaBasedImmutableTree<>(newSet);
     }
 

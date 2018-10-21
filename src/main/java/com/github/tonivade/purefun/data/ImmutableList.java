@@ -35,7 +35,11 @@ public interface ImmutableList<E> extends Sequence<E> {
   ImmutableList<E> remove(E element);
   @Override
   ImmutableList<E> appendAll(Sequence<E> other);
+  @Override
+  ImmutableList<E> removeAll(Sequence<E> other);
 
+  @Override
+  ImmutableList<E> reverse();
   ImmutableList<E> sort(Comparator<E> comparator);
 
   default Option<E> head() {
@@ -133,6 +137,15 @@ public interface ImmutableList<E> extends Sequence<E> {
       List<E> newList = toList();
       for (E element : other) {
         newList.add(element);
+      }
+      return new JavaBasedImmutableList<>(newList);
+    }
+
+    @Override
+    public ImmutableList<E> removeAll(Sequence<E> other) {
+      List<E> newList = toList();
+      for (E element : other) {
+        newList.remove(element);
       }
       return new JavaBasedImmutableList<>(newList);
     }

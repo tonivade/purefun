@@ -33,6 +33,11 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> remove(E element);
   @Override
   ImmutableSet<E> appendAll(Sequence<E> other);
+  @Override
+  ImmutableSet<E> removeAll(Sequence<E> other);
+
+  @Override
+  ImmutableSet<E> reverse();
 
   ImmutableSet<E> union(ImmutableSet<E> other);
   ImmutableSet<E> intersection(ImmutableSet<E> other);
@@ -105,6 +110,15 @@ public interface ImmutableSet<E> extends Sequence<E> {
       Set<E> newSet = toSet();
       for (E element : other) {
         newSet.add(element);
+      }
+      return new JavaBasedImmutableSet<>(newSet);
+    }
+
+    @Override
+    public ImmutableSet<E> removeAll(Sequence<E> other) {
+      Set<E> newSet = toSet();
+      for (E element : other) {
+        newSet.remove(element);
       }
       return new JavaBasedImmutableSet<>(newSet);
     }

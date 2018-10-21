@@ -33,7 +33,11 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> remove(E element);
   @Override
   ImmutableArray<E> appendAll(Sequence<E> other);
+  @Override
+  ImmutableArray<E> removeAll(Sequence<E> other);
 
+  @Override
+  ImmutableArray<E> reverse();
   ImmutableArray<E> sort(Comparator<E> comparator);
 
   E get(int position);
@@ -97,7 +101,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public Sequence<E> reverse() {
+    public ImmutableArray<E> reverse() {
       List<E> list = toList();
       Collections.reverse(list);
       return new JavaBasedImmutableArray<>(list);
@@ -127,6 +131,15 @@ public interface ImmutableArray<E> extends Sequence<E> {
       List<E> list = toList();
       for (E element : other) {
         list.add(element);
+      }
+      return new JavaBasedImmutableArray<>(list);
+    }
+
+    @Override
+    public ImmutableArray<E> removeAll(Sequence<E> other) {
+      List<E> list = toList();
+      for (E element : other) {
+        list.remove(element);
       }
       return new JavaBasedImmutableArray<>(list);
     }
