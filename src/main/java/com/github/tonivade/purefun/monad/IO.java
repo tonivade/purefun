@@ -6,6 +6,9 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 
+import com.github.tonivade.purefun.CheckedConsumer1;
+import com.github.tonivade.purefun.CheckedFunction1;
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -35,6 +38,14 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   default <R> IO<R> andThen(IO<R> after) {
     return flatMap(ignore -> after);
   }
+  
+  default <R> IO<R> bracket_(CheckedFunction1<T, IO<R>> use, CheckedConsumer1<T> release) {
+    return () -> {
+      try(IOResource<T> resource = new IOResource<>(unsafeRunSync(), release)) {
+        return resource.apply(use).unsafeRunSync();
+      }
+    };
+  }
 
   static <T> IO<T> unit(T value) {
     return () -> value;
@@ -48,8 +59,27 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return producer::get;
   }
 
+  static <T> IO<T> from(CheckedProducer<T> producer) {
+    return producer.unchecked()::get;
+  }
+
   static IO<Nothing> noop() {
     return unit(nothing());
+  }
+  
+  static <T, R> IO<R> bracket(CheckedProducer<T> acquire, 
+                              CheckedFunction1<T, IO<R>> use, 
+                              CheckedConsumer1<T> release) {
+    return () -> {
+      try (IOResource<T> resource = new IOResource<>(acquire.unchecked().get(), release)) {
+        return resource.apply(use).unsafeRunSync();
+      }
+    };
+  }
+  
+  static <T extends AutoCloseable, R> IO<R> bracket(CheckedProducer<T> acquire, 
+                                                    CheckedFunction1<T, IO<R>> use) {
+    return bracket(acquire, use, AutoCloseable::close);
   }
 
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
@@ -73,5 +103,24 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
         return narrowK(value).flatMap(map);
       }
     };
+  }
+}
+
+class IOResource<T> implements AutoCloseable {
+  final T resource;
+  final CheckedConsumer1<T> release;
+
+  public IOResource(T resource, CheckedConsumer1<T> release) {
+    this.resource = resource;
+    this.release = release;
+  }
+  
+  public <R> IO<R> apply(CheckedFunction1<T, IO<R>> use) {
+    return use.unchecked().apply(resource);
+  }
+ 
+  @Override
+  public void close() {
+    release.unchecked().accept(resource);
   }
 }

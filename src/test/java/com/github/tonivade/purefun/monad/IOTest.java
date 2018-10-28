@@ -8,9 +8,16 @@ import static com.github.tonivade.purefun.monad.IO.narrowK;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.typeclasses.Console;
 
@@ -28,6 +35,18 @@ public class IOTest {
         () -> assertArrayEquals(new String[] { "hola", "mundo" },
             unit.flatMap(string -> IO.of(() -> string.split(" "))).unsafeRunSync()),
         () -> assertEquals(Integer.valueOf(100), unit.andThen(IO.of(() -> 100)).unsafeRunSync()));
+  }
+  
+  @Test
+  public void bracket() throws SQLException {
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getString("id")).thenReturn("value");
+    
+    IO<String> bracket = IO.bracket(CheckedProducer.unit(resultSet),
+                                    rs -> IO.from(() -> rs.getString("id")));
+    
+    assertEquals("value", bracket.unsafeRunSync());
+    verify(resultSet).close();
   }
   
   @Test
