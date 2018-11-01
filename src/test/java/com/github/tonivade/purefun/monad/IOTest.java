@@ -17,38 +17,28 @@ import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.CheckedProducer;
+import com.github.tonivade.purefun.CheckedFunction1;
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 
 public class IOTest {
-  
+
   private final Console<IO.µ> console = Console.io();
-  
+
   @Test
-  public void unit() {
-    IO<String> unit = IO.unit("hola mundo");
+  public void pure() {
+    IO<String> pure = IO.pure("hola mundo");
 
     assertAll(
-        () -> assertEquals("hola mundo", unit.unsafeRunSync()),
-        () -> assertEquals("HOLA MUNDO", unit.map(String::toUpperCase).unsafeRunSync()),
+        () -> assertEquals("hola mundo", pure.unsafeRunSync()),
+        () -> assertEquals("HOLA MUNDO", pure.map(String::toUpperCase).unsafeRunSync()),
         () -> assertArrayEquals(new String[] { "hola", "mundo" },
-            unit.flatMap(string -> IO.of(() -> string.split(" "))).unsafeRunSync()),
-        () -> assertEquals(Integer.valueOf(100), unit.andThen(IO.of(() -> 100)).unsafeRunSync()));
+            pure.flatMap(string -> IO.of(() -> string.split(" "))).unsafeRunSync()),
+        () -> assertEquals(Integer.valueOf(100), pure.andThen(IO.of(() -> 100)).unsafeRunSync()));
   }
-  
-  @Test
-  public void bracket() throws SQLException {
-    ResultSet resultSet = mock(ResultSet.class);
-    when(resultSet.getString("id")).thenReturn("value");
-    
-    IO<String> bracket = IO.bracket(CheckedProducer.unit(resultSet),
-                                    rs -> IO.from(() -> rs.getString("id")));
-    
-    assertEquals("value", bracket.unsafeRunSync());
-    verify(resultSet).close();
-  }
-  
+
   @Test
   public void echo() {
     IO<Nothing> echo = narrowK(console.println("write your name"))
@@ -61,5 +51,28 @@ public class IOTest {
     executor.run(echo);
 
     assertEquals("write your name\nHello Toni\nend\n", executor.getOutput());
+  }
+
+  @Test
+  public void bracket() throws SQLException {
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getString("id")).thenReturn("value");
+
+    IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
+
+    assertEquals(Try.success("value"), bracket.unsafeRunSync());
+    verify(resultSet).close();
+  }
+
+  private IO<ResultSet> open(ResultSet resultSet) {
+    return IO.pure(resultSet);
+  }
+
+  private Function1<ResultSet, Try<String>> tryGetString(String column) {
+    return getString(column).liftTry();
+  }
+
+  private CheckedFunction1<ResultSet, String> getString(String column) {
+    return resultSet -> resultSet.getString(column);
   }
 }

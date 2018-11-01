@@ -7,8 +7,6 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Nothing.nothing;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
-import com.github.tonivade.purefun.CheckedFunction1;
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -38,17 +36,13 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   default <R> IO<R> andThen(IO<R> after) {
     return flatMap(ignore -> after);
   }
-  
-  default <R> IO<R> bracket_(CheckedFunction1<T, IO<R>> use, CheckedConsumer1<T> release) {
-    return () -> {
-      try(IOResource<T> resource = new IOResource<>(unsafeRunSync(), release)) {
-        return resource.apply(use).unsafeRunSync();
-      }
-    };
+
+  static <T> IO<T> pure(T value) {
+    return () -> value;
   }
 
-  static <T> IO<T> unit(T value) {
-    return () -> value;
+  static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
+    return task.andThen(IO::pure);
   }
 
   static IO<Nothing> exec(Runnable task) {
@@ -59,26 +53,22 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return producer::get;
   }
 
-  static <T> IO<T> from(CheckedProducer<T> producer) {
-    return producer.unchecked()::get;
+  static IO<Nothing> noop() {
+    return pure(nothing());
   }
 
-  static IO<Nothing> noop() {
-    return unit(nothing());
-  }
-  
-  static <T, R> IO<R> bracket(CheckedProducer<T> acquire, 
-                              CheckedFunction1<T, IO<R>> use, 
+  static <T, R> IO<R> bracket(IO<T> acquire,
+                              Function1<T, IO<R>> use,
                               CheckedConsumer1<T> release) {
     return () -> {
-      try (IOResource<T> resource = new IOResource<>(acquire.unchecked().get(), release)) {
+      try (IOResource<T> resource = new IOResource<>(acquire.unsafeRunSync(), release)) {
         return resource.apply(use).unsafeRunSync();
       }
     };
   }
-  
-  static <T extends AutoCloseable, R> IO<R> bracket(CheckedProducer<T> acquire, 
-                                                    CheckedFunction1<T, IO<R>> use) {
+
+  static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire,
+                                                    Function1<T, IO<R>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
@@ -95,7 +85,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
       @Override
       public <T> IO<T> pure(T value) {
-        return IO.unit(value);
+        return IO.pure(value);
       }
 
       @Override
@@ -114,11 +104,11 @@ class IOResource<T> implements AutoCloseable {
     this.resource = resource;
     this.release = release;
   }
-  
-  public <R> IO<R> apply(CheckedFunction1<T, IO<R>> use) {
-    return use.unchecked().apply(resource);
+
+  public <R> IO<R> apply(Function1<T, IO<R>> use) {
+    return use.apply(resource);
   }
- 
+
   @Override
   public void close() {
     release.unchecked().accept(resource);
