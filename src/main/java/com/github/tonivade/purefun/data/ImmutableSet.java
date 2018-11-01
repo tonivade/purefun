@@ -67,6 +67,12 @@ public interface ImmutableSet<E> extends Sequence<E> {
     return new JavaBasedImmutableSet<>(stream.collect(Collectors.toSet()));
   }
 
+  static <T> ImmutableSet<T> from(Iterator<T> iterator) {
+    Set<T> set = new LinkedHashSet<>();
+    iterator.forEachRemaining(set::add);
+    return new JavaBasedImmutableSet<>(set);
+  }
+
   @SafeVarargs
   static <T> ImmutableSet<T> of(T... elements) {
     return new JavaBasedImmutableSet<>(new LinkedHashSet<>(Arrays.asList(elements)));

@@ -78,6 +78,12 @@ public interface ImmutableList<E> extends Sequence<E> {
     return new JavaBasedImmutableList<>(stream.collect(Collectors.toList()));
   }
 
+  static <T> ImmutableList<T> from(Iterator<T> iterator) {
+    List<T> list = new LinkedList<>();
+    iterator.forEachRemaining(list::add);
+    return new JavaBasedImmutableList<>(list);
+  }
+
   @SafeVarargs
   static <T> ImmutableList<T> of(T... elements) {
     return new JavaBasedImmutableList<>(Arrays.asList(elements));

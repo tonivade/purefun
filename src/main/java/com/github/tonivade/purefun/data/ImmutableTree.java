@@ -73,6 +73,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return new JavaBasedImmutableTree<>(stream.collect(Collectors.toCollection(TreeSet::new)));
   }
 
+  static <T> ImmutableTree<T> from(Iterator<T> iterator) {
+    NavigableSet<T> set = new TreeSet<>();
+    iterator.forEachRemaining(set::add);
+    return new JavaBasedImmutableTree<>(set);
+  }
+
   @SafeVarargs
   static <T> ImmutableTree<T> of(T... elements) {
     return new JavaBasedImmutableTree<>(new TreeSet<>(Arrays.asList(elements)));
