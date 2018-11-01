@@ -5,8 +5,11 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.handler.SequenceHandler.identity;
+import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 
+import java.util.Iterator;
+import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -123,6 +126,10 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   @SafeVarargs
   static <E> ImmutableTree<E> treeOf(E... elements) {
     return ImmutableTree.of(elements);
+  }
+
+  static <E> Stream<E> asStream(Iterator<E> iterator) {
+    return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
   }
 
   static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {

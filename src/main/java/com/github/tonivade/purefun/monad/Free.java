@@ -6,11 +6,11 @@ package com.github.tonivade.purefun.monad;
 
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.algebra.Functor;
 import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Transformer;
@@ -59,9 +59,7 @@ public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
   default <G extends Kind> Higher1<G, T> foldMap(Monad<G> monad,
                                                  Functor<F> functor,
                                                  Transformer<F, G> interpreter) {
-    return resume(functor)
-        .fold(left -> monad.flatMap(interpreter.apply(left), free -> free.foldMap(monad, functor, interpreter)),
-              monad::pure);
+    return resume(functor).fold(left -> FreeModule.suspend(monad, functor, interpreter, left), monad::pure);
   }
 
   FreeModule module();
@@ -170,5 +168,12 @@ interface FreeModule {
         current = innerValue2.flatMap(x2 -> flatMap2.narrowFn().apply(x2).flatMap(flatMap1.map));
       }
     }
+  }
+
+  static <T, F extends Kind, G extends Kind> Higher1<G, T> suspend(Monad<G> monad,
+                                                                   Functor<F> functor, 
+                                                                   Transformer<F, G> interpreter,
+                                                                   Higher1<F, Free<F, T>> left) {
+    return monad.flatMap(interpreter.apply(left), free -> free.foldMap(monad, functor, interpreter));
   }
 }

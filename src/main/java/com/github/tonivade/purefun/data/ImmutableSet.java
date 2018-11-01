@@ -10,7 +10,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -59,18 +58,12 @@ public interface ImmutableSet<E> extends Sequence<E> {
     return ImmutableSet.from(stream().filter(matcher::match));
   }
 
-  static <T> ImmutableSet<T> from(Collection<T> collection) {
-    return new JavaBasedImmutableSet<>(new LinkedHashSet<>(collection));
+  static <T> ImmutableSet<T> from(Iterable<T> iterable) {
+    return from(Sequence.asStream(iterable.iterator()));
   }
 
   static <T> ImmutableSet<T> from(Stream<T> stream) {
     return new JavaBasedImmutableSet<>(stream.collect(Collectors.toSet()));
-  }
-
-  static <T> ImmutableSet<T> from(Iterator<T> iterator) {
-    Set<T> set = new LinkedHashSet<>();
-    iterator.forEachRemaining(set::add);
-    return new JavaBasedImmutableSet<>(set);
   }
 
   @SafeVarargs

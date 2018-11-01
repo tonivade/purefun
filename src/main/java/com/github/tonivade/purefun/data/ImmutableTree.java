@@ -9,7 +9,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NavigableSet;
@@ -65,18 +64,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return ImmutableTree.from(stream().filter(matcher::match));
   }
 
-  static <T> ImmutableTree<T> from(Collection<T> collection) {
-    return new JavaBasedImmutableTree<>(new TreeSet<>(collection));
+  static <T> ImmutableTree<T> from(Iterable<T> iterable) {
+    return from(Sequence.asStream(iterable.iterator()));
   }
 
   static <T> ImmutableTree<T> from(Stream<T> stream) {
     return new JavaBasedImmutableTree<>(stream.collect(Collectors.toCollection(TreeSet::new)));
-  }
-
-  static <T> ImmutableTree<T> from(Iterator<T> iterator) {
-    NavigableSet<T> set = new TreeSet<>();
-    iterator.forEachRemaining(set::add);
-    return new JavaBasedImmutableTree<>(set);
   }
 
   @SafeVarargs
