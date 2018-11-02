@@ -10,7 +10,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -70,8 +69,8 @@ public interface ImmutableList<E> extends Sequence<E> {
     return ImmutableList.from(stream().filter(matcher::match));
   }
 
-  static <T> ImmutableList<T> from(Collection<T> collection) {
-    return new JavaBasedImmutableList<>(new LinkedList<>(collection));
+  static <T> ImmutableList<T> from(Iterable<T> iterable) {
+    return from(Sequence.asStream(iterable.iterator()));
   }
 
   static <T> ImmutableList<T> from(Stream<T> stream) {

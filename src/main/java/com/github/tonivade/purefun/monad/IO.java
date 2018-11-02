@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 
+import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -36,8 +37,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return flatMap(ignore -> after);
   }
 
-  static <T> IO<T> unit(T value) {
+  static <T> IO<T> pure(T value) {
     return () -> value;
+  }
+
+  static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
+    return task.andThen(IO::pure);
   }
 
   static IO<Nothing> exec(Runnable task) {
@@ -49,7 +54,22 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   }
 
   static IO<Nothing> noop() {
-    return unit(nothing());
+    return pure(nothing());
+  }
+
+  static <T, R> IO<R> bracket(IO<T> acquire,
+                              Function1<T, IO<R>> use,
+                              CheckedConsumer1<T> release) {
+    return () -> {
+      try (IOResource<T> resource = new IOResource<>(acquire.unsafeRunSync(), release)) {
+        return resource.apply(use).unsafeRunSync();
+      }
+    };
+  }
+
+  static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire,
+                                                    Function1<T, IO<R>> use) {
+    return bracket(acquire, use, AutoCloseable::close);
   }
 
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
@@ -65,7 +85,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
       @Override
       public <T> IO<T> pure(T value) {
-        return IO.unit(value);
+        return IO.pure(value);
       }
 
       @Override
@@ -73,5 +93,24 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
         return narrowK(value).flatMap(map);
       }
     };
+  }
+}
+
+class IOResource<T> implements AutoCloseable {
+  final T resource;
+  final CheckedConsumer1<T> release;
+
+  public IOResource(T resource, CheckedConsumer1<T> release) {
+    this.resource = resource;
+    this.release = release;
+  }
+
+  public <R> IO<R> apply(Function1<T, IO<R>> use) {
+    return use.apply(resource);
+  }
+
+  @Override
+  public void close() {
+    release.unchecked().accept(resource);
   }
 }

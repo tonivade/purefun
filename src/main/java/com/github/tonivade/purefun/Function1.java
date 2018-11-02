@@ -23,51 +23,55 @@ import com.github.tonivade.purefun.type.Try;
 public interface Function1<T, R> {
 
   R apply(T value);
-  
+
   default <V> Function1<T, V> andThen(Function1<R, V> after) {
     return (T value) -> after.apply(apply(value));
   }
-  
+
   default <V> Function1<V, R> compose(Function1<V, T> before) {
     return (V value) -> apply(before.apply(value));
   }
-  
+
   default OptionalHandler<T, R> liftOptional() {
     return value -> Optional.ofNullable(apply(value));
   }
-  
+
   default OptionHandler<T, R> liftOption() {
     return value -> Option.of(() -> apply(value));
   }
-  
+
   default TryHandler<T, R> liftTry() {
     return value -> Try.of(() -> apply(value));
   }
-  
+
   default EitherHandler<T, Throwable, R> liftEither() {
     return liftTry().toEither();
   }
-  
+
   default <L> EitherHandler<T, L, R> liftRight() {
     return value -> Either.right(apply(value));
   }
-  
+
   default <L> EitherHandler<T, R, L> liftLeft() {
     return value -> Either.left(apply(value));
   }
-  
+
   default SequenceHandler<T, R> sequence() {
     return value -> listOf(apply(value));
   }
-  
+
   default StreamHandler<T, R> stream() {
     return value -> Stream.of(apply(value));
   }
-  
+
+  default CheckedFunction1<T, R> checked() {
+    return this::apply;
+  }
+
   static <T> Function1<T, T> identity() {
     return value -> value;
   }
-  
+
   static <T, R> Function1<T, R> of(Function1<T, R> reference) {
     return reference;
   }
