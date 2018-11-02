@@ -27,15 +27,15 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   @Override
   default <R> Trampoline<R> map(Function1<T, R> map) {
     return TrampolineModule.resume(this)
-        .fold(left -> more(() -> left.map(map)),
-              right -> done(map.apply(right)));
+        .fold(next -> more(() -> next.map(map)),
+              value -> done(map.apply(value)));
   }
 
   @Override
   default <R> Trampoline<R> flatMap(Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
     return TrampolineModule.resume(this)
-        .fold(left -> more(() -> left.flatMap(map)),
-              right -> map.andThen(Trampoline::narrowK).apply(right));
+        .fold(next -> more(() -> next.flatMap(map)),
+              value -> map.andThen(Trampoline::narrowK).apply(value));
   }
 
   default <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {
@@ -73,7 +73,7 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   final class Done<T> implements Trampoline<T> {
     final T value;
 
-    Done(T value) {
+    private Done(T value) {
       this.value = requireNonNull(value);
     }
 
@@ -101,7 +101,7 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   final class More<T> implements Trampoline<T> {
     final Producer<Trampoline<T>> next;
 
-    More(Producer<Trampoline<T>> next) {
+    private More(Producer<Trampoline<T>> next) {
       this.next = requireNonNull(next);
     }
 
