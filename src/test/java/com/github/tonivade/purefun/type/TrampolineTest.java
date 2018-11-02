@@ -65,22 +65,22 @@ public class TrampolineTest {
         );
   }
 
-  int fib(int n) {
+  private int fib(int n) {
     return fibLoop(n).run();
   }
 
-  int sum(int n) {
+  private int sum(int n) {
     return sumLoop(n, 0).run();
   }
 
-  Trampoline<Integer> sumLoop(Integer counter, Integer sum) {
+  private Trampoline<Integer> sumLoop(Integer counter, Integer sum) {
     if (counter == 0) {
       return Trampoline.done(sum);
     }
     return Trampoline.more(() -> sumLoop(counter - 1, sum + counter));
   }
 
-  Trampoline<Integer> fibLoop(Integer n) {
+  private Trampoline<Integer> fibLoop(Integer n) {
     if (n < 2) {
       return Trampoline.done(n);
     }
