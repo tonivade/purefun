@@ -2,18 +2,23 @@
  * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.FlatMap1;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Holder;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
 
 public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 
-  static final class µ implements Kind {}
+  final class µ implements Kind {}
 
   Trampoline<T> apply();
 
