@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.ImmutableSet.toImmutableSet;
 import static com.github.tonivade.purefun.data.Sequence.setOf;
 import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableSetTest {
@@ -29,7 +31,7 @@ public class ImmutableSetTest {
   private final Function1<String, String> toUpperCase = String::toUpperCase;
 
   @Test
-  public void notEmptySet() {
+  public void nonEmptySet() {
     ImmutableSet<String> set = setOf("a", "b", "c");
 
     assertAll(() -> assertEquals(3, set.size()),
@@ -57,7 +59,11 @@ public class ImmutableSetTest {
               () -> assertEquals(setOf("a", "b", "c"), setOf(set).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> set.flatten()),
               () -> assertEquals(setOf("a", "b", "c"), set.filter(e -> e.length() > 0)),
-              () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)));
+              () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)),
+              () -> assertEquals(set, set.stream().collect(toImmutableSet())),
+              () -> assertEquals(setOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
+                  set.zipWithIndex().collect(toImmutableSet()))
+              );
   }
 
   @Test

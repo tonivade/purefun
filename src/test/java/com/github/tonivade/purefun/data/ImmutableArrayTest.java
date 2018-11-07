@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableArrayTest {
@@ -61,7 +63,10 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("a", "b", "c"), arrayOf(array).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> array.flatten()),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
-              () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1))
+              () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
+              () -> assertEquals(array, array.stream().collect(toImmutableArray())),
+              () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
+                  array.zipWithIndex().collect(toImmutableArray()))
               );
   }
 

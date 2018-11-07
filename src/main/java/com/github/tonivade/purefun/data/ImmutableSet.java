@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +75,10 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   static <T> ImmutableSet<T> empty() {
     return new JavaBasedImmutableSet<>(emptySet());
+  }
+
+  static <E> Collector<E, ?, ImmutableSet<E>> toImmutableSet() {
+    return collectingAndThen(Collectors.toSet(), JavaBasedImmutableSet::new);
   }
 
   final class JavaBasedImmutableSet<E> implements ImmutableSet<E>, Serializable {

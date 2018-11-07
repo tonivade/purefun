@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableListTest {
@@ -27,7 +29,7 @@ public class ImmutableListTest {
   private final Function1<String, String> toUpperCase = String::toUpperCase;
 
   @Test
-  public void notEmptyList() {
+  public void nonEmptyList() {
     ImmutableList<String> list = listOf("a", "b", "c");
 
     assertAll(() -> assertEquals(3, list.size()),
@@ -57,7 +59,10 @@ public class ImmutableListTest {
               () -> assertEquals(listOf("a", "b", "c"), listOf(list).flatten()),
               () -> assertThrows(UnsupportedOperationException.class, () -> list.flatten()),
               () -> assertEquals(listOf("a", "b", "c"), list.filter(e -> e.length() > 0)),
-              () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1))
+              () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1)),
+              () -> assertEquals(list, list.stream().collect(toImmutableList())),
+              () -> assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
+                  list.zipWithIndex().collect(toImmutableList()))
               );
   }
 

@@ -5,6 +5,9 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
+import static com.github.tonivade.purefun.data.ImmutableTree.toImmutableTree;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Sequence.treeOf;
 import static java.util.Collections.emptyNavigableSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableTreeTest {
@@ -64,7 +68,10 @@ public class ImmutableTreeTest {
               () -> assertEquals(Option.some("a"), tree.floor("a")),
               () -> assertEquals(Option.some("c"), tree.floor("c")),
               () -> assertEquals(Option.some("a"), tree.ceiling("a")),
-              () -> assertEquals(Option.some("c"), tree.ceiling("c"))
+              () -> assertEquals(Option.some("c"), tree.ceiling("c")),
+              () -> assertEquals(tree, tree.stream().collect(toImmutableTree())),
+              () -> assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
+                  tree.zipWithIndex().collect(toImmutableList()))
               );
   }
 

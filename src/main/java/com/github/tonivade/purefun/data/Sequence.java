@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.handler.SequenceHandler.identity;
+import static java.util.Objects.requireNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -22,6 +23,8 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
 public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
@@ -108,6 +111,10 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
     return size() == 0;
   }
 
+  default Stream<Tuple2<Integer, E>> zipWithIndex() {
+    return zip(Stream.iterate(0, i -> i + 1), this.stream());
+  }
+
   @SafeVarargs
   static <E> ImmutableArray<E> arrayOf(E... elements) {
     return ImmutableArray.of(elements);
@@ -124,8 +131,20 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   }
 
   @SafeVarargs
-  static <E> ImmutableTree<E> treeOf(E... elements) {
+  static <E extends Comparable<E>> ImmutableTree<E> treeOf(E... elements) {
     return ImmutableTree.of(elements);
+  }
+
+  static <A, B> Stream<Tuple2<A, B>> zip(Iterator<A> first, Iterator<B> second) {
+    return asStream(new PairIterator<>(first, second));
+  }
+
+  static <A, B> Stream<Tuple2<A, B>> zip(Stream<A> first, Stream<B> second) {
+    return zip(first.iterator(), second.iterator());
+  }
+
+  static <A, B> Stream<Tuple2<A, B>> zip(Sequence<A> first, Sequence<B> second) {
+    return zip(first.stream(), second.stream());
   }
 
   static <E> Stream<E> asStream(Iterator<E> iterator) {
@@ -134,5 +153,26 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
 
   static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {
     return (Sequence<T>) hkt;
+  }
+}
+
+final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
+
+  private final Iterator<A> first;
+  private final Iterator<B> second;
+
+  PairIterator(Iterator<A> first, Iterator<B> second) {
+    this.first = requireNonNull(first);
+    this.second = requireNonNull(second);
+  }
+
+  @Override
+  public boolean hasNext() {
+    return first.hasNext() && second.hasNext();
+  }
+
+  @Override
+  public Tuple2<A, B> next() {
+    return Tuple.of(first.next(), second.next());
   }
 }

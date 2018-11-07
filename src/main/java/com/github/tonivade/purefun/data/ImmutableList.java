@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.data.Sequence.narrowK;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,6 +86,10 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   static <T> ImmutableList<T> empty() {
     return new JavaBasedImmutableList<>(emptyList());
+  }
+
+  static <E> Collector<E, ?, ImmutableList<E>> toImmutableList() {
+    return collectingAndThen(Collectors.toList(), JavaBasedImmutableList::new);
   }
 
   final class JavaBasedImmutableList<E> implements ImmutableList<E>, Serializable {
