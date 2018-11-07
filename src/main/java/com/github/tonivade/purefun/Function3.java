@@ -24,4 +24,8 @@ public interface Function3<A, B, C, R> {
   default <U> Function1<U, R> compose(Function1<U, A> beforeT1, Function1<U, B> beforeT2, Function1<U, C> beforeT3) {
     return value -> apply(beforeT1.apply(value), beforeT2.apply(value), beforeT3.apply(value));
   }
+
+  default Function3<A, B, C, R> memoized() {
+    return (a, b, c) -> new MemoizedFunction<>(tupled()).apply(Tuple.of(a, b, c));
+  }
 }

@@ -6,6 +6,9 @@ package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
 
@@ -60,5 +63,21 @@ public class Function1Test {
     Try<Integer> result = str2int.liftTry().apply("asdfg");
 
     assertEquals(Try.success(5), result);
+  }
+
+  @Test
+  public void memoization() {
+    Function1<String, String> toUpperCase = spy(new Function1<String, String>() {
+      @Override
+      public String apply(String value) {
+        return value.toUpperCase();
+      }
+    });
+    Function1<String, String> memoized = toUpperCase.memoized();
+
+    assertEquals("HOLA", memoized.apply("hola"));
+    assertEquals("HOLA", memoized.apply("hola"));
+
+    verify(toUpperCase, times(1)).apply("hola");
   }
 }

@@ -68,6 +68,10 @@ public interface Function1<T, R> {
     return this::apply;
   }
 
+  default Function1<T, R> memoized() {
+    return new MemoizedFunction<>(this);
+  }
+
   static <T> Function1<T, T> identity() {
     return value -> value;
   }

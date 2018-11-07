@@ -26,5 +26,9 @@ public interface Function5<A, B, C, D, E, R> {
     return value -> apply(beforeT1.apply(value), beforeT2.apply(value),
         beforeT3.apply(value), beforeT4.apply(value), beforeT5.apply(value));
   }
+
+  default Function5<A, B, C, D, E, R> memoized() {
+    return (a, b, c, d, e) -> new MemoizedFunction<>(tupled()).apply(Tuple.of(a, b, c, d, e));
+  }
 }
 

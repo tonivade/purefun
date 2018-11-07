@@ -25,5 +25,9 @@ public interface Function4<A, B, C, D, R> {
       Function1<U, C> beforeT3, Function1<U, D> beforeT4) {
     return value -> apply(beforeT1.apply(value), beforeT2.apply(value), beforeT3.apply(value), beforeT4.apply(value));
   }
+
+  default Function4<A, B, C, D, R> memoized() {
+    return (a, b, c, d) -> new MemoizedFunction<>(tupled()).apply(Tuple.of(a, b, c, d));
+  }
 }
 
