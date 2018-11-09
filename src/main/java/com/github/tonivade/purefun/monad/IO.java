@@ -85,7 +85,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
       @Override
       public <T> IO<T> pure(T value) {
-        return pure(value);
+        return IO.pure(value);
       }
 
       @Override
