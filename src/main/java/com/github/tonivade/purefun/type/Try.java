@@ -193,7 +193,7 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
       @Override
       public <T> Try<T> pure(T value) {
-        return Try.success(value);
+        return success(value);
       }
 
       @Override

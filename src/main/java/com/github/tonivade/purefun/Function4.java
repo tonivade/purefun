@@ -10,7 +10,7 @@ public interface Function4<A, B, C, D, R> {
   R apply(A t1, B t2, C t3, D t4);
 
   default Function1<A, Function1<B, Function1<C, Function1<D, R>>>> curried() {
-    return t1 -> t2 -> t3 -> t4 -> apply(t1, t2, t3, t4);
+    return a -> b -> c -> d -> apply(a, b, c, d);
   }
 
   default Function1<Tuple4<A, B, C, D>, R> tupled() {
@@ -18,7 +18,7 @@ public interface Function4<A, B, C, D, R> {
   }
 
   default <U> Function4<A, B, C, D, U> andThen(Function1<R, U> after) {
-    return (t1, t2, t3, t4) -> after.apply(apply(t1, t2, t3, t4));
+    return (a, b, c, d) -> after.apply(apply(a, b, c, d));
   }
 
   default <U> Function1<U, R> compose(Function1<U, A> beforeT1, Function1<U, B> beforeT2,

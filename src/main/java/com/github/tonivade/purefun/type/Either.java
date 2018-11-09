@@ -192,13 +192,13 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
       @Override
       public <T> Either<L, T> pure(T value) {
-        return Either.right(value);
+        return right(value);
       }
 
       @Override
       public <T, R> Either<L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
                                          Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
-        return Either.narrowK(value).flatMap(map.andThen(Either::narrowK));
+        return narrowK(value).flatMap(map.andThen(Either::narrowK));
       }
     };
   }

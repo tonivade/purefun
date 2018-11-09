@@ -160,7 +160,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
 
       @Override
       public <T> Option<T> pure(T value) {
-        return Option.some(value);
+        return some(value);
       }
 
       @Override

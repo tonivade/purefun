@@ -144,13 +144,13 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
 
       @Override
       public <T> Validation<E, T> pure(T value) {
-        return Validation.valid(value);
+        return valid(value);
       }
 
       @Override
       public <T, R> Validation<E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
                                              Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
-        return Validation.narrowK(value).flatMap(map.andThen(Validation::narrowK));
+        return narrowK(value).flatMap(map.andThen(Validation::narrowK));
       }
     };
   }

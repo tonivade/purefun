@@ -85,7 +85,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
       @Override
       public <T> IO<T> pure(T value) {
-        return IO.pure(value);
+        return pure(value);
       }
 
       @Override
@@ -96,11 +96,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   }
 }
 
-class IOResource<T> implements AutoCloseable {
+final class IOResource<T> implements AutoCloseable {
   final T resource;
   final CheckedConsumer1<T> release;
 
-  public IOResource(T resource, CheckedConsumer1<T> release) {
+  IOResource(T resource, CheckedConsumer1<T> release) {
     this.resource = resource;
     this.release = release;
   }

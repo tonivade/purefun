@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.algebra.Monad;
 
 public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 
@@ -54,6 +55,22 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static Monad<Trampoline.µ> monad() {
+    return new Monad<Trampoline.µ>() {
+
+      @Override
+      public <T> Trampoline<T> pure(T value) {
+        return done(value);
+      }
+
+      @Override
+      public <T, R> Trampoline<R> flatMap(Higher1<Trampoline.µ, T> value,
+                                          Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
+        return narrowK(value).flatMap(map);
+      }
+    };
   }
 
   TrampolineModule module();

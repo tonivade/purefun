@@ -7,10 +7,10 @@ package com.github.tonivade.purefun;
 @FunctionalInterface
 public interface Function3<A, B, C, R> {
 
-  R apply(A t1, B t2, C t3);
+  R apply(A a, B b, C c);
 
   default Function1<A, Function1<B, Function1<C, R>>> curried() {
-    return t1 -> t2 -> t3 -> apply(t1, t2, t3);
+    return a -> b -> c -> apply(a, b, c);
   }
 
   default Function1<Tuple3<A, B, C>, R> tupled() {
@@ -18,7 +18,7 @@ public interface Function3<A, B, C, R> {
   }
 
   default <U> Function3<A, B, C, U> andThen(Function1<R, U> after) {
-    return (t1, t2, t3) -> after.apply(apply(t1, t2, t3));
+    return (a, b, c) -> after.apply(apply(a, b, c));
   }
 
   default <U> Function1<U, R> compose(Function1<U, A> beforeT1, Function1<U, B> beforeT2, Function1<U, C> beforeT3) {
