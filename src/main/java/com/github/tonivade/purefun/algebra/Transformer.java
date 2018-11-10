@@ -7,23 +7,23 @@ package com.github.tonivade.purefun.algebra;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 
-public interface Transformer<F extends Kind, T extends Kind> {
+public interface Transformer<F extends Kind, G extends Kind> {
 
-  <X> Higher1<T, X> apply(Higher1<F, X> from);
+  <T> Higher1<G, T> apply(Higher1<F, T> from);
 
-  default <B extends Kind> Transformer<B, T> compose(Transformer<B, F> before) {
-    return new Transformer<B, T>() {
+  default <B extends Kind> Transformer<B, G> compose(Transformer<B, F> before) {
+    return new Transformer<B, G>() {
       @Override
-      public <X> Higher1<T, X> apply(Higher1<B, X> from) {
+      public <T> Higher1<G, T> apply(Higher1<B, T> from) {
         return Transformer.this.apply(before.apply(from));
       }
     };
   }
 
-  default <A extends Kind> Transformer<F, A> andThen(Transformer<T, A> after) {
+  default <A extends Kind> Transformer<F, A> andThen(Transformer<G, A> after) {
     return new Transformer<F, A>() {
       @Override
-      public <X> Higher1<A, X> apply(Higher1<F, X> from) {
+      public <T> Higher1<A, T> apply(Higher1<F, T> from) {
         return after.apply(Transformer.this.apply(from));
       }
     };
