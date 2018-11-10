@@ -148,7 +148,7 @@ interface TrampolineModule {
 
   static <T> Trampoline<T> iterate(Trampoline<T> trampoline) {
     return Stream.iterate(trampoline, Trampoline::apply)
-        .filter(Trampoline::complete).findFirst().get();
+        .filter(Trampoline::complete).findFirst().orElseThrow(IllegalStateException::new);
   }
 
   static <T> Either<Trampoline<T>, T> resume(Trampoline<T> trampoline) {
