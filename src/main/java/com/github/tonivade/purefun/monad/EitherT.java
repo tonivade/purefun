@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -111,6 +112,16 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
 
   public static <W extends Kind, L, R> EitherT<W, L, R> narrowK(Higher3<EitherT.µ, W, L, R> hkt) {
     return (EitherT<W, L, R>) hkt;
+  }
+
+  public static <W extends Kind, S, A> EitherT<W, S, A> narrowK(Higher2<Higher1<EitherT.µ, W>, S, A> hkt) {
+    return (EitherT<W, S, A>) hkt;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <W extends Kind, S, A> EitherT<W, S, A> narrowK(Higher1<Higher1<Higher1<EitherT.µ, W>, S>, A> hkt) {
+    // XXX: I don't know why, but compiler says here there's an unsafe cast
+    return (EitherT<W, S, A>) hkt;
   }
 
   private <V> Higher1<W, Either<L, V>> flatMapF(Function1<R, Higher1<W, Either<L, V>>> map) {

@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -54,45 +55,50 @@ public final class StateT<W extends Kind, S, A> implements FlatMap3<StateT.µ, W
     });
   }
 
-  static <W extends Kind, S, A> StateT<W, S, A> state(Monad<W> monad, Function1<S, Higher1<W, Tuple2<S, A>>> run) {
+  public <F extends Kind> StateT<F, S, A> mapK(Monad<F> other, Transformer<W, F> transformer) {
+    return new StateT<>(other, state -> transformer.apply(run(state)));
+  }
+
+  public static <W extends Kind, S, A> StateT<W, S, A> state(Monad<W> monad, Function1<S, Higher1<W, Tuple2<S, A>>> run) {
     return new StateT<>(monad, run);
   }
 
-  static <W extends Kind, S, A> StateT<W, S, A> lift(Monad<W> monad, Function1<S, Tuple2<S, A>> run) {
+  public static <W extends Kind, S, A> StateT<W, S, A> lift(Monad<W> monad, Function1<S, Tuple2<S, A>> run) {
     return state(monad, run.andThen(monad::pure));
   }
 
-  static <W extends Kind, S, A> StateT<W, S, A> pure(Monad<W> monad, A value) {
+  public static <W extends Kind, S, A> StateT<W, S, A> pure(Monad<W> monad, A value) {
     return lift(monad, state -> Tuple2.of(state, value));
   }
 
-  static <W extends Kind, S> StateT<W, S, S> get(Monad<W> monad) {
+  public static <W extends Kind, S> StateT<W, S, S> get(Monad<W> monad) {
     return lift(monad, state -> Tuple2.of(state, state));
   }
 
-  static <W extends Kind, S> StateT<W, S, Nothing> set(Monad<W> monad, S value) {
+  public static <W extends Kind, S> StateT<W, S, Nothing> set(Monad<W> monad, S value) {
     return lift(monad, state -> Tuple2.of(value, nothing()));
   }
 
-  static <W extends Kind, S> StateT<W, S, Nothing> modify(Monad<W> monad, Operator1<S> mapper) {
+  public static <W extends Kind, S> StateT<W, S, Nothing> modify(Monad<W> monad, Operator1<S> mapper) {
     return lift(monad, state -> Tuple2.of(mapper.apply(state), nothing()));
   }
 
-  static <W extends Kind, S, A> StateT<W, S, A> inspect(Monad<W> monad, Function1<S, A> mapper) {
+  public static <W extends Kind, S, A> StateT<W, S, A> inspect(Monad<W> monad, Function1<S, A> mapper) {
     return lift(monad, state -> Tuple2.of(state, mapper.apply(state)));
   }
 
-  static <W extends Kind, S, A> StateT<W, S, Sequence<A>> compose(Monad<W> monad, Sequence<StateT<W, S, A>> states) {
+  public static <W extends Kind, S, A> StateT<W, S, Sequence<A>> compose(Monad<W> monad,
+                                                                         Sequence<StateT<W, S, A>> states) {
     return states.foldLeft(pure(monad, ImmutableList.empty()), (sa, sb) -> map2(sa, sb, (acc, a) -> acc.append(a)));
   }
 
-  static <W extends Kind, S, A, B, C> StateT<W, S, C> map2(StateT<W, S, A> sa,
-                                                           StateT<W, S, B> sb,
-                                                           Function2<A, B, C> mapper) {
+  public static <W extends Kind, S, A, B, C> StateT<W, S, C> map2(StateT<W, S, A> sa,
+                                                                  StateT<W, S, B> sb,
+                                                                  Function2<A, B, C> mapper) {
     return sa.flatMap(a -> sb.map(b -> mapper.curried().apply(a).apply(b)));
   }
 
-  static <W extends Kind, S, A> StateT<W, S, A> of(Monad<W> monad, Function1<S, Higher1<W, Tuple2<S, A>>> run) {
+  public static <W extends Kind, S, A> StateT<W, S, A> of(Monad<W> monad, Function1<S, Higher1<W, Tuple2<S, A>>> run) {
     return state(monad, run);
   }
 

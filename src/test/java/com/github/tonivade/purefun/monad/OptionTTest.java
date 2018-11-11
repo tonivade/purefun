@@ -11,7 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.algebra.Transformer;
+import com.github.tonivade.purefun.type.Try;
 
 public class OptionTTest {
 
@@ -61,5 +64,22 @@ public class OptionTTest {
     assertAll(
         () -> assertFalse(IO.narrowK(some.isEmpty()).unsafeRunSync()),
         () -> assertEquals("abc", IO.narrowK(some.orElse("empty")).unsafeRunSync()));
+  }
+
+  @Test
+  public void mapK() {
+    OptionT<IO.µ, String> someIo = OptionT.some(monad, "abc");
+
+    OptionT<Try.µ, String> someTry = someIo.mapK(Try.monad(), new IOToTryTransformer());
+
+    assertEquals(Try.success("abc"), Try.narrowK(someTry.get()));
+  }
+}
+
+class IOToTryTransformer implements Transformer<IO.µ, Try.µ> {
+
+  @Override
+  public <T> Higher1<Try.µ, T> apply(Higher1<IO.µ, T> from) {
+    return Try.of(IO.narrowK(from)::unsafeRunSync);
   }
 }

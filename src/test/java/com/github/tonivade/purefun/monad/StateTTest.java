@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 public class StateTTest {
 
@@ -79,6 +80,15 @@ public class StateTTest {
     IO<Tuple2<ImmutableList<String>, Option<String>>> result = IO.narrowK(read.run(listOf("a", "b", "c")));
 
     assertEquals(Tuple.of(listOf("b", "c"), Option.some("a")), result.unsafeRunSync());
+  }
+
+  @Test
+  public void mapK() {
+    StateT<IO.µ, Nothing, String> stateIo = StateT.pure(monad, "abc");
+
+    StateT<Try.µ, Nothing, String> stateTry = stateIo.mapK(Try.monad(), new IOToTryTransformer());
+
+    assertEquals(Try.success(Tuple2.of(nothing(), "abc")), Try.narrowK(stateTry.run(nothing())));
   }
 
   private StateT<IO.µ, ImmutableList<String>, String> pure(String value) {
