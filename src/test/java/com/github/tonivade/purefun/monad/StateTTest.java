@@ -52,7 +52,7 @@ public class StateTTest {
   @Test
   public void flatMap() {
     StateT<IO.µ, ImmutableList<String>, Nothing> state =
-        unit("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
+        pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
     IO<Tuple2<ImmutableList<String>, Nothing>> result = IO.narrowK(state.run(ImmutableList.empty()));
 
@@ -81,7 +81,7 @@ public class StateTTest {
     assertEquals(Tuple.of(listOf("b", "c"), Option.some("a")), result.unsafeRunSync());
   }
 
-  private StateT<IO.µ, ImmutableList<String>, String> unit(String value) {
+  private StateT<IO.µ, ImmutableList<String>, String> pure(String value) {
     return StateT.pure(monad, value);
   }
 
