@@ -44,7 +44,7 @@ public class StateTest {
   @Test
   public void flatMap() {
     State<ImmutableList<String>, Nothing> state =
-        unit("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
+        pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
     Tuple2<ImmutableList<String>, Nothing> result = state.run(ImmutableList.empty());
 
@@ -71,8 +71,8 @@ public class StateTest {
     assertEquals(Tuple.of(listOf("b", "c"), Option.some("a")), result);
   }
 
-  private static State<ImmutableList<String>, String> unit(String value) {
-    return State.<ImmutableList<String>, String>pure(value);
+  private static State<ImmutableList<String>, String> pure(String value) {
+    return State.pure(value);
   }
 
   private static <T> Function1<T, State<ImmutableList<T>, T>> append(T nextVal) {
