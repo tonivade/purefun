@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Option;
 
 public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W, T>, Filterable<T> {
@@ -26,7 +27,7 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
   private final Monad<W> monad;
   private final Higher1<W, Option<T>> value;
 
-  private OptionT(Monad<W> monad, Higher1<W, Option<T>> value) {
+  protected OptionT(Monad<W> monad, Higher1<W, Option<T>> value) {
     this.monad = requireNonNull(monad);
     this.value = requireNonNull(value);
   }
@@ -43,6 +44,10 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
 
   public <R> Higher1<W, R> fold(Producer<R> orElse, Function1<T, R> map) {
     return monad.map(value, v -> v.fold(orElse, map));
+  }
+
+  public <F extends Kind> OptionT<F, T> mapK(Monad<F> other, Transformer<W, F> transformer) {
+    return new OptionT<>(other, transformer.apply(value));
   }
 
   public Higher1<W, T> get() {
