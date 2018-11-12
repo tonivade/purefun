@@ -102,6 +102,22 @@ public final class StateT<W extends Kind, S, A> implements FlatMap3<StateT.µ, W
     return state(monad, run);
   }
 
+  public static <W extends Kind, S> Monad<Higher1<Higher1<StateT.µ, W>, S>> monad(Monad<W> monad) {
+    return new Monad<Higher1<Higher1<StateT.µ, W>, S>>() {
+
+      @Override
+      public <T> StateT<W, S, T> pure(T value) {
+        return StateT.pure(monad, value);
+      }
+
+      @Override
+      public <T, R> StateT<W, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, W>, S>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<StateT.µ, W>, S>, R>> map) {
+        return StateT.narrowK(value).flatMap(map.andThen(StateT::narrowK));
+      }
+    };
+  }
+
   public static <W extends Kind, S, A> StateT<W, S, A> narrowK(Higher3<StateT.µ, W, S, A> hkt) {
     return (StateT<W, S, A>) hkt;
   }

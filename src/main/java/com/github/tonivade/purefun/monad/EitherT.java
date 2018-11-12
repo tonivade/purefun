@@ -110,6 +110,22 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return lift(monad, Either.left(left));
   }
 
+  public static <W extends Kind, L> Monad<Higher1<Higher1<EitherT.µ, W>, L>> monad(Monad<W> monad) {
+    return new Monad<Higher1<Higher1<EitherT.µ, W>, L>>() {
+
+      @Override
+      public <T> EitherT<W, L, T> pure(T value) {
+        return EitherT.right(monad, value);
+      }
+
+      @Override
+      public <T, R> EitherT<W, L, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, W>, L>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, W>, L>, R>> map) {
+        return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
+      }
+    };
+  }
+
   public static <W extends Kind, L, R> EitherT<W, L, R> narrowK(Higher3<EitherT.µ, W, L, R> hkt) {
     return (EitherT<W, L, R>) hkt;
   }

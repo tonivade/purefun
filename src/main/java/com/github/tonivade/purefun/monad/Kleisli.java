@@ -6,12 +6,12 @@ package com.github.tonivade.purefun.monad;
 
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.algebra.Monad;
 
 public final class Kleisli<F extends Kind, Z, A> implements FlatMap3<Kleisli.µ, F, Z, A> {
@@ -50,6 +50,26 @@ public final class Kleisli<F extends Kind, Z, A> implements FlatMap3<Kleisli.µ,
 
   public static <F extends Kind, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
     return Kleisli.of(monad, map.andThen(monad::pure)::apply);
+  }
+
+  public static <F extends Kind, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {
+    return Kleisli.of(monad, a -> monad.pure(value));
+  }
+
+  public static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monad) {
+    return new Monad<Higher1<Higher1<Kleisli.µ, F>, Z>>() {
+
+      @Override
+      public <T> Kleisli<F, Z, T> pure(T value) {
+        return Kleisli.pure(monad, value);
+      }
+
+      @Override
+      public <T, R> Kleisli<F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, R>> map) {
+        return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::narrowK));
+      }
+    };
   }
 
   public static <F extends Kind, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {

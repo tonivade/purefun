@@ -83,6 +83,22 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
     return lift(monad, Option.none());
   }
 
+  public static <W extends Kind> Monad<Higher1<OptionT.µ, W>> monad(Monad<W> monad) {
+    return new Monad<Higher1<OptionT.µ, W>>() {
+
+      @Override
+      public <T> OptionT<W, T> pure(T value) {
+        return OptionT.some(monad, value);
+      }
+
+      @Override
+      public <T, R> OptionT<W, R> flatMap(Higher1<Higher1<OptionT.µ, W>, T> value,
+          Function1<T, ? extends Higher1<Higher1<OptionT.µ, W>, R>> map) {
+        return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
+      }
+    };
+  }
+
   public static <W extends Kind, T> OptionT<W, T> narrowK(Higher2<OptionT.µ, W, T> hkt) {
     return (OptionT<W, T>) hkt;
   }

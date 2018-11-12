@@ -7,11 +7,12 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.algebra.Monoid;
 import com.github.tonivade.purefun.algebra.MonoidK;
 import com.github.tonivade.purefun.data.Sequence;
@@ -63,6 +64,21 @@ public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
 
   public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listWriter(T log, A value) {
     return writer(MonoidK.sequence(), listOf(log), value);
+  }
+
+  public static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {
+    return new Monad<Higher1<Writer.µ, L>>() {
+      @Override
+      public <T> Writer<L, T> pure(T value) {
+        return Writer.pure(monoid, value);
+      }
+
+      @Override
+      public <T, R> Writer<L, R> flatMap(Higher1<Higher1<Writer.µ, L>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Writer.µ, L>, R>> map) {
+        return Writer.narrowK(value).flatMap(map.andThen(Writer::narrowK));
+      }
+    };
   }
 
   public static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {
