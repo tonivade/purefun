@@ -26,4 +26,8 @@ public interface Consumer1<T> {
   static <T> Consumer1<T> of(Consumer1<T> reference) {
     return reference;
   }
+
+  static <T> Consumer1<T> noop() {
+    return value -> { /* noop */ };
+  }
 }

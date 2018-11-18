@@ -143,6 +143,13 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     return producer.get();
   }
 
+  default <X extends Throwable> T orElseThrow(Producer<X> producer) throws X {
+    if (isSuccess()) {
+      return get();
+    }
+    throw producer.get();
+  }
+
   default Stream<T> stream() {
     if (isSuccess()) {
       return Stream.of(get());
