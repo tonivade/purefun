@@ -1,9 +1,11 @@
 package com.github.tonivade.purefun.type;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -24,6 +26,7 @@ public class FutureTest {
     future.onSuccess(consumer1);
     
     verify(consumer1).accept("Hello World!");
+    assertTrue(future.isCompleted());
   }
   
   @Test
@@ -38,6 +41,7 @@ public class FutureTest {
     future.onSuccess(consumer1);
     
     verify(consumer1, timeout(2000)).accept("Hello World!");
+    assertTrue(future.isCompleted());
   }
   
   @Test
@@ -53,6 +57,7 @@ public class FutureTest {
     future.onFailure(consumer1);
     
     verify(consumer1).accept(any());
+    assertTrue(future.isCompleted());
   }
   
   @Test
@@ -67,5 +72,6 @@ public class FutureTest {
     future.onFailure(consumer1);
     
     verify(consumer1, timeout(2000)).accept(any());
+    assertTrue(future.isCompleted());
   }
 }

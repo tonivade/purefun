@@ -1,5 +1,7 @@
 package com.github.tonivade.purefun.type;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
@@ -17,7 +19,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   
   final class µ implements Kind {}
   
-  Executor DEFAULT_EXECUTOR = ForkJoinPool.commonPool();
   
   Try<T> getValue();
   
@@ -51,23 +52,15 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
   
   static <T> Future<T> of(CheckedProducer<T> task) {
-    return new FutureImpl<>(DEFAULT_EXECUTOR, task);
+    return new FutureImpl<>(FutureModule.DEFAULT_EXECUTOR, task);
   }
   
   final class FutureImpl<T> implements Future<T> {
     
-    private volatile Try<T> result;
-    private Consumer1<T> onSuccess = Consumer1.noop();
-    private Consumer1<Throwable> onFailure = Consumer1.noop();
+    private final BlockingQueue<Try<T>> queue = new ArrayBlockingQueue<>(1);
     
-    private final Object mutex = new Object();
-
     private FutureImpl(Executor executor, CheckedProducer<T> task) {
-      executor.execute(() -> {
-        synchronized (mutex) {
-          result = task.liftTry().get().onSuccess(onSuccess).onFailure(onFailure);
-        }
-      });
+      executor.execute(() -> queue.offer(task.liftTry().get()));
     }
     
     @Override
@@ -77,38 +70,29 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     
     @Override
     public Try<T> getValue() {
-      synchronized (mutex) {
-        return result;
-      }
+      return CheckedProducer.of(queue::peek).unchecked().get();
     }
 
     @Override
     public boolean isCompleted() {
-      return result != null;
+      return !queue.isEmpty();
     }
 
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
-      synchronized (mutex) {
-        if (result != null) {
-          result.onSuccess(callback);
-        } else {
-          onSuccess = callback;
-        }
-      }
+      getValue().onSuccess(callback);
       return this;
     }
 
     @Override
     public Future<T> onFailure(Consumer1<Throwable> callback) {
-      synchronized (mutex) {
-        if (result != null) {
-          result.onFailure(callback);
-        } else {
-          onFailure = callback;
-        }
-      }
+      getValue().onFailure(callback);
       return this;
     }
   }
+}
+
+interface FutureModule {
+
+  Executor DEFAULT_EXECUTOR = ForkJoinPool.commonPool();
 }
