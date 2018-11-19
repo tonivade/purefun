@@ -37,7 +37,7 @@ public interface CheckedProducer<T> extends Recoverable {
     return () -> {
       try {
         return get();
-      } catch(Exception e) {
+      } catch (Exception e) {
         return mapper.apply(e);
       }
     };

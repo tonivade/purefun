@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -17,15 +16,13 @@ public class FutureTest {
   public void onSuccess() throws InterruptedException {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.of(() -> {
-      return "Hello World!";
-    });
+    Future<String> future = Future.of(() -> "Hello World!");
 
     Thread.sleep(1000);
     
     future.onSuccess(consumer1);
     
-    verify(consumer1).accept("Hello World!");
+    verify(consumer1, timeout(100)).accept("Hello World!");
     assertTrue(future.isCompleted());
   }
   
@@ -56,7 +53,7 @@ public class FutureTest {
     
     future.onFailure(consumer1);
     
-    verify(consumer1).accept(any());
+    verify(consumer1, timeout(100)).accept(any());
     assertTrue(future.isCompleted());
   }
   

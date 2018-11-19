@@ -1,9 +1,12 @@
 package com.github.tonivade.purefun.type;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
@@ -18,7 +21,6 @@ import com.github.tonivade.purefun.Matcher1;
 public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
   
   final class µ implements Kind {}
-  
   
   Try<T> getValue();
   
@@ -57,9 +59,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   
   final class FutureImpl<T> implements Future<T> {
     
-    private final BlockingQueue<Try<T>> queue = new ArrayBlockingQueue<>(1);
+    private final Executor executor;
+    private final FutureModule.BlockingQueue<Try<T>> queue = new FutureModule.BlockingQueue<>();
     
     private FutureImpl(Executor executor, CheckedProducer<T> task) {
+      this.executor = executor;
       executor.execute(() -> queue.offer(task.liftTry().get()));
     }
     
@@ -70,7 +74,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     
     @Override
     public Try<T> getValue() {
-      return CheckedProducer.of(queue::peek).unchecked().get();
+      return CheckedProducer.of(queue::take).unchecked().get();
     }
 
     @Override
@@ -80,13 +84,13 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
-      getValue().onSuccess(callback);
+      executor.execute(() -> getValue().onSuccess(callback));
       return this;
     }
 
     @Override
     public Future<T> onFailure(Consumer1<Throwable> callback) {
-      getValue().onFailure(callback);
+      executor.execute(() -> getValue().onFailure(callback));
       return this;
     }
   }
@@ -95,4 +99,48 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 interface FutureModule {
 
   Executor DEFAULT_EXECUTOR = ForkJoinPool.commonPool();
+  
+  final class BlockingQueue<T> {
+    private T value;
+    
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition condition = lock.newCondition();
+
+    public void offer(T value) {
+      lock.lock();
+      try {
+        if (nonNull(this.value)) {
+          throw new IllegalStateException("queue full");
+        }
+        this.value = value;
+        condition.signal();
+      }
+      finally {
+        lock.unlock();
+      }
+    }
+    
+    public T take() throws InterruptedException {
+      lock.lock();
+      try {
+        while (isNull(value)) {
+          condition.await();
+        }
+        return value;
+      }
+      finally {
+        lock.unlock();
+      }
+    }
+    
+    public boolean isEmpty() {
+      lock.lock();
+      try {
+        return isNull(value);
+      }
+      finally {
+        lock.unlock();
+      }
+    }
+  }
 }
