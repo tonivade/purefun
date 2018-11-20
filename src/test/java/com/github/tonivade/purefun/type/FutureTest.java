@@ -18,7 +18,7 @@ public class FutureTest {
   public void onSuccess() throws InterruptedException {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.run(() -> "Hello World!");
+    Future<String> future = Future.success("Hello World!");
 
     Thread.sleep(1000);
     
@@ -49,9 +49,7 @@ public class FutureTest {
   public void onFailure() throws InterruptedException {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.run(() -> {
-      throw new RuntimeException();
-    });
+    Future<String> future = Future.failure(new RuntimeException());
 
     Thread.sleep(1000);
     

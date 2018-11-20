@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.locks.Condition;
@@ -58,6 +59,14 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return runTry(executor, () -> Try.failure(error));
   }
   
+  static <T> Future<T> from(Callable<T> callable) {
+    return run(callable::call);
+  }
+  
+  static <T> Future<T> from(java.util.concurrent.Future<T> future) {
+    return run(future::get);
+  }
+
   static <T> Future<T> run(CheckedProducer<T> task) {
     return run(FutureModule.DEFAULT_EXECUTOR, task);
   }
@@ -67,11 +76,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
   
   static <T> Future<T> runTry(Producer<Try<T>> task) {
-    return new FutureImpl<>(FutureModule.DEFAULT_EXECUTOR, task);
+    return runTry(FutureModule.DEFAULT_EXECUTOR, task);
   }
   
   static <T> Future<T> runTry(Executor executor, Producer<Try<T>> task) {
-    return new FutureImpl<>(executor, task);
+    return new FutureImpl<>(executor, requireNonNull(task));
   }
   
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
@@ -171,7 +180,7 @@ final class BlockingQueue<T> {
   private final ReentrantLock lock = new ReentrantLock();
   private final Condition condition = lock.newCondition();
 
-  public void offer(T value) {
+  void offer(T value) {
     lock.lock();
     try {
       if (nonNull(this.value)) {
@@ -184,7 +193,7 @@ final class BlockingQueue<T> {
     }
   }
 
-  public T take() throws InterruptedException {
+  T take() throws InterruptedException {
     lock.lock();
     try {
       while (isNull(value)) {
@@ -196,7 +205,7 @@ final class BlockingQueue<T> {
     }
   }
 
-  public boolean isEmpty() {
+  boolean isEmpty() {
     lock.lock();
     try {
       return isNull(value);
