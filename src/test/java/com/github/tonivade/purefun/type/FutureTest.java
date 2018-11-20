@@ -1,5 +1,7 @@
 package com.github.tonivade.purefun.type;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
@@ -16,7 +18,7 @@ public class FutureTest {
   public void onSuccess() throws InterruptedException {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.of(() -> "Hello World!");
+    Future<String> future = Future.run(() -> "Hello World!");
 
     Thread.sleep(1000);
     
@@ -24,13 +26,14 @@ public class FutureTest {
     
     verify(consumer1, timeout(100)).accept("Hello World!");
     assertTrue(future.isCompleted());
+    assertEquals("Hello World!", future.get());
   }
   
   @Test
   public void onSuccessTimeout() {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.of(() -> {
+    Future<String> future = Future.run(() -> {
       Thread.sleep(1000);
       return "Hello World!";
     });
@@ -38,14 +41,15 @@ public class FutureTest {
     future.onSuccess(consumer1);
     
     verify(consumer1, timeout(2000)).accept("Hello World!");
-    assertTrue(future.isCompleted());
+    assertTrue(future::isCompleted);
+    assertEquals("Hello World!", future.get());
   }
   
   @Test
   public void onFailure() throws InterruptedException {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.of(() -> {
+    Future<String> future = Future.run(() -> {
       throw new RuntimeException();
     });
 
@@ -54,14 +58,15 @@ public class FutureTest {
     future.onFailure(consumer1);
     
     verify(consumer1, timeout(100)).accept(any());
-    assertTrue(future.isCompleted());
+    assertTrue(future::isCompleted);
+    assertThrows(IllegalStateException.class, future::get);
   }
   
   @Test
   public void onFailureTimeout() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.of(() -> {
+    Future<String> future = Future.run(() -> {
       Thread.sleep(1000);
       throw new RuntimeException();
     });
@@ -70,5 +75,42 @@ public class FutureTest {
     
     verify(consumer1, timeout(2000)).accept(any());
     assertTrue(future.isCompleted());
+    assertThrows(IllegalStateException.class, future::get);
+  }
+  
+  @Test
+  public void map() {
+    Future<String> future = Future.run(() -> "Hello world!");
+    
+    Future<String> result = future.map(String::toUpperCase);
+    
+    assertEquals(Try.success("HELLO WORLD!"), result.await());
+  }
+  
+  @Test
+  public void flatMap() {
+    Future<String> future = Future.run(() -> "Hello world!");
+    
+    Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+    
+    assertEquals(Try.success("HELLO WORLD!"), result.await());
+  }
+  
+  @Test
+  public void flatten() {
+    Future<String> future = Future.run(() -> "Hello world!");
+    
+    Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
+    
+    assertEquals(Try.success("HELLO WORLD!"), result.await());
+  }
+  
+  @Test
+  public void filter() {
+    Future<String> future = Future.run(() -> "Hello world!");
+    
+    Future<String> result = future.filter(string -> string.contains("Hello"));
+    
+    assertEquals(Try.success("Hello world!"), result.await());
   }
 }
