@@ -13,102 +13,98 @@ import org.mockito.Mockito;
 import com.github.tonivade.purefun.Consumer1;
 
 public class FutureTest {
-  
+
   @Test
-  public void onSuccess() throws InterruptedException {
+  public void onSuccess() {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
     Future<String> future = Future.success("Hello World!");
 
-    Thread.sleep(1000);
-    
-    future.onSuccess(consumer1);
-    
+    future.onSuccess(consumer1).await();
+
     verify(consumer1, timeout(100)).accept("Hello World!");
     assertTrue(future.isCompleted());
     assertEquals("Hello World!", future.get());
   }
-  
+
   @Test
   public void onSuccessTimeout() {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
     Future<String> future = Future.run(() -> {
-      Thread.sleep(1000);
+      Thread.sleep(100);
       return "Hello World!";
     });
-    
-    future.onSuccess(consumer1);
-    
-    verify(consumer1, timeout(2000)).accept("Hello World!");
+
+    future.onSuccess(consumer1).await();
+
+    verify(consumer1, timeout(100)).accept("Hello World!");
     assertTrue(future::isCompleted);
     assertEquals("Hello World!", future.get());
   }
-  
+
   @Test
-  public void onFailure() throws InterruptedException {
+  public void onFailure() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
     Future<String> future = Future.failure(new RuntimeException());
 
-    Thread.sleep(1000);
-    
-    future.onFailure(consumer1);
-    
+    future.onFailure(consumer1).await();
+
     verify(consumer1, timeout(100)).accept(any());
     assertTrue(future::isCompleted);
     assertThrows(IllegalStateException.class, future::get);
   }
-  
+
   @Test
   public void onFailureTimeout() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
     Future<String> future = Future.run(() -> {
-      Thread.sleep(1000);
+      Thread.sleep(100);
       throw new RuntimeException();
     });
-    
-    future.onFailure(consumer1);
-    
-    verify(consumer1, timeout(2000)).accept(any());
+
+    future.onFailure(consumer1).await();
+
+    verify(consumer1, timeout(100)).accept(any());
     assertTrue(future.isCompleted());
     assertThrows(IllegalStateException.class, future::get);
   }
-  
+
   @Test
   public void map() {
     Future<String> future = Future.run(() -> "Hello world!");
-    
+
     Future<String> result = future.map(String::toUpperCase);
-    
+
     assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
-  
+
   @Test
   public void flatMap() {
     Future<String> future = Future.run(() -> "Hello world!");
-    
+
     Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
-    
+
     assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
-  
+
   @Test
   public void flatten() {
     Future<String> future = Future.run(() -> "Hello world!");
-    
+
     Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
-    
+
     assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
-  
+
   @Test
   public void filter() {
     Future<String> future = Future.run(() -> "Hello world!");
-    
+
     Future<String> result = future.filter(string -> string.contains("Hello"));
-    
+
     assertEquals(Try.success("Hello world!"), result.await());
   }
 }
