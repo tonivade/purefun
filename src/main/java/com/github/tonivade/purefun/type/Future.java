@@ -2,14 +2,13 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
@@ -80,7 +79,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> runTry(Executor executor, Producer<Try<T>> task) {
-    return new FutureImpl<>(executor, requireNonNull(task));
+    return new FutureImpl<>(requireNonNull(executor), requireNonNull(task));
   }
 
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
@@ -106,11 +105,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   final class FutureImpl<T> implements Future<T> {
 
     private final Executor executor;
-    private final BlockingQueue<Try<T>> queue = new BlockingQueue<>();
+    private final Value<Try<T>> value = new Value<>();
 
     private FutureImpl(Executor executor, Producer<Try<T>> task) {
-      this.executor = requireNonNull(executor);
-      executor.execute(() -> queue.offer(task.get()));
+      this.executor = executor;
+      executor.execute(() -> value.set(task.get()));
     }
 
     @Override
@@ -146,12 +145,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Try<T> await() {
-      return CheckedProducer.of(queue::take).unchecked().get();
+      return CheckedProducer.of(value::get).unchecked().get();
     }
 
     @Override
     public boolean isCompleted() {
-      return !queue.isEmpty();
+      return !value.isEmpty();
     }
 
     @Override
@@ -173,44 +172,25 @@ interface FutureModule {
   Executor DEFAULT_EXECUTOR = ForkJoinPool.commonPool();
 }
 
-final class BlockingQueue<T> {
+final class Value<T> {
 
-  private T value;
+  private final AtomicReference<T> reference = new AtomicReference<>(null);
 
-  private final ReentrantLock lock = new ReentrantLock();
-  private final Condition condition = lock.newCondition();
+  private final CountDownLatch latch = new CountDownLatch(1);
 
-  void offer(T value) {
-    lock.lock();
-    try {
-      if (nonNull(this.value)) {
-        throw new IllegalStateException("queue full");
-      }
-      this.value = value;
-      condition.signalAll();
-    } finally {
-      lock.unlock();
+  void set(T value) {
+    if (reference.compareAndSet(null, requireNonNull(value))) {
+      latch.countDown();
     }
+    else throw new IllegalStateException("already setted");
   }
 
-  T take() throws InterruptedException {
-    lock.lock();
-    try {
-      while (isNull(value)) {
-        condition.await();
-      }
-      return value;
-    } finally {
-      lock.unlock();
-    }
+  T get() throws InterruptedException {
+    latch.await();
+    return reference.get();
   }
 
   boolean isEmpty() {
-    lock.lock();
-    try {
-      return isNull(value);
-    } finally {
-      lock.unlock();
-    }
+    return isNull(reference.get());
   }
 }
