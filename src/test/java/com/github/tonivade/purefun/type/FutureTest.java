@@ -74,6 +74,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void map() {
     Future<String> future = Future.run(() -> "Hello world!");
 
@@ -83,6 +84,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void flatMap() {
     Future<String> future = Future.run(() -> "Hello world!");
 
@@ -102,6 +104,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void filter() {
     Future<String> future = Future.run(() -> "Hello world!");
 
