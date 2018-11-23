@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -75,6 +76,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void map() {
     assertTimeout(ofSeconds(5), () -> {
       Future<String> future = Future.run(() -> "Hello world!");
@@ -86,6 +88,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void flatMap() {
     assertTimeout(ofSeconds(5), () -> {
       Future<String> future = Future.run(() -> "Hello world!");
@@ -97,6 +100,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void flatten() {
     assertTimeout(ofSeconds(5), () -> {
       Future<String> future = Future.run(() -> "Hello world!");
@@ -108,6 +112,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void filter() {
     assertTimeout(ofSeconds(5), () -> {
       Future<String> future = Future.run(() -> "Hello world!");
