@@ -169,7 +169,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
 interface FutureModule {
 
-  Executor DEFAULT_EXECUTOR = Executors.newSingleThreadExecutor();
+  Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 }
 
 final class Value<T> {
