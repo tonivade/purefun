@@ -7,7 +7,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
@@ -169,7 +169,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
 interface FutureModule {
 
-  Executor DEFAULT_EXECUTOR = ForkJoinPool.commonPool();
+  Executor DEFAULT_EXECUTOR = Executors.newSingleThreadExecutor();
 }
 
 final class Value<T> {
