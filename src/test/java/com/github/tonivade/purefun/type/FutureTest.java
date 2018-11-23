@@ -1,9 +1,7 @@
 package com.github.tonivade.purefun.type;
 
-import static java.time.Duration.ofSeconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
@@ -76,45 +74,37 @@ public class FutureTest {
 
   @Test
   public void map() {
-    assertTimeout(ofSeconds(5), () -> {
-      Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.run(() -> "Hello world!");
 
-      Future<String> result = future.map(String::toUpperCase);
+    Future<String> result = future.map(String::toUpperCase);
 
-      assertEquals(Try.success("HELLO WORLD!"), result.await());
-    });
+    assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
 
   @Test
   public void flatMap() {
-    assertTimeout(ofSeconds(5), () -> {
-      Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.run(() -> "Hello world!");
 
-      Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+    Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
-      assertEquals(Try.success("HELLO WORLD!"), result.await());
-    });
+    assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
 
   @Test
   public void flatten() {
-    assertTimeout(ofSeconds(5), () -> {
-      Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.run(() -> "Hello world!");
 
-      Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
+    Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
 
-      assertEquals(Try.success("HELLO WORLD!"), result.await());
-    });
+    assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
 
   @Test
   public void filter() {
-    assertTimeout(ofSeconds(5), () -> {
-      Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.run(() -> "Hello world!");
 
-      Future<String> result = future.filter(string -> string.contains("Hello"));
+    Future<String> result = future.filter(string -> string.contains("Hello"));
 
-      assertEquals(Try.success("Hello world!"), result.await());
-    });
+    assertEquals(Try.success("Hello world!"), result.await());
   }
 }
