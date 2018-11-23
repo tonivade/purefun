@@ -13,10 +13,10 @@ import org.mockito.Mockito;
 
 import com.github.tonivade.purefun.Consumer1;
 
-@Disabled
 public class FutureTest {
 
   @Test
+  @Disabled
   public void onSuccess() {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
@@ -30,6 +30,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void onSuccessTimeout() {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
@@ -46,6 +47,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void onFailure() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
@@ -59,6 +61,7 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void onFailureTimeout() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
