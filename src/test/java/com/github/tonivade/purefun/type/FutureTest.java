@@ -7,11 +7,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.github.tonivade.purefun.Consumer1;
 
+@Disabled
 public class FutureTest {
 
   @Test
@@ -62,7 +64,7 @@ public class FutureTest {
 
     Future<String> future = Future.run(() -> {
       Thread.sleep(100);
-      throw new RuntimeException();
+      throw new IllegalArgumentException();
     });
 
     future.onFailure(consumer1).await();
