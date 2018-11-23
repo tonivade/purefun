@@ -3,29 +3,33 @@ package com.github.tonivade.purefun.type;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.github.tonivade.purefun.Consumer1;
 
 public class FutureTest {
 
   @Test
-  public void onSuccess() throws InterruptedException {
-    ConsumerMock<String> consumer1 = new ConsumerMock<>();
+  public void onSuccess() {
+    Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
     Future<String> future = Future.success("Hello World!");
 
     future.onSuccess(consumer1).await();
 
-    consumer1.verify("Hello World!", 100);
+    verify(consumer1, timeout(100)).accept("Hello World!");
     assertTrue(future.isCompleted());
     assertEquals("Hello World!", future.get());
   }
 
   @Test
-  public void onSuccessTimeout() throws InterruptedException {
-    ConsumerMock<String> consumer1 = new ConsumerMock<>();
+  public void onSuccessTimeout() {
+    Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
     Future<String> future = Future.run(() -> {
       Thread.sleep(100);
@@ -34,36 +38,36 @@ public class FutureTest {
 
     future.onSuccess(consumer1).await();
 
-    consumer1.verify("Hello World!", 100);
+    verify(consumer1, timeout(100)).accept("Hello World!");
     assertTrue(future::isCompleted);
     assertEquals("Hello World!", future.get());
   }
 
   @Test
-  public void onFailure() throws InterruptedException {
-    ConsumerMock<Throwable> consumer1 = new ConsumerMock<>();
-    RuntimeException error = new RuntimeException();
-    Future<String> future = Future.failure(error);
+  public void onFailure() {
+    Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
+
+    Future<String> future = Future.failure(new RuntimeException());
 
     future.onFailure(consumer1).await();
 
-    consumer1.verify(error, 100);
+    verify(consumer1, timeout(100)).accept(any());
     assertTrue(future::isCompleted);
     assertThrows(IllegalStateException.class, future::get);
   }
 
   @Test
-  public void onFailureTimeout() throws InterruptedException {
-    ConsumerMock<Throwable> consumer1 = new ConsumerMock<>();
-    RuntimeException error = new RuntimeException();
+  public void onFailureTimeout() {
+    Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
+
     Future<String> future = Future.run(() -> {
       Thread.sleep(100);
-      throw error;
+      throw new RuntimeException();
     });
 
     future.onFailure(consumer1).await();
 
-    consumer1.verify(error, 100);
+    verify(consumer1, timeout(100)).accept(any());
     assertTrue(future.isCompleted());
     assertThrows(IllegalStateException.class, future::get);
   }
@@ -102,20 +106,5 @@ public class FutureTest {
     Future<String> result = future.filter(string -> string.contains("Hello"));
 
     assertEquals(Try.success("Hello world!"), result.await());
-  }
-}
-
-class ConsumerMock<T> implements Consumer1<T> {
-
-  private T value;
-
-  @Override
-  public void accept(T value) {
-    this.value = value;
-  }
-
-  public void verify(T expected, int timeout) throws InterruptedException {
-    Thread.sleep(timeout);
-    assertEquals(expected, value);
   }
 }
