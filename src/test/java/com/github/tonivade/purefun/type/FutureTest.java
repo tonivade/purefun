@@ -1,13 +1,14 @@
 package com.github.tonivade.purefun.type;
 
+import static java.time.Duration.ofSeconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -74,42 +75,38 @@ public class FutureTest {
   }
 
   @Test
-  @Disabled
   public void map() {
     Future<String> future = Future.run(() -> "Hello world!");
 
     Future<String> result = future.map(String::toUpperCase);
 
-    assertEquals(Try.success("HELLO WORLD!"), result.await());
+    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
   }
 
   @Test
-  @Disabled
   public void flatMap() {
     Future<String> future = Future.run(() -> "Hello world!");
 
     Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
-    assertEquals(Try.success("HELLO WORLD!"), result.await());
+    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
   }
 
   @Test
-  @Disabled
   public void flatten() {
     Future<String> future = Future.run(() -> "Hello world!");
 
     Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
 
-    assertEquals(Try.success("HELLO WORLD!"), result.await());
+    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
   }
 
   @Test
-  @Disabled
   public void filter() {
     Future<String> future = Future.run(() -> "Hello world!");
 
     Future<String> result = future.filter(string -> string.contains("Hello"));
 
-    assertEquals(Try.success("Hello world!"), result.await());
+    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("Hello world!"), result.await()));
   }
 }
