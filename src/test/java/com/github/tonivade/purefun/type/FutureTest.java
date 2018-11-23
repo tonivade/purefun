@@ -76,37 +76,45 @@ public class FutureTest {
 
   @Test
   public void map() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    assertTimeout(ofSeconds(5), () -> {
+      Future<String> future = Future.run(() -> "Hello world!");
 
-    Future<String> result = future.map(String::toUpperCase);
+      Future<String> result = future.map(String::toUpperCase);
 
-    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
+      assertEquals(Try.success("HELLO WORLD!"), result.await());
+    });
   }
 
   @Test
   public void flatMap() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    assertTimeout(ofSeconds(5), () -> {
+      Future<String> future = Future.run(() -> "Hello world!");
 
-    Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+      Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
-    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
+      assertEquals(Try.success("HELLO WORLD!"), result.await());
+    });
   }
 
   @Test
   public void flatten() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    assertTimeout(ofSeconds(5), () -> {
+      Future<String> future = Future.run(() -> "Hello world!");
 
-    Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
+      Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
 
-    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
+      assertEquals(Try.success("HELLO WORLD!"), result.await());
+    });
   }
 
   @Test
   public void filter() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    assertTimeout(ofSeconds(5), () -> {
+      Future<String> future = Future.run(() -> "Hello world!");
 
-    Future<String> result = future.filter(string -> string.contains("Hello"));
+      Future<String> result = future.filter(string -> string.contains("Hello"));
 
-    assertTimeout(ofSeconds(5), () -> assertEquals(Try.success("Hello world!"), result.await()));
+      assertEquals(Try.success("Hello world!"), result.await());
+    });
   }
 }
