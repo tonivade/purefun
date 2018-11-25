@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun.type;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,6 +11,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -74,7 +81,7 @@ public class FutureTest {
 
   @Test
   public void map() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.success("Hello world!");
 
     Future<String> result = future.map(String::toUpperCase);
 
@@ -83,7 +90,7 @@ public class FutureTest {
 
   @Test
   public void flatMap() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.success("Hello world!");
 
     Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
@@ -91,8 +98,9 @@ public class FutureTest {
   }
 
   @Test
+  @Disabled
   public void flatten() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.success("Hello world!");
 
     Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
 
@@ -101,10 +109,17 @@ public class FutureTest {
 
   @Test
   public void filter() {
-    Future<String> future = Future.run(() -> "Hello world!");
+    Future<String> future = Future.success("Hello world!");
 
     Future<String> result = future.filter(string -> string.contains("Hello"));
 
     assertEquals(Try.success("Hello world!"), result.await());
+  }
+
+  @Test
+  public void awaitTimeout() {
+    Future<String> future = Future.success("Hello world!");
+
+    assertEquals(Try.success("Hello world!"), future.await(Duration.ofSeconds(1)));
   }
 }

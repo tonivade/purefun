@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -27,6 +32,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   final class µ implements Kind {}
 
   Try<T> await();
+  Try<T> await(Duration timeout);
 
   boolean isCompleted();
 
@@ -105,7 +111,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   final class FutureImpl<T> implements Future<T> {
 
     private final Executor executor;
-    private final Value<Try<T>> value = new Value<>();
+    private final AsyncValue<Try<T>> value = new AsyncValue<>();
 
     private FutureImpl(Executor executor, Producer<Try<T>> task) {
       this.executor = executor;
@@ -134,18 +140,18 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <V> Future<V> flatten() {
-      try {
-        return ((Future<Future<V>>) this).flatMap(identity());
-      } catch (ClassCastException e) {
-        throw new UnsupportedOperationException("cannot be flattened");
-      }
+      throw new UnsupportedOperationException("cannot be flattened");
     }
 
     @Override
     public Try<T> await() {
-      return CheckedProducer.of(value::get).unchecked().get();
+      return CheckedProducer.of(value::get).recover(Try::failure).get();
+    }
+
+    @Override
+    public Try<T> await(Duration timeout) {
+      return CheckedProducer.of(() -> value.get(timeout)).recover(Try::failure).get();
     }
 
     @Override
@@ -172,10 +178,9 @@ interface FutureModule {
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 }
 
-final class Value<T> {
+final class AsyncValue<T> {
 
-  private final AtomicReference<T> reference = new AtomicReference<>(null);
-
+  private final AtomicReference<T> reference = new AtomicReference<>();
   private final CountDownLatch latch = new CountDownLatch(1);
 
   void set(T value) {
@@ -187,6 +192,11 @@ final class Value<T> {
 
   T get() throws InterruptedException {
     latch.await();
+    return reference.get();
+  }
+
+  T get(Duration timeout) throws InterruptedException {
+    latch.await(requireNonNull(timeout).toMillis(), MILLISECONDS);
     return reference.get();
   }
 

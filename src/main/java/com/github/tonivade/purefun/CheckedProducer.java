@@ -16,15 +16,15 @@ public interface CheckedProducer<T> extends Recoverable {
   default <V> CheckedFunction1<V, T> asFunction() {
     return value -> get();
   }
-  
+
   default Producer<Try<T>> liftTry() {
     return () -> Try.of(this);
   }
-  
+
   default Producer<Option<T>> liftOption() {
     return liftTry().andThen(Try::toOption);
   }
-  
+
   default Producer<Either<Throwable, T>> liftEither() {
     return liftTry().andThen(Try::toEither);
   }
