@@ -135,9 +135,6 @@ public class FutureTest {
   }
 
   private static <T> Future<T> delay(int timeout, CheckedProducer<T> producer) {
-    return Future.run(() -> {
-      Thread.sleep(1000);
-      return producer.get();
-    });
+    return Future.run(() -> { Thread.sleep(timeout); return producer.get(); });
   }
 }
