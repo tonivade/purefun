@@ -11,8 +11,9 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -35,25 +36,37 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   Try<T> await();
   Try<T> await(Duration timeout);
 
+  void cancel();
   boolean isCompleted();
+  boolean isCanceled();
+  boolean isSuccess();
+  boolean isFailure();
 
   Future<T> onSuccess(Consumer1<T> callback);
   Future<T> onFailure(Consumer1<Throwable> callback);
 
   @Override
   <R> Future<R> map(Function1<T, R> mapper);
+
   @Override
   <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper);
+
   @Override
   Future<T> filter(Matcher1<T> matcher);
+  
+  @Override
+  T get();
+
   @Override
   <V> Future<V> flatten();
+  
+  Future<T> recover(Function1<Throwable, T> mapper);
 
   static <T> Future<T> success(T value) {
     return success(FutureModule.DEFAULT_EXECUTOR, value);
   }
 
-  static <T> Future<T> success(Executor executor, T value) {
+  static <T> Future<T> success(ExecutorService executor, T value) {
     return runTry(executor, () -> Try.success(value));
   }
 
@@ -61,7 +74,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return failure(FutureModule.DEFAULT_EXECUTOR, error);
   }
 
-  static <T> Future<T> failure(Executor executor, Throwable error) {
+  static <T> Future<T> failure(ExecutorService executor, Throwable error) {
     return runTry(executor, () -> Try.failure(error));
   }
 
@@ -77,7 +90,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return run(FutureModule.DEFAULT_EXECUTOR, task);
   }
 
-  static <T> Future<T> run(Executor executor, CheckedProducer<T> task) {
+  static <T> Future<T> run(ExecutorService executor, CheckedProducer<T> task) {
     return runTry(executor, task.liftTry());
   }
 
@@ -85,7 +98,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return runTry(FutureModule.DEFAULT_EXECUTOR, task);
   }
 
-  static <T> Future<T> runTry(Executor executor, Producer<Try<T>> task) {
+  static <T> Future<T> runTry(ExecutorService executor, Producer<Try<T>> task) {
     return new FutureImpl<>(requireNonNull(executor), requireNonNull(task));
   }
 
@@ -111,12 +124,13 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   final class FutureImpl<T> implements Future<T> {
 
-    private final Executor executor;
+    private final ExecutorService executor;
+    private final java.util.concurrent.Future<?> task;
     private final AsyncValue<Try<T>> value = new AsyncValue<>();
 
-    private FutureImpl(Executor executor, Producer<Try<T>> task) {
+    private FutureImpl(ExecutorService executor, Producer<Try<T>> task) {
       this.executor = executor;
-      executor.execute(() -> value.set(task.get()));
+      this.task = executor.submit(() -> value.set(task.get()));
     }
 
     @Override
@@ -141,27 +155,59 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <V> Future<V> flatten() {
-      throw new UnsupportedOperationException("cannot be flattened");
+        return flatMap(value -> {
+          try {
+            return (Future<V>) value;
+          } catch (ClassCastException e) {
+            return Future.failure(new UnsupportedOperationException(e));
+          }
+        });
+    }
+    
+    @Override
+    public Future<T> recover(Function1<Throwable, T> mapper) {
+      return runTry(executor, () -> await().recover(mapper));
     }
 
     @Override
     public Try<T> await() {
-      return CheckedProducer.of(() -> value.get().orElse(Try.failure(new NoSuchElementException())))
-          .recover(Try::failure).get();
+      return CheckedProducer.of(() -> result(Duration.ZERO)).recover(Try::failure).get();
     }
 
     @Override
     public Try<T> await(Duration timeout) {
-      return CheckedProducer.of(() -> value.get(timeout).orElse(Try.failure(new NoSuchElementException())))
-          .recover(Try::failure).get();
+      return CheckedProducer.of(() -> result(timeout)).recover(Try::failure).get();
+    }
+ 
+    @Override
+    public void cancel() {
+      if (task.cancel(true)) {
+        value.set(Try.failure(new CancellationException()));
+      }
     }
 
     @Override
     public boolean isCompleted() {
       return !value.isEmpty();
     }
-
+    
+    @Override
+    public boolean isCanceled() {
+      return task.isCancelled();
+    }
+    
+    @Override
+    public boolean isSuccess() {
+      return await().isSuccess();
+    }
+    
+    @Override
+    public boolean isFailure() {
+      return await().isFailure();
+    }
+   
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
       executor.execute(() -> await().onSuccess(callback));
@@ -173,12 +219,16 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       executor.execute(() -> await().onFailure(callback));
       return this;
     }
+
+    private Try<T> result(Duration timeout) throws InterruptedException {
+      return value.get(timeout).orElse(Try.failure(new NoSuchElementException()));
+    }
   }
 }
 
 interface FutureModule {
 
-  Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+  ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 }
 
 final class AsyncValue<T> {
@@ -194,16 +244,23 @@ final class AsyncValue<T> {
   }
 
   Option<T> get() throws InterruptedException {
-    latch.await();
-    return Option.of(reference::get);
+    return get(Duration.ZERO);
   }
 
   Option<T> get(Duration timeout) throws InterruptedException {
-    latch.await(requireNonNull(timeout).toMillis(), MILLISECONDS);
+    await(timeout);
     return Option.of(reference::get);
   }
 
   boolean isEmpty() {
     return isNull(reference.get());
+  }
+
+  private void await(Duration timeout) throws InterruptedException {
+    if (timeout.isZero()) {
+      latch.await();
+    } else {
+      latch.await(requireNonNull(timeout).toMillis(), MILLISECONDS);
+    }
   }
 }
