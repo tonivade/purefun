@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.CheckedProducer.failure;
+import static com.github.tonivade.purefun.CheckedProducer.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,11 +14,13 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
+import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 
 public class FutureTest {
@@ -54,29 +58,26 @@ public class FutureTest {
   public void onFailure() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.failure(new RuntimeException());
+    Future<String> future = Future.failure(new IllegalArgumentException());
 
     future.onFailure(consumer1).await();
 
     verify(consumer1, timeout(100)).accept(any());
     assertTrue(future::isCompleted);
-    assertThrows(IllegalStateException.class, future::get);
+    assertThrows(NoSuchElementException.class, future::get);
   }
 
   @Test
   public void onFailureTimeout() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.run(() -> {
-      Thread.sleep(100);
-      throw new IllegalArgumentException();
-    });
+    Future<String> future = delay(100, failure(IllegalArgumentException::new));
 
     future.onFailure(consumer1).await();
 
     verify(consumer1, timeout(100)).accept(any());
     assertTrue(future.isCompleted());
-    assertThrows(IllegalStateException.class, future::get);
+    assertThrows(NoSuchElementException.class, future::get);
   }
 
   @Test
@@ -117,9 +118,26 @@ public class FutureTest {
   }
 
   @Test
-  public void awaitTimeout() {
+  public void await() {
     Future<String> future = Future.success("Hello world!");
 
     assertEquals(Try.success("Hello world!"), future.await(Duration.ofSeconds(1)));
+  }
+
+  @Test
+  public void awaitTimeout() {
+    Future<String> future = delay(1000, unit("Hello world!"));
+
+    Try<String> result = future.await(Duration.ofMillis(100));
+
+    assertTrue(result.isFailure());
+    assertTrue(result.getCause() instanceof NoSuchElementException);
+  }
+
+  private static <T> Future<T> delay(int timeout, CheckedProducer<T> producer) {
+    return Future.run(() -> {
+      Thread.sleep(1000);
+      return producer.get();
+    });
   }
 }

@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Duration;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -120,7 +121,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public T get() {
-      return await().orElseThrow(IllegalStateException::new);
+      return await().orElseThrow(NoSuchElementException::new);
     }
 
     @Override
@@ -146,12 +147,14 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Try<T> await() {
-      return CheckedProducer.of(value::get).recover(Try::failure).get();
+      return CheckedProducer.of(() -> value.get().orElse(Try.failure(new NoSuchElementException())))
+          .recover(Try::failure).get();
     }
 
     @Override
     public Try<T> await(Duration timeout) {
-      return CheckedProducer.of(() -> value.get(timeout)).recover(Try::failure).get();
+      return CheckedProducer.of(() -> value.get(timeout).orElse(Try.failure(new NoSuchElementException())))
+          .recover(Try::failure).get();
     }
 
     @Override
@@ -190,14 +193,14 @@ final class AsyncValue<T> {
     else throw new IllegalStateException("already setted");
   }
 
-  T get() throws InterruptedException {
+  Option<T> get() throws InterruptedException {
     latch.await();
-    return reference.get();
+    return Option.of(reference::get);
   }
 
-  T get(Duration timeout) throws InterruptedException {
+  Option<T> get(Duration timeout) throws InterruptedException {
     latch.await(requireNonNull(timeout).toMillis(), MILLISECONDS);
-    return reference.get();
+    return Option.of(reference::get);
   }
 
   boolean isEmpty() {
