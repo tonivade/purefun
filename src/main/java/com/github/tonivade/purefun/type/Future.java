@@ -54,6 +54,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   @Override
   Future<T> filter(Matcher1<T> matcher);
   
+  Future<T> orElse(Future<T> other);
+  
   @Override
   T get();
 
@@ -152,6 +154,16 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     @Override
     public Future<T> filter(Matcher1<T> matcher) {
       return runTry(executor, () -> await().filter(matcher));
+    }
+    
+    @Override
+    public Future<T> orElse(Future<T> other) {
+      return runTry(executor, () -> {
+        if (isSuccess()) {
+          return this.await();
+        }
+        return other.await();
+      });
     }
 
     @Override

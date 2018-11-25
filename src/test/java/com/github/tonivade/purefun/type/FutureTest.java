@@ -137,6 +137,15 @@ public class FutureTest {
   }
 
   @Test
+  public void orElse() {
+    Future<String> future = Future.failure(new IllegalArgumentException());
+
+    Future<String> result = future.orElse(Future.success("Hello world!"));
+
+    assertEquals(Try.success("Hello world!"), result.await());
+  }
+
+  @Test
   public void await() {
     Future<String> future = Future.success("Hello world!");
 
