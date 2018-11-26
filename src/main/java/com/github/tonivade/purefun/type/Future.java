@@ -37,6 +37,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   Try<T> await(Duration timeout);
 
   void cancel();
+
   boolean isCompleted();
   boolean isCanceled();
   boolean isSuccess();
@@ -127,12 +128,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   final class FutureImpl<T> implements Future<T> {
 
     private final ExecutorService executor;
-    private final java.util.concurrent.Future<?> task;
+    private final java.util.concurrent.Future<?> job;
     private final AsyncValue<Try<T>> value = new AsyncValue<>();
 
     private FutureImpl(ExecutorService executor, Producer<Try<T>> task) {
       this.executor = executor;
-      this.task = executor.submit(() -> value.set(task.get()));
+      this.job = executor.submit(() -> value.set(task.get()));
     }
 
     @Override
@@ -195,7 +196,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
  
     @Override
     public void cancel() {
-      if (task.cancel(true)) {
+      if (job.cancel(true)) {
         value.set(Try.failure(new CancellationException()));
       }
     }
@@ -207,7 +208,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     
     @Override
     public boolean isCanceled() {
-      return task.isCancelled();
+      return job.isCancelled();
     }
     
     @Override
@@ -269,10 +270,10 @@ final class AsyncValue<T> {
   }
 
   private void await(Duration timeout) throws InterruptedException {
-    if (timeout.isZero()) {
+    if (requireNonNull(timeout).isZero()) {
       latch.await();
     } else {
-      latch.await(requireNonNull(timeout).toMillis(), MILLISECONDS);
+      latch.await(timeout.toMillis(), MILLISECONDS);
     }
   }
 }
