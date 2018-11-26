@@ -40,8 +40,14 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   boolean isCompleted();
   boolean isCanceled();
-  boolean isSuccess();
-  boolean isFailure();
+    
+  default boolean isSuccess() {
+    return await().isSuccess();
+  }
+  
+  default boolean isFailure() {
+    return await().isFailure();
+  }
 
   Future<T> onSuccess(Consumer1<T> callback);
   Future<T> onFailure(Consumer1<Throwable> callback);
@@ -58,10 +64,21 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   Future<T> orElse(Future<T> other);
   
   @Override
-  T get();
+  default T get() {
+    return await().orElseThrow(NoSuchElementException::new);
+  }
 
   @Override
-  <V> Future<V> flatten();
+  @SuppressWarnings("unchecked")
+  default <V> Future<V> flatten() {
+    return flatMap(value -> {
+      try {
+        return (Future<V>) value;
+      } catch (ClassCastException e) {
+        return Future.failure(new UnsupportedOperationException(e));
+      }
+    });
+  }
   
   Future<T> recover(Function1<Throwable, T> mapper);
 
@@ -95,6 +112,14 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   static <T> Future<T> run(ExecutorService executor, CheckedProducer<T> task) {
     return runTry(executor, task.liftTry());
+  }
+  
+  static <T> Future<T> delay(Duration timeout, CheckedProducer<T> producer) {
+    return delay(FutureModule.DEFAULT_EXECUTOR, timeout, producer);
+  }
+  
+  static <T> Future<T> delay(ExecutorService executor, Duration timeout, CheckedProducer<T> producer) {
+    return run(executor, () -> { Thread.sleep(timeout.toMillis()); return producer.get(); });
   }
 
   static <T> Future<T> runTry(Producer<Try<T>> task) {
@@ -137,11 +162,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     @Override
-    public T get() {
-      return await().orElseThrow(NoSuchElementException::new);
-    }
-
-    @Override
     public <R> Future<R> map(Function1<T, R> mapper) {
       return runTry(executor, () -> await().map(mapper));
     }
@@ -167,17 +187,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       });
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <V> Future<V> flatten() {
-        return flatMap(value -> {
-          try {
-            return (Future<V>) value;
-          } catch (ClassCastException e) {
-            return Future.failure(new UnsupportedOperationException(e));
-          }
-        });
-    }
     
     @Override
     public Future<T> recover(Function1<Throwable, T> mapper) {
@@ -186,12 +195,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Try<T> await() {
-      return CheckedProducer.of(() -> result(Duration.ZERO)).recover(Try::failure).get();
+      return await(Duration.ZERO);
     }
 
     @Override
     public Try<T> await(Duration timeout) {
-      return CheckedProducer.of(() -> result(timeout)).recover(Try::failure).get();
+      return result(timeout).recover(Try::failure).get();
     }
  
     @Override
@@ -210,16 +219,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public boolean isCanceled() {
       return job.isCancelled();
     }
-    
-    @Override
-    public boolean isSuccess() {
-      return await().isSuccess();
-    }
-    
-    @Override
-    public boolean isFailure() {
-      return await().isFailure();
-    }
    
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
@@ -233,8 +232,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       return this;
     }
 
-    private Try<T> result(Duration timeout) throws InterruptedException {
-      return value.get(timeout).orElse(Try.failure(new NoSuchElementException()));
+    private CheckedProducer<Try<T>> result(Duration timeout) {
+      return () -> value.get(timeout).orElse(Try.failure(new NoSuchElementException()));
     }
   }
 }

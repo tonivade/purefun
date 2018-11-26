@@ -21,7 +21,6 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Nothing;
 
@@ -35,26 +34,28 @@ public class FutureTest {
 
     future.onSuccess(consumer1).await();
 
-    verify(consumer1, timeout(100)).accept("Hello World!");
-    assertTrue(future::isCompleted);
-    assertTrue(future::isSuccess);
-    assertFalse(future::isCanceled);
-    assertEquals("Hello World!", future.get());
+    assertAll(
+        () -> verify(consumer1, timeout(100)).accept("Hello World!"),
+        () -> assertTrue(future::isCompleted),
+        () -> assertTrue(future::isSuccess),
+        () -> assertFalse(future::isCanceled),
+        () -> assertEquals("Hello World!", future.get()));
   }
 
   @Test
   public void onSuccessTimeout() {
     Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = delay(100, unit("Hello World!"));
+    Future<String> future = Future.delay(Duration.ofMillis(100), unit("Hello World!"));
 
     future.onSuccess(consumer1).await();
 
-    verify(consumer1, timeout(100)).accept("Hello World!");
-    assertTrue(future::isCompleted);
-    assertTrue(future::isSuccess);
-    assertFalse(future::isCanceled);
-    assertEquals("Hello World!", future.get());
+    assertAll(
+        () -> verify(consumer1, timeout(100)).accept("Hello World!"),
+        () -> assertTrue(future::isCompleted),
+        () -> assertTrue(future::isSuccess),
+        () -> assertFalse(future::isCanceled),
+        () -> assertEquals("Hello World!", future.get()));
   }
 
   @Test
@@ -65,26 +66,29 @@ public class FutureTest {
 
     future.onFailure(consumer1).await();
 
-    verify(consumer1, timeout(100)).accept(any());
-    assertTrue(future::isCompleted);
-    assertTrue(future::isFailure);
-    assertFalse(future::isCanceled);
-    assertThrows(NoSuchElementException.class, future::get);
+    assertAll(
+        () -> verify(consumer1, timeout(100)).accept(any()),
+        () -> assertTrue(future::isCompleted),
+        () -> assertTrue(future::isFailure),
+        () -> assertFalse(future::isCanceled),
+        () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
   @Test
   public void onFailureTimeout() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = delay(100, failure(IllegalArgumentException::new));
+    Future<String> future = Future.delay(Duration.ofMillis(100), 
+                                         failure(IllegalArgumentException::new));
 
     future.onFailure(consumer1).await();
 
-    verify(consumer1, timeout(100)).accept(any());
-    assertTrue(future::isCompleted);
-    assertTrue(future::isFailure);
-    assertFalse(future::isCanceled);
-    assertThrows(NoSuchElementException.class, future::get);
+    assertAll(
+        () -> verify(consumer1, timeout(100)).accept(any()),
+        () -> assertTrue(future::isCompleted),
+        () -> assertTrue(future::isFailure),
+        () -> assertFalse(future::isCanceled),
+        () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
   @Test
@@ -154,7 +158,7 @@ public class FutureTest {
 
   @Test
   public void awaitTimeout() {
-    Future<String> future = delay(1000, unit("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
 
     Try<String> result = future.await(Duration.ofMillis(100));
 
@@ -165,14 +169,10 @@ public class FutureTest {
 
   @Test
   public void cancel() {
-    Future<String> future = delay(1000, unit("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
     
     future.cancel();
     
     assertTrue(future.isCanceled());
-  }
-
-  private static <T> Future<T> delay(int timeout, CheckedProducer<T> producer) {
-    return Future.run(() -> { Thread.sleep(timeout); return producer.get(); });
   }
 }
