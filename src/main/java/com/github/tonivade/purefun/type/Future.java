@@ -81,6 +81,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
   
   Future<T> recover(Function1<Throwable, T> mapper);
+  
+  FutureModule getModule();
 
   static <T> Future<T> success(T value) {
     return success(FutureModule.DEFAULT_EXECUTOR, value);
@@ -187,7 +189,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       });
     }
 
-    
     @Override
     public Future<T> recover(Function1<Throwable, T> mapper) {
       return runTry(executor, () -> await().recover(mapper));
@@ -230,6 +231,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public Future<T> onFailure(Consumer1<Throwable> callback) {
       executor.execute(() -> await().onFailure(callback));
       return this;
+    }
+    
+    @Override
+    public FutureModule getModule() {
+      throw new UnsupportedOperationException();
     }
 
     private CheckedProducer<Try<T>> result(Duration timeout) {
