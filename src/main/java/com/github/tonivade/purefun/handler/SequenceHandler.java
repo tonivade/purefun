@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.handler;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -40,7 +41,7 @@ public interface SequenceHandler<T, R> extends Function1<T, Sequence<R>> {
     return Function1.<Sequence<T>>identity()::apply;
   }
   
-  static <T, R> SequenceHandler<T, R> of(Function1<T, Sequence<R>> reference) {
-    return reference::apply;
+  static <T, R> SequenceHandler<T, R> of(Function1<T, ? extends Higher1<Sequence.µ, R>> reference) {
+    return reference.andThen(Sequence::narrowK)::apply;
   }
 }
