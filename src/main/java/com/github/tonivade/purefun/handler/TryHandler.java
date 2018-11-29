@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.handler;
 import static com.github.tonivade.purefun.Producer.unit;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Try;
@@ -59,7 +60,7 @@ public interface TryHandler<T, R> extends Function1<T, Try<R>> {
     return Function1.<Try<T>>identity()::apply;
   }
 
-  static <T, R> TryHandler<T, R> of(Function1<T, Try<R>> reference) {
-    return reference::apply;
+  static <T, R> TryHandler<T, R> of(Function1<T, ? extends Higher1<Try.µ, R>> reference) {
+    return reference.andThen(Try::narrowK)::apply;
   }
 }

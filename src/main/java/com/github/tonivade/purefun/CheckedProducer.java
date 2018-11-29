@@ -4,6 +4,10 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
+
 @FunctionalInterface
 public interface CheckedProducer<T> extends Recoverable {
 
@@ -11,6 +15,18 @@ public interface CheckedProducer<T> extends Recoverable {
 
   default <V> CheckedFunction1<V, T> asFunction() {
     return value -> get();
+  }
+
+  default Producer<Try<T>> liftTry() {
+    return () -> Try.of(this);
+  }
+
+  default Producer<Option<T>> liftOption() {
+    return liftTry().andThen(Try::toOption);
+  }
+
+  default Producer<Either<Throwable, T>> liftEither() {
+    return liftTry().andThen(Try::toEither);
   }
 
   default <R> CheckedProducer<R> andThen(CheckedFunction1<T, R> after) {
@@ -21,7 +37,7 @@ public interface CheckedProducer<T> extends Recoverable {
     return () -> {
       try {
         return get();
-      } catch(Exception e) {
+      } catch (Exception e) {
         return mapper.apply(e);
       }
     };

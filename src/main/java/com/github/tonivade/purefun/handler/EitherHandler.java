@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.handler;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
@@ -45,7 +46,7 @@ public interface EitherHandler<T, L, R> extends Function1<T, Either<L, R>>{
     return Function1.<Either<L, R>>identity()::apply;
   }
 
-  static <T, L, R> EitherHandler<T, L, R> of(Function1<T, Either<L, R>> reference) {
-    return reference::apply;
+  static <T, L, R> EitherHandler<T, L, R> of(Function1<T, ? extends Higher2<Either.µ, L, R>> reference) {
+    return reference.andThen(Either::narrowK)::apply;
   }
 }

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.handler;
 import static com.github.tonivade.purefun.Producer.unit;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
@@ -47,8 +48,8 @@ public interface OptionHandler<T, R> extends Function1<T, Option<R>> {
     return value -> apply(value).toOptional();
   }
 
-  static <T, R> OptionHandler<T, R> of(Function1<T, Option<R>> reference) {
-    return reference::apply;
+  static <T, R> OptionHandler<T, R> of(Function1<T, ? extends Higher1<Option.µ, R>> reference) {
+    return reference.andThen(Option::narrowK)::apply;
   }
 
   static <T> OptionHandler<Option<T>, T> identity() {
