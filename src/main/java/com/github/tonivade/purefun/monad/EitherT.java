@@ -99,7 +99,11 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
   }
 
   public static <W extends Kind, L, R> EitherT<W, L, R> lift(Monad<W> monad, Either<L, R> either) {
-    return new EitherT<>(monad, monad.pure(either));
+    return of(monad, monad.pure(either));
+  }
+
+  public static <W extends Kind, L, R> EitherT<W, L, R> of(Monad<W> monad, Higher1<W, Either<L, R>> either) {
+    return new EitherT<>(monad, either);
   }
 
   public static <W extends Kind, L, R> EitherT<W, L, R> right(Monad<W> monad, R right) {

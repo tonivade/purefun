@@ -72,7 +72,11 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
   }
 
   public static <W extends Kind, T> OptionT<W, T> lift(Monad<W> monad, Option<T> value) {
-    return new OptionT<>(monad, monad.pure(value));
+    return of(monad, monad.pure(value));
+  }
+
+  public static <W extends Kind, T> OptionT<W, T> of(Monad<W> monad, Higher1<W, Option<T>> value) {
+    return new OptionT<>(monad, value);
   }
 
   public static <W extends Kind, T> OptionT<W, T> some(Monad<W> monad, T value) {
