@@ -40,11 +40,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   boolean isCompleted();
   boolean isCanceled();
-    
+
   default boolean isSuccess() {
     return await().isSuccess();
   }
-  
+
   default boolean isFailure() {
     return await().isFailure();
   }
@@ -60,12 +60,16 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   @Override
   Future<T> filter(Matcher1<T> matcher);
-  
+
   Future<T> orElse(Future<T> other);
-  
+
   @Override
   default T get() {
     return await().orElseThrow(NoSuchElementException::new);
+  }
+
+  default Throwable getCause() {
+    return await().getCause();
   }
 
   @Override
@@ -79,7 +83,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       }
     });
   }
-  
+
   Future<T> recover(Function1<Throwable, T> mapper);
   
   FutureModule getModule();
@@ -115,11 +119,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   static <T> Future<T> run(ExecutorService executor, CheckedProducer<T> task) {
     return runTry(executor, task.liftTry());
   }
-  
+
   static <T> Future<T> delay(Duration timeout, CheckedProducer<T> producer) {
     return delay(FutureModule.DEFAULT_EXECUTOR, timeout, producer);
   }
-  
+
   static <T> Future<T> delay(ExecutorService executor, Duration timeout, CheckedProducer<T> producer) {
     return run(executor, () -> { Thread.sleep(timeout.toMillis()); return producer.get(); });
   }
@@ -178,7 +182,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public Future<T> filter(Matcher1<T> matcher) {
       return runTry(executor, () -> await().filter(matcher));
     }
-    
+
     @Override
     public Future<T> orElse(Future<T> other) {
       return runTry(executor, () -> {
@@ -203,7 +207,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public Try<T> await(Duration timeout) {
       return result(timeout).recover(Try::failure).get();
     }
- 
+
     @Override
     public void cancel() {
       if (job.cancel(true)) {
@@ -215,12 +219,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public boolean isCompleted() {
       return !value.isEmpty();
     }
-    
+
     @Override
     public boolean isCanceled() {
       return job.isCancelled();
     }
-   
+
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
       executor.execute(() -> await().onSuccess(callback));

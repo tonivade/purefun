@@ -128,7 +128,7 @@ public class FutureTest {
     assertAll(
         () -> assertTrue(result::isFailure),
         () -> assertTrue(result::isCompleted),
-        () -> assertTrue(result.await().getCause() instanceof UnsupportedOperationException));
+        () -> assertTrue(result.getCause() instanceof UnsupportedOperationException));
   }
 
   @Test
