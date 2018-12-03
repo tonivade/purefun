@@ -23,6 +23,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
@@ -81,6 +82,10 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   @Override
   default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
+  }
+  
+  default <R> Sequence<R> collect(PartialFunction1<E, R> function) {
+    return filter(function::isDefined).map(function::apply);
   }
 
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<E, G> selector) {

@@ -71,6 +71,20 @@ public interface Function1<T, R> {
   default Function1<T, R> memoized() {
     return new MemoizedFunction<>(this);
   }
+  
+  default PartialFunction1<T, R> partial(Matcher1<T> isDefined) {
+    return new PartialFunction1<T, R>() {
+      @Override
+      public boolean isDefined(T value) {
+        return isDefined.match(value);
+      }
+      
+      @Override
+      public R apply(T value) {
+        return Function1.this.apply(value);
+      }
+    };
+  }
 
   static <T> Function1<T, T> identity() {
     return value -> value;
