@@ -27,27 +27,27 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
   private final Monad<W> monad;
   private final Higher1<W, Either<L, R>> value;
 
-  protected EitherT(Monad<W> monad, Higher1<W, Either<L, R>> value) {
+  private EitherT(Monad<W> monad, Higher1<W, Either<L, R>> value) {
     this.monad = requireNonNull(monad);
     this.value = requireNonNull(value);
   }
 
   @Override
   public <V> EitherT<W, L, V> map(Function1<R, V> map) {
-    return new EitherT<>(monad, monad.map(value, v -> v.map(map)));
+    return EitherT.of(monad, monad.map(value, v -> v.map(map)));
   }
 
   @Override
   public <V> EitherT<W, L, V> flatMap(Function1<R, ? extends Higher3<EitherT.µ, W, L, V>> map) {
-    return new EitherT<>(monad, flatMapF(v -> EitherT.narrowK(map.apply(v)).value));
+    return EitherT.of(monad, flatMapF(v -> EitherT.narrowK(map.apply(v)).value));
   }
 
   public <T, V> EitherT<W, T, V> bimap(Function1<L, T> leftMapper, Function1<R, V> rightMapper) {
-    return new EitherT<>(monad, monad.map(value, v -> v.bimap(leftMapper, rightMapper)));
+    return EitherT.of(monad, monad.map(value, v -> v.bimap(leftMapper, rightMapper)));
   }
 
   public <T> EitherT<W, T, R> mapLeft(Function1<L, T> leftMapper) {
-    return new EitherT<>(monad, monad.map(value, v -> v.mapLeft(leftMapper)));
+    return EitherT.of(monad, monad.map(value, v -> v.mapLeft(leftMapper)));
   }
 
   public <V> Higher1<W, V> fold(Function1<L, V> leftMapper, Function1<R, V> rightMapper) {
@@ -55,15 +55,15 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
   }
 
   public <F extends Kind> EitherT<F, L, R> mapK(Monad<F> other, Transformer<W, F> transformer) {
-    return new EitherT<>(other, transformer.apply(value));
+    return EitherT.of(other, transformer.apply(value));
   }
 
   public EitherT<W, L, R> filterOrElse(Matcher1<R> filter, Producer<Either<L, R>> orElse) {
-    return new EitherT<>(monad, monad.map(value, v -> v.filterOrElse(filter, orElse)));
+    return EitherT.of(monad, monad.map(value, v -> v.filterOrElse(filter, orElse)));
   }
 
   public EitherT<W, R, L> swap() {
-    return new EitherT<>(monad, monad.map(value, Either::swap));
+    return EitherT.of(monad, monad.map(value, Either::swap));
   }
 
   public Higher1<W, Boolean> isRight() {
@@ -95,7 +95,7 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
   }
 
   public OptionT<W, R> toOption() {
-    return new OptionT<>(monad, monad.map(value, Either::toOption));
+    return OptionT.of(monad, monad.map(value, Either::toOption));
   }
 
   public static <W extends Kind, L, R> EitherT<W, L, R> lift(Monad<W> monad, Either<L, R> either) {

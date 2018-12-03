@@ -27,19 +27,19 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
   private final Monad<W> monad;
   private final Higher1<W, Option<T>> value;
 
-  protected OptionT(Monad<W> monad, Higher1<W, Option<T>> value) {
+  private OptionT(Monad<W> monad, Higher1<W, Option<T>> value) {
     this.monad = requireNonNull(monad);
     this.value = requireNonNull(value);
   }
 
   @Override
   public <R> OptionT<W, R> map(Function1<T, R> map) {
-    return new OptionT<>(monad, monad.map(value, v -> v.map(map)));
+    return OptionT.of(monad, monad.map(value, v -> v.map(map)));
   }
 
   @Override
   public <R> OptionT<W, R> flatMap(Function1<T, ? extends Higher2<OptionT.µ, W, R>> map) {
-    return new OptionT<>(monad, flatMapF(v -> OptionT.narrowK(map.apply(v)).value));
+    return OptionT.of(monad, flatMapF(v -> OptionT.narrowK(map.apply(v)).value));
   }
 
   public <R> Higher1<W, R> fold(Producer<R> orElse, Function1<T, R> map) {
@@ -47,7 +47,7 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
   }
 
   public <F extends Kind> OptionT<F, T> mapK(Monad<F> other, Transformer<W, F> transformer) {
-    return new OptionT<>(other, transformer.apply(value));
+    return OptionT.of(other, transformer.apply(value));
   }
 
   public Higher1<W, T> get() {
