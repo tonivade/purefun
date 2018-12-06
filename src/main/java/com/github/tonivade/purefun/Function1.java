@@ -25,11 +25,11 @@ public interface Function1<T, R> {
   R apply(T value);
 
   default <V> Function1<T, V> andThen(Function1<R, V> after) {
-    return (T value) -> after.apply(apply(value));
+    return value -> after.apply(apply(value));
   }
 
   default <V> Function1<V, R> compose(Function1<V, T> before) {
-    return (V value) -> apply(before.apply(value));
+    return value -> apply(before.apply(value));
   }
 
   default OptionalHandler<T, R> liftOptional() {
@@ -75,7 +75,7 @@ public interface Function1<T, R> {
   default PartialFunction1<T, R> partial(Matcher1<T> isDefined) {
     return new PartialFunction1<T, R>() {
       @Override
-      public boolean isDefined(T value) {
+      public boolean isDefinedAt(T value) {
         return isDefined.match(value);
       }
       
