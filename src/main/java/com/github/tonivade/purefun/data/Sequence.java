@@ -85,7 +85,7 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   }
   
   default <R> Sequence<R> collect(PartialFunction1<E, R> function) {
-    return filter(function::isDefined).map(function::apply);
+    return filter(function::isDefinedAt).map(function::apply);
   }
 
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<E, G> selector) {

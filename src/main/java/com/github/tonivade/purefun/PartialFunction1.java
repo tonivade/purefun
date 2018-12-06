@@ -1,30 +1,32 @@
 package com.github.tonivade.purefun;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.data.ImmutableArray;
+import com.github.tonivade.purefun.type.Option;
 
-public interface PartialFunction1<T, R> extends Function1<T, R> {
+public interface PartialFunction1<T, R> {
+  
+  R apply(T value);
 
   boolean isDefinedAt(T value);
+  
+  default Function1<T, Option<R>> lift() {
+    return value -> isDefinedAt(value) ? Option.some(apply(value)) : Option.none();
+  }
 
-  default <V> PartialFunction1<T, R> orElse(PartialFunction1<T, R> orElse) {
+  default <V> PartialFunction1<T, V> andThen(Function1<R, V> after) {
+    return of(value -> after.apply(apply(value)), this::isDefinedAt);
+  }
+
+  default <V> Function1<V, R> compose(Function1<V, T> before) {
+    return value -> apply(before.apply(value));
+  }
+
+  default <V> PartialFunction1<T, R> orElse(PartialFunction1<T, R> other) {
     final PartialFunction1<T, R> self = PartialFunction1.this;
-    return new PartialFunction1<T, R>() {
-      @Override
-      public R apply(T value) {
-        if (self.isDefinedAt(value)) {
-          return self.apply(value);
-        }
-        return orElse.apply(value);
-      }
-
-      @Override
-      public boolean isDefinedAt(T value) {
-        return self.isDefinedAt(value)
-          || orElse.isDefinedAt(value);
-      }
-    };
+    return of(value -> self.isDefinedAt(value) ? self.apply(value) : other.apply(value),
+              value -> self.isDefinedAt(value) || other.isDefinedAt(value));
   }
 
   static <T, R> PartialFunction1<T, R> of(Function1<T, R> apply, Matcher1<T> isDefined) {
@@ -38,12 +40,13 @@ public interface PartialFunction1<T, R> extends Function1<T, R> {
 }
 
 class DefaultPartialFunction1<T, R> implements PartialFunction1<T, R> {
+  
   private final Function1<T, R> apply;
   private final Matcher1<T> isDefined;
 
   DefaultPartialFunction1(Function1<T, R> apply, Matcher1<T> isDefined) {
-    this.apply = Objects.requireNonNull(apply);
-    this.isDefined = Objects.requireNonNull(isDefined);
+    this.apply = requireNonNull(apply);
+    this.isDefined = requireNonNull(isDefined);
   }
 
   @Override
