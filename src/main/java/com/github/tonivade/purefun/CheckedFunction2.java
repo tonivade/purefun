@@ -7,7 +7,7 @@ package com.github.tonivade.purefun;
 @FunctionalInterface
 public interface CheckedFunction2<T, V, R> {
 
-  R apply(T t, V v) throws Exception;
+  R apply(T t, V v) throws Throwable;
 
   default CheckedFunction1<T, CheckedFunction1<V, R>> curried() {
     return t -> v -> apply(t, v);

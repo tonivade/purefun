@@ -5,8 +5,11 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Producer.unit;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -14,7 +17,9 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.algebra.MonadThrow;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
 public interface IO<T> extends FlatMap1<IO.µ, T> {
@@ -39,6 +44,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
   static <T> IO<T> pure(T value) {
     return () -> value;
+  }
+
+  static <T> IO<T> failure(Throwable error) {
+    return new Failure<>(error);
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -93,6 +102,58 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
         return narrowK(value).flatMap(map);
       }
     };
+  }
+
+  static MonadThrow<IO.µ> monadThrow() {
+    return new MonadThrow<IO.µ>() {
+
+      @Override
+      public <T> IO<T> pure(T value) {
+        return IO.pure(value);
+      }
+
+      @Override
+      public <A> IO<A> raiseError(Throwable error) {
+        return failure(error);
+      }
+
+      @Override
+      public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> mapper) {
+        return narrowK(value).flatMap(mapper);
+      }
+
+      @Override
+      public <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, Higher1<IO.µ, A>> handler) {
+        Try<A> tryValue = Try.of(IO.narrowK(value)::unsafeRunSync);
+        return tryValue.fold(handler.andThen(IO::narrowK), IO::pure);
+      }
+    };
+  }
+
+  final class Failure<T> implements IO<T> {
+
+    private final Throwable error;
+
+    private Failure(Throwable error) {
+      this.error = requireNonNull(error);
+    }
+
+    @Override
+    public T unsafeRunSync() {
+      return CheckedProducer.<T, Throwable>failure(unit(error)).unchecked().get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> IO<R> map(Function1<T, R> map) {
+      return (IO<R>) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<µ, R>> map) {
+      return (IO<R>) this;
+    }
   }
 }
 

@@ -203,7 +203,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
       }
     };
   }
-  
+
   static <E> MonadError<Higher1<Either.µ, E>, E> monadError() {
     return new MonadError<Higher1<Either.µ, E>, E>() {
 
@@ -211,7 +211,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
       public <T> Either<E, T> pure(T value) {
         return right(value);
       }
-      
+
       @Override
       public <A> Either<E, A> raiseError(E error) {
         return left(error);
@@ -222,7 +222,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
                                          Function1<T, ? extends Higher1<Higher1<Either.µ, E>, R>> map) {
         return narrowK(value).flatMap(map.andThen(Either::narrowK));
       }
-      
+
       @Override
       public <A> Either<E, A> handleErrorWith(Higher1<Higher1<Either.µ, E>, A> value,
                                               Function1<E, Higher1<Higher1<Either.µ, E>, A>> handler) {

@@ -22,7 +22,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.algebra.MonadError;
-import com.github.tonivade.purefun.type.Either.µ;
 
 public class EitherTest {
 
@@ -267,10 +266,25 @@ public class EitherTest {
                                  "associativity law")
               );
   }
-  
+
+  @Test
   public void monadError() {
-    MonadError<Higher1<Either.µ, Throwable>, Throwable> monadError = Either.monadError();
-    
-    Either<Throwable, String> error = Either.narrowK(monadError.raiseError(new RuntimeException("error")));
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Higher1<Either.µ, Throwable>, Throwable> monadError = Either.<Throwable>monadError();
+
+    Higher1<Higher1<Either.µ, Throwable>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<Either.µ, Throwable>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<Either.µ, Throwable>, String> handleError =
+        monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Higher1<Either.µ, Throwable>, String> ensureOk =
+        monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<Higher1<Either.µ, Throwable>, String> ensureError =
+        monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Either.left(error), raiseError),
+        () -> assertEquals(Either.right("not an error"), handleError),
+        () -> assertEquals(Either.left(error), ensureError),
+        () -> assertEquals(Either.right("is not ok"), ensureOk));
   }
 }

@@ -12,42 +12,42 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 public class CheckedProducerTest {
-  
+
   @Test
-  public void andThen() throws Exception {
+  public void andThen() throws Throwable {
     CheckedProducer<String> producer = CheckedProducer.of(() -> "hello world");
-    
+
     CheckedProducer<String> andThen = producer.andThen(String::toUpperCase);
-    
+
     assertEquals("HELLO WORLD", andThen.get());
   }
-  
+
   @Test
-  public void unit() throws Exception {
+  public void unit() throws Throwable {
     assertEquals("hello world", CheckedProducer.unit("hello world").get());
   }
 
   @Test
-  public void asFunction() throws Exception {
+  public void asFunction() throws Throwable {
     CheckedProducer<String> producer = CheckedProducer.unit("hello world");
 
     assertEquals("hello world", producer.asFunction().apply(nothing()));
   }
-  
+
   @Test
   public void recover() {
     CheckedProducer<String> failure = CheckedProducer.failure(Exception::new);
     CheckedProducer<String> success = CheckedProducer.unit("hola mundo");
-    
+
     assertAll(
         () -> assertEquals("hello world", failure.recover(ex -> "hello world").get()),
         () -> assertEquals("hola mundo", success.recover(ex -> "hello world").get()));
   }
-  
+
   @Test
   public void unchecked() {
     CheckedProducer<String> producer = CheckedProducer.failure(Exception::new);
-    
+
     assertThrows(Exception.class, () -> producer.unchecked().get());
   }
 }

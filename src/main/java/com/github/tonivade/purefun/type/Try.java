@@ -25,6 +25,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.algebra.MonadThrow;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Equal;
@@ -52,7 +53,7 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   static <T> Try<T> of(CheckedProducer<T> supplier) {
     try {
       return success(supplier.get());
-    } catch (Exception error) {
+    } catch (Throwable error) {
       return failure(error);
     }
   }
@@ -207,6 +208,32 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
       public <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
                                    Function1<T, ? extends Higher1<Try.µ, R>> map) {
         return narrowK(value).flatMap(map);
+      }
+    };
+  }
+
+  static MonadThrow<Try.µ> monadThrow() {
+    return new MonadThrow<Try.µ>() {
+
+      @Override
+      public <U> Try<U> pure(U value) {
+        return success(value);
+      }
+
+      @Override
+      public <A> Try<A> raiseError(Throwable error) {
+        return failure(error);
+      }
+
+      @Override
+      public <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
+                                   Function1<T, ? extends Higher1<Try.µ, R>> map) {
+        return narrowK(value).flatMap(map);
+      }
+
+      @Override
+      public <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value, Function1<Throwable, Higher1<Try.µ, A>> handler) {
+        return narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
       }
     };
   }

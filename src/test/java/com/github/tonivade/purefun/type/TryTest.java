@@ -21,7 +21,9 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.algebra.MonadThrow;
 
 public class TryTest {
 
@@ -254,6 +256,24 @@ public class TryTest {
   public void tryLaws() {
     FunctorLaws.verifyLaws(Try.success("Hola mundo"));
     MonadLaws.verifyLaws(Try.success("Hola mundo"), Try::success);
+  }
+
+  @Test
+  public void monadError() {
+    RuntimeException error = new RuntimeException("error");
+    MonadThrow<Try.µ> monadThrow = Try.monadThrow();
+
+    Higher1<Try.µ, String> pure = monadThrow.pure("is not ok");
+    Higher1<Try.µ, String> raiseError = monadThrow.raiseError(error);
+    Higher1<Try.µ, String> handleError = monadThrow.handleError(raiseError, e -> "not an error");
+    Higher1<Try.µ, String> ensureOk = monadThrow.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<Try.µ, String> ensureError = monadThrow.ensure(pure, () -> error, value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Try.failure(error), raiseError),
+        () -> assertEquals(Try.success("not an error"), handleError),
+        () -> assertEquals(Try.failure(error), ensureError),
+        () -> assertEquals(Try.success("is not ok"), ensureOk));
   }
 
   private String message() {
