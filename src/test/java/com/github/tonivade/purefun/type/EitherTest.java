@@ -20,6 +20,9 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.algebra.MonadError;
+import com.github.tonivade.purefun.type.Either.µ;
 
 public class EitherTest {
 
@@ -263,5 +266,11 @@ public class EitherTest {
                                  either.mapLeft(toUpperCase.andThen(toLowerCase)).mapLeft(toUpperCase),
                                  "associativity law")
               );
+  }
+  
+  public void monadError() {
+    MonadError<Higher1<Either.µ, Throwable>, Throwable> monadError = Either.monadError();
+    
+    Either<Throwable, String> error = Either.narrowK(monadError.raiseError(new RuntimeException("error")));
   }
 }
