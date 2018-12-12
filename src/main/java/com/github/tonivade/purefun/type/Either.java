@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.algebra.MonadError;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Equal;
@@ -199,6 +200,33 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
       public <T, R> Either<L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
                                          Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
         return narrowK(value).flatMap(map.andThen(Either::narrowK));
+      }
+    };
+  }
+  
+  static <E> MonadError<Higher1<Either.µ, E>, E> monadError() {
+    return new MonadError<Higher1<Either.µ, E>, E>() {
+
+      @Override
+      public <T> Either<E, T> pure(T value) {
+        return right(value);
+      }
+      
+      @Override
+      public <A> Either<E, A> raiseError(E error) {
+        return left(error);
+      }
+
+      @Override
+      public <T, R> Either<E, R> flatMap(Higher1<Higher1<Either.µ, E>, T> value,
+                                         Function1<T, ? extends Higher1<Higher1<Either.µ, E>, R>> map) {
+        return narrowK(value).flatMap(map.andThen(Either::narrowK));
+      }
+      
+      @Override
+      public <A> Either<E, A> handleErrorWith(Higher1<Higher1<Either.µ, E>, A> value,
+                                              Function1<E, Higher1<Higher1<Either.µ, E>, A>> handler) {
+        return narrowK(value).fold(handler.andThen(Either::narrowK), Either::right);
       }
     };
   }
