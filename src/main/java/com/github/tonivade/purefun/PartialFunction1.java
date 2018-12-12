@@ -6,11 +6,11 @@ import com.github.tonivade.purefun.data.ImmutableArray;
 import com.github.tonivade.purefun.type.Option;
 
 public interface PartialFunction1<T, R> {
-  
+
   R apply(T value);
 
   boolean isDefinedAt(T value);
-  
+
   default Function1<T, Option<R>> lift() {
     return value -> isDefinedAt(value) ? Option.some(apply(value)) : Option.none();
   }
@@ -29,18 +29,25 @@ public interface PartialFunction1<T, R> {
               value -> self.isDefinedAt(value) || other.isDefinedAt(value));
   }
 
+  default R applyOrElse(T value, Function1<T, R> orElse) {
+    if (isDefinedAt(value)) {
+      apply(value);
+    }
+    return orElse.apply(value);
+  }
+
   static <T, R> PartialFunction1<T, R> of(Function1<T, R> apply, Matcher1<T> isDefined) {
     return new DefaultPartialFunction1<>(apply, isDefined);
   }
 
   static <R> PartialFunction1<Integer, R> from(ImmutableArray<R> array) {
-    return of(position -> array.get(position), 
+    return of(position -> array.get(position),
               position -> position > 0 && position < array.size());
   }
 }
 
 class DefaultPartialFunction1<T, R> implements PartialFunction1<T, R> {
-  
+
   private final Function1<T, R> apply;
   private final Matcher1<T> isDefined;
 
