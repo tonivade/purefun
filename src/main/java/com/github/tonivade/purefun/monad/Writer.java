@@ -12,10 +12,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Monoid;
-import com.github.tonivade.purefun.algebra.MonoidK;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.Monoid;
+import com.github.tonivade.purefun.typeclasses.MonoidK;
 
 public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
 

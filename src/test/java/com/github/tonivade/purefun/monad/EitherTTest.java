@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class EitherTTest {
 

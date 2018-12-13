@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.algebra.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTest {
 

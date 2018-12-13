@@ -16,9 +16,9 @@ import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ, W, L, R> {
 

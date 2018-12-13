@@ -14,9 +14,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class TaglessTest {
 

@@ -9,7 +9,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 @FunctionalInterface
 public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {

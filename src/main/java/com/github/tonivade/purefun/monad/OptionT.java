@@ -16,9 +16,9 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W, T>, Filterable<T> {
 

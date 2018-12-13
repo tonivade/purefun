@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 public final class Kleisli<F extends Kind, Z, A> implements FlatMap3<Kleisli.µ, F, Z, A> {
 

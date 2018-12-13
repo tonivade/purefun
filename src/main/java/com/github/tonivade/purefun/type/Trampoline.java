@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 

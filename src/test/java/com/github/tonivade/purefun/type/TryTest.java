@@ -23,7 +23,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MonadLaws;
-import com.github.tonivade.purefun.algebra.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
 public class TryTest {
 
