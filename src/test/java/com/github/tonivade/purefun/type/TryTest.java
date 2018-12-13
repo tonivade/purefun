@@ -23,7 +23,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MonadLaws;
-import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class TryTest {
 
@@ -259,15 +259,15 @@ public class TryTest {
   }
 
   @Test
-  public void monadThrow() {
+  public void monadError() {
     RuntimeException error = new RuntimeException("error");
-    MonadThrow<Try.µ> monadThrow = Try.monadThrow();
+    MonadError<Try.µ, Throwable> monadError = Try.monadError();
 
-    Higher1<Try.µ, String> pure = monadThrow.pure("is not ok");
-    Higher1<Try.µ, String> raiseError = monadThrow.raiseError(error);
-    Higher1<Try.µ, String> handleError = monadThrow.handleError(raiseError, e -> "not an error");
-    Higher1<Try.µ, String> ensureOk = monadThrow.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Try.µ, String> ensureError = monadThrow.ensure(pure, () -> error, value -> "is ok?".equals(value));
+    Higher1<Try.µ, String> pure = monadError.pure("is not ok");
+    Higher1<Try.µ, String> raiseError = monadError.raiseError(error);
+    Higher1<Try.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Try.µ, String> ensureOk = monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<Try.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
         () -> assertEquals(Try.failure(error), raiseError),

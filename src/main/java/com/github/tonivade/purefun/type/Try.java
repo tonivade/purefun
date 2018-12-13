@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
@@ -212,8 +212,8 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     };
   }
 
-  static MonadThrow<Try.µ> monadThrow() {
-    return new MonadThrow<Try.µ>() {
+  static MonadError<Try.µ, Throwable> monadError() {
+    return new MonadError<Try.µ, Throwable>() {
 
       @Override
       public <U> Try<U> pure(U value) {
