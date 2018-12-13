@@ -259,7 +259,7 @@ public class TryTest {
   }
 
   @Test
-  public void monadError() {
+  public void monadThrow() {
     RuntimeException error = new RuntimeException("error");
     MonadThrow<Try.µ> monadThrow = Try.monadThrow();
 
