@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,8 +13,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.type.Future;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public class OptionTTest {
@@ -73,6 +78,47 @@ public class OptionTTest {
     OptionT<Try.µ, String> someTry = someIo.mapK(Try.monad(), new IOToTryTransformer());
 
     assertEquals(Try.success("abc"), Try.narrowK(someTry.get()));
+  }
+
+  @Test
+  public void monadErrorFuture() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Higher1<OptionT.µ, Future.µ>, Throwable> monadError = OptionT.monadError(Future.monadError());
+
+    Higher1<Higher1<OptionT.µ, Future.µ>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<OptionT.µ, Future.µ>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<OptionT.µ, Future.µ>, String> handleError =
+        monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Higher1<OptionT.µ, Future.µ>, String> ensureOk =
+        monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<Higher1<OptionT.µ, Future.µ>, String> ensureError =
+        monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Try.failure(error), Future.narrowK(OptionT.narrowK(raiseError).value()).await()),
+        () -> assertEquals(Try.success(Option.some("not an error")), Future.narrowK(OptionT.narrowK(handleError).value()).await()),
+        () -> assertEquals(Try.failure(error), Future.narrowK(OptionT.narrowK(ensureError).value()).await()),
+        () -> assertEquals(Try.success(Option.some("is not ok")), Future.narrowK(OptionT.narrowK(ensureOk).value()).await()));
+  }
+
+  @Test
+  public void monadErrorIO() {
+    MonadError<Higher1<OptionT.µ, IO.µ>, Nothing> monadError = OptionT.monadError(IO.monad());
+
+    Higher1<Higher1<OptionT.µ, IO.µ>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<OptionT.µ, IO.µ>, String> raiseError = monadError.raiseError(nothing());
+    Higher1<Higher1<OptionT.µ, IO.µ>, String> handleError =
+        monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Higher1<OptionT.µ, IO.µ>, String> ensureOk =
+        monadError.ensure(pure, () -> nothing(), value -> "is not ok".equals(value));
+    Higher1<Higher1<OptionT.µ, IO.µ>, String> ensureError =
+        monadError.ensure(pure, () -> nothing(), value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Option.none(), IO.narrowK(OptionT.narrowK(raiseError).value()).unsafeRunSync()),
+        () -> assertEquals(Option.some("not an error"), IO.narrowK(OptionT.narrowK(handleError).value()).unsafeRunSync()),
+        () -> assertEquals(Option.none(), IO.narrowK(OptionT.narrowK(ensureError).value()).unsafeRunSync()),
+        () -> assertEquals(Option.some("is not ok"), IO.narrowK(OptionT.narrowK(ensureOk).value()).unsafeRunSync()));
   }
 }
 
