@@ -66,8 +66,7 @@ public class StateTTest {
     StateT<IO.µ, Nothing, String> sb = StateT.pure(monad, "b");
     StateT<IO.µ, Nothing, String> sc = StateT.pure(monad, "c");
 
-    Higher1<IO.µ, Tuple2<Nothing, Sequence<String>>> result =
-        StateT.compose(monad, Sequence.listOf(sa, sb, sc)).run(nothing());
+    Higher1<IO.µ, Tuple2<Nothing, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(nothing());
 
     assertEquals(Tuple.of(nothing(), listOf("a", "b", "c")), IO.narrowK(result).unsafeRunSync());
   }

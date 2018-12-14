@@ -195,7 +195,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
 
       @Override
       public <A> Option<A> handleErrorWith(Higher1<Option.µ, A> value,
-                                           Function1<Nothing, Higher1<Option.µ, A>> handler) {
+                                           Function1<Nothing, ? extends Higher1<Option.µ, A>> handler) {
         return narrowK(value).fold(() -> narrowK(handler.apply(nothing())), Option::some);
       }
     };

@@ -232,7 +232,8 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
       }
 
       @Override
-      public <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value, Function1<Throwable, Higher1<Try.µ, A>> handler) {
+      public <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value,
+                                        Function1<Throwable, ? extends Higher1<Try.µ, A>> handler) {
         return narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
       }
     };

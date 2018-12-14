@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
 
@@ -85,7 +86,9 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   Future<T> recover(Function1<Throwable, T> mapper);
-  
+
+  <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper);
+
   FutureModule getModule();
 
   static <T> Future<T> success(T value) {
@@ -156,6 +159,33 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     };
   }
 
+  static MonadError<Future.µ, Throwable> monadError() {
+    return new MonadError<Future.µ, Throwable>() {
+
+      @Override
+      public <A> Future<A> raiseError(Throwable error) {
+        return Future.failure(error);
+      }
+
+      @Override
+      public <A> Future<A> handleErrorWith(Higher1<Future.µ, A> value,
+                                           Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
+        return Future.narrowK(value).fold(handler.andThen(Future::narrowK), Future::success).flatten();
+      }
+
+      @Override
+      public <T> Future<T> pure(T value) {
+        return Future.success(value);
+      }
+
+      @Override
+      public <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
+                                      Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
+        return Future.narrowK(value).flatMap(mapper);
+      }
+    };
+  }
+
   final class FutureImpl<T> implements Future<T> {
 
     private final ExecutorService executor;
@@ -199,6 +229,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     @Override
+    public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
+      return run(executor, () -> await().fold(failureMapper, successMapper));
+    }
+
+    @Override
     public Try<T> await() {
       return await(Duration.ZERO);
     }
@@ -236,7 +271,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       executor.execute(() -> await().onFailure(callback));
       return this;
     }
-    
+
     @Override
     public FutureModule getModule() {
       throw new UnsupportedOperationException();

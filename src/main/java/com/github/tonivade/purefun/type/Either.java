@@ -225,7 +225,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
       @Override
       public <A> Either<E, A> handleErrorWith(Higher1<Higher1<Either.µ, E>, A> value,
-                                              Function1<E, Higher1<Higher1<Either.µ, E>, A>> handler) {
+                                              Function1<E, ? extends Higher1<Higher1<Either.µ, E>, A>> handler) {
         return narrowK(value).fold(handler.andThen(Either::narrowK), Either::right);
       }
     };
