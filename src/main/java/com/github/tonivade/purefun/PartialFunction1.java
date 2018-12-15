@@ -36,7 +36,7 @@ public interface PartialFunction1<T, R> {
 
   default R applyOrElse(T value, Function1<T, R> orElse) {
     if (isDefinedAt(value)) {
-      apply(value);
+      return apply(value);
     }
     return orElse.apply(value);
   }
@@ -47,7 +47,7 @@ public interface PartialFunction1<T, R> {
 
   static <R> PartialFunction1<Integer, R> from(ImmutableArray<R> array) {
     return of(position -> array.get(position),
-              position -> position > 0 && position < array.size());
+              position -> position >= 0 && position < array.size());
   }
 
   static <K, V> PartialFunction1<K, V> from(ImmutableMap<K, V> map) {
