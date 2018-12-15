@@ -2,7 +2,7 @@
  * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.algebra;
+package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.concurrent.ThreadLocalRandom.current;
@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
+
+import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public class MonoidTest {
 

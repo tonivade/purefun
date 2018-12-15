@@ -16,11 +16,11 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class StateTTest {
 
@@ -66,8 +66,7 @@ public class StateTTest {
     StateT<IO.µ, Nothing, String> sb = StateT.pure(monad, "b");
     StateT<IO.µ, Nothing, String> sc = StateT.pure(monad, "c");
 
-    Higher1<IO.µ, Tuple2<Nothing, Sequence<String>>> result =
-        StateT.compose(monad, Sequence.listOf(sa, sb, sc)).run(nothing());
+    Higher1<IO.µ, Tuple2<Nothing, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(nothing());
 
     assertEquals(Tuple.of(nothing(), listOf("a", "b", "c")), IO.narrowK(result).unsafeRunSync());
   }

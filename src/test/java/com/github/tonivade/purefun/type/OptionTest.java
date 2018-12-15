@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -20,10 +21,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
-import com.github.tonivade.purefun.MonadLaws;
-import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class OptionTest {
   private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
@@ -164,8 +168,8 @@ public class OptionTest {
 
   @Test
   public void optionLaws() {
-    FunctorLaws.verifyLaws(Option.some("Hola mundo"));
-    MonadLaws.verifyLaws(Option.some("Hola mundo"), Option::some);
+    MappableLaws.verifyLaws(Option.some("Hola mundo"));
+    FlatMap1Laws.verifyLaws(Option.some("Hola mundo"), Option::some);
   }
 
   @Test
@@ -181,21 +185,37 @@ public class OptionTest {
 
     assertThrows(UnsupportedOperationException.class, () -> option.flatten());
   }
-  
+
   @Test
   public void monad() {
     Monad<Option.µ> monad = Option.monad();
 
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();
-    
+
     assertAll(() -> assertEquals(some.map(toUpperCase), monad.map(some, toUpperCase)),
               () -> assertEquals(some.map(toUpperCase), monad.flatMap(some, toUpperCase.liftOption())),
               () -> assertEquals(some, monad.pure("asdf")),
               () -> assertEquals(none, monad.map(none, toUpperCase)),
               () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption())),
-              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase)))
-              );
+              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase))));
+  }
+
+  @Test
+  public void monadError() {
+    MonadError<Option.µ, Nothing> monadError = Option.monadError();
+
+    Higher1<Option.µ, String> pure = monadError.pure("is not ok");
+    Higher1<Option.µ, String> raiseError = monadError.raiseError(nothing());
+    Higher1<Option.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Option.µ, String> ensureOk = monadError.ensure(pure, () -> nothing(), value -> "is not ok".equals(value));
+    Higher1<Option.µ, String> ensureError = monadError.ensure(pure, () -> nothing(), value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Option.none(), raiseError),
+        () -> assertEquals(Option.some("not an error"), handleError),
+        () -> assertEquals(Option.none(), ensureError),
+        () -> assertEquals(Option.some("is not ok"), ensureOk));
   }
 
   private String message() {

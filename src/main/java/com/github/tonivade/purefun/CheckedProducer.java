@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.type.Try;
 @FunctionalInterface
 public interface CheckedProducer<T> extends Recoverable {
 
-  T get() throws Exception;
+  T get() throws Throwable;
 
   default <V> CheckedFunction1<V, T> asFunction() {
     return value -> get();
@@ -37,7 +37,7 @@ public interface CheckedProducer<T> extends Recoverable {
     return () -> {
       try {
         return get();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         return mapper.apply(e);
       }
     };
@@ -51,7 +51,7 @@ public interface CheckedProducer<T> extends Recoverable {
     return () -> value;
   }
 
-  static <T, X extends Exception> CheckedProducer<T> failure(Producer<X> supplier) {
+  static <T, X extends Throwable> CheckedProducer<T> failure(Producer<X> supplier) {
     return () -> { throw supplier.get(); };
   }
 

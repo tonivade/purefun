@@ -2,13 +2,14 @@
  * Copyright (c) 2018, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.algebra;
+package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 import org.junit.jupiter.api.Test;
 

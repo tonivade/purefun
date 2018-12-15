@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -27,7 +26,10 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
 
@@ -85,7 +87,9 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   Future<T> recover(Function1<Throwable, T> mapper);
-  
+
+  <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper);
+
   FutureModule getModule();
 
   static <T> Future<T> success(T value) {
@@ -125,7 +129,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> delay(ExecutorService executor, Duration timeout, CheckedProducer<T> producer) {
-    return run(executor, () -> { Thread.sleep(timeout.toMillis()); return producer.get(); });
+    return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
 
   static <T> Future<T> runTry(Producer<Try<T>> task) {
@@ -140,8 +144,60 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return (Future<T>) hkt;
   }
 
+  static Functor<Future.µ> functor() {
+    return new Functor<Future.µ>() {
+
+      @Override
+      public <T, R> Future<R> map(Higher1<Future.µ, T> value, Function1<T, R> mapper) {
+        return narrowK(value).map(mapper);
+      }
+    };
+  }
+
+  static Applicative<Future.µ> applicative() {
+    return new Applicative<Future.µ>() {
+
+      @Override
+      public <T> Future<T> pure(T value) {
+        return success(value);
+      }
+
+      @Override
+      public <T, R> Future<R> ap(Higher1<Future.µ, T> value, Higher1<Future.µ, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
+  }
+
   static Monad<Future.µ> monad() {
     return new Monad<Future.µ>() {
+
+      @Override
+      public <T> Future<T> pure(T value) {
+        return Future.success(value);
+      }
+
+      @Override
+      public <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
+                                      Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
+        return Future.narrowK(value).flatMap(mapper);
+      }
+    };
+  }
+
+  static MonadError<Future.µ, Throwable> monadError() {
+    return new MonadError<Future.µ, Throwable>() {
+
+      @Override
+      public <A> Future<A> raiseError(Throwable error) {
+        return Future.failure(error);
+      }
+
+      @Override
+      public <A> Future<A> handleErrorWith(Higher1<Future.µ, A> value,
+                                           Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
+        return Future.narrowK(value).fold(handler.andThen(Future::narrowK), Future::success).flatten();
+      }
 
       @Override
       public <T> Future<T> pure(T value) {
@@ -199,6 +255,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     @Override
+    public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
+      return run(executor, () -> await().fold(failureMapper, successMapper));
+    }
+
+    @Override
     public Try<T> await() {
       return await(Duration.ZERO);
     }
@@ -236,7 +297,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       executor.execute(() -> await().onFailure(callback));
       return this;
     }
-    
+
     @Override
     public FutureModule getModule() {
       throw new UnsupportedOperationException();
@@ -255,14 +316,14 @@ interface FutureModule {
 
 final class AsyncValue<T> {
 
-  private final AtomicReference<T> reference = new AtomicReference<>();
+  private final AtomicReference<Option<T>> reference = new AtomicReference<>(Option.none());
   private final CountDownLatch latch = new CountDownLatch(1);
 
   void set(T value) {
-    if (reference.compareAndSet(null, requireNonNull(value))) {
+    if (reference.compareAndSet(Option.none(), requireNonNull(Option.some(value)))) {
       latch.countDown();
     }
-    else throw new IllegalStateException("already setted");
+    else throw new IllegalStateException("already setted: " + reference.get());
   }
 
   Option<T> get() throws InterruptedException {
@@ -271,11 +332,11 @@ final class AsyncValue<T> {
 
   Option<T> get(Duration timeout) throws InterruptedException {
     await(timeout);
-    return Option.of(reference::get);
+    return reference.get();
   }
 
   boolean isEmpty() {
-    return isNull(reference.get());
+    return reference.get().equals(Option.none());
   }
 
   private void await(Duration timeout) throws InterruptedException {

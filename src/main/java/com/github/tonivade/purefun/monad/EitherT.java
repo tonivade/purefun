@@ -16,9 +16,10 @@ import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ, W, L, R> {
 
@@ -98,6 +99,10 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return OptionT.of(monad, monad.map(value, Either::toOption));
   }
 
+  Higher1<W, Either<L, R>> value() {
+    return value;
+  }
+
   public static <W extends Kind, L, R> EitherT<W, L, R> lift(Monad<W> monad, Either<L, R> either) {
     return of(monad, monad.pure(either));
   }
@@ -114,17 +119,75 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return lift(monad, Either.left(left));
   }
 
-  public static <W extends Kind, L> Monad<Higher1<Higher1<EitherT.µ, W>, L>> monad(Monad<W> monad) {
-    return new Monad<Higher1<Higher1<EitherT.µ, W>, L>>() {
+  public static <F extends Kind, L> Monad<Higher1<Higher1<EitherT.µ, F>, L>> monad(Monad<F> monadF) {
+    return new Monad<Higher1<Higher1<EitherT.µ, F>, L>>() {
 
       @Override
-      public <T> EitherT<W, L, T> pure(T value) {
-        return EitherT.right(monad, value);
+      public <T> EitherT<F, L, T> pure(T value) {
+        return EitherT.right(monadF, value);
       }
 
       @Override
-      public <T, R> EitherT<W, L, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, W>, L>, T> value,
-          Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, W>, L>, R>> map) {
+      public <T, R> EitherT<F, L, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, L>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, L>, R>> map) {
+        return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
+      }
+    };
+  }
+
+  public static <F extends Kind, E> MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E> monadError(Monad<F> monadF) {
+    return new MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>() {
+
+      @Override
+      public <A> EitherT<F, E, A> raiseError(E error) {
+        return EitherT.left(monadF, error);
+      }
+
+      @Override
+      public <T> EitherT<F, E, T> pure(T value) {
+        return EitherT.right(monadF, value);
+      }
+
+      @Override
+      public <A> EitherT<F, E, A> handleErrorWith(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A> value,
+          Function1<E, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> handler) {
+        return EitherT.of(monadF,
+            monadF.flatMap(EitherT.narrowK(value).value,
+                either -> either.fold(e -> handler.andThen(EitherT::narrowK).apply(e).value,
+                    a -> monadF.pure(Either.right(a)))));
+      }
+
+      @Override
+      public <T, R> EitherT<F, E, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, R>> map) {
+        return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
+      }
+    };
+  }
+
+  public static <F extends Kind, E> MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E> monadError(MonadError<F, E> monadErrorF) {
+    return new MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>() {
+
+      @Override
+      public <A> EitherT<F, E, A> raiseError(E error) {
+        return EitherT.of(monadErrorF, monadErrorF.raiseError(error));
+      }
+
+      @Override
+      public <T> EitherT<F, E, T> pure(T value) {
+        return EitherT.right(monadErrorF, value);
+      }
+
+      @Override
+      public <A> EitherT<F, E, A> handleErrorWith(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A> value,
+          Function1<E, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> handler) {
+        return EitherT.of(monadErrorF, monadErrorF.handleErrorWith(EitherT.narrowK(value).value,
+            error -> handler.andThen(EitherT::narrowK).apply(error).value));
+      }
+
+      @Override
+      public <T, R> EitherT<F, E, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, R>> map) {
         return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
       }
     };

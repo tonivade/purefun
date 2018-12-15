@@ -17,10 +17,10 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public final class StateT<W extends Kind, S, A> implements FlatMap3<StateT.µ, W, S, A> {
 
@@ -102,17 +102,17 @@ public final class StateT<W extends Kind, S, A> implements FlatMap3<StateT.µ, W
     return state(monad, run);
   }
 
-  public static <W extends Kind, S> Monad<Higher1<Higher1<StateT.µ, W>, S>> monad(Monad<W> monad) {
-    return new Monad<Higher1<Higher1<StateT.µ, W>, S>>() {
+  public static <F extends Kind, S> Monad<Higher1<Higher1<StateT.µ, F>, S>> monad(Monad<F> monadF) {
+    return new Monad<Higher1<Higher1<StateT.µ, F>, S>>() {
 
       @Override
-      public <T> StateT<W, S, T> pure(T value) {
-        return StateT.pure(monad, value);
+      public <T> StateT<F, S, T> pure(T value) {
+        return StateT.pure(monadF, value);
       }
 
       @Override
-      public <T, R> StateT<W, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, W>, S>, T> value,
-          Function1<T, ? extends Higher1<Higher1<Higher1<StateT.µ, W>, S>, R>> map) {
+      public <T, R> StateT<F, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, F>, S>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Higher1<StateT.µ, F>, S>, R>> map) {
         return StateT.narrowK(value).flatMap(map.andThen(StateT::narrowK));
       }
     };

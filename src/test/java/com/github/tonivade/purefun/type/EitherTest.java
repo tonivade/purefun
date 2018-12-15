@@ -19,7 +19,9 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTest {
 
@@ -246,7 +248,7 @@ public class EitherTest {
 
   @Test
   public void rightLaws() {
-    FunctorLaws.verifyLaws(Either.right("Hola"));
+    MappableLaws.verifyLaws(Either.right("Hola"));
   }
 
   @Test
@@ -263,5 +265,26 @@ public class EitherTest {
                                  either.mapLeft(toUpperCase.andThen(toLowerCase)).mapLeft(toUpperCase),
                                  "associativity law")
               );
+  }
+
+  @Test
+  public void monadError() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Higher1<Either.µ, Throwable>, Throwable> monadError = Either.<Throwable>monadError();
+
+    Higher1<Higher1<Either.µ, Throwable>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<Either.µ, Throwable>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<Either.µ, Throwable>, String> handleError =
+        monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Higher1<Either.µ, Throwable>, String> ensureOk =
+        monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<Higher1<Either.µ, Throwable>, String> ensureError =
+        monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Either.left(error), raiseError),
+        () -> assertEquals(Either.right("not an error"), handleError),
+        () -> assertEquals(Either.left(error), ensureError),
+        () -> assertEquals(Either.right("is not ok"), ensureOk));
   }
 }

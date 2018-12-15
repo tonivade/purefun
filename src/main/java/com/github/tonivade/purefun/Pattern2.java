@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import static com.github.tonivade.purefun.Matcher2.invalid;
 import static java.util.Objects.requireNonNull;
 
 public class Pattern2<A, B, R> implements Function2<A, B, R> {
@@ -46,7 +47,7 @@ public class Pattern2<A, B, R> implements Function2<A, B, R> {
 
     private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher) {
       this.finisher = requireNonNull(finisher);
-      this.matcher = null;
+      this.matcher = invalid();
     }
 
     private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher, Matcher2<T, V> matcher) {

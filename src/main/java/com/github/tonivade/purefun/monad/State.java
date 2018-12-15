@@ -16,8 +16,8 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.algebra.Monad;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 @FunctionalInterface
 public interface State<S, A> extends FlatMap2<State.µ, S, A> {

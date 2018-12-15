@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -15,10 +16,12 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W, T>, Filterable<T> {
 
@@ -71,6 +74,10 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
     return new OptionT<>(monad, monad.map(value, v -> v.filter(filter)));
   }
 
+  Higher1<W, Option<T>> value() {
+    return value;
+  }
+
   public static <W extends Kind, T> OptionT<W, T> lift(Monad<W> monad, Option<T> value) {
     return of(monad, monad.pure(value));
   }
@@ -87,17 +94,75 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
     return lift(monad, Option.none());
   }
 
-  public static <W extends Kind> Monad<Higher1<OptionT.µ, W>> monad(Monad<W> monad) {
-    return new Monad<Higher1<OptionT.µ, W>>() {
+  public static <F extends Kind> Monad<Higher1<OptionT.µ, F>> monad(Monad<F> monadF) {
+    return new Monad<Higher1<OptionT.µ, F>>() {
 
       @Override
-      public <T> OptionT<W, T> pure(T value) {
-        return OptionT.some(monad, value);
+      public <T> OptionT<F, T> pure(T value) {
+        return OptionT.some(monadF, value);
       }
 
       @Override
-      public <T, R> OptionT<W, R> flatMap(Higher1<Higher1<OptionT.µ, W>, T> value,
-          Function1<T, ? extends Higher1<Higher1<OptionT.µ, W>, R>> map) {
+      public <T, R> OptionT<F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
+          Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
+        return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
+      }
+    };
+  }
+
+  public static <F extends Kind> MonadError<Higher1<OptionT.µ, F>, Nothing> monadError(Monad<F> monadF) {
+    return new MonadError<Higher1<OptionT.µ, F>, Nothing>() {
+
+      @Override
+      public <A> OptionT<F, A> raiseError(Nothing error) {
+        return OptionT.none(monadF);
+      }
+
+      @Override
+      public <T> OptionT<F, T> pure(T value) {
+        return OptionT.some(monadF, value);
+      }
+
+      @Override
+      public <A> OptionT<F, A> handleErrorWith(Higher1<Higher1<OptionT.µ, F>, A> value,
+          Function1<Nothing, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
+        return OptionT.of(monadF,
+            monadF.flatMap(OptionT.narrowK(value).value,
+                option -> option.fold(() -> handler.andThen(OptionT::narrowK).apply(nothing()).value,
+                    a -> monadF.pure(Option.some(a)))));
+      }
+
+      @Override
+      public <T, R> OptionT<F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
+          Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
+        return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
+      }
+    };
+  }
+
+  public static <F extends Kind, E> MonadError<Higher1<OptionT.µ, F>, E> monadError(MonadError<F, E> monadErrorF) {
+    return new MonadError<Higher1<OptionT.µ, F>, E>() {
+
+      @Override
+      public <A> OptionT<F, A> raiseError(E error) {
+        return OptionT.of(monadErrorF, monadErrorF.raiseError(error));
+      }
+
+      @Override
+      public <T> OptionT<F, T> pure(T value) {
+        return OptionT.some(monadErrorF, value);
+      }
+
+      @Override
+      public <A> OptionT<F, A> handleErrorWith(Higher1<Higher1<OptionT.µ, F>, A> value,
+          Function1<E, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
+        return OptionT.of(monadErrorF, monadErrorF.handleErrorWith(OptionT.narrowK(value).value,
+            error -> handler.andThen(OptionT::narrowK).apply(error).value));
+      }
+
+      @Override
+      public <T, R> OptionT<F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
+          Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
         return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
       }
     };

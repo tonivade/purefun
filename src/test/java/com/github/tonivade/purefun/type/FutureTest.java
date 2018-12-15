@@ -22,7 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class FutureTest {
 
@@ -78,7 +80,7 @@ public class FutureTest {
   public void onFailureTimeout() {
     Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
 
-    Future<String> future = Future.delay(Duration.ofMillis(100), 
+    Future<String> future = Future.delay(Duration.ofMillis(100),
                                          failure(IllegalArgumentException::new));
 
     future.onFailure(consumer1).await();
@@ -169,10 +171,28 @@ public class FutureTest {
 
   @Test
   public void cancel() {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
-    
+    Future<String> future = Future.delay(Duration.ofSeconds(5), unit("Hello world!"));
+
     future.cancel();
-    
+
     assertTrue(future.isCanceled());
+  }
+
+  @Test
+  public void monadError() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Future.µ, Throwable> monadError = Future.monadError();
+
+    Higher1<Future.µ, String> pure = monadError.pure("is not ok");
+    Higher1<Future.µ, String> raiseError = monadError.raiseError(error);
+    Higher1<Future.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Future.µ, String> ensureOk = monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<Future.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertEquals(Future.failure(error).await(), Future.narrowK(raiseError).await()),
+        () -> assertEquals(Future.success("not an error").await(), Future.narrowK(handleError).await()),
+        () -> assertEquals(Future.failure(error).await(), Future.narrowK(ensureError).await()),
+        () -> assertEquals(Future.success("is not ok").await(), Future.narrowK(ensureOk).await()));
   }
 }

@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.algebra.Monad;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 
@@ -88,6 +88,7 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   }
 
   final class Done<T> implements Trampoline<T> {
+
     final T value;
 
     private Done(T value) {
@@ -116,6 +117,7 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   }
 
   final class More<T> implements Trampoline<T> {
+
     final Producer<Trampoline<T>> next;
 
     private More(Producer<Trampoline<T>> next) {

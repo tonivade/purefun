@@ -19,10 +19,10 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.algebra.Functor;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public class FreeTest {
 

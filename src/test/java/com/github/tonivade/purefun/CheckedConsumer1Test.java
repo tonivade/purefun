@@ -18,18 +18,18 @@ public class CheckedConsumer1Test {
 
   @Test
   public void andThen() throws Exception {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
     CheckedConsumer1<String> composite = add.andThen(add);
     composite.accept("value");
-    
+
     assertEquals(asList("value", "value"), strings);
   }
-  
+
   @Test
-  public void peek() throws Exception {
-    List<String> strings = new LinkedList<String>();
+  public void peek() throws Throwable {
+    List<String> strings = new LinkedList<>();
 
     CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
 
@@ -38,10 +38,10 @@ public class CheckedConsumer1Test {
     assertAll(() -> assertEquals(asList("value"), strings),
               () -> assertEquals("value", string));
   }
-  
+
   @Test
-  public void asFunction() throws Exception {
-    List<String> strings = new LinkedList<String>();
+  public void asFunction() throws Throwable {
+    List<String> strings = new LinkedList<>();
 
     CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
 

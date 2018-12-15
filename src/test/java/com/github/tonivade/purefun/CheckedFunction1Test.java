@@ -23,21 +23,21 @@ public class CheckedFunction1Test {
   private final CheckedFunction1<Integer, String> int2str = integer -> String.valueOf(integer);
 
   @Test
-  public void andThenTest() throws Exception {
+  public void andThenTest() throws Throwable {
     String result = str2int.andThen(int2str).apply("asdfg");
 
     assertEquals("5", result);
   }
 
   @Test
-  public void composeTest() throws Exception {
+  public void composeTest() throws Throwable {
     String result = int2str.compose(str2int).apply("asdfg");
 
     assertEquals("5", result);
   }
 
   @Test
-  public void identityTest() throws Exception {
+  public void identityTest() throws Throwable {
     String result = identity.apply("5");
 
     assertEquals("5", result);

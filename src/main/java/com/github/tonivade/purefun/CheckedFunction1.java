@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.type.Try;
 @FunctionalInterface
 public interface CheckedFunction1<T, R> extends Recoverable {
 
-  R apply(T value) throws Exception;
+  R apply(T value) throws Throwable;
 
   default <V> CheckedFunction1<T, V> andThen(CheckedFunction1<R, V> after) {
     return (T value) -> after.apply(apply(value));
@@ -25,7 +25,7 @@ public interface CheckedFunction1<T, R> extends Recoverable {
     return value -> {
       try {
         return apply(value);
-      } catch(Exception e) {
+      } catch(Throwable e) {
         return mapper.apply(e);
       }
     };

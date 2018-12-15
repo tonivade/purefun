@@ -13,6 +13,10 @@ public interface Matcher3<A, B, C> {
     return tuple -> apply(tuple.get1(), tuple.get2(), tuple.get3());
   }
 
+  static <A, B, C> Matcher3<A, B, C> invalid() {
+    return (a, b, c) -> { throw new IllegalStateException(); };
+  }
+
   static <A, B, C> Matcher3<A, B, C> otherwise() {
     return (a, b, c) -> true;
   }

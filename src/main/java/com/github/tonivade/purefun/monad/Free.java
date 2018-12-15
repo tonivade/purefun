@@ -11,10 +11,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.algebra.Functor;
-import com.github.tonivade.purefun.algebra.Monad;
-import com.github.tonivade.purefun.algebra.Transformer;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
 

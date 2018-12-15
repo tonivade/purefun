@@ -23,8 +23,8 @@ import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
-import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
@@ -111,7 +111,7 @@ public class ImmutableTreeTest {
 
   @Test
   public void treeLaws() {
-    FunctorLaws.verifyLaws(treeOf("a", "b", "c"));
-    MonadLaws.verifyLaws(treeOf("a", "b", "c"), Sequence::treeOf);
+    MappableLaws.verifyLaws(treeOf("a", "b", "c"));
+    FlatMap1Laws.verifyLaws(treeOf("a", "b", "c"), Sequence::treeOf);
   }
 }

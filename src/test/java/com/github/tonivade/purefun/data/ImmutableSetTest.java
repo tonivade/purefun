@@ -21,8 +21,8 @@ import java.util.HashSet;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
-import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
@@ -91,7 +91,7 @@ public class ImmutableSetTest {
 
   @Test
   public void setLaws() {
-    FunctorLaws.verifyLaws(setOf("a", "b", "c"));
-    MonadLaws.verifyLaws(setOf("a", "b", "c"), Sequence::setOf);
+    MappableLaws.verifyLaws(setOf("a", "b", "c"));
+    FlatMap1Laws.verifyLaws(setOf("a", "b", "c"), Sequence::setOf);
   }
 }

@@ -7,7 +7,7 @@ package com.github.tonivade.purefun;
 @FunctionalInterface
 public interface CheckedMatcher<T> {
 
-  boolean match(T target) throws Exception;
+  boolean match(T target) throws Throwable;
 
   default CheckedMatcher<T> and(CheckedMatcher<T> other) {
     return request -> match(request) && other.match(request);

@@ -17,23 +17,23 @@ import org.junit.jupiter.api.Test;
 public class CheckedConsumer2Test {
 
   @Test
-  public void andThen() throws Exception {
-    List<String> strings = new LinkedList<String>();
+  public void andThen() throws Throwable {
+    List<String> strings = new LinkedList<>();
 
     CheckedConsumer2<String, Integer> add = (a, b) -> strings.add(a + "=" + b);
     CheckedConsumer2<String, Integer> composite = add.andThen(add);
     composite.accept("value", 100);
-    
+
     assertEquals(asList("value=100", "value=100"), strings);
   }
 
   @Test
-  public void asFunction() throws Exception {
-    List<String> strings = new LinkedList<String>();
+  public void asFunction() throws Throwable {
+    List<String> strings = new LinkedList<>();
 
     CheckedConsumer2<String, Integer> add = (a, b) -> strings.add(a + "=" + b);
     Nothing nothing = add.asFunction().apply("value", 100);
-    
+
     assertAll(() -> assertEquals(asList("value=100"), strings),
               () -> assertEquals(nothing(), nothing));
   }
