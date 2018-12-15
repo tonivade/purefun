@@ -16,10 +16,10 @@ public class MonadLaws {
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;
 
-  public static <W extends Kind, M extends Monad<W>> void verifyLaws(M monad, Higher1<W, String> value) {
-    assertAll(() -> leftIdentity(monad, value),
-              () -> rightIdentity(monad, value),
-              () -> associativity(monad, value));
+  public static <W extends Kind, M extends Monad<W>> void verifyLaws(M monad) {
+    assertAll(() -> leftIdentity(monad, monad.pure("hola mundo!")),
+              () -> rightIdentity(monad, monad.pure("hola mundo!")),
+              () -> associativity(monad, monad.pure("hola mundo!")));
   }
 
   private static <W extends Kind, M extends Monad<W>> void leftIdentity(M monad, Higher1<W, String> value) {

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.typeclasses.MonadLaws.verifyLaws;
+import static com.github.tonivade.purefun.typeclasses.ApplicativeLaws.verifyLaws;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,25 +13,25 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Validation;
 
-public class MonadTest {
+public class ApplicativeTest {
 
   @Test
-  public void optionMonad() {
-    verifyLaws(Option.monad());
+  public void optionApplicative() {
+    verifyLaws(Option.applicative());
   }
 
   @Test
-  public void tryMonad() {
-    verifyLaws(Try.monad());
+  public void tryApplicative() {
+    verifyLaws(Try.applicative());
   }
 
   @Test
-  public void eitherMonad() {
-    verifyLaws(Either.monad());
+  public void eitherApplicative() {
+    verifyLaws(Either.applicative());
   }
 
   @Test
-  public void validationMonad() {
-    verifyLaws(Validation.monad());
+  public void validationApplicative() {
+    verifyLaws(Validation.applicative());
   }
 }
