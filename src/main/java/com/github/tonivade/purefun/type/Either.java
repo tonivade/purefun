@@ -23,7 +23,9 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
@@ -186,6 +188,32 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <L> Functor<Higher1<Either.µ, L>> functor() {
+    return new Functor<Higher1<Either.µ, L>>() {
+
+      @Override
+      public <T, R> Either<L, R> map(Higher1<Higher1<Either.µ, L>, T> value, Function1<T, R> map) {
+        return narrowK(value).map(map);
+      }
+    };
+  }
+
+  static <L> Applicative<Higher1<Either.µ, L>> applicative() {
+    return new Applicative<Higher1<Either.µ, L>>() {
+
+      @Override
+      public <T> Either<L, T> pure(T value) {
+        return right(value);
+      }
+
+      @Override
+      public <T, R> Either<L, R> ap(Higher1<Higher1<Either.µ, L>, T> value,
+          Higher1<Higher1<Either.µ, L>, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
   }
 
   static <L> Monad<Higher1<Either.µ, L>> monad() {

@@ -5,8 +5,13 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Objects;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -14,7 +19,10 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 @FunctionalInterface
 public interface IO<T> extends FlatMap1<IO.µ, T> {
@@ -38,7 +46,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   }
 
   static <T> IO<T> pure(T value) {
-    return () -> value;
+    return new Pure<>(value);
+  }
+
+  static <T> IO<T> failure(Throwable error) {
+    return new Failure<>(error);
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -57,9 +69,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return pure(nothing());
   }
 
-  static <T, R> IO<R> bracket(IO<T> acquire,
-                              Function1<T, IO<R>> use,
-                              CheckedConsumer1<T> release) {
+  static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
     return () -> {
       try (IOResource<T> resource = new IOResource<>(acquire.unsafeRunSync(), release)) {
         return resource.apply(use).unsafeRunSync();
@@ -67,8 +77,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     };
   }
 
-  static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire,
-                                                    Function1<T, IO<R>> use) {
+  static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
@@ -93,6 +102,96 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
         return narrowK(value).flatMap(map);
       }
     };
+  }
+
+  static MonadError<IO.µ, Throwable> monadThrow() {
+    return new MonadError<IO.µ, Throwable>() {
+
+      @Override
+      public <T> IO<T> pure(T value) {
+        return IO.pure(value);
+      }
+
+      @Override
+      public <A> IO<A> raiseError(Throwable error) {
+        return failure(error);
+      }
+
+      @Override
+      public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> mapper) {
+        return narrowK(value).flatMap(mapper);
+      }
+
+      @Override
+      public <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
+        Try<A> tryValue = Try.of(IO.narrowK(value)::unsafeRunSync);
+        return tryValue.fold(handler.andThen(IO::narrowK), IO::pure);
+      }
+    };
+  }
+
+  final class Pure<T> implements IO<T> {
+
+    private final T value;
+
+    private Pure(T value) {
+      this.value = requireNonNull(value);
+    }
+
+    @Override
+    public T unsafeRunSync() {
+      return value;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return Equal.of(this).append(comparing(Pure::unsafeRunSync)).applyTo(obj);
+    }
+
+    @Override
+    public String toString() {
+      return "Pure(" + value + ")";
+    }
+  }
+
+  final class Failure<T> implements IO<T> {
+
+    private final Throwable error;
+
+    private Failure(Throwable error) {
+      this.error = requireNonNull(error);
+    }
+
+    @Override
+    public T unsafeRunSync() {
+      return toCheckedProducer().unchecked().get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> IO<R> map(Function1<T, R> map) {
+      return (IO<R>) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<µ, R>> map) {
+      return (IO<R>) this;
+    }
+
+    @Override
+    public String toString() {
+      return "Failure(" + error + ")";
+    }
+
+    private CheckedProducer<T> toCheckedProducer() {
+      return CheckedProducer.failure(Producer.unit(error));
+    }
   }
 }
 

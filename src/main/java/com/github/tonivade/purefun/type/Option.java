@@ -28,7 +28,9 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
@@ -156,6 +158,31 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static Functor<Option.µ> functor() {
+    return new Functor<Option.µ>() {
+
+      @Override
+      public <T, R> Option<R> map(Higher1<Option.µ, T> value, Function1<T, R> mapper) {
+        return narrowK(value).map(mapper);
+      }
+    };
+  }
+
+  static Applicative<Option.µ> applicative() {
+    return new Applicative<Option.µ>() {
+
+      @Override
+      public <T> Option<T> pure(T value) {
+        return some(value);
+      }
+
+      @Override
+      public <T, R> Option<R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
   }
 
   static Monad<Option.µ> monad() {

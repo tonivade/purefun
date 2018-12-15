@@ -26,8 +26,11 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, T> {
 
@@ -102,7 +105,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     return orElse.get();
   }
 
-  default <U> U fold(Function1<T, U> validMap, Function1<E, U> invalidMap) {
+  default <U> U fold(Function1<E, U> invalidMap, Function1<T, U> validMap) {
     if (isValid()) {
       return validMap.apply(get());
     }
@@ -139,6 +142,32 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     }
   }
 
+  static <E> Functor<Higher1<Validation.µ, E>> functor() {
+    return new Functor<Higher1<Validation.µ, E>>() {
+
+      @Override
+      public <T, R> Validation<E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
+        return narrowK(value).map(map);
+      }
+    };
+  }
+
+  static <E> Applicative<Higher1<Validation.µ, E>> applicative() {
+    return new Applicative<Higher1<Validation.µ, E>>() {
+
+      @Override
+      public <T> Validation<E, T> pure(T value) {
+        return valid(value);
+      }
+
+      @Override
+      public <T, R> Validation<E, R> ap(Higher1<Higher1<Validation.µ, E>, T> value,
+          Higher1<Higher1<Validation.µ, E>, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
+  }
+
   static <E> Monad<Higher1<Validation.µ, E>> monad() {
     return new Monad<Higher1<Validation.µ, E>>() {
 
@@ -150,6 +179,33 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
       @Override
       public <T, R> Validation<E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
                                              Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
+        return narrowK(value).flatMap(map.andThen(Validation::narrowK));
+      }
+    };
+  }
+
+  static <E> MonadError<Higher1<Validation.µ, E>, E> monadError() {
+    return new MonadError<Higher1<µ,E>, E>() {
+
+      @Override
+      public <A> Validation<E, A> raiseError(E error) {
+        return invalid(error);
+      }
+
+      @Override
+      public <T> Validation<E, T> pure(T value) {
+        return valid(value);
+      }
+
+      @Override
+      public <A> Validation<E, A> handleErrorWith(Higher1<Higher1<Validation.µ, E>, A> value,
+          Function1<E, ? extends Higher1<Higher1<Validation.µ, E>, A>> handler) {
+        return narrowK(value).fold(handler.andThen(Validation::narrowK), Validation::valid);
+      }
+
+      @Override
+      public <T, R> Validation<E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
+          Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
         return narrowK(value).flatMap(map.andThen(Validation::narrowK));
       }
     };

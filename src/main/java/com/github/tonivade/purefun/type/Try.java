@@ -26,7 +26,9 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
@@ -194,6 +196,31 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static Functor<Try.µ> functor() {
+    return new Functor<Try.µ>() {
+
+      @Override
+      public <T, R> Try<R> map(Higher1<Try.µ, T> value, Function1<T, R> mapper) {
+        return narrowK(value).map(mapper);
+      }
+    };
+  }
+
+  static Applicative<Try.µ> applicative() {
+    return new Applicative<Try.µ>() {
+
+      @Override
+      public <T> Try<T> pure(T value) {
+        return success(value);
+      }
+
+      @Override
+      public <T, R> Try<R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
   }
 
   static Monad<Try.µ> monad() {

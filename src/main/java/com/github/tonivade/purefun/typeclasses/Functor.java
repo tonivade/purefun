@@ -11,5 +11,4 @@ import com.github.tonivade.purefun.Kind;
 public interface Functor<F extends Kind> {
 
   <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map);
-
 }

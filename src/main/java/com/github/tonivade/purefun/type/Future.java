@@ -27,6 +27,8 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
@@ -141,6 +143,31 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
     return (Future<T>) hkt;
+  }
+
+  static Functor<Future.µ> functor() {
+    return new Functor<Future.µ>() {
+
+      @Override
+      public <T, R> Future<R> map(Higher1<Future.µ, T> value, Function1<T, R> mapper) {
+        return narrowK(value).map(mapper);
+      }
+    };
+  }
+
+  static Applicative<Future.µ> applicative() {
+    return new Applicative<Future.µ>() {
+
+      @Override
+      public <T> Future<T> pure(T value) {
+        return success(value);
+      }
+
+      @Override
+      public <T, R> Future<R> ap(Higher1<Future.µ, T> value, Higher1<Future.µ, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
   }
 
   static Monad<Future.µ> monad() {
