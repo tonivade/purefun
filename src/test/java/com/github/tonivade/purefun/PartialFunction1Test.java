@@ -20,12 +20,12 @@ import com.github.tonivade.purefun.type.Option;
 
 public class PartialFunction1Test {
 
-  final Function1<String, String> toUpperCase = String::toUpperCase;
-  final Function1<String, String> toLowerCase = String::toLowerCase;
+  private final Function1<String, String> toUpperCase = String::toUpperCase;
+  private final Function1<String, String> toLowerCase = String::toLowerCase;
 
-  final PartialFunction1<Integer, String> fromArray =
+  private final PartialFunction1<Integer, String> fromArray =
       PartialFunction1.from(arrayOf("a", "b", "c"));
-  final PartialFunction1<String, Integer> fromMap =
+  private final PartialFunction1<String, Integer> fromMap =
       PartialFunction1.from(ImmutableMap.<String, Integer>builder().put("a", 1).build());
 
   @Test
