@@ -30,6 +30,10 @@ public interface Matcher1<T> {
     return matcher.negate();
   }
 
+  static <T> Matcher1<T> invalid() {
+    return value -> { throw new IllegalStateException(); };
+  }
+
   // XXX: when I change Class<?> for Class<? extends T>
   // javac complains about this, it cannot infer type parameters but inside eclipse works fine
   static <T> Matcher1<T> instanceOf(Class<?> type) {

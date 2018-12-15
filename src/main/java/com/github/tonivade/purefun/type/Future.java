@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -317,11 +316,11 @@ interface FutureModule {
 
 final class AsyncValue<T> {
 
-  private final AtomicReference<T> reference = new AtomicReference<>();
+  private final AtomicReference<Option<T>> reference = new AtomicReference<>(Option.none());
   private final CountDownLatch latch = new CountDownLatch(1);
 
   void set(T value) {
-    if (reference.compareAndSet(null, requireNonNull(value))) {
+    if (reference.compareAndSet(Option.none(), requireNonNull(Option.some(value)))) {
       latch.countDown();
     }
     else throw new IllegalStateException("already setted: " + reference.get());
@@ -333,11 +332,11 @@ final class AsyncValue<T> {
 
   Option<T> get(Duration timeout) throws InterruptedException {
     await(timeout);
-    return Option.of(reference::get);
+    return reference.get();
   }
 
   boolean isEmpty() {
-    return isNull(reference.get());
+    return reference.get().equals(Option.none());
   }
 
   private void await(Duration timeout) throws InterruptedException {

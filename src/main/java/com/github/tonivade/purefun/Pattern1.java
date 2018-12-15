@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import static com.github.tonivade.purefun.Matcher1.invalid;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -74,7 +75,7 @@ public final class Pattern1<T, R> implements Function1<T, R> {
 
     private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
       this.finisher = requireNonNull(finisher);
-      this.matcher = null;
+      this.matcher = invalid();
     }
 
     private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
