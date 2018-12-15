@@ -7,6 +7,7 @@ package com.github.tonivade.purefun;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.data.ImmutableArray;
+import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.type.Option;
 
 public interface PartialFunction1<T, R> {
@@ -47,6 +48,11 @@ public interface PartialFunction1<T, R> {
   static <R> PartialFunction1<Integer, R> from(ImmutableArray<R> array) {
     return of(position -> array.get(position),
               position -> position > 0 && position < array.size());
+  }
+
+  static <K, V> PartialFunction1<K, V> from(ImmutableMap<K, V> map) {
+    return of(key -> map.get(key).get(),
+              key -> map.containsKey(key));
   }
 }
 
