@@ -24,21 +24,21 @@ public interface Applicative<F extends Kind> extends Functor<F> {
   }
 
   default <A, B, R> Higher1<F, R> map2(Higher1<F, A> fa, Higher1<F, B> fb, Function2<A, B, R> mapper) {
-    return ap(fb, ap(fa, pure(mapper.curried())));
+    return ap(fb, map(fa, mapper.curried()));
   }
 
   default <A, B, C, R> Higher1<F, R> map3(Higher1<F, A> fa, Higher1<F, B> fb, Higher1<F, C> fc,
       Function3<A, B, C, R> mapper) {
-    return ap(fc, ap(fb, ap(fa, pure(mapper.curried()))));
+    return ap(fc, map2(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
   }
 
   default <A, B, C, D, R> Higher1<F, R> map4(Higher1<F, A> fa, Higher1<F, B> fb, Higher1<F, C> fc, Higher1<F, D> fd,
       Function4<A, B, C, D, R> mapper) {
-    return ap(fd, ap(fc, ap(fb, ap(fa, pure(mapper.curried())))));
+    return ap(fd, map3(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
   }
 
   default <A, B, C, D, E, R> Higher1<F, R> map5(Higher1<F, A> fa, Higher1<F, B> fb, Higher1<F, C> fc, Higher1<F, D> fd,
       Higher1<F, E> fe, Function5<A, B, C, D, E, R> mapper) {
-    return ap(fe, ap(fd, ap(fc, ap(fb, ap(fa, pure(mapper.curried()))))));
+    return ap(fe, map4(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
 }
