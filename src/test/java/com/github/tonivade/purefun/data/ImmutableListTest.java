@@ -19,8 +19,8 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
-import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
@@ -95,7 +95,7 @@ public class ImmutableListTest {
 
   @Test
   public void listLaws() {
-    FunctorLaws.verifyLaws(listOf("a", "b", "c"));
-    MonadLaws.verifyLaws(listOf("a", "b", "c"), Sequence::listOf);
+    MappableLaws.verifyLaws(listOf("a", "b", "c"));
+    FlatMap1Laws.verifyLaws(listOf("a", "b", "c"), Sequence::listOf);
   }
 }

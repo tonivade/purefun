@@ -104,7 +104,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     };
   }
 
-  static MonadError<IO.µ, Throwable> monadThrow() {
+  static MonadError<IO.µ, Throwable> monadError() {
     return new MonadError<IO.µ, Throwable>() {
 
       @Override

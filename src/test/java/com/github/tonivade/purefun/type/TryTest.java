@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class TryTest {
@@ -254,8 +254,8 @@ public class TryTest {
 
   @Test
   public void tryLaws() {
-    FunctorLaws.verifyLaws(Try.success("Hola mundo"));
-    MonadLaws.verifyLaws(Try.success("Hola mundo"), Try::success);
+    MappableLaws.verifyLaws(Try.success("Hola mundo"));
+    FlatMap1Laws.verifyLaws(Try.success("Hola mundo"), Try::success);
   }
 
   @Test

@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
+import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
@@ -248,7 +248,7 @@ public class EitherTest {
 
   @Test
   public void rightLaws() {
-    FunctorLaws.verifyLaws(Either.right("Hola"));
+    MappableLaws.verifyLaws(Either.right("Hola"));
   }
 
   @Test

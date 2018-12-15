@@ -7,7 +7,7 @@ package com.github.tonivade.purefun;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MonadLaws {
+public class FlatMap1Laws {
 
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;

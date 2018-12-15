@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.FunctorLaws;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.MonadLaws;
+import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -168,8 +168,8 @@ public class OptionTest {
 
   @Test
   public void optionLaws() {
-    FunctorLaws.verifyLaws(Option.some("Hola mundo"));
-    MonadLaws.verifyLaws(Option.some("Hola mundo"), Option::some);
+    MappableLaws.verifyLaws(Option.some("Hola mundo"));
+    FlatMap1Laws.verifyLaws(Option.some("Hola mundo"), Option::some);
   }
 
   @Test
@@ -198,8 +198,7 @@ public class OptionTest {
               () -> assertEquals(some, monad.pure("asdf")),
               () -> assertEquals(none, monad.map(none, toUpperCase)),
               () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption())),
-              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase)))
-              );
+              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase))));
   }
 
   @Test
