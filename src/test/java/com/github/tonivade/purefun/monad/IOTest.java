@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.monad.IO.narrowK;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,9 +20,11 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class IOTest {
 
@@ -62,6 +65,24 @@ public class IOTest {
 
     assertEquals(Try.success("value"), bracket.unsafeRunSync());
     verify(resultSet).close();
+  }
+
+  @Test
+  public void monadError() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<IO.µ, Throwable> monadError = IO.monadError();
+
+    Higher1<IO.µ, String> pure = monadError.pure("is not ok");
+    Higher1<IO.µ, String> raiseError = monadError.raiseError(error);
+    Higher1<IO.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<IO.µ, String> ensureOk = monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+    Higher1<IO.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+
+    assertAll(
+        () -> assertThrows(RuntimeException.class, () -> IO.narrowK(raiseError).unsafeRunSync()),
+        () -> assertEquals("not an error", IO.narrowK(handleError).unsafeRunSync()),
+        () -> assertThrows(RuntimeException.class, () -> IO.narrowK(ensureError).unsafeRunSync()),
+        () -> assertEquals("is not ok", IO.narrowK(ensureOk).unsafeRunSync()));
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {
