@@ -56,12 +56,12 @@ public final class Kleisli<F extends Kind, Z, A> implements FlatMap3<Kleisli.µ,
     return Kleisli.of(monad, a -> monad.pure(value));
   }
 
-  public static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monad) {
+  public static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
     return new Monad<Higher1<Higher1<Kleisli.µ, F>, Z>>() {
 
       @Override
       public <T> Kleisli<F, Z, T> pure(T value) {
-        return Kleisli.pure(monad, value);
+        return Kleisli.pure(monadF, value);
       }
 
       @Override

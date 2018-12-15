@@ -128,7 +128,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> delay(ExecutorService executor, Duration timeout, CheckedProducer<T> producer) {
-    return run(executor, () -> { Thread.sleep(timeout.toMillis()); return producer.get(); });
+    return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
 
   static <T> Future<T> runTry(Producer<Try<T>> task) {
@@ -297,7 +297,7 @@ final class AsyncValue<T> {
     if (reference.compareAndSet(null, requireNonNull(value))) {
       latch.countDown();
     }
-    else throw new IllegalStateException("already setted");
+    else throw new IllegalStateException("already setted: " + reference.get());
   }
 
   Option<T> get() throws InterruptedException {

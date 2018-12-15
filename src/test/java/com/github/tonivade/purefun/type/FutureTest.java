@@ -171,7 +171,7 @@ public class FutureTest {
 
   @Test
   public void cancel() {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(5), unit("Hello world!"));
 
     future.cancel();
 
