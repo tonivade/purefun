@@ -16,25 +16,25 @@ public class MonadLaws {
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;
 
-  public static <W extends Kind, M extends Monad<W>> void verifyLaws(M monad) {
+  public static <F extends Kind> void verifyLaws(Monad<F> monad) {
     assertAll(() -> leftIdentity(monad, monad.pure("hola mundo!")),
               () -> rightIdentity(monad, monad.pure("hola mundo!")),
               () -> associativity(monad, monad.pure("hola mundo!")));
   }
 
-  private static <W extends Kind, M extends Monad<W>> void leftIdentity(M monad, Higher1<W, String> value) {
+  private static <F extends Kind> void leftIdentity(Monad<F> monad, Higher1<F, String> value) {
     assertEquals(monad.map(value, toUpperCase),
                  monad.flatMap(value, string -> monad.pure(toUpperCase.apply(string))),
                  "left identity law");
   }
 
-  private static <W extends Kind, M extends Monad<W>> void rightIdentity(M monad, Higher1<W, String> value) {
+  private static <F extends Kind> void rightIdentity(Monad<F> monad, Higher1<F, String> value) {
     assertEquals(value,
                  monad.flatMap(value, string -> monad.pure(string)),
                  "right identity law");
   }
 
-  private static <W extends Kind, M extends Monad<W>> void associativity(M monad, Higher1<W, String> value) {
+  private static <F extends Kind> void associativity(Monad<F> monad, Higher1<F, String> value) {
     assertEquals(monad.flatMap(monad.flatMap(value, v1 -> monad.pure(toUpperCase.apply(v1))), v2 -> monad.pure(toLowerCase.apply(v2))),
                  monad.flatMap(value, v1 -> monad.flatMap(monad.pure(toUpperCase.apply(v1)), v2 -> monad.pure(toLowerCase.apply(v2)))),
                  "associativity law");

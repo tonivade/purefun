@@ -24,6 +24,7 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.BiFunctor;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -92,17 +93,11 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
   @Override
   default <T> Either<L, T> map(Function1<R, T> map) {
-    if (isRight()) {
-      return right(map.apply(getRight()));
-    }
-    return left(getLeft());
+    return bimap(Function1.identity(), map);
   }
 
   default <T> Either<T, R> mapLeft(Function1<L, T> map) {
-    if (isLeft()) {
-      return left(map.apply(getLeft()));
-    }
-    return right(getRight());
+    return bimap(map, Function1.identity());
   }
 
   @Override
@@ -196,6 +191,16 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
       @Override
       public <T, R> Either<L, R> map(Higher1<Higher1<Either.µ, L>, T> value, Function1<T, R> map) {
         return narrowK(value).map(map);
+      }
+    };
+  }
+
+  static BiFunctor<Either.µ> bifunctor() {
+    return new BiFunctor<Either.µ>() {
+
+      @Override
+      public <A, B, C, D> Either<C, D> bimap(Higher2<Either.µ, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap) {
+        return narrowK(value).bimap(leftMap, rightMap);
       }
     };
   }

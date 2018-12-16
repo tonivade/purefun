@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.BiFunctor;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -148,6 +149,16 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
       @Override
       public <T, R> Validation<E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
         return narrowK(value).map(map);
+      }
+    };
+  }
+
+  static BiFunctor<Validation.µ> bifunctor() {
+    return new BiFunctor<Validation.µ>() {
+
+      @Override
+      public <A, B, C, D> Validation<C, D> bimap(Higher2<Validation.µ, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap) {
+        return narrowK(value).mapError(leftMap).map(rightMap);
       }
     };
   }
