@@ -192,9 +192,9 @@ public class FutureTest {
     Higher1<Future.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Future.failure(error).await(), Future.narrowK(raiseError).await()),
-        () -> assertEquals(Future.success("not an error").await(), Future.narrowK(handleError).await()),
-        () -> assertEquals(Future.failure(error).await(), Future.narrowK(ensureError).await()),
-        () -> assertEquals(Future.success("is not ok").await(), Future.narrowK(ensureOk).await()));
+        () -> assertEquals(Try.failure(error), Future.narrowK(raiseError).await()),
+        () -> assertEquals(Try.success("not an error"), Future.narrowK(handleError).await()),
+        () -> assertEquals(Try.failure(error), Future.narrowK(ensureError).await()),
+        () -> assertEquals(Try.success("is not ok"), Future.narrowK(ensureOk).await()));
   }
 }
