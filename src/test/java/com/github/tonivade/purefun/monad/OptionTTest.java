@@ -13,10 +13,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Transformer;
@@ -78,6 +80,22 @@ public class OptionTTest {
     OptionT<Try.µ, String> someTry = someIo.mapK(Try.monad(), new IOToTryTransformer());
 
     assertEquals(Try.success("abc"), Try.narrowK(someTry.get()));
+  }
+
+  @Test
+  public void eq() {
+    OptionT<Try.µ, String> some1 = OptionT.some(Try.monad(), "abc");
+    OptionT<Try.µ, String> some2 = OptionT.some(Try.monad(), "abc");
+    OptionT<Try.µ, String> none1 = OptionT.none(Try.monad());
+    OptionT<Try.µ, String> none2 = OptionT.none(Try.monad());
+
+    Eq<Higher2<OptionT.µ, Try.µ, String>> instance = OptionT.eq(Try.eq(Eq.object(), Eq.throwable()));
+
+    assertAll(
+        () -> assertTrue(instance.eqv(some1, some2)),
+        () -> assertTrue(instance.eqv(none1, none2)),
+        () -> assertFalse(instance.eqv(some1, none1)),
+        () -> assertFalse(instance.eqv(none2, some2)));
   }
 
   @Test

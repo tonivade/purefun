@@ -25,10 +25,12 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -158,6 +160,17 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <T> Eq<Higher1<Option.µ, T>> eq(Eq<T> eqSome) {
+    return (a, b) -> Pattern2.<Option<T>, Option<T>, Boolean>build()
+      .when((x, y) -> x.isPresent() && y.isPresent())
+        .then((x, y) -> eqSome.eqv(x.get(), y.get()))
+      .when((x, y) -> x.isEmpty() && y.isEmpty())
+        .returns(true)
+      .otherwise()
+        .returns(false)
+      .apply(narrowK(a), narrowK(b));
   }
 
   static Functor<Option.µ> functor() {

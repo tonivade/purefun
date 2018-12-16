@@ -24,10 +24,12 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.BiFunctor;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -141,6 +143,17 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <E, T> Eq<Higher2<Validation.µ, E, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
+    return (a, b) -> Pattern2.<Validation<E, T>, Validation<E, T>, Boolean>build()
+      .when((x, y) -> x.isInvalid() && y.isInvalid())
+        .then((x, y) -> errorEq.eqv(x.getError(), y.getError()))
+      .when((x, y) -> x.isValid() && y.isValid())
+        .then((x, y) -> validEq.eqv(x.get(), y.get()))
+      .otherwise()
+        .returns(false)
+      .apply(narrowK(a), narrowK(b));
   }
 
   static <E> Functor<Higher1<Validation.µ, E>> functor() {

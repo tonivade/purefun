@@ -19,8 +19,10 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTest {
@@ -230,6 +232,22 @@ public class EitherTest {
               () -> assertEquals(emptyList(), left.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> left.get()),
               () -> assertThrows(NoSuchElementException.class, () -> left.getRight()));
+  }
+
+  @Test
+  public void eq() {
+    Either<Integer, String> left1 = Either.left(10);
+    Either<Integer, String> left2 = Either.left(10);
+    Either<Integer, String> right1 = Either.right("hola");
+    Either<Integer, String> right2 = Either.right("hola");
+
+    Eq<Higher2<Either.µ, Integer, String>> instance = Either.eq(Eq.object(), Eq.object());
+
+    assertAll(
+        () -> assertTrue(instance.eqv(left1, left2)),
+        () -> assertTrue(instance.eqv(right1, right2)),
+        () -> assertFalse(instance.eqv(left1, right1)),
+        () -> assertFalse(instance.eqv(right2, left2)));
   }
 
   @Test
