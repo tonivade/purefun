@@ -28,7 +28,7 @@ public interface PartialFunction1<T, R> {
     return value -> apply(before.apply(value));
   }
 
-  default <V> PartialFunction1<T, R> orElse(PartialFunction1<T, R> other) {
+  default PartialFunction1<T, R> orElse(PartialFunction1<T, R> other) {
     final PartialFunction1<T, R> self = PartialFunction1.this;
     return of(value -> self.isDefinedAt(value) ? self.apply(value) : other.apply(value),
               value -> self.isDefinedAt(value) || other.isDefinedAt(value));
@@ -46,13 +46,11 @@ public interface PartialFunction1<T, R> {
   }
 
   static <R> PartialFunction1<Integer, R> from(ImmutableArray<R> array) {
-    return of(position -> array.get(position),
-              position -> position >= 0 && position < array.size());
+    return of(array::get, position -> position >= 0 && position < array.size());
   }
 
   static <K, V> PartialFunction1<K, V> from(ImmutableMap<K, V> map) {
-    return of(key -> map.get(key).get(),
-              key -> map.containsKey(key));
+    return of(key -> map.get(key).get(), map::containsKey);
   }
 }
 

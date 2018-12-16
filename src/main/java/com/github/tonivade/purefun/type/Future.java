@@ -231,7 +231,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     @Override
     public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
       return runTry(executor,
-          () -> await().flatMap(value -> mapper.andThen(Future::narrowK).apply(value).await()));
+          () -> await().flatMap(t -> mapper.andThen(Future::narrowK).apply(t).await()));
     }
 
     @Override

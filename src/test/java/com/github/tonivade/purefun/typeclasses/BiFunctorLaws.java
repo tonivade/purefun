@@ -37,7 +37,7 @@ public class BiFunctorLaws {
   }
 
   private static <F extends Kind> void mapIdentityLaw(BiFunctor<F> functor, Higher2<F, String, String> value) {
-    assertEquals(value, functor.map(value, Function1.identity()), "map identity law");
+    assertEquals(value, functor.map(value, identity()), "map identity law");
   }
 
   private static <F extends Kind> void mapComposition(BiFunctor<F> functor, Higher2<F, String, String> value) {
@@ -47,7 +47,7 @@ public class BiFunctorLaws {
   }
 
   private static <F extends Kind> void leftMapIdentityLaw(BiFunctor<F> functor, Higher2<F, String, String> value) {
-    assertEquals(value, functor.leftMap(value, Function1.identity()), "left map identity law");
+    assertEquals(value, functor.leftMap(value, identity()), "left map identity law");
   }
 
   private static <F extends Kind> void leftMapComposition(BiFunctor<F> functor, Higher2<F, String, String> value) {

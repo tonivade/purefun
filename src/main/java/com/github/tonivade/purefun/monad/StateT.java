@@ -50,8 +50,8 @@ public final class StateT<W extends Kind, S, A> implements FlatMap3<StateT.µ, W
   @Override
   public <R> StateT<W, S, R> flatMap(Function1<A, ? extends Higher3<StateT.µ, W, S, R>> map) {
     return state(monad, state -> {
-      Higher1<W, Tuple2<S, A>> run = run(state);
-      return monad.flatMap(run, state2 -> map.andThen(StateT::narrowK).apply(state2.get2()).run(state2.get1()));
+      Higher1<W, Tuple2<S, A>> newState = run(state);
+      return monad.flatMap(newState, state2 -> map.andThen(StateT::narrowK).apply(state2.get2()).run(state2.get1()));
     });
   }
 
