@@ -18,23 +18,27 @@ and also to Scala standard library authors. Their awesome work help me a lot.
 
 ## Disclaimer
 
-This project is not ready to be used in production, I use it to learn functional programming concepts by my self, but, if you want to you it, use it at your own risk. Anyway if you think is useful for you, go ahead, also any feedback and PR are wellcome.
+This project is not ready to be used in production, I use it to learn functional programming concepts by my self, but, 
+if you want to you it, use it at your own risk. Anyway if you think is useful for you, go ahead, also any 
+feedback and PR are wellcome.
 
 ## Base Interfaces
 
 ### Higher Kinded types
 
 In this project I have implemented some patterns of functional programming that need Higher Kinded Types. In Java
-there are not such thing, but it can be simulated using a especial codification of kinds.
+there are not such thing, but it can be simulated using a especial codification of types.
 
-In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified like this `Monad<F extends Kind>`. 
-Then we can define a type using a special codification like this:
+In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified 
+like this `Monad<F extends Kind>`. `Kind` is a simple mark interface. Then we can define a type using a special 
+codification like this:
 
 ```java
 interface SomeType<T> extends Higher1<SomeType.µ, T> {
 
   interface µ extends Kind {}
   
+  // this is a safe cast
   static SomeType<T> narrowK(Higher1<SomeType.µ, T> hkt) {
     return (SomeType<T>) hkt;
   }
@@ -42,6 +46,7 @@ interface SomeType<T> extends Higher1<SomeType.µ, T> {
 ```
 
 It can be triky but, but in the end is easy to work with. By the way, I tried to hide this details to the user of the library.
+Except with typeclasses because is the only way to implement them in Java.
 
 So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't 
 necessary to implement the library.
@@ -60,8 +65,6 @@ interface Mappable<W extends Kind, T> extends Higher1<W, T> {
 
 These interfaces define the method `flatMap` for the kinds 1, 2 and 3, so it can be called as `Monad` also, so as not to create
 confusion I named `FlatMap`.
-
-It is difficult to explain what a monad is, many people have tried and this is my humble attempt. It is something that allows to combine operations, in a functional way, but simulating the imperative style. For example, `State`, `Reader`, `Writer` and `IO` monads are ways to combine operations.
 
 ```java
 interface FlatMap1<W extends Kind, T> extends Higher1<W, T>, Mappable<W, T> {
@@ -118,7 +121,8 @@ Either<Integer, String> left = Either.left(100);
 
 ### Validation
 
-This type represents two different states, valid or invalid, an also it allows to combine several validations using `map2` to `map5` methods.
+This type represents two different states, valid or invalid, an also it allows to combine several 
+validations using `map2` to `map5` methods.
 
 ```java
 Validation<String, String> name = Validation.valid("John Smith");
@@ -164,9 +168,11 @@ This class represents a hash map.
 
 ### ImmutableTree
 
-TODO: not implemented yet
-
 This class represents a binary tree.
+
+### ImmutableTreeMap
+
+This class represents a binary tree map.
 
 ## Monads
 
@@ -225,9 +231,36 @@ This is a experimental implementation of IO Monad in java. Inspired in this [wor
   echo.unsafeRunSync();
 ```
 
+### Future
+
+This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
+
+```java
+  Future<String> future = Future.success("Hello world!");
+
+  Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+
+  assertEquals(Try.success("HELLO WORLD!"), result.await());
+```
+
+### Trampoline
+
+Implements recursion using an iteration and is stack safe.
+
+```java
+  private Trampoline<Integer> fibLoop(Integer n) {
+    if (n < 2) {
+      return Trampoline.done(n);
+    }
+    return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -> x + y));
+  }
+```
+
 ### Free Monad
 
-Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly inestable implementation and I have implemented because it can be implemented. Inspired in this [work](https://github.com/xuwei-k/free-monad-java).
+Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly 
+inestable implementation and I have implemented because it can be implemented. Inspired 
+in this [work](https://github.com/xuwei-k/free-monad-java).
 
 ```java 
   Free<IOProgram.µ, Nothing> echo =
@@ -256,9 +289,46 @@ Also I implemented the Kleisli composition for functions that returns monadic va
   assertEquals(Try.success(61.5), result);
 ```
 
-## Algebra
+### OptionT
 
-Some algebraic data types
+Monad Transformer for `Option` type
+
+```java
+  OptionT<IO.µ, String> some = OptionT.some(IO.monad(), "abc");
+
+  OptionT<IO.µ, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
+
+  assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+```
+
+### EitherT
+
+Monad Transformer for `Either` type
+
+```java
+  EitherT<IO.µ, Nothing, String> right = EitherT.right(IO.monad(), "abc");
+
+  EitherT<IO.µ, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
+
+  assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+```
+
+### StateT
+
+Monad Transformer for `State` type
+
+```java
+  StateT<IO.µ, ImmutableList<String>, Nothing> state =
+      pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
+
+  IO<Tuple2<ImmutableList<String>, Nothing>> result = IO.narrowK(state.run(ImmutableList.empty()));
+
+  assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result.unsafeRunSync());
+```
+
+## Type Classes
+
+Some type classes are implemented:
 
 ### Semigroup
 
@@ -299,6 +369,14 @@ public interface Functor<F extends Kind> {
 }
 ```
 
+### BiFunctor
+
+```java
+public interface BiFunctor<F extends Kind> {
+  <A, B, C, D> Higher2<F, C, D> bimap(Higher2<F, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
+}
+```
+
 ### Applicative
 
 Also an `Applicative`
@@ -317,9 +395,22 @@ public interface Applicative<F extends Kind> extends Functor<F> {
 }
 ```
 
+### Applicative Error
+
+```java
+public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
+
+  <A> Higher1<F, A> raiseError(E error);
+
+  <A> Higher1<F, A> handleErrorWith(Higher1<F, A> value, Function1<E, ? extends Higher1<F, A>> handler);
+}
+```
+
 ### Monad
 
-Also a `Monad`
+Also a `Monad`. It is difficult to explain what a monad is, many people have tried and this is my humble attempt. 
+It is something that allows to combine operations, in a functional way, but simulating the imperative style. 
+For example, `State`, `Reader`, `Writer` and `IO` monads are ways to combine operations.
 
 ```java
 public interface Monad<F extends Kind> extends Applicative<F> {
@@ -338,13 +429,24 @@ public interface Monad<F extends Kind> extends Applicative<F> {
 }
 ```
 
+### Monad Error
+
+```java
+public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, Monad<F> {
+
+  default <A> Higher1<F, A> ensure(Higher1<F, A> value, Producer<E> error, Matcher1<A> matcher) {
+    return flatMap(value, a -> matcher.match(a) ? pure(a) : raiseError(error.get()));
+  }
+}
+```
+
 ### Transformer
 
 It represents a natural transformation between two different kinds.
 
 ```java
-public interface Transformer<F extends Kind, T extends Kind> {
-  <X> Higher<T, X> apply(Higher<F, X> from);
+public interface Transformer<F extends Kind, G extends Kind> {
+  <X> Higher1<G, T> apply(Higher<F, T> from);
 }
 ```
 
