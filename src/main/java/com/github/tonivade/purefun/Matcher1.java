@@ -29,6 +29,10 @@ public interface Matcher1<T> {
   static <T> Matcher1<T> not(Matcher1<T> matcher) {
     return matcher.negate();
   }
+  
+  static <T> Matcher1<T> always() {
+    return value -> true;
+  }
 
   static <T> Matcher1<T> invalid() {
     return value -> { throw new IllegalStateException(); };
