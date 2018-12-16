@@ -174,13 +174,13 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
       @Override
       public <T> Future<T> pure(T value) {
-        return Future.success(value);
+        return success(value);
       }
 
       @Override
       public <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
                                       Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-        return Future.narrowK(value).flatMap(mapper);
+        return narrowK(value).flatMap(mapper);
       }
     };
   }
@@ -190,24 +190,24 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
       @Override
       public <A> Future<A> raiseError(Throwable error) {
-        return Future.failure(error);
+        return failure(error);
       }
 
       @Override
       public <A> Future<A> handleErrorWith(Higher1<Future.µ, A> value,
-                                           Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
-        return Future.narrowK(value).fold(handler.andThen(Future::narrowK), Future::success).flatten();
+          Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
+        return narrowK(value).fold(handler.andThen(Future::narrowK), Future::success).flatten();
       }
 
       @Override
       public <T> Future<T> pure(T value) {
-        return Future.success(value);
+        return success(value);
       }
 
       @Override
       public <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
-                                      Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-        return Future.narrowK(value).flatMap(mapper);
+          Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
+        return narrowK(value).flatMap(mapper);
       }
     };
   }
@@ -320,7 +320,7 @@ final class AsyncValue<T> {
   private final CountDownLatch latch = new CountDownLatch(1);
 
   void set(T value) {
-    if (reference.compareAndSet(Option.none(), requireNonNull(Option.some(value)))) {
+    if (reference.compareAndSet(Option.none(), Option.some(value))) {
       latch.countDown();
     }
     else throw new IllegalStateException("already setted: " + reference.get());
