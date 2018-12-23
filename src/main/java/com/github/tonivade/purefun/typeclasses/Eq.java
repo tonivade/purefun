@@ -7,10 +7,16 @@ package com.github.tonivade.purefun.typeclasses;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.github.tonivade.purefun.Function1;
+
 @FunctionalInterface
 public interface Eq<T> {
 
   boolean eqv(T a, T b);
+
+  default Eq<T> and(Eq<T> other) {
+    return (a, b) -> eqv(a, b) && other.eqv(a, b);
+  }
 
   static <T> Eq<T> object() {
     return Objects::equals;
@@ -19,5 +25,13 @@ public interface Eq<T> {
   static Eq<Throwable> throwable() {
     return (a, b) -> Objects.equals(a.getMessage(), b.getMessage())
         && Arrays.deepEquals(a.getStackTrace(), b.getStackTrace());
+  }
+
+  public static <T, V> Eq<T> comparing(Function1<T, V> getter) {
+    return (a, b) -> Objects.equals(getter.apply(a), getter.apply(b));
+  }
+
+  public static <T, V> Eq<T> comparingArray(Function1<T, V[]> getter) {
+    return (a, b) -> Arrays.deepEquals(getter.apply(a), getter.apply(b));
   }
 }

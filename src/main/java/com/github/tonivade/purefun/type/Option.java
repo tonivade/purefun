@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.handler.OptionHandler.identity;
-import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 

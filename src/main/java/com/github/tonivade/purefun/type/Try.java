@@ -5,8 +5,8 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.handler.TryHandler.identity;
-import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
-import static com.github.tonivade.purefun.typeclasses.Equal.comparingArray;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparingArray;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;

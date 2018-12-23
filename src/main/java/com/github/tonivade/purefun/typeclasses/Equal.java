@@ -7,26 +7,25 @@ package com.github.tonivade.purefun.typeclasses;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 
 public final class Equal<T> {
 
   private final T target;
-  private final List<Tester<T>> testers = new LinkedList<>();
+  private final Sequence<Eq<T>> testers;
 
   private Equal(T target) {
-    this.target = requireNonNull(target);
+    this(target, ImmutableList.empty());
   }
 
-  public Equal<T> append(Tester<T> tester) {
-    this.testers.add(requireNonNull(tester));
-    return this;
+  private Equal(T target, Sequence<Eq<T>> testers) {
+    this.target = requireNonNull(target);
+    this.testers = requireNonNull(testers);
+  }
+
+  public Equal<T> append(Eq<T> tester) {
+    return new Equal<>(target, testers.append(tester));
   }
 
   @SuppressWarnings("unchecked")
@@ -41,7 +40,7 @@ public final class Equal<T> {
   }
 
   private boolean areEquals(T other) {
-    return testers.stream().allMatch(tester -> tester.apply(target, other));
+    return testers.stream().allMatch(tester -> tester.eqv(target, other));
   }
 
   private boolean sameClasses(Object obj) {
@@ -54,17 +53,5 @@ public final class Equal<T> {
 
   public static <T> Equal<T> of(T target) {
     return new Equal<>(target);
-  }
-
-  @FunctionalInterface
-  public interface Tester<T> extends Function2<T, T, Boolean> {
-  }
-
-  public static <T, V> Tester<T> comparing(Function1<T, V> getter) {
-    return (a, b) -> Objects.equals(getter.apply(a), getter.apply(b));
-  }
-
-  public static <T, V> Tester<T> comparingArray(Function1<T, V[]> getter) {
-    return (a, b) -> Arrays.deepEquals(getter.apply(a), getter.apply(b));
   }
 }

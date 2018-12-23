@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -65,7 +65,7 @@ class Employee {
   public Employee withAddress(Address newAddress) {
     return new Employee(name, newAddress);
   }
-  
+
   @Override
   public int hashCode() {
     return Objects.hash(name, address);
@@ -94,7 +94,7 @@ class Address {
   public Address withCity(String newCity) {
     return new Address(newCity);
   }
-  
+
   @Override
   public int hashCode() {
     return Objects.hash(city);
