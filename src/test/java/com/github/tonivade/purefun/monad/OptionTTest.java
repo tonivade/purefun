@@ -89,7 +89,7 @@ public class OptionTTest {
     OptionT<Try.µ, String> none1 = OptionT.none(Try.monad());
     OptionT<Try.µ, String> none2 = OptionT.none(Try.monad());
 
-    Eq<Higher2<OptionT.µ, Try.µ, String>> instance = OptionT.eq(Try.eq(Eq.object(), Eq.throwable()));
+    Eq<Higher2<OptionT.µ, Try.µ, String>> instance = OptionT.eq(Try.eq(Eq.object()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),

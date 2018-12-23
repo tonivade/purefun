@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import java.util.Arrays;
 import java.util.Objects;
 
+@FunctionalInterface
 public interface Eq<T> {
 
   boolean eqv(T a, T b);

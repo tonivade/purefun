@@ -200,7 +200,8 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     }
   }
 
-  static <T> Eq<Higher1<Try.µ, T>> eq(Eq<T> eqSuccess, Eq<Throwable> eqFailure) {
+  static <T> Eq<Higher1<Try.µ, T>> eq(Eq<T> eqSuccess) {
+    final Eq<Throwable> eqFailure = Eq.throwable();
     return (a, b) -> Pattern2.<Try<T>, Try<T>, Boolean>build()
       .when((x, y) -> x.isFailure() && y.isFailure())
         .then((x, y) -> eqFailure.eqv(x.getCause(), y.getCause()))
