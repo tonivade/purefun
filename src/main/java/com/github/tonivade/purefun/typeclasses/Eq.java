@@ -15,7 +15,7 @@ public interface Eq<T> {
   boolean eqv(T a, T b);
 
   default Eq<T> and(Eq<T> other) {
-    return (a, b) -> eqv(a, b) && other.eqv(a, b);
+    return (a, b) -> this.eqv(a, b) && other.eqv(a, b);
   }
 
   static <T> Eq<T> object() {
