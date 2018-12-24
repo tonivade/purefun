@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Validation;
@@ -19,6 +20,11 @@ import com.github.tonivade.purefun.type.Validation;
 public class ApplicativeTest {
 
   private final Operator5<Integer> sum = (a, b, c, d, e) -> a + b + c + d + e;
+
+  @Test
+  public void idApplicative() {
+    verifyLaws(Id.applicative());
+  }
 
   @Test
   public void optionApplicative() {

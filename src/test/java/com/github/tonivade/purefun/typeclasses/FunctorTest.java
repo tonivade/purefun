@@ -9,11 +9,17 @@ import static com.github.tonivade.purefun.typeclasses.FunctorLaws.verifyLaws;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Validation;
 
 public class FunctorTest {
+
+  @Test
+  public void idFunctor() {
+    verifyLaws(Id.functor(), Id.of("hola mundo!"));
+  }
 
   @Test
   public void optionFunctor() {

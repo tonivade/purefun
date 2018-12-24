@@ -33,7 +33,7 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
   @Override
   public <R> Id<R> map(Function1<T, R> map) {
-    return of(map.apply(value));
+    return map.andThen(Id::of).apply(value);
   }
 
   @Override
@@ -66,6 +66,11 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
     return Equal.of(this).append(comparing(Id::get)).applyTo(obj);
   }
 
+  @Override
+  public String toString() {
+    return "Id(" + value + ")";
+  }
+
   public static <T> Id<T> of(T value) {
     return new Id<>(value);
   }
@@ -86,6 +91,7 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
   public static Functor<Id.µ> functor() {
     return new Functor<Id.µ>() {
+
       @Override
       public <T, R> Id<R> map(Higher1<Id.µ, T> value, Function1<T, R> map) {
         return narrowK(value).map(map);

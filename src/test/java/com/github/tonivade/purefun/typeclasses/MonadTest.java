@@ -9,11 +9,17 @@ import static com.github.tonivade.purefun.typeclasses.MonadLaws.verifyLaws;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Validation;
 
 public class MonadTest {
+
+  @Test
+  public void idMonad() {
+    verifyLaws(Id.monad());
+  }
 
   @Test
   public void optionMonad() {

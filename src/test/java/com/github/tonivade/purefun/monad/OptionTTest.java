@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.type.Future;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Eq;
@@ -25,57 +26,57 @@ import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public class OptionTTest {
 
-  final Monad<IO.µ> monad = IO.monad();
+  final Monad<Id.µ> monad = Id.monad();
 
   @Test
   public void map() {
-    OptionT<IO.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
 
-    OptionT<IO.µ, String> map = some.map(String::toUpperCase);
+    OptionT<Id.µ, String> map = some.map(String::toUpperCase);
 
-    assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+    assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void flatMap() {
-    OptionT<IO.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
 
-    OptionT<IO.µ, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
+    OptionT<Id.µ, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
 
-    assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+    assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void filter() {
-    OptionT<IO.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
 
-    OptionT<IO.µ, String> filter = some.filter(String::isEmpty);
-    OptionT<IO.µ, String> orElse = OptionT.some(monad, "not empty");
+    OptionT<Id.µ, String> filter = some.filter(String::isEmpty);
+    OptionT<Id.µ, String> orElse = OptionT.some(monad, "not empty");
 
-    assertEquals(IO.narrowK(orElse.get()).unsafeRunSync(), IO.narrowK(filter.orElse("not empty")).unsafeRunSync());
+    assertEquals(orElse.get(), filter.orElse("not empty"));
   }
 
   @Test
   public void none() {
-    OptionT<IO.µ, String> none = OptionT.none(monad);
+    OptionT<Id.µ, String> none = OptionT.none(monad);
 
     assertAll(
-        () -> assertTrue(IO.narrowK(none.isEmpty()).unsafeRunSync()),
-        () -> assertEquals("empty", IO.narrowK(none.orElse("empty")).unsafeRunSync()));
+        () -> assertEquals(Id.of(true), none.isEmpty()),
+        () -> assertEquals(Id.of("empty"), none.orElse("empty")));
   }
 
   @Test
   public void some() {
-    OptionT<IO.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
 
     assertAll(
-        () -> assertFalse(IO.narrowK(some.isEmpty()).unsafeRunSync()),
-        () -> assertEquals("abc", IO.narrowK(some.orElse("empty")).unsafeRunSync()));
+        () -> assertEquals(Id.of(false), some.isEmpty()),
+        () -> assertEquals(Id.of("abc"), some.orElse("empty")));
   }
 
   @Test
   public void mapK() {
-    OptionT<IO.µ, String> someIo = OptionT.some(monad, "abc");
+    OptionT<IO.µ, String> someIo = OptionT.some(IO.monad(), "abc");
 
     OptionT<Try.µ, String> someTry = someIo.mapK(Try.monad(), new IOToTryTransformer());
 
@@ -84,12 +85,12 @@ public class OptionTTest {
 
   @Test
   public void eq() {
-    OptionT<Try.µ, String> some1 = OptionT.some(Try.monad(), "abc");
-    OptionT<Try.µ, String> some2 = OptionT.some(Try.monad(), "abc");
-    OptionT<Try.µ, String> none1 = OptionT.none(Try.monad());
-    OptionT<Try.µ, String> none2 = OptionT.none(Try.monad());
+    OptionT<Id.µ, String> some1 = OptionT.some(Id.monad(), "abc");
+    OptionT<Id.µ, String> some2 = OptionT.some(Id.monad(), "abc");
+    OptionT<Id.µ, String> none1 = OptionT.none(Id.monad());
+    OptionT<Id.µ, String> none2 = OptionT.none(Id.monad());
 
-    Eq<Higher2<OptionT.µ, Try.µ, String>> instance = OptionT.eq(Try.eq(Eq.object()));
+    Eq<Higher2<OptionT.µ, Id.µ, String>> instance = OptionT.eq(Id.eq(Eq.object()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),
@@ -121,22 +122,22 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<Higher1<OptionT.µ, IO.µ>, Nothing> monadError = OptionT.monadError(IO.monad());
+    MonadError<Higher1<OptionT.µ, Id.µ>, Nothing> monadError = OptionT.monadError(Id.monad());
 
-    Higher1<Higher1<OptionT.µ, IO.µ>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<OptionT.µ, IO.µ>, String> raiseError = monadError.raiseError(nothing());
-    Higher1<Higher1<OptionT.µ, IO.µ>, String> handleError =
+    Higher1<Higher1<OptionT.µ, Id.µ>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<OptionT.µ, Id.µ>, String> raiseError = monadError.raiseError(nothing());
+    Higher1<Higher1<OptionT.µ, Id.µ>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<OptionT.µ, IO.µ>, String> ensureOk =
+    Higher1<Higher1<OptionT.µ, Id.µ>, String> ensureOk =
         monadError.ensure(pure, () -> nothing(), value -> "is not ok".equals(value));
-    Higher1<Higher1<OptionT.µ, IO.µ>, String> ensureError =
+    Higher1<Higher1<OptionT.µ, Id.µ>, String> ensureError =
         monadError.ensure(pure, () -> nothing(), value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Option.none(), IO.narrowK(OptionT.narrowK(raiseError).value()).unsafeRunSync()),
-        () -> assertEquals(Option.some("not an error"), IO.narrowK(OptionT.narrowK(handleError).value()).unsafeRunSync()),
-        () -> assertEquals(Option.none(), IO.narrowK(OptionT.narrowK(ensureError).value()).unsafeRunSync()),
-        () -> assertEquals(Option.some("is not ok"), IO.narrowK(OptionT.narrowK(ensureOk).value()).unsafeRunSync()));
+        () -> assertEquals(Id.of(Option.none()), OptionT.narrowK(raiseError).value()),
+        () -> assertEquals(Id.of(Option.some("not an error")), OptionT.narrowK(handleError).value()),
+        () -> assertEquals(Id.of(Option.none()), OptionT.narrowK(ensureError).value()),
+        () -> assertEquals(Id.of(Option.some("is not ok")), OptionT.narrowK(ensureOk).value()));
   }
 }
 
