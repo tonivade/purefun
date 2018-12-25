@@ -9,12 +9,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.handler.EitherHandler;
-import com.github.tonivade.purefun.handler.OptionHandler;
-import com.github.tonivade.purefun.handler.OptionalHandler;
-import com.github.tonivade.purefun.handler.SequenceHandler;
-import com.github.tonivade.purefun.handler.StreamHandler;
-import com.github.tonivade.purefun.handler.TryHandler;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -32,35 +27,35 @@ public interface Function1<T, R> {
     return value -> apply(before.apply(value));
   }
 
-  default OptionalHandler<T, R> liftOptional() {
+  default Function1<T, Optional<R>> liftOptional() {
     return value -> Optional.ofNullable(apply(value));
   }
 
-  default OptionHandler<T, R> liftOption() {
+  default Function1<T, Option<R>> liftOption() {
     return value -> Option.of(() -> apply(value));
   }
 
-  default TryHandler<T, R> liftTry() {
+  default Function1<T, Try<R>> liftTry() {
     return value -> Try.of(() -> apply(value));
   }
 
-  default EitherHandler<T, Throwable, R> liftEither() {
-    return liftTry().toEither();
+  default Function1<T, Either<Throwable, R>> liftEither() {
+    return liftTry().andThen(Try::toEither);
   }
 
-  default <L> EitherHandler<T, L, R> liftRight() {
+  default <L> Function1<T, Either<L, R>> liftRight() {
     return value -> Either.right(apply(value));
   }
 
-  default <L> EitherHandler<T, R, L> liftLeft() {
+  default <L> Function1<T, Either<R, L>> liftLeft() {
     return value -> Either.left(apply(value));
   }
 
-  default SequenceHandler<T, R> sequence() {
+  default Function1<T, Sequence<R>> sequence() {
     return value -> listOf(apply(value));
   }
 
-  default StreamHandler<T, R> stream() {
+  default Function1<T, Stream<R>> stream() {
     return value -> Stream.of(apply(value));
   }
 
@@ -71,14 +66,14 @@ public interface Function1<T, R> {
   default Function1<T, R> memoized() {
     return new MemoizedFunction<>(this);
   }
-  
+
   default PartialFunction1<T, R> partial(Matcher1<T> isDefined) {
     return new PartialFunction1<T, R>() {
       @Override
       public boolean isDefinedAt(T value) {
         return isDefined.match(value);
       }
-      
+
       @Override
       public R apply(T value) {
         return Function1.this.apply(value);
