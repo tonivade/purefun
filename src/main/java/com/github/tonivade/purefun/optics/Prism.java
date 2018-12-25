@@ -9,21 +9,20 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
-import com.github.tonivade.purefun.handler.OptionHandler;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 
 public final class Prism<T, R> {
 
-  private final OptionHandler<T, R> getOption;
+  private final Function1<T, Option<R>> getOption;
   private final Function1<R, T> reverseGet;
 
-  private Prism(OptionHandler<T, R> getOption, Function1<R, T> reverseGet) {
+  private Prism(Function1<T, Option<R>> getOption, Function1<R, T> reverseGet) {
     this.getOption = requireNonNull(getOption);
     this.reverseGet = requireNonNull(reverseGet);
   }
 
-  public static <T, R> Prism<T, R> of(OptionHandler<T, R> getOption, Function1<R, T> reverseGet) {
+  public static <T, R> Prism<T, R> of(Function1<T, Option<R>> getOption, Function1<R, T> reverseGet) {
     return new Prism<>(getOption, reverseGet);
   }
 
@@ -47,11 +46,11 @@ public final class Prism<T, R> {
     return modify(ignore -> value);
   }
 
-  public OptionHandler<T, T> modifyOption(Operator1<R> mapper) {
+  public Function1<T, Option<T>> modifyOption(Operator1<R> mapper) {
     return target -> getOption(target).map(mapper).map(reverseGet);
   }
 
-  public OptionHandler<T, T> setOption(R value) {
+  public Function1<T, Option<T>> setOption(R value) {
     return modifyOption(ignore -> value);
   }
 

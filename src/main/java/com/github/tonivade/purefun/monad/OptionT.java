@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Transformer;
@@ -94,18 +95,22 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
     return lift(monad, Option.none());
   }
 
+  public static <F extends Kind, T> Eq<Higher2<OptionT.µ, F, T>> eq(Eq<Higher1<F, Option<T>>> eq) {
+    return (a, b) -> eq.eqv(narrowK(a).value, narrowK(b).value);
+  }
+
   public static <F extends Kind> Monad<Higher1<OptionT.µ, F>> monad(Monad<F> monadF) {
     return new Monad<Higher1<OptionT.µ, F>>() {
 
       @Override
       public <T> OptionT<F, T> pure(T value) {
-        return OptionT.some(monadF, value);
+        return some(monadF, value);
       }
 
       @Override
       public <T, R> OptionT<F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
           Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
-        return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
+        return narrowK(value).flatMap(map.andThen(OptionT::narrowK));
       }
     };
   }
@@ -115,12 +120,12 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
 
       @Override
       public <A> OptionT<F, A> raiseError(Nothing error) {
-        return OptionT.none(monadF);
+        return none(monadF);
       }
 
       @Override
       public <T> OptionT<F, T> pure(T value) {
-        return OptionT.some(monadF, value);
+        return some(monadF, value);
       }
 
       @Override
@@ -135,7 +140,7 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
       @Override
       public <T, R> OptionT<F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
           Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
-        return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
+        return narrowK(value).flatMap(map.andThen(OptionT::narrowK));
       }
     };
   }
@@ -150,7 +155,7 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
 
       @Override
       public <T> OptionT<F, T> pure(T value) {
-        return OptionT.some(monadErrorF, value);
+        return some(monadErrorF, value);
       }
 
       @Override
@@ -163,7 +168,7 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
       @Override
       public <T, R> OptionT<F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
           Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
-        return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK));
+        return narrowK(value).flatMap(map.andThen(OptionT::narrowK));
       }
     };
   }

@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.unit;
-import static com.github.tonivade.purefun.handler.OptionHandler.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,12 +15,13 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 public class PrismTest {
 
   private final Prism<Option<String>, String> someString = Prism.of(identity(), Option::some);
   private final Prism<String, Integer> stringToInteger =
-        Prism.of(Function1.<String, Integer>of(Integer::parseInt).liftTry().toOption(), String::valueOf);
+        Prism.of(Function1.<String, Integer>of(Integer::parseInt).liftTry().andThen(Try::toOption), String::valueOf);
   private final Prism<Option<String>, Integer> someStringToInteger = someString.compose(stringToInteger);
 
   @Test

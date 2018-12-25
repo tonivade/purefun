@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.handler.TryHandler.identity;
-import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
-import static com.github.tonivade.purefun.typeclasses.Equal.comparingArray;
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparingArray;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
@@ -23,10 +23,12 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -196,6 +198,18 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <T> Eq<Higher1<Try.µ, T>> eq(Eq<T> eqSuccess) {
+    final Eq<Throwable> eqFailure = Eq.throwable();
+    return (a, b) -> Pattern2.<Try<T>, Try<T>, Boolean>build()
+      .when((x, y) -> x.isFailure() && y.isFailure())
+        .then((x, y) -> eqFailure.eqv(x.getCause(), y.getCause()))
+      .when((x, y) -> x.isSuccess() && y.isSuccess())
+        .then((x, y) -> eqSuccess.eqv(x.get(), y.get()))
+      .otherwise()
+        .returns(false)
+      .apply(narrowK(a), narrowK(b));
   }
 
   static Functor<Try.µ> functor() {

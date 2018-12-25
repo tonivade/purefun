@@ -4,15 +4,13 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
-
-import com.github.tonivade.purefun.typeclasses.Equal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
@@ -81,8 +79,7 @@ final class Data {
   @Override
   public boolean equals(Object obj) {
     return Equal.of(this)
-        .append(comparing(Data::getId))
-        .append(comparing(Data::getValue))
+        .append(comparing(Data::getId).and(comparing(Data::getValue)))
         .applyTo(obj);
   }
 

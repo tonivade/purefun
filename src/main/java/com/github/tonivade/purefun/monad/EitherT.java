@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Transformer;
@@ -119,18 +120,22 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return lift(monad, Either.left(left));
   }
 
+  public static <F extends Kind, L, R> Eq<Higher3<EitherT.µ, F, L, R>> eq(Eq<Higher1<F, Either<L, R>>> eq) {
+    return (a, b) -> eq.eqv(narrowK(a).value, narrowK(b).value);
+  }
+
   public static <F extends Kind, L> Monad<Higher1<Higher1<EitherT.µ, F>, L>> monad(Monad<F> monadF) {
     return new Monad<Higher1<Higher1<EitherT.µ, F>, L>>() {
 
       @Override
       public <T> EitherT<F, L, T> pure(T value) {
-        return EitherT.right(monadF, value);
+        return right(monadF, value);
       }
 
       @Override
       public <T, R> EitherT<F, L, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, L>, T> value,
           Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, L>, R>> map) {
-        return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
+        return narrowK(value).flatMap(map.andThen(EitherT::narrowK));
       }
     };
   }
@@ -140,12 +145,12 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
 
       @Override
       public <A> EitherT<F, E, A> raiseError(E error) {
-        return EitherT.left(monadF, error);
+        return left(monadF, error);
       }
 
       @Override
       public <T> EitherT<F, E, T> pure(T value) {
-        return EitherT.right(monadF, value);
+        return right(monadF, value);
       }
 
       @Override
@@ -160,7 +165,7 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
       @Override
       public <T, R> EitherT<F, E, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, T> value,
           Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, R>> map) {
-        return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
+        return narrowK(value).flatMap(map.andThen(EitherT::narrowK));
       }
     };
   }
@@ -175,7 +180,7 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
 
       @Override
       public <T> EitherT<F, E, T> pure(T value) {
-        return EitherT.right(monadErrorF, value);
+        return right(monadErrorF, value);
       }
 
       @Override
@@ -188,7 +193,7 @@ public final class EitherT<W extends Kind, L, R> implements FlatMap3<EitherT.µ,
       @Override
       public <T, R> EitherT<F, E, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, T> value,
           Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, R>> map) {
-        return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK));
+        return narrowK(value).flatMap(map.andThen(EitherT::narrowK));
       }
     };
   }

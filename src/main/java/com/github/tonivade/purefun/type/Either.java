@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.handler.EitherHandler.identity;
-import static com.github.tonivade.purefun.typeclasses.Equal.comparing;
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
@@ -20,11 +20,13 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.BiFunctor;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -183,6 +185,17 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     } catch (ClassCastException e) {
       throw new UnsupportedOperationException("cannot be flattened");
     }
+  }
+
+  static <L, R> Eq<Higher2<Either.µ, L, R>> eq(Eq<L> leftEq, Eq<R> rightEq) {
+    return (a, b) -> Pattern2.<Either<L, R>, Either<L, R>, Boolean>build()
+      .when((x, y) -> x.isLeft() && y.isLeft())
+        .then((x, y) -> leftEq.eqv(x.getLeft(), y.getLeft()))
+      .when((x, y) -> x.isRight() && y.isRight())
+        .then((x, y) -> rightEq.eqv(x.getRight(), y.getRight()))
+      .otherwise()
+        .returns(false)
+      .apply(narrowK(a), narrowK(b));
   }
 
   static <L> Functor<Higher1<Either.µ, L>> functor() {

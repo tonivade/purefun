@@ -14,13 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
 import java.util.NoSuchElementException;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Higher1;
@@ -29,16 +31,19 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class FutureTest {
 
+  @Mock
+  private Consumer1<String> consumerSuccess;
+  @Mock
+  private Consumer1<Throwable> consumerFailure;
+
   @Test
   public void onSuccess() {
-    Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
-
     Future<String> future = Future.success("Hello World!");
 
-    future.onSuccess(consumer1).await();
+    future.onSuccess(consumerSuccess).await();
 
     assertAll(
-        () -> verify(consumer1, timeout(100)).accept("Hello World!"),
+        () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isCanceled),
@@ -47,14 +52,12 @@ public class FutureTest {
 
   @Test
   public void onSuccessTimeout() {
-    Consumer1<String> consumer1 = Mockito.mock(Consumer1.class);
-
     Future<String> future = Future.delay(Duration.ofMillis(100), unit("Hello World!"));
 
-    future.onSuccess(consumer1).await();
+    future.onSuccess(consumerSuccess).await();
 
     assertAll(
-        () -> verify(consumer1, timeout(100)).accept("Hello World!"),
+        () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isCanceled),
@@ -63,14 +66,12 @@ public class FutureTest {
 
   @Test
   public void onFailure() {
-    Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
-
     Future<String> future = Future.failure(new IllegalArgumentException());
 
-    future.onFailure(consumer1).await();
+    future.onFailure(consumerFailure).await();
 
     assertAll(
-        () -> verify(consumer1, timeout(100)).accept(any()),
+        () -> verify(consumerFailure, timeout(1000)).accept(any()),
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isFailure),
         () -> assertFalse(future::isCanceled),
@@ -79,15 +80,13 @@ public class FutureTest {
 
   @Test
   public void onFailureTimeout() {
-    Consumer1<Throwable> consumer1 = Mockito.mock(Consumer1.class);
-
     Future<String> future = Future.delay(Duration.ofMillis(100),
                                          failure(IllegalArgumentException::new));
 
-    future.onFailure(consumer1).await();
+    future.onFailure(consumerFailure).await();
 
     assertAll(
-        () -> verify(consumer1, timeout(100)).accept(any()),
+        () -> verify(consumerFailure, timeout(1000)).accept(any()),
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isFailure),
         () -> assertFalse(future::isCanceled),
@@ -196,5 +195,10 @@ public class FutureTest {
         () -> assertEquals(Try.success("not an error"), Future.narrowK(handleError).await()),
         () -> assertEquals(Try.failure(error), Future.narrowK(ensureError).await()),
         () -> assertEquals(Try.success("is not ok"), Future.narrowK(ensureOk).await()));
+  }
+
+  @BeforeEach
+  public void setUp() {
+    initMocks(this);
   }
 }

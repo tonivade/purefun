@@ -8,8 +8,6 @@ import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,65 +15,66 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Future;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTTest {
 
-  final Monad<IO.µ> monad = IO.monad();
+  final Monad<Id.µ> monad = Id.monad();
 
   @Test
   public void map() {
-    EitherT<IO.µ, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id.µ, Nothing, String> right = EitherT.right(monad, "abc");
 
-    EitherT<IO.µ, Nothing, String> map = right.map(String::toUpperCase);
+    EitherT<Id.µ, Nothing, String> map = right.map(String::toUpperCase);
 
-    assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+    assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void flatMap() {
-    EitherT<IO.µ, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id.µ, Nothing, String> right = EitherT.right(monad, "abc");
 
-    EitherT<IO.µ, Nothing, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
+    EitherT<Id.µ, Nothing, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
 
-    assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+    assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void filterOrElse() {
-    EitherT<IO.µ, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id.µ, Nothing, String> right = EitherT.right(monad, "abc");
 
-    EitherT<IO.µ, Nothing, String> filter = right.filterOrElse(String::isEmpty, unit(Either.right("not empty")));
-    EitherT<IO.µ, Nothing, String> orElse = EitherT.right(monad, "not empty");
+    EitherT<Id.µ, Nothing, String> filter = right.filterOrElse(String::isEmpty, unit(Either.right("not empty")));
+    EitherT<Id.µ, Nothing, String> orElse = EitherT.right(monad, "not empty");
 
-    assertEquals(IO.narrowK(orElse.get()).unsafeRunSync(), IO.narrowK(filter.orElse("not empty")).unsafeRunSync());
+    assertEquals(orElse.get(), filter.orElse("not empty"));
   }
 
   @Test
   public void left() {
-    EitherT<IO.µ, Nothing, String> left = EitherT.left(monad, nothing());
+    EitherT<Id.µ, Nothing, String> left = EitherT.left(monad, nothing());
 
     assertAll(
-        () -> assertTrue(IO.narrowK(left.isLeft()).unsafeRunSync()),
-        () -> assertFalse(IO.narrowK(left.isRight()).unsafeRunSync()),
-        () -> assertEquals("empty", IO.narrowK(left.orElse("empty")).unsafeRunSync()));
+        () -> assertEquals(Id.of(true), left.isLeft()),
+        () -> assertEquals(Id.of(false), left.isRight()),
+        () -> assertEquals(Id.of("empty"), left.orElse("empty")));
   }
 
   @Test
   public void right() {
-    EitherT<IO.µ, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id.µ, Nothing, String> right = EitherT.right(monad, "abc");
 
     assertAll(
-        () -> assertFalse(IO.narrowK(right.isLeft()).unsafeRunSync()),
-        () -> assertTrue(IO.narrowK(right.isRight()).unsafeRunSync()),
-        () -> assertEquals("abc", IO.narrowK(right.orElse("empty")).unsafeRunSync()));
+        () -> assertEquals(Id.of(false), right.isLeft()),
+        () -> assertEquals(Id.of(true), right.isRight()),
+        () -> assertEquals(Id.of("abc"), right.orElse("empty")));
   }
 
   @Test
   public void mapK() {
-    EitherT<IO.µ, Nothing, String> rightIo = EitherT.right(monad, "abc");
+    EitherT<IO.µ, Nothing, String> rightIo = EitherT.right(IO.monad(), "abc");
 
     EitherT<Try.µ, Nothing, String> rightTry = rightIo.mapK(Try.monad(), new IOToTryTransformer());
 
@@ -107,22 +106,22 @@ public class EitherTTest {
   @Test
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, Throwable> monadError =
-        EitherT.monadError(IO.monad());
+    MonadError<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, Throwable> monadError =
+        EitherT.monadError(Id.monad());
 
-    Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> handleError =
+    Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> ensureOk =
+    Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> ensureError =
+    Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Either.left(error), IO.narrowK(EitherT.narrowK(raiseError).value()).unsafeRunSync()),
-        () -> assertEquals(Either.right("not an error"), IO.narrowK(EitherT.narrowK(handleError).value()).unsafeRunSync()),
-        () -> assertEquals(Either.left(error), IO.narrowK(EitherT.narrowK(ensureError).value()).unsafeRunSync()),
-        () -> assertEquals(Either.right("is not ok"), IO.narrowK(EitherT.narrowK(ensureOk).value()).unsafeRunSync()));
+        () -> assertEquals(Id.of(Either.left(error)), EitherT.narrowK(raiseError).value()),
+        () -> assertEquals(Id.of(Either.right("not an error")), EitherT.narrowK(handleError).value()),
+        () -> assertEquals(Id.of(Either.left(error)), EitherT.narrowK(ensureError).value()),
+        () -> assertEquals(Id.of(Either.right("is not ok")), EitherT.narrowK(ensureOk).value()));
   }
 }

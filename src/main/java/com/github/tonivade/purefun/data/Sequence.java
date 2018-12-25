@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.handler.SequenceHandler.identity;
+import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
@@ -83,7 +83,7 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
-  
+
   default <R> Sequence<R> collect(PartialFunction1<E, R> function) {
     return filter(function::isDefinedAt).map(function::apply);
   }
