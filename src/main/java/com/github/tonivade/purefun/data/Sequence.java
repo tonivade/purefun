@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Alternative;
+import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.MonoidK;
 import com.github.tonivade.purefun.typeclasses.Semigroup;
@@ -163,6 +164,15 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
 
   static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {
     return (Sequence<T>) hkt;
+  }
+
+  static <T> Eq<Higher1<Sequence.µ, T>> eq(Eq<T> eqElement) {
+    return (a, b) -> {
+      Sequence<T> seq1 = narrowK(a);
+      Sequence<T> seq2 = narrowK(b);
+      return seq1.size() == seq2.size()
+          && zip(seq1, seq2).allMatch(tuple -> eqElement.eqv(tuple.get1(), tuple.get2()));
+    };
   }
 
   static <T> Semigroup<Sequence<T>> semigroup() {
