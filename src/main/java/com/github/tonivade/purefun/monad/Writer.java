@@ -58,11 +58,11 @@ public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
   }
 
   public static <T, A> Writer<Sequence<T>, A> listPure(A value) {
-    return pure(Monoid.sequence(), value);
+    return pure(Sequence.monoid(), value);
   }
 
   public static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
-    return writer(Monoid.sequence(), listOf(log), value);
+    return writer(Sequence.monoid(), listOf(log), value);
   }
 
   public static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {

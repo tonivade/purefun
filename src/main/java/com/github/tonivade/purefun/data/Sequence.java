@@ -27,6 +27,11 @@ import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Alternative;
+import com.github.tonivade.purefun.typeclasses.Monoid;
+import com.github.tonivade.purefun.typeclasses.MonoidK;
+import com.github.tonivade.purefun.typeclasses.Semigroup;
+import com.github.tonivade.purefun.typeclasses.SemigroupK;
 
 public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
 
@@ -158,6 +163,75 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
 
   static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {
     return (Sequence<T>) hkt;
+  }
+
+  static <T> Semigroup<Sequence<T>> semigroup() {
+    return (a, b) -> a.appendAll(b);
+  }
+
+  static <T> Monoid<Sequence<T>> monoid() {
+    return new Monoid<Sequence<T>>() {
+
+      @Override
+      public Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
+        return t1.appendAll(t2);
+      }
+
+      @Override
+      public Sequence<T> zero() {
+        return ImmutableList.empty();
+      }
+    };
+  }
+
+  static SemigroupK<Sequence.µ> semigroupK() {
+    return new SemigroupK<Sequence.µ>() {
+
+      @Override
+      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
+        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
+      }
+    };
+  }
+
+  static MonoidK<Sequence.µ> monoidK() {
+    return new MonoidK<Sequence.µ>() {
+
+      @Override
+      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
+        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
+      }
+
+      @Override
+      public <T> Sequence<T> zero() {
+        return ImmutableList.empty();
+      }
+    };
+  }
+
+  static Alternative<Sequence.µ> alternative() {
+    return new Alternative<Sequence.µ>() {
+
+      @Override
+      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
+        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
+      }
+
+      @Override
+      public <T> Sequence<T> zero() {
+        return ImmutableList.empty();
+      }
+
+      @Override
+      public <T> Sequence<T> pure(T value) {
+        return ImmutableList.of(value);
+      }
+
+      @Override
+      public <T, R> Sequence<R> ap(Higher1<Sequence.µ, T> value, Higher1<Sequence.µ, Function1<T, R>> apply) {
+        return narrowK(apply).flatMap(map -> narrowK(value).map(map));
+      }
+    };
   }
 }
 
