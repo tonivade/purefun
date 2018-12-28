@@ -14,12 +14,10 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
-import com.github.tonivade.purefun.typeclasses.Semigroup;
-
 public class SemigroupTest {
 
-  private final Semigroup<Integer> semigroup = Semigroup.of((a, b) -> a + b);
-  
+  private final Semigroup<Integer> semigroup = (a, b) -> a + b;
+
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {
     return IntStream.range(0, 10)
@@ -30,7 +28,7 @@ public class SemigroupTest {
     Integer a = current().nextInt();
     Integer b = current().nextInt();
     Integer c = current().nextInt();
-    assertEquals(semigroup.combine(semigroup.combine(a, b), c), 
+    assertEquals(semigroup.combine(semigroup.combine(a, b), c),
                  semigroup.combine(a, semigroup.combine(b, c)));
   }
 }

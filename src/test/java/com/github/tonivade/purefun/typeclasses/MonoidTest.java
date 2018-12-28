@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Producer.unit;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -15,24 +14,32 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
-import com.github.tonivade.purefun.typeclasses.Monoid;
-
 public class MonoidTest {
 
-  private final Monoid<Integer> monoid = Monoid.of(unit(0), (a, b) -> a + b);
-  
+  private final Monoid<Integer> monoid = new Monoid<Integer>() {
+    @Override
+    public Integer combine(Integer t1, Integer t2) {
+      return t1 + t2;
+    }
+
+    @Override
+    public Integer zero() {
+      return 0;
+    }
+  };
+
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {
     return IntStream.range(0, 10)
         .mapToObj(x -> dynamicTest("associativity law: " + x, this::associativity));
   }
-  
+
   @TestFactory
   public Stream<DynamicNode> rightIdentityLaw() {
     return IntStream.range(0, 10)
         .mapToObj(x -> dynamicTest("associativity law: " + x, () -> rightIdentity(x)));
   }
-  
+
   @TestFactory
   public Stream<DynamicNode> leftIdentityLaw() {
     return IntStream.range(0, 10)
@@ -51,7 +58,7 @@ public class MonoidTest {
     Integer a = current().nextInt();
     Integer b = current().nextInt();
     Integer c = current().nextInt();
-    assertEquals(monoid.combine(monoid.combine(a, b), c), 
+    assertEquals(monoid.combine(monoid.combine(a, b), c),
                  monoid.combine(a, monoid.combine(b, c)));
   }
 }

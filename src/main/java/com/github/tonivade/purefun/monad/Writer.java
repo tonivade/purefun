@@ -15,7 +15,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
-import com.github.tonivade.purefun.typeclasses.MonoidK;
 
 public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
 
@@ -58,12 +57,12 @@ public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
     return new Writer<>(monoid, log, value);
   }
 
-  public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listPure(A value) {
-    return pure(MonoidK.sequence(), value);
+  public static <T, A> Writer<Sequence<T>, A> listPure(A value) {
+    return pure(Monoid.sequence(), value);
   }
 
-  public static <T, A> Writer<Higher1<Sequence.µ, T>, A> listWriter(T log, A value) {
-    return writer(MonoidK.sequence(), listOf(log), value);
+  public static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
+    return writer(Monoid.sequence(), listOf(log), value);
   }
 
   public static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {

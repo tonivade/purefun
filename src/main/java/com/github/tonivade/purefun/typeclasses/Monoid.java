@@ -4,35 +4,25 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static java.util.Objects.requireNonNull;
-
-import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 
 public interface Monoid<T> extends Semigroup<T> {
 
   T zero();
 
-  static <T> Monoid<T> of(Producer<T> zero, Semigroup<T> combine) {
-    return new GenericMonoid<>(zero, combine);
-  }
-}
+  static <T> Monoid<Sequence<T>> sequence() {
+    return new Monoid<Sequence<T>>() {
 
-class GenericMonoid<T> implements Monoid<T> {
-  private final Producer<T> zero;
-  private final Semigroup<T> semigroup;
+      @Override
+      public Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
+        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
+      }
 
-  GenericMonoid(Producer<T> zero, Semigroup<T> semigroup) {
-    this.zero = requireNonNull(zero);
-    this.semigroup = requireNonNull(semigroup);
-  }
-
-  @Override
-  public T zero() {
-    return zero.get();
-  }
-
-  @Override
-  public T combine(T t1, T t2) {
-    return semigroup.combine(t1, t2);
+      @Override
+      public Sequence<T> zero() {
+        return ImmutableList.empty();
+      }
+    };
   }
 }

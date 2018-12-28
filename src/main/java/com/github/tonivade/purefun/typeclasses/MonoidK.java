@@ -5,24 +5,26 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface MonoidK<W extends Kind, T> extends SemigroupK<W, T>, Monoid<Higher1<W, T>> {
+public interface MonoidK<F extends Kind> extends SemigroupK<F> {
 
-  static <W extends Kind, T> MonoidK<W, T> of(Producer<Higher1<W, T>> zero, SemigroupK<W, T> combine) {
-    return new GenericMonoidK<>(zero, combine);
-  }
+  <T> Higher1<F, T> zero();
 
-  static <T> MonoidK<Sequence.µ, T> sequence() {
-    return MonoidK.of(ImmutableList::empty, SemigroupK.sequence());
-  }
-}
+  static MonoidK<Sequence.µ> sequence() {
+    return new MonoidK<Sequence.µ>() {
 
-class GenericMonoidK<W extends Kind, T> extends GenericMonoid<Higher1<W, T>> implements MonoidK<W, T> {
-  GenericMonoidK(Producer<Higher1<W, T>> zero, SemigroupK<W, T> semigroup) {
-    super(zero, semigroup);
+      @Override
+      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
+        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
+      }
+
+      @Override
+      public <T> Sequence<T> zero() {
+        return ImmutableList.empty();
+      }
+    };
   }
 }
