@@ -24,74 +24,74 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
-public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W, T>, Filterable<T> {
+public final class OptionT<F extends Kind, T> implements FlatMap2<OptionT.µ, F, T>, Filterable<T> {
 
   public static final class µ implements Kind {}
 
-  private final Monad<W> monad;
-  private final Higher1<W, Option<T>> value;
+  private final Monad<F> monad;
+  private final Higher1<F, Option<T>> value;
 
-  private OptionT(Monad<W> monad, Higher1<W, Option<T>> value) {
+  private OptionT(Monad<F> monad, Higher1<F, Option<T>> value) {
     this.monad = requireNonNull(monad);
     this.value = requireNonNull(value);
   }
 
   @Override
-  public <R> OptionT<W, R> map(Function1<T, R> map) {
+  public <R> OptionT<F, R> map(Function1<T, R> map) {
     return OptionT.of(monad, monad.map(value, v -> v.map(map)));
   }
 
   @Override
-  public <R> OptionT<W, R> flatMap(Function1<T, ? extends Higher2<OptionT.µ, W, R>> map) {
+  public <R> OptionT<F, R> flatMap(Function1<T, ? extends Higher2<OptionT.µ, F, R>> map) {
     return OptionT.of(monad, flatMapF(v -> OptionT.narrowK(map.apply(v)).value));
   }
 
-  public <R> Higher1<W, R> fold(Producer<R> orElse, Function1<T, R> map) {
+  public <R> Higher1<F, R> fold(Producer<R> orElse, Function1<T, R> map) {
     return monad.map(value, v -> v.fold(orElse, map));
   }
 
-  public <F extends Kind> OptionT<F, T> mapK(Monad<F> other, Transformer<W, F> transformer) {
+  public <G extends Kind> OptionT<G, T> mapK(Monad<G> other, Transformer<F, G> transformer) {
     return OptionT.of(other, transformer.apply(value));
   }
 
-  public Higher1<W, T> get() {
+  public Higher1<F, T> get() {
     return monad.map(value, Option::get);
   }
 
-  public Higher1<W, Boolean> isEmpty() {
+  public Higher1<F, Boolean> isEmpty() {
     return monad.map(value, Option::isEmpty);
   }
 
-  public Higher1<W, T> orElse(T orElse) {
+  public Higher1<F, T> orElse(T orElse) {
     return orElse(unit(orElse));
   }
 
-  public Higher1<W, T> orElse(Producer<T> orElse) {
+  public Higher1<F, T> orElse(Producer<T> orElse) {
     return fold(orElse, identity());
   }
 
   @Override
-  public OptionT<W, T> filter(Matcher1<T> filter) {
+  public OptionT<F, T> filter(Matcher1<T> filter) {
     return new OptionT<>(monad, monad.map(value, v -> v.filter(filter)));
   }
 
-  Higher1<W, Option<T>> value() {
+  Higher1<F, Option<T>> value() {
     return value;
   }
 
-  public static <W extends Kind, T> OptionT<W, T> lift(Monad<W> monad, Option<T> value) {
+  public static <F extends Kind, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
     return of(monad, monad.pure(value));
   }
 
-  public static <W extends Kind, T> OptionT<W, T> of(Monad<W> monad, Higher1<W, Option<T>> value) {
+  public static <F extends Kind, T> OptionT<F, T> of(Monad<F> monad, Higher1<F, Option<T>> value) {
     return new OptionT<>(monad, value);
   }
 
-  public static <W extends Kind, T> OptionT<W, T> some(Monad<W> monad, T value) {
+  public static <F extends Kind, T> OptionT<F, T> some(Monad<F> monad, T value) {
     return lift(monad, Option.some(value));
   }
 
-  public static <W extends Kind, T> OptionT<W, T> none(Monad<W> monad) {
+  public static <F extends Kind, T> OptionT<F, T> none(Monad<F> monad) {
     return lift(monad, Option.none());
   }
 
@@ -173,15 +173,15 @@ public final class OptionT<W extends Kind, T> implements FlatMap2<OptionT.µ, W,
     };
   }
 
-  public static <W extends Kind, T> OptionT<W, T> narrowK(Higher2<OptionT.µ, W, T> hkt) {
-    return (OptionT<W, T>) hkt;
+  public static <F extends Kind, T> OptionT<F, T> narrowK(Higher2<OptionT.µ, F, T> hkt) {
+    return (OptionT<F, T>) hkt;
   }
 
-  public static <W extends Kind, T> OptionT<W, T> narrowK(Higher1<Higher1<OptionT.µ, W>, T> hkt) {
-    return (OptionT<W, T>) hkt;
+  public static <F extends Kind, T> OptionT<F, T> narrowK(Higher1<Higher1<OptionT.µ, F>, T> hkt) {
+    return (OptionT<F, T>) hkt;
   }
 
-  private <R> Higher1<W, Option<R>> flatMapF(Function1<T, Higher1<W, Option<R>>> map) {
+  private <R> Higher1<F, Option<R>> flatMapF(Function1<T, Higher1<F, Option<R>>> map) {
    return monad.flatMap(value, v -> v.fold(unit(monad.pure(Option.none())), map));
   }
 }

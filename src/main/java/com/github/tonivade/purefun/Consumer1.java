@@ -7,27 +7,27 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.Nothing.nothing;
 
 @FunctionalInterface
-public interface Consumer1<T> {
+public interface Consumer1<A> {
 
-  void accept(T value);
+  void accept(A value);
   
-  default Function1<T, Nothing> asFunction() {
+  default Function1<A, Nothing> asFunction() {
     return value -> { accept(value); return nothing(); };
   }
   
-  default Consumer1<T> andThen(Consumer1<T> after) {
+  default Consumer1<A> andThen(Consumer1<A> after) {
     return value -> { accept(value); after.accept(value); };
   }
   
-  default Function1<T, T> peek() {
+  default Function1<A, A> peek() {
     return value -> { accept(value); return value; };
   }
   
-  static <T> Consumer1<T> of(Consumer1<T> reference) {
+  static <A> Consumer1<A> of(Consumer1<A> reference) {
     return reference;
   }
 
-  static <T> Consumer1<T> noop() {
+  static <A> Consumer1<A> noop() {
     return value -> { /* noop */ };
   }
 }

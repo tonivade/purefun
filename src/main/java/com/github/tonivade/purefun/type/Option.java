@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Producer.unit;
 import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -29,6 +30,7 @@ import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
@@ -185,6 +187,30 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
 
   static Applicative<Option.µ> applicative() {
     return new Applicative<Option.µ>() {
+
+      @Override
+      public <T> Option<T> pure(T value) {
+        return some(value);
+      }
+
+      @Override
+      public <T, R> Option<R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
+        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
+      }
+    };
+  }
+
+  static Alternative<Option.µ> alternative() {
+    return new Alternative<Option.µ>() {
+      @Override
+      public <T> Option<T> zero() {
+        return none();
+      }
+
+      @Override
+      public <T> Option<T> combineK(Higher1<Option.µ, T> t1, Higher1<Option.µ, T> t2) {
+        return narrowK(t1).fold(unit(narrowK(t2)), Option::some);
+      }
 
       @Override
       public <T> Option<T> pure(T value) {

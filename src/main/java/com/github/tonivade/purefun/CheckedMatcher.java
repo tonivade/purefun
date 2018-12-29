@@ -5,23 +5,23 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface CheckedMatcher<T> {
+public interface CheckedMatcher<A> {
 
-  boolean match(T target) throws Throwable;
+  boolean match(A target) throws Throwable;
 
-  default CheckedMatcher<T> and(CheckedMatcher<T> other) {
+  default CheckedMatcher<A> and(CheckedMatcher<A> other) {
     return request -> match(request) && other.match(request);
   }
 
-  default CheckedMatcher<T> or(CheckedMatcher<T> other) {
+  default CheckedMatcher<A> or(CheckedMatcher<A> other) {
     return request -> match(request) || other.match(request);
   }
 
-  default CheckedMatcher<T> negate() {
+  default CheckedMatcher<A> negate() {
     return request -> !match(request);
   }
 
-  static <T> CheckedMatcher<T> not(CheckedMatcher<T> matcher) {
+  static <A> CheckedMatcher<A> not(CheckedMatcher<A> matcher) {
     return matcher.negate();
   }
 }

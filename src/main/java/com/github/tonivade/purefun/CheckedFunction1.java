@@ -9,19 +9,19 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface CheckedFunction1<T, R> extends Recoverable {
+public interface CheckedFunction1<A, R> extends Recoverable {
 
-  R apply(T value) throws Throwable;
+  R apply(A value) throws Throwable;
 
-  default <V> CheckedFunction1<T, V> andThen(CheckedFunction1<R, V> after) {
-    return (T value) -> after.apply(apply(value));
+  default <B> CheckedFunction1<A, B> andThen(CheckedFunction1<R, B> after) {
+    return (A value) -> after.apply(apply(value));
   }
 
-  default <V> CheckedFunction1<V, R> compose(CheckedFunction1<V, T> before) {
-    return (V value) -> apply(before.apply(value));
+  default <B> CheckedFunction1<B, R> compose(CheckedFunction1<B, A> before) {
+    return (B value) -> apply(before.apply(value));
   }
 
-  default Function1<T, R> recover(Function1<Throwable, R> mapper) {
+  default Function1<A, R> recover(Function1<Throwable, R> mapper) {
     return value -> {
       try {
         return apply(value);
@@ -31,19 +31,19 @@ public interface CheckedFunction1<T, R> extends Recoverable {
     };
   }
 
-  default Function1<T, Option<R>> liftOption() {
+  default Function1<A, Option<R>> liftOption() {
     return liftTry().andThen(Try::toOption);
   }
 
-  default Function1<T, Either<Throwable, R>> liftEither() {
+  default Function1<A, Either<Throwable, R>> liftEither() {
     return liftTry().andThen(Try::toEither);
   }
 
-  default Function1<T, Try<R>> liftTry() {
+  default Function1<A, Try<R>> liftTry() {
     return value -> Try.of(() -> apply(value));
   }
 
-  default Function1<T, R> unchecked() {
+  default Function1<A, R> unchecked() {
     return recover(this::sneakyThrow);
   }
 

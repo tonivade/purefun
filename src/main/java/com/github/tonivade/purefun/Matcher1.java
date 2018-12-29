@@ -10,73 +10,73 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 @FunctionalInterface
-public interface Matcher1<T> {
+public interface Matcher1<A> {
 
-  boolean match(T target);
+  boolean match(A target);
 
-  default Matcher1<T> and(Matcher1<T> other) {
+  default Matcher1<A> and(Matcher1<A> other) {
     return value -> match(value) && other.match(value);
   }
 
-  default Matcher1<T> or(Matcher1<T> other) {
+  default Matcher1<A> or(Matcher1<A> other) {
     return value -> match(value) || other.match(value);
   }
 
-  default Matcher1<T> negate() {
+  default Matcher1<A> negate() {
     return value -> !match(value);
   }
 
-  static <T> Matcher1<T> not(Matcher1<T> matcher) {
+  static <A> Matcher1<A> not(Matcher1<A> matcher) {
     return matcher.negate();
   }
   
-  static <T> Matcher1<T> always() {
+  static <A> Matcher1<A> always() {
     return value -> true;
   }
 
-  static <T> Matcher1<T> invalid() {
+  static <A> Matcher1<A> invalid() {
     return value -> { throw new IllegalStateException(); };
   }
 
   // XXX: when I change Class<?> for Class<? extends T>
   // javac complains about this, it cannot infer type parameters but inside eclipse works fine
-  static <T> Matcher1<T> instanceOf(Class<?> type) {
+  static <A> Matcher1<A> instanceOf(Class<?> type) {
     Objects.requireNonNull(type);
     return value -> nonNull(value) && type.isAssignableFrom(value.getClass());
   }
 
-  static <T> Matcher1<T> is(T other) {
+  static <A> Matcher1<A> is(A other) {
     Objects.requireNonNull(other);
     return value -> Objects.equals(value, other);
   }
 
   @SafeVarargs
-  static <T> Matcher1<T> isIn(T... values) {
+  static <A> Matcher1<A> isIn(A... values) {
     Objects.requireNonNull(values);
     return target -> Stream.of(values).anyMatch(value -> Objects.equals(target, value));
   }
 
-  static <T> Matcher1<T> isNull() {
+  static <A> Matcher1<A> isNull() {
     return Objects::isNull;
   }
 
-  static <T> Matcher1<T> isNotNull() {
+  static <A> Matcher1<A> isNotNull() {
     return Objects::nonNull;
   }
 
   @SafeVarargs
-  static <T> Matcher1<T> allOf(Matcher1<T>... matchers) {
+  static <A> Matcher1<A> allOf(Matcher1<A>... matchers) {
     Objects.requireNonNull(matchers);
     return target -> Stream.of(matchers).allMatch(matcher -> matcher.match(target));
   }
 
   @SafeVarargs
-  static <T> Matcher1<T> anyOf(Matcher1<T>... matchers) {
+  static <A> Matcher1<A> anyOf(Matcher1<A>... matchers) {
     Objects.requireNonNull(matchers);
     return target -> Stream.of(matchers).anyMatch(matcher -> matcher.match(target));
   }
 
-  static <T> Matcher1<T> otherwise() {
+  static <A> Matcher1<A> otherwise() {
     return value -> true;
   }
 }

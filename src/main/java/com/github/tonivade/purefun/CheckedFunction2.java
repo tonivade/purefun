@@ -5,27 +5,27 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface CheckedFunction2<T, V, R> {
+public interface CheckedFunction2<A, B, R> {
 
-  R apply(T t, V v) throws Throwable;
+  R apply(A t, B v) throws Throwable;
 
-  default CheckedFunction1<T, CheckedFunction1<V, R>> curried() {
+  default CheckedFunction1<A, CheckedFunction1<B, R>> curried() {
     return t -> v -> apply(t, v);
   }
 
-  default CheckedFunction1<Tuple2<T, V>, R> tupled() {
+  default CheckedFunction1<Tuple2<A, B>, R> tupled() {
     return tuple -> apply(tuple.get1(), tuple.get2());
   }
 
-  default <U> CheckedFunction2<T, V, U> andThen(CheckedFunction1<R, U> after) {
+  default <C> CheckedFunction2<A, B, C> andThen(CheckedFunction1<R, C> after) {
     return (t, v) -> after.apply(apply(t, v));
   }
 
-  default <U> CheckedFunction1<U, R> compose(CheckedFunction1<U, T> beforeT, CheckedFunction1<U, V> beforeV) {
+  default <C> CheckedFunction1<C, R> compose(CheckedFunction1<C, A> beforeT, CheckedFunction1<C, B> beforeV) {
     return value -> apply(beforeT.apply(value), beforeV.apply(value));
   }
 
-  static <T, V, R> CheckedFunction2<T, V, R> of(CheckedFunction2<T, V, R> reference) {
+  static <A, B, R> CheckedFunction2<A, B, R> of(CheckedFunction2<A, B, R> reference) {
     return reference;
   }
 }

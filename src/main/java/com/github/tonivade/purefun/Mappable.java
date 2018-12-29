@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Mappable<W extends Kind, T> extends Higher1<W, T> {
+public interface Mappable<F extends Kind, A> extends Higher1<F, A> {
 
-  <R> Mappable<W, R> map(Function1<T, R> map);
+  <R> Mappable<F, R> map(Function1<A, R> map);
 
 }

@@ -9,31 +9,31 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface CheckedProducer<T> extends Recoverable {
+public interface CheckedProducer<A> extends Recoverable {
 
-  T get() throws Throwable;
+  A get() throws Throwable;
 
-  default <V> CheckedFunction1<V, T> asFunction() {
+  default <B> CheckedFunction1<B, A> asFunction() {
     return value -> get();
   }
 
-  default Producer<Try<T>> liftTry() {
+  default Producer<Try<A>> liftTry() {
     return () -> Try.of(this);
   }
 
-  default Producer<Option<T>> liftOption() {
+  default Producer<Option<A>> liftOption() {
     return liftTry().andThen(Try::toOption);
   }
 
-  default Producer<Either<Throwable, T>> liftEither() {
+  default Producer<Either<Throwable, A>> liftEither() {
     return liftTry().andThen(Try::toEither);
   }
 
-  default <R> CheckedProducer<R> andThen(CheckedFunction1<T, R> after) {
+  default <R> CheckedProducer<R> andThen(CheckedFunction1<A, R> after) {
     return () -> after.apply(get());
   }
 
-  default Producer<T> recover(Function1<Throwable, T> mapper) {
+  default Producer<A> recover(Function1<Throwable, A> mapper) {
     return () -> {
       try {
         return get();
@@ -43,19 +43,19 @@ public interface CheckedProducer<T> extends Recoverable {
     };
   }
 
-  default Producer<T> unchecked() {
+  default Producer<A> unchecked() {
     return recover(this::sneakyThrow);
   }
 
-  static <T> CheckedProducer<T> unit(T value) {
+  static <A> CheckedProducer<A> unit(A value) {
     return () -> value;
   }
 
-  static <T, X extends Throwable> CheckedProducer<T> failure(Producer<X> supplier) {
+  static <A, X extends Throwable> CheckedProducer<A> failure(Producer<X> supplier) {
     return () -> { throw supplier.get(); };
   }
 
-  static <T> CheckedProducer<T> of(CheckedProducer<T> reference) {
+  static <A> CheckedProducer<A> of(CheckedProducer<A> reference) {
     return reference;
   }
 }

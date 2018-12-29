@@ -17,12 +17,12 @@ public interface Function4<A, B, C, D, R> {
     return tuple -> apply(tuple.get1(), tuple.get2(), tuple.get3(), tuple.get4());
   }
 
-  default <U> Function4<A, B, C, D, U> andThen(Function1<R, U> after) {
+  default <E> Function4<A, B, C, D, E> andThen(Function1<R, E> after) {
     return (a, b, c, d) -> after.apply(apply(a, b, c, d));
   }
 
-  default <U> Function1<U, R> compose(Function1<U, A> beforeT1, Function1<U, B> beforeT2,
-      Function1<U, C> beforeT3, Function1<U, D> beforeT4) {
+  default <E> Function1<E, R> compose(Function1<E, A> beforeT1, Function1<E, B> beforeT2,
+      Function1<E, C> beforeT3, Function1<E, D> beforeT4) {
     return value -> apply(beforeT1.apply(value), beforeT2.apply(value), beforeT3.apply(value), beforeT4.apply(value));
   }
 

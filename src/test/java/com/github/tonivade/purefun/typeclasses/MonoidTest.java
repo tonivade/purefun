@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestFactory;
 public class MonoidTest {
 
   private final Monoid<Integer> monoid = new Monoid<Integer>() {
+
     @Override
     public Integer combine(Integer t1, Integer t2) {
       return t1 + t2;

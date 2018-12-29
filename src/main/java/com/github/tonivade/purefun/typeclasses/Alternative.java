@@ -4,10 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 
-public interface MonoidK<F extends Kind> extends SemigroupK<F> {
+public interface Alternative<F extends Kind> extends Applicative<F>, MonoidK<F> {
 
-  <T> Higher1<F, T> zero();
 }

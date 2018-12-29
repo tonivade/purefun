@@ -80,13 +80,7 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
   }
 
   public static <T> Eq<Higher1<Id.µ, T>> eq(Eq<T> idEq) {
-    return new Eq<Higher1<Id.µ, T>>() {
-
-      @Override
-      public boolean eqv(Higher1<Id.µ, T> a, Higher1<Id.µ, T> b) {
-        return idEq.eqv(narrowK(a).get(), narrowK(b).get());
-      }
-    };
+    return (a, b) -> idEq.eqv(narrowK(a).get(), narrowK(b).get());
   }
 
   public static Functor<Id.µ> functor() {
