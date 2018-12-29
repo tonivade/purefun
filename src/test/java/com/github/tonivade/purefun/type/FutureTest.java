@@ -18,6 +18,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -166,7 +167,7 @@ public class FutureTest {
 
     assertAll(
         () -> assertTrue(result.isFailure()),
-        () -> assertTrue(result.getCause() instanceof NoSuchElementException));
+        () -> assertTrue(result.getCause() instanceof TimeoutException));
   }
 
   @Test

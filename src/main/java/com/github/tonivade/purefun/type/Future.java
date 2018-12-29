@@ -14,6 +14,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
@@ -261,7 +262,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Try<T> await() {
-      return await(Duration.ZERO);
+      return result().recover(Try::failure).get();
     }
 
     @Override
@@ -303,6 +304,10 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       throw new UnsupportedOperationException();
     }
 
+    private CheckedProducer<Try<T>> result() {
+      return () -> value.get().orElse(Try.failure(new NoSuchElementException()));
+    }
+
     private CheckedProducer<Try<T>> result(Duration timeout) {
       return () -> value.get(timeout).orElse(Try.failure(new NoSuchElementException()));
     }
@@ -327,10 +332,11 @@ final class AsyncValue<T> {
   }
 
   Option<T> get() throws InterruptedException {
-    return get(Duration.ZERO);
+    latch.await();
+    return reference.get();
   }
 
-  Option<T> get(Duration timeout) throws InterruptedException {
+  Option<T> get(Duration timeout) throws InterruptedException, TimeoutException {
     await(timeout);
     return reference.get();
   }
@@ -339,11 +345,9 @@ final class AsyncValue<T> {
     return reference.get().equals(Option.none());
   }
 
-  private void await(Duration timeout) throws InterruptedException {
-    if (requireNonNull(timeout).isZero()) {
-      latch.await();
-    } else {
-      latch.await(timeout.toMillis(), MILLISECONDS);
+  private void await(Duration timeout) throws InterruptedException, TimeoutException {
+    if (!latch.await(timeout.toMillis(), MILLISECONDS)) {
+      throw new TimeoutException();
     }
   }
 }
