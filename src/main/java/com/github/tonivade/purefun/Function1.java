@@ -15,77 +15,77 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface Function1<T, R> {
+public interface Function1<A, R> {
 
-  R apply(T value);
+  R apply(A value);
 
-  default <V> Function1<T, V> andThen(Function1<R, V> after) {
+  default <B> Function1<A, B> andThen(Function1<R, B> after) {
     return value -> after.apply(apply(value));
   }
 
-  default <V> Function1<V, R> compose(Function1<V, T> before) {
+  default <B> Function1<B, R> compose(Function1<B, A> before) {
     return value -> apply(before.apply(value));
   }
 
-  default Function1<T, Optional<R>> liftOptional() {
+  default Function1<A, Optional<R>> liftOptional() {
     return value -> Optional.ofNullable(apply(value));
   }
 
-  default Function1<T, Option<R>> liftOption() {
+  default Function1<A, Option<R>> liftOption() {
     return value -> Option.of(() -> apply(value));
   }
 
-  default Function1<T, Try<R>> liftTry() {
+  default Function1<A, Try<R>> liftTry() {
     return value -> Try.of(() -> apply(value));
   }
 
-  default Function1<T, Either<Throwable, R>> liftEither() {
+  default Function1<A, Either<Throwable, R>> liftEither() {
     return liftTry().andThen(Try::toEither);
   }
 
-  default <L> Function1<T, Either<L, R>> liftRight() {
+  default <L> Function1<A, Either<L, R>> liftRight() {
     return value -> Either.right(apply(value));
   }
 
-  default <L> Function1<T, Either<R, L>> liftLeft() {
+  default <L> Function1<A, Either<R, L>> liftLeft() {
     return value -> Either.left(apply(value));
   }
 
-  default Function1<T, Sequence<R>> sequence() {
+  default Function1<A, Sequence<R>> sequence() {
     return value -> listOf(apply(value));
   }
 
-  default Function1<T, Stream<R>> stream() {
+  default Function1<A, Stream<R>> stream() {
     return value -> Stream.of(apply(value));
   }
 
-  default CheckedFunction1<T, R> checked() {
+  default CheckedFunction1<A, R> checked() {
     return this::apply;
   }
 
-  default Function1<T, R> memoized() {
+  default Function1<A, R> memoized() {
     return new MemoizedFunction<>(this);
   }
 
-  default PartialFunction1<T, R> partial(Matcher1<T> isDefined) {
-    return new PartialFunction1<T, R>() {
+  default PartialFunction1<A, R> partial(Matcher1<A> isDefined) {
+    return new PartialFunction1<A, R>() {
       @Override
-      public boolean isDefinedAt(T value) {
+      public boolean isDefinedAt(A value) {
         return isDefined.match(value);
       }
 
       @Override
-      public R apply(T value) {
+      public R apply(A value) {
         return Function1.this.apply(value);
       }
     };
   }
 
-  static <T> Function1<T, T> identity() {
+  static <A> Function1<A, A> identity() {
     return value -> value;
   }
 
-  static <T, R> Function1<T, R> of(Function1<T, R> reference) {
+  static <A, R> Function1<A, R> of(Function1<A, R> reference) {
     return reference;
   }
 }

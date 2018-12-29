@@ -10,38 +10,38 @@ import com.github.tonivade.purefun.data.ImmutableArray;
 import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.type.Option;
 
-public interface PartialFunction1<T, R> {
+public interface PartialFunction1<A, R> {
 
-  R apply(T value);
+  R apply(A value);
 
-  boolean isDefinedAt(T value);
+  boolean isDefinedAt(A value);
 
-  default Function1<T, Option<R>> lift() {
+  default Function1<A, Option<R>> lift() {
     return value -> isDefinedAt(value) ? Option.some(apply(value)) : Option.none();
   }
 
-  default <V> PartialFunction1<T, V> andThen(Function1<R, V> after) {
+  default <B> PartialFunction1<A, B> andThen(Function1<R, B> after) {
     return of(value -> after.apply(apply(value)), this::isDefinedAt);
   }
 
-  default <V> Function1<V, R> compose(Function1<V, T> before) {
+  default <B> Function1<B, R> compose(Function1<B, A> before) {
     return value -> apply(before.apply(value));
   }
 
-  default PartialFunction1<T, R> orElse(PartialFunction1<T, R> other) {
-    final PartialFunction1<T, R> self = PartialFunction1.this;
+  default PartialFunction1<A, R> orElse(PartialFunction1<A, R> other) {
+    final PartialFunction1<A, R> self = PartialFunction1.this;
     return of(value -> self.isDefinedAt(value) ? self.apply(value) : other.apply(value),
               value -> self.isDefinedAt(value) || other.isDefinedAt(value));
   }
 
-  default R applyOrElse(T value, Function1<T, R> orElse) {
+  default R applyOrElse(A value, Function1<A, R> orElse) {
     if (isDefinedAt(value)) {
       return apply(value);
     }
     return orElse.apply(value);
   }
 
-  static <T, R> PartialFunction1<T, R> of(Function1<T, R> apply, Matcher1<T> isDefined) {
+  static <A, R> PartialFunction1<A, R> of(Function1<A, R> apply, Matcher1<A> isDefined) {
     return new DefaultPartialFunction1<>(apply, isDefined);
   }
 

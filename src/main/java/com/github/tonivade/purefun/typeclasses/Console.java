@@ -20,11 +20,11 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 
-public interface Console<W extends Kind> {
+public interface Console<F extends Kind> {
 
-  Higher1<W, String> readln();
+  Higher1<F, String> readln();
 
-  Higher1<W, Nothing> println(String text);
+  Higher1<F, Nothing> println(String text);
 
   static Console<IO.µ> io() {
     return new ConsoleIO();

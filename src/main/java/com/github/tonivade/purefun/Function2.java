@@ -21,11 +21,11 @@ public interface Function2<A, B, R> {
     return tuple -> apply(tuple.get1(), tuple.get2());
   }
 
-  default <U> Function2<A, B, U> andThen(Function1<R, U> after) {
+  default <C> Function2<A, B, C> andThen(Function1<R, C> after) {
     return (a, b) -> after.apply(apply(a, b));
   }
 
-  default <U> Function1<U, R> compose(Function1<U, A> beforeT, Function1<U, B> beforeV) {
+  default <C> Function1<C, R> compose(Function1<C, A> beforeT, Function1<C, B> beforeV) {
     return value -> apply(beforeT.apply(value), beforeV.apply(value));
   }
 
@@ -45,7 +45,7 @@ public interface Function2<A, B, R> {
     return (a, b) -> new MemoizedFunction<>(tupled()).apply(Tuple.of(a, b));
   }
 
-  static <T, V, R> Function2<T, V, R> of(Function2<T, V, R> reference) {
+  static <A, B, R> Function2<A, B, R> of(Function2<A, B, R> reference) {
     return reference;
   }
 }

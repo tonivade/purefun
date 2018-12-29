@@ -7,19 +7,19 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.Nothing.nothing;
 
 @FunctionalInterface
-public interface CheckedConsumer1<T> extends Recoverable {
+public interface CheckedConsumer1<A> extends Recoverable {
 
-  void accept(T value) throws Exception;
+  void accept(A value) throws Exception;
 
-  default CheckedFunction1<T, Nothing> asFunction() {
+  default CheckedFunction1<A, Nothing> asFunction() {
     return value -> { accept(value); return nothing(); };
   }
 
-  default CheckedConsumer1<T> andThen(CheckedConsumer1<T> after) {
+  default CheckedConsumer1<A> andThen(CheckedConsumer1<A> after) {
     return value -> { accept(value); after.accept(value); };
   }
 
-  default Consumer1<T> unchecked() {
+  default Consumer1<A> unchecked() {
     return value -> {
       try {
         accept(value);
@@ -29,11 +29,11 @@ public interface CheckedConsumer1<T> extends Recoverable {
     };
   }
 
-  default CheckedFunction1<T, T> peek() {
+  default CheckedFunction1<A, A> peek() {
     return value -> { accept(value); return value; };
   }
 
-  static <T> CheckedConsumer1<T> of(CheckedConsumer1<T> reference) {
+  static <A> CheckedConsumer1<A> of(CheckedConsumer1<A> reference) {
     return reference;
   }
 }
