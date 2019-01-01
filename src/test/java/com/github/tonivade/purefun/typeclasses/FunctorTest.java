@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.typeclasses.FunctorLaws.verifyLaws;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -39,5 +40,10 @@ public class FunctorTest {
   @Test
   public void validationFunctor() {
     verifyLaws(Validation.functor(), Validation.valid("hola mundo!"));
+  }
+
+  @Test
+  public void traverseFunctor() {
+    verifyLaws(Sequence.traverse(), Sequence.listOf("hola mundo!"));
   }
 }
