@@ -28,11 +28,13 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Alternative;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.MonoidK;
 import com.github.tonivade.purefun.typeclasses.Semigroup;
 import com.github.tonivade.purefun.typeclasses.SemigroupK;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
 
@@ -240,6 +242,20 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
       @Override
       public <T, R> Sequence<R> ap(Higher1<Sequence.µ, T> value, Higher1<Sequence.µ, Function1<T, R>> apply) {
         return narrowK(apply).flatMap(map -> narrowK(value).map(map));
+      }
+    };
+  }
+  
+  static Traverse<Sequence.µ> traverse() {
+    return new Traverse<Sequence.µ>() {
+
+      @Override
+      public <G extends Kind, T, R> Higher1<G, Higher1<Sequence.µ, R>> traverse(
+          Applicative<G> applicative, Higher1<Sequence.µ, T> value, 
+          Function1<T, ? extends Higher1<G, R>> mapper) {
+        return narrowK(value).foldRight(applicative.pure(ImmutableList.empty()), 
+            (a, acc) -> applicative.map2(mapper.apply(a), acc, 
+                (e, seq) -> listOf(e).appendAll(narrowK(seq))));
       }
     };
   }

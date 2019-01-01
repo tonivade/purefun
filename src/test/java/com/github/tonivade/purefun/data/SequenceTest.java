@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Sequence.zip;
+import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -17,7 +18,9 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Eq;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class SequenceTest {
 
@@ -37,5 +40,17 @@ public class SequenceTest {
         () -> assertTrue(instance.eqv(listOf(1, 2, 3), listOf(1, 2, 3))),
         () -> assertFalse(instance.eqv(listOf(1, 2, 3), listOf(3, 2, 1))),
         () -> assertFalse(instance.eqv(listOf(1, 2), listOf(1, 2, 3))));
+  }
+  
+  @Test
+  public void traverse() {
+    Sequence<Option<String>> seq = listOf(some("a"), some("b"), some("c"));
+    
+    Traverse<Sequence.µ> instance = Sequence.traverse();
+    
+    Higher1<Option.µ, Higher1<Sequence.µ, String>> result = 
+        instance.traverse(Option.applicative(), seq, x -> x.map(String::toUpperCase));
+    
+    assertEquals(some(listOf("A", "B", "C")), result);
   }
 }
