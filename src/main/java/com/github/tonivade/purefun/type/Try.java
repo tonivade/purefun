@@ -33,6 +33,7 @@ import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
@@ -276,6 +277,20 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
       public <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value,
                                         Function1<Throwable, ? extends Higher1<Try.µ, A>> handler) {
         return narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
+      }
+    };
+  }
+
+  static Traverse<Try.µ> traverse() {
+    return new Traverse<Try.µ>() {
+
+      @Override
+      public <G extends Kind, T, R> Higher1<G, Higher1<Try.µ, R>> traverse(
+          Applicative<G> applicative, Higher1<Try.µ, T> value,
+          Function1<T, ? extends Higher1<G, R>> mapper) {
+        return narrowK(value).fold(
+            t -> applicative.pure(failure(t)),
+            t -> applicative.map(mapper.apply(t), Try::success));
       }
     };
   }

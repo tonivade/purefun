@@ -31,6 +31,7 @@ import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
@@ -273,6 +274,19 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
       public <A> Either<E, A> handleErrorWith(Higher1<Higher1<Either.µ, E>, A> value,
                                               Function1<E, ? extends Higher1<Higher1<Either.µ, E>, A>> handler) {
         return narrowK(value).fold(handler.andThen(Either::narrowK), Either::right);
+      }
+    };
+  }
+
+  static <L> Traverse<Higher1<Either.µ, L>> traverse() {
+    return new Traverse<Higher1<Either.µ, L>>() {
+      @Override
+      public <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either.µ, L>, R>> traverse(
+          Applicative<G> applicative, Higher1<Higher1<Either.µ, L>, T> value,
+          Function1<T, ? extends Higher1<G, R>> mapper) {
+        return narrowK(value).fold(
+            l -> applicative.pure(left(l)),
+            t -> applicative.map(mapper.apply(t), Either::right));
       }
     };
   }

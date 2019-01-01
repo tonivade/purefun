@@ -24,6 +24,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class EitherTest {
 
@@ -304,5 +305,20 @@ public class EitherTest {
         () -> assertEquals(Either.right("not an error"), handleError),
         () -> assertEquals(Either.left(error), ensureError),
         () -> assertEquals(Either.right("is not ok"), ensureOk));
+  }
+
+  @Test
+  public void traverse() {
+    Traverse<Higher1<Either.µ, Throwable>> instance = Either.traverse();
+
+    Exception error = new Exception("error");
+
+    assertAll(
+        () -> assertEquals(Option.some(Either.right("HELLO!")),
+            instance.traverse(Option.applicative(), Either.right(Option.some("hello!")),
+                t -> t.map(String::toUpperCase))),
+        () -> assertEquals(Option.some(Either.left(error)),
+            instance.traverse(Option.applicative(), Either.<Throwable, Option<String>>left(error),
+                t -> t.map(String::toUpperCase))));
   }
 }

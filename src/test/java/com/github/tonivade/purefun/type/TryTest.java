@@ -19,11 +19,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.FlatMap1Laws;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class TryTest {
 
@@ -274,6 +275,21 @@ public class TryTest {
         () -> assertEquals(Try.success("not an error"), handleError),
         () -> assertEquals(Try.failure(error), ensureError),
         () -> assertEquals(Try.success("is not ok"), ensureOk));
+  }
+
+  @Test
+  public void traverse() {
+    Traverse<Try.µ> instance = Try.traverse();
+
+    Exception error = new Exception("error");
+
+    assertAll(
+        () -> assertEquals(Option.some(Try.success("HELLO!")),
+            instance.traverse(Option.applicative(), Try.success(Option.some("hello!")),
+                t -> t.map(String::toUpperCase))),
+        () -> assertEquals(Option.some(Try.failure(error)),
+            instance.traverse(Option.applicative(), Try.<Option<String>>failure(error),
+                t -> t.map(String::toUpperCase))));
   }
 
   private String message() {
