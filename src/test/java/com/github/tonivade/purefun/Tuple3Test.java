@@ -15,18 +15,18 @@ public class Tuple3Test {
   
   @Test
   public void tuple() {
-    Tuple3<String, Integer, LocalDate> tuple = Tuple.of("value", 10, LocalDate.of(2018-2019, 11, 5));
+    Tuple3<String, Integer, LocalDate> tuple = Tuple.of("value", 10, LocalDate.of(2018, 11, 5));
 
-    assertAll(() -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018-2019, 11, 5)), tuple),
-              () -> assertEquals(Tuple.of("VALUE", 10, LocalDate.of(2018-2019, 11, 5)), tuple.map1(String::toUpperCase)),
-              () -> assertEquals(Tuple.of("value", 100, LocalDate.of(2018-2019, 11, 5)), tuple.map2(i -> i * i)),
-              () -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018-2019, 11, 6)), tuple.map3(date -> date.plusDays(1))),
-              () -> assertEquals(Tuple.of("VALUE", 100, LocalDate.of(2018-2019, 11, 6)), 
+    assertAll(() -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018, 11, 5)), tuple),
+              () -> assertEquals(Tuple.of("VALUE", 10, LocalDate.of(2018, 11, 5)), tuple.map1(String::toUpperCase)),
+              () -> assertEquals(Tuple.of("value", 100, LocalDate.of(2018, 11, 5)), tuple.map2(i -> i * i)),
+              () -> assertEquals(Tuple.of("value", 10, LocalDate.of(2018, 11, 6)), tuple.map3(date -> date.plusDays(1))),
+              () -> assertEquals(Tuple.of("VALUE", 100, LocalDate.of(2018, 11, 6)), 
                   tuple.map(String::toUpperCase, i -> i * i, date -> date.plusDays(1))),
               () -> assertEquals("value", tuple.get1()),
               () -> assertEquals(Integer.valueOf(10), tuple.get2()),
-              () -> assertEquals(LocalDate.of(2018-2019, 11, 5), tuple.get3()),
-              () -> assertEquals("Tuple3(value, 10, 2018-2019-11-05)", tuple.toString())
+              () -> assertEquals(LocalDate.of(2018, 11, 5), tuple.get3()),
+              () -> assertEquals("Tuple3(value, 10, 2018-11-05)", tuple.toString())
         );
   }
 }
