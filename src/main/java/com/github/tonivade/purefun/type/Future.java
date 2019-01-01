@@ -68,7 +68,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   @Override
   default T get() {
-    return await().orElseThrow(NoSuchElementException::new);
+    return await().getOrElseThrow(NoSuchElementException::new);
   }
 
   default Throwable getCause() {

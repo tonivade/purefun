@@ -88,11 +88,11 @@ public final class EitherT<F extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return getRight();
   }
 
-  public Higher1<F, R> orElse(R orElse) {
-    return orElse(unit(orElse));
+  public Higher1<F, R> getOrElse(R orElse) {
+    return getOrElse(unit(orElse));
   }
 
-  public Higher1<F, R> orElse(Producer<R> orElse) {
+  public Higher1<F, R> getOrElse(Producer<R> orElse) {
     return fold(left -> orElse.get(), identity());
   }
 

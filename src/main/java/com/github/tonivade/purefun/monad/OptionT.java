@@ -62,11 +62,11 @@ public final class OptionT<F extends Kind, T> implements FlatMap2<OptionT.µ, F,
     return monad.map(value, Option::isEmpty);
   }
 
-  public Higher1<F, T> orElse(T orElse) {
-    return orElse(unit(orElse));
+  public Higher1<F, T> getOrElse(T orElse) {
+    return getOrElse(unit(orElse));
   }
 
-  public Higher1<F, T> orElse(Producer<T> orElse) {
+  public Higher1<F, T> getOrElse(Producer<T> orElse) {
     return fold(orElse, identity());
   }
 

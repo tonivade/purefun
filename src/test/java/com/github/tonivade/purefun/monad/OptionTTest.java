@@ -53,7 +53,7 @@ public class OptionTTest {
     OptionT<Id.µ, String> filter = some.filter(String::isEmpty);
     OptionT<Id.µ, String> orElse = OptionT.some(monad, "not empty");
 
-    assertEquals(orElse.get(), filter.orElse("not empty"));
+    assertEquals(orElse.get(), filter.getOrElse("not empty"));
   }
 
   @Test
@@ -62,7 +62,7 @@ public class OptionTTest {
 
     assertAll(
         () -> assertEquals(Id.of(true), none.isEmpty()),
-        () -> assertEquals(Id.of("empty"), none.orElse("empty")));
+        () -> assertEquals(Id.of("empty"), none.getOrElse("empty")));
   }
 
   @Test
@@ -71,7 +71,7 @@ public class OptionTTest {
 
     assertAll(
         () -> assertEquals(Id.of(false), some.isEmpty()),
-        () -> assertEquals(Id.of("abc"), some.orElse("empty")));
+        () -> assertEquals(Id.of("abc"), some.getOrElse("empty")));
   }
 
   @Test

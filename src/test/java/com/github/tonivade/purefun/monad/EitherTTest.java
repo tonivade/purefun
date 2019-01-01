@@ -49,7 +49,7 @@ public class EitherTTest {
     EitherT<Id.µ, Nothing, String> filter = right.filterOrElse(String::isEmpty, unit(Either.right("not empty")));
     EitherT<Id.µ, Nothing, String> orElse = EitherT.right(monad, "not empty");
 
-    assertEquals(orElse.get(), filter.orElse("not empty"));
+    assertEquals(orElse.get(), filter.getOrElse("not empty"));
   }
 
   @Test
@@ -59,7 +59,7 @@ public class EitherTTest {
     assertAll(
         () -> assertEquals(Id.of(true), left.isLeft()),
         () -> assertEquals(Id.of(false), left.isRight()),
-        () -> assertEquals(Id.of("empty"), left.orElse("empty")));
+        () -> assertEquals(Id.of("empty"), left.getOrElse("empty")));
   }
 
   @Test
@@ -69,7 +69,7 @@ public class EitherTTest {
     assertAll(
         () -> assertEquals(Id.of(false), right.isLeft()),
         () -> assertEquals(Id.of(true), right.isRight()),
-        () -> assertEquals(Id.of("abc"), right.orElse("empty")));
+        () -> assertEquals(Id.of("abc"), right.getOrElse("empty")));
   }
 
   @Test

@@ -97,11 +97,18 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     return orElse.get();
   }
 
-  default T orElse(T value) {
-    return orElse(Producer.unit(value));
+  default Validation<E, T> orElse(Validation<E, T> orElse) {
+    if (isInvalid()) {
+      return orElse;
+    }
+    return this;
   }
 
-  default T orElse(Producer<T> orElse) {
+  default T getOrElse(T value) {
+    return getOrElse(Producer.unit(value));
+  }
+
+  default T getOrElse(Producer<T> orElse) {
     if (isValid()) {
       return get();
     }

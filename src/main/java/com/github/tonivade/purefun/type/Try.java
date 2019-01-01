@@ -138,18 +138,25 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     return failureMapper.apply(getCause());
   }
 
-  default T orElse(T value) {
-    return orElse(Producer.unit(value));
+  default Try<T> orElse(Try<T> orElse) {
+    if (isFailure()) {
+      return orElse;
+    }
+    return this;
   }
 
-  default T orElse(Producer<T> producer) {
+  default T getOrElse(T value) {
+    return getOrElse(Producer.unit(value));
+  }
+
+  default T getOrElse(Producer<T> producer) {
     if (isSuccess()) {
       return get();
     }
     return producer.get();
   }
 
-  default <X extends Throwable> T orElseThrow(Producer<X> producer) throws X {
+  default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
     if (isSuccess()) {
       return get();
     }
