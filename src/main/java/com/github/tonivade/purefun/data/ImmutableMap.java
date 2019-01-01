@@ -77,7 +77,7 @@ public interface ImmutableMap<K, V> {
   }
 
   default V getOrDefault(K key, Producer<V> supplier) {
-    return get(key).orElse(supplier);
+    return get(key).getOrElse(supplier);
   }
 
   default boolean isEmpty() {

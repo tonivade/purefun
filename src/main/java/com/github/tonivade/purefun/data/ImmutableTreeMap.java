@@ -108,7 +108,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   @Override
   default V getOrDefault(K key, Producer<V> supplier) {
-    return get(key).orElse(supplier);
+    return get(key).getOrElse(supplier);
   }
 
   @Override

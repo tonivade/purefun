@@ -39,7 +39,7 @@ public final class Prism<T, R> {
   }
 
   public Operator1<T> modify(Operator1<R> mapper) {
-    return target -> modifyOption(mapper).apply(target).orElse(target);
+    return target -> modifyOption(mapper).apply(target).getOrElse(target);
   }
 
   public Operator1<T> set(R value) {

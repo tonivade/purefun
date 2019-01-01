@@ -37,6 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder<T> {
 
@@ -108,18 +109,25 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     return none();
   }
 
-  default T orElse(T value) {
-    return orElse(Producer.unit(value));
+  default Option<T> orElse(Option<T> orElse) {
+    if (isEmpty()) {
+      return orElse;
+    }
+    return this;
   }
 
-  default T orElse(Producer<T> producer) {
+  default T getOrElse(T value) {
+    return getOrElse(Producer.unit(value));
+  }
+
+  default T getOrElse(Producer<T> producer) {
     if (isEmpty()) {
       return producer.get();
     }
     return get();
   }
 
-  default <X extends Throwable> T orElseThrow(Producer<X> producer) throws X {
+  default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
     if (isEmpty()) {
       throw producer.get();
     }
@@ -263,6 +271,20 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
       public <A> Option<A> handleErrorWith(Higher1<Option.µ, A> value,
                                            Function1<Nothing, ? extends Higher1<Option.µ, A>> handler) {
         return narrowK(value).fold(() -> narrowK(handler.apply(nothing())), Option::some);
+      }
+    };
+  }
+
+  static Traverse<Option.µ> traverse() {
+    return new Traverse<Option.µ>() {
+
+      @Override
+      public <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(
+          Applicative<G> applicative, Higher1<Option.µ, T> value,
+          Function1<T, ? extends Higher1<G, R>> mapper) {
+        return narrowK(value).fold(
+            () -> applicative.pure(none()),
+            t -> applicative.map(mapper.apply(t), Option::some));
       }
     };
   }

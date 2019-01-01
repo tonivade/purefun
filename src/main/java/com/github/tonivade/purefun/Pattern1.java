@@ -38,7 +38,7 @@ public final class Pattern1<A, R> implements Function1<A, R> {
   public R apply(A target) {
     return findCase(target)
         .map(case_ -> case_.apply(target))
-        .orElseThrow(IllegalStateException::new);
+        .getOrElseThrow(IllegalStateException::new);
   }
 
   protected Pattern1<A, R> add(Matcher1<A> matcher, Function1<A, R> handler) {

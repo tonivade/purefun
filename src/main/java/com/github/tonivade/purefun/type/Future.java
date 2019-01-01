@@ -305,11 +305,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     private CheckedProducer<Try<T>> result() {
-      return () -> value.get().orElse(Try.failure(new NoSuchElementException()));
+      return () -> value.get().getOrElse(Try.failure(new NoSuchElementException()));
     }
 
     private CheckedProducer<Try<T>> result(Duration timeout) {
-      return () -> value.get(timeout).orElse(Try.failure(new NoSuchElementException()));
+      return () -> value.get(timeout).getOrElse(Try.failure(new NoSuchElementException()));
     }
   }
 }

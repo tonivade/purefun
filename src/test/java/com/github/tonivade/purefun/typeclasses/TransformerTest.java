@@ -6,12 +6,11 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Transformer;
-
-import org.junit.jupiter.api.Test;
 
 public class TransformerTest {
 
@@ -40,7 +39,7 @@ public class TransformerTest {
 class OptionToTry implements Transformer<Option.µ, Try.µ> {
   @Override
   public <X> Try<X> apply(Higher1<Option.µ, X> from) {
-    return Option.narrowK(from).map(Try::success).orElse(Try::failure);
+    return Option.narrowK(from).map(Try::success).getOrElse(Try::failure);
   }
 }
 

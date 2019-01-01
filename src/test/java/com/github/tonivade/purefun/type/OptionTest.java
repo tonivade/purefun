@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class OptionTest {
   private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
@@ -62,14 +63,14 @@ public class OptionTest {
 
   @Test
   public void orElseSome() {
-    String value = Option.some("Hola mundo").orElse("Adios!");
+    String value = Option.some("Hola mundo").getOrElse("Adios!");
 
     assertEquals("Hola mundo", value);
   }
 
   @Test
   public void orElseNone() {
-    String value = Option.<String>none().orElse("Adios!");
+    String value = Option.<String>none().getOrElse("Adios!");
 
     assertEquals("Adios!", value);
   }
@@ -216,6 +217,19 @@ public class OptionTest {
         () -> assertEquals(Option.some("not an error"), handleError),
         () -> assertEquals(Option.none(), ensureError),
         () -> assertEquals(Option.some("is not ok"), ensureOk));
+  }
+
+  @Test
+  public void traverse() {
+    Traverse<Option.µ> instance = Option.traverse();
+
+    assertAll(
+        () -> assertEquals(Try.success(Option.some("HELLO!")),
+            instance.traverse(Try.applicative(), Option.some(Try.success("hello!")),
+                t -> t.map(String::toUpperCase))),
+        () -> assertEquals(Try.success(Option.none()),
+            instance.traverse(Try.applicative(), Option.<Try<String>>none(),
+                t -> t.map(String::toUpperCase))));
   }
 
   private String message() {

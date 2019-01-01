@@ -32,15 +32,15 @@ public class ReaderTest {
   }
 
   private Reader<ImmutableList<String>, String> read1(String str) {
-    return reader(list -> str + list.head().orElse(""));
+    return reader(list -> str + list.head().getOrElse(""));
   }
 
   private Reader<ImmutableList<String>, String> read2(String str) {
-    return reader(list -> str + list.tail().head().orElse(""));
+    return reader(list -> str + list.tail().head().getOrElse(""));
   }
 
   private Reader<ImmutableList<String>, String> read3(String str) {
-    return reader(list -> str + list.tail().tail().head().orElse(""));
+    return reader(list -> str + list.tail().tail().head().getOrElse(""));
   }
 
   private Reader<ImmutableList<String>, String> end(String str, String end) {
