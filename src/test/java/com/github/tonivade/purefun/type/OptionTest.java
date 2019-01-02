@@ -26,8 +26,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class OptionTest {
@@ -230,6 +232,17 @@ public class OptionTest {
         () -> assertEquals(Try.success(Option.none()),
             instance.traverse(Try.applicative(), Option.<Try<String>>none(),
                 t -> t.map(String::toUpperCase))));
+  }
+
+  @Test
+  public void semigroupal() {
+    Semigroupal<Option.µ> instance = Option.semigroupal();
+
+    assertAll(
+        () -> assertEquals(Option.none(), instance.product(Option.none(), Option.none())),
+        () -> assertEquals(Option.none(), instance.product(Option.some(1), Option.none())),
+        () -> assertEquals(Option.none(), instance.product(Option.none(), Option.some("a"))),
+        () -> assertEquals(Option.some(Tuple.of(1, "a")), instance.product(Option.some(1), Option.some("a"))));
   }
 
   private String message() {

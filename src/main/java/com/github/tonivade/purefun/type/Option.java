@@ -28,6 +28,8 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Alternative;
@@ -37,6 +39,7 @@ import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder<T> {
@@ -285,6 +288,16 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
         return narrowK(value).fold(
             () -> applicative.pure(none()),
             t -> applicative.map(mapper.apply(t), Option::some));
+      }
+    };
+  }
+
+  static Semigroupal<Option.µ> semigroupal() {
+    return new Semigroupal<Option.µ>() {
+
+      @Override
+      public <A, B> Option<Tuple2<A, B>> product(Higher1<Option.µ, A> fa, Higher1<Option.µ, B> fb) {
+        return narrowK(fa).flatMap(a -> narrowK(fb).map(b -> Tuple.of(a, b)));
       }
     };
   }
