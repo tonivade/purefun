@@ -10,5 +10,5 @@ import com.github.tonivade.purefun.Tuple2;
 
 public interface Semigroupal<F extends Kind> {
 
-  <A, B> Higher1<F, Tuple2<A, B>> product(Higher1<F, A> a, Higher1<F, B> b);
+  <A, B> Higher1<F, Tuple2<A, B>> product(Higher1<F, A> fa, Higher1<F, B> fb);
 }

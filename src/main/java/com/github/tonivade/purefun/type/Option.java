@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
@@ -36,6 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.FoldableK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -298,6 +300,21 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
       @Override
       public <A, B> Option<Tuple2<A, B>> product(Higher1<Option.µ, A> fa, Higher1<Option.µ, B> fb) {
         return narrowK(fa).flatMap(a -> narrowK(fb).map(b -> Tuple.of(a, b)));
+      }
+    };
+  }
+
+  static FoldableK<Option.µ> foldableK() {
+    return new FoldableK<Option.µ>() {
+
+      @Override
+      public <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {
+        return narrowK(value).fold(unit(initial), a -> mapper.apply(initial, a));
+      }
+
+      @Override
+      public <A, B> B foldRight(Higher1<Option.µ, A> value, B initial, Function2<A, B, B> mapper) {
+        return narrowK(value).fold(unit(initial), a -> mapper.apply(a, initial));
       }
     };
   }

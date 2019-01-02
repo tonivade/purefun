@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.data.ImmutableList.empty;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -27,8 +29,11 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.FoldableK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
@@ -243,6 +248,21 @@ public class OptionTest {
         () -> assertEquals(Option.none(), instance.product(Option.some(1), Option.none())),
         () -> assertEquals(Option.none(), instance.product(Option.none(), Option.some("a"))),
         () -> assertEquals(Option.some(Tuple.of(1, "a")), instance.product(Option.some(1), Option.some("a"))));
+  }
+
+  @Test
+  public void foldable() {
+    FoldableK<Option.µ> instance = Option.foldableK();
+
+    assertAll(
+        () -> assertEquals(empty(), instance.foldLeft(Option.none(), empty(), (acc, a) -> acc.append(a))),
+        () -> assertEquals(listOf("hola!"), instance.foldLeft(Option.some("hola!"), empty(), (acc, a) -> acc.append(a))),
+        () -> assertEquals(empty(), instance.foldRight(Option.none(), empty(), (a, acc) -> acc.append(a))),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Option.some("hola!"), empty(), (a, acc) -> acc.append(a))),
+        () -> assertEquals("", instance.fold(Monoid.string(), Option.none())),
+        () -> assertEquals("hola!", instance.fold(Monoid.string(), Option.some("hola!"))),
+        () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Option.none(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Option.some("hola!"), Sequence::listOf)));
   }
 
   private String message() {
