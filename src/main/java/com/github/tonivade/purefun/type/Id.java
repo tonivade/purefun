@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
@@ -119,6 +120,18 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
       @Override
       public <T, R> Id<R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
         return narrowK(value).flatMap(map);
+      }
+    };
+  }
+
+  public static Traverse<Id.µ> traverse() {
+    return new Traverse<Id.µ>() {
+
+      @Override
+      public <G extends Kind, T, R> Higher1<G, Higher1<Id.µ, R>> traverse(
+          Applicative<G> applicative, Higher1<Id.µ, T> value,
+          Function1<T, ? extends Higher1<G, R>> mapper) {
+        return applicative.map(mapper.apply(narrowK(value).get()), Id::of);
       }
     };
   }

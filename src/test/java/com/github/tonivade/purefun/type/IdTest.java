@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class IdTest {
 
@@ -26,5 +27,15 @@ public class IdTest {
         () -> assertEquals(Id.of("HOLA MUNDO!"), id.flatMap(toUpperCase.andThen(Id::of))),
         () -> assertEquals(Id.of("hola mundo!"), Id.of(id).flatten()),
         () -> assertThrows(UnsupportedOperationException.class, id::flatten));
+  }
+
+  @Test
+  public void traverse() {
+    Traverse<Id.µ> instance = Id.traverse();
+
+    assertAll(
+        () -> assertEquals(Option.some(Id.of("HELLO!")),
+            instance.traverse(Option.applicative(), Id.of(Option.some("hello!")),
+                t -> t.map(String::toUpperCase))));
   }
 }
