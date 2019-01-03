@@ -37,7 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
-import com.github.tonivade.purefun.typeclasses.FoldableK;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -304,8 +304,8 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     };
   }
 
-  static FoldableK<Option.µ> foldableK() {
-    return new FoldableK<Option.µ>() {
+  static Foldable<Option.µ> foldable() {
+    return new Foldable<Option.µ>() {
 
       @Override
       public <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {

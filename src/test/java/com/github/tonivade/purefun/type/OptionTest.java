@@ -30,7 +30,7 @@ import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.typeclasses.FoldableK;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -252,7 +252,7 @@ public class OptionTest {
 
   @Test
   public void foldable() {
-    FoldableK<Option.µ> instance = Option.foldableK();
+    Foldable<Option.µ> instance = Option.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Option.none(), empty(), (acc, a) -> acc.append(a))),

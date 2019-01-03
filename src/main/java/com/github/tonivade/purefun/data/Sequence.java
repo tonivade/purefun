@@ -16,7 +16,6 @@ import java.util.stream.StreamSupport;
 
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
-import com.github.tonivade.purefun.Foldable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
@@ -30,14 +29,14 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
-import com.github.tonivade.purefun.typeclasses.FoldableK;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.MonoidK;
 import com.github.tonivade.purefun.typeclasses.Semigroup;
 import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E>, Foldable<E> {
+public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E> {
 
   final class µ implements Kind {}
 
@@ -69,17 +68,14 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   @Override
   Sequence<E> filter(Matcher1<E> matcher);
 
-  @Override
   default Option<E> reduce(Operator2<E> operator) {
     return Option.from(stream().reduce(operator::apply));
   }
 
-  @Override
   default E fold(E initial, Operator2<E> operator) {
     return stream().reduce(initial, operator::apply);
   }
 
-  @Override
   default <U> U foldLeft(U initial, Function2<U, E, U> combinator) {
     U accumulator = initial;
     for (E element : this) {
@@ -88,7 +84,6 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
     return accumulator;
   }
 
-  @Override
   default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
@@ -261,8 +256,9 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
     };
   }
 
-  static FoldableK<Sequence.µ> foldableK() {
-    return new FoldableK<Sequence.µ>() {
+  static Foldable<Sequence.µ> foldable() {
+    return new Foldable<Sequence.µ>() {
+
       @Override
       public <A, B> B foldLeft(Higher1<Sequence.µ, A> value, B initial, Function2<B, A, B> mapper) {
         return narrowK(value).foldLeft(initial, mapper);

@@ -26,6 +26,9 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   boolean complete();
 
   @Override
+  T get();
+
+  @Override
   default <R> Trampoline<R> map(Function1<T, R> map) {
     return TrampolineModule.resume(this)
         .fold(next -> more(() -> next.map(map)),
