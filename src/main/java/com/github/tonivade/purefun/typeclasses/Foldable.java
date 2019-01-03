@@ -34,6 +34,10 @@ public interface Foldable<F extends Kind> {
         (option, a) -> option.fold(() -> Option.some(a), b -> Option.some(combinator.apply(b, a))));
   }
 
+  default <G extends Kind, A, B> Higher1<G, B> foldM(Monad<G> monad, Higher1<F, A> value, B initial, Function2<B, A, Higher1<G, B>> mapper) {
+    return foldLeft(value, monad.pure(initial), (gb, a) -> monad.flatMap(gb, b -> mapper.apply(b, a)));
+  }
+
   static <F extends Kind, G extends Kind> Foldable<Nested<F, G>> compose(Foldable<F> ff, Foldable<G> fg) {
     return new Foldable<Nested<F, G>>() {
 
