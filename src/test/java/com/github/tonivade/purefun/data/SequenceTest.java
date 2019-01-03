@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Sequence.zip;
+import static com.github.tonivade.purefun.type.Eval.now;
 import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,11 +64,10 @@ public class SequenceTest {
 
     assertAll(
         () -> assertEquals("abc", instance.foldLeft(listOf("a", "b", "c"), "", String::concat)),
-        () -> assertEquals("abc", instance.foldRight(listOf("a", "b", "c"), "", String::concat)),
+        () -> assertEquals("abc", instance.foldRight(listOf("a", "b", "c"), now(""), (a, lb) -> lb.map(b -> a + b)).value()),
         () -> assertEquals("abc", instance.fold(Monoid.string(), listOf("a", "b", "c"))),
         () -> assertEquals("ABC", instance.foldMap(Monoid.string(), listOf("a", "b", "c"), String::toUpperCase)),
         () -> assertEquals(Option.some("abc"), instance.reduce(listOf("a", "b", "c"), String::concat)),
-        () -> assertEquals(Id.of("abc"), instance.foldM(Id.monad(), listOf("a", "b", "c"), "", (a, b) -> Id.of(a + b)))
-        );
+        () -> assertEquals(Id.of("abc"), instance.foldM(Id.monad(), listOf("a", "b", "c"), "", (a, b) -> Id.of(a + b))));
   }
 }

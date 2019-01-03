@@ -13,13 +13,14 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 
 public interface Foldable<F extends Kind> {
 
   <A, B> B foldLeft(Higher1<F, A> value, B initial, Function2<B, A, B> mapper);
 
-  <A, B> B foldRight(Higher1<F, A> value, B initial, Function2<A, B, B> mapper);
+  <A, B> Eval<B> foldRight(Higher1<F, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper);
 
   default <A> A fold(Monoid<A> monoid, Higher1<F, A> value) {
     return foldMap(monoid, value, identity());
@@ -47,8 +48,8 @@ public interface Foldable<F extends Kind> {
       }
 
       @Override
-      public <A, B> B foldRight(Higher1<Nested<F, G>, A> value, B initial, Function2<A, B, B> mapper) {
-        return ff.foldRight(unnest(value), initial, (a, b) -> fg.foldRight(a, b, mapper));
+      public <A, B> Eval<B> foldRight(Higher1<Nested<F, G>, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
+        return ff.foldRight(unnest(value), initial, (a, lb) -> fg.foldRight(a, lb, mapper));
       }
     };
   }

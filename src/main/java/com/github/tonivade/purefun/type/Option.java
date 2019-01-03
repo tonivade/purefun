@@ -313,7 +313,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
       }
 
       @Override
-      public <A, B> B foldRight(Higher1<Option.µ, A> value, B initial, Function2<A, B, B> mapper) {
+      public <A, B> Eval<B> foldRight(Higher1<Option.µ, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
         return narrowK(value).fold(unit(initial), a -> mapper.apply(a, initial));
       }
     };

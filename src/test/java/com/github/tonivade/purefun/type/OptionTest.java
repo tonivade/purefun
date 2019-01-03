@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.type.Eval.now;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -258,8 +259,8 @@ public class OptionTest {
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Option.none(), empty(), ImmutableList::append)),
         () -> assertEquals(listOf("hola!"), instance.foldLeft(Option.some("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Option.none(), empty(), (a, acc) -> acc.append(a))),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Option.some("hola!"), empty(), (a, acc) -> acc.append(a))),
+        () -> assertEquals(empty(), instance.foldRight(Option.none(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Option.some("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
         () -> assertEquals("", instance.fold(Monoid.string(), Option.none())),
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Option.some("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Option.none(), String::concat)),
@@ -267,8 +268,7 @@ public class OptionTest {
         () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Option.none(), Sequence::listOf)),
         () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Option.some("hola!"), Sequence::listOf)),
         () -> assertEquals(Id.of(empty()), instance.foldM(Id.monad(), Option.none(), empty(), (acc, a) -> Id.of(acc.append(a)))),
-        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(Id.monad(), Option.some("hola!"), empty(), (acc, a) -> Id.of(acc.append(a))))
-        );
+        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(Id.monad(), Option.some("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
   }
 
   private String message() {

@@ -25,6 +25,7 @@ import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -265,7 +266,7 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
       }
 
       @Override
-      public <A, B> B foldRight(Higher1<Sequence.µ, A> value, B initial, Function2<A, B, B> mapper) {
+      public <A, B> Eval<B> foldRight(Higher1<Sequence.µ, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
         return narrowK(value).foldRight(initial, mapper);
       }
     };
