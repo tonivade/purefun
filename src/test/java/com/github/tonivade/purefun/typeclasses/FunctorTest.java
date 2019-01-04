@@ -6,11 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.typeclasses.FunctorLaws.verifyLaws;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
@@ -51,9 +49,7 @@ public class FunctorTest {
   }
 
   @Test
-  public void composed() {
-    Functor<Nested<Option.µ, Id.µ>> composed = Functor.compose(Option.functor(), Id.functor());
-
-    assertEquals(Option.some(Id.of("HOLA!")), composed.map(nest(Option.some(Id.of("hola!"))), String::toUpperCase));
+  public void composedFunctor() {
+    verifyLaws(Functor.compose(Option.functor(), Id.functor()), nest(Option.some(Id.of("hola mundo!"))));
   }
 }
