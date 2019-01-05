@@ -28,7 +28,7 @@ public class AlternativeLaws {
     assertEquals(
         instance.<String>zero(),
         instance.ap(instance.<Integer>zero(), instance.pure(intToString)),
-        "rightAbsorption");
+        "right absorption");
   }
 
   private static <F extends Kind> void leftDistributivity(Alternative<F> instance) {
@@ -37,7 +37,7 @@ public class AlternativeLaws {
     assertEquals(
         instance.map(instance.combineK(fa, fb), intToString),
         instance.combineK(instance.map(fa, intToString), instance.map(fb, intToString)),
-        "leftDistributivity");
+        "left distributivity");
   }
 
   private static <F extends Kind> void rightDistributivity(Alternative<F> instance) {
@@ -47,6 +47,6 @@ public class AlternativeLaws {
     assertEquals(
         instance.ap(fa, instance.combineK(f1, f2)),
         instance.combineK(instance.ap(fa, f1), instance.ap(fa, f2)),
-        "rightDistributivity");
+        "right distributivity");
   }
 }
