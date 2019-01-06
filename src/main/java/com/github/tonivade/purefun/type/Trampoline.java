@@ -15,6 +15,8 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
@@ -60,20 +62,16 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
     }
   }
 
+  static Functor<Trampoline.µ> functor() {
+    return TrampolineModule.functor;
+  }
+
+  static Applicative<Trampoline.µ> applicative() {
+    return TrampolineModule.applicative;
+  }
+
   static Monad<Trampoline.µ> monad() {
-    return new Monad<Trampoline.µ>() {
-
-      @Override
-      public <T> Trampoline<T> pure(T value) {
-        return done(value);
-      }
-
-      @Override
-      public <T, R> Trampoline<R> flatMap(Higher1<Trampoline.µ, T> value,
-                                          Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-    };
+    return TrampolineModule.monad;
   }
 
   TrampolineModule module();
@@ -151,6 +149,10 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 
 interface TrampolineModule {
 
+  Functor<Trampoline.µ> functor = new TrampolineFunctor() {};
+  Applicative<Trampoline.µ> applicative = new TrampolineApplicative() {};
+  Monad<Trampoline.µ> monad = new TrampolineMonad() {};
+
   static <T> Trampoline<T> iterate(Trampoline<T> trampoline) {
     return Stream.iterate(trampoline, Trampoline::apply)
         .filter(Trampoline::complete).findFirst().orElseThrow(IllegalStateException::new);
@@ -158,5 +160,40 @@ interface TrampolineModule {
 
   static <T> Either<Trampoline<T>, T> resume(Trampoline<T> trampoline) {
     return trampoline.fold(Either::left, Either::right);
+  }
+}
+
+interface TrampolineFunctor extends Functor<Trampoline.µ> {
+
+  @Override
+  default <T, R> Trampoline<R> map(Higher1<Trampoline.µ, T> value, Function1<T, R> mapper) {
+    return Trampoline.narrowK(value).map(mapper);
+  }
+}
+
+interface TrampolinePure extends Applicative<Trampoline.µ> {
+
+  @Override
+  default <T> Trampoline<T> pure(T value) {
+    return Trampoline.done(value);
+  }
+}
+
+interface TrampolineApply extends Applicative<Trampoline.µ> {
+
+  @Override
+  default <T, R> Trampoline<R> ap(Higher1<Trampoline.µ, T> value, Higher1<Trampoline.µ, Function1<T, R>> apply) {
+    return Trampoline.narrowK(value).flatMap(t -> Trampoline.narrowK(apply).map(f -> f.apply(t)));
+  }
+}
+
+interface TrampolineApplicative extends TrampolinePure, TrampolineApply { }
+
+interface TrampolineMonad extends TrampolinePure, Monad<Trampoline.µ> {
+
+  @Override
+  default <T, R> Trampoline<R> flatMap(Higher1<Trampoline.µ, T> value,
+      Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
+    return Trampoline.narrowK(value).flatMap(map);
   }
 }
