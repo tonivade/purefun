@@ -85,54 +85,69 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
   }
 
   public static Functor<Id.µ> functor() {
-    return new Functor<Id.µ>() {
-
-      @Override
-      public <T, R> Id<R> map(Higher1<Id.µ, T> value, Function1<T, R> map) {
-        return narrowK(value).map(map);
-      }
-    };
+    return IdInstances.functor;
   }
 
   public static Applicative<Id.µ> applicative() {
-    return new Applicative<Id.µ>() {
-
-      @Override
-      public <T> Id<T> pure(T value) {
-        return of(value);
-      }
-
-      @Override
-      public <T, R> Id<R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
-        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
-      }
-    };
+    return IdInstances.applicative;
   }
 
   public static Monad<Id.µ> monad() {
-    return new Monad<Id.µ>() {
-
-      @Override
-      public <T> Id<T> pure(T value) {
-        return of(value);
-      }
-
-      @Override
-      public <T, R> Id<R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-    };
+    return IdInstances.monad;
   }
 
   public static Traverse<Id.µ> traverse() {
-    return new Traverse<Id.µ>() {
+    return IdInstances.traverse;
+  }
+}
 
-      @Override
-      public <G extends Kind, T, R> Higher1<G, Higher1<Id.µ, R>> traverse(
-          Applicative<G> applicative, Higher1<Id.µ, T> value,
-          Function1<T, ? extends Higher1<G, R>> mapper) {
-        return applicative.map(mapper.apply(narrowK(value).get()), Id::of);
-      }
-    };
+interface IdInstances {
+  Functor<Id.µ> functor = new IdFunctor() {};
+  Applicative<Id.µ> applicative = new IdApplicative() {};
+  Monad<Id.µ> monad = new IdMonad() {};
+  Traverse<Id.µ> traverse = new IdTraverse() {};
+}
+
+interface IdFunctor extends Functor<Id.µ> {
+
+  @Override
+  default <T, R> Id<R> map(Higher1<Id.µ, T> value, Function1<T, R> map) {
+    return Id.narrowK(value).map(map);
+  }
+}
+
+interface IdPure extends Applicative<Id.µ> {
+
+  @Override
+  default <T> Id<T> pure(T value) {
+    return Id.of(value);
+  }
+}
+
+interface IdApply extends Applicative<Id.µ> {
+
+  @Override
+  default <T, R> Id<R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
+    return Id.narrowK(value).flatMap(t -> Id.narrowK(apply).map(f -> f.apply(t)));
+  }
+}
+
+interface IdApplicative extends IdPure, IdApply {}
+
+interface IdMonad extends IdPure, Monad<Id.µ> {
+
+  @Override
+  default <T, R> Id<R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
+    return Id.narrowK(value).flatMap(map);
+  }
+}
+
+interface IdTraverse extends Traverse<Id.µ> {
+
+  @Override
+  default <G extends Kind, T, R> Higher1<G, Higher1<Id.µ, R>> traverse(
+      Applicative<G> applicative, Higher1<Id.µ, T> value,
+      Function1<T, ? extends Higher1<G, R>> mapper) {
+    return applicative.map(mapper.apply(Id.narrowK(value).get()), Id::of);
   }
 }

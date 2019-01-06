@@ -41,6 +41,8 @@ import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonoidK;
+import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
@@ -189,134 +191,35 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 
   static Functor<Option.µ> functor() {
-    return new Functor<Option.µ>() {
-
-      @Override
-      public <T, R> Option<R> map(Higher1<Option.µ, T> value, Function1<T, R> mapper) {
-        return narrowK(value).map(mapper);
-      }
-    };
+    return OptionModule.functor;
   }
 
   static Applicative<Option.µ> applicative() {
-    return new Applicative<Option.µ>() {
-
-      @Override
-      public <T> Option<T> pure(T value) {
-        return some(value);
-      }
-
-      @Override
-      public <T, R> Option<R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
-        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
-      }
-    };
+    return OptionModule.applicative;
   }
 
   static Alternative<Option.µ> alternative() {
-    return new Alternative<Option.µ>() {
-      @Override
-      public <T> Option<T> zero() {
-        return none();
-      }
-
-      @Override
-      public <T> Option<T> combineK(Higher1<Option.µ, T> t1, Higher1<Option.µ, T> t2) {
-        return narrowK(t1).fold(unit(narrowK(t2)), Option::some);
-      }
-
-      @Override
-      public <T> Option<T> pure(T value) {
-        return some(value);
-      }
-
-      @Override
-      public <T, R> Option<R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
-        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
-      }
-    };
+    return OptionModule.alternative;
   }
 
   static Monad<Option.µ> monad() {
-    return new Monad<Option.µ>() {
-
-      @Override
-      public <T> Option<T> pure(T value) {
-        return some(value);
-      }
-
-      @Override
-      public <T, R> Option<R> flatMap(Higher1<Option.µ, T> value,
-                                      Function1<T, ? extends Higher1<Option.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-    };
+    return OptionModule.monad;
   }
 
   static MonadError<Option.µ, Nothing> monadError() {
-    return new MonadError<Option.µ, Nothing>() {
-
-      @Override
-      public <T> Option<T> pure(T value) {
-        return some(value);
-      }
-
-      @Override
-      public <A> Option<A> raiseError(Nothing error) {
-        return none();
-      }
-
-      @Override
-      public <T, R> Option<R> flatMap(Higher1<Option.µ, T> value,
-                                      Function1<T, ? extends Higher1<Option.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-
-      @Override
-      public <A> Option<A> handleErrorWith(Higher1<Option.µ, A> value,
-                                           Function1<Nothing, ? extends Higher1<Option.µ, A>> handler) {
-        return narrowK(value).fold(() -> narrowK(handler.apply(nothing())), Option::some);
-      }
-    };
+    return OptionModule.monadError;
   }
 
   static Traverse<Option.µ> traverse() {
-    return new Traverse<Option.µ>() {
-
-      @Override
-      public <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(
-          Applicative<G> applicative, Higher1<Option.µ, T> value,
-          Function1<T, ? extends Higher1<G, R>> mapper) {
-        return narrowK(value).fold(
-            () -> applicative.pure(none()),
-            t -> applicative.map(mapper.apply(t), Option::some));
-      }
-    };
+    return OptionModule.traverse;
   }
 
   static Semigroupal<Option.µ> semigroupal() {
-    return new Semigroupal<Option.µ>() {
-
-      @Override
-      public <A, B> Option<Tuple2<A, B>> product(Higher1<Option.µ, A> fa, Higher1<Option.µ, B> fb) {
-        return narrowK(fa).flatMap(a -> narrowK(fb).map(b -> Tuple.of(a, b)));
-      }
-    };
+    return OptionModule.semigroupal;
   }
 
   static Foldable<Option.µ> foldable() {
-    return new Foldable<Option.µ>() {
-
-      @Override
-      public <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {
-        return narrowK(value).fold(unit(initial), a -> mapper.apply(initial, a));
-      }
-
-      @Override
-      public <A, B> Eval<B> foldRight(Higher1<Option.µ, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
-        return narrowK(value).fold(unit(initial), a -> mapper.apply(a, initial));
-      }
-    };
+    return OptionModule.foldable;
   }
 
   OptionModule module();
@@ -415,5 +318,114 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
 }
 
 interface OptionModule {
+  Functor<Option.µ> functor = new OptionFunctor() {};
+  Applicative<Option.µ> applicative = new OptionApplicative() {};
+  SemigroupK<Option.µ> semigroupK = new OptionSemigroupK() {};
+  MonoidK<Option.µ> monoidK = new OptionMonoidK() {};
+  Alternative<Option.µ> alternative = new OptionAlternative() {};
+  Monad<Option.µ> monad = new OptionMonad() {};
+  MonadError<Option.µ, Nothing> monadError = new OptionMonadError() {};
+  Foldable<Option.µ> foldable = new OptionFoldable() {};
+  Traverse<Option.µ> traverse = new OptionTraverse() {};
+  Semigroupal<Option.µ> semigroupal = new OptionSemigroupal() {};
+}
 
+interface OptionFunctor extends Functor<Option.µ> {
+
+  @Override
+  default <T, R> Option<R> map(Higher1<Option.µ, T> value, Function1<T, R> mapper) {
+    return Option.narrowK(value).map(mapper);
+  }
+}
+
+interface OptionPure extends Applicative<Option.µ> {
+
+  @Override
+  default <T> Option<T> pure(T value) {
+    return Option.some(value);
+  }
+}
+
+interface OptionApply extends Applicative<Option.µ> {
+
+  @Override
+  default <T, R> Option<R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
+    return Option.narrowK(value).flatMap(t -> Option.narrowK(apply).map(f -> f.apply(t)));
+  }
+}
+
+interface OptionApplicative extends OptionPure, OptionApply { }
+
+interface OptionMonad extends OptionPure, Monad<Option.µ> {
+
+  @Override
+  default <T, R> Option<R> flatMap(Higher1<Option.µ, T> value,
+      Function1<T, ? extends Higher1<Option.µ, R>> map) {
+    return Option.narrowK(value).flatMap(map);
+  }
+}
+
+interface OptionSemigroupK extends SemigroupK<Option.µ> {
+
+  @Override
+  default <T> Option<T> combineK(Higher1<Option.µ, T> t1, Higher1<Option.µ, T> t2) {
+    return Option.narrowK(t1).fold(unit(Option.narrowK(t2)), Option::some);
+  }
+}
+
+interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option.µ> {
+
+  @Override
+  default <T> Option<T> zero() {
+    return Option.none();
+  }
+}
+
+interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option.µ> { }
+
+interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Nothing> {
+
+  @Override
+  default <A> Option<A> raiseError(Nothing error) {
+    return Option.none();
+  }
+
+  @Override
+  default <A> Option<A> handleErrorWith(Higher1<Option.µ, A> value,
+      Function1<Nothing, ? extends Higher1<Option.µ, A>> handler) {
+    return Option.narrowK(value).fold(() -> Option.narrowK(handler.apply(nothing())), Option::some);
+  }
+}
+
+interface OptionFoldable extends Foldable<Option.µ> {
+
+  @Override
+  default <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {
+    return Option.narrowK(value).fold(unit(initial), a -> mapper.apply(initial, a));
+  }
+
+  @Override
+  default <A, B> Eval<B> foldRight(Higher1<Option.µ, A> value, Eval<B> initial,
+      Function2<A, Eval<B>, Eval<B>> mapper) {
+    return Option.narrowK(value).fold(unit(initial), a -> mapper.apply(a, initial));
+  }
+}
+
+interface OptionTraverse extends Traverse<Option.µ> {
+
+  @Override
+  default <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(
+      Applicative<G> applicative, Higher1<Option.µ, T> value,
+      Function1<T, ? extends Higher1<G, R>> mapper) {
+    return Option.narrowK(value).fold(
+        () -> applicative.pure(Option.none()), t -> applicative.map(mapper.apply(t), Option::some));
+  }
+}
+
+interface OptionSemigroupal extends Semigroupal<Option.µ> {
+
+  @Override
+  default <A, B> Option<Tuple2<A, B>> product(Higher1<Option.µ, A> fa, Higher1<Option.µ, B> fb) {
+    return Option.narrowK(fa).flatMap(a -> Option.narrowK(fb).map(b -> Tuple.of(a, b)));
+  }
 }
