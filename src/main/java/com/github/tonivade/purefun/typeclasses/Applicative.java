@@ -4,9 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Nested.nest;
-import static com.github.tonivade.purefun.Nested.unnest;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
@@ -47,18 +44,13 @@ public interface Applicative<F extends Kind> extends Functor<F> {
   }
 
   static <F extends Kind, G extends Kind> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {
-    return new Applicative<Nested<F, G>>() {
+    return new ComposedApplicative<F, G>() {
 
       @Override
-      public <T> Higher1<Nested<F, G>, T> pure(T value) {
-        return nest(f.pure(g.pure(value)));
-      }
+      public Applicative<F> f() { return f; }
 
       @Override
-      public <T, R> Higher1<Nested<F, G>, R> ap(Higher1<Nested<F, G>, T> value,
-          Higher1<Nested<F, G>, Function1<T, R>> apply) {
-        return nest(f.ap(unnest(value), f.map(unnest(apply), gfa -> ga -> g.ap(ga, gfa))));
-      }
+      public Applicative<G> g() { return g; }
     };
   }
 }

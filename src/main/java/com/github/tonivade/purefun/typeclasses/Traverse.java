@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Nested.unnest;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
@@ -22,16 +20,14 @@ public interface Traverse<F extends Kind> extends Functor<F> {
     return Id.narrowK(traverse(Id.applicative(), value, t -> Id.of(map.apply(t)))).get();
   }
 
-  static <F extends Kind, G extends Kind> Traverse<Nested<F, G>> compose(Traverse<F> tf, Traverse<G> tg) {
-    return new Traverse<Nested<F,G>>() {
+  static <F extends Kind, G extends Kind> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
+    return new ComposedTraverse<F, G>() {
 
       @Override
-      public <H extends Kind, T, R> Higher1<H, Higher1<Nested<F, G>, R>> traverse(Applicative<H> applicative,
-          Higher1<Nested<F, G>, T> value, Function1<T, ? extends Higher1<H, R>> mapper) {
-        return applicative.map(
-            tf.traverse(applicative, unnest(value), ga -> tg.traverse(applicative, ga, mapper)),
-            Nested::nest);
-      }
+      public Traverse<F> f() { return f; }
+
+      @Override
+      public Traverse<G> g() { return g; }
     };
   }
 }

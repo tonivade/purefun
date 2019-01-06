@@ -128,9 +128,7 @@ public final class EitherT<F extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return new EitherTMonad<F, L>() {
 
       @Override
-      public Monad<F> monadF() {
-        return monadF;
-      }
+      public Monad<F> monadF() { return monadF; }
     };
   }
 
@@ -138,9 +136,7 @@ public final class EitherT<F extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return new EitherTMonadErrorFromMonad<F, L>() {
 
       @Override
-      public Monad<F> monadF() {
-        return monadF;
-      }
+      public Monad<F> monadF() { return monadF; }
     };
   }
 
@@ -148,9 +144,7 @@ public final class EitherT<F extends Kind, L, R> implements FlatMap3<EitherT.µ,
     return new EitherTMonadErrorFromMonadError<F, L>() {
 
       @Override
-      public MonadError<F, L> monadErrorF() {
-        return monadErrorF;
-      }
+      public MonadError<F, L> monadF() { return monadErrorF; }
     };
   }
 
@@ -208,22 +202,18 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E> extends MonadError<Highe
 
 interface EitherTMonadErrorFromMonadError<F extends Kind, E> extends MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>, EitherTMonad<F, E> {
 
-  MonadError<F, E> monadErrorF();
-
   @Override
-  default Monad<F> monadF() {
-    return monadErrorF();
-  }
+  MonadError<F, E> monadF();
 
   @Override
   default <A> EitherT<F, E, A> raiseError(E error) {
-    return EitherT.of(monadF(), monadErrorF().raiseError(error));
+    return EitherT.of(monadF(), monadF().raiseError(error));
   }
 
   @Override
   default <A> EitherT<F, E, A> handleErrorWith(Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A> value,
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> handler) {
-    return EitherT.of(monadF(), monadErrorF().handleErrorWith(EitherT.narrowK(value).value(),
+    return EitherT.of(monadF(), monadF().handleErrorWith(EitherT.narrowK(value).value(),
         error -> handler.andThen(EitherT::narrowK).apply(error).value()));
   }
 }

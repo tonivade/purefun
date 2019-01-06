@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Nested.unnest;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -39,18 +38,14 @@ public interface Foldable<F extends Kind> {
     return foldLeft(value, monad.pure(initial), (gb, a) -> monad.flatMap(gb, b -> mapper.apply(b, a)));
   }
 
-  static <F extends Kind, G extends Kind> Foldable<Nested<F, G>> compose(Foldable<F> ff, Foldable<G> fg) {
-    return new Foldable<Nested<F, G>>() {
+  static <F extends Kind, G extends Kind> Foldable<Nested<F, G>> compose(Foldable<F> f, Foldable<G> g) {
+    return new ComposedFoldable<F, G>() {
 
       @Override
-      public <A, B> B foldLeft(Higher1<Nested<F, G>, A> value, B initial, Function2<B, A, B> mapper) {
-        return ff.foldLeft(unnest(value), initial, (a, b) -> fg.foldLeft(b, a, mapper));
-      }
+      public Foldable<F> f() { return f; }
 
       @Override
-      public <A, B> Eval<B> foldRight(Higher1<Nested<F, G>, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
-        return ff.foldRight(unnest(value), initial, (a, lb) -> fg.foldRight(a, lb, mapper));
-      }
+      public Foldable<G> g() { return g; }
     };
   }
 }
