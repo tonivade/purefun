@@ -90,44 +90,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   }
 
   static Monad<IO.µ> monad() {
-    return new Monad<IO.µ>() {
-
-      @Override
-      public <T> IO<T> pure(T value) {
-        return IO.pure(value);
-      }
-
-      @Override
-      public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-    };
+    return IOInstances.monad;
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
-    return new MonadError<IO.µ, Throwable>() {
-
-      @Override
-      public <T> IO<T> pure(T value) {
-        return IO.pure(value);
-      }
-
-      @Override
-      public <A> IO<A> raiseError(Throwable error) {
-        return failure(error);
-      }
-
-      @Override
-      public <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> mapper) {
-        return narrowK(value).flatMap(mapper);
-      }
-
-      @Override
-      public <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
-        Try<A> tryValue = Try.of(IO.narrowK(value)::unsafeRunSync);
-        return tryValue.fold(handler.andThen(IO::narrowK), IO::pure);
-      }
-    };
+    return IOInstances.monadError;
   }
 
   final class Pure<T> implements IO<T> {
@@ -211,5 +178,40 @@ final class IOResource<T> implements AutoCloseable {
   @Override
   public void close() {
     release.unchecked().accept(resource);
+  }
+}
+
+interface IOInstances {
+  Monad<IO.µ> monad = new IOMonad() {};
+  MonadError<IO.µ, Throwable> monadError = new IOMonadError() {};
+}
+
+interface IOMonad extends Monad<IO.µ> {
+
+  @Override
+  default <T> IO<T> pure(T value) {
+    return IO.pure(value);
+  }
+
+  @Override
+  default <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
+    return IO.narrowK(value).flatMap(map);
+  }
+}
+
+interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
+
+  @Override
+  default <A> IO<A> raiseError(Throwable error) {
+    return IO.failure(error);
+  }
+
+  @Override
+  default <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
+    return run(value).fold(handler.andThen(IO::narrowK), IO::pure);
+  }
+
+  default <A> Try<A> run(Higher1<IO.µ, A> value) {
+    return Try.of(IO.narrowK(value)::unsafeRunSync);
   }
 }
