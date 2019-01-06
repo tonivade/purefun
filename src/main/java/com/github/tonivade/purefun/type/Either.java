@@ -207,95 +207,27 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   }
 
   static <L> Functor<Higher1<Either.µ, L>> functor() {
-    return new Functor<Higher1<Either.µ, L>>() {
-
-      @Override
-      public <T, R> Either<L, R> map(Higher1<Higher1<Either.µ, L>, T> value, Function1<T, R> map) {
-        return narrowK(value).map(map);
-      }
-    };
+    return new EitherFunctor<L>() {};
   }
 
   static BiFunctor<Either.µ> bifunctor() {
-    return new BiFunctor<Either.µ>() {
-
-      @Override
-      public <A, B, C, D> Either<C, D> bimap(Higher2<Either.µ, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap) {
-        return narrowK(value).bimap(leftMap, rightMap);
-      }
-    };
+    return EitherModule.bifunctor;
   }
 
   static <L> Applicative<Higher1<Either.µ, L>> applicative() {
-    return new Applicative<Higher1<Either.µ, L>>() {
-
-      @Override
-      public <T> Either<L, T> pure(T value) {
-        return right(value);
-      }
-
-      @Override
-      public <T, R> Either<L, R> ap(Higher1<Higher1<Either.µ, L>, T> value,
-          Higher1<Higher1<Either.µ, L>, Function1<T, R>> apply) {
-        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
-      }
-    };
+    return new EitherApplicative<L>() {};
   }
 
   static <L> Monad<Higher1<Either.µ, L>> monad() {
-    return new Monad<Higher1<Either.µ, L>>() {
-
-      @Override
-      public <T> Either<L, T> pure(T value) {
-        return right(value);
-      }
-
-      @Override
-      public <T, R> Either<L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
-                                         Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
-        return narrowK(value).flatMap(map.andThen(Either::narrowK));
-      }
-    };
+    return new EitherMonad<L>() {};
   }
 
-  static <E> MonadError<Higher1<Either.µ, E>, E> monadError() {
-    return new MonadError<Higher1<Either.µ, E>, E>() {
-
-      @Override
-      public <T> Either<E, T> pure(T value) {
-        return right(value);
-      }
-
-      @Override
-      public <A> Either<E, A> raiseError(E error) {
-        return left(error);
-      }
-
-      @Override
-      public <T, R> Either<E, R> flatMap(Higher1<Higher1<Either.µ, E>, T> value,
-                                         Function1<T, ? extends Higher1<Higher1<Either.µ, E>, R>> map) {
-        return narrowK(value).flatMap(map.andThen(Either::narrowK));
-      }
-
-      @Override
-      public <A> Either<E, A> handleErrorWith(Higher1<Higher1<Either.µ, E>, A> value,
-                                              Function1<E, ? extends Higher1<Higher1<Either.µ, E>, A>> handler) {
-        return narrowK(value).fold(handler.andThen(Either::narrowK), Either::right);
-      }
-    };
+  static <L> MonadError<Higher1<Either.µ, L>, L> monadError() {
+    return new EitherMonadError<L>() {};
   }
 
   static <L> Traverse<Higher1<Either.µ, L>> traverse() {
-    return new Traverse<Higher1<Either.µ, L>>() {
-      @Override
-      public <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either.µ, L>, R>> traverse(
-          Applicative<G> applicative, Higher1<Higher1<Either.µ, L>, T> value,
-          Function1<T, ? extends Higher1<G, R>> mapper) {
-        return narrowK(value).fold(
-            l -> applicative.pure(left(l)),
-            t -> applicative.map(mapper.apply(t), Either::right));
-      }
-    };
+    return new EitherTraverse<L>() {};
   }
 
   EitherModule module();
@@ -406,5 +338,76 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 }
 
 interface EitherModule {
+  BiFunctor<Either.µ> bifunctor = new EitherBiFunctor() {};
+}
 
+interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
+
+  @Override
+  default <T, R> Either<L, R> map(Higher1<Higher1<Either.µ, L>, T> value, Function1<T, R> map) {
+    return Either.narrowK(value).map(map);
+  }
+}
+
+interface EitherBiFunctor extends BiFunctor<Either.µ> {
+
+  @Override
+  default <A, B, C, D> Either<C, D> bimap(Higher2<Either.µ, A, B> value,
+      Function1<A, C> leftMap, Function1<B, D> rightMap) {
+    return Either.narrowK(value).mapLeft(leftMap).map(rightMap);
+  }
+}
+
+interface EitherPure<L> extends Applicative<Higher1<Either.µ, L>> {
+
+  @Override
+  default <T> Either<L, T> pure(T value) {
+    return Either.right(value);
+  }
+}
+
+interface EitherApply<L> extends Applicative<Higher1<Either.µ, L>> {
+
+  @Override
+  default <T, R> Either<L, R> ap(Higher1<Higher1<Either.µ, L>, T> value,
+      Higher1<Higher1<Either.µ, L>, Function1<T, R>> apply) {
+    return Either.narrowK(value).flatMap(t -> Either.narrowK(apply).map(f -> f.apply(t)));
+  }
+}
+
+interface EitherApplicative<L> extends EitherPure<L>, EitherApply<L> { }
+
+interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
+
+  @Override
+  default <T, R> Either<L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
+      Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
+    return Either.narrowK(value).flatMap(map.andThen(Either::narrowK));
+  }
+}
+
+interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.µ, L>, L> {
+
+  @Override
+  default <A> Either<L, A> raiseError(L error) {
+    return Either.left(error);
+  }
+
+  @Override
+  default <A> Either<L, A> handleErrorWith(Higher1<Higher1<Either.µ, L>, A> value,
+      Function1<L, ? extends Higher1<Higher1<Either.µ, L>, A>> handler) {
+    return Either.narrowK(value).fold(handler.andThen(Either::narrowK), Either::right);
+  }
+}
+
+interface EitherTraverse<L> extends Traverse<Higher1<Either.µ, L>> {
+
+  @Override
+  default <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either.µ, L>, R>> traverse(
+      Applicative<G> applicative, Higher1<Higher1<Either.µ, L>, T> value,
+      Function1<T, ? extends Higher1<G, R>> mapper) {
+    return Either.narrowK(value).fold(
+        l -> applicative.pure(Either.left(l)),
+        t -> applicative.map(mapper.apply(t), Either::right));
+  }
 }
