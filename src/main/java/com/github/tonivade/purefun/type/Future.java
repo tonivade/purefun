@@ -146,19 +146,19 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static Functor<Future.µ> functor() {
-    return FutureModule.functor;
+    return new FutureFunctor() {};
   }
 
   static Applicative<Future.µ> applicative() {
-    return FutureModule.applicative;
+    return new FutureApplicative() {};
   }
 
   static Monad<Future.µ> monad() {
-    return FutureModule.monad;
+    return new FutureMonad() {};
   }
 
   static MonadError<Future.µ, Throwable> monadError() {
-    return FutureModule.monadError;
+    return new FutureMonadError() {};
   }
 
   final class FutureImpl<T> implements Future<T> {
@@ -263,12 +263,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 }
 
 interface FutureModule {
-
-  Functor<Future.µ> functor = new FutureFunctor() {};
-  Applicative<Future.µ> applicative = new FutureApplicative() {};
-  Monad<Future.µ> monad = new FutureMonad() {};
-  MonadError<Future.µ, Throwable> monadError = new FutureMonadError() {};
-
   ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 }
 

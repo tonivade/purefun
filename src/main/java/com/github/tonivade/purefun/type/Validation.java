@@ -168,7 +168,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
   }
 
   static BiFunctor<Validation.µ> bifunctor() {
-    return ValidationModule.bifunctor;
+    return new ValidationBiFunctor() {};
   }
 
   static <E> Applicative<Higher1<Validation.µ, E>> applicative() {
@@ -324,9 +324,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
   }
 }
 
-interface ValidationModule {
-  BiFunctor<Validation.µ> bifunctor = new ValidationBiFunctor() {};
-}
+interface ValidationModule {}
 
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 

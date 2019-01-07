@@ -191,35 +191,35 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 
   static Functor<Option.µ> functor() {
-    return OptionModule.functor;
+    return new OptionFunctor() {};
   }
 
   static Applicative<Option.µ> applicative() {
-    return OptionModule.applicative;
+    return new OptionApplicative() {};
   }
 
   static Alternative<Option.µ> alternative() {
-    return OptionModule.alternative;
+    return new OptionAlternative() {};
   }
 
   static Monad<Option.µ> monad() {
-    return OptionModule.monad;
+    return new OptionMonad() {};
   }
 
   static MonadError<Option.µ, Nothing> monadError() {
-    return OptionModule.monadError;
+    return new OptionMonadError() {};
   }
 
   static Traverse<Option.µ> traverse() {
-    return OptionModule.traverse;
+    return new OptionTraverse() {};
   }
 
   static Semigroupal<Option.µ> semigroupal() {
-    return OptionModule.semigroupal;
+    return new OptionSemigroupal() {};
   }
 
   static Foldable<Option.µ> foldable() {
-    return OptionModule.foldable;
+    return new OptionFoldable() {};
   }
 
   OptionModule module();
@@ -317,18 +317,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 }
 
-interface OptionModule {
-  Functor<Option.µ> functor = new OptionFunctor() {};
-  Applicative<Option.µ> applicative = new OptionApplicative() {};
-  SemigroupK<Option.µ> semigroupK = new OptionSemigroupK() {};
-  MonoidK<Option.µ> monoidK = new OptionMonoidK() {};
-  Alternative<Option.µ> alternative = new OptionAlternative() {};
-  Monad<Option.µ> monad = new OptionMonad() {};
-  MonadError<Option.µ, Nothing> monadError = new OptionMonadError() {};
-  Foldable<Option.µ> foldable = new OptionFoldable() {};
-  Traverse<Option.µ> traverse = new OptionTraverse() {};
-  Semigroupal<Option.µ> semigroupal = new OptionSemigroupal() {};
-}
+interface OptionModule {}
 
 interface OptionFunctor extends Functor<Option.µ> {
 

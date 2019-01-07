@@ -211,7 +211,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   }
 
   static BiFunctor<Either.µ> bifunctor() {
-    return EitherModule.bifunctor;
+    return new EitherBiFunctor() {};
   }
 
   static <L> Applicative<Higher1<Either.µ, L>> applicative() {
@@ -337,9 +337,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   }
 }
 
-interface EitherModule {
-  BiFunctor<Either.µ> bifunctor = new EitherBiFunctor() {};
-}
+interface EitherModule { }
 
 interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
 

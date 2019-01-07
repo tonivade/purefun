@@ -63,15 +63,15 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
   }
 
   static Functor<Trampoline.µ> functor() {
-    return TrampolineModule.functor;
+    return new TrampolineFunctor() {};
   }
 
   static Applicative<Trampoline.µ> applicative() {
-    return TrampolineModule.applicative;
+    return new TrampolineApplicative() {};
   }
 
   static Monad<Trampoline.µ> monad() {
-    return TrampolineModule.monad;
+    return new TrampolineMonad() {};
   }
 
   TrampolineModule module();
@@ -148,10 +148,6 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 }
 
 interface TrampolineModule {
-
-  Functor<Trampoline.µ> functor = new TrampolineFunctor() {};
-  Applicative<Trampoline.µ> applicative = new TrampolineApplicative() {};
-  Monad<Trampoline.µ> monad = new TrampolineMonad() {};
 
   static <T> Trampoline<T> iterate(Trampoline<T> trampoline) {
     return Stream.iterate(trampoline, Trampoline::apply)

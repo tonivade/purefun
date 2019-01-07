@@ -85,27 +85,20 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
   }
 
   public static Functor<Id.µ> functor() {
-    return IdInstances.functor;
+    return new IdFunctor() {};
   }
 
   public static Applicative<Id.µ> applicative() {
-    return IdInstances.applicative;
+    return new IdApplicative() {};
   }
 
   public static Monad<Id.µ> monad() {
-    return IdInstances.monad;
+    return new IdMonad() {};
   }
 
   public static Traverse<Id.µ> traverse() {
-    return IdInstances.traverse;
+    return new IdTraverse() {};
   }
-}
-
-interface IdInstances {
-  Functor<Id.µ> functor = new IdFunctor() {};
-  Applicative<Id.µ> applicative = new IdApplicative() {};
-  Monad<Id.µ> monad = new IdMonad() {};
-  Traverse<Id.µ> traverse = new IdTraverse() {};
 }
 
 interface IdFunctor extends Functor<Id.µ> {

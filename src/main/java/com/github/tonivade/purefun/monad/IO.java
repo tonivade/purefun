@@ -90,11 +90,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   }
 
   static Monad<IO.µ> monad() {
-    return IOInstances.monad;
+    return new IOMonad() {};
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
-    return IOInstances.monadError;
+    return new IOMonadError() {};
   }
 
   final class Pure<T> implements IO<T> {
@@ -179,11 +179,6 @@ final class IOResource<T> implements AutoCloseable {
   public void close() {
     release.unchecked().accept(resource);
   }
-}
-
-interface IOInstances {
-  Monad<IO.µ> monad = new IOMonad() {};
-  MonadError<IO.µ, Throwable> monadError = new IOMonadError() {};
 }
 
 interface IOMonad extends Monad<IO.µ> {

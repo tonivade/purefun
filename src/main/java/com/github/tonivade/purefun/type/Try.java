@@ -221,23 +221,23 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 
   static Functor<Try.µ> functor() {
-    return TryModule.functor;
+    return new TryFunctor() {};
   }
 
   static Applicative<Try.µ> applicative() {
-    return TryModule.applicative;
+    return new TryApplicative() {};
   }
 
   static Monad<Try.µ> monad() {
-    return TryModule.monad;
+    return new TryMonad() {};
   }
 
   static MonadError<Try.µ, Throwable> monadError() {
-    return TryModule.monadError;
+    return new TryMonadError() {};
   }
 
   static Traverse<Try.µ> traverse() {
-    return TryModule.traverse;
+    return new TryTraverse() {};
   }
 
   TryModule module();
@@ -358,13 +358,7 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 }
 
-interface TryModule {
-  Functor<Try.µ> functor = new TryFunctor() {};
-  Applicative<Try.µ> applicative = new TryApplicative() {};
-  Monad<Try.µ> monad = new TryMonad() {};
-  MonadError<Try.µ, Throwable> monadError = new TryMonadError() {};
-  Traverse<Try.µ> traverse = new TryTraverse() {};
-}
+interface TryModule {}
 
 interface TryFunctor extends Functor<Try.µ> {
 
