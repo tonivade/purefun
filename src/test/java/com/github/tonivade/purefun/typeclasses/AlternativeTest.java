@@ -44,4 +44,9 @@ public class AlternativeTest {
   public void option() {
     assertAll(() -> verifyLaws(Option.alternative()));
   }
+
+  @Test
+  void composed() {
+    assertAll(() -> verifyLaws(Alternative.compose(Option.alternative(), Sequence.alternative())));
+  }
 }

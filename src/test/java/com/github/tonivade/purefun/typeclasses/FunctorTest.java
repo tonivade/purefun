@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.typeclasses.FunctorLaws.verifyLaws;
 
 import org.junit.jupiter.api.Test;
@@ -45,5 +46,10 @@ public class FunctorTest {
   @Test
   public void traverseFunctor() {
     verifyLaws(Sequence.traverse(), Sequence.listOf("hola mundo!"));
+  }
+
+  @Test
+  public void composedFunctor() {
+    verifyLaws(Functor.compose(Option.functor(), Id.functor()), nest(Option.some(Id.of("hola mundo!"))));
   }
 }

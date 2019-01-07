@@ -221,85 +221,23 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 
   static Functor<Try.µ> functor() {
-    return new Functor<Try.µ>() {
-
-      @Override
-      public <T, R> Try<R> map(Higher1<Try.µ, T> value, Function1<T, R> mapper) {
-        return narrowK(value).map(mapper);
-      }
-    };
+    return new TryFunctor() {};
   }
 
   static Applicative<Try.µ> applicative() {
-    return new Applicative<Try.µ>() {
-
-      @Override
-      public <T> Try<T> pure(T value) {
-        return success(value);
-      }
-
-      @Override
-      public <T, R> Try<R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
-        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
-      }
-    };
+    return new TryApplicative() {};
   }
 
   static Monad<Try.µ> monad() {
-    return new Monad<Try.µ>() {
-
-      @Override
-      public <T> Try<T> pure(T value) {
-        return success(value);
-      }
-
-      @Override
-      public <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
-                                   Function1<T, ? extends Higher1<Try.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-    };
+    return new TryMonad() {};
   }
 
   static MonadError<Try.µ, Throwable> monadError() {
-    return new MonadError<Try.µ, Throwable>() {
-
-      @Override
-      public <U> Try<U> pure(U value) {
-        return success(value);
-      }
-
-      @Override
-      public <A> Try<A> raiseError(Throwable error) {
-        return failure(error);
-      }
-
-      @Override
-      public <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
-                                   Function1<T, ? extends Higher1<Try.µ, R>> map) {
-        return narrowK(value).flatMap(map);
-      }
-
-      @Override
-      public <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value,
-                                        Function1<Throwable, ? extends Higher1<Try.µ, A>> handler) {
-        return narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
-      }
-    };
+    return new TryMonadError() {};
   }
 
   static Traverse<Try.µ> traverse() {
-    return new Traverse<Try.µ>() {
-
-      @Override
-      public <G extends Kind, T, R> Higher1<G, Higher1<Try.µ, R>> traverse(
-          Applicative<G> applicative, Higher1<Try.µ, T> value,
-          Function1<T, ? extends Higher1<G, R>> mapper) {
-        return narrowK(value).fold(
-            t -> applicative.pure(failure(t)),
-            t -> applicative.map(mapper.apply(t), Try::success));
-      }
-    };
+    return new TryTraverse() {};
   }
 
   TryModule module();
@@ -420,6 +358,65 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 }
 
-interface TryModule {
+interface TryModule {}
 
+interface TryFunctor extends Functor<Try.µ> {
+
+  @Override
+  default <T, R> Try<R> map(Higher1<Try.µ, T> value, Function1<T, R> mapper) {
+    return Try.narrowK(value).map(mapper);
+  }
+}
+
+interface TryPure extends Applicative<Try.µ> {
+
+  @Override
+  default <T> Try<T> pure(T value) {
+    return Try.success(value);
+  }
+}
+
+interface TryApply extends Applicative<Try.µ> {
+
+  @Override
+  default <T, R> Try<R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
+    return Try.narrowK(value).flatMap(t -> Try.narrowK(apply).map(f -> f.apply(t)));
+  }
+}
+
+interface TryApplicative extends TryPure, TryApply { }
+
+interface TryMonad extends TryPure, Monad<Try.µ> {
+
+  @Override
+  default <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
+      Function1<T, ? extends Higher1<Try.µ, R>> map) {
+    return Try.narrowK(value).flatMap(map);
+  }
+}
+
+interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
+
+  @Override
+  default <A> Try<A> raiseError(Throwable error) {
+    return Try.failure(error);
+  }
+
+  @Override
+  default <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value,
+      Function1<Throwable, ? extends Higher1<Try.µ, A>> handler) {
+    return Try.narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
+  }
+}
+
+interface TryTraverse extends Traverse<Try.µ> {
+
+  @Override
+  default <G extends Kind, T, R> Higher1<G, Higher1<Try.µ, R>> traverse(
+      Applicative<G> applicative, Higher1<Try.µ, T> value,
+      Function1<T, ? extends Higher1<G, R>> mapper) {
+    return Try.narrowK(value).fold(
+        t -> applicative.pure(Try.failure(t)),
+        t -> applicative.map(mapper.apply(t), Try::success));
+  }
 }

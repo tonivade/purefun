@@ -146,71 +146,19 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static Functor<Future.µ> functor() {
-    return new Functor<Future.µ>() {
-
-      @Override
-      public <T, R> Future<R> map(Higher1<Future.µ, T> value, Function1<T, R> mapper) {
-        return narrowK(value).map(mapper);
-      }
-    };
+    return new FutureFunctor() {};
   }
 
   static Applicative<Future.µ> applicative() {
-    return new Applicative<Future.µ>() {
-
-      @Override
-      public <T> Future<T> pure(T value) {
-        return success(value);
-      }
-
-      @Override
-      public <T, R> Future<R> ap(Higher1<Future.µ, T> value, Higher1<Future.µ, Function1<T, R>> apply) {
-        return narrowK(value).flatMap(t -> narrowK(apply).map(f -> f.apply(t)));
-      }
-    };
+    return new FutureApplicative() {};
   }
 
   static Monad<Future.µ> monad() {
-    return new Monad<Future.µ>() {
-
-      @Override
-      public <T> Future<T> pure(T value) {
-        return success(value);
-      }
-
-      @Override
-      public <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
-                                      Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-        return narrowK(value).flatMap(mapper);
-      }
-    };
+    return new FutureMonad() {};
   }
 
   static MonadError<Future.µ, Throwable> monadError() {
-    return new MonadError<Future.µ, Throwable>() {
-
-      @Override
-      public <A> Future<A> raiseError(Throwable error) {
-        return failure(error);
-      }
-
-      @Override
-      public <A> Future<A> handleErrorWith(Higher1<Future.µ, A> value,
-          Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
-        return narrowK(value).fold(handler.andThen(Future::narrowK), Future::success).flatten();
-      }
-
-      @Override
-      public <T> Future<T> pure(T value) {
-        return success(value);
-      }
-
-      @Override
-      public <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
-          Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-        return narrowK(value).flatMap(mapper);
-      }
-    };
+    return new FutureMonadError() {};
   }
 
   final class FutureImpl<T> implements Future<T> {
@@ -315,7 +263,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 }
 
 interface FutureModule {
-
   ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 }
 
@@ -349,5 +296,54 @@ final class AsyncValue<T> {
     if (!latch.await(timeout.toMillis(), MILLISECONDS)) {
       throw new TimeoutException();
     }
+  }
+}
+
+interface FutureFunctor extends Functor<Future.µ> {
+
+  @Override
+  default <T, R> Future<R> map(Higher1<Future.µ, T> value, Function1<T, R> mapper) {
+    return Future.narrowK(value).map(mapper);
+  }
+}
+
+interface FuturePure extends Applicative<Future.µ> {
+
+  @Override
+  default <T> Future<T> pure(T value) {
+    return Future.success(value);
+  }
+}
+
+interface FutureApply extends Applicative<Future.µ> {
+
+  @Override
+  default <T, R> Future<R> ap(Higher1<Future.µ, T> value, Higher1<Future.µ, Function1<T, R>> apply) {
+    return Future.narrowK(value).flatMap(t -> Future.narrowK(apply).map(f -> f.apply(t)));
+  }
+}
+
+interface FutureApplicative extends FuturePure, FutureApply { }
+
+interface FutureMonad extends FuturePure, Monad<Future.µ> {
+
+  @Override
+  default <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
+      Function1<T, ? extends Higher1<Future.µ, R>> map) {
+    return Future.narrowK(value).flatMap(map);
+  }
+}
+
+interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable> {
+
+  @Override
+  default <A> Future<A> raiseError(Throwable error) {
+    return Future.failure(error);
+  }
+
+  @Override
+  default <A> Future<A> handleErrorWith(Higher1<Future.µ, A> value,
+      Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
+    return Future.narrowK(value).fold(handler.andThen(Future::narrowK), Future::success).flatten();
   }
 }

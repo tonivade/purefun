@@ -47,6 +47,11 @@ public class ApplicativeTest {
   }
 
   @Test
+  public void composedAplicative() {
+    verifyLaws(Applicative.compose(Option.applicative(), Id.applicative()));
+  }
+
+  @Test
   public void map5Some() {
     Higher1<Option.µ, Integer> map5 =
         Option.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.some(5), sum);
