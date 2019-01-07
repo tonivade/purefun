@@ -175,101 +175,31 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   }
 
   static <T> Semigroup<Sequence<T>> semigroup() {
-    return (a, b) -> a.appendAll(b);
+    return new SequenceSemigroup<T>() {};
   }
 
   static <T> Monoid<Sequence<T>> monoid() {
-    return new Monoid<Sequence<T>>() {
-
-      @Override
-      public Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
-        return t1.appendAll(t2);
-      }
-
-      @Override
-      public Sequence<T> zero() {
-        return ImmutableList.empty();
-      }
-    };
+    return new SequenceMonoid<T>() {};
   }
 
   static SemigroupK<Sequence.µ> semigroupK() {
-    return new SemigroupK<Sequence.µ>() {
-
-      @Override
-      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
-        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
-      }
-    };
+    return new SequenceSemigroupK() {};
   }
 
   static MonoidK<Sequence.µ> monoidK() {
-    return new MonoidK<Sequence.µ>() {
-
-      @Override
-      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
-        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
-      }
-
-      @Override
-      public <T> Sequence<T> zero() {
-        return ImmutableList.empty();
-      }
-    };
+    return new SequenceMonoidK() {};
   }
 
   static Alternative<Sequence.µ> alternative() {
-    return new Alternative<Sequence.µ>() {
-
-      @Override
-      public <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
-        return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
-      }
-
-      @Override
-      public <T> Sequence<T> zero() {
-        return ImmutableList.empty();
-      }
-
-      @Override
-      public <T> Sequence<T> pure(T value) {
-        return ImmutableList.of(value);
-      }
-
-      @Override
-      public <T, R> Sequence<R> ap(Higher1<Sequence.µ, T> value, Higher1<Sequence.µ, Function1<T, R>> apply) {
-        return narrowK(apply).flatMap(map -> narrowK(value).map(map));
-      }
-    };
+    return new SequenceAlternative() {};
   }
 
   static Traverse<Sequence.µ> traverse() {
-    return new Traverse<Sequence.µ>() {
-
-      @Override
-      public <G extends Kind, T, R> Higher1<G, Higher1<Sequence.µ, R>> traverse(
-          Applicative<G> applicative, Higher1<Sequence.µ, T> value,
-          Function1<T, ? extends Higher1<G, R>> mapper) {
-        return narrowK(value).foldRight(applicative.pure(ImmutableList.empty()),
-            (a, acc) -> applicative.map2(mapper.apply(a), acc,
-                (e, seq) -> listOf(e).appendAll(narrowK(seq))));
-      }
-    };
+    return new SequenceTraverse() {};
   }
 
   static Foldable<Sequence.µ> foldable() {
-    return new Foldable<Sequence.µ>() {
-
-      @Override
-      public <A, B> B foldLeft(Higher1<Sequence.µ, A> value, B initial, Function2<B, A, B> mapper) {
-        return narrowK(value).foldLeft(initial, mapper);
-      }
-
-      @Override
-      public <A, B> Eval<B> foldRight(Higher1<Sequence.µ, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
-        return narrowK(value).foldRight(initial, mapper);
-      }
-    };
+    return new SequenceFoldable() {};
   }
 }
 
@@ -291,5 +221,77 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
   @Override
   public Tuple2<A, B> next() {
     return Tuple.of(first.next(), second.next());
+  }
+}
+
+interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
+
+  @Override
+  default Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
+    return t1.appendAll(t2);
+  }
+}
+
+interface SequenceMonoid<T> extends SequenceSemigroup<T>, Monoid<Sequence<T>> {
+
+  @Override
+  default Sequence<T> zero() {
+    return ImmutableList.empty();
+  }
+}
+
+interface SequenceSemigroupK extends SemigroupK<Sequence.µ> {
+
+  @Override
+  default <T> Sequence<T> combineK(Higher1<Sequence.µ, T> t1, Higher1<Sequence.µ, T> t2) {
+    return Sequence.narrowK(t1).appendAll(Sequence.narrowK(t2));
+  }
+}
+
+interface SequenceMonoidK extends MonoidK<Sequence.µ>, SequenceSemigroupK {
+
+  @Override
+  default <T> Sequence<T> zero() {
+    return ImmutableList.empty();
+  }
+}
+
+interface SequenceApplicative extends Applicative<Sequence.µ> {
+
+  @Override
+  default <T> Sequence<T> pure(T value) {
+    return ImmutableList.of(value);
+  }
+
+  @Override
+  default <T, R> Sequence<R> ap(Higher1<Sequence.µ, T> value, Higher1<Sequence.µ, Function1<T, R>> apply) {
+    return Sequence.narrowK(apply).flatMap(map -> Sequence.narrowK(value).map(map));
+  }
+}
+
+interface SequenceAlternative extends SequenceApplicative, SequenceMonoidK, Alternative<Sequence.µ> {}
+
+interface SequenceFoldable extends Foldable<Sequence.µ> {
+
+  @Override
+  default <A, B> B foldLeft(Higher1<Sequence.µ, A> value, B initial, Function2<B, A, B> mapper) {
+    return Sequence.narrowK(value).foldLeft(initial, mapper);
+  }
+
+  @Override
+  default <A, B> Eval<B> foldRight(Higher1<Sequence.µ, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
+    return Sequence.narrowK(value).foldRight(initial, mapper);
+  }
+}
+
+interface SequenceTraverse extends Traverse<Sequence.µ> {
+
+  @Override
+  default <G extends Kind, T, R> Higher1<G, Higher1<Sequence.µ, R>> traverse(
+      Applicative<G> applicative, Higher1<Sequence.µ, T> value,
+      Function1<T, ? extends Higher1<G, R>> mapper) {
+    return Sequence.narrowK(value).foldRight(applicative.pure(ImmutableList.empty()),
+        (a, acc) -> applicative.map2(mapper.apply(a), acc,
+            (e, seq) -> Sequence.listOf(e).appendAll(Sequence.narrowK(seq))));
   }
 }
