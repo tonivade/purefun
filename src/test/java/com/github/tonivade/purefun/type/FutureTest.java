@@ -33,9 +33,41 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 public class FutureTest {
 
   @Mock
+  private Consumer1<Try<String>> tryConsumer;
+  @Mock
   private Consumer1<String> consumerSuccess;
   @Mock
   private Consumer1<Throwable> consumerFailure;
+
+  @Test
+  public void onCompleteSuccess() {
+    Future<String> future = Future.success("Hello World!");
+
+    future.onComplete(tryConsumer).await();
+
+    assertAll(
+        () -> verify(tryConsumer, timeout(1000)).accept(Try.success("Hello World!")),
+        () -> assertTrue(future::isCompleted),
+        () -> assertTrue(future::isSuccess),
+        () -> assertFalse(future::isFailure),
+        () -> assertFalse(future::isCanceled),
+        () -> assertEquals("Hello World!", future.get()));
+  }
+
+  @Test
+  public void onCompleteFailure() {
+    Future<String> future = Future.failure(new IllegalArgumentException());
+
+    future.onComplete(tryConsumer).await();
+
+    assertAll(
+        () -> verify(tryConsumer, timeout(1000)).accept(any()),
+        () -> assertTrue(future::isCompleted),
+        () -> assertFalse(future::isSuccess),
+        () -> assertTrue(future::isFailure),
+        () -> assertFalse(future::isCanceled),
+        () -> assertThrows(NoSuchElementException.class, future::get));
+  }
 
   @Test
   public void onSuccess() {
@@ -47,6 +79,7 @@ public class FutureTest {
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
+        () -> assertFalse(future::isFailure),
         () -> assertFalse(future::isCanceled),
         () -> assertEquals("Hello World!", future.get()));
   }
@@ -61,6 +94,7 @@ public class FutureTest {
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
+        () -> assertFalse(future::isFailure),
         () -> assertFalse(future::isCanceled),
         () -> assertEquals("Hello World!", future.get()));
   }
@@ -74,6 +108,7 @@ public class FutureTest {
     assertAll(
         () -> verify(consumerFailure, timeout(1000)).accept(any()),
         () -> assertTrue(future::isCompleted),
+        () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
         () -> assertFalse(future::isCanceled),
         () -> assertThrows(NoSuchElementException.class, future::get));
@@ -89,6 +124,7 @@ public class FutureTest {
     assertAll(
         () -> verify(consumerFailure, timeout(1000)).accept(any()),
         () -> assertTrue(future::isCompleted),
+        () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
         () -> assertFalse(future::isCanceled),
         () -> assertThrows(NoSuchElementException.class, future::get));

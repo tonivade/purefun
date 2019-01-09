@@ -54,6 +54,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   Future<T> onSuccess(Consumer1<T> callback);
   Future<T> onFailure(Consumer1<Throwable> callback);
+  Future<T> onComplete(Consumer1<Try<T>> callback);
 
   @Override
   <R> Future<R> map(Function1<T, R> mapper);
@@ -244,6 +245,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     @Override
     public Future<T> onFailure(Consumer1<Throwable> callback) {
       executor.execute(() -> await().onFailure(callback));
+      return this;
+    }
+
+    @Override
+    public Future<T> onComplete(Consumer1<Try<T>> callback) {
+      executor.execute(() -> callback.accept(await()));
       return this;
     }
 

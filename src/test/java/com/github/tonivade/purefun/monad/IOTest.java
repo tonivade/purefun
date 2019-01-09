@@ -10,15 +10,20 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import com.github.tonivade.purefun.CheckedFunction1;
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
@@ -29,6 +34,9 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 public class IOTest {
 
   private final Console<IO.µ> console = Console.io();
+
+  @Mock
+  private Consumer1<Try<String>> callback;
 
   @Test
   public void pure() {
@@ -66,6 +74,22 @@ public class IOTest {
     assertEquals(Try.success("value"), bracket.unsafeRunSync());
     verify(resultSet).close();
   }
+  
+  @Test
+  public void unsafeRunAsyncSuccess() {
+    IO.pure("hola").unsafeRunAsync(callback);
+    
+    verify(callback, timeout(1000)).accept(Try.success("hola"));
+  }
+  
+  @Test
+  public void unsafeRunAsyncFailure() {
+    RuntimeException error = new RuntimeException();
+
+    IO.<String>failure(error).unsafeRunAsync(callback);
+    
+    verify(callback, timeout(1000)).accept(Try.failure(error));
+  }
 
   @Test
   public void monadError() {
@@ -83,6 +107,11 @@ public class IOTest {
         () -> assertEquals("not an error", IO.narrowK(handleError).unsafeRunSync()),
         () -> assertThrows(RuntimeException.class, () -> IO.narrowK(ensureError).unsafeRunSync()),
         () -> assertEquals("is not ok", IO.narrowK(ensureOk).unsafeRunSync()));
+  }
+
+  @BeforeEach
+  public void setUp() {
+    initMocks(this);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {
