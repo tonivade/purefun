@@ -98,6 +98,10 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
     return new IdMonad() {};
   }
 
+  public static Foldable<Id.µ> foldable() {
+    return new IdFoldable() {};
+  }
+
   public static Traverse<Id.µ> traverse() {
     return new IdTraverse() {};
   }
