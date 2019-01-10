@@ -88,4 +88,8 @@ public interface Function1<A, R> {
   static <A, R> Function1<A, R> of(Function1<A, R> reference) {
     return reference;
   }
+
+  static <A, R> Function1<A, R> cons(R constant) {
+    return value -> constant;
+  }
 }

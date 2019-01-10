@@ -5,6 +5,9 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.ImmutableList.empty;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.type.Eval.now;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -22,8 +25,12 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Eq;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class EitherTest {
@@ -305,6 +312,25 @@ public class EitherTest {
         () -> assertEquals(Either.right("not an error"), handleError),
         () -> assertEquals(Either.left(error), ensureError),
         () -> assertEquals(Either.right("is not ok"), ensureOk));
+  }
+
+  @Test
+  public void foldable() {
+    Foldable<Higher1<Either.µ, Throwable>> instance = Either.foldable();
+
+    assertAll(
+        () -> assertEquals(empty(), instance.foldLeft(Either.left(new Error()), empty(), ImmutableList::append)),
+        () -> assertEquals(listOf("hola!"), instance.foldLeft(Either.right("hola!"), empty(), ImmutableList::append)),
+        () -> assertEquals(empty(), instance.foldRight(Either.left(new Error()), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Either.right("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals("", instance.fold(Monoid.string(), Either.left(new Error()))),
+        () -> assertEquals("hola!", instance.fold(Monoid.string(), Either.right("hola!"))),
+        () -> assertEquals(Option.none(), instance.reduce(Either.left(new Error()), String::concat)),
+        () -> assertEquals(Option.some("hola!"), instance.reduce(Either.right("hola!"), String::concat)),
+        () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Either.left(new Error()), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Either.right("hola!"), Sequence::listOf)),
+        () -> assertEquals(Id.of(empty()), instance.foldM(Id.monad(), Either.left(new Error()), empty(), (acc, a) -> Id.of(acc.append(a)))),
+        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(Id.monad(), Either.right("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
   }
 
   @Test

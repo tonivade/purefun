@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
@@ -28,6 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.BiFunctor;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -226,6 +229,10 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     return new EitherMonadError<L>() {};
   }
 
+  static <L> Foldable<Higher1<Either.µ, L>> foldable() {
+    return new EitherFoldable<L>() {};
+  }
+
   static <L> Traverse<Higher1<Either.µ, L>> traverse() {
     return new EitherTraverse<L>() {};
   }
@@ -398,7 +405,21 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.
   }
 }
 
-interface EitherTraverse<L> extends Traverse<Higher1<Either.µ, L>> {
+interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
+
+  @Override
+  default <A, B> B foldLeft(Higher1<Higher1<Either.µ, L>, A> value, B initial, Function2<B, A, B> mapper) {
+    return Either.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
+  }
+
+  @Override
+  default <A, B> Eval<B> foldRight(Higher1<Higher1<Either.µ, L>, A> value, Eval<B> initial,
+      Function2<A, Eval<B>, Eval<B>> mapper) {
+    return Either.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
+  }
+}
+
+interface EitherTraverse<L> extends Traverse<Higher1<Either.µ, L>>, EitherFoldable<L> {
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either.µ, L>, R>> traverse(

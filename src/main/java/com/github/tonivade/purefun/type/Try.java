@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
@@ -30,6 +31,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -236,6 +238,10 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     return new TryMonadError() {};
   }
 
+  static Foldable<Try.µ> foldable() {
+    return new TryFoldable() {};
+  }
+
   static Traverse<Try.µ> traverse() {
     return new TryTraverse() {};
   }
@@ -409,7 +415,21 @@ interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
   }
 }
 
-interface TryTraverse extends Traverse<Try.µ> {
+interface TryFoldable extends Foldable<Try.µ> {
+
+  @Override
+  default <A, B> B foldLeft(Higher1<Try.µ, A> value, B initial, Function2<B, A, B> mapper) {
+    return Try.narrowK(value).fold(t -> initial, a -> mapper.apply(initial, a));
+  }
+
+  @Override
+  default <A, B> Eval<B> foldRight(Higher1<Try.µ, A> value, Eval<B> initial,
+      Function2<A, Eval<B>, Eval<B>> mapper) {
+    return Try.narrowK(value).fold(t -> initial, a -> mapper.apply(a, initial));
+  }
+}
+
+interface TryTraverse extends Traverse<Try.µ>, TryFoldable {
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Try.µ, R>> traverse(

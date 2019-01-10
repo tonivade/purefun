@@ -284,7 +284,7 @@ interface SequenceFoldable extends Foldable<Sequence.µ> {
   }
 }
 
-interface SequenceTraverse extends Traverse<Sequence.µ> {
+interface SequenceTraverse extends Traverse<Sequence.µ>, SequenceFoldable {
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Sequence.µ, R>> traverse(

@@ -4,6 +4,9 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.data.ImmutableList.empty;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.type.Eval.now;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -23,7 +26,11 @@ import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MappableLaws;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public class TryTest {
@@ -275,6 +282,25 @@ public class TryTest {
         () -> assertEquals(Try.success("not an error"), handleError),
         () -> assertEquals(Try.failure(error), ensureError),
         () -> assertEquals(Try.success("is not ok"), ensureOk));
+  }
+
+  @Test
+  public void foldable() {
+    Foldable<Try.µ> instance = Try.foldable();
+
+    assertAll(
+        () -> assertEquals(empty(), instance.foldLeft(Try.failure(), empty(), ImmutableList::append)),
+        () -> assertEquals(listOf("hola!"), instance.foldLeft(Try.success("hola!"), empty(), ImmutableList::append)),
+        () -> assertEquals(empty(), instance.foldRight(Try.failure(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Try.success("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals("", instance.fold(Monoid.string(), Try.failure())),
+        () -> assertEquals("hola!", instance.fold(Monoid.string(), Try.success("hola!"))),
+        () -> assertEquals(Option.none(), instance.reduce(Try.failure(), String::concat)),
+        () -> assertEquals(Option.some("hola!"), instance.reduce(Try.success("hola!"), String::concat)),
+        () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Try.failure(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Try.success("hola!"), Sequence::listOf)),
+        () -> assertEquals(Id.of(empty()), instance.foldM(Id.monad(), Try.failure(), empty(), (acc, a) -> Id.of(acc.append(a)))),
+        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(Id.monad(), Try.success("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
   }
 
   @Test

@@ -72,9 +72,11 @@ interface ComposedAlternative<F extends Kind, G extends Kind>
   Alternative<G> g();
 }
 
-interface ComposedTraverse<F extends Kind, G extends Kind> extends Traverse<Nested<F, G>> {
+interface ComposedTraverse<F extends Kind, G extends Kind> extends Traverse<Nested<F, G>>, ComposedFoldable<F, G> {
 
+  @Override
   Traverse<F> f();
+  @Override
   Traverse<G> g();
 
   @Override

@@ -400,7 +400,7 @@ interface OptionFoldable extends Foldable<Option.µ> {
   }
 }
 
-interface OptionTraverse extends Traverse<Option.µ> {
+interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(

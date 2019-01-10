@@ -12,12 +12,14 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Equal;
+import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Traverse;
@@ -135,7 +137,20 @@ interface IdMonad extends IdPure, Monad<Id.µ> {
   }
 }
 
-interface IdTraverse extends Traverse<Id.µ> {
+interface IdFoldable extends Foldable<Id.µ> {
+
+  @Override
+  default <A, B> B foldLeft(Higher1<Id.µ, A> value, B initial, Function2<B, A, B> mapper) {
+    return mapper.apply(initial, Id.narrowK(value).get());
+  }
+
+  @Override
+  default <A, B> Eval<B> foldRight(Higher1<Id.µ, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
+    return mapper.apply(Id.narrowK(value).get(), initial);
+  }
+}
+
+interface IdTraverse extends Traverse<Id.µ>, IdFoldable {
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Id.µ, R>> traverse(
