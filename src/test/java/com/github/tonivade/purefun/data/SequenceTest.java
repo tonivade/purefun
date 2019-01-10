@@ -38,7 +38,7 @@ public class SequenceTest {
 
   @Test
   public void eq() {
-    Eq<Higher1<Sequence.µ, Integer>> instance = Sequence.eq(Eq.object());
+    Eq<Higher1<Sequence.µ, Integer>> instance = Sequence.eq(Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(listOf(1, 2, 3), listOf(1, 2, 3))),

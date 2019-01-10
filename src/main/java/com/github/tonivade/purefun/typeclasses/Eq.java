@@ -18,7 +18,7 @@ public interface Eq<T> {
     return (a, b) -> this.eqv(a, b) && other.eqv(a, b);
   }
 
-  static <T> Eq<T> object() {
+  static <T> Eq<T> any() {
     return Objects::equals;
   }
 

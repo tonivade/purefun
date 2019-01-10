@@ -249,7 +249,7 @@ public class EitherTest {
     Either<Integer, String> right1 = Either.right("hola");
     Either<Integer, String> right2 = Either.right("hola");
 
-    Eq<Higher2<Either.µ, Integer, String>> instance = Either.eq(Eq.object(), Eq.object());
+    Eq<Higher2<Either.µ, Integer, String>> instance = Either.eq(Eq.any(), Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(left1, left2)),
