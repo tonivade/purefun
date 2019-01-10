@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Function1.identity;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
@@ -14,6 +16,11 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
 
   <G extends Kind, T, R> Higher1<G, Higher1<F, R>> traverse(Applicative<G> applicative, Higher1<F, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper);
+
+  default <G extends Kind, T> Higher1<G, Higher1<F, T>> sequence(Applicative<G> applicative,
+      Higher1<F, Higher1<G, T>> value) {
+    return traverse(applicative, value, identity());
+  }
 
   @Override
   default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {

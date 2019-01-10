@@ -330,7 +330,17 @@ Monad Transformer for `State` type
 
 ## Type Classes
 
-Some type classes are implemented:
+Some type classes are implemented
+
+```
+       SemigroupK           Functor       Foldable
+           |               /       \       /
+         MonoidK   _ Applicative   Traverse
+           |      /      |      \ 
+       Alternative      Monad    ApplicativeError
+                         |      /
+                      MonadError
+```
 
 ### Semigroup
 
@@ -441,6 +451,22 @@ public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, M
   }
 }
 ```
+
+### BiFunctor
+
+TODO
+
+### Foldable
+
+TODO
+
+### Traverse
+
+TODO
+
+### Semigroupal
+
+TODO
 
 ### Transformer
 

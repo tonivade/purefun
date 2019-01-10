@@ -24,4 +24,12 @@ public class TraverseTest {
         composed.traverse(Try.applicative(), nest(Option.some(Id.of(Try.success("hola!")))),
             t -> t.map(String::toUpperCase)));
   }
+
+  @Test
+  public void sequence() {
+    Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(Option.traverse(), Id.traverse());
+
+    assertEquals(Try.success(Option.some(Id.of("hola!"))),
+        composed.sequence(Try.applicative(), nest(Option.some(Id.of(Try.success("hola!"))))));
+  }
 }
