@@ -72,7 +72,7 @@ public class WriterT<F extends Kind, L, A> implements FlatMap3<WriterT.µ, F, L,
     return writer(monoid, monad,
         monad.flatMap(value,
             current -> monad.map(mapper.andThen(WriterT::narrowK).apply(current.get2()).value,
-                other -> Tuple.of(monoid.combine(other.get1(), current.get1()), other.get2()))));
+                other -> Tuple.of(monoid.combine(current.get1(), other.get1()), other.get2()))));
   }
 
   public static <F extends Kind, L, A> WriterT<F, L, A> pure(Monoid<L> monoid, Monad<F> monad, A value) {
