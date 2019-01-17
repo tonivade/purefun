@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -26,6 +27,10 @@ public final class Equal<T> {
 
   public Equal<T> append(Eq<T> tester) {
     return new Equal<>(target, testers.append(tester));
+  }
+
+  public <V> Equal<T> comparing(Function1<T, V> getter) {
+    return append(Eq.comparing(getter));
   }
 
   @SuppressWarnings("unchecked")
