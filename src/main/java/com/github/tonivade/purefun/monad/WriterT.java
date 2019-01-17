@@ -76,7 +76,7 @@ public class WriterT<F extends Kind, L, A> implements FlatMap3<WriterT.µ, F, L,
   }
 
   public static <F extends Kind, L, A> WriterT<F, L, A> pure(Monoid<L> monoid, Monad<F> monad, A value) {
-    return writer(monoid, monad, monad.pure(Tuple2.of(monoid.zero(), value)));
+    return lift(monoid, monad, Tuple2.of(monoid.zero(), value));
   }
 
   public static <F extends Kind, L, A> WriterT<F, L, A> lift(Monoid<L> monoid, Monad<F> monad, Tuple2<L, A> value) {
