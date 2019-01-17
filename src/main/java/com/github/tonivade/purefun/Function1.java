@@ -85,15 +85,11 @@ public interface Function1<A, R> {
     return value -> value;
   }
 
-  static <A, T> Function1<A, T> cons(T value) {
-    return ignore -> value;
+  static <A, T> Function1<A, T> cons(T cons) {
+    return ignore -> cons;
   }
 
   static <A, R> Function1<A, R> of(Function1<A, R> reference) {
     return reference;
-  }
-
-  static <A, R> Function1<A, R> cons(R constant) {
-    return value -> constant;
   }
 }
