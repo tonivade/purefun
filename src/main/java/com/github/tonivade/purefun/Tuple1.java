@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
@@ -48,7 +47,7 @@ public final class Tuple1<A> implements Tuple, Serializable {
   @Override
   public boolean equals(Object obj) {
     return Equal.of(this)
-        .append(comparing(Tuple1::get1))
+        .comparing(Tuple1::get1)
         .applyTo(obj);
   }
 

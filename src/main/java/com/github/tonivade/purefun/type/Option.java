@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.unit;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -262,7 +261,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Option::get))
+          .comparing(Option::get)
           .applyTo(obj);
     }
 

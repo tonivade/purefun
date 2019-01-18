@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
@@ -66,7 +65,7 @@ public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this).append(comparing(Id::get)).applyTo(obj);
+    return Equal.of(this).comparing(Id::get).applyTo(obj);
   }
 
   @Override

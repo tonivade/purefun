@@ -33,6 +33,10 @@ public final class Equal<T> {
     return append(Eq.comparing(getter));
   }
 
+  public <V> Equal<T> comparingArray(Function1<T, V[]> getter) {
+    return append(Eq.comparingArray(getter));
+  }
+
   @SuppressWarnings("unchecked")
   public boolean applyTo(Object obj) {
     if (isNull(obj)) {

@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -74,8 +73,8 @@ class Employee {
   @Override
   public boolean equals(Object obj) {
     return Equal.of(this)
-        .append(comparing(Employee::getName))
-        .append(comparing(Employee::getAddress))
+        .comparing(Employee::getName)
+        .comparing(Employee::getAddress)
         .applyTo(obj);
   }
 }
@@ -103,7 +102,7 @@ class Address {
   @Override
   public boolean equals(Object obj) {
     return Equal.of(this)
-        .append(comparing(Address::getCity))
+        .comparing(Address::getCity)
         .applyTo(obj);
   }
 }

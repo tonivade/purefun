@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
@@ -282,7 +281,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Either::getLeft))
+          .comparing(Either::getLeft)
           .applyTo(obj);
     }
 
@@ -333,7 +332,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Either::getRight))
+          .comparing(Either::getRight)
           .applyTo(obj);
     }
 

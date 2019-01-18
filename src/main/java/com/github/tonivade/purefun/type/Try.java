@@ -5,8 +5,6 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparingArray;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
@@ -291,7 +289,7 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Try::get))
+          .comparing(Try::get)
           .applyTo(obj);
     }
 
@@ -352,8 +350,8 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Failure::getMessage))
-          .append(comparingArray(Failure::getStackTrace))
+          .comparing(Failure::getMessage)
+          .comparingArray(Failure::getStackTrace)
           .applyTo(obj);
     }
 

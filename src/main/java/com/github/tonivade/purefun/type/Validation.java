@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
@@ -260,7 +259,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Valid::get))
+          .comparing(Valid::get)
           .applyTo(obj);
     }
 
@@ -313,7 +312,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Invalid::getError))
+          .comparing(Invalid::getError)
           .applyTo(obj);
     }
 
