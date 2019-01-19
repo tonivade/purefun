@@ -31,10 +31,10 @@ public class Pattern1Test {
       .when(isString).returns("is string")
       .otherwise().then(object -> "something else");
 
-
     assertAll(() -> assertEquals("is number", pattern.apply(1)),
               () -> assertEquals("is string", pattern.apply("1")),
-              () -> assertEquals("something else", pattern.apply(null)));
+              () -> assertEquals("something else", pattern.apply(null)),
+              () -> assertTrue(pattern.isDefinedAt("any")));
   }
 
   @Test

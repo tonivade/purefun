@@ -7,7 +7,7 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.Matcher2.invalid;
 import static java.util.Objects.requireNonNull;
 
-public class Pattern2<A, B, R> implements Function2<A, B, R> {
+public class Pattern2<A, B, R> implements PartialFunction2<A, B, R> {
 
   private final Pattern1<Tuple2<A, B>, R> pattern;
 
@@ -17,6 +17,11 @@ public class Pattern2<A, B, R> implements Function2<A, B, R> {
 
   private Pattern2(Pattern1<Tuple2<A, B>, R> pattern) {
     this.pattern = requireNonNull(pattern);
+  }
+
+  @Override
+  public boolean isDefinedAt(A a, B b) {
+    return pattern.isDefinedAt(Tuple.of(a, b));
   }
 
   @Override

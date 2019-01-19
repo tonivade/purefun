@@ -11,7 +11,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MemoizedProducer<T> implements Producer<T> {
+final class MemoizedProducer<T> implements Producer<T> {
 
   private final Map<Nothing, T> cache = synchronizedMap(new HashMap<>());
   private final Function1<Nothing, T> function;
