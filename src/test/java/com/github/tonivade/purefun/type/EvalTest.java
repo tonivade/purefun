@@ -22,9 +22,8 @@ public class EvalTest {
   @Spy
   private Producer<String> producer;
 
-
   @Test
-  void now() {
+  public void now() {
     Eval<String> eval = Eval.now("Hello World!");
 
     assertEquals("Hello World!", eval.value());
