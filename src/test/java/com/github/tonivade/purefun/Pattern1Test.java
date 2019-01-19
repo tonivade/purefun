@@ -27,13 +27,13 @@ public class Pattern1Test {
     Matcher1<Object> isString = Matcher1.instanceOf(String.class);
 
     Pattern1<Object, String> pattern = Pattern1.<Object, String>build()
-      .when(isNumber).returns("is number")
-      .when(isString).returns("is string")
-      .otherwise().then(object -> "something else");
+      .when(isNumber).returns("is a number")
+      .when(isString).returns("is a string")
+      .otherwise().then(object -> "is something else: " + object.getClass().getSimpleName());
 
-    assertAll(() -> assertEquals("is number", pattern.apply(1)),
-              () -> assertEquals("is string", pattern.apply("1")),
-              () -> assertEquals("something else", pattern.apply(null)),
+    assertAll(() -> assertEquals("is a number", pattern.apply(1)),
+              () -> assertEquals("is a string", pattern.apply("1")),
+              () -> assertEquals("is something else: Object", pattern.apply(new Object())),
               () -> assertTrue(pattern.isDefinedAt("any")));
   }
 
@@ -116,6 +116,7 @@ public class Pattern1Test {
     assertAll(() -> assertTrue(pattern.apply("hola")),
               () -> assertFalse(pattern.apply("hello")));
   }
+
   @Test
   public void and() {
     Pattern1<String, Boolean> pattern = Pattern1.<String, Boolean>build()
