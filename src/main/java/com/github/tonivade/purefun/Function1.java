@@ -89,6 +89,12 @@ public interface Function1<A, R> {
     return ignore -> cons;
   }
 
+  static <A, T> Function1<A, T> fail() {
+    return ignore -> {
+      throw new UnsupportedOperationException();
+    };
+  }
+
   static <A, R> Function1<A, R> of(Function1<A, R> reference) {
     return reference;
   }

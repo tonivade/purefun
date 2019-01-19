@@ -29,7 +29,11 @@ public interface Matcher1<A> {
   static <A> Matcher1<A> not(Matcher1<A> matcher) {
     return matcher.negate();
   }
-  
+
+  static <A> Matcher1<A> never() {
+    return value -> false;
+  }
+
   static <A> Matcher1<A> always() {
     return value -> true;
   }
