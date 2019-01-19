@@ -42,10 +42,6 @@ public final class WriterT<F extends Kind, L, A> implements FlatMap3<WriterT.µ,
     return monad.map(value, Tuple2::get1);
   }
 
-  public WriterT<F, L, A> append(L l2) {
-    return mapLog(monoid, l1 -> monoid.combine(l1, l2));
-  }
-
   @Override
   public <R> WriterT<F, L, R> map(Function1<A, R> mapper) {
     return bimap(monoid, identity(), mapper);
@@ -53,6 +49,10 @@ public final class WriterT<F extends Kind, L, A> implements FlatMap3<WriterT.µ,
 
   public <V> WriterT<F, V, A> mapLog(Monoid<V> monoidV, Function1<L, V> mapper) {
     return bimap(monoidV, mapper, identity());
+  }
+
+  public WriterT<F, L, A> append(L log2) {
+    return mapLog(monoid, log1 -> monoid.combine(log1, log2));
   }
 
   public WriterT<F, L, A> reset() {
