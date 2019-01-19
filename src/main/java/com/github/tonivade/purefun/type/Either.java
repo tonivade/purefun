@@ -142,7 +142,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   }
 
   default R getOrElse(R value) {
-    return getOrElse(Producer.unit(value));
+    return getOrElse(Producer.cons(value));
   }
 
   default R getOrElse(Producer<R> orElse) {

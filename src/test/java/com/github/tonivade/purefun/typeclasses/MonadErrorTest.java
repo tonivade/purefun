@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Matcher1.is;
-import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.Producer.cons;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ public class MonadErrorTest {
     Exception error = new Exception("error");
 
     Higher1<Try.µ, String> ensure = 
-        monadError.ensure(Try.success("not ok"), unit(error), is("ok"));
+        monadError.ensure(Try.success("not ok"), cons(error), is("ok"));
 
     assertEquals(Try.failure(error), ensure);
   }
@@ -59,7 +59,7 @@ public class MonadErrorTest {
     Exception error = new Exception("error");
 
     Higher1<Try.µ, String> ensure = 
-        monadError.ensure(Try.success("ok"), unit(error), is("ok"));
+        monadError.ensure(Try.success("ok"), cons(error), is("ok"));
 
     assertEquals(Try.success("ok"), ensure);
   }

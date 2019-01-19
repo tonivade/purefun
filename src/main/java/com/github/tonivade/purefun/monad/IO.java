@@ -166,7 +166,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     }
 
     private CheckedProducer<T> toCheckedProducer() {
-      return CheckedProducer.failure(Producer.unit(error));
+      return CheckedProducer.failure(Producer.cons(error));
     }
   }
 }

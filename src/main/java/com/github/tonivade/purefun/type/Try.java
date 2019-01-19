@@ -146,7 +146,7 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 
   default T getOrElse(T value) {
-    return getOrElse(Producer.unit(value));
+    return getOrElse(Producer.cons(value));
   }
 
   default T getOrElse(Producer<T> producer) {

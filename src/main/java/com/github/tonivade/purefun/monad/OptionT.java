@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Filterable;
@@ -63,7 +63,7 @@ public final class OptionT<F extends Kind, T> implements FlatMap2<OptionT.µ, F,
   }
 
   public Higher1<F, T> getOrElse(T orElse) {
-    return getOrElse(unit(orElse));
+    return getOrElse(cons(orElse));
   }
 
   public Higher1<F, T> getOrElse(Producer<T> orElse) {
@@ -132,7 +132,7 @@ public final class OptionT<F extends Kind, T> implements FlatMap2<OptionT.µ, F,
   }
 
   private <R> Higher1<F, Option<R>> flatMapF(Function1<T, Higher1<F, Option<R>>> map) {
-   return monad.flatMap(value, v -> v.fold(unit(monad.pure(Option.none())), map));
+   return monad.flatMap(value, v -> v.fold(cons(monad.pure(Option.none())), map));
   }
 }
 

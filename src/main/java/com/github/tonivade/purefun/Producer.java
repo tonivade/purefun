@@ -34,10 +34,10 @@ public interface Producer<T> {
   }
 
   default Producer<T> memoized() {
-    return unit(get());
+    return new MemoizedProducer<>(this);
   }
 
-  static <T> Producer<T> unit(T value) {
+  static <T> Producer<T> cons(T value) {
     return () -> value;
   }
 
