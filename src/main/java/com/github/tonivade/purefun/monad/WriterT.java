@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
-public class WriterT<F extends Kind, L, A> implements FlatMap3<WriterT.µ, F, L, A> {
+public final class WriterT<F extends Kind, L, A> implements FlatMap3<WriterT.µ, F, L, A> {
 
   public static final class µ implements Kind {}
 
