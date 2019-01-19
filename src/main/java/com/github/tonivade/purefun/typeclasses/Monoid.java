@@ -4,36 +4,31 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import com.github.tonivade.purefun.Operator2;
+
 public interface Monoid<T> extends Semigroup<T> {
 
   T zero();
 
   static Monoid<String> string() {
-    return new Monoid<String>() {
-
-      @Override
-      public String zero() {
-        return "";
-      }
-
-      @Override
-      public String combine(String t1, String t2) {
-        return t1 + t2;
-      }
-    };
+    return Monoid.of("", (a, b) -> a + b);
   }
 
   static Monoid<Integer> integer() {
-    return new Monoid<Integer>() {
+    return Monoid.of(0, (a, b) -> a + b);
+  }
+
+  static <T> Monoid<T> of(T zero, Operator2<T> combinator) {
+    return new Monoid<T>() {
 
       @Override
-      public Integer zero() {
-        return 0;
+      public T zero() {
+        return zero;
       }
 
       @Override
-      public Integer combine(Integer t1, Integer t2) {
-        return t1 + t2;
+      public T combine(T t1, T t2) {
+        return combinator.apply(t1, t2);
       }
     };
   }

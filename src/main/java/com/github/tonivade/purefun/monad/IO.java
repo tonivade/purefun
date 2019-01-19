@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
@@ -32,7 +31,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   final class µ implements Kind {}
 
   T unsafeRunSync();
-  
+
   default Future<T> toFuture() {
     return Future.run(this::unsafeRunSync);
   }
@@ -127,7 +126,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this).append(comparing(Pure::unsafeRunSync)).applyTo(obj);
+      return Equal.of(this).comparing(Pure::unsafeRunSync).applyTo(obj);
     }
 
     @Override
@@ -167,7 +166,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     }
 
     private CheckedProducer<T> toCheckedProducer() {
-      return CheckedProducer.failure(Producer.unit(error));
+      return CheckedProducer.failure(Producer.cons(error));
     }
   }
 }

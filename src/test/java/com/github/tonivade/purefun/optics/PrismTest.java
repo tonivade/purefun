@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.Producer.cons;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -69,7 +69,7 @@ public class PrismTest {
 
   @Test
   public void prismLaws() {
-    assertAll(() -> assertTrue(stringToInteger.getOption("5").fold(unit(true), x -> x.equals(5))),
+    assertAll(() -> assertTrue(stringToInteger.getOption("5").fold(cons(true), x -> x.equals(5))),
               () -> assertEquals(Option.some(5), stringToInteger.getOption(stringToInteger.reverseGet(5))));
   }
 }

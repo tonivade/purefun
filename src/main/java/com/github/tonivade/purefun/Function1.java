@@ -85,11 +85,17 @@ public interface Function1<A, R> {
     return value -> value;
   }
 
-  static <A, R> Function1<A, R> of(Function1<A, R> reference) {
-    return reference;
+  static <A, T> Function1<A, T> cons(T cons) {
+    return ignore -> cons;
   }
 
-  static <A, R> Function1<A, R> cons(R constant) {
-    return value -> constant;
+  static <A, T> Function1<A, T> fail() {
+    return ignore -> {
+      throw new UnsupportedOperationException();
+    };
+  }
+
+  static <A, R> Function1<A, R> of(Function1<A, R> reference) {
+    return reference;
   }
 }

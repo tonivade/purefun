@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
@@ -35,7 +35,7 @@ public final class Prism<T, R> {
   }
 
   public Either<T, R> getOrModify(T target) {
-    return getOption(target).fold(unit(Either.left(target)), Either::right);
+    return getOption(target).fold(cons(Either.left(target)), Either::right);
   }
 
   public Operator1<T> modify(Operator1<R> mapper) {

@@ -25,7 +25,7 @@ public class ProducerTest {
 
   @Test
   public void unit() {
-    assertEquals("hello world", Producer.unit("hello world").get());
+    assertEquals("hello world", Producer.cons("hello world").get());
   }
 
   @Test
@@ -40,7 +40,7 @@ public class ProducerTest {
 
   @Test
   public void asFunction() {
-    Producer<String> producer = Producer.unit("hello world");
+    Producer<String> producer = Producer.cons("hello world");
 
     assertEquals("hello world", producer.asFunction().apply(nothing()));
   }

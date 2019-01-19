@@ -4,22 +4,22 @@
  */
 package com.github.tonivade.purefun;
 
+import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Function1.fail;
 import static com.github.tonivade.purefun.Matcher1.invalid;
+import static com.github.tonivade.purefun.Matcher1.never;
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.type.Option;
+public final class Pattern1<A, R> implements PartialFunction1<A, R> {
 
-public final class Pattern1<A, R> implements Function1<A, R> {
-
-  private final ImmutableList<Case<A, R>> cases;
+  private final PartialFunction1<A, R> function;
 
   private Pattern1() {
-    this(ImmutableList.empty());
+    this(PartialFunction1.of(fail(), never()));
   }
 
-  private Pattern1(ImmutableList<Case<A, R>> cases) {
-    this.cases = requireNonNull(cases);
+  private Pattern1(PartialFunction1<A, R> function) {
+    this.function = requireNonNull(function);
   }
 
   public static <A, R> Pattern1<A, R> build() {
@@ -35,37 +35,17 @@ public final class Pattern1<A, R> implements Function1<A, R> {
   }
 
   @Override
-  public R apply(A target) {
-    return findCase(target)
-        .map(case_ -> case_.apply(target))
-        .getOrElseThrow(IllegalStateException::new);
+  public R apply(A value) {
+    return function.apply(value);
+  }
+
+  @Override
+  public boolean isDefinedAt(A value) {
+    return function.isDefinedAt(value);
   }
 
   protected Pattern1<A, R> add(Matcher1<A> matcher, Function1<A, R> handler) {
-    return new Pattern1<>(cases.append(new Case<>(matcher, handler)));
-  }
-
-  private Option<Case<A, R>> findCase(A target) {
-    return cases.filter(case_ -> case_.match(target)).head();
-  }
-
-  public static final class Case<A, R> {
-
-    private final Matcher1<A> matcher;
-    private final Function1<A, R> handler;
-
-    Case(Matcher1<A> matcher, Function1<A, R> handler) {
-      this.matcher = requireNonNull(matcher);
-      this.handler = requireNonNull(handler);
-    }
-
-    public boolean match(A value) {
-      return matcher.match(value);
-    }
-
-    public R apply(A value) {
-      return handler.apply(value);
-    }
+    return new Pattern1<>(function.orElse(PartialFunction1.of(handler, matcher)));
   }
 
   public static final class CaseBuilder1<B, T, R> {
@@ -95,7 +75,7 @@ public final class Pattern1<A, R> implements Function1<A, R> {
     // javac compiler works fine.
     // related bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=522380
     public B returns(R value) {
-      return then(target -> value);
+      return then(cons(value));
     }
   }
 }

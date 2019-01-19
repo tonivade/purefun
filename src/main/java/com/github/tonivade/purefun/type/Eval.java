@@ -44,8 +44,8 @@ public interface Eval<T> extends FlatMap1<Eval.µ, T> {
     return later.memoized()::get;
   }
 
-  static <T> Eval<T> always(Producer<T> later) {
-    return later::get;
+  static <T> Eval<T> always(Producer<T> always) {
+    return always::get;
   }
 
   static <T> Eval<T> narrowK(Higher1<Eval.µ, T> hkt) {

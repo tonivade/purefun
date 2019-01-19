@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.Producer.cons;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -46,7 +46,7 @@ public class EitherTTest {
   public void filterOrElse() {
     EitherT<Id.µ, Nothing, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id.µ, Nothing, String> filter = right.filterOrElse(String::isEmpty, unit(Either.right("not empty")));
+    EitherT<Id.µ, Nothing, String> filter = right.filterOrElse(String::isEmpty, cons(Either.right("not empty")));
     EitherT<Id.µ, Nothing, String> orElse = EitherT.right(monad, "not empty");
 
     assertEquals(orElse.get(), filter.getOrElse("not empty"));

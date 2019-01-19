@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.unit;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.FlatMap3;
@@ -89,7 +89,7 @@ public final class EitherT<F extends Kind, L, R> implements FlatMap3<EitherT.µ,
   }
 
   public Higher1<F, R> getOrElse(R orElse) {
-    return getOrElse(unit(orElse));
+    return getOrElse(cons(orElse));
   }
 
   public Higher1<F, R> getOrElse(Producer<R> orElse) {

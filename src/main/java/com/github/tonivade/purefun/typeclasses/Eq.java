@@ -23,8 +23,7 @@ public interface Eq<T> {
   }
 
   static Eq<Throwable> throwable() {
-    return (a, b) -> Objects.equals(a.getMessage(), b.getMessage())
-        && Arrays.deepEquals(a.getStackTrace(), b.getStackTrace());
+    return comparing(Throwable::getMessage).and(comparingArray(Throwable::getStackTrace));
   }
 
   public static <T, V> Eq<T> comparing(Function1<T, V> getter) {

@@ -6,8 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.Producer.unit;
-import static com.github.tonivade.purefun.typeclasses.Eq.comparing;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -124,7 +123,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 
   default T getOrElse(T value) {
-    return getOrElse(Producer.unit(value));
+    return getOrElse(Producer.cons(value));
   }
 
   default T getOrElse(Producer<T> producer) {
@@ -262,7 +261,7 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     @Override
     public boolean equals(Object obj) {
       return Equal.of(this)
-          .append(comparing(Option::get))
+          .comparing(Option::get)
           .applyTo(obj);
     }
 
@@ -358,7 +357,7 @@ interface OptionSemigroupK extends SemigroupK<Option.µ> {
 
   @Override
   default <T> Option<T> combineK(Higher1<Option.µ, T> t1, Higher1<Option.µ, T> t2) {
-    return Option.narrowK(t1).fold(unit(Option.narrowK(t2)), Option::some);
+    return Option.narrowK(t1).fold(cons(Option.narrowK(t2)), Option::some);
   }
 }
 
@@ -390,13 +389,13 @@ interface OptionFoldable extends Foldable<Option.µ> {
 
   @Override
   default <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {
-    return Option.narrowK(value).fold(unit(initial), a -> mapper.apply(initial, a));
+    return Option.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Higher1<Option.µ, A> value, Eval<B> initial,
       Function2<A, Eval<B>, Eval<B>> mapper) {
-    return Option.narrowK(value).fold(unit(initial), a -> mapper.apply(a, initial));
+    return Option.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
   }
 }
 
