@@ -9,7 +9,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.typeclasses.DoMonad;
-import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public final class With<A> {

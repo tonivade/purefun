@@ -2,12 +2,12 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.typeclasses;
+package com.github.tonivade.purefun;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.typeclasses.Eq;
 
 public final class Equal<T> {
 

@@ -12,6 +12,7 @@ import java.util.Objects;
 import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -21,7 +22,6 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Equal;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 

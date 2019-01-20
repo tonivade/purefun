@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.typeclasses.Equal;
 
 public final class Tuple3<A, B, C> implements Tuple, Serializable {
 
