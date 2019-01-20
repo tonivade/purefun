@@ -15,4 +15,19 @@ public interface PartialFunction3<A, B, C, R> {
   default Function3<A, B, C, Option<R>> lift() {
     return (a, b, c) -> isDefinedAt(a, b, c) ? Option.some(apply(a, b, c)) : Option.none();
   }
+
+  static <A, B, C, R> PartialFunction3<A, B, C, R> of(Matcher3<A, B, C> matcher, PartialFunction3<A, B, C, R> apply) {
+    return new PartialFunction3<A, B, C, R>() {
+
+      @Override
+      public boolean isDefinedAt(A a, B b, C c) {
+        return matcher.match(a, b, c);
+      }
+
+      @Override
+      public R apply(A a, B b, C c) {
+        return apply.apply(a, b, c);
+      }
+    };
+  }
 }

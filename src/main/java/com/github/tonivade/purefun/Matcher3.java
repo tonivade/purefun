@@ -7,10 +7,10 @@ package com.github.tonivade.purefun;
 @FunctionalInterface
 public interface Matcher3<A, B, C> {
 
-  boolean apply(A a, B b, C c);
+  boolean match(A a, B b, C c);
 
   default Matcher1<Tuple3<A, B, C>> tupled() {
-    return tuple -> apply(tuple.get1(), tuple.get2(), tuple.get3());
+    return tuple -> match(tuple.get1(), tuple.get2(), tuple.get3());
   }
 
   static <A, B, C> Matcher3<A, B, C> invalid() {

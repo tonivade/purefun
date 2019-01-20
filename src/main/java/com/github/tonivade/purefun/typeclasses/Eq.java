@@ -22,6 +22,10 @@ public interface Eq<T> {
     return Objects::equals;
   }
 
+  static <T> Eq<T> always() {
+    return (a, b) -> true;
+  }
+
   static Eq<Throwable> throwable() {
     return comparing(Throwable::getMessage).and(comparingArray(Throwable::getStackTrace));
   }

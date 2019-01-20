@@ -58,7 +58,7 @@ public class PartialFunction1Test {
   @Test
   public void orElse() {
     PartialFunction1<Integer, String> function =
-        fromArray.orElse(PartialFunction1.of(t -> "5", t -> t == 5));
+        fromArray.orElse(PartialFunction1.of(t -> t == 5, t -> "5"));
 
     assertAll(
         () -> assertEquals("a", function.apply(0)),

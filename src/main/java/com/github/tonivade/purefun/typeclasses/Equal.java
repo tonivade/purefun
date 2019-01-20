@@ -8,25 +8,23 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.data.Sequence;
 
 public final class Equal<T> {
 
   private final T target;
-  private final Sequence<Eq<T>> testers;
+  private final Eq<T> tester;
 
   private Equal(T target) {
-    this(target, ImmutableList.empty());
+    this(target, Eq.always());
   }
 
-  private Equal(T target, Sequence<Eq<T>> testers) {
+  private Equal(T target, Eq<T> tester) {
     this.target = requireNonNull(target);
-    this.testers = requireNonNull(testers);
+    this.tester = requireNonNull(tester);
   }
 
-  public Equal<T> append(Eq<T> tester) {
-    return new Equal<>(target, testers.append(tester));
+  public Equal<T> append(Eq<T> other) {
+    return new Equal<>(target, tester.and(other));
   }
 
   public <V> Equal<T> comparing(Function1<T, V> getter) {
@@ -49,7 +47,7 @@ public final class Equal<T> {
   }
 
   private boolean areEquals(T other) {
-    return testers.stream().allMatch(tester -> tester.eqv(target, other));
+    return tester.eqv(target, other);
   }
 
   private boolean sameClasses(Object obj) {
@@ -61,6 +59,6 @@ public final class Equal<T> {
   }
 
   public static <T> Equal<T> of(T target) {
-    return new Equal<>(target);
+    return new Equal<>(target, Eq.always());
   }
 }

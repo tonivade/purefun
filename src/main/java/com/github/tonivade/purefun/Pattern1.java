@@ -14,16 +14,12 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
 
   private final PartialFunction1<A, R> function;
 
-  private Pattern1() {
-    this(PartialFunction1.of(fail(), never()));
-  }
-
   private Pattern1(PartialFunction1<A, R> function) {
     this.function = requireNonNull(function);
   }
 
   public static <A, R> Pattern1<A, R> build() {
-    return new Pattern1<>();
+    return new Pattern1<>(PartialFunction1.of(never(), fail()));
   }
 
   public CaseBuilder1<Pattern1<A, R>, A, R> when(Matcher1<A> matcher) {
@@ -45,7 +41,7 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
   }
 
   protected Pattern1<A, R> add(Matcher1<A> matcher, Function1<A, R> handler) {
-    return new Pattern1<>(function.orElse(PartialFunction1.of(handler, matcher)));
+    return new Pattern1<>(function.orElse(PartialFunction1.of(matcher, handler)));
   }
 
   public static final class CaseBuilder1<B, T, R> {

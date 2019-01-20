@@ -23,7 +23,7 @@ public class MonadErrorTest {
   @Test
   public void recover() {
     Higher1<Try.µ, String> recover = 
-        monadError.recover(Try.failure("error"), PartialFunction1.of(Throwable::toString, always()));
+        monadError.recover(Try.failure("error"), PartialFunction1.of(always(), Throwable::toString));
     
     assertEquals(Try.success("java.lang.Exception: error"), recover);
   }
