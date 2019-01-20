@@ -82,10 +82,6 @@ It represent a type that can hold any value. It defines these methods: `get` and
 
 It represent a type that can be filtered. It defines one method: `filter`.
 
-### Foldable
-
-It represent a type that can be folded. It defined these methods: `reduce`, `fold`, `foldLeft` and `foldRight`
-
 ## Data types
 
 All these data types implement `FlatMap` and `Mappable` base interface and implement these methods: `get`, `map`, `flatMap`, 
@@ -272,8 +268,8 @@ in this [work](https://github.com/xuwei-k/free-monad-java).
         .andThen(IOProgram.write("end"));
 
   Higher<IO.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
-                                                   new IOProgramFunctor(),
-                                                   new IOProgramInterperter());
+                                               new IOProgramFunctor(),
+                                               new IOProgramInterperter());
 
   IO.narrowK(foldMap).unsafeRunSync();
 ```
@@ -326,6 +322,20 @@ Monad Transformer for `State` type
   IO<Tuple2<ImmutableList<String>, Nothing>> result = IO.narrowK(state.run(ImmutableList.empty()));
 
   assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result.unsafeRunSync());
+```
+
+WriterT
+
+Monad Transformer for `Writer` type
+
+```java
+    WriterT<Id.µ, Sequence<String>, Integer> writer =
+        WriterT.<Id.µ, Sequence<String>, Integer>pure(monoid, monad, 5)
+        .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("add 5"), value + 5)))
+        .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("plus 2"), value * 2)));
+
+    assertAll(() -> assertEquals(Id.of(Integer.valueOf(20)), writer.getValue()),
+              () -> assertEquals(Id.of(listOf("add 5", "plus 2")), writer.getLog()));
 ```
 
 ## Type Classes
