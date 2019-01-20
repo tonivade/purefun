@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 public class PartialFunction2Test {
 
   @Test
-  void div() {
+  public void div() {
     PartialFunction2<Integer, Integer, Double> div =
         PartialFunction2.of((a, b) -> b > 0, (a, b) -> ((double) a / (double) b));
 
