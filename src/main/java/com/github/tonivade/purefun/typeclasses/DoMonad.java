@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
 
 public final class DoMonad<F extends Kind, A> {
 
@@ -39,6 +40,10 @@ public final class DoMonad<F extends Kind, A> {
 
   public <R> DoMonad<F, R> map(Function1<A, R> mapper) {
     return with(monad, monad.map(value, mapper));
+  }
+  
+  public <R> DoMonad<F, R> andThen(Producer<Higher1<F, R>> producer) {
+    return with(monad, monad.flatMap(value, i -> producer.get()));
   }
 
   public <B, R> DoMonad<F, R> map2(Higher1<F, B> value2, Function2<A, B, R> mapper) {
