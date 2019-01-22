@@ -97,10 +97,10 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), Future.narrowK(EitherT.narrowK(raiseError).value()).await()),
-        () -> assertEquals(Try.success(Either.right("not an error")), Future.narrowK(EitherT.narrowK(handleError).value()).await()),
-        () -> assertEquals(Try.failure(error), Future.narrowK(EitherT.narrowK(ensureError).value()).await()),
-        () -> assertEquals(Try.success(Either.right("is not ok")), Future.narrowK(EitherT.narrowK(ensureOk).value()).await()));
+        () -> assertEquals(Try.failure(error), raiseError.fix1(EitherT::narrowK).value().fix1(Future::narrowK).await()),
+        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix1(EitherT::narrowK).value().fix1(Future::narrowK).await()),
+        () -> assertEquals(Try.failure(error), ensureError.fix1(EitherT::narrowK).value().fix1(Future::narrowK).await()),
+        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix1(EitherT::narrowK).value().fix1(Future::narrowK).await()));
   }
 
   @Test
@@ -119,9 +119,9 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Id.of(Either.left(error)), EitherT.narrowK(raiseError).value()),
-        () -> assertEquals(Id.of(Either.right("not an error")), EitherT.narrowK(handleError).value()),
-        () -> assertEquals(Id.of(Either.left(error)), EitherT.narrowK(ensureError).value()),
-        () -> assertEquals(Id.of(Either.right("is not ok")), EitherT.narrowK(ensureOk).value()));
+        () -> assertEquals(Id.of(Either.left(error)), raiseError.fix1(EitherT::narrowK).value()),
+        () -> assertEquals(Id.of(Either.right("not an error")), handleError.fix1(EitherT::narrowK).value()),
+        () -> assertEquals(Id.of(Either.left(error)), ensureError.fix1(EitherT::narrowK).value()),
+        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.fix1(EitherT::narrowK).value()));
   }
 }
