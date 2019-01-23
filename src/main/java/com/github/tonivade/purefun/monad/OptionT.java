@@ -43,7 +43,7 @@ public final class OptionT<F extends Kind, T> implements FlatMap2<OptionT.µ, F,
 
   @Override
   public <R> OptionT<F, R> flatMap(Function1<T, ? extends Higher2<OptionT.µ, F, R>> map) {
-    return OptionT.of(monad, flatMapF(v -> OptionT.narrowK(map.apply(v)).value));
+    return OptionT.of(monad, flatMapF(v -> map.andThen(OptionT::narrowK).apply(v).value));
   }
 
   public <R> Higher1<F, R> fold(Producer<R> orElse, Function1<T, R> map) {

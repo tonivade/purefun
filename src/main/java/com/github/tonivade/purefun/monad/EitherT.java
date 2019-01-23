@@ -41,7 +41,7 @@ public final class EitherT<F extends Kind, L, R> implements FlatMap3<EitherT.µ,
 
   @Override
   public <V> EitherT<F, L, V> flatMap(Function1<R, ? extends Higher3<EitherT.µ, F, L, V>> map) {
-    return EitherT.of(monad, flatMapF(v -> EitherT.narrowK(map.apply(v)).value));
+    return EitherT.of(monad, flatMapF(v -> map.andThen(EitherT::narrowK).apply(v).value));
   }
 
   public <T, V> EitherT<F, T, V> bimap(Function1<L, T> leftMapper, Function1<R, V> rightMapper) {
