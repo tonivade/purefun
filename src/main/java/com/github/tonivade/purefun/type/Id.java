@@ -23,7 +23,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-public class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
+public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
   public static final class µ implements Kind { }
 

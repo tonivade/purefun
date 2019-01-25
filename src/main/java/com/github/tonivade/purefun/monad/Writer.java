@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
@@ -20,71 +19,73 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
+public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
 
-  public static final class µ implements Kind {}
+  final class µ implements Kind {}
 
-  private final Monoid<L> monoid;
-  private final Tuple2<L, A> value;
+  Monoid<L> monoid();
+  Tuple2<L, A> value();
 
-  private Writer(Monoid<L> monoid, Tuple2<L, A> value) {
-    this.monoid = requireNonNull(monoid);
-    this.value = requireNonNull(value);
+  default A getValue() {
+    return value().get2();
   }
 
-  public A getValue() {
-    return value.get2();
-  }
-
-  public L getLog() {
-    return value.get1();
+  default L getLog() {
+    return value().get1();
   }
 
   @Override
-  public <B> Writer<L, B> map(Function1<A, B> mapper) {
-    return bimap(monoid, identity(), mapper);
+  default <B> Writer<L, B> map(Function1<A, B> mapper) {
+    return bimap(monoid(), identity(), mapper);
   }
 
-  public <R> Writer<R, A> mapLog(Monoid<R> monoidR, Function1<L, R> mapper) {
+  default <R> Writer<R, A> mapLog(Monoid<R> monoidR, Function1<L, R> mapper) {
     return bimap(monoidR, mapper, identity());
   }
 
-  public Writer<L, A> append(L log2) {
-    return mapLog(monoid, log1 -> monoid.combine(log1, log2));
+  default Writer<L, A> append(L log2) {
+    return mapLog(monoid(), log1 -> monoid().combine(log1, log2));
   }
 
-  public Writer<L, A> reset() {
-    return mapLog(monoid, cons(monoid.zero()));
+  default Writer<L, A> reset() {
+    return mapLog(monoid(), cons(monoid().zero()));
   }
 
-  public <V, R> Writer<V, R> bimap(Monoid<V> monoidV, Function1<L, V> mapper1, Function1<A, R> mapper2) {
-    return new Writer<>(monoidV, value.map(mapper1, mapper2));
+  default <V, R> Writer<V, R> bimap(Monoid<V> monoidV, Function1<L, V> mapper1, Function1<A, R> mapper2) {
+    return writer(monoidV, value().map(mapper1, mapper2));
   }
 
   @Override
-  public <B> Writer<L, B> flatMap(Function1<A, ? extends Higher2<Writer.µ, L, B>> mapper) {
-    Writer<L, B> apply = mapper.andThen(Writer::narrowK).apply(value.get2());
-    Tuple2<L, A> combine = value.map1(log -> monoid.combine(log, apply.getLog()));
-    return writer(monoid, combine.get1(), apply.getValue());
+  default <B> Writer<L, B> flatMap(Function1<A, ? extends Higher2<Writer.µ, L, B>> mapper) {
+    Writer<L, B> apply = mapper.andThen(Writer::narrowK).apply(value().get2());
+    Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
+    return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
   }
 
-  public static <L, A> Writer<L, A> pure(Monoid<L> monoid, A value) {
-    return writer(monoid, monoid.zero(), value);
+  static <L, A> Writer<L, A> pure(Monoid<L> monoid, A value) {
+    return writer(monoid, Tuple.of(monoid.zero(), value));
   }
 
-  public static <L, A> Writer<L, A> writer(Monoid<L> monoid, L log, A value) {
-    return new Writer<>(monoid, Tuple.of(log, value));
+  static <L, A> Writer<L, A> writer(Monoid<L> monoid, Tuple2<L, A> value) {
+    return new Writer<L, A>() {
+
+      @Override
+      public Monoid<L> monoid() { return monoid; }
+
+      @Override
+      public Tuple2<L, A> value() { return value; }
+    };
   }
 
-  public static <T, A> Writer<Sequence<T>, A> listPure(A value) {
+  static <T, A> Writer<Sequence<T>, A> listPure(A value) {
     return pure(Sequence.monoid(), value);
   }
 
-  public static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
-    return writer(Sequence.monoid(), listOf(log), value);
+  static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
+    return writer(Sequence.monoid(), Tuple.of(listOf(log), value));
   }
 
-  public static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {
+  static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {
     return new Monad<Higher1<Writer.µ, L>>() {
 
       @Override
@@ -100,11 +101,11 @@ public final class Writer<L, A> implements FlatMap2<Writer.µ, L, A> {
     };
   }
 
-  public static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {
+  static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {
     return (Writer<L, T>) hkt;
   }
 
-  public static <L, T> Writer<L, T> narrowK(Higher1<Higher1<Writer.µ, L>, T> hkt) {
+  static <L, T> Writer<L, T> narrowK(Higher1<Higher1<Writer.µ, L>, T> hkt) {
     return (Writer<L, T>) hkt;
   }
 }
