@@ -7,7 +7,7 @@ package com.github.tonivade.purefun;
 @FunctionalInterface
 public interface Function4<A, B, C, D, R> {
 
-  R apply(A t1, B t2, C t3, D t4);
+  R apply(A a, B b, C c, D d);
 
   default Function1<A, Function1<B, Function1<C, Function1<D, R>>>> curried() {
     return a -> b -> c -> d -> apply(a, b, c, d);
