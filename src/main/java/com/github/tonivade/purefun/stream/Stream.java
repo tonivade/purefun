@@ -3,8 +3,6 @@ package com.github.tonivade.purefun.stream;
 import static com.github.tonivade.purefun.type.Eval.later;
 import static java.util.Objects.requireNonNull;
 
-import java.util.NoSuchElementException;
-
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -12,6 +10,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -19,7 +18,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T> {
 
   final class µ implements Kind {}
 
-  Higher1<F, T> head();
+  Option<Higher1<F, T>> head();
   Stream<F, T> tail();
 
   Stream<F, T> concat(Stream<F, T> other);
@@ -60,8 +59,8 @@ class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Higher1<F, T> head() {
-    return head;
+  public Option<Higher1<F, T>> head() {
+    return Option.some(head);
   }
 
   @Override
@@ -101,7 +100,7 @@ class Defer<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Higher1<F, T> head() {
+  public Option<Higher1<F, T>> head() {
     return lazyStream.value().head();
   }
 
@@ -140,8 +139,8 @@ class Nil<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Higher1<F, T> head() {
-    throw new NoSuchElementException();
+  public Option<Higher1<F, T>> head() {
+    return Option.none();
   }
 
   @Override
