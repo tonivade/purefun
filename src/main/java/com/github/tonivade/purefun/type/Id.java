@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -97,6 +98,10 @@ public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
     return new IdMonad() {};
   }
 
+  public static Comonad<Id.µ> comonad() {
+    return new IdComonad() {};
+  }
+
   public static Foldable<Id.µ> foldable() {
     return new IdFoldable() {};
   }
@@ -137,6 +142,19 @@ interface IdMonad extends IdPure, Monad<Id.µ> {
   @Override
   default <T, R> Id<R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
     return Id.narrowK(value).flatMap(map);
+  }
+}
+
+interface IdComonad extends IdFunctor, Comonad<Id.µ> {
+
+  @Override
+  default <A, B> Id<B> coflatMap(Higher1<Id.µ, A> value, Function1<Higher1<Id.µ, A>, B> map) {
+    return Id.of(map.apply(value));
+  }
+
+  @Override
+  default <A> A extract(Higher1<Id.µ, A> value) {
+    return Id.narrowK(value).get();
   }
 }
 

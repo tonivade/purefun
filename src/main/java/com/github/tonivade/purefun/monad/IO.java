@@ -22,6 +22,8 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Comonad;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
@@ -100,6 +102,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
   static Monad<IO.µ> monad() {
     return new IOMonad() {};
+  }
+
+  static Comonad<IO.µ> comonad() {
+    return new IOComonad() {};
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
@@ -187,6 +193,27 @@ final class IOResource<T> implements AutoCloseable {
   @Override
   public void close() {
     release.unchecked().accept(resource);
+  }
+}
+
+interface IOFunctor extends Functor<IO.µ> {
+
+  @Override
+  default <T, R> IO<R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
+    return IO.narrowK(value).map(map);
+  }
+}
+
+interface IOComonad extends IOFunctor, Comonad<IO.µ> {
+
+  @Override
+  default <A, B> Higher1<IO.µ, B> coflatMap(Higher1<IO.µ, A> value, Function1<Higher1<IO.µ, A>, B> map) {
+    return IO.of(() -> map.apply(value));
+  }
+
+  @Override
+  default <A> A extract(Higher1<IO.µ, A> value) {
+    return IO.narrowK(value).unsafeRunSync();
   }
 }
 
