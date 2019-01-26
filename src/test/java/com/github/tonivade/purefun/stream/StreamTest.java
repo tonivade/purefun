@@ -7,15 +7,14 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO.µ;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class StreamTest {
 
-  final Monad<µ> monad = IO.monad();
-  final Comonad<µ> comonad = IO.comonad();
+  final Monad<IO.µ> monad = IO.monad();
+  final Comonad<IO.µ> comonad = IO.comonad();
 
   @Test
   public void map() {
@@ -49,5 +48,32 @@ public class StreamTest {
     Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.of(() -> i * 2));
 
     assertEquals(Integer.valueOf(12), result.foldLeft(0, (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+  }
+
+  @Test
+  public void append() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3));
+
+    Stream<IO.µ, Integer> result = stream.append(IO.pure(4));
+
+    assertEquals("1234", result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+  }
+
+  @Test
+  public void take() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3));
+
+    Stream<IO.µ, Integer> result = stream.take(2);
+
+    assertEquals("12", result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+  }
+
+  @Test
+  public void drop() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3));
+
+    Stream<IO.µ, Integer> result = stream.drop(2);
+
+    assertEquals("3", result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
   }
 }
