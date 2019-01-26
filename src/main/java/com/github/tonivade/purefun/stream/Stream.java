@@ -31,6 +31,8 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T> {
   @Override
   <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map);
 
+  <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper);
+
   static <F extends Kind, T> Stream<F, T> pure(Monad<F> monad, Comonad<F> comonad, T value) {
     return new Cons<>(monad, comonad, monad.pure(value));
   }
@@ -92,6 +94,12 @@ class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
+  public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
+    System.out.println("cons => mapEval");
+    return new Cons<>(monad, comonad, monad.flatMap(head, mapper), new Defer<>(monad, later(() -> tail.mapEval(mapper))));
+  }
+
+  @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
     System.out.println("cons => flatMap");
     return new Defer<>(monad,
@@ -145,6 +153,12 @@ class Defer<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
+  public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
+    System.out.println("defer => mapEval");
+    return new Defer<>(monad, lazyStream.map(s -> s.mapEval(mapper)));
+  }
+
+  @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<µ, F, R>> map) {
     System.out.println("defer => flatMap");
     return new Defer<>(monad, lazyStream.map(s -> s.flatMap(map)));
@@ -189,6 +203,12 @@ class Nil<F extends Kind, T> implements Stream<F, T> {
   @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
     System.out.println("nil => map");
+    return new Nil<>(monad);
+  }
+
+  @Override
+  public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
+    System.out.println("nil => mapEval");
     return new Nil<>(monad);
   }
 
