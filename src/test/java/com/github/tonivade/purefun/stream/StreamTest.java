@@ -1,11 +1,13 @@
 package com.github.tonivade.purefun.stream;
 
+import static com.github.tonivade.purefun.type.Eval.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO.µ;
+import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -21,9 +23,9 @@ public class StreamTest {
 
     Stream<IO.µ, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    IO<String> foldLeft = result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK);
+    Eval<IO<String>> foldRight = result.foldRight(now(""), (a, b) -> b.map(x -> x + a)).map(IO::narrowK);
 
-    assertEquals("HOLA MUNDO", foldLeft.unsafeRunSync());
+    assertEquals("HOLA MUNDO", foldRight.value().unsafeRunSync());
   }
 
   @Test
