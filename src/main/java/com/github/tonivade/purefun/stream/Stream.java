@@ -43,6 +43,10 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T> {
     return new Cons<>(monad, comonad, monad.pure(value));
   }
 
+  static <F extends Kind, T> Stream<F, T> cons(Monad<F> monad, Comonad<F> comonad, Higher1<F, T> head, Stream<F, T> tail) {
+    return new Cons<>(monad, comonad, head, tail);
+  }
+
   static <F extends Kind, T> Stream<F, T> eval(Monad<F> monad, Producer<Stream<F, T>> stream) {
     return new Defer<>(monad, later(stream));
   }
@@ -81,7 +85,7 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> head() {
-    return new Cons<>(monad, comonad, head);
+    return Stream.cons(monad, comonad, head, Stream.empty(monad));
   }
 
   @Override
@@ -91,7 +95,7 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> concat(Stream<F, T> other) {
-    return new Defer<>(monad, later(() -> new Cons<>(monad, comonad, head, tail.concat(other))));
+    return Stream.eval(monad, () -> Stream.cons(monad, comonad, head, tail.concat(other)));
   }
 
   @Override
@@ -109,22 +113,25 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
     System.out.println("cons => map");
-    return new Cons<>(monad, comonad, monad.map(head, map), new Defer<>(monad, later(() -> tail.map(map))));
+    return Stream.eval(monad,
+        () -> Stream.cons(monad, comonad,
+            monad.map(head, map), new Defer<>(monad, later(() -> tail.map(map)))));
   }
 
   @Override
   public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
     System.out.println("cons => mapEval");
-    return new Cons<>(monad, comonad, monad.flatMap(head, mapper), new Defer<>(monad, later(() -> tail.mapEval(mapper))));
+    return Stream.eval(monad,
+        () -> Stream.cons(monad, comonad,
+            monad.flatMap(head, mapper), new Defer<>(monad, later(() -> tail.mapEval(mapper)))));
   }
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
     System.out.println("cons => flatMap");
-    return new Defer<>(monad,
-        later(() -> comonad.extract(
-            monad.map(
-                monad.map(head, map.andThen(Stream::narrowK)::apply), s -> s.concat(tail.flatMap(map))))));
+    return Stream.eval(monad,
+        () -> comonad.extract(monad.map(monad.map(head,
+            map.andThen(Stream::narrowK)::apply), s -> s.concat(tail.flatMap(map)))));
   }
 }
 
