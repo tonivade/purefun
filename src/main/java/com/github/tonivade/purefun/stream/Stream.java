@@ -9,6 +9,8 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -33,16 +35,33 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T> {
 
   <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper);
 
+  static <F extends Kind, T> Stream<F, T> empty(Monad<F> monad) {
+    return new Nil<>(monad);
+  }
+
   static <F extends Kind, T> Stream<F, T> pure(Monad<F> monad, Comonad<F> comonad, T value) {
     return new Cons<>(monad, comonad, monad.pure(value));
+  }
+
+  static <F extends Kind, T> Stream<F, T> eval(Monad<F> monad, Producer<Stream<F, T>> stream) {
+    return new Defer<>(monad, later(stream));
+  }
+
+  static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Sequence<T> sequence) {
+    return sequence.foldLeft(Stream.<F, T>empty(monad),
+        (acc, a) -> acc.concat(eval(monad, () -> pure(monad, comonad, a))));
   }
 
   static <F extends Kind, T> Stream<F, T> narrowK(Higher1<Higher1<Stream.µ, F>, T> hkt) {
     return (Stream<F, T>) hkt;
   }
+
+  static <F extends Kind, T> Stream<F, T> narrowK(Higher2<Stream.µ, F, T> hkt) {
+    return (Stream<F, T>) hkt;
+  }
 }
 
-class Cons<F extends Kind, T> implements Stream<F, T> {
+final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   private final Monad<F> monad;
   private final Comonad<F> comonad;
@@ -109,63 +128,63 @@ class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 }
 
-class Defer<F extends Kind, T> implements Stream<F, T> {
+final class Defer<F extends Kind, T> implements Stream<F, T> {
 
   private final Monad<F> monad;
-  private final Eval<Stream<F, T>> lazyStream;
+  private final Eval<Stream<F, T>> evalStream;
 
   Defer(Monad<F> monad, Eval<Stream<F, T>> stream) {
     this.monad = requireNonNull(monad);
-    this.lazyStream = requireNonNull(stream);
+    this.evalStream = requireNonNull(stream);
   }
 
   @Override
   public Stream<F, T> head() {
-    return lazyStream.value().head();
+    return evalStream.value().head();
   }
 
   @Override
   public Stream<F, T> tail() {
-    return new Defer<>(monad, lazyStream.map(s -> s.tail()));
+    return new Defer<>(monad, evalStream.map(s -> s.tail()));
   }
 
   @Override
   public Stream<F, T> concat(Stream<F, T> other) {
-    return new Defer<>(monad, lazyStream.map(s -> s.concat(other)));
+    return new Defer<>(monad, evalStream.map(s -> s.concat(other)));
   }
 
   @Override
   public <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
     System.out.println("defer => foldLeft");
-    return lazyStream.flatMap(s -> later(() -> s.foldLeft(begin, combinator))).value();
+    return evalStream.flatMap(s -> later(() -> s.foldLeft(begin, combinator))).value();
   }
 
   @Override
   public <R> Eval<Higher1<F, R>> foldRight(Eval<R> begin, Function2<T, Eval<R>, Eval<R>> combinator) {
     System.out.println("defer => foldRight");
-    return lazyStream.flatMap(s -> s.foldRight(begin, combinator));
+    return evalStream.flatMap(s -> s.foldRight(begin, combinator));
   }
 
   @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
     System.out.println("defer => map");
-    return new Defer<>(monad, lazyStream.map(s -> s.map(map)));
+    return new Defer<>(monad, evalStream.map(s -> s.map(map)));
   }
 
   @Override
   public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
     System.out.println("defer => mapEval");
-    return new Defer<>(monad, lazyStream.map(s -> s.mapEval(mapper)));
+    return new Defer<>(monad, evalStream.map(s -> s.mapEval(mapper)));
   }
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<µ, F, R>> map) {
     System.out.println("defer => flatMap");
-    return new Defer<>(monad, lazyStream.map(s -> s.flatMap(map)));
+    return new Defer<>(monad, evalStream.map(s -> s.flatMap(map)));
   }
 }
 
-class Nil<F extends Kind, T> implements Stream<F, T> {
+final class Nil<F extends Kind, T> implements Stream<F, T> {
 
   private Monad<F> monad;
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO.µ;
 import com.github.tonivade.purefun.type.Eval;
@@ -41,4 +42,12 @@ public class StreamTest {
     assertEquals("HOLA MUNDO", foldLeft.unsafeRunSync());
   }
 
+  @Test
+  public void mapEval() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3));
+
+    Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.of(() -> i * 2));
+
+    assertEquals(Integer.valueOf(12), result.foldLeft(0, (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+  }
 }
