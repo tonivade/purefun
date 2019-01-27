@@ -100,6 +100,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return (IO<T>) hkt;
   }
 
+  static Functor<IO.µ> functor() {
+    return new IOFunctor() {};
+  }
+
   static Monad<IO.µ> monad() {
     return new IOMonad() {};
   }
