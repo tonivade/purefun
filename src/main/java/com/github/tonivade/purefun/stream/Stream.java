@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.stream;
 
+import static com.github.tonivade.purefun.data.Sequence.asStream;
 import static com.github.tonivade.purefun.type.Eval.later;
 import static java.util.Objects.requireNonNull;
 
@@ -15,6 +16,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -49,8 +51,12 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map);
   <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper);
 
-  default Higher1<F, Sequence<T>> toSeq() {
+  default Higher1<F, Sequence<T>> asSequence() {
     return foldLeft(ImmutableList.empty(), (acc, a) -> acc.append(a));
+  }
+
+  default Higher1<F, String> asString() {
+    return foldLeft("", (acc, a) -> acc + a);
   }
 
   static <F extends Kind, T> Stream<F, T> empty(Monad<F> monad, Comonad<F> comonad) {
@@ -69,9 +75,22 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     return new Defer<>(monad, later(stream));
   }
 
+  static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Iterable<T> iterable) {
+    return from(monad, comonad, asStream(iterable.iterator()));
+  }
+
   static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Sequence<T> sequence) {
     return sequence.foldLeft(Stream.<F, T>empty(monad, comonad),
-        (acc, a) -> acc.concat(eval(monad, () -> pure(monad, comonad, a))));
+        (acc, a) -> acc.append(monad.pure(a)));
+  }
+
+  static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, java.util.stream.Stream<T> stream) {
+    return from(monad, comonad, ImmutableList.from(stream));
+  }
+
+  static <F extends Kind, T> Stream<F, T> iterate(Monad<F> monad, Comonad<F> comonad, T seed, Operator1<T> generator) {
+    return cons(monad, comonad, monad.pure(seed),
+        eval(monad, () -> iterate(monad, comonad, generator.apply(seed), generator)));
   }
 
   static <F extends Kind, T> Stream<F, T> narrowK(Higher1<Higher1<Stream.µ, F>, T> hkt) {
@@ -119,18 +138,12 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> take(int n) {
-    if (n > 0) {
-      return cons(head, Stream.eval(monad, () -> tail.take(n - 1)));
-    }
-    return empty();
+    return n > 0 ? cons(head, eval(() -> tail.take(n - 1))) : empty();
   }
 
   @Override
   public Stream<F, T> drop(int n) {
-    if (n > 0) {
-      return eval(() -> tail.drop(n - 1));
-    }
-    return this;
+    return n > 0 ? eval(() -> tail.drop(n - 1)) : this;
   }
 
   @Override
@@ -177,8 +190,10 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
-    return eval(() -> comonad.extract(monad.map(monad.map(head,
-            map.andThen(Stream::narrowK)::apply), s -> s.concat(tail.flatMap(map)))));
+    return eval(() -> comonad.extract(
+        monad.map(
+            monad.map(head, map.andThen(Stream::narrowK)::apply),
+            s -> s.concat(tail.flatMap(map)))));
   }
 
   private <R> Stream<F, R> cons(Higher1<F, R> head, Stream<F, R> tail) {

@@ -42,7 +42,7 @@ public class StreamTest {
     Stream<IO.µ, String> result = pure1.concat(pure2)
         .flatMap(string -> Stream.pure(monad, comonad, string.toUpperCase()));
 
-    IO<String> foldLeft = result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK);
+    IO<String> foldLeft = result.asString().fix1(IO::narrowK);
 
     assertEquals("HOLA MUNDO", foldLeft.unsafeRunSync());
   }
@@ -62,7 +62,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.append(IO.pure(4));
 
-    assertEquals(listOf(1, 2, 3, 4), run(result.toSeq()));
+    assertEquals(listOf(1, 2, 3, 4), run(result.asSequence()));
   }
 
   @Test
@@ -71,7 +71,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.take(2);
 
-    assertEquals(listOf(1, 2), run(result.toSeq()));
+    assertEquals(listOf(1, 2), run(result.asSequence()));
   }
 
   @Test
@@ -80,7 +80,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.drop(2);
 
-    assertEquals(listOf(3), run(result.toSeq()));
+    assertEquals(listOf(3), run(result.asSequence()));
   }
 
   @Test
@@ -89,7 +89,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.takeWhile(t -> t < 4);
 
-    assertEquals(listOf(1, 2, 3), run(result.toSeq()));
+    assertEquals(listOf(1, 2, 3), run(result.asSequence()));
   }
 
   @Test
@@ -98,16 +98,25 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.dropWhile(t -> t < 4);
 
-    assertEquals(listOf(4, 5), run(result.toSeq()));
+    assertEquals(listOf(4, 5), run(result.asSequence()));
   }
 
   @Test
   public void filter() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3, 4, 5));
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, java.util.stream.Stream.of(1, 2, 3, 4, 5));
 
     Stream<IO.µ, Integer> result = stream.filter(t -> (t % 2) == 0);
 
-    assertEquals(listOf(2, 4), run(result.toSeq()));
+    assertEquals(listOf(2, 4), run(result.asSequence()));
+  }
+
+  @Test
+  public void iterate() {
+    Stream<IO.µ, Integer> stream = Stream.iterate(monad, comonad, 0, i -> i + 1);
+
+    Stream<IO.µ, Integer> result = stream.takeWhile(t -> t < 4).dropWhile(t -> t < 2);
+
+    assertEquals(listOf(2, 3), run(result.asSequence()));
   }
 
   private static <T> T run(Higher1<IO.µ, T> effect) {
