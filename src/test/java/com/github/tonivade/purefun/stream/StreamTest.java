@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.purefun.stream;
 
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Eval.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Eval;
@@ -51,7 +53,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.of(() -> i * 2));
 
-    assertEquals(Integer.valueOf(12), result.foldLeft(0, (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+    assertEquals(Integer.valueOf(12), run(result.foldLeft(0, (a, b) -> a + b)));
   }
 
   @Test
@@ -60,7 +62,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.append(IO.pure(4));
 
-    assertEquals("1234", result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+    assertEquals(listOf(1, 2, 3, 4), run(result.toSeq()));
   }
 
   @Test
@@ -69,7 +71,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.take(2);
 
-    assertEquals("12", result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+    assertEquals(listOf(1, 2), run(result.toSeq()));
   }
 
   @Test
@@ -78,6 +80,37 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.drop(2);
 
-    assertEquals("3", result.foldLeft("", (a, b) -> a + b).fix1(IO::narrowK).unsafeRunSync());
+    assertEquals(listOf(3), run(result.toSeq()));
+  }
+
+  @Test
+  public void takeWhile() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3, 4, 5));
+
+    Stream<IO.µ, Integer> result = stream.takeWhile(t -> t < 4);
+
+    assertEquals(listOf(1, 2, 3), run(result.toSeq()));
+  }
+
+  @Test
+  public void dropWhile() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3, 4, 5));
+
+    Stream<IO.µ, Integer> result = stream.dropWhile(t -> t < 4);
+
+    assertEquals(listOf(4, 5), run(result.toSeq()));
+  }
+
+  @Test
+  public void filter() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3, 4, 5));
+
+    Stream<IO.µ, Integer> result = stream.filter(t -> (t % 2) == 0);
+
+    assertEquals(listOf(2, 4), run(result.toSeq()));
+  }
+
+  private static <T> T run(Higher1<IO.µ, T> effect) {
+    return effect.fix1(IO::narrowK).unsafeRunSync();
   }
 }
