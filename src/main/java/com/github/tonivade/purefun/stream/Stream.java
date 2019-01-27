@@ -8,6 +8,8 @@ import static com.github.tonivade.purefun.data.Sequence.asStream;
 import static com.github.tonivade.purefun.type.Eval.later;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Arrays;
+
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
@@ -33,6 +35,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   Stream<F, T> concat(Stream<F, T> other);
   Stream<F, T> append(Higher1<F, T> other);
+  Stream<F, T> prepend(Higher1<F, T> other);
 
   Stream<F, T> take(int n);
   Stream<F, T> drop(int n);
@@ -51,6 +54,9 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map);
   <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper);
 
+  Stream<F, T> repeat();
+  Stream<F, T> intersperse(Higher1<F, T> value);
+
   default Higher1<F, Sequence<T>> asSequence() {
     return foldLeft(ImmutableList.empty(), (acc, a) -> acc.append(a));
   }
@@ -63,16 +69,17 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     return new Nil<>(monad, comonad);
   }
 
+  @SafeVarargs
+  static <F extends Kind, T> Stream<F, T> of(Monad<F> monad, Comonad<F> comonad, T... values) {
+    return from(monad, comonad, Arrays.stream(values));
+  }
+
   static <F extends Kind, T> Stream<F, T> pure(Monad<F> monad, Comonad<F> comonad, T value) {
-    return cons(monad, comonad, monad.pure(value), empty(monad, comonad));
+    return eval(monad, comonad, monad.pure(value));
   }
 
-  static <F extends Kind, T> Stream<F, T> cons(Monad<F> monad, Comonad<F> comonad, Higher1<F, T> head, Stream<F, T> tail) {
-    return new Cons<>(monad, comonad, head, tail);
-  }
-
-  static <F extends Kind, T> Stream<F, T> eval(Monad<F> monad, Producer<Stream<F, T>> stream) {
-    return new Defer<>(monad, later(stream));
+  static <F extends Kind, T> Stream<F, T> eval(Monad<F> monad, Comonad<F> comonad, Higher1<F, T> value) {
+    return new Cons<>(monad, comonad, value, empty(monad, comonad));
   }
 
   static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Iterable<T> iterable) {
@@ -89,8 +96,8 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   }
 
   static <F extends Kind, T> Stream<F, T> iterate(Monad<F> monad, Comonad<F> comonad, T seed, Operator1<T> generator) {
-    return cons(monad, comonad, monad.pure(seed),
-        eval(monad, () -> iterate(monad, comonad, generator.apply(seed), generator)));
+    return new Cons<>(monad, comonad, monad.pure(seed),
+        new Defer<>(monad, () -> iterate(monad, comonad, generator.apply(seed), generator)));
   }
 
   static <F extends Kind, T> Stream<F, T> narrowK(Higher1<Higher1<Stream.µ, F>, T> hkt) {
@@ -128,41 +135,46 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> concat(Stream<F, T> other) {
-    return eval(() -> cons(head, tail.concat(other)));
+    return defer(() -> cons(head, tail.concat(other)));
   }
 
   @Override
   public Stream<F, T> append(Higher1<F, T> other) {
-    return eval(() -> cons(head, tail.append(other)));
+    return defer(() -> cons(head, tail.append(other)));
+  }
+
+  @Override
+  public Stream<F, T> prepend(Higher1<F, T> other) {
+    return defer(() -> cons(other, tail.prepend(head)));
   }
 
   @Override
   public Stream<F, T> take(int n) {
-    return n > 0 ? cons(head, eval(() -> tail.take(n - 1))) : empty();
+    return n > 0 ? defer(() -> cons(head, tail.take(n - 1))) : empty();
   }
 
   @Override
   public Stream<F, T> drop(int n) {
-    return n > 0 ? eval(() -> tail.drop(n - 1)) : this;
+    return n > 0 ? defer(() -> tail.drop(n - 1)) : this;
   }
 
   @Override
   public Stream<F, T> takeWhile(Matcher1<T> matcher) {
-    return eval(() -> comonad.extract(
+    return defer(() -> comonad.extract(
         monad.map(head, t -> matcher.match(t) ?
             cons(head, tail.takeWhile(matcher)) : empty())));
   }
 
   @Override
   public Stream<F, T> dropWhile(Matcher1<T> matcher) {
-    return eval(() -> comonad.extract(
+    return defer(() -> comonad.extract(
             monad.map(head, t -> matcher.match(t) ?
                 tail.dropWhile(matcher) : this)));
   }
 
   @Override
   public Stream<F, T> filter(Matcher1<T> matcher) {
-    return eval(() -> comonad.extract(
+    return defer(() -> comonad.extract(
             monad.map(head, t -> matcher.match(t) ?
                 cons(head, tail.filter(matcher)) : tail.filter(matcher))));
   }
@@ -180,28 +192,38 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
-    return eval(() -> cons(monad.map(head, map), eval(() -> tail.map(map))));
+    return defer(() -> cons(monad.map(head, map), defer(() -> tail.map(map))));
   }
 
   @Override
   public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
-    return eval(() -> cons(monad.flatMap(head, mapper), eval(() -> tail.mapEval(mapper))));
+    return defer(() -> cons(monad.flatMap(head, mapper), defer(() -> tail.mapEval(mapper))));
   }
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
-    return eval(() -> comonad.extract(
+    return defer(() -> comonad.extract(
         monad.map(
             monad.map(head, map.andThen(Stream::narrowK)::apply),
             s -> s.concat(tail.flatMap(map)))));
   }
 
-  private <R> Stream<F, R> cons(Higher1<F, R> head, Stream<F, R> tail) {
-    return Stream.cons(monad, comonad, head, tail);
+  @Override
+  public Stream<F, T> repeat() {
+    return concat(defer(this::repeat));
   }
 
-  private <R> Stream<F, R> eval(Producer<Stream<F, R>> stream) {
-    return Stream.eval(monad, stream);
+  @Override
+  public Stream<F, T> intersperse(Higher1<F, T> value) {
+    return defer(() -> cons(head, defer(() -> cons(value, tail.intersperse(value)))));
+  }
+
+  private <R> Stream<F, R> cons(Higher1<F, R> head, Stream<F, R> tail) {
+    return new Cons<>(monad, comonad, head, tail);
+  }
+
+  private <R> Stream<F, R> defer(Producer<Stream<F, R>> stream) {
+    return new Defer<>(monad, later(stream));
   }
 
   private Stream<F, T> empty() {
@@ -226,42 +248,47 @@ final class Defer<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> tail() {
-    return eval(evalStream.map(Stream::tail));
+    return defer(evalStream.map(Stream::tail));
   }
 
   @Override
   public Stream<F, T> concat(Stream<F, T> other) {
-    return eval(evalStream.map(s -> s.concat(other)));
+    return defer(evalStream.map(s -> s.concat(other)));
   }
 
   @Override
   public Stream<F, T> append(Higher1<F, T> other) {
-    return eval(evalStream.map(s -> s.append(other)));
+    return defer(evalStream.map(s -> s.append(other)));
+  }
+
+  @Override
+  public Stream<F, T> prepend(Higher1<F, T> other) {
+    return defer(evalStream.map(s -> s.prepend(other)));
   }
 
   @Override
   public Stream<F, T> take(int n) {
-    return eval(evalStream.map(s -> s.take(n)));
+    return defer(evalStream.map(s -> s.take(n)));
   }
 
   @Override
   public Stream<F, T> drop(int n) {
-    return eval(evalStream.map(s -> s.drop(n)));
+    return defer(evalStream.map(s -> s.drop(n)));
   }
 
   @Override
   public Stream<F, T> takeWhile(Matcher1<T> matcher) {
-    return eval(evalStream.map(s -> s.takeWhile(matcher)));
+    return defer(evalStream.map(s -> s.takeWhile(matcher)));
   }
 
   @Override
   public Stream<F, T> dropWhile(Matcher1<T> matcher) {
-    return eval(evalStream.map(s -> s.dropWhile(matcher)));
+    return defer(evalStream.map(s -> s.dropWhile(matcher)));
   }
 
   @Override
   public Stream<F, T> filter(Matcher1<T> matcher) {
-    return eval(evalStream.map(s -> s.filter(matcher)));
+    return defer(evalStream.map(s -> s.filter(matcher)));
   }
 
   @Override
@@ -276,20 +303,30 @@ final class Defer<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
-    return eval(evalStream.map(s -> s.map(map)));
+    return defer(evalStream.map(s -> s.map(map)));
   }
 
   @Override
   public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
-    return eval(evalStream.map(s -> s.mapEval(mapper)));
+    return defer(evalStream.map(s -> s.mapEval(mapper)));
   }
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<µ, F, R>> map) {
-    return eval(evalStream.map(s -> s.flatMap(map)));
+    return defer(evalStream.map(s -> s.flatMap(map)));
   }
 
-  private <R> Stream<F, R> eval(Eval<Stream<F, R>> stream) {
+  @Override
+  public Stream<F, T> repeat() {
+    return defer(evalStream.map(s -> s.repeat()));
+  }
+
+  @Override
+  public Stream<F, T> intersperse(Higher1<F, T> value) {
+    return defer(evalStream.map(s -> s.intersperse(value)));
+  }
+
+  private <R> Stream<F, R> defer(Eval<Stream<F, R>> stream) {
     return new Defer<>(monad, stream);
   }
 }
@@ -346,7 +383,12 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> append(Higher1<F, T> other) {
-    return Stream.cons(monad, comonad, other, this);
+    return new Cons<>(monad, comonad, other, this);
+  }
+
+  @Override
+  public Stream<F, T> prepend(Higher1<F, T> other) {
+    return append(other);
   }
 
   @Override
@@ -372,5 +414,15 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
     return new Nil<>(monad, comonad);
+  }
+
+  @Override
+  public Stream<F, T> repeat() {
+    return this;
+  }
+
+  @Override
+  public Stream<F, T> intersperse(Higher1<F, T> value) {
+    return this;
   }
 }

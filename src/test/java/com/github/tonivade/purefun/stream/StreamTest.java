@@ -66,6 +66,15 @@ public class StreamTest {
   }
 
   @Test
+  public void prepend() {
+    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3));
+
+    Stream<IO.µ, Integer> result = stream.prepend(IO.pure(0));
+
+    assertEquals(listOf(0, 1, 2, 3), run(result.asSequence()));
+  }
+
+  @Test
   public void take() {
     Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, Sequence.listOf(1, 2, 3));
 
@@ -117,6 +126,24 @@ public class StreamTest {
     Stream<IO.µ, Integer> result = stream.takeWhile(t -> t < 4).dropWhile(t -> t < 2);
 
     assertEquals(listOf(2, 3), run(result.asSequence()));
+  }
+
+  @Test
+  public void repeat() {
+    Stream<IO.µ, Integer> stream = Stream.of(monad, comonad, 1, 2, 3);
+
+    Stream<IO.µ, Integer> result = stream.repeat().take(7);
+
+    assertEquals(listOf(1, 2, 3, 1, 2, 3, 1), run(result.asSequence()));
+  }
+
+  @Test
+  public void intersperse() {
+    Stream<IO.µ, Integer> stream = Stream.of(monad, comonad, 1, 2);
+
+    Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0));
+
+    assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
   }
 
   private static <T> T run(Higher1<IO.µ, T> effect) {
