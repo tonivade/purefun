@@ -4,9 +4,17 @@
  */
 package com.github.tonivade.purefun.stream;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Eval.now;
+import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +22,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -144,6 +153,53 @@ public class StreamTest {
     Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0));
 
     assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
+  }
+  
+  @Test
+  public void readFile() {
+    assertEquals(impureReadFile("LICENSE"), pureReadFile("LICENSE").unsafeRunSync());
+    // assertEquals("--- file not found ---", pureReadFile("lkjasdf").unsafeRunSync());
+  }
+
+  private IO<String> pureReadFile(String file) {
+    return Stream.eval(monad, comonad, IO.of(() -> reader(file)))
+      .flatMap(reader -> Stream.iterate(monad, comonad, () -> Option.of(() -> readLine(reader))))
+      .takeWhile(Option::isPresent)
+      .map(Option::get)
+      .foldLeft("", (a, b) -> a + "\n" + b)
+      .fix1(IO::narrowK)
+      .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
+  }
+  
+  public String impureReadFile(String file) {
+    String content = "";
+    try (BufferedReader reader = reader(file)) {
+      while (true) {
+        String line = readLine(reader);
+        if (nonNull(line)) {
+          content = content + "\n" + line;
+        } else break;
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return content;
+  }
+
+  private String readLine(BufferedReader reader) {
+    try {
+      return reader.readLine();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private BufferedReader reader(String file) {
+    try {
+      return Files.newBufferedReader(Paths.get(file));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private static <T> T run(Higher1<IO.µ, T> effect) {

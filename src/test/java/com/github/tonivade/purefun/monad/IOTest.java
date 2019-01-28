@@ -5,10 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.monad.IO.narrowK;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -17,6 +14,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +105,29 @@ public class IOTest {
         () -> assertEquals("not an error", IO.narrowK(handleError).unsafeRunSync()),
         () -> assertThrows(RuntimeException.class, () -> IO.narrowK(ensureError).unsafeRunSync()),
         () -> assertEquals("is not ok", IO.narrowK(ensureOk).unsafeRunSync()));
+  }
+  
+  @Test
+  public void recover() {
+    IO<String> recover = IO.<String>failure(new RuntimeException()).recover(error -> "hola mundo");
+    
+    assertEquals("hola mundo", recover.unsafeRunSync());
+  }
+  
+  @Test
+  public void recoverWith() {
+    IO<String> recover = IO.<String>failure(new IllegalArgumentException())
+        .recoverWith(IllegalArgumentException.class, error -> "hola mundo");
+    
+    assertEquals("hola mundo", recover.unsafeRunSync());
+  }
+  
+  @Test
+  public void recoverWithNotMatch() {
+    IO<String> recover = IO.<String>failure(new IllegalArgumentException())
+        .recoverWith(NoSuchElementException.class, error -> "hola mundo");
+    
+    assertThrows(IllegalArgumentException.class, recover::unsafeRunSync);
   }
 
   @BeforeEach

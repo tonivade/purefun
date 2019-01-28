@@ -106,6 +106,11 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
         new Defer<>(monad, () -> iterate(monad, comonad, generator.apply(seed), generator)));
   }
 
+  static <F extends Kind, T> Stream<F, T> iterate(Monad<F> monad, Comonad<F> comonad, Producer<T> generator) {
+    return new Cons<>(monad, comonad, monad.pure(generator.get()), 
+        new Defer<>(monad, () -> iterate(monad, comonad, generator)));
+  }
+
   static <F extends Kind, T> Stream<F, T> narrowK(Higher1<Higher1<Stream.µ, F>, T> hkt) {
     return (Stream<F, T>) hkt;
   }
@@ -249,7 +254,7 @@ final class Defer<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> head() {
-    return evalStream.value().head();
+    return defer(evalStream.map(Stream::head));
   }
 
   @Override
@@ -299,6 +304,10 @@ final class Defer<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
+    /*
+     * TODO: this method is not really lazy, it evaluates all the stream.
+     * This is because monads don't compose
+     */
     return evalStream.flatMap(s -> later(() -> s.foldLeft(begin, combinator))).value();
   }
 
