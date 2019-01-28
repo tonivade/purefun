@@ -25,6 +25,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -35,7 +36,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
+public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T>, Recoverable {
 
   final class µ implements Kind {}
 
@@ -110,12 +111,12 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
   @SuppressWarnings("unchecked")
   default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
-    if (isFailure()) {
-      Throwable cause = getCause();
+    recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
-        return Try.of(() -> mapper.apply((X) getCause()));
+        return mapper.apply((X) getCause());
       }
-    }
+      return sneakyThrow(cause);
+    });
     return this;
   }
 

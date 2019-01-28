@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.stream;
 
+import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.data.Sequence.asStream;
 import static com.github.tonivade.purefun.type.Eval.later;
 import static java.util.Objects.requireNonNull;
@@ -18,6 +19,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -63,6 +65,10 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   default Higher1<F, String> asString() {
     return foldLeft("", (acc, a) -> acc + a);
+  }
+
+  default Higher1<F, Nothing> drain() {
+    return foldLeft(nothing(), (acc, a) -> acc);
   }
 
   static <F extends Kind, T> Stream<F, T> empty(Monad<F> monad, Comonad<F> comonad) {

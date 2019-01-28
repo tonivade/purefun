@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-interface Recoverable {
+public interface Recoverable {
 
   // XXX: https://www.baeldung.com/java-sneaky-throws
   @SuppressWarnings("unchecked")

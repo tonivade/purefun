@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.CheckedProducer;
@@ -19,6 +20,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Try;
@@ -28,7 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 @FunctionalInterface
-public interface IO<T> extends FlatMap1<IO.µ, T> {
+public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   final class µ implements Kind {}
 
@@ -38,8 +40,16 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return Future.run(this::unsafeRunSync);
   }
 
+  default Future<T> toFuture(ExecutorService executor) {
+    return Future.run(executor, this::unsafeRunSync);
+  }
+
   default void unsafeRunAsync(Consumer1<Try<T>> callback) {
     toFuture().onComplete(callback);
+  }
+
+  default void unsafeRunAsync(ExecutorService executor, Consumer1<Try<T>> callback) {
+    toFuture(executor).onComplete(callback);
   }
 
   @Override
@@ -54,6 +64,26 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
   default <R> IO<R> andThen(IO<R> after) {
     return flatMap(ignore -> after);
+  }
+
+  default IO<T> recover(Function1<Throwable, T> function) {
+    return () -> {
+      try {
+        return unsafeRunSync();
+      } catch (Exception error) {
+        return function.apply(error);
+      }
+    };
+  }
+
+  @SuppressWarnings("unchecked")
+  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+    return recover(cause -> {
+      if (type.isAssignableFrom(cause.getClass())) {
+        return function.apply((X) cause);
+      }
+      return sneakyThrow(cause);
+    });
   }
 
   static <T> IO<T> pure(T value) {
