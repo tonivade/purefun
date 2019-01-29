@@ -25,6 +25,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Comonad;
+import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -140,6 +141,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   static Comonad<IO.µ> comonad() {
     return new IOComonad() {};
+  }
+
+  static Defer<IO.µ> defer() {
+    return new IODefer() {};
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
@@ -278,5 +283,13 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   default <A> Try<A> run(Higher1<IO.µ, A> value) {
     return Try.of(IO.narrowK(value)::unsafeRunSync);
+  }
+}
+
+interface IODefer extends Defer<IO.µ> {
+
+  @Override
+  default <A> IO<A> defer(Producer<Higher1<IO.µ, A>> defer) {
+    return () -> defer.andThen(IO::narrowK).get().unsafeRunSync();
   }
 }

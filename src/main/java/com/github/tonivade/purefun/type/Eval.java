@@ -48,6 +48,10 @@ public interface Eval<T> extends FlatMap1<Eval.µ, T> {
     return always::get;
   }
 
+  static <T> Eval<T> defer(Producer<Eval<T>> eval) {
+    return () -> eval.get().value();
+  }
+
   static <T> Eval<T> narrowK(Higher1<Eval.µ, T> hkt) {
     return (Eval<T>) hkt;
   }
