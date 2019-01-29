@@ -259,52 +259,52 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> head() {
-    return suspend(() -> monad.map(evalStream, Stream::head));
+    return lazyMap(Stream::head);
   }
 
   @Override
   public Stream<F, T> tail() {
-    return suspend(() -> monad.map(evalStream, Stream::tail));
+    return lazyMap(Stream::tail);
   }
 
   @Override
   public Stream<F, T> concat(Stream<F, T> other) {
-    return suspend(() -> monad.map(evalStream, s -> s.concat(other)));
+    return lazyMap(s -> s.concat(other));
   }
 
   @Override
   public Stream<F, T> append(Higher1<F, T> other) {
-    return suspend(() -> monad.map(evalStream, s -> s.append(other)));
+    return lazyMap(s -> s.append(other));
   }
 
   @Override
   public Stream<F, T> prepend(Higher1<F, T> other) {
-    return suspend(() -> monad.map(evalStream, s -> s.prepend(other)));
+    return lazyMap(s -> s.prepend(other));
   }
 
   @Override
   public Stream<F, T> take(int n) {
-    return suspend(() -> monad.map(evalStream, s -> s.take(n)));
+    return lazyMap(s -> s.take(n));
   }
 
   @Override
   public Stream<F, T> drop(int n) {
-    return suspend(() -> monad.map(evalStream, s -> s.drop(n)));
+    return lazyMap(s -> s.drop(n));
   }
 
   @Override
   public Stream<F, T> takeWhile(Matcher1<T> matcher) {
-    return suspend(() -> monad.map(evalStream, s -> s.takeWhile(matcher)));
+    return lazyMap(s -> s.takeWhile(matcher));
   }
 
   @Override
   public Stream<F, T> dropWhile(Matcher1<T> matcher) {
-    return suspend(() -> monad.map(evalStream, s -> s.dropWhile(matcher)));
+    return lazyMap(s -> s.dropWhile(matcher));
   }
 
   @Override
   public Stream<F, T> filter(Matcher1<T> matcher) {
-    return suspend(() -> monad.map(evalStream, s -> s.filter(matcher)));
+    return lazyMap(s -> s.filter(matcher));
   }
 
   @Override
@@ -318,8 +318,8 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> map(Function1<T, R> map) {
-    return suspend(() -> monad.map(evalStream, s -> s.map(map)));
+  public <R> Stream<F, R> map(Function1<T, R> mapper) {
+    return lazyMap(s -> s.map(mapper));
   }
 
   @Override
@@ -329,17 +329,21 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<µ, F, R>> map) {
-    return suspend(() -> monad.map(evalStream, s -> s.flatMap(map)));
+    return lazyMap(s -> s.flatMap(map));
   }
 
   @Override
   public Stream<F, T> repeat() {
-    return suspend(() -> monad.map(evalStream, s -> s.repeat()));
+    return lazyMap(s -> s.repeat());
   }
 
   @Override
   public Stream<F, T> intersperse(Higher1<F, T> value) {
-    return suspend(() -> monad.map(evalStream, s -> s.intersperse(value)));
+    return lazyMap(s -> s.intersperse(value));
+  }
+
+  private <R> Stream<F, R> lazyMap(Function1<Stream<F, T>, Stream<F, R>> mapper) {
+    return suspend(() -> monad.map(evalStream, mapper));
   }
 
   private <R> Stream<F, R> suspend(Producer<Higher1<F, Stream<F, R>>> stream) {

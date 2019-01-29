@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Eval.now;
 import static java.util.Objects.nonNull;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedReader;
@@ -159,8 +160,9 @@ public class StreamTest {
 
   @Test
   public void readFile() {
-    assertEquals(impureReadFile("LICENSE"), pureReadFile("LICENSE").unsafeRunSync());
-    assertEquals("--- file not found ---", pureReadFile("lkjasdf").unsafeRunSync());
+    assertAll(
+        () -> assertEquals(impureReadFile("LICENSE"), pureReadFile("LICENSE").unsafeRunSync()),
+        () -> assertEquals("--- file not found ---", pureReadFile("lkjasdf").unsafeRunSync()));
   }
 
   private IO<String> pureReadFile(String file) {
