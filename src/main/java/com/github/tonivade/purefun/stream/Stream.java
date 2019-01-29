@@ -24,6 +24,7 @@ import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -71,45 +72,22 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   default Higher1<F, Nothing> drain() {
     return foldLeft(nothing(), (acc, a) -> acc);
   }
+  
+  static StreamOf<IO.µ> ofIO() {
+    final Monad<IO.µ> monad = IO.monad();
+    final Comonad<IO.µ> comonad = IO.comonad();
+    final Defer<IO.µ> defer = IO.defer();
+    return new StreamOf<IO.µ>() {
 
-  static <F extends Kind, T> Stream<F, T> empty(Monad<F> monad, Comonad<F> comonad, Defer<F> defer) {
-    return new Nil<>(monad, comonad, defer);
-  }
+      @Override
+      public Monad<IO.µ> monad() { return monad; }
 
-  @SafeVarargs
-  static <F extends Kind, T> Stream<F, T> of(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, T... values) {
-    return from(monad, comonad, defer, Arrays.stream(values));
-  }
+      @Override
+      public Comonad<IO.µ> comonad() { return comonad; }
 
-  static <F extends Kind, T> Stream<F, T> pure(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, T value) {
-    return eval(monad, comonad, defer, monad.pure(value));
-  }
-
-  static <F extends Kind, T> Stream<F, T> eval(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, Higher1<F, T> value) {
-    return new Cons<>(monad, comonad, defer, value, empty(monad, comonad, defer));
-  }
-
-  static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, Iterable<T> iterable) {
-    return from(monad, comonad, defer, asStream(iterable.iterator()));
-  }
-
-  static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, java.util.stream.Stream<T> stream) {
-    return from(monad, comonad, defer, ImmutableList.from(stream));
-  }
-
-  static <F extends Kind, T> Stream<F, T> from(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, Sequence<T> sequence) {
-    return sequence.foldLeft(Stream.<F, T>empty(monad, comonad, defer),
-        (acc, a) -> acc.append(monad.pure(a)));
-  }
-
-  static <F extends Kind, T> Stream<F, T> iterate(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, T seed, Operator1<T> generator) {
-    return new Cons<>(monad, comonad, defer, monad.pure(seed),
-        new Suspend<>(monad, defer, defer.defer(() -> monad.pure(iterate(monad, comonad, defer, generator.apply(seed), generator)))));
-  }
-
-  static <F extends Kind, T> Stream<F, T> iterate(Monad<F> monad, Comonad<F> comonad, Defer<F> defer, Producer<T> generator) {
-    return new Cons<>(monad, comonad, defer, monad.pure(generator.get()),
-        new Suspend<>(monad, defer, defer.defer(() -> monad.pure(iterate(monad, comonad, defer, generator)))));
+      @Override
+      public Defer<IO.µ> defer() { return defer; }
+    };
   }
 
   static <F extends Kind, T> Stream<F, T> narrowK(Higher1<Higher1<Stream.µ, F>, T> hkt) {
@@ -118,6 +96,53 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   static <F extends Kind, T> Stream<F, T> narrowK(Higher2<Stream.µ, F, T> hkt) {
     return (Stream<F, T>) hkt;
+  }
+  
+  interface StreamOf<F extends Kind> {
+    Monad<F> monad();
+    Comonad<F> comonad();
+    Defer<F> defer();
+
+    default <T> Stream<F, T> empty() {
+      return new Nil<>(monad(), comonad(), defer());
+    }
+
+    @SuppressWarnings("unchecked")
+    default <T> Stream<F, T> of(T... values) {
+      return from(Arrays.stream(values));
+    }
+
+    default <T> Stream<F, T> pure(T value) {
+      return eval(monad().pure(value));
+    }
+
+    default <T> Stream<F, T> eval(Higher1<F, T> value) {
+      return new Cons<>(monad(), comonad(), defer(), value, empty());
+    }
+
+    default <T> Stream<F, T> from(Iterable<T> iterable) {
+      return from(asStream(iterable.iterator()));
+    }
+
+    default <T> Stream<F, T> from(java.util.stream.Stream<T> stream) {
+      return from(ImmutableList.from(stream));
+    }
+
+    default <T> Stream<F, T> from(Sequence<T> sequence) {
+      return sequence.foldLeft(empty(), (acc, a) -> acc.append(monad().pure(a)));
+    }
+
+    default <T> Stream<F, T> iterate(T seed, Operator1<T> generator) {
+      return new Cons<>(monad(), comonad(), defer(), monad().pure(seed),
+          new Suspend<>(monad(), defer(), defer().defer(
+              () -> monad().pure(iterate(generator.apply(seed), generator)))));
+    }
+
+    default <T> Stream<F, T> iterate(Producer<T> generator) {
+      return new Cons<>(monad(), comonad(), defer(), monad().pure(generator.get()),
+          new Suspend<>(monad(), defer(), defer().defer(
+              () -> monad().pure(iterate(generator)))));
+    }
   }
 }
 
@@ -241,7 +266,7 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   private Stream<F, T> empty() {
-    return Stream.empty(monad, comonad, defer);
+    return new Nil<>(monad, comonad, defer);
   }
 }
 

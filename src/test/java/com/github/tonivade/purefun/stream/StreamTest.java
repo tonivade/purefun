@@ -20,24 +20,19 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.typeclasses.Comonad;
-import com.github.tonivade.purefun.typeclasses.Defer;
-import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class StreamTest {
 
-  final Monad<IO.µ> monad = IO.monad();
-  final Comonad<IO.µ> comonad = IO.comonad();
-  final Defer<IO.µ> defer = IO.defer();
+  final StreamOf<IO.µ> streamOfIO = Stream.ofIO();
 
   @Test
   public void map() {
-    Stream<IO.µ, String> pure1 = Stream.pure(monad, comonad, defer, "hola");
-    Stream<IO.µ, String> pure2 = Stream.pure(monad, comonad, defer, " mundo");
+    Stream<IO.µ, String> pure1 = streamOfIO.pure("hola");
+    Stream<IO.µ, String> pure2 = streamOfIO.pure(" mundo");
 
     Stream<IO.µ, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
@@ -48,11 +43,11 @@ public class StreamTest {
 
   @Test
   public void flatMap() {
-    Stream<IO.µ, String> pure1 = Stream.pure(monad, comonad, defer, "hola");
-    Stream<IO.µ, String> pure2 = Stream.pure(monad, comonad, defer, " mundo");
+    Stream<IO.µ, String> pure1 = streamOfIO.pure("hola");
+    Stream<IO.µ, String> pure2 = streamOfIO.pure(" mundo");
 
     Stream<IO.µ, String> result = pure1.concat(pure2)
-        .flatMap(string -> Stream.pure(monad, comonad, defer, string.toUpperCase()));
+        .flatMap(string -> streamOfIO.pure(string.toUpperCase()));
 
     IO<String> foldLeft = result.asString().fix1(IO::narrowK);
 
@@ -61,7 +56,7 @@ public class StreamTest {
 
   @Test
   public void mapEval() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
     Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.of(() -> i * 2));
 
@@ -70,7 +65,7 @@ public class StreamTest {
 
   @Test
   public void append() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
     Stream<IO.µ, Integer> result = stream.append(IO.pure(4));
 
@@ -79,7 +74,7 @@ public class StreamTest {
 
   @Test
   public void prepend() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
     Stream<IO.µ, Integer> result = stream.prepend(IO.pure(0));
 
@@ -88,7 +83,7 @@ public class StreamTest {
 
   @Test
   public void take() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
     Stream<IO.µ, Integer> result = stream.take(2);
 
@@ -97,7 +92,7 @@ public class StreamTest {
 
   @Test
   public void drop() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
     Stream<IO.µ, Integer> result = stream.drop(2);
 
@@ -106,7 +101,7 @@ public class StreamTest {
 
   @Test
   public void takeWhile() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3, 4, 5));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3, 4, 5));
 
     Stream<IO.µ, Integer> result = stream.takeWhile(t -> t < 4);
 
@@ -115,7 +110,7 @@ public class StreamTest {
 
   @Test
   public void dropWhile() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, Sequence.listOf(1, 2, 3, 4, 5));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3, 4, 5));
 
     Stream<IO.µ, Integer> result = stream.dropWhile(t -> t < 4);
 
@@ -124,7 +119,7 @@ public class StreamTest {
 
   @Test
   public void filter() {
-    Stream<IO.µ, Integer> stream = Stream.from(monad, comonad, defer, java.util.stream.Stream.of(1, 2, 3, 4, 5));
+    Stream<IO.µ, Integer> stream = streamOfIO.from(java.util.stream.Stream.of(1, 2, 3, 4, 5));
 
     Stream<IO.µ, Integer> result = stream.filter(t -> (t % 2) == 0);
 
@@ -133,7 +128,7 @@ public class StreamTest {
 
   @Test
   public void iterate() {
-    Stream<IO.µ, Integer> stream = Stream.iterate(monad, comonad, defer, 0, i -> i + 1);
+    Stream<IO.µ, Integer> stream = streamOfIO.iterate(0, i -> i + 1);
 
     Stream<IO.µ, Integer> result = stream.takeWhile(t -> t < 4).dropWhile(t -> t < 2);
 
@@ -142,7 +137,7 @@ public class StreamTest {
 
   @Test
   public void repeat() {
-    Stream<IO.µ, Integer> stream = Stream.of(monad, comonad, defer, 1, 2, 3);
+    Stream<IO.µ, Integer> stream = streamOfIO.of(1, 2, 3);
 
     Stream<IO.µ, Integer> result = stream.repeat().take(7);
 
@@ -151,7 +146,7 @@ public class StreamTest {
 
   @Test
   public void intersperse() {
-    Stream<IO.µ, Integer> stream = Stream.of(monad, comonad, defer, 1, 2);
+    Stream<IO.µ, Integer> stream = streamOfIO.of(1, 2);
 
     Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0));
 
@@ -166,8 +161,8 @@ public class StreamTest {
   }
 
   private IO<String> pureReadFile(String file) {
-    return Stream.eval(monad, comonad, defer, IO.of(() -> reader(file)))
-      .flatMap(reader -> Stream.iterate(monad, comonad, defer, () -> Option.of(() -> readLine(reader))))
+    return streamOfIO.eval(IO.of(() -> reader(file)))
+      .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)
       .foldLeft("", (a, b) -> a + "\n" + b)
