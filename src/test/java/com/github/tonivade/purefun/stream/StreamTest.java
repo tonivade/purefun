@@ -21,6 +21,8 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.type.Eval;
@@ -152,6 +154,16 @@ public class StreamTest {
     Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0));
 
     assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
+  }
+  
+  @Test
+  public void zip() {
+    Stream<IO.µ, String> stream = streamOfIO.from(listOf("a", "b", "c"));
+    
+    IO<Sequence<Tuple2<String, Integer>>> zip = 
+        streamOfIO.zipWithIndex(stream).asSequence().fix1(IO::narrowK);
+    
+    assertEquals(listOf(Tuple2.of("a", 0), Tuple2.of("b", 1), Tuple2.of("c", 2)), zip.unsafeRunSync());
   }
 
   @Test
