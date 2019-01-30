@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.type.Eval.now;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -151,6 +152,24 @@ public class StreamTest {
     Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0));
 
     assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
+  }
+
+  @Test
+  public void foldLeftLazyness() {
+    IO<String> fail = IO.failure(new NullPointerException());
+
+    IO<String> result = streamOfIO.eval(fail).asString().fix1(IO::narrowK);
+
+    assertThrows(NullPointerException.class, result::unsafeRunSync);
+  }
+
+  @Test
+  public void foldRightLazyness() {
+    IO<String> fail = IO.failure(new NullPointerException());
+
+    IO<String> result = streamOfIO.eval(fail).foldRight(now(""), (a, b) -> b.map(x -> a + x)).map(IO::narrowK).value();
+
+    assertThrows(NullPointerException.class, result::unsafeRunSync);
   }
 
   @Test

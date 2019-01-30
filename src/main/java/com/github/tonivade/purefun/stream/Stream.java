@@ -72,21 +72,22 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   default Higher1<F, Nothing> drain() {
     return foldLeft(nothing(), (acc, a) -> acc);
   }
-  
+
   static StreamOf<IO.µ> ofIO() {
-    final Monad<IO.µ> monad = IO.monad();
-    final Comonad<IO.µ> comonad = IO.comonad();
-    final Defer<IO.µ> defer = IO.defer();
-    return new StreamOf<IO.µ>() {
+    return of(IO.monad(), IO.comonad(), IO.defer());
+  }
+
+  static <F extends Kind> StreamOf<F> of(Monad<F> monad, Comonad<F> comonad, Defer<F> defer) {
+    return new StreamOf<F>() {
 
       @Override
-      public Monad<IO.µ> monad() { return monad; }
+      public Monad<F> monad() { return monad; }
 
       @Override
-      public Comonad<IO.µ> comonad() { return comonad; }
+      public Comonad<F> comonad() { return comonad; }
 
       @Override
-      public Defer<IO.µ> defer() { return defer; }
+      public Defer<F> defer() { return defer; }
     };
   }
 
@@ -97,7 +98,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   static <F extends Kind, T> Stream<F, T> narrowK(Higher2<Stream.µ, F, T> hkt) {
     return (Stream<F, T>) hkt;
   }
-  
+
   interface StreamOf<F extends Kind> {
     Monad<F> monad();
     Comonad<F> comonad();
