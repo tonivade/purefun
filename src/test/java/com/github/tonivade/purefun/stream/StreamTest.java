@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.type.Eval.now;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +24,6 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
-import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 
@@ -41,9 +39,10 @@ public class StreamTest {
 
     Stream<IO.µ, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    Eval<IO<String>> foldRight = result.foldRight(now(""), (a, b) -> b.map(x -> x + a)).map(IO::narrowK);
+    IO<String> foldRight = result.foldRight(IO.pure(""), 
+        (a, b) -> b.fix1(IO::narrowK).map(x -> x + a)).fix1(IO::narrowK);
 
-    assertEquals("HOLA MUNDO", foldRight.value().unsafeRunSync());
+    assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
   }
 
   @Test
@@ -194,7 +193,8 @@ public class StreamTest {
   public void foldRightLazyness() {
     IO<String> fail = IO.failure(new NullPointerException());
 
-    IO<String> result = streamOfIO.eval(fail).foldRight(now(""), (a, b) -> b.map(x -> a + x)).map(IO::narrowK).value();
+    IO<String> result = streamOfIO.eval(fail)
+        .foldRight(IO.pure(""), (a, b) -> b.fix1(IO::narrowK).map(x -> a + x)).fix1(IO::narrowK);
 
     assertThrows(NullPointerException.class, result::unsafeRunSync);
   }

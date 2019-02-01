@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.data.Sequence.asStream;
-import static com.github.tonivade.purefun.type.Eval.later;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
@@ -26,7 +25,6 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Comonad;
@@ -55,7 +53,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> dropWhile(Matcher1<T> matcher);
 
   <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator);
-  <R> Eval<Higher1<F, R>> foldRight(Eval<R> begin, Function2<T, Eval<R>, Eval<R>> combinator);
+  <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator);
 
   @Override
   <R> Stream<F, R> map(Function1<T, R> map);
@@ -80,6 +78,10 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   default Higher1<F, Nothing> drain() {
     return foldLeft(nothing(), (acc, a) -> acc);
+  }
+  
+  default <R> Stream<F, R> andThen(Higher1<F, R> next) {
+    return mapEval(ignore -> next);
   }
 
   static StreamOf<IO.µ> ofIO() {
@@ -113,6 +115,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   }
 
   interface StreamOf<F extends Kind> {
+    
     Monad<F> monad();
     Comonad<F> comonad();
     Defer<F> defer();
@@ -264,9 +267,8 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Eval<Higher1<F, R>> foldRight(Eval<R> begin, Function2<T, Eval<R>, Eval<R>> combinator) {
-    return later(() -> monad.flatMap(
-        head, h -> tail.foldRight(combinator.apply(h, begin), combinator).value()));
+  public <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator) {
+    return monad.flatMap(head, h -> tail.foldRight(combinator.apply(h, begin), combinator));
   }
 
   @Override
@@ -383,8 +385,8 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Eval<Higher1<F, R>> foldRight(Eval<R> begin, Function2<T, Eval<R>, Eval<R>> combinator) {
-    return later(() -> monad.flatten(monad.map(evalStream, s -> s.foldRight(begin, combinator).value())));
+  public <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator) {
+    return monad.flatMap(evalStream, s -> s.foldRight(begin, combinator));
   }
 
   @Override
@@ -398,7 +400,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<µ, F, R>> map) {
+  public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
     return lazyMap(s -> s.flatMap(map));
   }
 
@@ -494,8 +496,8 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Eval<Higher1<F, R>> foldRight(Eval<R> begin, Function2<T, Eval<R>, Eval<R>> combinator) {
-    return begin.map(monad::pure);
+  public <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator) {
+    return begin;
   }
 
   @Override
