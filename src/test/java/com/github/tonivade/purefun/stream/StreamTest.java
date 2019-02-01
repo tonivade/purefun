@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
@@ -145,6 +146,15 @@ public class StreamTest {
   }
 
   @Test
+  public void collect() {
+    Stream<IO.µ, Integer> stream = streamOfIO.of(1, 2, 3, 4, 5);
+
+    Stream<IO.µ, Integer> result = stream.collect(PartialFunction1.of(t -> (t % 2) == 0, x -> x * 2));
+
+    assertEquals(listOf(4, 8), run(result.asSequence()));
+  }
+
+  @Test
   public void iterate() {
     Stream<IO.µ, Integer> stream = streamOfIO.iterate(0, i -> i + 1);
 
@@ -178,6 +188,16 @@ public class StreamTest {
     IO<Sequence<Tuple2<String, Integer>>> zip = streamOfIO.zipWithIndex(stream).asSequence().fix1(IO::narrowK);
 
     assertEquals(listOf(Tuple2.of("a", 0), Tuple2.of("b", 1), Tuple2.of("c", 2)), zip.unsafeRunSync());
+  }
+
+  @Test
+  public void merge() {
+    Stream<IO.µ, Integer> stream1 = streamOfIO.of(1, 2, 3);
+    Stream<IO.µ, Integer> stream2 = streamOfIO.of(4, 5, 6, 7);
+
+    Stream<IO.µ, Integer> merge = streamOfIO.merge(stream1, stream2);
+
+    assertEquals(listOf(1, 4, 2, 5, 3, 6), run(merge.asSequence()));
   }
 
   @Test
