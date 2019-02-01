@@ -16,8 +16,10 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
+import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -109,6 +111,10 @@ public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
   public static Traverse<Id.µ> traverse() {
     return new IdTraverse() {};
   }
+
+  public static Defer<Id.µ> defer() {
+    return new IdDefer() {};
+  }
 }
 
 interface IdFunctor extends Functor<Id.µ> {
@@ -178,5 +184,13 @@ interface IdTraverse extends Traverse<Id.µ>, IdFoldable {
       Applicative<G> applicative, Higher1<Id.µ, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
     return applicative.map(mapper.apply(Id.narrowK(value).get()), Id::of);
+  }
+}
+
+interface IdDefer extends Defer<Id.µ> {
+
+  @Override
+  default <A> Id<A> defer(Producer<Higher1<Id.µ, A>> defer) {
+    return defer.andThen(Id::narrowK).get();
   }
 }

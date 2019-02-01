@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
@@ -107,7 +108,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return producer::get;
   }
 
-  static IO<Nothing> noop() {
+  static IO<Nothing> unit() {
     return pure(nothing());
   }
 
@@ -124,7 +125,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
-    return sequence.fold(noop(), IO::andThen).andThen(noop());
+    return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
   static <T> IO<T> narrowK(Higher1<IO.µ, T> hkt) {
@@ -201,7 +202,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<µ, R>> map) {
+    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
       return (IO<R>) this;
     }
 
@@ -211,7 +212,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     private CheckedProducer<T> toCheckedProducer() {
-      return CheckedProducer.failure(Producer.cons(error));
+      return CheckedProducer.failure(cons(error));
     }
   }
 }
