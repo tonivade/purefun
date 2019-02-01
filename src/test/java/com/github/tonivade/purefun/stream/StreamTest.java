@@ -9,15 +9,15 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple2;
@@ -26,6 +26,8 @@ import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
+
+import org.junit.jupiter.api.Test;
 
 public class StreamTest {
 
@@ -39,8 +41,8 @@ public class StreamTest {
 
     Stream<IO.µ, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    IO<String> foldRight = result.foldRight(IO.pure(""), 
-        (a, b) -> b.fix1(IO::narrowK).map(x -> x + a)).fix1(IO::narrowK);
+    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix1(IO::narrowK).map(x -> x + a))
+        .fix1(IO::narrowK);
 
     assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
   }
@@ -63,8 +65,7 @@ public class StreamTest {
     Stream<IO.µ, String> pure1 = streamOfIO.pure("hola");
     Stream<IO.µ, String> pure2 = streamOfIO.pure(" mundo");
 
-    Stream<IO.µ, String> result = pure1.concat(pure2)
-        .flatMap(string -> streamOfIO.pure(string.toUpperCase()));
+    Stream<IO.µ, String> result = pure1.concat(pure2).flatMap(string -> streamOfIO.pure(string.toUpperCase()));
 
     IO<String> foldLeft = result.asString().fix1(IO::narrowK);
 
@@ -174,10 +175,31 @@ public class StreamTest {
   public void zip() {
     Stream<IO.µ, String> stream = streamOfIO.from(listOf("a", "b", "c"));
 
-    IO<Sequence<Tuple2<String, Integer>>> zip =
-        streamOfIO.zipWithIndex(stream).asSequence().fix1(IO::narrowK);
+    IO<Sequence<Tuple2<String, Integer>>> zip = streamOfIO.zipWithIndex(stream).asSequence().fix1(IO::narrowK);
 
     assertEquals(listOf(Tuple2.of("a", 0), Tuple2.of("b", 1), Tuple2.of("c", 2)), zip.unsafeRunSync());
+  }
+
+  @Test
+  public void forAll() {
+    Stream<IO.µ, String> stream = streamOfIO.from(listOf("a", "b", "c"));
+
+    Higher1<IO.µ, Boolean> all = stream.exists(x -> x.toLowerCase().equals(x));
+    Higher1<IO.µ, Boolean> notAll = stream.exists(x -> x.toUpperCase().equals(x));
+
+    assertTrue(run(all));
+    assertFalse(run(notAll));
+  }
+
+  @Test
+  public void exists() {
+    Stream<IO.µ, String> stream = streamOfIO.from(listOf("a", "b", "c"));
+
+    Higher1<IO.µ, Boolean> exists = stream.exists(x -> x.equals("c"));
+    Higher1<IO.µ, Boolean> notExists = stream.exists(x -> x.equals("z"));
+
+    assertTrue(run(exists));
+    assertFalse(run(notExists));
   }
 
   @Test

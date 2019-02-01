@@ -64,6 +64,9 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> repeat();
   Stream<F, T> intersperse(Higher1<F, T> value);
 
+  Higher1<F, Boolean> exists(Matcher1<T> matcher);
+  Higher1<F, Boolean> forAll(Matcher1<T> matcher);
+
   default <G extends Kind, R> Stream<G, R> through(Function1<Stream<F, T>, Stream<G, R>> function) {
     return function.apply(this);
   }
@@ -272,6 +275,16 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
+  public Higher1<F, Boolean> exists(Matcher1<T> matcher) {
+    return foldRight(monad.pure(false), (t, acc) -> matcher.match(t) ? monad.pure(true) : acc);
+  }
+
+  @Override
+  public Higher1<F, Boolean> forAll(Matcher1<T> matcher) {
+    return foldRight(monad.pure(true), (t, acc) -> matcher.match(t) ? acc : monad.pure(false));
+  }
+
+  @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
     return suspend(() -> cons(monad.map(head, map), suspend(() -> tail.map(map))));
   }
@@ -390,6 +403,16 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
+  public Higher1<F, Boolean> exists(Matcher1<T> matcher) {
+    return monad.flatMap(evalStream, s -> s.exists(matcher));
+  }
+
+  @Override
+  public Higher1<F, Boolean> forAll(Matcher1<T> matcher) {
+    return monad.flatMap(evalStream, s -> s.forAll(matcher));
+  }
+
+  @Override
   public <R> Stream<F, R> map(Function1<T, R> mapper) {
     return lazyMap(s -> s.map(mapper));
   }
@@ -498,6 +521,16 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   @Override
   public <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator) {
     return begin;
+  }
+
+  @Override
+  public Higher1<F, Boolean> exists(Matcher1<T> matcher) {
+    return monad.pure(false);
+  }
+
+  @Override
+  public Higher1<F, Boolean> forAll(Matcher1<T> matcher) {
+    return monad.pure(true);
   }
 
   @Override
