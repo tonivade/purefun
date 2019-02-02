@@ -158,14 +158,12 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
     default <T> Stream<F, T> iterate(T seed, Operator1<T> generator) {
       return new Cons<>(monad(), defer(), monad().pure(seed),
-          new Suspend<>(monad(), defer(), defer().defer(
-              () -> monad().pure(iterate(generator.apply(seed), generator)))));
+          suspend(() -> iterate(generator.apply(seed), generator)));
     }
 
     default <T> Stream<F, T> iterate(Producer<T> generator) {
       return new Cons<>(monad(), defer(), monad().pure(generator.get()),
-          new Suspend<>(monad(), defer(), defer().defer(
-              () -> monad().pure(iterate(generator)))));
+          suspend(() -> iterate(generator)));
     }
 
     default <A, B, R> Stream<F, R> zipWith(Stream<F, A> s1, Stream<F, B> s2, Function2<A, B, R> combinator) {
