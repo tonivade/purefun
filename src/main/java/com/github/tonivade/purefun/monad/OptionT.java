@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -120,6 +121,17 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
     };
   }
 
+  static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(Monad<F> monad, Defer<F> defer) {
+    return new OptionTDefer<F>() {
+
+      @Override
+      public Monad<F> monadF() { return monad; }
+
+      @Override
+      public Defer<F> deferF() { return defer; }
+    };
+  }
+
   static <F extends Kind, T> OptionT<F, T> narrowK(Higher2<OptionT.µ, F, T> hkt) {
     return (OptionT<F, T>) hkt;
   }
@@ -181,5 +193,16 @@ interface OptionTMonadErrorFromMonadError<F extends Kind, E> extends MonadError<
       Function1<E, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
     return OptionT.of(monadF(), monadF().handleErrorWith(OptionT.narrowK(value).value(),
         error -> handler.andThen(OptionT::narrowK).apply(error).value()));
+  }
+}
+
+interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
+
+  Monad<F> monadF();
+  Defer<F> deferF();
+
+  @Override
+  default <A> OptionT<F, A> defer(Producer<Higher1<Higher1<OptionT.µ, F>, A>> defer) {
+    return OptionT.of(monadF(), deferF().defer(() -> defer.andThen(OptionT::narrowK).get().value()));
   }
 }

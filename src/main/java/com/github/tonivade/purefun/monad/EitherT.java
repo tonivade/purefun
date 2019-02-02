@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -155,6 +156,17 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
     };
   }
 
+  static <F extends Kind, L> Defer<Higher1<Higher1<EitherT.µ, F>, L>> defer(Monad<F> monad, Defer<F> defer) {
+    return new EitherTDefer<F, L>() {
+
+      @Override
+      public Monad<F> monadF() { return monad; }
+
+      @Override
+      public Defer<F> deferF() { return defer; }
+    };
+  }
+
   static <F extends Kind, L, R> EitherT<F, L, R> narrowK(Higher3<EitherT.µ, F, L, R> hkt) {
     return (EitherT<F, L, R>) hkt;
   }
@@ -222,5 +234,16 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E> extends MonadError<
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> handler) {
     return EitherT.of(monadF(), monadF().handleErrorWith(EitherT.narrowK(value).value(),
         error -> handler.andThen(EitherT::narrowK).apply(error).value()));
+  }
+}
+
+interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.µ, F>, E>> {
+
+  Monad<F> monadF();
+  Defer<F> deferF();
+
+  @Override
+  default <A> EitherT<F, E, A> defer(Producer<Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> defer) {
+    return EitherT.of(monadF(), deferF().defer(() -> defer.andThen(EitherT::narrowK).get().value()));
   }
 }
