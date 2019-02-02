@@ -343,9 +343,9 @@ Monad Transformer for `Writer` type
 Some type classes are implemented
 
 ```
-       SemigroupK           Functor       Foldable
-           |               /       \       /
-         MonoidK   _ Applicative   Traverse
+       SemigroupK           Functor -- Comonad
+           |               /       \       
+         MonoidK   _ Applicative   Traverse -- Foldable
            |      /      |      \ 
        Alternative      Monad    ApplicativeError
                          |      /
@@ -462,21 +462,59 @@ public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, M
 }
 ```
 
-### BiFunctor
+### Comonad
 
-TODO
+```java
+public interface Comonad<F extends Kind> extends Functor<F> {
+
+  <A, B> Higher1<F, B> coflatMap(Higher1<F, A> value, Function1<Higher1<F, A>, B> map);
+
+  <A> A extract(Higher1<F, A> value);
+
+  default <A> Higher1<F, Higher1<F, A>> coflatten(Higher1<F, A> value) {
+    return coflatMap(value, identity());
+  }
+}
+```
 
 ### Foldable
 
-TODO
+```java
+public interface Foldable<F extends Kind> {
+
+  <A, B> B foldLeft(Higher1<F, A> value, B initial, Function2<B, A, B> mapper);
+
+  <A, B> Eval<B> foldRight(Higher1<F, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper);
+}
+```
 
 ### Traverse
 
-TODO
+```java
+public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
+
+  <G extends Kind, T, R> Higher1<G, Higher1<F, R>> traverse(Applicative<G> applicative, Higher1<F, T> value,
+      Function1<T, ? extends Higher1<G, R>> mapper);
+}
+```
 
 ### Semigroupal
 
-TODO
+```java
+public interface Semigroupal<F extends Kind> {
+
+  <A, B> Higher1<F, Tuple2<A, B>> product(Higher1<F, A> fa, Higher1<F, B> fb);
+}
+```
+
+### Defer
+
+```java
+public interface Defer<F extends Kind> {
+
+  <A> Higher1<F, A> defer(Producer<Higher1<F, A>> defer);
+}
+```
 
 ### Transformer
 
