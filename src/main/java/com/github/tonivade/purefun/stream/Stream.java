@@ -176,13 +176,13 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monad(), defer(), defer().defer(
         () -> monad().map2(s1.extract(), s2.extract(),
           (op1, op2) -> {
-            Higher1<Option.µ, Stream<F, R>> map2 = Option.monad().map2(op1, op2,
+            Higher1<Option.µ, Stream<F, R>> result = Option.monad().map2(op1, op2,
               (cons1, cons2) -> {
                 Higher1<F, R> head = monad().map2(cons1.head, cons2.head, combinator);
                 Stream<F, R> tail = zipWith(cons1.tail, cons2.tail, combinator);
                 return new Cons<>(monad(), comonad(), defer(), head, tail);
               });
-            return Option.<Stream<F, R>>narrowK(map2).getOrElse(empty());
+            return Option.narrowK(result).getOrElse(this::empty);
           })
         ));
     }
