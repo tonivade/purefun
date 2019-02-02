@@ -324,7 +324,7 @@ Monad Transformer for `State` type
   assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result.unsafeRunSync());
 ```
 
-WriterT
+### WriterT
 
 Monad Transformer for `Writer` type
 
@@ -336,6 +336,24 @@ Monad Transformer for `Writer` type
 
     assertAll(() -> assertEquals(Id.of(Integer.valueOf(20)), writer.getValue()),
               () -> assertEquals(Id.of(listOf("add 5", "plus 2")), writer.getLog()));
+```
+
+### Stream
+
+An experimental version of a `Stream` like scala fs2 project.
+
+```java
+    StreamOf<IO.µ> streamOfIO = Stream.ofIO();
+
+    IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
+      .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
+      .takeWhile(Option::isPresent)
+      .map(Option::get)
+      .foldLeft("", (a, b) -> a + "\n" + b)
+      .fix1(IO::narrowK)
+      .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
+    
+    String content = readFile.unsafeRunSync();
 ```
 
 ## Type Classes
