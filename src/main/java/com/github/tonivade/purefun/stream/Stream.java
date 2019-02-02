@@ -28,7 +28,6 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -92,14 +91,14 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   }
 
   static StreamOf<IO.µ> ofIO() {
-    return of(IO.monad(), IO.comonad(), IO.defer());
+    return of(IO.monad(), IO.defer());
   }
 
   static StreamOf<Id.µ> ofId() {
-    return of(Id.monad(), Id.comonad(), Id.defer());
+    return of(Id.monad(), Id.defer());
   }
 
-  static <F extends Kind> StreamOf<F> of(Monad<F> monad, Comonad<F> comonad, Defer<F> defer) {
+  static <F extends Kind> StreamOf<F> of(Monad<F> monad, Defer<F> defer) {
     return new StreamOf<F>() {
 
       @Override
