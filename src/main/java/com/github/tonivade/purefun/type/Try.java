@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
@@ -150,10 +151,7 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 
   default T getOrElse(Producer<T> producer) {
-    if (isSuccess()) {
-      return get();
-    }
-    return producer.get();
+    return fold(producer.asFunction(), identity());
   }
 
   default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
@@ -164,38 +162,23 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   }
 
   default Stream<T> stream() {
-    if (isSuccess()) {
-      return Stream.of(get());
-    }
-    return Stream.empty();
+    return fold(cons(Stream.empty()), Stream::of);
   }
 
   default Sequence<T> sequence() {
-    if (isSuccess()) {
-      return ImmutableList.of(get());
-    }
-    return ImmutableList.empty();
-  }
-
-  default Either<Throwable, T> toEither() {
-    if (isSuccess()) {
-      return Either.right(get());
-    }
-    return Either.left(getCause());
-  }
-
-  default <E> Validation<E, T> toValidation(Function1<Throwable, E> map) {
-    if (isSuccess()) {
-      return Validation.valid(get());
-    }
-    return Validation.invalid(map.apply(getCause()));
+    return fold(cons(ImmutableList.empty()), ImmutableList::of);
   }
 
   default Option<T> toOption() {
-    if (isSuccess()) {
-      return Option.some(get());
-    }
-    return Option.none();
+    return fold(cons(Option.none()), Option::some);
+  }
+
+  default Either<Throwable, T> toEither() {
+    return fold(Either::left, Either::right);
+  }
+
+  default <E> Validation<E, T> toValidation(Function1<Throwable, E> map) {
+    return fold(map.andThen(Validation::invalid), Validation::valid);
   }
 
   @Override

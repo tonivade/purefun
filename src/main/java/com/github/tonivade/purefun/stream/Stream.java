@@ -38,6 +38,8 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> head();
   Stream<F, T> tail();
 
+  Higher1<F, Option<T>> headOption();
+
   Stream<F, T> concat(Stream<F, T> other);
   Stream<F, T> append(Higher1<F, T> other);
   Stream<F, T> prepend(Higher1<F, T> other);
@@ -230,6 +232,11 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
+  public Higher1<F, Option<T>> headOption() {
+    return monad.map(head, Option::some);
+  }
+
+  @Override
   public Higher1<F, Option<Cons<F, T>>> extract() {
     return monad.pure(Option.some(this));
   }
@@ -379,6 +386,11 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
+  public Higher1<F, Option<T>> headOption() {
+     return monad.flatMap(evalStream, Stream::headOption);
+  }
+
+  @Override
   public Higher1<F, Option<Cons<F, T>>> extract() {
     return monad.flatMap(evalStream, Stream::extract);
   }
@@ -505,6 +517,11 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   @Override
   public Stream<F, T> tail() {
     return this;
+  }
+
+  @Override
+  public Higher1<F, Option<T>> headOption() {
+    return monad.pure(Option.none());
   }
 
   @Override

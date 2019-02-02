@@ -123,14 +123,11 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 
   default T getOrElse(T value) {
-    return getOrElse(Producer.cons(value));
+    return getOrElse(cons(value));
   }
 
   default T getOrElse(Producer<T> producer) {
-    if (isEmpty()) {
-      return producer.get();
-    }
-    return get();
+    return fold(producer, identity());
   }
 
   default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
@@ -148,24 +145,19 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   }
 
   default Stream<T> stream() {
-    if (isPresent()) {
-      return Stream.of(get());
-    }
-    return Stream.empty();
+    return fold(Stream::empty, Stream::of);
   }
 
   default Sequence<T> sequence() {
-    if (isPresent()) {
-      return ImmutableList.of(get());
-    }
-    return ImmutableList.empty();
+    return fold(ImmutableList::empty, ImmutableList::of);
   }
 
   default Optional<T> toOptional() {
-    if (isPresent()) {
-      return Optional.of(get());
-    }
-    return Optional.empty();
+    return fold(Optional::empty, Optional::of);
+  }
+
+  default Either<Throwable, T> toEither() {
+    return fold(() -> Either.left(new NoSuchElementException()), Either::right);
   }
 
   @Override

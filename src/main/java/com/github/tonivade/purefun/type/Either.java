@@ -146,10 +146,7 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   }
 
   default R getOrElse(Producer<R> orElse) {
-    if (isRight()) {
-      return getRight();
-    }
-    return orElse.get();
+    return fold(orElse.asFunction(), identity());
   }
 
   default <T> T fold(Function1<L, T> leftMapper, Function1<R, T> rightMapper) {
@@ -160,31 +157,19 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   }
 
   default Stream<R> stream() {
-    if (isRight()) {
-      return Stream.of(getRight());
-    }
-    return Stream.empty();
+    return fold(cons(Stream.empty()), Stream::of);
   }
 
   default Sequence<R> sequence() {
-    if (isRight()) {
-      return ImmutableList.of(get());
-    }
-    return ImmutableList.empty();
+    return fold(cons(ImmutableList.empty()), ImmutableList::of);
   }
 
   default Option<R> toOption() {
-    if (isRight()) {
-      return Option.some(getRight());
-    }
-    return Option.none();
+    return fold(cons(Option.none()), Option::some);
   }
 
   default Validation<L, R> toValidation() {
-    if (isRight()) {
-      return Validation.valid(getRight());
-    }
-    return Validation.invalid(getLeft());
+    return fold(Validation::invalid, Validation::valid);
   }
 
   @Override

@@ -16,6 +16,8 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -115,6 +117,14 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
 
   static <F extends Kind, L, R> EitherT<F, L, R> left(Monad<F> monad, L left) {
     return lift(monad, Either.left(left));
+  }
+
+  static <F extends Kind, R> EitherT<F, Throwable, R> fromOption(Monad<F> monad, Option<R> value) {
+    return lift(monad, value.toEither());
+  }
+
+  static <F extends Kind, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
+    return lift(monad, value.toEither());
   }
 
   static <F extends Kind, L, R> Eq<Higher3<EitherT.µ, F, L, R>> eq(Eq<Higher1<F, Either<L, R>>> eq) {

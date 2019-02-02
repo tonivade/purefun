@@ -108,10 +108,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
   }
 
   default T getOrElse(Producer<T> orElse) {
-    if (isValid()) {
-      return get();
-    }
-    return orElse.get();
+    return fold(orElse.asFunction(), identity());
   }
 
   default <U> U fold(Function1<E, U> invalidMap, Function1<T, U> validMap) {
@@ -135,10 +132,7 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
   }
 
   default Either<E, T> toEither() {
-    if (isValid()) {
-      return Either.right(get());
-    }
-    return Either.left(getError());
+    return fold(Either::left, Either::right);
   }
 
   @Override
