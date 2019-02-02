@@ -5,9 +5,11 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.CheckedProducer;
@@ -19,14 +21,18 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Comonad;
+import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 @FunctionalInterface
-public interface IO<T> extends FlatMap1<IO.µ, T> {
+public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   final class µ implements Kind {}
 
@@ -36,8 +42,16 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return Future.run(this::unsafeRunSync);
   }
 
+  default Future<T> toFuture(ExecutorService executor) {
+    return Future.run(executor, this::unsafeRunSync);
+  }
+
   default void unsafeRunAsync(Consumer1<Try<T>> callback) {
     toFuture().onComplete(callback);
+  }
+
+  default void unsafeRunAsync(ExecutorService executor, Consumer1<Try<T>> callback) {
+    toFuture(executor).onComplete(callback);
   }
 
   @Override
@@ -52,6 +66,26 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
   default <R> IO<R> andThen(IO<R> after) {
     return flatMap(ignore -> after);
+  }
+
+  default IO<T> recover(Function1<Throwable, T> function) {
+    return () -> {
+      try {
+        return unsafeRunSync();
+      } catch (Exception error) {
+        return function.apply(error);
+      }
+    };
+  }
+
+  @SuppressWarnings("unchecked")
+  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+    return recover(cause -> {
+      if (type.isAssignableFrom(cause.getClass())) {
+        return function.apply((X) cause);
+      }
+      return sneakyThrow(cause);
+    });
   }
 
   static <T> IO<T> pure(T value) {
@@ -74,7 +108,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     return producer::get;
   }
 
-  static IO<Nothing> noop() {
+  static IO<Nothing> unit() {
     return pure(nothing());
   }
 
@@ -91,15 +125,27 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
   }
 
   static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
-    return sequence.fold(noop(), IO::andThen).andThen(noop());
+    return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
   static <T> IO<T> narrowK(Higher1<IO.µ, T> hkt) {
     return (IO<T>) hkt;
   }
 
+  static Functor<IO.µ> functor() {
+    return new IOFunctor() {};
+  }
+
   static Monad<IO.µ> monad() {
     return new IOMonad() {};
+  }
+
+  static Comonad<IO.µ> comonad() {
+    return new IOComonad() {};
+  }
+
+  static Defer<IO.µ> defer() {
+    return new IODefer() {};
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
@@ -156,7 +202,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<µ, R>> map) {
+    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
       return (IO<R>) this;
     }
 
@@ -166,7 +212,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T> {
     }
 
     private CheckedProducer<T> toCheckedProducer() {
-      return CheckedProducer.failure(Producer.cons(error));
+      return CheckedProducer.failure(cons(error));
     }
   }
 }
@@ -187,6 +233,27 @@ final class IOResource<T> implements AutoCloseable {
   @Override
   public void close() {
     release.unchecked().accept(resource);
+  }
+}
+
+interface IOFunctor extends Functor<IO.µ> {
+
+  @Override
+  default <T, R> IO<R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
+    return IO.narrowK(value).map(map);
+  }
+}
+
+interface IOComonad extends IOFunctor, Comonad<IO.µ> {
+
+  @Override
+  default <A, B> Higher1<IO.µ, B> coflatMap(Higher1<IO.µ, A> value, Function1<Higher1<IO.µ, A>, B> map) {
+    return IO.of(() -> map.apply(value));
+  }
+
+  @Override
+  default <A> A extract(Higher1<IO.µ, A> value) {
+    return IO.narrowK(value).unsafeRunSync();
   }
 }
 
@@ -217,5 +284,13 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   default <A> Try<A> run(Higher1<IO.µ, A> value) {
     return Try.of(IO.narrowK(value)::unsafeRunSync);
+  }
+}
+
+interface IODefer extends Defer<IO.µ> {
+
+  @Override
+  default <A> IO<A> defer(Producer<Higher1<IO.µ, A>> defer) {
+    return () -> defer.andThen(IO::narrowK).get().unsafeRunSync();
   }
 }
