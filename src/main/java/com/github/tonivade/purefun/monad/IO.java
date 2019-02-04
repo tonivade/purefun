@@ -8,13 +8,11 @@ import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -56,12 +54,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   @Override
   default <R> IO<R> map(Function1<T, R> map) {
-    return () -> map.apply(unsafeRunSync());
+    return flatMap(map.andThen(IO::pure));
   }
 
   @Override
   default <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
-    return () -> map.andThen(IO::narrowK).apply(unsafeRunSync()).unsafeRunSync();
+    return new FlatMapped<T, R>(this, map);
   }
 
   default <R> IO<R> andThen(IO<R> after) {
@@ -69,13 +67,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   default IO<T> recover(Function1<Throwable, T> function) {
-    return () -> {
-      try {
-        return unsafeRunSync();
-      } catch (Exception error) {
-        return function.apply(error);
-      }
-    };
+    return new Recover<>(this, function);
   }
 
   @SuppressWarnings("unchecked")
@@ -95,17 +87,21 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   static <T> IO<T> failure(Throwable error) {
     return new Failure<>(error);
   }
+  
+  static <T> IO<T> suspend(Producer<IO<T>> lazy) {
+    return new Suspend<>(lazy);
+  }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
     return task.andThen(IO::pure);
   }
 
   static IO<Nothing> exec(Runnable task) {
-    return () -> { task.run(); return nothing(); };
+    return unit().flatMap(nothing -> { task.run(); return unit(); });
   }
 
   static <T> IO<T> of(Producer<T> producer) {
-    return producer::get;
+    return suspend(producer.andThen(IO::pure));
   }
 
   static IO<Nothing> unit() {
@@ -113,11 +109,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
-    return () -> {
-      try (IOResource<T> resource = new IOResource<>(acquire.unsafeRunSync(), release)) {
-        return resource.apply(use).unsafeRunSync();
-      }
-    };
+    return new Bracket<>(acquire, use, release);
   }
 
   static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use) {
@@ -166,18 +158,29 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return Equal.of(this).comparing(Pure::unsafeRunSync).applyTo(obj);
-    }
-
-    @Override
     public String toString() {
       return "Pure(" + value + ")";
+    }
+  }
+  
+  final class FlatMapped<T, R> implements IO<R> {
+
+    private final IO<T> current;
+    private final Function1<T, ? extends Higher1<IO.µ, R>> next;
+
+    private FlatMapped(IO<T> current, Function1<T, ? extends Higher1<IO.µ, R>> next) {
+      this.current = requireNonNull(current);
+      this.next = requireNonNull(next);
+    }
+    
+    @Override
+    public R unsafeRunSync() {
+      return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
+    }
+    
+    @Override
+    public String toString() {
+      return "FlatMapped(" + current + ")";
     }
   }
 
@@ -213,6 +216,75 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     private CheckedProducer<T> toCheckedProducer() {
       return CheckedProducer.failure(cons(error));
+    }
+  }
+  
+  final class Recover<T> implements IO<T>, Recoverable {
+    
+    private final IO<T> current;
+    private final Function1<Throwable, T> function;
+    
+    private Recover(IO<T> current, Function1<Throwable, T> function) {
+      this.current = requireNonNull(current);
+      this.function = requireNonNull(function);
+    }
+
+    @Override
+    public T unsafeRunSync() {
+      try {
+        return current.unsafeRunSync();
+      } catch (Exception error) {
+        return function.apply(error);
+      }
+    }
+    
+    @Override
+    public String toString() {
+      return "Recover(" + current + ")";
+    }
+  }
+  
+  final class Suspend<T> implements IO<T> {
+
+    private final Producer<IO<T>> lazy;
+    
+    private Suspend(Producer<IO<T>> lazy) {
+      this.lazy = requireNonNull(lazy);
+    }
+
+    @Override
+    public T unsafeRunSync() {
+      return lazy.get().unsafeRunSync();
+    }
+    
+    @Override
+    public String toString() {
+      return "Suspend(?)";
+    }
+  }
+  
+  final class Bracket<T, R> implements IO<R> {
+
+    private final IO<T> acquire;
+    private final Function1<T, IO<R>> use;
+    private final CheckedConsumer1<T> release;
+    
+    private Bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
+      this.acquire = requireNonNull(acquire);
+      this.use = requireNonNull(use);
+      this.release = requireNonNull(release);
+    }
+
+    @Override
+    public R unsafeRunSync() {
+      try (IOResource<T> resource = new IOResource<>(acquire.unsafeRunSync(), release)) {
+        return resource.apply(use).unsafeRunSync();
+      }
+    }
+    
+    @Override
+    public String toString() {
+      return "Bracket(" + acquire + ")";
     }
   }
 }
@@ -291,6 +363,6 @@ interface IODefer extends Defer<IO.µ> {
 
   @Override
   default <A> IO<A> defer(Producer<Higher1<IO.µ, A>> defer) {
-    return () -> defer.andThen(IO::narrowK).get().unsafeRunSync();
+    return IO.suspend(defer.andThen(IO::narrowK));
   }
 }
