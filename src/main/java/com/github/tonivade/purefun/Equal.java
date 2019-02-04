@@ -59,6 +59,6 @@ public final class Equal<T> {
   }
 
   public static <T> Equal<T> of(T target) {
-    return new Equal<>(target, Eq.always());
+    return new Equal<>(target);
   }
 }

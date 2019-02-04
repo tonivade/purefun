@@ -477,7 +477,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> repeat() {
-    return lazyMap(s -> s.repeat());
+    return lazyMap(Stream::repeat);
   }
 
   @Override
@@ -487,7 +487,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Higher1<F, Option<Tuple2<T, Stream<F, T>>>> split() {
-    return monad.flatMap(evalStream, s -> s.split());
+    return monad.flatMap(evalStream, Stream::split);
   }
 
   private <R> Stream<F, R> lazyMap(Function1<Stream<F, T>, Stream<F, R>> mapper) {

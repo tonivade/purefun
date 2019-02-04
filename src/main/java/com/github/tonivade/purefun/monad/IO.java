@@ -59,7 +59,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   @Override
   default <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
-    return new FlatMapped<T, R>(this, map);
+    return new FlatMapped<>(this, map);
   }
 
   default <R> IO<R> andThen(IO<R> after) {

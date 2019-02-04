@@ -192,7 +192,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     @Override
     public Future<T> orElse(Future<T> other) {
       return runTry(executor, () -> {
-        if (isSuccess()) {
+        if (Future.super.isSuccess()) {
           return this.await();
         }
         return other.await();
