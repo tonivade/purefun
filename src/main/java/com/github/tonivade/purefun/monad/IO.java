@@ -66,6 +66,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return flatMap(ignore -> after);
   }
 
+  default IO<Try<T>> attemp() {
+    return new Attemp<>(this);
+  }
+
   default IO<T> recover(Function1<Throwable, T> function) {
     return new Recover<>(this, function);
   }
@@ -287,6 +291,24 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       return "Bracket(" + acquire + ")";
     }
   }
+  
+  final class Attemp<T> implements IO<Try<T>> {
+    private final IO<T> current;
+
+    private Attemp(IO<T> current) {
+      this.current = current;
+    }
+
+    @Override
+    public Try<T> unsafeRunSync() {
+      return Try.of(current::unsafeRunSync);
+    }
+    
+    @Override
+    public String toString() {
+      return "Attemp(" + current + ")";
+    }
+  }
 }
 
 final class IOResource<T> implements AutoCloseable {
@@ -351,11 +373,8 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   @Override
   default <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
-    return run(value).fold(handler.andThen(IO::narrowK), IO::pure);
-  }
-
-  default <A> Try<A> run(Higher1<IO.µ, A> value) {
-    return Try.of(IO.narrowK(value)::unsafeRunSync);
+    return IO.narrowK(value).attemp()
+        .flatMap(try_ -> try_.fold(handler.andThen(IO::narrowK), this::pure));
   }
 }
 
