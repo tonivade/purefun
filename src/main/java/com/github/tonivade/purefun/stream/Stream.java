@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -39,6 +40,8 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> tail();
 
   Higher1<F, Option<T>> headOption();
+  Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> extract();
+  Higher1<F, Option<Tuple2<T, Stream<F, T>>>> split();
 
   Stream<F, T> concat(Stream<F, T> other);
   Stream<F, T> append(Higher1<F, T> other);
@@ -46,8 +49,6 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   Stream<F, T> take(int n);
   Stream<F, T> drop(int n);
-
-  Higher1<F, Option<Cons<F, T>>> extract();
 
   @Override
   Stream<F, T> filter(Matcher1<T> matcher);
@@ -69,8 +70,6 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   Higher1<F, Boolean> exists(Matcher1<T> matcher);
   Higher1<F, Boolean> forall(Matcher1<T> matcher);
-
-  Higher1<F, Option<Tuple2<T, Stream<F, T>>>> split();
 
   default <G extends Kind, R> Stream<G, R> through(Function1<Stream<F, T>, Stream<G, R>> function) {
     return function.apply(this);
@@ -172,9 +171,9 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
         () -> monad().map2(s1.extract(), s2.extract(),
           (op1, op2) -> {
             Higher1<Option.µ, Stream<F, R>> result = Option.monad().map2(op1, op2,
-              (cons1, cons2) -> {
-                Higher1<F, R> head = monad().map2(cons1.head, cons2.head, combinator);
-                Stream<F, R> tail = zipWith(cons1.tail, cons2.tail, combinator);
+              (t1, t2) -> {
+                Higher1<F, R> head = monad().map2(t1.get1(), t2.get1(), combinator);
+                Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
                 return new Cons<>(monad(), defer(), head, tail);
               });
             return Option.narrowK(result).getOrElse(this::empty);
@@ -211,8 +210,8 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
 
   private final Monad<F> monad;
   private final Defer<F> defer;
-  final Higher1<F, T> head;
-  final Stream<F, T> tail;
+  private final Higher1<F, T> head;
+  private final Stream<F, T> tail;
 
   Cons(Monad<F> monad, Defer<F> defer, Higher1<F, T> head, Stream<F, T> tail) {
     this.monad = requireNonNull(monad);
@@ -237,8 +236,8 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Higher1<F, Option<Cons<F, T>>> extract() {
-    return monad.pure(Option.some(this));
+  public Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> extract() {
+    return monad.pure(Option.some(Tuple.of(head, tail)));
   }
 
   @Override
@@ -391,7 +390,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Higher1<F, Option<Cons<F, T>>> extract() {
+  public Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> extract() {
     return monad.flatMap(evalStream, Stream::extract);
   }
 
@@ -525,7 +524,7 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Higher1<F, Option<Cons<F, T>>> extract() {
+  public Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> extract() {
     return monad.pure(Option.none());
   }
 
