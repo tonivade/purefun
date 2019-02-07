@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
@@ -70,8 +71,16 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return new Attemp<>(this);
   }
 
-  default IO<T> recover(Function1<Throwable, T> function) {
-    return new Recover<>(this, function);
+  default <R> IO<R> redeem(Function1<Throwable, R> mapError, Function1<T, R> mapper) {
+    return attemp().map(try_ -> try_.fold(mapError, mapper));
+  }
+
+  default <R> IO<R> redeemWith(Function1<Throwable, IO<R>> mapError, Function1<T, IO<R>> mapper) {
+    return attemp().flatMap(try_ -> try_.fold(mapError, mapper));
+  }
+
+  default IO<T> recover(Function1<Throwable, T> mapError) {
+    return redeem(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
@@ -91,7 +100,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   static <T> IO<T> failure(Throwable error) {
     return new Failure<>(error);
   }
-  
+
   static <T> IO<T> suspend(Producer<IO<T>> lazy) {
     return new Suspend<>(lazy);
   }
@@ -166,7 +175,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       return "Pure(" + value + ")";
     }
   }
-  
+
   final class FlatMapped<T, R> implements IO<R> {
 
     private final IO<T> current;
@@ -176,12 +185,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       this.current = requireNonNull(current);
       this.next = requireNonNull(next);
     }
-    
+
     @Override
     public R unsafeRunSync() {
       return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
     }
-    
+
     @Override
     public String toString() {
       return "FlatMapped(" + current + ")";
@@ -222,36 +231,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       return CheckedProducer.failure(cons(error));
     }
   }
-  
-  final class Recover<T> implements IO<T>, Recoverable {
-    
-    private final IO<T> current;
-    private final Function1<Throwable, T> function;
-    
-    private Recover(IO<T> current, Function1<Throwable, T> function) {
-      this.current = requireNonNull(current);
-      this.function = requireNonNull(function);
-    }
 
-    @Override
-    public T unsafeRunSync() {
-      try {
-        return current.unsafeRunSync();
-      } catch (Exception error) {
-        return function.apply(error);
-      }
-    }
-    
-    @Override
-    public String toString() {
-      return "Recover(" + current + ")";
-    }
-  }
-  
   final class Suspend<T> implements IO<T> {
 
     private final Producer<IO<T>> lazy;
-    
+
     private Suspend(Producer<IO<T>> lazy) {
       this.lazy = requireNonNull(lazy);
     }
@@ -260,19 +244,19 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return lazy.get().unsafeRunSync();
     }
-    
+
     @Override
     public String toString() {
       return "Suspend(?)";
     }
   }
-  
+
   final class Bracket<T, R> implements IO<R> {
 
     private final IO<T> acquire;
     private final Function1<T, IO<R>> use;
     private final CheckedConsumer1<T> release;
-    
+
     private Bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
       this.acquire = requireNonNull(acquire);
       this.use = requireNonNull(use);
@@ -285,13 +269,13 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
         return resource.apply(use).unsafeRunSync();
       }
     }
-    
+
     @Override
     public String toString() {
       return "Bracket(" + acquire + ")";
     }
   }
-  
+
   final class Attemp<T> implements IO<Try<T>> {
     private final IO<T> current;
 
@@ -303,7 +287,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Try<T> unsafeRunSync() {
       return Try.of(current::unsafeRunSync);
     }
-    
+
     @Override
     public String toString() {
       return "Attemp(" + current + ")";
@@ -373,8 +357,7 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   @Override
   default <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
-    return IO.narrowK(value).attemp()
-        .flatMap(try_ -> try_.fold(handler.andThen(IO::narrowK), this::pure));
+    return IO.narrowK(value).redeemWith(handler.andThen(IO::narrowK), this::pure);
   }
 }
 
