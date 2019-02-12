@@ -36,8 +36,13 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   final class µ implements Kind {}
 
-  Stream<F, T> head();
-  Stream<F, T> tail();
+  default Stream<F, T> head() {
+    return take(1);
+  }
+
+  default Stream<F, T> tail() {
+    return drop(1);
+  }
 
   Higher1<F, Option<T>> headOption();
   Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> extract();
@@ -221,16 +226,6 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Stream<F, T> head() {
-    return take(1);
-  }
-
-  @Override
-  public Stream<F, T> tail() {
-    return tail;
-  }
-
-  @Override
   public Higher1<F, Option<T>> headOption() {
     return monad.map(head, Option::some);
   }
@@ -375,16 +370,6 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Stream<F, T> head() {
-    return lazyMap(Stream::head);
-  }
-
-  @Override
-  public Stream<F, T> tail() {
-    return lazyMap(Stream::tail);
-  }
-
-  @Override
   public Higher1<F, Option<T>> headOption() {
      return monad.flatMap(evalStream, Stream::headOption);
   }
@@ -506,16 +491,6 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   Nil(Monad<F> monad, Defer<F> defer) {
     this.monad = requireNonNull(monad);
     this.defer = requireNonNull(defer);
-  }
-
-  @Override
-  public Stream<F, T> head() {
-    return this;
-  }
-
-  @Override
-  public Stream<F, T> tail() {
-    return this;
   }
 
   @Override

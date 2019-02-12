@@ -33,6 +33,8 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 @FunctionalInterface
 public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
+  IO<Nothing> UNIT = pure(nothing());
+
   final class µ implements Kind {}
 
   T unsafeRunSync();
@@ -118,7 +120,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   static IO<Nothing> unit() {
-    return pure(nothing());
+    return UNIT;
   }
 
   static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
@@ -193,7 +195,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public String toString() {
-      return "FlatMapped(" + current + ")";
+      return "FlatMapped(" + current + ", ?)";
     }
   }
 
@@ -272,15 +274,16 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public String toString() {
-      return "Bracket(" + acquire + ")";
+      return "Bracket(" + acquire + ", ?, ?)";
     }
   }
 
   final class Attemp<T> implements IO<Try<T>> {
+
     private final IO<T> current;
 
     private Attemp(IO<T> current) {
-      this.current = current;
+      this.current = requireNonNull(current);
     }
 
     @Override
