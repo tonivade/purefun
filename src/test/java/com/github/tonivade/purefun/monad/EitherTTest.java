@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Id;
@@ -76,7 +77,7 @@ public class EitherTTest {
   public void mapK() {
     EitherT<IO.µ, Nothing, String> rightIo = EitherT.right(IO.monad(), "abc");
 
-    EitherT<Try.µ, Nothing, String> rightTry = rightIo.mapK(Try.monad(), new IOToTryTransformer());
+    EitherT<Try.µ, Nothing, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryTransformer());
 
     assertEquals(Try.success("abc"), Try.narrowK(rightTry.get()));
   }

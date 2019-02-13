@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -31,7 +32,7 @@ public class FunctorTest {
 
   @Test
   public void tryFunctor() {
-    verifyLaws(Try.functor(), Try.success("hola mundo!"));
+    verifyLaws(TryInstances.functor(), Try.success("hola mundo!"));
   }
 
   @Test

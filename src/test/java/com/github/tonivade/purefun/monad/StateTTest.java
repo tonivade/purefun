@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -85,7 +86,7 @@ public class StateTTest {
   public void mapK() {
     StateT<IO.µ, Nothing, String> stateIo = StateT.pure(monad, "abc");
 
-    StateT<Try.µ, Nothing, String> stateTry = stateIo.mapK(Try.monad(), new IOToTryTransformer());
+    StateT<Try.µ, Nothing, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryTransformer());
 
     assertEquals(Try.success(Tuple2.of(nothing(), "abc")), Try.narrowK(stateTry.run(nothing())));
   }

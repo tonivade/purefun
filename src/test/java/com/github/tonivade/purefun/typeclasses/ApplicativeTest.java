@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Validation;
 
 public class ApplicativeTest {
@@ -34,7 +34,7 @@ public class ApplicativeTest {
 
   @Test
   public void tryApplicative() {
-    verifyLaws(Try.applicative());
+    verifyLaws(TryInstances.applicative());
   }
 
   @Test

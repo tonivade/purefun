@@ -33,6 +33,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -235,10 +236,10 @@ public class OptionTest {
 
     assertAll(
         () -> assertEquals(Try.success(Option.some("HELLO!")),
-            instance.traverse(Try.applicative(), Option.some(Try.success("hello!")),
+            instance.traverse(TryInstances.applicative(), Option.some(Try.success("hello!")),
                 t -> t.map(String::toUpperCase))),
         () -> assertEquals(Try.success(Option.none()),
-            instance.traverse(Try.applicative(), Option.<Try<String>>none(),
+            instance.traverse(TryInstances.applicative(), Option.<Try<String>>none(),
                 t -> t.map(String::toUpperCase))));
   }
 

@@ -9,9 +9,9 @@ import static com.github.tonivade.purefun.typeclasses.MonadLaws.verifyLaws;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Validation;
 
 public class MonadTest {
@@ -28,7 +28,7 @@ public class MonadTest {
 
   @Test
   public void tryMonad() {
-    verifyLaws(Try.monad());
+    verifyLaws(TryInstances.monad());
   }
 
   @Test

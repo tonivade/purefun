@@ -29,6 +29,7 @@ import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -270,7 +271,7 @@ public class TryTest {
   @Test
   public void monadError() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Try.µ, Throwable> monadError = Try.monadError();
+    MonadError<Try.µ, Throwable> monadError = TryInstances.monadError();
 
     Higher1<Try.µ, String> pure = monadError.pure("is not ok");
     Higher1<Try.µ, String> raiseError = monadError.raiseError(error);
@@ -287,7 +288,7 @@ public class TryTest {
 
   @Test
   public void foldable() {
-    Foldable<Try.µ> instance = Try.foldable();
+    Foldable<Try.µ> instance = TryInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Try.failure(), empty(), ImmutableList::append)),
@@ -306,7 +307,7 @@ public class TryTest {
 
   @Test
   public void traverse() {
-    Traverse<Try.µ> instance = Try.traverse();
+    Traverse<Try.µ> instance = TryInstances.traverse();
 
     Exception error = new Exception("error");
 
