@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
 
@@ -17,8 +18,8 @@ public class BiFunctorTest {
   @Test
   public void eitherBiFunctor() {
     assertAll(
-        () -> verifyLaws(Either.bifunctor(), Either.right("hola mundo")),
-        () -> verifyLaws(Either.bifunctor(), Either.left("hola mundo")));
+        () -> verifyLaws(EitherInstances.bifunctor(), Either.right("hola mundo")),
+        () -> verifyLaws(EitherInstances.bifunctor(), Either.left("hola mundo")));
   }
 
   @Test

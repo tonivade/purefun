@@ -8,9 +8,9 @@ import static com.github.tonivade.purefun.typeclasses.MonadLaws.verifyLaws;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Validation;
 
@@ -33,7 +33,7 @@ public class MonadTest {
 
   @Test
   public void eitherMonad() {
-    verifyLaws(Either.monad());
+    verifyLaws(EitherInstances.monad());
   }
 
   @Test

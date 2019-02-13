@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
+import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Validation;
@@ -39,7 +39,7 @@ public class ApplicativeTest {
 
   @Test
   public void eitherApplicative() {
-    verifyLaws(Either.applicative());
+    verifyLaws(EitherInstances.applicative());
   }
 
   @Test

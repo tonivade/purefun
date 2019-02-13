@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.typeclasses.FunctorLaws.verifyLaws;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
@@ -37,7 +38,7 @@ public class FunctorTest {
 
   @Test
   public void eitherFunctor() {
-    verifyLaws(Either.functor(), Either.right("hola mundo!"));
+    verifyLaws(EitherInstances.functor(), Either.right("hola mundo!"));
   }
 
   @Test

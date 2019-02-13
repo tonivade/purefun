@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -250,7 +251,7 @@ public class EitherTest {
     Either<Integer, String> right1 = Either.right("hola");
     Either<Integer, String> right2 = Either.right("hola");
 
-    Eq<Higher2<Either.µ, Integer, String>> instance = Either.eq(Eq.any(), Eq.any());
+    Eq<Higher2<Either.µ, Integer, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(left1, left2)),
@@ -297,7 +298,7 @@ public class EitherTest {
   @Test
   public void monadError() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<Either.µ, Throwable>, Throwable> monadError = Either.<Throwable>monadError();
+    MonadError<Higher1<Either.µ, Throwable>, Throwable> monadError = EitherInstances.<Throwable>monadError();
 
     Higher1<Higher1<Either.µ, Throwable>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<Either.µ, Throwable>, String> raiseError = monadError.raiseError(error);
@@ -317,7 +318,7 @@ public class EitherTest {
 
   @Test
   public void foldable() {
-    Foldable<Higher1<Either.µ, Throwable>> instance = Either.foldable();
+    Foldable<Higher1<Either.µ, Throwable>> instance = EitherInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Either.left(new Error()), empty(), ImmutableList::append)),
@@ -336,7 +337,7 @@ public class EitherTest {
 
   @Test
   public void traverse() {
-    Traverse<Higher1<Either.µ, Throwable>> instance = Either.traverse();
+    Traverse<Higher1<Either.µ, Throwable>> instance = EitherInstances.traverse();
 
     Exception error = new Exception("error");
 
