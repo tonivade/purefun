@@ -26,6 +26,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -174,7 +175,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monad(), defer(), defer().defer(
         () -> monad().map2(s1.split(), s2.split(),
           (op1, op2) -> {
-            Higher1<Option.µ, Stream<F, R>> result = Option.monad().map2(op1, op2,
+            Higher1<Option.µ, Stream<F, R>> result = OptionInstances.monad().map2(op1, op2,
               (t1, t2) -> {
                 Higher1<F, R> head = monad().map2(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
@@ -197,7 +198,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monad(), defer(), defer().defer(
         () -> monad().map2(s1.split(), s2.split(),
           (opt1, opt2) -> {
-            Higher1<Option.µ, Stream<F, A>> result = Option.monad().map2(opt1, opt2,
+            Higher1<Option.µ, Stream<F, A>> result = OptionInstances.monad().map2(opt1, opt2,
               (t1, t2) -> {
                 Higher1<F, A> head = t1.get1();
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));

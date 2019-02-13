@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.instances.OptionInstances;
 
 public class AlternativeTest {
 
@@ -42,11 +42,11 @@ public class AlternativeTest {
 
   @Test
   public void option() {
-    assertAll(() -> verifyLaws(Option.alternative()));
+    assertAll(() -> verifyLaws(OptionInstances.alternative()));
   }
 
   @Test
   void composed() {
-    assertAll(() -> verifyLaws(Alternative.compose(Option.alternative(), Sequence.alternative())));
+    assertAll(() -> verifyLaws(Alternative.compose(OptionInstances.alternative(), Sequence.alternative())));
   }
 }

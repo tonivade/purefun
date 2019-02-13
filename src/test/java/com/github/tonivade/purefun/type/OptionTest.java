@@ -32,6 +32,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -198,7 +199,7 @@ public class OptionTest {
 
   @Test
   public void monad() {
-    Monad<Option.µ> monad = Option.monad();
+    Monad<Option.µ> monad = OptionInstances.monad();
 
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();
@@ -213,7 +214,7 @@ public class OptionTest {
 
   @Test
   public void monadError() {
-    MonadError<Option.µ, Nothing> monadError = Option.monadError();
+    MonadError<Option.µ, Nothing> monadError = OptionInstances.monadError();
 
     Higher1<Option.µ, String> pure = monadError.pure("is not ok");
     Higher1<Option.µ, String> raiseError = monadError.raiseError(nothing());
@@ -230,7 +231,7 @@ public class OptionTest {
 
   @Test
   public void traverse() {
-    Traverse<Option.µ> instance = Option.traverse();
+    Traverse<Option.µ> instance = OptionInstances.traverse();
 
     assertAll(
         () -> assertEquals(Try.success(Option.some("HELLO!")),
@@ -243,7 +244,7 @@ public class OptionTest {
 
   @Test
   public void semigroupal() {
-    Semigroupal<Option.µ> instance = Option.semigroupal();
+    Semigroupal<Option.µ> instance = OptionInstances.semigroupal();
 
     assertAll(
         () -> assertEquals(Option.none(), instance.product(Option.none(), Option.none())),
@@ -254,7 +255,7 @@ public class OptionTest {
 
   @Test
   public void foldable() {
-    Foldable<Option.µ> instance = Option.foldable();
+    Foldable<Option.µ> instance = OptionInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Option.none(), empty(), ImmutableList::append)),

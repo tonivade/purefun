@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -30,14 +31,14 @@ public class FoldableTest {
         () -> verifyLaws(Id.foldable(), Id.of("hola")),
         () -> verifyLaws(Try.foldable(), Try.success("hola")),
         () -> verifyLaws(Either.foldable(), Either.right("hola")),
-        () -> verifyLaws(Option.foldable(), Option.some("hola")),
+        () -> verifyLaws(OptionInstances.foldable(), Option.some("hola")),
         () -> verifyLaws(Sequence.foldable(), Sequence.listOf("hola")),
-        () -> verifyLaws(compose(Sequence.foldable(), Option.foldable()), nest(listOf(Option.some("hola")))));
+        () -> verifyLaws(compose(Sequence.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola")))));
   }
 
   @Test
   public void composed() {
-    Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(Sequence.foldable(), Option.foldable());
+    Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(Sequence.foldable(), OptionInstances.foldable());
 
     assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(), nest(listOf(some(1), none(), some(2)))));
   }

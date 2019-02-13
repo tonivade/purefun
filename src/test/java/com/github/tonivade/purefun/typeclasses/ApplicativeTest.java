@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -28,7 +29,7 @@ public class ApplicativeTest {
 
   @Test
   public void optionApplicative() {
-    verifyLaws(Option.applicative());
+    verifyLaws(OptionInstances.applicative());
   }
 
   @Test
@@ -48,13 +49,13 @@ public class ApplicativeTest {
 
   @Test
   public void composedAplicative() {
-    verifyLaws(Applicative.compose(Option.applicative(), Id.applicative()));
+    verifyLaws(Applicative.compose(OptionInstances.applicative(), Id.applicative()));
   }
 
   @Test
   public void map5Some() {
     Higher1<Option.µ, Integer> map5 =
-        Option.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.some(5), sum);
+        OptionInstances.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.some(5), sum);
 
     assertEquals(Option.some(15), map5);
   }
@@ -62,7 +63,7 @@ public class ApplicativeTest {
   @Test
   public void map5None() {
     Higher1<Option.µ, Integer> map5 =
-        Option.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.none(), sum);
+        OptionInstances.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.none(), sum);
 
     assertEquals(Option.none(), map5);
   }

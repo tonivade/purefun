@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -341,10 +342,10 @@ public class EitherTest {
 
     assertAll(
         () -> assertEquals(Option.some(Either.right("HELLO!")),
-            instance.traverse(Option.applicative(), Either.right(Option.some("hello!")),
+            instance.traverse(OptionInstances.applicative(), Either.right(Option.some("hello!")),
                 t -> t.map(String::toUpperCase))),
         () -> assertEquals(Option.some(Either.left(error)),
-            instance.traverse(Option.applicative(), Either.<Throwable, Option<String>>left(error),
+            instance.traverse(OptionInstances.applicative(), Either.<Throwable, Option<String>>left(error),
                 t -> t.map(String::toUpperCase))));
   }
 }

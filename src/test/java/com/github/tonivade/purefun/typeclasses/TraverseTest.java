@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nested;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -18,7 +19,7 @@ public class TraverseTest {
 
   @Test
   public void composed() {
-    Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(Option.traverse(), Id.traverse());
+    Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(OptionInstances.traverse(), Id.traverse());
 
     assertEquals(Try.success(Option.some(Id.of("HOLA!"))),
         composed.traverse(Try.applicative(), nest(Option.some(Id.of(Try.success("hola!")))),
@@ -27,7 +28,7 @@ public class TraverseTest {
 
   @Test
   public void sequence() {
-    Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(Option.traverse(), Id.traverse());
+    Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(OptionInstances.traverse(), Id.traverse());
 
     assertEquals(Try.success(Option.some(Id.of("hola!"))),
         composed.sequence(Try.applicative(), nest(Option.some(Id.of(Try.success("hola!"))))));

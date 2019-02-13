@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Eq;
@@ -53,7 +54,7 @@ public class SequenceTest {
     Traverse<Sequence.µ> instance = Sequence.traverse();
 
     Higher1<Option.µ, Higher1<Sequence.µ, String>> result =
-        instance.traverse(Option.applicative(), seq, x -> x.map(String::toUpperCase));
+        instance.traverse(OptionInstances.applicative(), seq, x -> x.map(String::toUpperCase));
 
     assertEquals(some(listOf("A", "B", "C")), result);
   }

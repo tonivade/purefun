@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.typeclasses.FunctorLaws.verifyLaws;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -25,7 +26,7 @@ public class FunctorTest {
 
   @Test
   public void optionFunctor() {
-    verifyLaws(Option.functor(), Option.some("hola mundo!"));
+    verifyLaws(OptionInstances.functor(), Option.some("hola mundo!"));
   }
 
   @Test
@@ -50,6 +51,6 @@ public class FunctorTest {
 
   @Test
   public void composedFunctor() {
-    verifyLaws(Functor.compose(Option.functor(), Id.functor()), nest(Option.some(Id.of("hola mundo!"))));
+    verifyLaws(Functor.compose(OptionInstances.functor(), Id.functor()), nest(Option.some(Id.of("hola mundo!"))));
   }
 }

@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -311,10 +312,10 @@ public class TryTest {
 
     assertAll(
         () -> assertEquals(Option.some(Try.success("HELLO!")),
-            instance.traverse(Option.applicative(), Try.success(Option.some("hello!")),
+            instance.traverse(OptionInstances.applicative(), Try.success(Option.some("hello!")),
                 t -> t.map(String::toUpperCase))),
         () -> assertEquals(Option.some(Try.failure(error)),
-            instance.traverse(Option.applicative(), Try.<Option<String>>failure(error),
+            instance.traverse(OptionInstances.applicative(), Try.<Option<String>>failure(error),
                 t -> t.map(String::toUpperCase))));
   }
 

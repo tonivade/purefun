@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.With.with;
-import static com.github.tonivade.purefun.typeclasses.DoMonad.with;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
@@ -43,7 +42,7 @@ public class WithTest {
 
   @Test
   public void withMonads() {
-    Id<String> result = with(Id.monad(), Id.of("value"))
+    Id<String> result = with("value").lift(Id.monad())
       .map(String::toUpperCase)
       .get(Id::narrowK);
 
