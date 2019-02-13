@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static java.util.Objects.requireNonNull;
+
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -46,6 +48,8 @@ public interface Kleisli<F extends Kind, Z, A> extends FlatMap3<Kleisli.µ, F, Z
   }
 
   static <F extends Kind, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {
+    requireNonNull(monad);
+    requireNonNull(run);
     return new Kleisli<F, A, B>() {
 
       @Override
@@ -57,6 +61,7 @@ public interface Kleisli<F extends Kind, Z, A> extends FlatMap3<Kleisli.µ, F, Z
   }
 
   static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
+    requireNonNull(monadF);
     return new Monad<Higher1<Higher1<Kleisli.µ, F>, Z>>() {
 
       @Override

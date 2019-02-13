@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap2;
@@ -75,6 +76,8 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
   }
 
   static <F extends Kind, T> OptionT<F, T> of(Monad<F> monad, Higher1<F, Option<T>> value) {
+    requireNonNull(monad);
+    requireNonNull(value);
     return new OptionT<F, T>() {
 
       @Override
@@ -98,6 +101,7 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
   }
 
   static <F extends Kind> Monad<Higher1<OptionT.µ, F>> monad(Monad<F> monadF) {
+    requireNonNull(monadF);
     return new OptionTMonad<F>() {
 
       @Override
@@ -106,6 +110,7 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
   }
 
   static <F extends Kind> MonadError<Higher1<OptionT.µ, F>, Nothing> monadError(Monad<F> monadF) {
+    requireNonNull(monadF);
     return new OptionTMonadErrorFromMonad<F>() {
 
       @Override
@@ -114,6 +119,7 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
   }
 
   static <F extends Kind, E> MonadError<Higher1<OptionT.µ, F>, E> monadError(MonadError<F, E> monadErrorF) {
+    requireNonNull(monadErrorF);
     return new OptionTMonadErrorFromMonadError<F, E>() {
 
       @Override
@@ -121,14 +127,16 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
     };
   }
 
-  static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(Monad<F> monad, Defer<F> defer) {
+  static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(Monad<F> monadF, Defer<F> deferF) {
+    requireNonNull(monadF);
+    requireNonNull(deferF);
     return new OptionTDefer<F>() {
 
       @Override
-      public Monad<F> monadF() { return monad; }
+      public Monad<F> monadF() { return monadF; }
 
       @Override
-      public Defer<F> deferF() { return defer; }
+      public Defer<F> deferF() { return deferF; }
     };
   }
 

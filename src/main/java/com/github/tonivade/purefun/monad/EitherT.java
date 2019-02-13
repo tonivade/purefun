@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
@@ -101,14 +102,16 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
     return of(monad, monad.pure(either));
   }
 
-  static <F extends Kind, L, R> EitherT<F, L, R> of(Monad<F> monad, Higher1<F, Either<L, R>> either) {
+  static <F extends Kind, L, R> EitherT<F, L, R> of(Monad<F> monad, Higher1<F, Either<L, R>> value) {
+    requireNonNull(monad);
+    requireNonNull(value);
     return new EitherT<F, L, R>() {
 
       @Override
       public Monad<F> monad() { return monad; }
 
       @Override
-      public Higher1<F, Either<L, R>> value() { return either; }
+      public Higher1<F, Either<L, R>> value() { return value; }
     };
   }
 
@@ -133,6 +136,7 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
   }
 
   static <F extends Kind, L> Monad<Higher1<Higher1<EitherT.µ, F>, L>> monad(Monad<F> monadF) {
+    requireNonNull(monadF);
     return new EitherTMonad<F, L>() {
 
       @Override
@@ -141,6 +145,7 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
   }
 
   static <F extends Kind, L> MonadError<Higher1<Higher1<EitherT.µ, F>, L>, L> monadError(Monad<F> monadF) {
+    requireNonNull(monadF);
     return new EitherTMonadErrorFromMonad<F, L>() {
 
       @Override
@@ -149,6 +154,7 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
   }
 
   static <F extends Kind, L> MonadError<Higher1<Higher1<EitherT.µ, F>, L>, L> monadError(MonadError<F, L> monadErrorF) {
+    requireNonNull(monadErrorF);
     return new EitherTMonadErrorFromMonadError<F, L>() {
 
       @Override
@@ -156,14 +162,16 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
     };
   }
 
-  static <F extends Kind, L> Defer<Higher1<Higher1<EitherT.µ, F>, L>> defer(Monad<F> monad, Defer<F> defer) {
+  static <F extends Kind, L> Defer<Higher1<Higher1<EitherT.µ, F>, L>> defer(Monad<F> monadF, Defer<F> deferF) {
+    requireNonNull(monadF);
+    requireNonNull(deferF);
     return new EitherTDefer<F, L>() {
 
       @Override
-      public Monad<F> monadF() { return monad; }
+      public Monad<F> monadF() { return monadF; }
 
       @Override
-      public Defer<F> deferF() { return defer; }
+      public Defer<F> deferF() { return deferF; }
     };
   }
 

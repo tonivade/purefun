@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
@@ -77,6 +78,9 @@ public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L
   }
 
   static <F extends Kind, L, A> WriterT<F, L, A> writer(Monoid<L> monoid, Monad<F> monad, Higher1<F, Tuple2<L, A>> value) {
+    requireNonNull(monoid);
+    requireNonNull(monad);
+    requireNonNull(value);
     return new WriterT<F, L, A>() {
 
       @Override
@@ -91,6 +95,8 @@ public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L
   }
 
   static <F extends Kind, L> Monad<Higher1<Higher1<WriterT.µ, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
+    requireNonNull(monoid);
+    requireNonNull(monadF);
     return new Monad<Higher1<Higher1<WriterT.µ, F>, L>>() {
 
       @Override

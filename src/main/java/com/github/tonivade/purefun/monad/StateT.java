@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
@@ -100,6 +101,7 @@ public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, 
   }
 
   static <F extends Kind, S> Monad<Higher1<Higher1<StateT.µ, F>, S>> monad(Monad<F> monadF) {
+    requireNonNull(monadF);
     return new Monad<Higher1<Higher1<StateT.µ, F>, S>>() {
 
       @Override
