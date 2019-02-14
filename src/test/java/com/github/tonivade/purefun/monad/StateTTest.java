@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -25,7 +26,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class StateTTest {
 
-  private Monad<IO.µ> monad = IO.monad();
+  private Monad<IO.µ> monad = IOInstances.monad();
 
   @Test
   public void get() {

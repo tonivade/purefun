@@ -5,7 +5,10 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.monad.IO.narrowK;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -25,6 +28,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -92,7 +96,7 @@ public class IOTest {
   @Test
   public void monadError() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<IO.µ, Throwable> monadError = IO.monadError();
+    MonadError<IO.µ, Throwable> monadError = IOInstances.monadError();
 
     Higher1<IO.µ, String> pure = monadError.pure("is not ok");
     Higher1<IO.µ, String> raiseError = monadError.raiseError(error);

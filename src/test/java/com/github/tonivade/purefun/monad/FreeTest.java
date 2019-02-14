@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Transformer;
@@ -56,7 +57,7 @@ public class FreeTest {
   @Test
   public void interpretIO() {
     Higher1<IO.µ, Nothing> foldMap =
-        echo.foldMap(IO.monad(), IOProgram.functor, new IOProgramToIO());
+        echo.foldMap(IOInstances.monad(), IOProgram.functor, new IOProgramToIO());
 
     IO<Nothing> echoIO = IO.narrowK(foldMap);
 

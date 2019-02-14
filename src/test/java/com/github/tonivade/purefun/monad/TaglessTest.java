@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -74,7 +75,7 @@ class Program<F extends Kind, P extends IOProgramT<F> & Monad<F>> {
 
 class IOProgramInterpreter implements IOProgramT<IO.µ>, Monad<IO.µ> {
 
-  final Monad<IO.µ> monad = IO.monad();
+  final Monad<IO.µ> monad = IOInstances.monad();
   final Console<IO.µ> console = Console.io();
 
   @Override

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Future;
@@ -78,7 +79,7 @@ public class OptionTTest {
 
   @Test
   public void mapK() {
-    OptionT<IO.µ, String> someIo = OptionT.some(IO.monad(), "abc");
+    OptionT<IO.µ, String> someIo = OptionT.some(IOInstances.monad(), "abc");
 
     OptionT<Try.µ, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryTransformer());
 
