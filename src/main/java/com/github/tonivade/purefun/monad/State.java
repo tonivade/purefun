@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.typeclasses.Monad;
 
 @FunctionalInterface
 public interface State<S, A> extends FlatMap2<State.µ, S, A> {
@@ -81,21 +80,5 @@ public interface State<S, A> extends FlatMap2<State.µ, S, A> {
 
   static <S, A> State<S, A> narrowK(Higher1<Higher1<State.µ, S>, A> hkt) {
     return (State<S, A>) hkt;
-  }
-
-  static <V> Monad<Higher1<State.µ, V>> monad() {
-    return new Monad<Higher1<State.µ, V>>() {
-
-      @Override
-      public <T> State<V, T> pure(T value) {
-        return State.pure(value);
-      }
-
-      @Override
-      public <T, R> State<V, R> flatMap(Higher1<Higher1<State.µ, V>, T> value,
-                                        Function1<T, ? extends Higher1<Higher1<State.µ, V>, R>> map) {
-        return narrowK(value).flatMap(map.andThen(State::narrowK));
-      }
-    };
   }
 }

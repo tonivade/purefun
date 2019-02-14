@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -103,7 +104,7 @@ class StateProgramInterpreter
     implements IOProgramT<Higher1<State.µ, ImmutableList<String>>>,
                Monad<Higher1<State.µ, ImmutableList<String>>> {
 
-  final Monad<Higher1<State.µ, ImmutableList<String>>> monad = State.monad();
+  final Monad<Higher1<State.µ, ImmutableList<String>>> monad = StateInstances.monad();
   final Console<Higher1<State.µ, ImmutableList<String>>> console = Console.state();
 
   @Override

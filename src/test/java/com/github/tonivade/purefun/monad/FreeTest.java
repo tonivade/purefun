@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Transformer;
@@ -45,7 +46,7 @@ public class FreeTest {
   @Test
   public void interpretState() {
     Higher1<Higher1<State.µ, ImmutableList<String>>, Nothing> foldMap =
-        echo.foldMap(State.monad(), IOProgram.functor, new IOProgramToState());
+        echo.foldMap(StateInstances.monad(), IOProgram.functor, new IOProgramToState());
 
     State<ImmutableList<String>, Nothing> state = State.narrowK(foldMap);
 

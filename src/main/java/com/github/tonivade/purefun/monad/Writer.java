@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
@@ -83,22 +82,6 @@ public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
 
   static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
     return writer(Sequence.monoid(), Tuple.of(listOf(log), value));
-  }
-
-  static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {
-    return new Monad<Higher1<Writer.µ, L>>() {
-
-      @Override
-      public <T> Writer<L, T> pure(T value) {
-        return Writer.pure(monoid, value);
-      }
-
-      @Override
-      public <T, R> Writer<L, R> flatMap(Higher1<Higher1<Writer.µ, L>, T> value,
-          Function1<T, ? extends Higher1<Higher1<Writer.µ, L>, R>> map) {
-        return Writer.narrowK(value).flatMap(map.andThen(Writer::narrowK));
-      }
-    };
   }
 
   static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {
