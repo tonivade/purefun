@@ -8,12 +8,13 @@ import static com.github.tonivade.purefun.typeclasses.ComonadLaws.verifyLaws;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Id;
 
 public class ComonadTest {
 
   @Test
   public void idTest() {
-    verifyLaws(Id.comonad(), Id.of("hola mundo"));
+    verifyLaws(IdInstances.comonad(), Id.of("hola mundo"));
   }
 }

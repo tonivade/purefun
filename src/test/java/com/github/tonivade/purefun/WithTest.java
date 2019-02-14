@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Id;
 
 public class WithTest {
@@ -42,7 +43,7 @@ public class WithTest {
 
   @Test
   public void withMonads() {
-    Id<String> result = with("value").lift(Id.monad())
+    Id<String> result = with("value").lift(IdInstances.monad())
       .map(String::toUpperCase)
       .get(Id::narrowK);
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Future;
@@ -23,7 +24,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTTest {
 
-  final Monad<Id.µ> monad = Id.monad();
+  final Monad<Id.µ> monad = IdInstances.monad();
 
   @Test
   public void map() {
@@ -108,7 +109,7 @@ public class EitherTTest {
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
     MonadError<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, Throwable> monadError =
-        EitherT.monadError(Id.monad());
+        EitherT.monadError(monad);
 
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> raiseError = monadError.raiseError(error);

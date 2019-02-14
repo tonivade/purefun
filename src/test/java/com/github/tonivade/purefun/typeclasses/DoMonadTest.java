@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Id;
 
 public class DoMonadTest {
@@ -16,7 +17,7 @@ public class DoMonadTest {
   @Test
   public void map() {
     Id<String> result = with("value")
-      .lift(Id.monad())
+      .lift(IdInstances.monad())
       .map(String::toUpperCase)
       .get(Id::narrowK);
 
@@ -26,7 +27,7 @@ public class DoMonadTest {
   @Test
   public void flatMap() {
     Id<String> result = with("value")
-      .lift(Id.monad())
+      .lift(IdInstances.monad())
       .flatMap(string -> Id.of(string.toUpperCase()))
       .get(Id::narrowK);
 

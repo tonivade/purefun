@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -36,7 +37,7 @@ public class FoldableLaws {
   private static <F extends Kind> void foldMIdentity(Foldable<F> instance,
       Higher1<F, String> value, Operator2<String> combinator) {
     assertEquals(
-        instance.foldM(Id.monad(), value, "", combinator.andThen(Id::of)),
+        instance.foldM(IdInstances.monad(), value, "", combinator.andThen(Id::of)),
         Id.of(instance.foldLeft(value, "", combinator)),
         "foldM identity");
   }

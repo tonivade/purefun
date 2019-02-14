@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Id;
@@ -27,7 +28,7 @@ import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public class OptionTTest {
 
-  final Monad<Id.µ> monad = Id.monad();
+  final Monad<Id.µ> monad = IdInstances.monad();
 
   @Test
   public void map() {
@@ -86,12 +87,12 @@ public class OptionTTest {
 
   @Test
   public void eq() {
-    OptionT<Id.µ, String> some1 = OptionT.some(Id.monad(), "abc");
-    OptionT<Id.µ, String> some2 = OptionT.some(Id.monad(), "abc");
-    OptionT<Id.µ, String> none1 = OptionT.none(Id.monad());
-    OptionT<Id.µ, String> none2 = OptionT.none(Id.monad());
+    OptionT<Id.µ, String> some1 = OptionT.some(monad, "abc");
+    OptionT<Id.µ, String> some2 = OptionT.some(monad, "abc");
+    OptionT<Id.µ, String> none1 = OptionT.none(monad);
+    OptionT<Id.µ, String> none2 = OptionT.none(monad);
 
-    Eq<Higher2<OptionT.µ, Id.µ, String>> instance = OptionT.eq(Id.eq(Eq.any()));
+    Eq<Higher2<OptionT.µ, Id.µ, String>> instance = OptionT.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),
@@ -123,7 +124,7 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<Higher1<OptionT.µ, Id.µ>, Nothing> monadError = OptionT.monadError(Id.monad());
+    MonadError<Higher1<OptionT.µ, Id.µ>, Nothing> monadError = OptionT.monadError(monad);
 
     Higher1<Higher1<OptionT.µ, Id.µ>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<OptionT.µ, Id.µ>, String> raiseError = monadError.raiseError(nothing());

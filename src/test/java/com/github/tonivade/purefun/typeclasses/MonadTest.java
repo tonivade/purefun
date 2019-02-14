@@ -9,16 +9,16 @@ import static com.github.tonivade.purefun.typeclasses.MonadLaws.verifyLaws;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.instances.EitherInstances;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Validation;
+import com.github.tonivade.purefun.instances.ValidationInstances;
 
 public class MonadTest {
 
   @Test
   public void idMonad() {
-    verifyLaws(Id.monad());
+    verifyLaws(IdInstances.monad());
   }
 
   @Test
@@ -38,6 +38,6 @@ public class MonadTest {
 
   @Test
   public void validationMonad() {
-    verifyLaws(Validation.monad());
+    verifyLaws(ValidationInstances.monad());
   }
 }

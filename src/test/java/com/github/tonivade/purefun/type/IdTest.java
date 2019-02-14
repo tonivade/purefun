@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
@@ -32,7 +33,7 @@ public class IdTest {
 
   @Test
   public void traverse() {
-    Traverse<Id.µ> instance = Id.traverse();
+    Traverse<Id.µ> instance = IdInstances.traverse();
 
     assertAll(
         () -> assertEquals(Option.some(Id.of("HELLO!")),

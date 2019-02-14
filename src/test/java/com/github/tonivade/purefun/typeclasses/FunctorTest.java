@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.EitherInstances;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
+import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -23,7 +25,7 @@ public class FunctorTest {
 
   @Test
   public void idFunctor() {
-    verifyLaws(Id.functor(), Id.of("hola mundo!"));
+    verifyLaws(IdInstances.functor(), Id.of("hola mundo!"));
   }
 
   @Test
@@ -43,7 +45,7 @@ public class FunctorTest {
 
   @Test
   public void validationFunctor() {
-    verifyLaws(Validation.functor(), Validation.valid("hola mundo!"));
+    verifyLaws(ValidationInstances.functor(), Validation.valid("hola mundo!"));
   }
 
   @Test
@@ -53,6 +55,6 @@ public class FunctorTest {
 
   @Test
   public void composedFunctor() {
-    verifyLaws(Functor.compose(OptionInstances.functor(), Id.functor()), nest(Option.some(Id.of("hola mundo!"))));
+    verifyLaws(Functor.compose(OptionInstances.functor(), IdInstances.functor()), nest(Option.some(Id.of("hola mundo!"))));
   }
 }

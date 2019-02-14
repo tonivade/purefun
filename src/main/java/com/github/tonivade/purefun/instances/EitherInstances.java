@@ -63,7 +63,6 @@ public interface EitherInstances {
   static <L> Traverse<Higher1<Either.µ, L>> traverse() {
     return new EitherTraverse<L>() {};
   }
-
 }
 
 interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -69,6 +70,6 @@ public class SequenceTest {
         () -> assertEquals("abc", instance.fold(Monoid.string(), listOf("a", "b", "c"))),
         () -> assertEquals("ABC", instance.foldMap(Monoid.string(), listOf("a", "b", "c"), String::toUpperCase)),
         () -> assertEquals(Option.some("abc"), instance.reduce(listOf("a", "b", "c"), String::concat)),
-        () -> assertEquals(Id.of("abc"), instance.foldM(Id.monad(), listOf("a", "b", "c"), "", (a, b) -> Id.of(a + b))));
+        () -> assertEquals(Id.of("abc"), instance.foldM(IdInstances.monad(), listOf("a", "b", "c"), "", (a, b) -> Id.of(a + b))));
   }
 }

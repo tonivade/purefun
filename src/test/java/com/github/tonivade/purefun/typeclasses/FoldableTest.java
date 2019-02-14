@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.EitherInstances;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
@@ -30,7 +31,7 @@ public class FoldableTest {
   @Test
   public void laws() {
     assertAll(
-        () -> verifyLaws(Id.foldable(), Id.of("hola")),
+        () -> verifyLaws(IdInstances.foldable(), Id.of("hola")),
         () -> verifyLaws(TryInstances.foldable(), Try.success("hola")),
         () -> verifyLaws(EitherInstances.foldable(), Either.right("hola")),
         () -> verifyLaws(OptionInstances.foldable(), Option.some("hola")),

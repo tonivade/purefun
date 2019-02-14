@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
 import com.github.tonivade.purefun.instances.EitherInstances;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Validation;
 
 public class ApplicativeTest {
 
@@ -24,7 +24,7 @@ public class ApplicativeTest {
 
   @Test
   public void idApplicative() {
-    verifyLaws(Id.applicative());
+    verifyLaws(IdInstances.applicative());
   }
 
   @Test
@@ -44,12 +44,12 @@ public class ApplicativeTest {
 
   @Test
   public void validationApplicative() {
-    verifyLaws(Validation.applicative());
+    verifyLaws(ValidationInstances.applicative());
   }
 
   @Test
   public void composedAplicative() {
-    verifyLaws(Applicative.compose(OptionInstances.applicative(), Id.applicative()));
+    verifyLaws(Applicative.compose(OptionInstances.applicative(), IdInstances.applicative()));
   }
 
   @Test

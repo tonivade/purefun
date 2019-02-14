@@ -26,6 +26,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Id;
@@ -101,7 +102,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   }
 
   static StreamOf<Id.µ> ofId() {
-    return of(Id.monad(), Id.defer());
+    return of(IdInstances.monad(), IdInstances.defer());
   }
 
   static <F extends Kind> StreamOf<F> of(Monad<F> monad, Defer<F> defer) {
