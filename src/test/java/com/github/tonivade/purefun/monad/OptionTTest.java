@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
@@ -106,7 +107,8 @@ public class OptionTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<OptionT.µ, Future.µ>, Throwable> monadError = OptionTInstances.monadError(Future.monadError());
+    MonadError<Higher1<OptionT.µ, Future.µ>, Throwable> monadError = 
+        OptionTInstances.monadError(FutureInstances.monadError());
 
     Higher1<Higher1<OptionT.µ, Future.µ>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<OptionT.µ, Future.µ>, String> raiseError = monadError.raiseError(error);
