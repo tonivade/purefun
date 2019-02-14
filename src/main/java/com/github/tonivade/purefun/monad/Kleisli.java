@@ -60,23 +60,6 @@ public interface Kleisli<F extends Kind, Z, A> extends FlatMap3<Kleisli.µ, F, Z
     };
   }
 
-  static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
-    requireNonNull(monadF);
-    return new Monad<Higher1<Higher1<Kleisli.µ, F>, Z>>() {
-
-      @Override
-      public <T> Kleisli<F, Z, T> pure(T value) {
-        return Kleisli.pure(monadF, value);
-      }
-
-      @Override
-      public <T, R> Kleisli<F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, T> value,
-          Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, R>> map) {
-        return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::narrowK));
-      }
-    };
-  }
-
   static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher3<Kleisli.µ, F, A, B> hkt) {
     return (Kleisli<F, A, B>) hkt;
   }

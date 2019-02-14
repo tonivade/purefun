@@ -94,24 +94,6 @@ public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L
     };
   }
 
-  static <F extends Kind, L> Monad<Higher1<Higher1<WriterT.µ, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
-    requireNonNull(monoid);
-    requireNonNull(monadF);
-    return new Monad<Higher1<Higher1<WriterT.µ, F>, L>>() {
-
-      @Override
-      public <T> WriterT<F, L, T> pure(T value) {
-        return WriterT.pure(monoid, monadF, value);
-      }
-
-      @Override
-      public <T, R> WriterT<F, L, R> flatMap(Higher1<Higher1<Higher1<WriterT.µ, F>, L>, T> value,
-          Function1<T, ? extends Higher1<Higher1<Higher1<WriterT.µ, F>, L>, R>> map) {
-        return WriterT.narrowK(value).flatMap(map.andThen(WriterT::narrowK));
-      }
-    };
-  }
-
   static <F extends Kind, L, A> WriterT<F, L, A> narrowK(Higher3<WriterT.µ, F, L, A> hkt) {
     return (WriterT<F, L, A>) hkt;
   }

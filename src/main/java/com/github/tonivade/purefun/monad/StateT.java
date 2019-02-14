@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
@@ -98,23 +97,6 @@ public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, 
 
   static <F extends Kind, S, A> StateT<F, S, A> of(Monad<F> monad, Function1<S, Higher1<F, Tuple2<S, A>>> run) {
     return state(monad, run);
-  }
-
-  static <F extends Kind, S> Monad<Higher1<Higher1<StateT.µ, F>, S>> monad(Monad<F> monadF) {
-    requireNonNull(monadF);
-    return new Monad<Higher1<Higher1<StateT.µ, F>, S>>() {
-
-      @Override
-      public <T> StateT<F, S, T> pure(T value) {
-        return StateT.pure(monadF, value);
-      }
-
-      @Override
-      public <T, R> StateT<F, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, F>, S>, T> value,
-          Function1<T, ? extends Higher1<Higher1<Higher1<StateT.µ, F>, S>, R>> map) {
-        return StateT.narrowK(value).flatMap(map.andThen(StateT::narrowK));
-      }
-    };
   }
 
   static <F extends Kind, S, A> StateT<F, S, A> narrowK(Higher3<StateT.µ, F, S, A> hkt) {
