@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Either;
@@ -50,7 +51,7 @@ public class FunctorTest {
 
   @Test
   public void traverseFunctor() {
-    verifyLaws(Sequence.traverse(), Sequence.listOf("hola mundo!"));
+    verifyLaws(SequenceInstances.traverse(), Sequence.listOf("hola mundo!"));
   }
 
   @Test

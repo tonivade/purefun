@@ -15,10 +15,11 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 
 public class AlternativeTest {
 
-  final Alternative<Sequence.µ> instance = Sequence.alternative();
+  final Alternative<Sequence.µ> instance = SequenceInstances.alternative();
 
   final Function1<Integer, Integer> twoTimes = a -> a * 2;
   final Function1<Integer, Integer> plusFive = a -> a + 5;
@@ -37,7 +38,7 @@ public class AlternativeTest {
 
   @Test
   public void sequence() {
-    assertAll(() -> verifyLaws(Sequence.alternative()));
+    assertAll(() -> verifyLaws(SequenceInstances.alternative()));
   }
 
   @Test
@@ -47,6 +48,6 @@ public class AlternativeTest {
 
   @Test
   void composed() {
-    assertAll(() -> verifyLaws(Alternative.compose(OptionInstances.alternative(), Sequence.alternative())));
+    assertAll(() -> verifyLaws(Alternative.compose(OptionInstances.alternative(), SequenceInstances.alternative())));
   }
 }

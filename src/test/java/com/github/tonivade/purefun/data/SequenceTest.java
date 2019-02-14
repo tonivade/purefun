@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Sequence.zip;
+import static com.github.tonivade.purefun.data.Sequence.zipWithIndex;
 import static com.github.tonivade.purefun.type.Eval.now;
 import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -21,6 +22,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Eq;
@@ -39,8 +41,16 @@ public class SequenceTest {
   }
 
   @Test
+  public void zipWithIndexTest() {
+    ImmutableList<Tuple2<String, Integer>> zipped =
+        zipWithIndex(listOf("a", "b", "c")).collect(toImmutableList());
+
+    assertEquals(listOf(Tuple.of("a", 0), Tuple.of("b", 1), Tuple.of("c", 2)), zipped);
+  }
+
+  @Test
   public void eq() {
-    Eq<Higher1<Sequence.µ, Integer>> instance = Sequence.eq(Eq.any());
+    Eq<Higher1<Sequence.µ, Integer>> instance = SequenceInstances.eq(Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(listOf(1, 2, 3), listOf(1, 2, 3))),
@@ -52,7 +62,7 @@ public class SequenceTest {
   public void traverse() {
     Sequence<Option<String>> seq = listOf(some("a"), some("b"), some("c"));
 
-    Traverse<Sequence.µ> instance = Sequence.traverse();
+    Traverse<Sequence.µ> instance = SequenceInstances.traverse();
 
     Higher1<Option.µ, Higher1<Sequence.µ, String>> result =
         instance.traverse(OptionInstances.applicative(), seq, x -> x.map(String::toUpperCase));
@@ -62,7 +72,7 @@ public class SequenceTest {
 
   @Test
   public void foldable() {
-    Foldable<Sequence.µ> instance = Sequence.foldable();
+    Foldable<Sequence.µ> instance = SequenceInstances.foldable();
 
     assertAll(
         () -> assertEquals("abc", instance.foldLeft(listOf("a", "b", "c"), "", String::concat)),

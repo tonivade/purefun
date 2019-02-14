@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
@@ -35,13 +36,13 @@ public class FoldableTest {
         () -> verifyLaws(TryInstances.foldable(), Try.success("hola")),
         () -> verifyLaws(EitherInstances.foldable(), Either.right("hola")),
         () -> verifyLaws(OptionInstances.foldable(), Option.some("hola")),
-        () -> verifyLaws(Sequence.foldable(), Sequence.listOf("hola")),
-        () -> verifyLaws(compose(Sequence.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola")))));
+        () -> verifyLaws(SequenceInstances.foldable(), Sequence.listOf("hola")),
+        () -> verifyLaws(compose(SequenceInstances.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola")))));
   }
 
   @Test
   public void composed() {
-    Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(Sequence.foldable(), OptionInstances.foldable());
+    Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(SequenceInstances.foldable(), OptionInstances.foldable());
 
     assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(), nest(listOf(some(1), none(), some(2)))));
   }

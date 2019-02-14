@@ -34,6 +34,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -268,8 +269,8 @@ public class OptionTest {
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Option.some("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Option.none(), String::concat)),
         () -> assertEquals(Option.some("hola!"), instance.reduce(Option.some("hola!"), String::concat)),
-        () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Option.none(), Sequence::listOf)),
-        () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Option.some("hola!"), Sequence::listOf)),
+        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Option.none(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Option.some("hola!"), Sequence::listOf)),
         () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Option.none(), empty(), (acc, a) -> Id.of(acc.append(a)))),
         () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Option.some("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
   }

@@ -30,6 +30,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -300,8 +301,8 @@ public class TryTest {
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Try.success("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Try.failure(), String::concat)),
         () -> assertEquals(Option.some("hola!"), instance.reduce(Try.success("hola!"), String::concat)),
-        () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Try.failure(), Sequence::listOf)),
-        () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Try.success("hola!"), Sequence::listOf)),
+        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Try.failure(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Try.success("hola!"), Sequence::listOf)),
         () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Try.failure(), empty(), (acc, a) -> Id.of(acc.append(a)))),
         () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Try.success("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
   }

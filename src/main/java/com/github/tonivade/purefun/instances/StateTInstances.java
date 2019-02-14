@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.monad.StateT;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface StateTInstances {
+  
   static <F extends Kind, S> Monad<Higher1<Higher1<StateT.µ, F>, S>> monad(Monad<F> monadF) {
     requireNonNull(monadF);
     return new StateTMonad<F, S>() {

@@ -30,6 +30,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.typeclasses.Eq;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -330,8 +331,8 @@ public class EitherTest {
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Either.right("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Either.left(new Error()), String::concat)),
         () -> assertEquals(Option.some("hola!"), instance.reduce(Either.right("hola!"), String::concat)),
-        () -> assertEquals(empty(), instance.foldMap(Sequence.monoid(), Either.left(new Error()), Sequence::listOf)),
-        () -> assertEquals(listOf("hola!"), instance.foldMap(Sequence.monoid(), Either.right("hola!"), Sequence::listOf)),
+        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Either.left(new Error()), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Either.right("hola!"), Sequence::listOf)),
         () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Either.left(new Error()), empty(), (acc, a) -> Id.of(acc.append(a)))),
         () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Either.right("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
   }
