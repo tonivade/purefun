@@ -74,15 +74,13 @@ interface TryPure extends Applicative<Try.µ> {
   }
 }
 
-interface TryApply extends Applicative<Try.µ> {
+interface TryApplicative extends TryPure {
 
   @Override
   default <T, R> Try<R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
     return Try.narrowK(value).flatMap(t -> Try.narrowK(apply).map(f -> f.apply(t)));
   }
 }
-
-interface TryApplicative extends TryPure, TryApply { }
 
 interface TryMonad extends TryPure, Monad<Try.µ> {
 

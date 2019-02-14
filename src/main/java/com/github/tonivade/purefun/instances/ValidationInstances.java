@@ -76,7 +76,7 @@ interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
   }
 }
 
-interface ValidationApply<E> extends Applicative<Higher1<Validation.µ, E>> {
+interface ValidationApplicative<E> extends ValidationPure<E> {
 
   @Override
   default <T, R> Validation<E, R> ap(Higher1<Higher1<Validation.µ, E>, T> value,
@@ -84,8 +84,6 @@ interface ValidationApply<E> extends Applicative<Higher1<Validation.µ, E>> {
     return Validation.narrowK(value).flatMap(t -> Validation.narrowK(apply).map(f -> f.apply(t)));
   }
 }
-
-interface ValidationApplicative<E> extends ValidationPure<E>, ValidationApply<E> { }
 
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation.µ, E>> {
 

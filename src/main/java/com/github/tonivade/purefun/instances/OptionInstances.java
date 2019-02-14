@@ -91,15 +91,13 @@ interface OptionPure extends Applicative<Option.µ> {
   }
 }
 
-interface OptionApply extends Applicative<Option.µ> {
+interface OptionApplicative extends OptionPure {
 
   @Override
   default <T, R> Option<R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
     return Option.narrowK(value).flatMap(t -> Option.narrowK(apply).map(f -> f.apply(t)));
   }
 }
-
-interface OptionApplicative extends OptionPure, OptionApply { }
 
 interface OptionMonad extends OptionPure, Monad<Option.µ> {
 

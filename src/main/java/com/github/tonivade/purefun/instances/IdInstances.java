@@ -71,15 +71,13 @@ interface IdPure extends Applicative<Id.µ> {
   }
 }
 
-interface IdApply extends Applicative<Id.µ> {
+interface IdApplicative extends IdPure {
 
   @Override
   default <T, R> Id<R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
     return Id.narrowK(value).flatMap(t -> Id.narrowK(apply).map(f -> f.apply(t)));
   }
 }
-
-interface IdApplicative extends IdPure, IdApply {}
 
 interface IdMonad extends IdPure, Monad<Id.µ> {
 

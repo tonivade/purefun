@@ -90,7 +90,7 @@ interface EitherPure<L> extends Applicative<Higher1<Either.µ, L>> {
   }
 }
 
-interface EitherApply<L> extends Applicative<Higher1<Either.µ, L>> {
+interface EitherApplicative<L> extends EitherPure<L> {
 
   @Override
   default <T, R> Either<L, R> ap(Higher1<Higher1<Either.µ, L>, T> value,
@@ -98,8 +98,6 @@ interface EitherApply<L> extends Applicative<Higher1<Either.µ, L>> {
     return Either.narrowK(value).flatMap(t -> Either.narrowK(apply).map(f -> f.apply(t)));
   }
 }
-
-interface EitherApplicative<L> extends EitherPure<L>, EitherApply<L> { }
 
 interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
 
