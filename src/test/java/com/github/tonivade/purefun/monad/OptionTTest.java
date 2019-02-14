@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
+import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Future;
 import com.github.tonivade.purefun.type.Id;
@@ -93,7 +94,7 @@ public class OptionTTest {
     OptionT<Id.µ, String> none1 = OptionT.none(monad);
     OptionT<Id.µ, String> none2 = OptionT.none(monad);
 
-    Eq<Higher2<OptionT.µ, Id.µ, String>> instance = OptionT.eq(IdInstances.eq(Eq.any()));
+    Eq<Higher2<OptionT.µ, Id.µ, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),
@@ -105,7 +106,7 @@ public class OptionTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<OptionT.µ, Future.µ>, Throwable> monadError = OptionT.monadError(Future.monadError());
+    MonadError<Higher1<OptionT.µ, Future.µ>, Throwable> monadError = OptionTInstances.monadError(Future.monadError());
 
     Higher1<Higher1<OptionT.µ, Future.µ>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<OptionT.µ, Future.µ>, String> raiseError = monadError.raiseError(error);
@@ -125,7 +126,7 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<Higher1<OptionT.µ, Id.µ>, Nothing> monadError = OptionT.monadError(monad);
+    MonadError<Higher1<OptionT.µ, Id.µ>, Nothing> monadError = OptionTInstances.monadError(monad);
 
     Higher1<Higher1<OptionT.µ, Id.µ>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<OptionT.µ, Id.µ>, String> raiseError = monadError.raiseError(nothing());

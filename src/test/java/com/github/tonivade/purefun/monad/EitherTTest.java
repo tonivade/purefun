@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.EitherTInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
@@ -88,7 +89,7 @@ public class EitherTTest {
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
     MonadError<Higher1<Higher1<EitherT.µ, Future.µ>, Throwable>, Throwable> monadError =
-        EitherT.monadError(Future.monadError());
+        EitherTInstances.monadError(Future.monadError());
 
     Higher1<Higher1<Higher1<EitherT.µ, Future.µ>, Throwable>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<Higher1<EitherT.µ, Future.µ>, Throwable>, String> raiseError = monadError.raiseError(error);
@@ -110,7 +111,7 @@ public class EitherTTest {
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
     MonadError<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, Throwable> monadError =
-        EitherT.monadError(monad);
+        EitherTInstances.monadError(monad);
 
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> pure = monadError.pure("is not ok");
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> raiseError = monadError.raiseError(error);
