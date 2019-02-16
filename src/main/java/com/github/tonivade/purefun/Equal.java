@@ -14,10 +14,6 @@ public final class Equal<T> {
   private final T target;
   private final Eq<T> tester;
 
-  private Equal(T target) {
-    this(target, Eq.always());
-  }
-
   private Equal(T target, Eq<T> tester) {
     this.target = requireNonNull(target);
     this.tester = requireNonNull(tester);
@@ -59,6 +55,6 @@ public final class Equal<T> {
   }
 
   public static <T> Equal<T> of(T target) {
-    return new Equal<>(target);
+    return new Equal<>(target, Eq.always());
   }
 }
