@@ -75,7 +75,7 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   @Override
   default <A> IO<A> raiseError(Throwable error) {
-    return IO.failure(error);
+    return IO.raiseError(error);
   }
 
   @Override

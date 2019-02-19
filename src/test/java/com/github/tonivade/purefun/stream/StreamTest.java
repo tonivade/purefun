@@ -225,7 +225,7 @@ public class StreamTest {
 
   @Test
   public void foldLeftLazyness() {
-    IO<String> fail = IO.failure(new NullPointerException());
+    IO<String> fail = IO.raiseError(new NullPointerException());
 
     IO<String> result = streamOfIO.eval(fail).asString().fix1(IO::narrowK);
 
@@ -234,7 +234,7 @@ public class StreamTest {
 
   @Test
   public void foldRightLazyness() {
-    IO<String> fail = IO.failure(new NullPointerException());
+    IO<String> fail = IO.raiseError(new NullPointerException());
 
     IO<String> result = streamOfIO.eval(fail)
         .foldRight(IO.pure(""), (a, b) -> b.fix1(IO::narrowK).map(x -> a + x)).fix1(IO::narrowK);

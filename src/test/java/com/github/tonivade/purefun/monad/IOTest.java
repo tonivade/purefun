@@ -88,7 +88,7 @@ public class IOTest {
   public void unsafeRunAsyncFailure() {
     RuntimeException error = new RuntimeException();
 
-    IO.<String>failure(error).unsafeRunAsync(callback);
+    IO.<String>raiseError(error).unsafeRunAsync(callback);
     
     verify(callback, timeout(1000)).accept(Try.failure(error));
   }
@@ -113,14 +113,14 @@ public class IOTest {
   
   @Test
   public void recover() {
-    IO<String> recover = IO.<String>failure(new RuntimeException()).recover(error -> "hola mundo");
+    IO<String> recover = IO.<String>raiseError(new RuntimeException()).recover(error -> "hola mundo");
     
     assertEquals("hola mundo", recover.unsafeRunSync());
   }
   
   @Test
   public void recoverWith() {
-    IO<String> recover = IO.<String>failure(new IllegalArgumentException())
+    IO<String> recover = IO.<String>raiseError(new IllegalArgumentException())
         .recoverWith(IllegalArgumentException.class, error -> "hola mundo");
     
     assertEquals("hola mundo", recover.unsafeRunSync());
@@ -128,7 +128,7 @@ public class IOTest {
   
   @Test
   public void recoverWithNotMatch() {
-    IO<String> recover = IO.<String>failure(new IllegalArgumentException())
+    IO<String> recover = IO.<String>raiseError(new IllegalArgumentException())
         .recoverWith(NoSuchElementException.class, error -> "hola mundo");
     
     assertThrows(IllegalArgumentException.class, recover::unsafeRunSync);

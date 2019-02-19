@@ -94,8 +94,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return new Pure<>(value);
   }
 
-  static <T> IO<T> failure(Throwable error) {
+  static <T> IO<T> raiseError(Throwable error) {
     return new Failure<>(error);
+  }
+
+  static <T> IO<T> delay(Producer<T> lazy) {
+    return suspend(lazy.andThen(IO::pure));
   }
 
   static <T> IO<T> suspend(Producer<IO<T>> lazy) {
