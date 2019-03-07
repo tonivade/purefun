@@ -34,6 +34,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   T unsafeRunSync();
 
+  default Try<T> safeRunSync() {
+    return Try.of(this::unsafeRunSync);
+  }
+
   default Future<T> toFuture() {
     return Future.run(this::unsafeRunSync);
   }
@@ -42,7 +46,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return Future.run(executor, this::unsafeRunSync);
   }
 
-  default void unsafeRunAsync(Consumer1<Try<T>> callback) {
+  default void safeRunAsync(Consumer1<Try<T>> callback) {
     toFuture().onComplete(callback);
   }
 

@@ -79,7 +79,7 @@ public class IOTest {
   
   @Test
   public void unsafeRunAsyncSuccess() {
-    IO.pure("hola").unsafeRunAsync(callback);
+    IO.pure("hola").safeRunAsync(callback);
     
     verify(callback, timeout(1000)).accept(Try.success("hola"));
   }
@@ -88,7 +88,7 @@ public class IOTest {
   public void unsafeRunAsyncFailure() {
     RuntimeException error = new RuntimeException();
 
-    IO.<String>raiseError(error).unsafeRunAsync(callback);
+    IO.<String>raiseError(error).safeRunAsync(callback);
     
     verify(callback, timeout(1000)).accept(Try.failure(error));
   }
