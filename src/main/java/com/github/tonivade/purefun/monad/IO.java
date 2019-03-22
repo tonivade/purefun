@@ -41,6 +41,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   default Future<T> toFuture() {
     return Future.run(this::unsafeRunSync);
   }
+  
+  default <R> ZIO<R, Throwable, T> toZIO() {
+    return ZIO.from(this::unsafeRunSync);
+  }
 
   default Future<T> toFuture(ExecutorService executor) {
     return Future.run(executor, this::unsafeRunSync);
