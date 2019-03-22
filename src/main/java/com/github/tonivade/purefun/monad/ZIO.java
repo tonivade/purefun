@@ -40,7 +40,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
     return env -> provide(env).flatMap(value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()).provide(env));
   }
-  
+
   default <B> ZIO<R, E, B> andThen(Producer<? extends Higher3<ZIO.µ, R, E, B>> next) {
     return flatMap(ignore -> next.get());
   }
@@ -52,21 +52,21 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   static <R, A> ZIO<R, Nothing, A> access(Function1<R, A> map) {
     return accessM(map.andThen(ZIO::pure));
   }
-  
-  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(CheckedFunction1<A, B> function) {
-    return value -> from(() ->function.apply(value));
-  }
-  
-  static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
-    return env -> IO.of(() -> Try.of(task::get).toEither());
-  }
-  
-  static <R> ZIO<R, Throwable, Nothing> exec(CheckedRunnable task) {
-    return from(task.asProducer());
-  }
 
   static <R> ZIO<R, Nothing, R> env() {
     return access(identity());
+  }
+
+  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(CheckedFunction1<A, B> function) {
+    return value -> from(() ->function.apply(value));
+  }
+
+  static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
+    return env -> IO.of(() -> Try.of(task::get).toEither());
+  }
+
+  static <R> ZIO<R, Throwable, Nothing> exec(CheckedRunnable task) {
+    return from(task.asProducer());
   }
 
   static <R, E, A> ZIO<R, E, A> pure(A value) {
