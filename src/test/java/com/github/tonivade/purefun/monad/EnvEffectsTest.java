@@ -34,34 +34,34 @@ public class EnvEffectsTest {
 }
 
 interface Console {
-  
+
   <R extends Console> Console.Service<R> console();
-  
+
   static ZIO<Console, Throwable, String> readln() {
-    return ZIO.accessM(env -> env.<Console>console().readln());
+    return ZIO.accessM(env -> env.console().readln());
   }
 
   static ZIO<Console, Throwable, Nothing> println(String text) {
-    return ZIO.accessM(env -> env.<Console>console().println(text));
+    return ZIO.accessM(env -> env.console().println(text));
   }
-  
+
   interface Service<R extends Console> {
     ZIO<R, Throwable, String> readln();
 
     ZIO<R, Throwable, Nothing> println(String text);
   }
-  
+
   static Console live() {
     return new Console() {
       @Override
       public <R extends Console> Service<R> console() {
         return new Console.Service<R>() {
-          
+
           @Override
           public ZIO<R, Throwable, String> readln() {
             return ZIO.from(() -> reader().readLine());
           }
-          
+
           @Override
           public ZIO<R, Throwable, Nothing> println(String text) {
             return ZIO.exec(() -> writer().println(text));

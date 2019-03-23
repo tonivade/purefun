@@ -33,12 +33,24 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
-    return env -> provide(env).map(either -> either.map(map));
+    return env -> provide(env).map(value -> value.map(map));
   }
 
   @Override
   default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
     return env -> provide(env).flatMap(value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()).provide(env));
+  }
+
+  default <B> ZIO<R, B, A> mapError(Function1<E, B> map) {
+    return env -> provide(env).map(value -> value.mapLeft(map));
+  }
+
+  default <B> ZIO<R, B, A> flatMapError(Function1<E, ? extends Higher3<ZIO.µ, R, B, A>> map) {
+    return env -> provide(env).flatMap(value -> value.mapLeft(map.andThen(ZIO::narrowK)).fold(identity(), ZIO::pure).provide(env));
+  }
+
+  default <B, C> ZIO<R, C, B> bimap(Function1<E, C> mapError, Function1<A, B> map) {
+    return env -> provide(env).map(value -> value.bimap(mapError, map));
   }
 
   default <B> ZIO<R, E, B> andThen(Producer<? extends Higher3<ZIO.µ, R, E, B>> next) {
