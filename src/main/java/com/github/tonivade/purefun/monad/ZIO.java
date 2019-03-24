@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
@@ -42,11 +43,16 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return mapValue(this, value -> value.map(map));
   }
 
+  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<A, B, C> mapper) {
+    // TODO
+    return za.flatMap(a -> zb.map(b -> mapper.apply(a, b)));
+  }
+
   @Override
   default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
     return flatMapValue(this, value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()));
   }
-  
+
   @SuppressWarnings("unchecked")
   default <B> ZIO<R, E, B> flatten() {
     try {
@@ -55,7 +61,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
       throw new UnsupportedOperationException("cannot be flattened");
     }
   }
-  
+
   default ZIO<R, A, E> swap() {
     return mapValue(this, Either<E, A>::swap);
   }
@@ -75,15 +81,15 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   default <B> ZIO<R, E, B> andThen(Producer<? extends Higher3<ZIO.µ, R, E, B>> next) {
     return flatMap(ignore -> next.get());
   }
-  
+
   default <B, F> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
     return env -> provide(env).map(value -> value.fold(mapError, map)).unsafeRunSync().provide(env);
   }
-  
+
   default <B> ZIO<R, Nothing, B> fold(Function1<E, B> mapError, Function1<A, B> map) {
     return foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure));
   }
-  
+
   default ZIO<R, E, A> orElse(Producer<ZIO<R, E, A>> other) {
     return foldM(other.asFunction(), cons(this));
   }
@@ -104,6 +110,10 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return value -> from(() -> function.apply(value));
   }
 
+  static <R, E, A> ZIO<R, E, A> from(Producer<Either<E, A>> task) {
+    return env -> IO.of(task::get);
+  }
+
   static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
     return env -> IO.of(() -> Try.of(task).toEither());
   }
@@ -119,7 +129,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
     return env -> IO.pure(Either.left(error));
   }
-  
+
   @SuppressWarnings("unchecked")
   static <R, E> ZIO<R, E, Nothing> unit() {
     return (ZIO<R, E, Nothing>) UNIT;
@@ -140,11 +150,11 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 }
 
 interface ZIOModule {
-  
+
   static <R, E, F, A, B> ZIO<R, F, B> mapValue(ZIO<R, E, A> self, Function1<Either<E, A>, Either<F, B>> map) {
     return env -> self.provide(env).map(map);
   }
-  
+
   static <R, E, F, A, B> ZIO<R, F, B> flatMapValue(ZIO<R, E, A> self, Function1<Either<E, A>, ZIO<R, F, B>> map) {
     return env -> self.provide(env).flatMap(value -> map.apply(value).provide(env));
   }
