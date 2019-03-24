@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.monad.Console.println;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -50,9 +51,31 @@ interface Console {
 
     ZIO<R, Throwable, Nothing> println(String text);
   }
+  
+  static Console test() {
+    return new Console() {
+      
+      @Override
+      public <R extends Console> Service<R> console() {
+        return new Console.Service<R>() {
+
+          @Override
+          public ZIO<R, Throwable, String> readln() {
+            return ZIO.pure("Toni");
+          }
+
+          @Override
+          public ZIO<R, Throwable, Nothing> println(String text) {
+            return ZIO.pure(nothing());
+          }
+        };
+      }
+    };
+  }
 
   static Console live() {
     return new Console() {
+
       @Override
       public <R extends Console> Service<R> console() {
         return new Console.Service<R>() {

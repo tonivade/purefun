@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.CheckedFunction1;
@@ -45,16 +46,28 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return env -> provide(env).map(value -> value.mapLeft(map));
   }
 
-  default <B> ZIO<R, B, A> flatMapError(Function1<E, ? extends Higher3<ZIO.µ, R, B, A>> map) {
+  default <F> ZIO<R, F, A> flatMapError(Function1<E, ? extends Higher3<ZIO.µ, R, F, A>> map) {
     return env -> provide(env).flatMap(value -> value.mapLeft(map.andThen(ZIO::narrowK)).fold(identity(), ZIO::pure).provide(env));
   }
 
-  default <B, C> ZIO<R, C, B> bimap(Function1<E, C> mapError, Function1<A, B> map) {
+  default <B, F> ZIO<R, F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
     return env -> provide(env).map(value -> value.bimap(mapError, map));
   }
 
   default <B> ZIO<R, E, B> andThen(Producer<? extends Higher3<ZIO.µ, R, E, B>> next) {
     return flatMap(ignore -> next.get());
+  }
+  
+  default <B, F> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
+    return env -> provide(env).map(value -> value.fold(mapError, map)).unsafeRunSync().provide(env);
+  }
+  
+  default <B> ZIO<R, Nothing, B> fold(Function1<E, B> mapError, Function1<A, B> map) {
+    return foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure));
+  }
+  
+  default ZIO<R, E, A> orElse(Producer<ZIO<R, E, A>> other) {
+    return foldM(other.asFunction(), cons(this));
   }
 
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {
@@ -70,7 +83,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(CheckedFunction1<A, B> function) {
-    return value -> from(() ->function.apply(value));
+    return value -> from(() -> function.apply(value));
   }
 
   static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
