@@ -6,6 +6,9 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.monad.ZIOModule.flatMapValue;
+import static com.github.tonivade.purefun.monad.ZIOModule.mapValue;
 
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.CheckedProducer;
@@ -24,6 +27,8 @@ import com.github.tonivade.purefun.type.Try;
 @FunctionalInterface
 public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
+  ZIO<?, ?, Nothing> UNIT = pure(nothing());
+
   final class µ implements Kind {}
 
   IO<Either<E, A>> provide(R env);
@@ -34,24 +39,37 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
-    return env -> provide(env).map(value -> value.map(map));
+    return mapValue(this, value -> value.map(map));
   }
 
   @Override
   default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
-    return env -> provide(env).flatMap(value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()).provide(env));
+    return flatMapValue(this, value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()));
+  }
+  
+  @SuppressWarnings("unchecked")
+  default <B> ZIO<R, E, B> flatten() {
+    try {
+      return ((ZIO<R, E, ZIO<R, E, B>>) this).flatMap(identity());
+    } catch (ClassCastException e) {
+      throw new UnsupportedOperationException("cannot be flattened");
+    }
+  }
+  
+  default ZIO<R, A, E> swap() {
+    return mapValue(this, Either<E, A>::swap);
   }
 
   default <B> ZIO<R, B, A> mapError(Function1<E, B> map) {
-    return env -> provide(env).map(value -> value.mapLeft(map));
+    return mapValue(this, value -> value.mapLeft(map));
   }
 
   default <F> ZIO<R, F, A> flatMapError(Function1<E, ? extends Higher3<ZIO.µ, R, F, A>> map) {
-    return env -> provide(env).flatMap(value -> value.mapLeft(map.andThen(ZIO::narrowK)).fold(identity(), ZIO::pure).provide(env));
+    return flatMapValue(this, value -> value.mapLeft(map.andThen(ZIO::narrowK)).fold(identity(), ZIO::pure));
   }
 
   default <B, F> ZIO<R, F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
-    return env -> provide(env).map(value -> value.bimap(mapError, map));
+    return mapValue(this, value -> value.bimap(mapError, map));
   }
 
   default <B> ZIO<R, E, B> andThen(Producer<? extends Higher3<ZIO.µ, R, E, B>> next) {
@@ -87,7 +105,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
-    return env -> IO.of(() -> Try.of(task::get).toEither());
+    return env -> IO.of(() -> Try.of(task).toEither());
   }
 
   static <R> ZIO<R, Throwable, Nothing> exec(CheckedRunnable task) {
@@ -101,6 +119,11 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
     return env -> IO.pure(Either.left(error));
   }
+  
+  @SuppressWarnings("unchecked")
+  static <R, E> ZIO<R, E, Nothing> unit() {
+    return (ZIO<R, E, Nothing>) UNIT;
+  }
 
   static <R, E, A> ZIO<R, E, A> narrowK(Higher3<ZIO.µ, R, E, A> hkt) {
     return (ZIO<R, E, A>) hkt;
@@ -113,5 +136,16 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   @SuppressWarnings("unchecked")
   static <R, E, A> ZIO<R, E, A> narrowK(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> hkt) {
     return (ZIO<R, E, A>) hkt;
+  }
+}
+
+interface ZIOModule {
+  
+  static <R, E, F, A, B> ZIO<R, F, B> mapValue(ZIO<R, E, A> self, Function1<Either<E, A>, Either<F, B>> map) {
+    return env -> self.provide(env).map(map);
+  }
+  
+  static <R, E, F, A, B> ZIO<R, F, B> flatMapValue(ZIO<R, E, A> self, Function1<Either<E, A>, ZIO<R, F, B>> map) {
+    return env -> self.provide(env).flatMap(value -> map.apply(value).provide(env));
   }
 }
