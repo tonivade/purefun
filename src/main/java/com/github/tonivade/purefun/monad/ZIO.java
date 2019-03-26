@@ -43,11 +43,6 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return mapValue(this, value -> value.map(map));
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<A, B, C> mapper) {
-    // TODO
-    return za.flatMap(a -> zb.map(b -> mapper.apply(a, b)));
-  }
-
   @Override
   default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
     return flatMapValue(this, value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()));
@@ -104,6 +99,14 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   static <R> ZIO<R, Nothing, R> env() {
     return access(identity());
+  }
+
+  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<A, B, C> mapper) {
+    return za.flatMap(a -> zb.map(b -> mapper.curried().apply(a).apply(b)));
+  }
+
+  static <R, E, A> ZIO<R, E, A> absorb(ZIO<R, E, Either<E, A>> value) {
+    return mapValue(value, Either::flatten);
   }
 
   static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(CheckedFunction1<A, B> function) {
