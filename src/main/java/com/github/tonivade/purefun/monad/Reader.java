@@ -9,6 +9,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
 
 @FunctionalInterface
 public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {
@@ -25,6 +26,10 @@ public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {
   @Override
   default <B> Reader<R, B> flatMap(Function1<A, ? extends Higher2<Reader.µ, R, B>> mapper) {
     return reader -> mapper.andThen(Reader::narrowK).apply(eval(reader)).eval(reader);
+  }
+
+  default <B> Reader<R, B> andThen(Producer<Reader<R, B>> next) {
+    return flatMap(ignore -> next.get());
   }
 
   static <R, A> Reader<R, A> pure(A value) {
