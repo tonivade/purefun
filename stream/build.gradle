@@ -3,7 +3,7 @@ archivesBaseName = 'purefun-stream'
 dependencies {
   compile project(':core')
   compile project(':typeclasses')
-  compile project(':extra')
+  compile project(':monad')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier

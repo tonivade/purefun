@@ -3,7 +3,7 @@ archivesBaseName = 'purefun-instances'
 dependencies {
   testCompile project(':core')
   testCompile project(':typeclasses')
-  testCompile project(':extra')
+  testCompile project(':monad')
   testCompile project(':transformers')
   testCompile project(':stream')
   testCompile libs.junitJupiter

@@ -1,4 +1,4 @@
-archivesBaseName = 'purefun-extra'
+archivesBaseName = 'purefun-monad'
 
 dependencies {
   compile project(':core')
