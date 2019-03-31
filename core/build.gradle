@@ -1,0 +1,8 @@
+archivesBaseName = 'purefun-core'
+
+dependencies {
+  testCompile libs.junitJupiter
+  testCompile libs.junitRunner
+  testCompile libs.equalsVerifier
+  testCompile libs.mockitoCore
+}

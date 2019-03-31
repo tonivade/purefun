@@ -1,0 +1,11 @@
+archivesBaseName = 'purefun-transformers'
+
+dependencies {
+  compile project(':core')
+  compile project(':typeclasses')
+  testCompile project(':extra')
+  testCompile libs.junitJupiter
+  testCompile libs.junitRunner
+  testCompile libs.equalsVerifier
+  testCompile libs.mockitoCore
+}

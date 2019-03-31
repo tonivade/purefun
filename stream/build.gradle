@@ -1,0 +1,10 @@
+archivesBaseName = 'purefun-stream'
+
+dependencies {
+  compile project(':core')
+  compile project(':typeclasses')
+  compile project(':extra')
+  testCompile libs.junitJupiter
+  testCompile libs.junitRunner
+  testCompile libs.equalsVerifier
+}

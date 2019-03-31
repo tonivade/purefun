@@ -1,0 +1,9 @@
+archivesBaseName = 'purefun-zio'
+
+dependencies {
+  compile project(':core')
+  compile project(':extra')
+  testCompile libs.junitJupiter
+  testCompile libs.junitRunner
+  testCompile libs.equalsVerifier
+}
