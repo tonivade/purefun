@@ -26,11 +26,11 @@ public class WriterTest {
               () -> assertEquals(listOf("add 5", "plus 2"), writer.getLog()));
   }
 
-  static <T, A> Writer<Sequence<T>, A> listPure(A value) {
+  private static <T, A> Writer<Sequence<T>, A> listPure(A value) {
     return Writer.pure(SequenceInstances.monoid(), value);
   }
 
-  static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
+  private static <T, A> Writer<Sequence<T>, A> listWriter(T log, A value) {
     return Writer.writer(SequenceInstances.monoid(), Tuple.of(listOf(log), value));
   }
 }
