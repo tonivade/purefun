@@ -1,0 +1,14 @@
+ext {
+  versions = [
+    junitEngine     : '5.4.0',
+    junitPlatform   : '1.4.0',
+    equalsVerifier  : '3.0.3',
+    mockitoCore     : '2.24.5'
+  ]
+  libs = [
+    junitJupiter    : "org.junit.jupiter:junit-jupiter-engine:$versions.junitEngine",
+    junitRunner     : "org.junit.platform:junit-platform-runner:$versions.junitPlatform",
+    equalsVerifier  : "nl.jqno.equalsverifier:equalsverifier:$versions.equalsVerifier",
+    mockitoCore     : "org.mockito:mockito-core:$versions.mockitoCore"
+  ]
+}

@@ -1,107 +1,137 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'jacoco'
-apply plugin: 'com.bmuschko.nexus'
-apply plugin: 'org.sonarqube'
-
-group = 'com.github.tonivade'
-version = '0.9.5-SNAPSHOT'
-archivesBaseName = 'purefun'
+apply from: 'gradle/deps.gradle'
 
 buildscript {
+  ext {
+    nexusPlugin = '2.3.1'
+    sonarPlugin = '2.6.2'
+  }
+
   repositories {
     mavenCentral()
     jcenter()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
   }
 
   dependencies {
-    classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
-    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
+    classpath "com.bmuschko:gradle-nexus-plugin:${nexusPlugin}"
+    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${sonarPlugin}"
   }
 }
 
-jacoco {
-  toolVersion = '0.8.2'
-}
+apply plugin: 'org.sonarqube'
 
-test {
-  useJUnitPlatform()
+allprojects {
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+  apply plugin: 'jacoco'
+  apply plugin: 'com.bmuschko.nexus'
+
+  group = 'com.github.tonivade'
+  version = '1.0-SNAPSHOT'
+
+  sourceCompatibility = '1.8'
+  targetCompatibility = '1.8'
+
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+      url = 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+  }
+
+  test {
+    useJUnitPlatform()
+
+    jacoco {
+      destinationFile = file("${buildDir}/jacoco/test.exec")
+    }
+  }
 
   jacoco {
-    destinationFile = file("${buildDir}/jacoco/test.exec")
+    toolVersion = '0.8.3'
+  }
+
+  jacocoTestReport {
+    reports {
+      xml.enabled = true
+      html.enabled = true
+      xml.destination file("${buildDir}/reports/jacoco/report.xml")
+    }
   }
 }
 
-jacocoTestReport {
-  reports {
-    xml.enabled = true
-    html.enabled = true
-    xml.destination file("${buildDir}/reports/jacoco/report.xml")
-  }
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-repositories { 
-  mavenLocal() 
-  mavenCentral() 
-  maven {
-    url = 'https://oss.sonatype.org/content/repositories/snapshots'
-  }
-}
-
-dependencies {
-  testCompile 'nl.jqno.equalsverifier:equalsverifier:3.0.3'
-  testCompile 'org.junit.jupiter:junit-jupiter-engine:5.4.0'
-  testCompile 'org.mockito:mockito-core:2.24.5'
-}
-
-jar {
-  manifest {
-    attributes('Automatic-Module-Name': 'com.github.tonivade.purefun')
-  }
-}
-
-modifyPom {
-  project {
-    name 'Pure Fun'
-    description 'Functional Programming Library for Java'
-    url 'https://github.com/tonivade/purefun'
-    inceptionYear '2018'
-
-    scm {
+subprojects {
+  modifyPom {
+    project {
+      name 'Pure Fun'
+      description 'Functional Programming Library for Java'
       url 'https://github.com/tonivade/purefun'
-      connection 'scm:https://github.com/tonivade/purefun.git'
-      developerConnection 'scm:git://github.com/tonivade/purefun.git'
-    }
+      inceptionYear '2018'
 
-    licenses {
-      license {
-        name 'The MIT License (MIT)'
-        url 'https://github.com/tonivade/purefun/blob/master/LICENSE'
-        distribution 'repo'
+      scm {
+        url 'https://github.com/tonivade/purefun'
+        connection 'scm:https://github.com/tonivade/purefun.git'
+        developerConnection 'scm:git://github.com/tonivade/purefun.git'
       }
-    }
 
-    developers {
-      developer {
-        id 'tonivade'
-        name 'Antonio Muñoz'
-        email 'antoniogmc@gmail.com'
+      licenses {
+        license {
+          name 'The MIT License (MIT)'
+          url 'https://github.com/tonivade/purefun/blob/master/LICENSE'
+          distribution 'repo'
+        }
+      }
+
+      developers {
+        developer {
+          id 'tonivade'
+          name 'Antonio Muñoz'
+          email 'antoniogmc@gmail.com'
+        }
       }
     }
   }
+
+  extraArchive {
+    sources = true
+    tests = false
+    javadoc = true
+  }
+
+  nexus {
+    sign = true
+    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots'
+  }
+
+  dependencies {
+    testCompile libs.junitJupiter
+    testRuntime libs.junitRunner
+  }
 }
 
-extraArchive {
-  sources = true
-  tests = false
-  javadoc = true
-}
+def publishedProjects = subprojects.findAll()
 
-nexus {
-  sign = true
-  repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
-  snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots'
+task jacocoFullReport(type: JacocoReport, group: 'Coverage reports') {
+  description = 'Generates an aggregate report from all subprojects'
+
+  dependsOn(publishedProjects.test)
+
+  additionalSourceDirs = files(publishedProjects.sourceSets.main.allSource.srcDirs)
+  sourceDirectories = files(publishedProjects.sourceSets.main.allSource.srcDirs)
+  classDirectories = files(publishedProjects.sourceSets.main.output)
+  executionData = files(publishedProjects.jacocoTestReport.executionData)
+
+  doFirst {
+    executionData = files(executionData.findAll { it.exists() })
+  }
+
+  reports {
+    html.enabled = true
+    xml.enabled = true
+    xml.destination file("${buildDir}/reports/jacoco/fullReport.xml")
+  }
 }
