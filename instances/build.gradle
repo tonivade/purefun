@@ -4,7 +4,7 @@ dependencies {
   testCompile project(':core')
   testCompile project(':typeclasses')
   testCompile project(':monad')
-  testCompile project(':transformers')
+  testCompile project(':transformer')
   testCompile project(':stream')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
