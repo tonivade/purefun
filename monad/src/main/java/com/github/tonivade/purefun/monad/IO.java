@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
@@ -69,6 +70,13 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   default IO<Try<T>> attemp() {
     return new Attemp<>(this);
+  }
+
+  default IO<Either<Throwable, T>> either() {
+    return attemp().map(Try::toEither);
+  }
+  default <L, R> IO<Either<L, R>> either(Function1<Throwable, L> mapError, Function1<T, R> mapper) {
+    return either().map(either -> either.bimap(mapError, mapper));
   }
 
   default <R> IO<R> redeem(Function1<Throwable, R> mapError, Function1<T, R> mapper) {
@@ -285,8 +293,8 @@ final class IOResource<T> implements AutoCloseable {
   final CheckedConsumer1<T> release;
 
   IOResource(T resource, CheckedConsumer1<T> release) {
-    this.resource = resource;
-    this.release = release;
+    this.resource = requireNonNull(resource);
+    this.release = requireNonNull(release);
   }
 
   public <R> IO<R> apply(Function1<T, IO<R>> use) {
