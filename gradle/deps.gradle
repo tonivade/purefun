@@ -1,9 +1,9 @@
 ext {
   versions = [
-    junitEngine     : '5.4.0',
-    junitPlatform   : '1.4.0',
+    junitEngine     : '5.4.2',
+    junitPlatform   : '1.4.2',
     equalsVerifier  : '3.0.3',
-    mockitoCore     : '2.24.5'
+    mockitoCore     : '2.27.0'
   ]
   libs = [
     junitJupiter    : "org.junit.jupiter:junit-jupiter-engine:$versions.junitEngine",

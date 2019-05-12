@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Higher3<F extends Kind, A, B, C> extends Higher2<Higher1<F, A>, B, C>, Higher1<Higher1<Higher1<F, A>, B>, C> {
+public interface Higher3<F extends Kind, A, B, C> extends Higher2<Higher1<F, A>, B, C> {
 
   @Override
   default <R> R fix1(Function1<? super Higher1<Higher1<Higher1<F, A>, B>, C>, ? extends R> function) {
