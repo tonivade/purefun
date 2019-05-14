@@ -18,7 +18,7 @@ public class ZIOTest {
   @Test
   public void mapRight() {
     Either<Throwable, Integer> result =
-        parseInt("1").map(x -> x + 1).run(nothing());
+        parseInt("1").map(x -> x + 1).provide(nothing());
 
     assertEquals(Either.right(2), result);
   }
@@ -26,7 +26,7 @@ public class ZIOTest {
   @Test
   public void mapLeft() {
     Either<Throwable, Integer> result =
-        parseInt("lskjdf").map(x -> x + 1).run(nothing());
+        parseInt("lskjdf").map(x -> x + 1).provide(nothing());
 
     assertEquals(NumberFormatException.class, result.getLeft().getClass());
   }
@@ -34,7 +34,7 @@ public class ZIOTest {
   @Test
   public void mapError() {
     Either<String, Integer> result =
-        parseInt("lskjdf").mapError(Throwable::getMessage).run(nothing());
+        parseInt("lskjdf").mapError(Throwable::getMessage).provide(nothing());
 
     assertEquals(Either.left("For input string: \"lskjdf\""), result);
   }
@@ -42,7 +42,7 @@ public class ZIOTest {
   @Test
   public void flatMapRight() {
     Either<Throwable, Integer> result =
-        parseInt("1").flatMap(x -> ZIO.pure(x + 1)).run(nothing());
+        parseInt("1").flatMap(x -> ZIO.pure(x + 1)).provide(nothing());
 
     assertEquals(Either.right(2), result);
   }
@@ -50,7 +50,7 @@ public class ZIOTest {
   @Test
   public void flatMapLeft() {
     Either<Throwable, Integer> result =
-        parseInt("lskjdf").flatMap(x -> ZIO.pure(x + 1)).run(nothing());
+        parseInt("lskjdf").flatMap(x -> ZIO.pure(x + 1)).provide(nothing());
 
     assertEquals(NumberFormatException.class, result.getLeft().getClass());
   }
@@ -58,7 +58,7 @@ public class ZIOTest {
   @Test
   public void flatMapError() {
     Either<String, Integer> result =
-        parseInt("lskjdf").flatMapError(e -> ZIO.raiseError(e.getMessage())).run(nothing());
+        parseInt("lskjdf").flatMapError(e -> ZIO.raiseError(e.getMessage())).provide(nothing());
 
     assertEquals(Either.left("For input string: \"lskjdf\""), result);
   }
@@ -66,7 +66,7 @@ public class ZIOTest {
   @Test
   public void bimapRight() {
     Either<String, Integer> result =
-        parseInt("1").bimap(Throwable::getMessage, x -> x + 1).run(nothing());
+        parseInt("1").bimap(Throwable::getMessage, x -> x + 1).provide(nothing());
 
     assertEquals(Either.right(2), result);
   }
@@ -74,7 +74,7 @@ public class ZIOTest {
   @Test
   public void bimapLeft() {
     Either<String, Integer> result =
-        parseInt("lskjdf").bimap(Throwable::getMessage, x -> x + 1).run(nothing());
+        parseInt("lskjdf").bimap(Throwable::getMessage, x -> x + 1).provide(nothing());
 
     assertEquals(Either.left("For input string: \"lskjdf\""), result);
   }
@@ -82,7 +82,7 @@ public class ZIOTest {
   @Test
   public void foldRight() {
     Either<Nothing, Integer> result =
-        parseInt("1").fold(e -> -1, identity()).run(nothing());
+        parseInt("1").fold(e -> -1, identity()).provide(nothing());
 
     assertEquals(Either.right(1), result);
   }
@@ -90,7 +90,7 @@ public class ZIOTest {
   @Test
   public void foldLeft() {
     Either<Nothing, Integer> result =
-        parseInt("kjsdfdf").fold(e -> -1, identity()).run(nothing());
+        parseInt("kjsdfdf").fold(e -> -1, identity()).provide(nothing());
 
     assertEquals(Either.right(-1), result);
   }
@@ -98,7 +98,7 @@ public class ZIOTest {
   @Test
   public void orElseRight() {
     Either<Throwable, Integer> result =
-        parseInt("1").orElse(() -> ZIO.pure(2)).run(nothing());
+        parseInt("1").orElse(() -> ZIO.pure(2)).provide(nothing());
 
     assertEquals(Either.right(1), result);
   }
@@ -106,7 +106,7 @@ public class ZIOTest {
   @Test
   public void orElseLeft() {
     Either<Throwable, Integer> result =
-        parseInt("kjsdfe").orElse(() -> ZIO.pure(2)).run(nothing());
+        parseInt("kjsdfe").orElse(() -> ZIO.pure(2)).provide(nothing());
 
     assertEquals(Either.right(2), result);
   }

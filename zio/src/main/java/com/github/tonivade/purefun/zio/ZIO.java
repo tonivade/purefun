@@ -22,7 +22,6 @@ import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
@@ -33,11 +32,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   final class µ implements Kind {}
 
-  IO<Either<E, A>> provide(R env);
-
-  default Either<E, A> run(R env) {
-    return provide(env).unsafeRunSync();
-  }
+  Either<E, A> provide(R env);
 
   @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
@@ -79,7 +74,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   default <B, F> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
-    return env -> provide(env).map(value -> value.fold(mapError, map)).unsafeRunSync().provide(env);
+    return env -> provide(env).fold(mapError, map).provide(env);
   }
 
   default <B> ZIO<R, Nothing, B> fold(Function1<E, B> mapError, Function1<A, B> map) {
@@ -115,11 +110,11 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   static <R, E, A> ZIO<R, E, A> from(Producer<Either<E, A>> task) {
-    return env -> IO.of(task::get);
+    return env -> task.get();
   }
 
   static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
-    return env -> IO.of(() -> Try.of(task).toEither());
+    return env -> Try.of(task).toEither();
   }
 
   static <R> ZIO<R, Throwable, Nothing> exec(CheckedRunnable task) {
@@ -127,11 +122,11 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   static <R, E, A> ZIO<R, E, A> pure(A value) {
-    return env -> IO.pure(Either.right(value));
+    return env -> Either.right(value);
   }
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
-    return env -> IO.pure(Either.left(error));
+    return env -> Either.left(error);
   }
 
   @SuppressWarnings("unchecked")
@@ -156,10 +151,10 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 interface ZIOModule {
 
   static <R, E, F, A, B> ZIO<R, F, B> mapValue(ZIO<R, E, A> self, Function1<Either<E, A>, Either<F, B>> map) {
-    return env -> self.provide(env).map(map);
+    return env -> map.apply(self.provide(env));
   }
 
   static <R, E, F, A, B> ZIO<R, F, B> flatMapValue(ZIO<R, E, A> self, Function1<Either<E, A>, ZIO<R, F, B>> map) {
-    return env -> self.provide(env).flatMap(value -> map.apply(value).provide(env));
+    return env -> map.apply(self.provide(env)).provide(env);
   }
 }

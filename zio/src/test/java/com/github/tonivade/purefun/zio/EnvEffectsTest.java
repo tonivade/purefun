@@ -22,7 +22,7 @@ public class EnvEffectsTest {
   public void program() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(echo().provide(Console.live()));
+    executor.run(() -> echo().provide(Console.live()));
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }

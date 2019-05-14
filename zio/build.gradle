@@ -2,7 +2,7 @@ archivesBaseName = 'purefun-zio'
 
 dependencies {
   compile project(':core')
-  compile project(':monad')
+  testCompile project(':monad')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier
