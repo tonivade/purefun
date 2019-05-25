@@ -1,4 +1,4 @@
-archivesBaseName = 'purefun-instances'
+archivesBaseName = 'purefun-laws'
 
 dependencies {
   compile project(':core')
