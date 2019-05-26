@@ -116,6 +116,10 @@ public interface ZIO<R, E, A> {
     return env -> Either.right(value);
   }
 
+  static <R, E, A> ZIO<R, E, A> pure(Producer<A> value) {
+    return env -> Either.right(value.get());
+  }
+
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
     return env -> Either.left(error);
   }
