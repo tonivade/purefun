@@ -47,4 +47,9 @@ public final class Ref<A> {
   public static <R, E, A> Ref<A> of(A value) {
     return new Ref<>(new AtomicReference<>(value));
   }
+
+  @Override
+  public String toString() {
+    return "Ref(" + value.get() + ")";
+  }
 }
