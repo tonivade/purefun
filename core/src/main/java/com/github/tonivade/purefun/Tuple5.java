@@ -82,6 +82,10 @@ public final class Tuple5<A, B, C, D, E> implements Tuple, Serializable {
     return Tuple5.of(map1.apply(value1), map2.apply(value2), map3.apply(value3), map4.apply(value4), map5.apply(value5));
   }
 
+  public <R> R applyTo(Function5<A, B, C, D, E, R> function) {
+    return function.apply(value1, value2, value3, value4, value5);
+  }
+
   public static <A, B, C, D, E> Tuple5<A, B, C, D, E> of(A value1, B value2, C value3, D value4, E value5) {
     return new Tuple5<>(value1, value2, value3, value4, value5);
   }

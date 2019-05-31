@@ -52,6 +52,10 @@ public final class Tuple2<A, B> implements Tuple, Serializable {
     return new Tuple2<>(value1, value2);
   }
 
+  public <R> R applyTo(Function2<A, B, R> function) {
+    return function.apply(value1, value2);
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(value1, value2);

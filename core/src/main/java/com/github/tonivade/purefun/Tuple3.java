@@ -58,6 +58,10 @@ public final class Tuple3<A, B, C> implements Tuple, Serializable {
     return Tuple3.of(map1.apply(value1), map2.apply(value2), map3.apply(value3));
   }
 
+  public <R> R applyTo(Function3<A, B, C, R> function) {
+    return function.apply(value1, value2, value3);
+  }
+
   public static <A, B, C> Tuple3<A, B, C> of(A value1, B value2, C value3) {
     return new Tuple3<>(value1, value2, value3);
   }
