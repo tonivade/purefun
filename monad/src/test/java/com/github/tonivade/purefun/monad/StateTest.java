@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.State.state;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
@@ -28,7 +28,7 @@ public class StateTest {
 
   @Test
   public void set() {
-    assertEquals(Tuple.of("abc", nothing()), State.set("abc").run("zzz"));
+    assertEquals(Tuple.of("abc", unit()), State.set("abc").run("zzz"));
   }
 
   @Test
@@ -38,28 +38,28 @@ public class StateTest {
 
   @Test
   public void modify() {
-    assertEquals(Tuple.of("ABC", nothing()), State.<String>modify(String::toUpperCase).run("abc"));
+    assertEquals(Tuple.of("ABC", unit()), State.<String>modify(String::toUpperCase).run("abc"));
   }
 
   @Test
   public void flatMap() {
-    State<ImmutableList<String>, Nothing> state =
+    State<ImmutableList<String>, Unit> state =
         pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-    Tuple2<ImmutableList<String>, Nothing> result = state.run(ImmutableList.empty());
+    Tuple2<ImmutableList<String>, Unit> result = state.run(ImmutableList.empty());
 
-    assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result);
+    assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result);
   }
 
   @Test
   public void compose() {
-    State<Nothing, String> sa = State.pure("a");
-    State<Nothing, String> sb = State.pure("b");
-    State<Nothing, String> sc = State.pure("c");
+    State<Unit, String> sa = State.pure("a");
+    State<Unit, String> sb = State.pure("b");
+    State<Unit, String> sc = State.pure("c");
 
-    Tuple2<Nothing, Sequence<String>> result = State.compose(listOf(sa, sb, sc)).run(nothing());
+    Tuple2<Unit, Sequence<String>> result = State.compose(listOf(sa, sb, sc)).run(unit());
 
-    assertEquals(Tuple.of(nothing(), listOf("a", "b", "c")), result);
+    assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), result);
   }
 
   @Test
@@ -79,7 +79,7 @@ public class StateTest {
     return value -> state(state -> Tuple.of(state.append(value), nextVal));
   }
 
-  private static <T> Function1<T, State<ImmutableList<T>, Nothing>> end() {
-    return value -> state(state -> Tuple.of(state.append(value), nothing()));
+  private static <T> Function1<T, State<ImmutableList<T>, Unit>> end() {
+    return value -> state(state -> Tuple.of(state.append(value), unit()));
   }
 }

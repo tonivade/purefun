@@ -4,15 +4,15 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 
 @FunctionalInterface
 public interface CheckedConsumer1<A> extends Recoverable {
 
   void accept(A value) throws Exception;
 
-  default CheckedFunction1<A, Nothing> asFunction() {
-    return value -> { accept(value); return nothing(); };
+  default CheckedFunction1<A, Unit> asFunction() {
+    return value -> { accept(value); return unit(); };
   }
 
   default CheckedConsumer1<A> andThen(CheckedConsumer1<A> after) {

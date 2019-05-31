@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
 import com.github.tonivade.purefun.FlatMap2;
@@ -13,9 +13,9 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 
 @FunctionalInterface
@@ -54,12 +54,12 @@ public interface State<S, A> extends FlatMap2<State.µ, S, A> {
     return state -> Tuple2.of(state, state);
   }
 
-  static <S> State<S, Nothing> set(S value) {
-    return state -> Tuple2.of(value, nothing());
+  static <S> State<S, Unit> set(S value) {
+    return state -> Tuple2.of(value, unit());
   }
 
-  static <S> State<S, Nothing> modify(Operator1<S> mapper) {
-    return state -> Tuple2.of(mapper.apply(state), nothing());
+  static <S> State<S, Unit> modify(Operator1<S> mapper) {
+    return state -> Tuple2.of(mapper.apply(state), unit());
   }
 
   static <S, A> State<S, A> inspect(Function1<S, A> mapper) {

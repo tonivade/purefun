@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Collections.synchronizedMap;
 import static java.util.Objects.requireNonNull;
 
@@ -13,8 +13,8 @@ import java.util.Map;
 
 final class MemoizedProducer<T> implements Producer<T> {
 
-  private final Map<Nothing, T> cache = synchronizedMap(new HashMap<>());
-  private final Function1<Nothing, T> function;
+  private final Map<Unit, T> cache = synchronizedMap(new HashMap<>());
+  private final Function1<Unit, T> function;
 
   MemoizedProducer(Producer<T> producer) {
     this.function = requireNonNull(producer).asFunction();
@@ -22,7 +22,7 @@ final class MemoizedProducer<T> implements Producer<T> {
 
   @Override
   public T get() {
-    return cache.computeIfAbsent(nothing(), function::apply);
+    return cache.computeIfAbsent(unit(), function::apply);
   }
 
   @Override

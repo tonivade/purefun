@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,18 +18,18 @@ public class Consumer1Test {
 
   @Test
   public void andThen() {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     Consumer1<String> add = Consumer1.of(strings::add);
     Consumer1<String> composite = add.andThen(add);
     composite.accept("value");
-    
+
     assertEquals(asList("value", "value"), strings);
   }
-  
+
   @Test
   public void peek() {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     Consumer1<String> add = Consumer1.of(strings::add);
 
@@ -38,16 +38,16 @@ public class Consumer1Test {
     assertAll(() -> assertEquals(asList("value"), strings),
               () -> assertEquals("value", string));
   }
-  
+
   @Test
   public void asFunction() {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     Consumer1<String> add = Consumer1.of(strings::add);
 
-    Nothing nothing = add.asFunction().apply("value");
+    Unit unit = add.asFunction().apply("value");
 
     assertAll(() -> assertEquals(asList("value"), strings),
-              () -> assertEquals(nothing(), nothing));
+              () -> assertEquals(unit(), unit));
   }
 }

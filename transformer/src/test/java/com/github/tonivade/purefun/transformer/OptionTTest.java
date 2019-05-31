@@ -22,7 +22,6 @@ import com.github.tonivade.purefun.monad.Future;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.instances.FutureInstances;
 import com.github.tonivade.purefun.monad.instances.IOInstances;
-import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.transformer.instances.OptionTInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
@@ -137,9 +136,9 @@ public class OptionTTest {
     Higher1<Higher1<OptionT.µ, Id.µ>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
     Higher1<Higher1<OptionT.µ, Id.µ>, String> ensureOk =
-        monadError.ensure(pure, () -> nothing(), value -> "is not ok".equals(value));
+        monadError.ensure(pure, Nothing::nothing, "is not ok"::equals);
     Higher1<Higher1<OptionT.µ, Id.µ>, String> ensureError =
-        monadError.ensure(pure, () -> nothing(), value -> "is ok?".equals(value));
+        monadError.ensure(pure, Nothing::nothing, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Id.of(Option.none()), OptionT.narrowK(raiseError).value()),

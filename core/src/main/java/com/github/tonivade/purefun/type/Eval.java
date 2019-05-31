@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 
 @FunctionalInterface
 public interface Eval<T> extends FlatMap1<Eval.µ, T> {
@@ -20,7 +20,7 @@ public interface Eval<T> extends FlatMap1<Eval.µ, T> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
-  Eval<Nothing> NOTHING = now(nothing());
+  Eval<Unit> UNIT = now(unit());
   Eval<Integer> ZERO = now(0);
   Eval<Integer> ONE = now(1);
 

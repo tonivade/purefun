@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -24,7 +24,7 @@ public class ProducerTest {
   }
 
   @Test
-  public void unit() {
+  public void unitTest() {
     assertEquals("hello world", Producer.cons("hello world").get());
   }
 
@@ -42,6 +42,6 @@ public class ProducerTest {
   public void asFunction() {
     Producer<String> producer = Producer.cons("hello world");
 
-    assertEquals("hello world", producer.asFunction().apply(nothing()));
+    assertEquals("hello world", producer.asFunction().apply(unit()));
   }
 }

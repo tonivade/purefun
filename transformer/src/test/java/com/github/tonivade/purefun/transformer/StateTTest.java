@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.transformer;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.transformer.StateT.lift;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,15 +13,14 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.instances.IOInstances;
-import com.github.tonivade.purefun.transformer.StateT;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -38,8 +37,8 @@ public class StateTTest {
 
   @Test
   public void set() {
-    Higher1<IO.µ, Tuple2<String, Nothing>> run = StateT.set(monad, "abc").run("zzz");
-    assertEquals(Tuple.of("abc", nothing()), IO.narrowK(run).unsafeRunSync());
+    Higher1<IO.µ, Tuple2<String, Unit>> run = StateT.set(monad, "abc").run("zzz");
+    assertEquals(Tuple.of("abc", unit()), IO.narrowK(run).unsafeRunSync());
   }
 
   @Test
@@ -50,29 +49,29 @@ public class StateTTest {
 
   @Test
   public void modify() {
-    Higher1<IO.µ, Tuple2<String, Nothing>> run = StateT.<IO.µ, String>modify(monad, String::toUpperCase).run("abc");
-    assertEquals(Tuple.of("ABC", nothing()), IO.narrowK(run).unsafeRunSync());
+    Higher1<IO.µ, Tuple2<String, Unit>> run = StateT.<IO.µ, String>modify(monad, String::toUpperCase).run("abc");
+    assertEquals(Tuple.of("ABC", unit()), IO.narrowK(run).unsafeRunSync());
   }
 
   @Test
   public void flatMap() {
-    StateT<IO.µ, ImmutableList<String>, Nothing> state =
+    StateT<IO.µ, ImmutableList<String>, Unit> state =
         pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-    IO<Tuple2<ImmutableList<String>, Nothing>> result = IO.narrowK(state.run(ImmutableList.empty()));
+    IO<Tuple2<ImmutableList<String>, Unit>> result = IO.narrowK(state.run(ImmutableList.empty()));
 
-    assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result.unsafeRunSync());
+    assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
   }
 
   @Test
   public void compose() {
-    StateT<IO.µ, Nothing, String> sa = StateT.pure(monad, "a");
-    StateT<IO.µ, Nothing, String> sb = StateT.pure(monad, "b");
-    StateT<IO.µ, Nothing, String> sc = StateT.pure(monad, "c");
+    StateT<IO.µ, Unit, String> sa = StateT.pure(monad, "a");
+    StateT<IO.µ, Unit, String> sb = StateT.pure(monad, "b");
+    StateT<IO.µ, Unit, String> sc = StateT.pure(monad, "c");
 
-    Higher1<IO.µ, Tuple2<Nothing, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(nothing());
+    Higher1<IO.µ, Tuple2<Unit, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(unit());
 
-    assertEquals(Tuple.of(nothing(), listOf("a", "b", "c")), IO.narrowK(result).unsafeRunSync());
+    assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), IO.narrowK(result).unsafeRunSync());
   }
 
   @Test
@@ -87,11 +86,11 @@ public class StateTTest {
 
   @Test
   public void mapK() {
-    StateT<IO.µ, Nothing, String> stateIo = StateT.pure(monad, "abc");
+    StateT<IO.µ, Unit, String> stateIo = StateT.pure(monad, "abc");
 
-    StateT<Try.µ, Nothing, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryTransformer());
+    StateT<Try.µ, Unit, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryTransformer());
 
-    assertEquals(Try.success(Tuple2.of(nothing(), "abc")), Try.narrowK(stateTry.run(nothing())));
+    assertEquals(Try.success(Tuple2.of(unit(), "abc")), Try.narrowK(stateTry.run(unit())));
   }
 
   private StateT<IO.µ, ImmutableList<String>, String> pure(String value) {
@@ -102,7 +101,7 @@ public class StateTTest {
     return value -> lift(monad, state -> Tuple.of(state.append(value), nextVal));
   }
 
-  private <T> Function1<T, StateT<IO.µ, ImmutableList<T>, Nothing>> end() {
-    return value -> lift(monad, state -> Tuple.of(state.append(value), nothing()));
+  private <T> Function1<T, StateT<IO.µ, ImmutableList<T>, Unit>> end() {
+    return value -> lift(monad, state -> Tuple.of(state.append(value), unit()));
   }
 }

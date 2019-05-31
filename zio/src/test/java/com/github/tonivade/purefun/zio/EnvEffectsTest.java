@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.zio;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedReader;
@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.ConsoleExecutor;
 
 public class EnvEffectsTest {
@@ -27,7 +27,7 @@ public class EnvEffectsTest {
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }
 
-  private ZIO<Console, Throwable, Nothing> echo() {
+  private ZIO<Console, Throwable, Unit> echo() {
     return Console.println("what's your name?")
         .andThen(Console::readln)
         .flatMap(name -> Console.println("Hello " + name));
@@ -42,14 +42,14 @@ interface Console {
     return ZIO.accessM(env -> env.console().readln());
   }
 
-  static ZIO<Console, Throwable, Nothing> println(String text) {
+  static ZIO<Console, Throwable, Unit> println(String text) {
     return ZIO.accessM(env -> env.console().println(text));
   }
 
   interface Service<R extends Console> {
     ZIO<R, Throwable, String> readln();
 
-    ZIO<R, Throwable, Nothing> println(String text);
+    ZIO<R, Throwable, Unit> println(String text);
   }
 
   static Console test() {
@@ -65,8 +65,8 @@ interface Console {
           }
 
           @Override
-          public ZIO<R, Throwable, Nothing> println(String text) {
-            return ZIO.pure(nothing());
+          public ZIO<R, Throwable, Unit> println(String text) {
+            return ZIO.pure(unit());
           }
         };
       }
@@ -86,7 +86,7 @@ interface Console {
           }
 
           @Override
-          public ZIO<R, Throwable, Nothing> println(String text) {
+          public ZIO<R, Throwable, Unit> println(String text) {
             return ZIO.exec(() -> writer().println(text));
           }
 

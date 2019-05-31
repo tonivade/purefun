@@ -4,15 +4,13 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
-
 @FunctionalInterface
 public interface CheckedRunnable extends Recoverable {
 
   void run() throws Exception;
 
-  default CheckedProducer<Nothing> asProducer() {
-    return () -> { run(); return nothing(); };
+  default CheckedProducer<Unit> asProducer() {
+    return () -> { run(); return Unit.unit(); };
   }
 
   default Runnable recover(Consumer1<Throwable> mapper) {

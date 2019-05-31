@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 
 @FunctionalInterface
 public interface CheckedConsumer2<A, B> extends Recoverable {
@@ -29,8 +29,8 @@ public interface CheckedConsumer2<A, B> extends Recoverable {
     return (value1, value2) -> { accept(value1, value2); after.accept(value1, value2); };
   }
 
-  default CheckedFunction2<A, B, Nothing> asFunction() {
-    return (value1, value2) -> { accept(value1, value2); return nothing(); };
+  default CheckedFunction2<A, B, Unit> asFunction() {
+    return (value1, value2) -> { accept(value1, value2); return unit(); };
   }
 
   static <T, V> CheckedConsumer2<T, V> of(CheckedConsumer2<T, V> reference) {

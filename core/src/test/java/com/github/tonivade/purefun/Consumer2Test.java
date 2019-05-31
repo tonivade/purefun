@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,23 +18,23 @@ public class Consumer2Test {
 
   @Test
   public void andThen() {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     Consumer2<String, Integer> add = (a, b) -> strings.add(a + "=" + b);
     Consumer2<String, Integer> composite = add.andThen(add);
     composite.accept("value", 100);
-    
+
     assertEquals(asList("value=100", "value=100"), strings);
   }
 
   @Test
   public void asFunction() {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     Consumer2<String, Integer> add = (a, b) -> strings.add(a + "=" + b);
-    Nothing nothing = add.asFunction().apply("value", 100);
-    
+    Unit unit = add.asFunction().apply("value", 100);
+
     assertAll(() -> assertEquals(asList("value=100"), strings),
-              () -> assertEquals(nothing(), nothing));
+              () -> assertEquals(unit(), unit));
   }
 }

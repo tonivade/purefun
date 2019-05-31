@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.instanceOf;
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.free.Free.liftF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -16,9 +16,9 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.Console;
 import com.github.tonivade.purefun.monad.ConsoleExecutor;
@@ -31,7 +31,7 @@ import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public class FreeTest {
 
-  final Free<IOProgram.µ, Nothing> echo =
+  final Free<IOProgram.µ, Unit> echo =
       IOProgram.write("what's your name?")
         .andThen(IOProgram.read())
         .flatMap(text -> IOProgram.write("Hello " + text))
@@ -43,27 +43,27 @@ public class FreeTest {
                  + "then (text <- read() "
                    + "then (write(\"Hello $text\") "
                      + "then (write(\"end\") "
-                       + "then (return(Nothing)))))", showProgram(echo));
+                       + "then (return(Unit)))))", showProgram(echo));
   }
 
   @Test
   public void interpretState() {
-    Higher1<Higher1<State.µ, ImmutableList<String>>, Nothing> foldMap =
+    Higher1<Higher1<State.µ, ImmutableList<String>>, Unit> foldMap =
         echo.foldMap(StateInstances.monad(), IOProgram.functor, new IOProgramToState());
 
-    State<ImmutableList<String>, Nothing> state = State.narrowK(foldMap);
+    State<ImmutableList<String>, Unit> state = State.narrowK(foldMap);
 
-    Tuple2<ImmutableList<String>, Nothing> run = state.run(ImmutableList.of("Toni"));
+    Tuple2<ImmutableList<String>, Unit> run = state.run(ImmutableList.of("Toni"));
 
     assertEquals(ImmutableList.of("what's your name?", "Hello Toni", "end"), run.get1());
   }
 
   @Test
   public void interpretIO() {
-    Higher1<IO.µ, Nothing> foldMap =
+    Higher1<IO.µ, Unit> foldMap =
         echo.foldMap(IOInstances.monad(), IOProgram.functor, new IOProgramToIO());
 
-    IO<Nothing> echoIO = IO.narrowK(foldMap);
+    IO<Unit> echoIO = IO.narrowK(foldMap);
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
@@ -92,8 +92,8 @@ interface IOProgram<T> extends Higher1<IOProgram.µ, T> {
     return liftF(functor, new Read<>(identity()));
   }
 
-  static Free<IOProgram.µ, Nothing> write(String value) {
-    return liftF(functor, new Write<>(value, nothing()));
+  static Free<IOProgram.µ, Unit> write(String value) {
+    return liftF(functor, new Write<>(value, unit()));
   }
 
   final class Read<T> implements IOProgram<T> {

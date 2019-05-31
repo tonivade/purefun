@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,9 +45,9 @@ public class CheckedConsumer1Test {
 
     CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);
 
-    Nothing nothing = add.asFunction().apply("value");
+    Unit unit = add.asFunction().apply("value");
 
     assertAll(() -> assertEquals(asList("value"), strings),
-              () -> assertEquals(nothing(), nothing));
+              () -> assertEquals(unit(), unit));
   }
 }

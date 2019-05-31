@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.transformer;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.Future;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.instances.FutureInstances;
 import com.github.tonivade.purefun.monad.instances.IOInstances;
-import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.transformer.instances.EitherTInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
@@ -61,7 +61,7 @@ public class EitherTTest {
 
   @Test
   public void left() {
-    EitherT<Id.µ, Nothing, String> left = EitherT.left(monad, nothing());
+    EitherT<Id.µ, Unit, String> left = EitherT.left(monad, unit());
 
     assertAll(
         () -> assertEquals(Id.of(true), left.isLeft()),
@@ -121,9 +121,9 @@ public class EitherTTest {
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> ensureOk =
-        monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
+        monadError.ensure(pure, () -> error, "is not ok"::equals);
     Higher1<Higher1<Higher1<EitherT.µ, Id.µ>, Throwable>, String> ensureError =
-        monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+        monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Id.of(Either.left(error)), raiseError.fix1(EitherT::narrowK).value()),

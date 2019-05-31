@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.instances.IOInstances;
 import com.github.tonivade.purefun.monad.instances.StateInstances;
@@ -28,9 +28,9 @@ public class TaglessTest {
 
   @Test
   public void stateInterpreter() {
-    State<ImmutableList<String>, Nothing> state = State.narrowK(stateProgram.echo());
+    State<ImmutableList<String>, Unit> state = State.narrowK(stateProgram.echo());
 
-    Tuple2<ImmutableList<String>, Nothing> run = state.run(listOf("Toni"));
+    Tuple2<ImmutableList<String>, Unit> run = state.run(listOf("Toni"));
 
     assertEquals(listOf("what's your name?", "Hello Toni"), run.get1());
   }
@@ -49,7 +49,7 @@ interface IOProgramT<F extends Kind> {
 
   Higher1<F, String> read();
 
-  Higher1<F, Nothing> write(String string);
+  Higher1<F, Unit> write(String string);
 }
 
 class Program<F extends Kind, P extends IOProgramT<F> & Monad<F>> {
@@ -60,7 +60,7 @@ class Program<F extends Kind, P extends IOProgramT<F> & Monad<F>> {
     this.program = requireNonNull(program);
   }
 
-  Higher1<F, Nothing> echo() {
+  Higher1<F, Unit> echo() {
     return program.flatMap(readName(), this::sayHello);
   }
 
@@ -68,7 +68,7 @@ class Program<F extends Kind, P extends IOProgramT<F> & Monad<F>> {
     return program.flatMap(program.write("what's your name?"), nothing -> program.read());
   }
 
-  private Higher1<F, Nothing> sayHello(String name) {
+  private Higher1<F, Unit> sayHello(String name) {
     return program.write("Hello " + name);
   }
 }
@@ -94,7 +94,7 @@ class IOProgramInterpreter implements IOProgramT<IO.µ>, Monad<IO.µ> {
   }
 
   @Override
-  public IO<Nothing> write(String string) {
+  public IO<Unit> write(String string) {
     return IO.narrowK(console.println(string));
   }
 }
@@ -124,7 +124,7 @@ class StateProgramInterpreter
   }
 
   @Override
-  public State<ImmutableList<String>, Nothing> write(String string) {
+  public State<ImmutableList<String>, Unit> write(String string) {
     return State.narrowK(console.println(string));
   }
 }

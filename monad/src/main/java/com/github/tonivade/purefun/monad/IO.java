@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
@@ -18,9 +17,9 @@ import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -28,7 +27,7 @@ import com.github.tonivade.purefun.type.Try;
 @FunctionalInterface
 public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
-  IO<Nothing> UNIT = pure(nothing());
+  IO<Unit> UNIT = pure(Unit.unit());
 
   final class µ implements Kind {}
 
@@ -121,7 +120,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return task.andThen(IO::pure);
   }
 
-  static IO<Nothing> exec(Runnable task) {
+  static IO<Unit> exec(Runnable task) {
     return unit().flatMap(nothing -> { task.run(); return unit(); });
   }
 
@@ -129,7 +128,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return suspend(producer.andThen(IO::pure));
   }
 
-  static IO<Nothing> unit() {
+  static IO<Unit> unit() {
     return UNIT;
   }
 
@@ -141,7 +140,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
-  static IO<Nothing> sequence(Sequence<IO<?>> sequence) {
+  static IO<Unit> sequence(Sequence<IO<?>> sequence) {
     return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 

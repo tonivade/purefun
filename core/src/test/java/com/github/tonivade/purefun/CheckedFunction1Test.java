@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.CheckedFunction1.failure;
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,9 +52,9 @@ public class CheckedFunction1Test {
 
   @Test
   public void failureTest() {
-    CheckedFunction1<Nothing, Nothing> failure = failure(Exception::new);
+    CheckedFunction1<Unit, Unit> failure = failure(Exception::new);
 
-    assertThrows(Exception.class, () -> failure.unchecked().apply(nothing()));
+    assertThrows(Exception.class, () -> failure.unchecked().apply(unit()));
   }
 
   @Test
@@ -80,8 +80,8 @@ public class CheckedFunction1Test {
 
   @Test
   public void liftTryFailureTest() {
-    Try<Nothing> result =
-        CheckedFunction1.<Nothing, Exception>failure(Exception::new).liftTry().apply(nothing());
+    Try<Unit> result =
+        CheckedFunction1.<Unit, Exception>failure(Exception::new).liftTry().apply(unit());
 
     assertTrue(result.isFailure());
   }

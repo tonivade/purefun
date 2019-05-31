@@ -221,7 +221,7 @@ assertAll(() -> assertEquals(Integer.valueOf(20), writer.getValue()),
 This is a experimental implementation of IO Monad in java. Inspired in this [work](https://gist.github.com/joergrathlev/f17092d3470dcf732be6).
 
 ```java
-  IO<Nothing> echo = Console.print("write your name")
+  IO<Unit> echo = Console.print("write your name")
       .andThen(Console.read())
       .flatMap(name -> Console.print("Hello " + name))
       .andThen(Console.print("end"));
@@ -261,15 +261,15 @@ inestable implementation and I have implemented because it can be implemented. I
 in this [work](https://github.com/xuwei-k/free-monad-java).
 
 ```java 
-  Free<IOProgram.µ, Nothing> echo =
+  Free<IOProgram.µ, Unit> echo =
       IOProgram.write("what's your name?")
         .andThen(IOProgram.read())
         .flatMap(text -> IOProgram.write("Hello " + text))
         .andThen(IOProgram.write("end"));
 
-  Higher<IO.µ, Nothing> foldMap = echo.foldMap(new IOMonad(),
-                                               new IOProgramFunctor(),
-                                               new IOProgramInterperter());
+  Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(),
+                                            new IOProgramFunctor(),
+                                            new IOProgramInterperter());
 
   IO.narrowK(foldMap).unsafeRunSync();
 ```
@@ -316,10 +316,10 @@ Monad Transformer for `Either` type
 Monad Transformer for `State` type
 
 ```java
-  StateT<IO.µ, ImmutableList<String>, Nothing> state =
+  StateT<IO.µ, ImmutableList<String>, Unit> state =
       pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-  IO<Tuple2<ImmutableList<String>, Nothing>> result = IO.narrowK(state.run(ImmutableList.empty()));
+  IO<Tuple2<ImmutableList<String>, Unit>> result = IO.narrowK(state.run(ImmutableList.empty()));
 
   assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result.unsafeRunSync());
 ```

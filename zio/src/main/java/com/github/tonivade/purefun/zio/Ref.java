@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.zio;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
 
 public final class Ref<A> {
 
@@ -24,12 +24,12 @@ public final class Ref<A> {
     return ZIO.pure(value::get);
   }
 
-  public <R, E> ZIO<R, E, Nothing> set(A newValue) {
-    return ZIO.pure(() -> { value.set(newValue); return nothing(); });
+  public <R, E> ZIO<R, E, Unit> set(A newValue) {
+    return ZIO.pure(() -> { value.set(newValue); return unit(); });
   }
 
-  public <R, E> ZIO<R, E, Nothing> lazySet(A newValue) {
-    return ZIO.pure(() -> { value.lazySet(newValue); return nothing(); });
+  public <R, E> ZIO<R, E, Unit> lazySet(A newValue) {
+    return ZIO.pure(() -> { value.lazySet(newValue); return unit(); });
   }
 
   public <R, E> ZIO<R, E, A> getAndSet(A newValue) {

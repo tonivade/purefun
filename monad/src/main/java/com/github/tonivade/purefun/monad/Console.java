@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,15 +14,15 @@ import java.io.UncheckedIOException;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 
 public interface Console<F extends Kind> {
 
   Higher1<F, String> readln();
 
-  Higher1<F, Nothing> println(String text);
+  Higher1<F, Unit> println(String text);
 
   static Console<IO.µ> io() {
     return new ConsoleIO();
@@ -41,8 +41,8 @@ final class ConsoleState implements Console<Higher1<State.µ, ImmutableList<Stri
   }
 
   @Override
-  public State<ImmutableList<String>, Nothing> println(String text) {
-    return State.<ImmutableList<String>, Nothing>state(list -> Tuple.of(list.append(text), nothing()));
+  public State<ImmutableList<String>, Unit> println(String text) {
+    return State.<ImmutableList<String>, Unit>state(list -> Tuple.of(list.append(text), unit()));
   }
 }
 
@@ -56,7 +56,7 @@ final class ConsoleIO implements Console<IO.µ> {
   }
 
   @Override
-  public IO<Nothing> println(String text) {
+  public IO<Unit> println(String text) {
     return IO.exec(() -> console.println(text));
   }
 }

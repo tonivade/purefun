@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.stream;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.asStream;
 import static java.util.Objects.requireNonNull;
 
@@ -18,12 +18,12 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.OptionInstances;
@@ -86,8 +86,8 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     return foldLeft("", (acc, a) -> acc + a);
   }
 
-  default Higher1<F, Nothing> drain() {
-    return foldLeft(nothing(), (acc, a) -> acc);
+  default Higher1<F, Unit> drain() {
+    return foldLeft(unit(), (acc, a) -> acc);
   }
 
   default <R> Stream<F, R> andThen(Higher1<F, R> next) {

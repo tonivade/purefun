@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.transformer;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Unit.unit;
 
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
@@ -13,9 +13,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -72,12 +72,12 @@ public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, 
     return lift(monad, state -> Tuple2.of(state, state));
   }
 
-  static <F extends Kind, S> StateT<F, S, Nothing> set(Monad<F> monad, S value) {
-    return lift(monad, state -> Tuple2.of(value, nothing()));
+  static <F extends Kind, S> StateT<F, S, Unit> set(Monad<F> monad, S value) {
+    return lift(monad, state -> Tuple2.of(value, unit()));
   }
 
-  static <F extends Kind, S> StateT<F, S, Nothing> modify(Monad<F> monad, Operator1<S> mapper) {
-    return lift(monad, state -> Tuple2.of(mapper.apply(state), nothing()));
+  static <F extends Kind, S> StateT<F, S, Unit> modify(Monad<F> monad, Operator1<S> mapper) {
+    return lift(monad, state -> Tuple2.of(mapper.apply(state), unit()));
   }
 
   static <F extends Kind, S, A> StateT<F, S, A> inspect(Monad<F> monad, Function1<S, A> mapper) {

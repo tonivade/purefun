@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 public class FutureTest {
@@ -161,7 +161,7 @@ public class FutureTest {
 
   @Test
   public void flattenUnsupported() {
-    Future<Nothing> result = Future.success("any").flatten();
+    Future<Unit> result = Future.success("any").flatten();
 
     assertAll(
         () -> assertTrue(result::isFailure),

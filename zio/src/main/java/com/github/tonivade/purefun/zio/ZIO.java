@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.zio;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.zio.ZIOModule.flatMapValue;
 import static com.github.tonivade.purefun.zio.ZIOModule.mapValue;
 
@@ -17,13 +16,14 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
 public interface ZIO<R, E, A> {
 
-  ZIO<?, ?, Nothing> UNIT = pure(nothing());
+  ZIO<?, ?, Unit> UNIT = pure(Unit.unit());
 
   Either<E, A> provide(R env);
 
@@ -108,7 +108,7 @@ public interface ZIO<R, E, A> {
     return env -> Try.of(task).toEither();
   }
 
-  static <R> ZIO<R, Throwable, Nothing> exec(CheckedRunnable task) {
+  static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
     return from(task.asProducer());
   }
 
@@ -125,8 +125,8 @@ public interface ZIO<R, E, A> {
   }
 
   @SuppressWarnings("unchecked")
-  static <R, E> ZIO<R, E, Nothing> unit() {
-    return (ZIO<R, E, Nothing>) UNIT;
+  static <R, E> ZIO<R, E, Unit> unit() {
+    return (ZIO<R, E, Unit>) UNIT;
   }
 }
 

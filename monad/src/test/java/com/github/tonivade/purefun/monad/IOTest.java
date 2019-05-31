@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 public class IOTest {
@@ -50,7 +50,7 @@ public class IOTest {
 
   @Test
   public void echo() {
-    IO<Nothing> echo = narrowK(console.println("write your name"))
+    IO<Unit> echo = narrowK(console.println("write your name"))
         .andThen(narrowK(console.readln()))
         .flatMap(name -> narrowK(console.println("Hello " + name)))
         .andThen(narrowK(console.println("end")));
