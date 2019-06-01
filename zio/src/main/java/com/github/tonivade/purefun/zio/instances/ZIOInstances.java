@@ -79,6 +79,10 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
   default <A> ZIO<R, E, A>
           handleErrorWith(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
                           Function1<E, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A>> handler) {
-    return ZIO.narrowK(value).foldM(handler.andThen(ZIO::narrowK), ZIO::pure);
+    // XXX: java8 fails to infer types, I have to do this in steps
+    Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIO::narrowK);
+    Function1<A, ZIO<R, E, A>> map = ZIO::pure;
+    ZIO<R, E, A> zio = ZIO.narrowK(value);
+    return zio.foldM(mapError, map);
   }
 }
