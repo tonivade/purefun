@@ -13,7 +13,7 @@ import java.util.Map;
 
 final class MemoizedProducer<T> implements Producer<T> {
 
-  private final Map<Unit, T> cache = synchronizedMap(new HashMap<>());
+  private final Map<Unit, T> cache = synchronizedMap(new HashMap<>(1));
   private final Function1<Unit, T> function;
 
   MemoizedProducer(Producer<T> producer) {
