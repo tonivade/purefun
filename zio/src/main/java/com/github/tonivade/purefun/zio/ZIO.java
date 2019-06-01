@@ -12,8 +12,13 @@ import static com.github.tonivade.purefun.zio.ZIOModule.mapValue;
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
+import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -21,18 +26,22 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface ZIO<R, E, A> {
+public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
+
+  final class µ implements Kind {}
 
   ZIO<?, ?, Unit> UNIT = pure(Unit.unit());
 
   Either<E, A> provide(R env);
 
+  @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
     return mapValue(this, value -> value.map(map));
   }
 
-  default <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
-    return flatMapValue(this, value -> value.map(map).fold(ZIO::raiseError, identity()));
+  @Override
+  default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
+    return flatMapValue(this, value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()));
   }
 
   @SuppressWarnings("unchecked")
@@ -127,6 +136,19 @@ public interface ZIO<R, E, A> {
   @SuppressWarnings("unchecked")
   static <R, E> ZIO<R, E, Unit> unit() {
     return (ZIO<R, E, Unit>) UNIT;
+  }
+
+  static <R, E, A> ZIO<R, E, A> narrowK(Higher3<ZIO.µ, R, E, A> hkt) {
+    return (ZIO<R, E, A>) hkt;
+  }
+
+  static <R, E, A> ZIO<R, E, A> narrowK(Higher2<Higher1<ZIO.µ, R>, E, A> hkt) {
+    return (ZIO<R, E, A>) hkt;
+  }
+
+  @SuppressWarnings("unchecked")
+  static <R, E, A> ZIO<R, E, A> narrowK(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> hkt) {
+    return (ZIO<R, E, A>) hkt;
   }
 }
 
