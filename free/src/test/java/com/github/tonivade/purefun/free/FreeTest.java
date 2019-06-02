@@ -20,12 +20,12 @@ import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.Console;
 import com.github.tonivade.purefun.monad.ConsoleExecutor;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
-import com.github.tonivade.purefun.monad.instances.IOInstances;
-import com.github.tonivade.purefun.monad.instances.StateInstances;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 

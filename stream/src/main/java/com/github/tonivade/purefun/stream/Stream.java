@@ -26,7 +26,6 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -165,7 +164,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monad(), defer(), defer().defer(
         () -> monad().map2(s1.split(), s2.split(),
           (op1, op2) -> {
-            Higher1<Option.µ, Stream<F, R>> result = OptionInstances.monad().map2(op1, op2,
+            Higher1<Option.µ, Stream<F, R>> result = StreamModule.map2(op1, op2,
               (t1, t2) -> {
                 Higher1<F, R> head = monad().map2(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
@@ -188,7 +187,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monad(), defer(), defer().defer(
         () -> monad().map2(s1.split(), s2.split(),
           (opt1, opt2) -> {
-            Higher1<Option.µ, Stream<F, A>> result = OptionInstances.monad().map2(opt1, opt2,
+            Higher1<Option.µ, Stream<F, A>> result = StreamModule.map2(opt1, opt2,
               (t1, t2) -> {
                 Higher1<F, A> head = t1.get1();
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));
@@ -571,5 +570,11 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   @Override
   public Stream<F, T> intersperse(Higher1<F, T> value) {
     return this;
+  }
+}
+
+interface StreamModule {
+  static <A, B, C> Option<C> map2(Option<A> fa, Option<B> fb, Function2<A, B, C> combiner) {
+    return fa.flatMap(a -> fb.map(b -> combiner.apply(a, b)));
   }
 }

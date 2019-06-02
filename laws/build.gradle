@@ -1,10 +1,8 @@
 archivesBaseName = 'purefun-laws'
 
 dependencies {
-  compile project(':core')
   compile project(':typeclasses')
   compile libs.junitJupiter
-  testCompile project(':monad')
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier
   testCompile libs.mockitoCore

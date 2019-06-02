@@ -16,8 +16,8 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.monad.instances.IOInstances;
-import com.github.tonivade.purefun.monad.instances.StateInstances;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class TaglessTest {

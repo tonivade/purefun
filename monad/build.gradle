@@ -3,6 +3,7 @@ archivesBaseName = 'purefun-monad'
 dependencies {
   compile project(':core')
   compile project(':typeclasses')
+  testCompile project(':instances')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier

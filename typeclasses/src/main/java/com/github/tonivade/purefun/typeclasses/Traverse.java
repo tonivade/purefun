@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nested;
-import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Id;
 
 public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
@@ -25,7 +24,7 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
 
   @Override
   default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
-    return Id.narrowK(traverse(IdInstances.applicative(), value, t -> Id.of(map.apply(t)))).get();
+    return Id.narrowK(traverse(new IdApplicative(), value, t -> Id.of(map.apply(t)))).get();
   }
 
   static <F extends Kind, G extends Kind> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
@@ -37,5 +36,18 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
       @Override
       public Traverse<G> g() { return g; }
     };
+  }
+}
+
+class IdApplicative implements Applicative<Id.µ> {
+
+  @Override
+  public <T> Id<T> pure(T value) {
+    return Id.of(value);
+  }
+
+  @Override
+  public <T, R> Id<R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
+    return Id.narrowK(value).flatMap(t -> Id.narrowK(apply).map(f -> f.apply(t)));
   }
 }

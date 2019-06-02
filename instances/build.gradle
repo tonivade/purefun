@@ -1,9 +1,12 @@
-archivesBaseName = 'purefun-transformer'
+archivesBaseName = 'purefun-instances'
 
 dependencies {
   compile project(':core')
   compile project(':typeclasses')
-  testCompile project(':instances')
+  compile project(':monad')
+  compile project(':transformer')
+  compile project(':stream')
+  compile project(':zio')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier

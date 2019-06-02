@@ -4,6 +4,7 @@ dependencies {
   compile project(':core')
   compile project(':typeclasses')
   testCompile project(':monad')
+  testCompile project(':instances')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier

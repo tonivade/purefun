@@ -25,9 +25,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.StreamInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
-import com.github.tonivade.purefun.stream.instances.StreamInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 
