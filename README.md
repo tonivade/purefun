@@ -20,9 +20,9 @@ and also to Scala standard library authors. Their awesome work help me a lot.
 
 ## Disclaimer
 
-This project is not ready to be used in production, I use it to learn functional programming concepts by my self, but, 
-if you want to you it, use it at your own risk. Anyway if you think is useful for you, go ahead, also any 
-feedback and PR are wellcome.
+**This project is not ready to be used in production**, I use it to learn functional programming concepts by my self, but, 
+if you want to use it, **use it at your own risk**. Anyway if you think is useful for you, go ahead, also any 
+feedback and PR are very welcome.
 
 ## Base Interfaces
 

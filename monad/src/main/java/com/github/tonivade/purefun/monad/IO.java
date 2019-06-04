@@ -74,6 +74,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   default IO<Either<Throwable, T>> either() {
     return attemp().map(Try::toEither);
   }
+
   default <L, R> IO<Either<L, R>> either(Function1<Throwable, L> mapError, Function1<T, R> mapper) {
     return either().map(either -> either.bimap(mapError, mapper));
   }
