@@ -76,9 +76,9 @@ public class IOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
     
-    program.toFuture().onComplete(unit -> result.add("end")).get();
+    program.toFuture().get();
     
-    assertEquals(6, result.size());
+    assertEquals(5, result.size());
   }
 
   @Test

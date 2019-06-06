@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.ConsoleExecutor;
+import com.github.tonivade.purefun.monad.IO;
 
 public class EnvEffectsTest {
 
@@ -22,7 +23,7 @@ public class EnvEffectsTest {
   public void program() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(() -> echo().provide(Console.live()));
+    executor.run(IO.task(() -> echo().provide(Console.live())));
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }
