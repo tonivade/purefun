@@ -22,10 +22,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
-@FunctionalInterface
 public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
-
-  IO<Unit> UNIT = pure(Unit.unit());
 
   final class µ implements Kind {}
 
@@ -39,9 +36,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return toFuture(FutureModule.DEFAULT_EXECUTOR);
   }
 
-  default Future<T> toFuture(ExecutorService executor) {
-    throw new UnsupportedOperationException("not implemented");
-  }
+  Future<T> toFuture(ExecutorService executor);
 
   default void safeRunAsync(Consumer1<Try<T>> callback) {
     toFuture().onComplete(callback);
@@ -98,6 +93,8 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       return sneakyThrow(cause);
     });
   }
+  
+  IOModule getModule();
 
   static <T> IO<T> pure(T value) {
     return new Pure<>(value);
@@ -128,7 +125,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   static IO<Unit> unit() {
-    return UNIT;
+    return IOModule.UNIT;
   }
 
   static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
@@ -164,6 +161,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Future<T> toFuture(ExecutorService executor) {
       return Future.success(executor, value);
     }
+    
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public String toString() {
@@ -189,6 +191,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     @Override
     public Future<R> toFuture(ExecutorService executor) {
       return current.toFuture(executor).flatMap(next.andThen(IO::narrowK).andThen(io -> io.toFuture(executor)));
+    }
+    
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
     }
     
     @Override
@@ -226,6 +233,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
       return (IO<R>) this;
     }
+    
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public String toString() {
@@ -252,6 +264,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
     
     @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+    
+    @Override
     public String toString() {
       return "Task(?)";
     }
@@ -273,6 +290,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     @Override
     public Future<T> toFuture(ExecutorService executor) {
       return Future.unit().andThen(lazy.andThen(io -> io.toFuture(executor)));
+    }
+    
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -308,6 +330,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
             .flatMap(resource -> resource.apply(use).toFuture(executor)
                 .onComplete(result -> resource.close())));
     }
+    
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public String toString() {
@@ -332,12 +359,21 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Future<Try<T>> toFuture(ExecutorService executor) {
       return current.toFuture().fold(Try::<T>failure, Try::success);
     }
+    
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public String toString() {
       return "Attemp(" + current + ")";
     }
   }
+}
+
+interface IOModule {
+  IO<Unit> UNIT = IO.pure(Unit.unit());
 }
 
 final class IOResource<T> implements AutoCloseable {
