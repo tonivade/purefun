@@ -49,7 +49,7 @@ interface IOComonad extends IOFunctor, Comonad<IO.µ> {
 
   @Override
   default <A, B> Higher1<IO.µ, B> coflatMap(Higher1<IO.µ, A> value, Function1<Higher1<IO.µ, A>, B> map) {
-    return IO.of(() -> map.apply(value));
+    return IO.task(() -> map.apply(value));
   }
 
   @Override

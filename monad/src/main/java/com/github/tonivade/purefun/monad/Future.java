@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
@@ -59,6 +60,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   @Override
   <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper);
+  
+  <R> Future<R> andThen(Producer<Future<R>> next);
 
   @Override
   Future<T> filter(Matcher1<T> matcher);
@@ -143,6 +146,10 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
     return (Future<T>) hkt;
   }
+  
+  static Future<Unit> unit() {
+    return success(Unit.unit());
+  }
 
   final class FutureImpl<T> implements Future<T> {
 
@@ -164,6 +171,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
       return runTry(executor,
           () -> await().flatMap(t -> mapper.andThen(Future::narrowK).apply(t).await()));
+    }
+    
+    @Override
+    public <R> Future<R> andThen(Producer<Future<R>> next) {
+      return runTry(executor, () -> await().flatMap(t -> next.get().await()));
     }
 
     @Override

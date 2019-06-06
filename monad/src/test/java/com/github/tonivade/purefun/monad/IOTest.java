@@ -17,6 +17,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +47,8 @@ public class IOTest {
         () -> assertEquals("hola mundo", pure.unsafeRunSync()),
         () -> assertEquals("HOLA MUNDO", pure.map(String::toUpperCase).unsafeRunSync()),
         () -> assertArrayEquals(new String[] { "hola", "mundo" },
-            pure.flatMap(string -> IO.of(() -> string.split(" "))).unsafeRunSync()),
-        () -> assertEquals(Integer.valueOf(100), pure.andThen(IO.of(() -> 100)).unsafeRunSync()));
+            pure.flatMap(string -> IO.task(() -> string.split(" "))).unsafeRunSync()),
+        () -> assertEquals(Integer.valueOf(100), pure.andThen(IO.task(() -> 100)).unsafeRunSync()));
   }
 
   @Test
@@ -56,10 +59,26 @@ public class IOTest {
         .andThen(narrowK(console.println("end")));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
-
+    
     executor.run(echo);
 
     assertEquals("write your name\nHello Toni\nend\n", executor.getOutput());
+  }
+  
+  @Test
+  public void safeRunAsync() {
+    List<String> result = Collections.synchronizedList(new ArrayList<>());
+    IO<Unit> currentThread = IO.exec(() -> result.add(Thread.currentThread().getName()));
+    
+    IO<Unit> program = currentThread
+        .andThen(currentThread
+            .andThen(currentThread
+                .andThen(currentThread
+                    .andThen(currentThread))));
+    
+    program.toFuture().onComplete(unit -> result.add("end")).get();
+    
+    assertEquals(6, result.size());
   }
 
   @Test

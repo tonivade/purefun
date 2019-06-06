@@ -78,7 +78,7 @@ public class StreamTest {
   public void mapEval() {
     Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.of(() -> i * 2));
+    Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2));
 
     assertEquals(Integer.valueOf(12), run(result.foldLeft(0, (a, b) -> a + b)));
   }
@@ -250,7 +250,7 @@ public class StreamTest {
   }
 
   private IO<String> pureReadFile(String file) {
-    return streamOfIO.eval(IO.of(() -> reader(file)))
+    return streamOfIO.eval(IO.task(() -> reader(file)))
       .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)

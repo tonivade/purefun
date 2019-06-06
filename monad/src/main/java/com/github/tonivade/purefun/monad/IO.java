@@ -5,13 +5,11 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.ExecutorService;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
@@ -38,11 +36,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   default Future<T> toFuture() {
-    return Future.run(this::unsafeRunSync);
+    return toFuture(FutureModule.DEFAULT_EXECUTOR);
   }
 
   default Future<T> toFuture(ExecutorService executor) {
-    return Future.run(executor, this::unsafeRunSync);
+    throw new UnsupportedOperationException("not implemented");
   }
 
   default void safeRunAsync(Consumer1<Try<T>> callback) {
@@ -122,11 +120,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   static IO<Unit> exec(Runnable task) {
-    return unit().flatMap(nothing -> { task.run(); return unit(); });
+    return task(() -> { task.run(); return Unit.unit(); });
   }
 
-  static <T> IO<T> of(Producer<T> producer) {
-    return suspend(producer.andThen(IO::pure));
+  static <T> IO<T> task(Producer<T> producer) {
+    return new Task<>(producer);
   }
 
   static IO<Unit> unit() {
@@ -161,6 +159,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return value;
     }
+    
+    @Override
+    public Future<T> toFuture(ExecutorService executor) {
+      return Future.success(executor, value);
+    }
 
     @Override
     public String toString() {
@@ -182,14 +185,19 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public R unsafeRunSync() {
       return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
     }
-
+    
+    @Override
+    public Future<R> toFuture(ExecutorService executor) {
+      return current.toFuture(executor).flatMap(next.andThen(IO::narrowK).andThen(io -> io.toFuture(executor)));
+    }
+    
     @Override
     public String toString() {
       return "FlatMapped(" + current + ", ?)";
     }
   }
 
-  final class Failure<T> implements IO<T> {
+  final class Failure<T> implements IO<T>, Recoverable {
 
     private final Throwable error;
 
@@ -199,7 +207,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public T unsafeRunSync() {
-      return toCheckedProducer().unchecked().get();
+      return sneakyThrow(error);
+    }
+    
+    @Override
+    public Future<T> toFuture(ExecutorService executor) {
+      return Future.failure(executor, error);
     }
 
     @Override
@@ -218,9 +231,29 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public String toString() {
       return "Failure(" + error + ")";
     }
+  }
+  
+  final class Task<T> implements IO<T> {
 
-    private CheckedProducer<T> toCheckedProducer() {
-      return CheckedProducer.failure(cons(error));
+    private final Producer<T> task;
+    
+    public Task(Producer<T> task) {
+      this.task = requireNonNull(task);
+    }
+
+    @Override
+    public T unsafeRunSync() {
+      return task.get();
+    }
+    
+    @Override
+    public Future<T> toFuture(ExecutorService executor) {
+      return Future.from(task::get);
+    }
+    
+    @Override
+    public String toString() {
+      return "Task(?)";
     }
   }
 
@@ -235,6 +268,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     @Override
     public T unsafeRunSync() {
       return lazy.get().unsafeRunSync();
+    }
+    
+    @Override
+    public Future<T> toFuture(ExecutorService executor) {
+      return Future.unit().andThen(lazy.andThen(io -> io.toFuture(executor)));
     }
 
     @Override
@@ -261,6 +299,15 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
         return resource.apply(use).unsafeRunSync();
       }
     }
+    
+    @Override
+    public Future<R> toFuture(ExecutorService executor) {
+      return acquire.toFuture(executor)
+        .flatMap(value -> 
+          Future.success(new IOResource<>(value, release))
+            .flatMap(resource -> resource.apply(use).toFuture(executor)
+                .onComplete(result -> resource.close())));
+    }
 
     @Override
     public String toString() {
@@ -279,6 +326,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     @Override
     public Try<T> unsafeRunSync() {
       return Try.of(current::unsafeRunSync);
+    }
+    
+    @Override
+    public Future<Try<T>> toFuture(ExecutorService executor) {
+      return current.toFuture().fold(Try::<T>failure, Try::success);
     }
 
     @Override

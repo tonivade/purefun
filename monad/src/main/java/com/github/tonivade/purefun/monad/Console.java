@@ -52,7 +52,7 @@ final class ConsoleIO implements Console<IO.µ> {
 
   @Override
   public IO<String> readln() {
-    return IO.of(console::readln);
+    return IO.task(console::readln);
   }
 
   @Override
