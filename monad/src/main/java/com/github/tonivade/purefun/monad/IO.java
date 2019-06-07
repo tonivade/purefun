@@ -93,7 +93,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       return sneakyThrow(cause);
     });
   }
-  
+
   IOModule getModule();
 
   static <T> IO<T> pure(T value) {
@@ -156,12 +156,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return value;
     }
-    
+
     @Override
     public Future<T> toFuture(ExecutorService executor) {
       return Future.success(executor, value);
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
@@ -187,17 +187,17 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public R unsafeRunSync() {
       return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
     }
-    
+
     @Override
     public Future<R> toFuture(ExecutorService executor) {
       return current.toFuture(executor).flatMap(next.andThen(IO::narrowK).andThen(io -> io.toFuture(executor)));
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public String toString() {
       return "FlatMapped(" + current + ", ?)";
@@ -216,7 +216,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return sneakyThrow(error);
     }
-    
+
     @Override
     public Future<T> toFuture(ExecutorService executor) {
       return Future.failure(executor, error);
@@ -233,7 +233,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
       return (IO<R>) this;
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
@@ -244,11 +244,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
       return "Failure(" + error + ")";
     }
   }
-  
+
   final class Task<T> implements IO<T> {
 
     private final Producer<T> task;
-    
+
     public Task(Producer<T> task) {
       this.task = requireNonNull(task);
     }
@@ -257,17 +257,17 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return task.get();
     }
-    
+
     @Override
     public Future<T> toFuture(ExecutorService executor) {
       return Future.from(task::get);
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public String toString() {
       return "Task(?)";
@@ -286,12 +286,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return lazy.get().unsafeRunSync();
     }
-    
+
     @Override
     public Future<T> toFuture(ExecutorService executor) {
       return Future.unit().andThen(lazy.andThen(io -> io.toFuture(executor)));
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
@@ -321,16 +321,16 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
         return resource.apply(use).unsafeRunSync();
       }
     }
-    
+
     @Override
     public Future<R> toFuture(ExecutorService executor) {
       return acquire.toFuture(executor)
-        .flatMap(value -> 
+        .flatMap(value ->
           Future.success(new IOResource<>(value, release))
             .flatMap(resource -> resource.apply(use).toFuture(executor)
                 .onComplete(result -> resource.close())));
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
@@ -354,12 +354,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Try<T> unsafeRunSync() {
       return Try.of(current::unsafeRunSync);
     }
-    
+
     @Override
     public Future<Try<T>> toFuture(ExecutorService executor) {
       return current.toFuture().fold(Try::<T>failure, Try::success);
     }
-    
+
     @Override
     public IOModule getModule() {
       throw new UnsupportedOperationException();
@@ -377,8 +377,9 @@ interface IOModule {
 }
 
 final class IOResource<T> implements AutoCloseable {
-  final T resource;
-  final CheckedConsumer1<T> release;
+
+  private final T resource;
+  private final CheckedConsumer1<T> release;
 
   IOResource(T resource, CheckedConsumer1<T> release) {
     this.resource = requireNonNull(resource);

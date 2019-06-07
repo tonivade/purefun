@@ -59,25 +59,25 @@ public class IOTest {
         .andThen(narrowK(console.println("end")));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
-    
+
     executor.run(echo);
 
     assertEquals("write your name\nHello Toni\nend\n", executor.getOutput());
   }
-  
+
   @Test
   public void safeRunAsync() {
     List<String> result = Collections.synchronizedList(new ArrayList<>());
     IO<Unit> currentThread = IO.exec(() -> result.add(Thread.currentThread().getName()));
-    
+
     IO<Unit> program = currentThread
         .andThen(currentThread
             .andThen(currentThread
                 .andThen(currentThread
                     .andThen(currentThread))));
-    
+
     program.toFuture().get();
-    
+
     assertEquals(5, result.size());
   }
 
@@ -90,6 +90,17 @@ public class IOTest {
 
     assertEquals(Try.success("value"), bracket.unsafeRunSync());
     verify(resultSet).close();
+  }
+
+  @Test
+  public void bracketAsync() throws SQLException {
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getString("id")).thenReturn("value");
+
+    IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
+
+    assertEquals(Try.success("value"), bracket.toFuture().get());
+    verify(resultSet, timeout(1000)).close();
   }
 
   @Test

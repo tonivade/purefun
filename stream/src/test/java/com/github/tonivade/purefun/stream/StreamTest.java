@@ -26,6 +26,7 @@ import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.StreamInstances;
+import com.github.tonivade.purefun.monad.Future;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.type.Id;
@@ -244,9 +245,20 @@ public class StreamTest {
 
   @Test
   public void readFile() {
+    IO<String> license = pureReadFile("../LICENSE");
+    IO<String> notFound = pureReadFile("hjsjkdf");
     assertAll(
-        () -> assertEquals(impureReadFile("../LICENSE"), pureReadFile("../LICENSE").unsafeRunSync()),
-        () -> assertEquals("--- file not found ---", pureReadFile("lkjasdf").unsafeRunSync()));
+        () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync()),
+        () -> assertEquals("--- file not found ---", notFound.unsafeRunSync()));
+  }
+
+  @Test
+  public void readFileAsync() {
+    Future<String> license = pureReadFile("../LICENSE").toFuture();
+    Future<String> notFound = pureReadFile("hjsjkdf").toFuture();
+    assertAll(
+        () -> assertEquals(impureReadFile("../LICENSE"), license.get()),
+        () -> assertEquals("--- file not found ---", notFound.get()));
   }
 
   private IO<String> pureReadFile(String file) {
