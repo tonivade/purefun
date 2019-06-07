@@ -8,14 +8,10 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.type.Either;
 
 public class ZIOTest {
@@ -118,16 +114,17 @@ public class ZIOTest {
 
   @Test
   public void safeRunAsync() {
-    List<String> result = Collections.synchronizedList(new ArrayList<>());
-    ZIO<Nothing, Throwable, Unit> currentThread = ZIO.exec(() -> result.add(Thread.currentThread().getName()));
+    Ref<ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
+    ZIO<Nothing, Throwable, ImmutableList<String>> currentThread =
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName()));
 
-    ZIO<Nothing, Throwable, Unit> program = currentThread
+    ZIO<Nothing, Throwable, ImmutableList<String>> program = currentThread
         .andThen(currentThread
             .andThen(currentThread
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    program.toFuture(nothing()).get();
+    ImmutableList<String> result = program.toFuture(nothing()).get().get();
 
     assertEquals(5, result.size());
   }
