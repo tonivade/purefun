@@ -6,12 +6,15 @@ package com.github.tonivade.purefun.zio;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.zio.ZIOModule.flatMapValue;
-import static com.github.tonivade.purefun.zio.ZIOModule.mapValue;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -26,27 +29,34 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
-@FunctionalInterface
 public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   final class µ implements Kind {}
 
-  ZIO<?, ?, Unit> UNIT = pure(Unit.unit());
-
   Either<E, A> provide(R env);
 
+  Future<Either<E, A>> toFuture(ExecutorService executor, R env);
+
   default Future<Either<E, A>> toFuture(R env) {
-    return Future.from(() -> provide(env));
+    return toFuture(Future.DEFAULT_EXECUTOR, env);
+  }
+
+  default void provideAsync(ExecutorService executor, R env, Consumer1<Try<Either<E, A>>> callback) {
+    toFuture(executor, env).onComplete(callback);
+  }
+
+  default void provideAsync(R env, Consumer1<Try<Either<E, A>>> callback) {
+    provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
   @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
-    return mapValue(this, value -> value.map(map));
+    return new FlatMapped<>(this, ZIO::raiseError, map.andThen(ZIO::pure));
   }
 
   @Override
   default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
-    return flatMapValue(this, value -> value.map(map.andThen(ZIO::narrowK)).fold(ZIO::raiseError, identity()));
+    return new FlatMapped<>(this, ZIO::raiseError, map.andThen(ZIO::narrowK));
   }
 
   @SuppressWarnings("unchecked")
@@ -59,19 +69,19 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   default ZIO<R, A, E> swap() {
-    return mapValue(this, Either<E, A>::swap);
+    return new Swap<>(this);
   }
 
   default <B> ZIO<R, B, A> mapError(Function1<E, B> map) {
-    return mapValue(this, value -> value.mapLeft(map));
+    return new FlatMapped<>(this, map.andThen(ZIO::raiseError), ZIO::pure);
   }
 
   default <F> ZIO<R, F, A> flatMapError(Function1<E, ZIO<R, F, A>> map) {
-    return flatMapValue(this, value -> value.mapLeft(map).fold(identity(), ZIO::pure));
+    return new FlatMapped<>(this, map, ZIO::pure);
   }
 
   default <B, F> ZIO<R, F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
-    return mapValue(this, value -> value.bimap(mapError, map));
+    return new FlatMapped<>(this, mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
   }
 
   default <B> ZIO<R, E, B> andThen(ZIO<R, E, B> next) {
@@ -79,7 +89,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   default <B, F> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
-    return env -> provide(env).fold(mapError, map).provide(env);
+    return new FoldM<>(this, mapError, map);
   }
 
   default <B> ZIO<R, Nothing, B> fold(Function1<E, B> mapError, Function1<A, B> map) {
@@ -90,8 +100,10 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return foldM(other.asFunction(), cons(this));
   }
 
+  ZIOModule getModule();
+
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {
-    return env -> map.apply(env).provide(env);
+    return new AccessM<>(map);
   }
 
   static <R, A> ZIO<R, Nothing, A> access(Function1<R, A> map) {
@@ -107,7 +119,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   static <R, E, A> ZIO<R, E, A> absorb(ZIO<R, E, Either<E, A>> value) {
-    return mapValue(value, Either::flatten);
+    return value.flatMap(either -> either.fold(ZIO::raiseError, ZIO::pure));
   }
 
   static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(CheckedFunction1<A, B> function) {
@@ -115,32 +127,32 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   }
 
   static <R, E, A> ZIO<R, E, A> from(Producer<Either<E, A>> task) {
-    return env -> task.get();
+    return new Task<>(task);
   }
 
   static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
-    return env -> Try.of(task).toEither();
+    return new Attemp<>(task);
   }
 
   static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
-    return from(task.asProducer());
+    return new Attemp<>(task.asProducer());
   }
 
   static <R, E, A> ZIO<R, E, A> pure(A value) {
-    return env -> Either.right(value);
+    return new Pure<>(value);
   }
 
-  static <R, E, A> ZIO<R, E, A> pure(Producer<A> value) {
-    return env -> Either.right(value.get());
+  static <R, E, A> ZIO<R, E, A> pure(Producer<A> task) {
+    return new Task<>(task.andThen(Either::right));
   }
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
-    return env -> Either.left(error);
+    return new Failure<>(error);
   }
 
   @SuppressWarnings("unchecked")
   static <R, E> ZIO<R, E, Unit> unit() {
-    return (ZIO<R, E, Unit>) UNIT;
+    return (ZIO<R, E, Unit>) ZIOModule.UNIT;
   }
 
   static <R, E, A> ZIO<R, E, A> narrowK(Higher3<ZIO.µ, R, E, A> hkt) {
@@ -155,15 +167,256 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   static <R, E, A> ZIO<R, E, A> narrowK(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> hkt) {
     return (ZIO<R, E, A>) hkt;
   }
+
+  final class Pure<R, E, A> implements ZIO<R, E, A> {
+
+    private A value;
+
+    private Pure(A value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @Override
+    public Either<E, A> provide(R env) {
+      return Either.right(value);
+    }
+
+    @Override
+    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+      return Future.success(executor, Either.right(value));
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Pure(" + value + ")";
+    }
+  }
+
+  final class Failure<R, E, A> implements ZIO<R, E, A> {
+
+    private E error;
+
+    private Failure(E error) {
+      this.error = requireNonNull(error);
+    }
+
+    @Override
+    public Either<E, A> provide(R env) {
+      return Either.left(error);
+    }
+
+    @Override
+    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+      return Future.success(executor, Either.left(error));
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Failure(" + error + ")";
+    }
+  }
+
+  final class FlatMapped<R, E, A, F, B> implements ZIO<R, F, B> {
+
+    private ZIO<R, E, A> current;
+    private Function1<E, ZIO<R, F, B>> nextError;
+    private Function1<A, ZIO<R, F, B>> next;
+
+    private FlatMapped(ZIO<R, E, A> current,
+                       Function1<E, ZIO<R, F, B>> nextError,
+                       Function1<A, ZIO<R, F, B>> next) {
+      this.current = requireNonNull(current);
+      this.nextError = requireNonNull(nextError);
+      this.next = requireNonNull(next);
+    }
+
+    @Override
+    public Either<F, B> provide(R env) {
+      Either<ZIO<R, F, B>, ZIO<R, F, B>> bimap = current.provide(env).bimap(nextError, next);
+      return bimap.fold(identity(), identity()).provide(env);
+    }
+
+    @Override
+    public Future<Either<F, B>> toFuture(ExecutorService executor, R env) {
+      Future<Either<E, A>> future = current.toFuture(executor, env);
+      Future<Either<ZIO<R, F, B>, ZIO<R, F, B>>> flatMap = future.flatMap(either -> Future.success(executor, either.bimap(nextError, next)));
+      return flatMap.map(either -> either.fold(left -> left.provide(env), right -> right.provide(env)));
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "FlatMapped(" + current + ", ?, ?)";
+    }
+  }
+
+  final class Task<R, E, A> implements ZIO<R, E, A> {
+
+    private Producer<Either<E, A>> task;
+
+    private Task(Producer<Either<E, A>> task) {
+      this.task = requireNonNull(task);
+    }
+
+    @Override
+    public Either<E, A> provide(R env) {
+      return task.get();
+    }
+
+    @Override
+    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+      return Future.run(executor, task::get);
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Task(?)";
+    }
+  }
+
+  final class Swap<R, E, A> implements ZIO<R, A, E> {
+
+    private ZIO<R, E, A> current;
+
+    private Swap(ZIO<R, E, A> current) {
+      this.current = requireNonNull(current);
+    }
+
+    @Override
+    public Either<A, E> provide(R env) {
+      return current.provide(env).swap();
+    }
+
+    @Override
+    public Future<Either<A, E>> toFuture(ExecutorService executor, R env) {
+      return current.toFuture(executor, env).map(Either::swap);
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Swap(" + current + ")";
+    }
+  }
+
+  final class Attemp<R, A> implements ZIO<R, Throwable, A> {
+
+    private final CheckedProducer<A> current;
+
+    private Attemp(CheckedProducer<A> current) {
+      this.current = requireNonNull(current);
+    }
+
+    @Override
+    public Either<Throwable, A> provide(R env) {
+      return Try.of(current).toEither();
+    }
+
+    @Override
+    public Future<Either<Throwable, A>> toFuture(ExecutorService executor, R env) {
+      return Future.run(() -> Try.of(current).toEither());
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Attemp(" + current + ")";
+    }
+  }
+
+  final class AccessM<R, E, A> implements ZIO<R, E, A> {
+
+    private Function1<R, ZIO<R, E, A>> function;
+
+    private AccessM(Function1<R, ZIO<R, E, A>> function) {
+      this.function = requireNonNull(function);
+    }
+
+    @Override
+    public Either<E, A> provide(R env) {
+      return function.apply(env).provide(env);
+    }
+
+    @Override
+    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+      return Future.run(executor, () -> function.apply(env).provide(env));
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "AccessM(?)";
+    }
+  }
+
+  final class FoldM<R, E, A, F, B> implements ZIO<R, F, B> {
+
+    private ZIO<R, E, A> current;
+    private Function1<E, ZIO<R, F, B>> nextError;
+    private Function1<A, ZIO<R, F, B>> next;
+
+    private FoldM(ZIO<R, E, A> current, Function1<E, ZIO<R, F, B>> nextError, Function1<A, ZIO<R, F, B>> next) {
+      this.current = requireNonNull(current);
+      this.nextError = requireNonNull(nextError);
+      this.next = requireNonNull(next);
+    }
+
+    @Override
+    public Either<F, B> provide(R env) {
+      return current.provide(env).fold(nextError, next).provide(env);
+    }
+
+    @Override
+    public Future<Either<F, B>> toFuture(ExecutorService executor, R env) {
+      Future<Either<E, A>> future = current.toFuture(executor, env);
+      Future<ZIO<R, F, B>> map = future.map(either -> either.fold(nextError, next));
+      return map.map(zio -> provide(env));
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "FoldM(" + current + ", ?, ?)";
+    }
+  }
 }
 
 interface ZIOModule {
 
-  static <R, E, F, A, B> ZIO<R, F, B> mapValue(ZIO<R, E, A> self, Function1<Either<E, A>, Either<F, B>> map) {
-    return env -> map.apply(self.provide(env));
-  }
-
-  static <R, E, F, A, B> ZIO<R, F, B> flatMapValue(ZIO<R, E, A> self, Function1<Either<E, A>, ZIO<R, F, B>> map) {
-    return env -> map.apply(self.provide(env)).provide(env);
-  }
+  ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
 }

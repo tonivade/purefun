@@ -8,9 +8,14 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
 
 public class ZIOTest {
@@ -109,6 +114,22 @@ public class ZIOTest {
         parseInt("kjsdfe").orElse(() -> ZIO.pure(2)).provide(nothing());
 
     assertEquals(Either.right(2), result);
+  }
+
+  @Test
+  public void safeRunAsync() {
+    List<String> result = Collections.synchronizedList(new ArrayList<>());
+    ZIO<Nothing, Throwable, Unit> currentThread = ZIO.exec(() -> result.add(Thread.currentThread().getName()));
+
+    ZIO<Nothing, Throwable, Unit> program = currentThread
+        .andThen(currentThread
+            .andThen(currentThread
+                .andThen(currentThread
+                    .andThen(currentThread))));
+
+    program.toFuture(nothing()).get();
+
+    assertEquals(5, result.size());
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
