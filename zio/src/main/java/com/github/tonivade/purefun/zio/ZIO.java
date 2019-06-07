@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
@@ -33,6 +34,10 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   ZIO<?, ?, Unit> UNIT = pure(Unit.unit());
 
   Either<E, A> provide(R env);
+
+  default Future<Either<E, A>> toFuture(R env) {
+    return Future.from(() -> provide(env));
+  }
 
   @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {

@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -33,7 +34,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   }
 
   default Future<T> toFuture() {
-    return toFuture(FutureModule.DEFAULT_EXECUTOR);
+    return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
   Future<T> toFuture(ExecutorService executor);

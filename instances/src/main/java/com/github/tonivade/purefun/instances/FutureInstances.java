@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.monad.Future;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;

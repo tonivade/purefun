@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.monad;
+package com.github.tonivade.purefun.concurrent;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -33,6 +33,8 @@ import com.github.tonivade.purefun.type.Try;
 
 public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
 
+  ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+
   final class µ implements Kind {}
 
   Try<T> await();
@@ -60,7 +62,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   @Override
   <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper);
-  
+
   <R> Future<R> andThen(Producer<Future<R>> next);
 
   @Override
@@ -96,7 +98,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   FutureModule getModule();
 
   static <T> Future<T> success(T value) {
-    return success(FutureModule.DEFAULT_EXECUTOR, value);
+    return success(DEFAULT_EXECUTOR, value);
   }
 
   static <T> Future<T> success(ExecutorService executor, T value) {
@@ -104,7 +106,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> failure(Throwable error) {
-    return failure(FutureModule.DEFAULT_EXECUTOR, error);
+    return failure(DEFAULT_EXECUTOR, error);
   }
 
   static <T> Future<T> failure(ExecutorService executor, Throwable error) {
@@ -120,7 +122,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> run(CheckedProducer<T> task) {
-    return run(FutureModule.DEFAULT_EXECUTOR, task);
+    return run(DEFAULT_EXECUTOR, task);
   }
 
   static <T> Future<T> run(ExecutorService executor, CheckedProducer<T> task) {
@@ -128,7 +130,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> delay(Duration timeout, CheckedProducer<T> producer) {
-    return delay(FutureModule.DEFAULT_EXECUTOR, timeout, producer);
+    return delay(DEFAULT_EXECUTOR, timeout, producer);
   }
 
   static <T> Future<T> delay(ExecutorService executor, Duration timeout, CheckedProducer<T> producer) {
@@ -136,7 +138,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> runTry(Producer<Try<T>> task) {
-    return runTry(FutureModule.DEFAULT_EXECUTOR, task);
+    return runTry(DEFAULT_EXECUTOR, task);
   }
 
   static <T> Future<T> runTry(ExecutorService executor, Producer<Try<T>> task) {
@@ -146,7 +148,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
     return (Future<T>) hkt;
   }
-  
+
   static Future<Unit> unit() {
     return success(Unit.unit());
   }
@@ -172,7 +174,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       return runTry(executor,
           () -> await().flatMap(t -> mapper.andThen(Future::narrowK).apply(t).await()));
     }
-    
+
     @Override
     public <R> Future<R> andThen(Producer<Future<R>> next) {
       return runTry(executor, () -> await().flatMap(t -> next.get().await()));
@@ -263,9 +265,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 }
 
-interface FutureModule {
-  ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
-}
+interface FutureModule { }
 
 final class AsyncValue<T> {
 

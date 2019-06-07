@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.monad;
+package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.CheckedProducer.failure;
 import static com.github.tonivade.purefun.CheckedProducer.unit;
@@ -27,6 +27,7 @@ import org.mockito.Mock;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Try;
 
 public class FutureTest {
