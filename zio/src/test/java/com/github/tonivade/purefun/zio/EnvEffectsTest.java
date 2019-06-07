@@ -30,7 +30,7 @@ public class EnvEffectsTest {
 
   private ZIO<Console, Throwable, Unit> echo() {
     return Console.println("what's your name?")
-        .andThen(Console::readln)
+        .andThen(Console.readln())
         .flatMap(name -> Console.println("Hello " + name));
   }
 }

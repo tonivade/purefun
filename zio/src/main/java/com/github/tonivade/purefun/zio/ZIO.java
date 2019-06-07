@@ -74,8 +74,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return mapValue(this, value -> value.bimap(mapError, map));
   }
 
-  default <B> ZIO<R, E, B> andThen(Producer<ZIO<R, E, B>> next) {
-    return flatMap(ignore -> next.get());
+  default <B> ZIO<R, E, B> andThen(ZIO<R, E, B> next) {
+    return flatMap(ignore -> next);
   }
 
   default <B, F> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {

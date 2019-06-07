@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
 
@@ -30,8 +29,7 @@ public class RefTest {
     Ref<String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, Unit> set = ref.set("Something else");
-    Producer<ZIO<Nothing, Nothing, String>> get = ref::get;
-    ZIO<Nothing, Nothing, String> result = set.andThen(get);
+    ZIO<Nothing, Nothing, String> result = set.andThen(ref.get());
 
     assertEquals(Either.right("Something else"), result.provide(nothing()));
   }
@@ -41,8 +39,7 @@ public class RefTest {
     Ref<String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, Unit> lazySet = ref.lazySet("Something else");
-    Producer<ZIO<Nothing, Nothing, String>> get = ref::get;
-    ZIO<Nothing, Nothing, String> result = lazySet.andThen(get);
+    ZIO<Nothing, Nothing, String> result = lazySet.andThen(ref.get());
 
     assertEquals(Either.right("Something else"), result.provide(nothing()));
   }
@@ -52,8 +49,7 @@ public class RefTest {
     Ref<String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, String> result = ref.getAndSet("Something else");
-    Producer<ZIO<Nothing, Nothing, String>> get = ref::get;
-    ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(get);
+    ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(ref.get());
 
     assertEquals(Either.right("Hello World!"), result.provide(nothing()));
     assertEquals(Either.right("Something else"), afterUpdate.provide(nothing()));
@@ -64,8 +60,7 @@ public class RefTest {
     Ref<String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, String> result = ref.getAndUpdate(String::toUpperCase);
-    Producer<ZIO<Nothing, Nothing, String>> get = ref::get;
-    ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(get);
+    ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(ref.get());
 
     assertEquals(Either.right("Hello World!"), result.provide(nothing()));
     assertEquals(Either.right("HELLO WORLD!"), afterUpdate.provide(nothing()));
