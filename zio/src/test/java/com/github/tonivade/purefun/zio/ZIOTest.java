@@ -124,9 +124,9 @@ public class ZIOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    ImmutableList<String> result = program.toFuture(nothing()).get().get();
+    Either<Throwable, ImmutableList<String>> result = program.toFuture(nothing()).get();
 
-    assertEquals(5, result.size());
+    assertEquals(Either.right(5), result.map(ImmutableList::size));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
