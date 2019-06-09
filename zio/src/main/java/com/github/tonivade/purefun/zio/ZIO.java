@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import com.github.tonivade.purefun.CheckedFunction1;
@@ -173,7 +172,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     private A value;
 
     private Pure(A value) {
-      this.value = Objects.requireNonNull(value);
+      this.value = requireNonNull(value);
     }
 
     @Override
@@ -249,8 +248,9 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     @Override
     public Future<Either<F, B>> toFuture(ExecutorService executor, R env) {
       Future<Either<E, A>> future = current.toFuture(executor, env);
-      Future<Either<ZIO<R, F, B>, ZIO<R, F, B>>> flatMap = future.flatMap(either -> Future.success(executor, either.bimap(nextError, next)));
-      return flatMap.map(either -> either.fold(left -> left.provide(env), right -> right.provide(env)));
+      Future<Either<ZIO<R, F, B>, ZIO<R, F, B>>> flatMap =
+          future.flatMap(either -> Future.success(executor, either.bimap(nextError, next)));
+      return flatMap.flatMap(either -> either.fold(identity(), identity()).toFuture(executor, env));
     }
 
     @Override
@@ -366,7 +366,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
     @Override
     public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
-      return Future.run(executor, () -> function.apply(env).provide(env));
+      return Future.run(executor, () -> function.apply(env))
+          .flatMap(zio -> zio.toFuture(executor, env));
     }
 
     @Override
@@ -401,7 +402,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     public Future<Either<F, B>> toFuture(ExecutorService executor, R env) {
       Future<Either<E, A>> future = current.toFuture(executor, env);
       Future<ZIO<R, F, B>> map = future.map(either -> either.fold(nextError, next));
-      return map.map(zio -> provide(env));
+      return map.flatMap(zio -> zio.toFuture(executor, env));
     }
 
     @Override
