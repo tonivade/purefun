@@ -17,7 +17,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -215,9 +220,26 @@ public class FutureTest {
 
     assertTrue(future.isCanceled());
   }
+  
+  @Test
+  public void noDeadlock() {
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    List<String> result = Collections.synchronizedList(new ArrayList<>());
+    
+    currentThread(executor, result).andThen(
+        currentThread(executor, result).andThen(
+            currentThread(executor, result).andThen(
+                currentThread(executor, result)))).await();
+    
+    assertEquals(4, result.size());
+  }
 
   @BeforeEach
   public void setUp() {
     initMocks(this);
+  }
+
+  private Future<Unit> currentThread(ExecutorService executor, List<String> result) {
+    return Future.exec(executor, () -> result.add(Thread.currentThread().getName()));
   }
 }

@@ -290,7 +290,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public Future<T> toFuture(ExecutorService executor) {
-      return Future.unit().andThen(lazy.andThen(io -> io.toFuture(executor)));
+      return Future.unit().andThen(lazy.get().toFuture(executor));
     }
 
     @Override

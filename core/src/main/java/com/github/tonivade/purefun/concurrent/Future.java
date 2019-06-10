@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -11,7 +12,6 @@ import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,6 +20,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
+import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
@@ -65,7 +66,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   @Override
   <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper);
 
-  <R> Future<R> andThen(Producer<Future<R>> next);
+  <R> Future<R> andThen(Future<R> next);
 
   @Override
   Future<T> filter(Matcher1<T> matcher);
@@ -104,7 +105,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> success(ExecutorService executor, T value) {
-    return runTry(executor, () -> Try.success(value));
+    return FutureImpl.sync(executor, () -> Try.success(value));
   }
 
   static <T> Future<T> failure(Throwable error) {
@@ -112,7 +113,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> failure(ExecutorService executor, Throwable error) {
-    return runTry(executor, () -> Try.failure(error));
+    return FutureImpl.sync(executor, () -> Try.failure(error));
   }
 
   static <T> Future<T> from(Callable<T> callable) {
@@ -128,7 +129,15 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> run(ExecutorService executor, CheckedProducer<T> task) {
-    return runTry(executor, task.liftTry());
+    return FutureImpl.async(executor, task.liftTry());
+  }
+
+  static Future<Unit> exec(CheckedRunnable task) {
+    return exec(DEFAULT_EXECUTOR, task);
+  }
+
+  static Future<Unit> exec(ExecutorService executor, CheckedRunnable task) {
+    return run(executor, () -> { task.run(); return Unit.unit(); });
   }
 
   static <T> Future<T> delay(Duration timeout, CheckedProducer<T> producer) {
@@ -139,72 +148,58 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
 
-  static <T> Future<T> runTry(Producer<Try<T>> task) {
-    return runTry(DEFAULT_EXECUTOR, task);
-  }
-
-  static <T> Future<T> runTry(ExecutorService executor, Producer<Try<T>> task) {
-    return new FutureImpl<>(requireNonNull(executor), requireNonNull(task));
-  }
-
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
     return (Future<T>) hkt;
   }
 
   static Future<Unit> unit() {
-    return success(Unit.unit());
+    return FutureModule.UNIT;
   }
 
   final class FutureImpl<T> implements Future<T> {
 
     private final ExecutorService executor;
-    private final java.util.concurrent.Future<?> job;
     private final AsyncValue<Try<T>> value = new AsyncValue<>();
 
-    private FutureImpl(ExecutorService executor, Producer<Try<T>> task) {
-      this.executor = executor;
-      this.job = executor.submit(() -> value.set(task.get()));
+    private FutureImpl(ExecutorService executor, Consumer1<AsyncValue<Try<T>>> task) {
+      this.executor = requireNonNull(executor);
+      requireNonNull(task).accept(value);
     }
 
     @Override
     public <R> Future<R> map(Function1<T, R> mapper) {
-      return runTry(executor, () -> await().map(mapper));
+      return transform(executor, this, value -> value.map(mapper));
     }
 
     @Override
     public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-      return runTry(executor,
-          () -> await().flatMap(t -> mapper.andThen(Future::narrowK).apply(t).await()));
+      return run(executor, this, 
+          value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
     }
 
     @Override
-    public <R> Future<R> andThen(Producer<Future<R>> next) {
-      return runTry(executor, () -> await().flatMap(t -> next.get().await()));
+    public <R> Future<R> andThen(Future<R> next) {
+      return flatMap(ignore -> next);
     }
 
     @Override
     public Future<T> filter(Matcher1<T> matcher) {
-      return runTry(executor, () -> await().filter(matcher));
+      return transform(executor, this, value -> value.filter(matcher));
     }
 
     @Override
     public Future<T> orElse(Future<T> other) {
-      return runTry(executor, () -> {
-        if (Future.super.isSuccess()) {
-          return this.await();
-        }
-        return other.await();
-      });
+      return run(executor, this, value -> value.fold(cons(other), Future::success));
     }
 
     @Override
     public Future<T> recover(Function1<Throwable, T> mapper) {
-      return runTry(executor, () -> await().recover(mapper));
+      return transform(executor, this, value -> value.recover(mapper));
     }
 
     @Override
     public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
-      return run(executor, () -> await().fold(failureMapper, successMapper));
+      return transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
     }
 
     @Override
@@ -219,9 +214,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public void cancel() {
-      if (job.cancel(true)) {
-        value.set(Try.failure(new CancellationException()));
-      }
+      // TODO:
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -231,7 +225,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public boolean isCanceled() {
-      return job.isCancelled();
+      // TODO:
+      return false;
     }
 
     @Override
@@ -248,13 +243,32 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Future<T> onComplete(Consumer1<Try<T>> callback) {
-      executor.execute(() -> callback.accept(await()));
+      value.onComplete(callback);
       return this;
     }
 
     @Override
     public FutureModule getModule() {
       throw new UnsupportedOperationException();
+    }
+    
+    static <T> Future<T> sync(ExecutorService executor, Producer<Try<T>> producer) {
+      return new FutureImpl<T>(executor, value -> value.set(producer.get()));
+    }
+    
+    static <T> Future<T> async(ExecutorService executor, Producer<Try<T>> producer) {
+      return new FutureImpl<T>(executor, value -> executor.submit(() -> value.set(producer.get())));
+    }
+    
+    static <T, R> Future<R> transform(ExecutorService executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
+      return new FutureImpl<>(executor, 
+          next -> current.onComplete(value -> next.set(mapper.apply(value))));
+    }
+    
+    static <T, R> Future<R> run(ExecutorService executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+      return new FutureImpl<>(executor, 
+          next -> executor.submit(() -> current.onComplete(
+              value -> mapper.apply(value).onComplete(next::set))));
     }
 
     private CheckedProducer<Try<T>> result() {
@@ -267,7 +281,9 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 }
 
-interface FutureModule { }
+interface FutureModule {
+  Future<Unit> UNIT = Future.success(Unit.unit());
+}
 
 final class AsyncValue<T> {
 
