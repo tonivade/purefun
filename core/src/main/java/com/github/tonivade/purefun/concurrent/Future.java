@@ -9,11 +9,13 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Duration;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -234,13 +236,13 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
-      executor.execute(() -> await().onSuccess(callback));
+      value.onComplete(value -> value.onSuccess(callback));
       return this;
     }
 
     @Override
     public Future<T> onFailure(Consumer1<Throwable> callback) {
-      executor.execute(() -> await().onFailure(callback));
+      value.onComplete(value -> value.onFailure(callback));
       return this;
     }
 
@@ -269,12 +271,20 @@ interface FutureModule { }
 
 final class AsyncValue<T> {
 
+  private final Queue<Consumer1<T>> consumers = new LinkedBlockingQueue<>();
   private final AtomicReference<Option<T>> reference = new AtomicReference<>(Option.none());
   private final CountDownLatch latch = new CountDownLatch(1);
+  
+  void onComplete(Consumer1<T> consumer) {
+    if (isEmpty()) {
+      consumers.add(consumer);
+    } else reference.get().ifPresent(consumer);
+  }
 
   void set(T value) {
     if (reference.compareAndSet(Option.none(), Option.some(value))) {
       latch.countDown();
+      consumers.forEach(consumer -> consumer.accept(value));
     }
     else throw new IllegalStateException("already setted: " + reference.get());
   }
