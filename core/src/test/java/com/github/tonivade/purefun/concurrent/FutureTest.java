@@ -32,7 +32,6 @@ import org.mockito.Mock;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Try;
 
 public class FutureTest {
@@ -220,17 +219,17 @@ public class FutureTest {
 
     assertTrue(future.isCanceled());
   }
-  
+
   @Test
   public void noDeadlock() {
     ExecutorService executor = Executors.newFixedThreadPool(2);
     List<String> result = Collections.synchronizedList(new ArrayList<>());
-    
+
     currentThread(executor, result).andThen(
         currentThread(executor, result).andThen(
             currentThread(executor, result).andThen(
-                currentThread(executor, result)))).await();
-    
+                currentThread(executor, result)))).await(Duration.ofSeconds(5));
+
     assertEquals(4, result.size());
   }
 

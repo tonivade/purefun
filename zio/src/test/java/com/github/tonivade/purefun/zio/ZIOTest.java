@@ -8,6 +8,8 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
@@ -124,7 +126,8 @@ public class ZIOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    Either<Throwable, ImmutableList<String>> result = program.toFuture(nothing()).get();
+    Either<Throwable, ImmutableList<String>> result =
+        program.toFuture(nothing()).await(Duration.ofSeconds(5)).get();
 
     assertEquals(Either.right(5), result.map(ImmutableList::size));
   }
