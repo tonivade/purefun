@@ -5,19 +5,18 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Duration;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -173,7 +172,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-      return run(executor, this, 
+      return run(executor, this,
           value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
     }
 
@@ -251,32 +250,32 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     public FutureModule getModule() {
       throw new UnsupportedOperationException();
     }
-    
+
     static <T> Future<T> sync(ExecutorService executor, Producer<Try<T>> producer) {
-      return new FutureImpl<T>(executor, value -> value.set(producer.get()));
+      return new FutureImpl<>(executor, value -> value.set(producer.get()));
     }
-    
+
     static <T> Future<T> async(ExecutorService executor, Producer<Try<T>> producer) {
-      return new FutureImpl<T>(executor, value -> executor.submit(() -> value.set(producer.get())));
+      return new FutureImpl<>(executor, value -> executor.submit(() -> value.set(producer.get())));
     }
-    
+
     static <T, R> Future<R> transform(ExecutorService executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
-      return new FutureImpl<>(executor, 
+      return new FutureImpl<>(executor,
           next -> current.onComplete(value -> next.set(mapper.apply(value))));
     }
-    
+
     static <T, R> Future<R> run(ExecutorService executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
-      return new FutureImpl<>(executor, 
+      return new FutureImpl<>(executor,
           next -> executor.submit(() -> current.onComplete(
               value -> mapper.apply(value).onComplete(next::set))));
     }
 
     private CheckedProducer<Try<T>> result() {
-      return () -> value.get().getOrElse(Try.failure(new NoSuchElementException()));
+      return () -> value.get().fold(() -> Try.failure(new NoSuchElementException()), identity());
     }
 
     private CheckedProducer<Try<T>> result(Duration timeout) {
-      return () -> value.get(timeout).getOrElse(Try.failure(new NoSuchElementException()));
+      return () -> value.get(timeout).fold(() -> Try.failure(new NoSuchElementException()), identity());
     }
   }
 }
@@ -287,41 +286,52 @@ interface FutureModule {
 
 final class AsyncValue<T> {
 
-  private final Queue<Consumer1<T>> consumers = new LinkedBlockingQueue<>();
-  private final AtomicReference<Option<T>> reference = new AtomicReference<>(Option.none());
-  private final CountDownLatch latch = new CountDownLatch(1);
-  
+  private final Object mutex = new Object();
+  private final Queue<Consumer1<T>> consumers = new LinkedList<>();
+  private Option<T> reference = Option.none();
+
   void onComplete(Consumer1<T> consumer) {
-    if (isEmpty()) {
-      consumers.add(consumer);
-    } else reference.get().ifPresent(consumer);
+    synchronized (mutex) {
+      if (reference.isEmpty()) {
+        consumers.add(consumer);
+      } else reference.ifPresent(consumer);
+    }
   }
 
   void set(T value) {
-    if (reference.compareAndSet(Option.none(), Option.some(value))) {
-      latch.countDown();
-      consumers.forEach(consumer -> consumer.accept(value));
+    synchronized (mutex) {
+      if (reference.isEmpty()) {
+        reference = Option.some(value);
+        consumers.forEach(consumer -> consumer.accept(value));
+        mutex.notifyAll();
+      } else throw new IllegalStateException("already setted: " + reference);
     }
-    else throw new IllegalStateException("already setted: " + reference.get());
   }
 
   Option<T> get() throws InterruptedException {
-    latch.await();
-    return reference.get();
+    synchronized (mutex) {
+      if (reference.isEmpty()) {
+        mutex.wait();
+      }
+    }
+    return reference;
   }
 
   Option<T> get(Duration timeout) throws InterruptedException, TimeoutException {
-    await(timeout);
-    return reference.get();
+    synchronized (mutex) {
+      if (reference.isEmpty()) {
+        mutex.wait(timeout.toMillis());
+      }
+    }
+    if (reference.isEmpty()) {
+      throw new TimeoutException();
+    }
+    return reference;
   }
 
   boolean isEmpty() {
-    return reference.get().equals(Option.none());
-  }
-
-  private void await(Duration timeout) throws InterruptedException, TimeoutException {
-    if (!latch.await(timeout.toMillis(), MILLISECONDS)) {
-      throw new TimeoutException();
+    synchronized (mutex) {
+      return reference.isEmpty();
     }
   }
 }
