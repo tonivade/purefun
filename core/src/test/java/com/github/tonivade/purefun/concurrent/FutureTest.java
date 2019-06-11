@@ -205,8 +205,6 @@ public class FutureTest {
 
     Try<String> result = future.await(Duration.ofMillis(100));
 
-    System.out.println(result);
-
     assertAll(
         () -> assertTrue(result.isFailure()),
         () -> assertTrue(result.getCause() instanceof TimeoutException));
