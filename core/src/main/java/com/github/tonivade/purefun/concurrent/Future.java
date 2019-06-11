@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -271,11 +270,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     private CheckedProducer<Try<T>> result() {
-      return () -> value.get().fold(() -> Try.failure(new NoSuchElementException()), identity());
+      return value::get;
     }
 
     private CheckedProducer<Try<T>> result(Duration timeout) {
-      return () -> value.get(timeout).fold(() -> Try.failure(new NoSuchElementException()), identity());
+      return () -> value.get(timeout);
     }
   }
 }
@@ -308,25 +307,22 @@ final class AsyncValue<T> {
     }
   }
 
-  Option<T> get() throws InterruptedException {
+  T get() throws InterruptedException {
     synchronized (mutex) {
       if (reference.isEmpty()) {
         mutex.wait();
       }
     }
-    return reference;
+    return reference.get();
   }
 
-  Option<T> get(Duration timeout) throws InterruptedException, TimeoutException {
+  T get(Duration timeout) throws InterruptedException, TimeoutException {
     synchronized (mutex) {
       if (reference.isEmpty()) {
         mutex.wait(timeout.toMillis());
       }
     }
-    if (reference.isEmpty()) {
-      throw new TimeoutException();
-    }
-    return reference;
+    return reference.getOrElseThrow(TimeoutException::new);
   }
 
   boolean isEmpty() {
