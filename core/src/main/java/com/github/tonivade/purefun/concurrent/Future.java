@@ -290,27 +290,34 @@ final class AsyncValue<T> {
   private Option<T> reference = Option.none();
 
   void onComplete(Consumer1<T> consumer) {
-    synchronized (mutex) {
-      if (reference.isEmpty()) {
-        consumers.add(consumer);
-      } else reference.ifPresent(consumer);
+    if (reference.isEmpty()) {
+      synchronized (mutex) {
+        if (reference.isEmpty()) {
+          consumers.add(consumer);
+        }
+      }
     }
+    reference.ifPresent(consumer);
   }
 
   void set(T value) {
-    synchronized (mutex) {
-      if (reference.isEmpty()) {
-        reference = Option.some(value);
-        consumers.forEach(consumer -> consumer.accept(value));
-        mutex.notifyAll();
-      } else throw new IllegalStateException("already setted: " + reference);
+    if (reference.isEmpty()) {
+      synchronized (mutex) {
+        if (reference.isEmpty()) {
+          reference = Option.some(value);
+          consumers.forEach(consumer -> consumer.accept(value));
+          mutex.notifyAll();
+        } else throw new IllegalStateException("already setted: " + reference);
+      }
     }
   }
 
   T get() throws InterruptedException {
-    synchronized (mutex) {
-      if (reference.isEmpty()) {
-        mutex.wait();
+    if (reference.isEmpty()) {
+      synchronized (mutex) {
+        if (reference.isEmpty()) {
+          mutex.wait();
+        }
       }
     }
     return reference.get();
@@ -326,8 +333,6 @@ final class AsyncValue<T> {
   }
 
   boolean isEmpty() {
-    synchronized (mutex) {
-      return reference.isEmpty();
-    }
+    return reference.isEmpty();
   }
 }
