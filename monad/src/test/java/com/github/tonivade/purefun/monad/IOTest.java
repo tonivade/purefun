@@ -17,6 +17,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +77,7 @@ public class IOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    program.toFuture().get();
+    program.toFuture().await(Duration.ofSeconds(5));
 
     assertEquals(5, result.size());
   }

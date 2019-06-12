@@ -8,7 +8,7 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.CheckedProducer;
@@ -34,13 +34,13 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   Either<E, A> provide(R env);
 
-  Future<Either<E, A>> toFuture(ExecutorService executor, R env);
+  Future<Either<E, A>> toFuture(Executor executor, R env);
 
   default Future<Either<E, A>> toFuture(R env) {
     return toFuture(Future.DEFAULT_EXECUTOR, env);
   }
 
-  default void provideAsync(ExecutorService executor, R env, Consumer1<Try<Either<E, A>>> callback) {
+  default void provideAsync(Executor executor, R env, Consumer1<Try<Either<E, A>>> callback) {
     toFuture(executor, env).onComplete(callback);
   }
 
@@ -181,7 +181,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<E, A>> toFuture(Executor executor, R env) {
       return Future.success(executor, Either.right(value));
     }
 
@@ -210,7 +210,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<E, A>> toFuture(Executor executor, R env) {
       return Future.success(executor, Either.left(error));
     }
 
@@ -246,7 +246,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<F, B>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<F, B>> toFuture(Executor executor, R env) {
       Future<Either<E, A>> future = current.toFuture(executor, env);
       Future<Either<ZIO<R, F, B>, ZIO<R, F, B>>> flatMap =
           future.flatMap(either -> Future.success(executor, either.bimap(nextError, next)));
@@ -278,7 +278,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<E, A>> toFuture(Executor executor, R env) {
       return Future.run(executor, task::get);
     }
 
@@ -307,7 +307,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<A, E>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<A, E>> toFuture(Executor executor, R env) {
       return current.toFuture(executor, env).map(Either::swap);
     }
 
@@ -336,7 +336,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<Throwable, A>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<Throwable, A>> toFuture(Executor executor, R env) {
       return Future.run(() -> Try.of(current).toEither());
     }
 
@@ -365,7 +365,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<E, A>> toFuture(Executor executor, R env) {
       return Future.run(executor, () -> function.apply(env))
           .flatMap(zio -> zio.toFuture(executor, env));
     }
@@ -399,7 +399,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<F, B>> toFuture(ExecutorService executor, R env) {
+    public Future<Either<F, B>> toFuture(Executor executor, R env) {
       Future<Either<E, A>> future = current.toFuture(executor, env);
       Future<ZIO<R, F, B>> map = future.map(either -> either.fold(nextError, next));
       return map.flatMap(zio -> zio.toFuture(executor, env));

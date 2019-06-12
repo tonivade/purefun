@@ -14,22 +14,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Try;
 
+@ExtendWith(MockitoExtension.class)
 public class FutureTest {
 
   @Mock
@@ -50,7 +58,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertEquals("Hello World!", future.get()));
   }
 
@@ -65,7 +73,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
@@ -80,7 +88,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertEquals("Hello World!", future.get()));
   }
 
@@ -95,7 +103,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertEquals("Hello World!", future.get()));
   }
 
@@ -110,7 +118,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
@@ -126,7 +134,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
@@ -207,17 +215,61 @@ public class FutureTest {
   }
 
   @Test
-  @Disabled("it fails because someone is interrupting the thread before cancel it")
-  public void cancel() {
-    Future<String> future = Future.delay(Duration.ofSeconds(5), unit("Hello world!"));
+  public void cancelled() {
+    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
 
-    future.cancel();
+    future.cancel(false);
 
-    assertTrue(future.isCanceled());
+    assertTrue(future.isCancelled());
+    assertFalse(future.isCompleted());
+    assertTrue(future.isFailure());
+  }
+
+  @Test
+  public void interrupt(@Mock CheckedProducer<String> producer) throws InterruptedException {
+    Future<String> future = Future.delay(Duration.ofSeconds(1), producer);
+
+    Thread.sleep(50);
+
+    future.cancel(true);
+
+    assertTrue(future.isCancelled());
+    assertFalse(future.isCompleted());
+    assertTrue(future.isFailure());
+    Thread.sleep(1500);
+    verifyZeroInteractions(producer);
+  }
+
+  @Test
+  public void notCancelled() {
+    Future<String> future = Future.success("Hello world!");
+
+    future.cancel(false);
+
+    assertFalse(future.isCancelled());
+    assertTrue(future.isCompleted());
+    assertTrue(future.isSuccess());
+  }
+
+  @Test
+  public void noDeadlock() {
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    List<String> result = Collections.synchronizedList(new ArrayList<>());
+
+    currentThread(executor, result).andThen(
+        currentThread(executor, result).andThen(
+            currentThread(executor, result).andThen(
+                currentThread(executor, result)))).await(Duration.ofSeconds(5));
+
+    assertEquals(4, result.size());
   }
 
   @BeforeEach
   public void setUp() {
     initMocks(this);
+  }
+
+  private Future<Unit> currentThread(ExecutorService executor, List<String> result) {
+    return Future.exec(executor, () -> result.add(Thread.currentThread().getName()));
   }
 }

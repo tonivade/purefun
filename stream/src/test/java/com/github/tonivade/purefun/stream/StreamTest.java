@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
@@ -257,8 +258,8 @@ public class StreamTest {
     Future<String> license = pureReadFile("../LICENSE").toFuture();
     Future<String> notFound = pureReadFile("hjsjkdf").toFuture();
     assertAll(
-        () -> assertEquals(impureReadFile("../LICENSE"), license.get()),
-        () -> assertEquals("--- file not found ---", notFound.get()));
+        () -> assertEquals(impureReadFile("../LICENSE"), license.await(Duration.ofSeconds(5)).get()),
+        () -> assertEquals("--- file not found ---", notFound.await(Duration.ofSeconds(5)).get()));
   }
 
   private IO<String> pureReadFile(String file) {
