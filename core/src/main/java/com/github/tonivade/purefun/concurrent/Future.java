@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -44,7 +45,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   void cancel();
 
   boolean isCompleted();
-  boolean isCanceled();
+  boolean isCancelled();
 
   default boolean isSuccess() {
     return await().isSuccess();
@@ -212,19 +213,17 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public void cancel() {
-      // TODO:
-      throw new UnsupportedOperationException();
+      value.cancel();
     }
 
     @Override
     public boolean isCompleted() {
-      return !value.isEmpty();
+      return value.isCompleted();
     }
 
     @Override
-    public boolean isCanceled() {
-      // TODO:
-      return false;
+    public boolean isCancelled() {
+      return value.isCancelled();
     }
 
     @Override
@@ -285,13 +284,13 @@ interface FutureModule {
 
 final class AsyncValue<T> {
 
-  private final Object mutex = new Object();
+  private final State state = new State();
   private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
   private volatile Option<Try<T>> reference = Option.none();
 
   void onComplete(Consumer1<Try<T>> consumer) {
     if (isEmpty()) {
-      synchronized (mutex) {
+      synchronized (state) {
         if (isEmpty()) {
           consumers.add(consumer);
         }
@@ -300,13 +299,23 @@ final class AsyncValue<T> {
     reference.ifPresent(consumer);
   }
 
+  void cancel() {
+    if (isEmpty()) {
+      synchronized (state) {
+        if (isEmpty()) {
+          state.cancelled = true;
+          setValue(Try.failure(new CancellationException()));
+        }
+      }
+    }
+  }
+
   void set(Try<T> value) {
     if (isEmpty()) {
-      synchronized (mutex) {
+      synchronized (state) {
         if (isEmpty()) {
-          reference = Option.some(value);
-          consumers.forEach(reference::ifPresent);
-          mutex.notifyAll();
+          state.completed = true;
+          setValue(value);
         }
       }
     }
@@ -314,9 +323,9 @@ final class AsyncValue<T> {
 
   Try<T> get() throws InterruptedException {
     if (isEmpty()) {
-      synchronized (mutex) {
+      synchronized (state) {
         if (isEmpty()) {
-          mutex.wait();
+          state.wait();
         }
       }
     }
@@ -325,16 +334,39 @@ final class AsyncValue<T> {
 
   Try<T> get(Duration timeout) throws InterruptedException, TimeoutException {
     if (isEmpty()) {
-      synchronized (mutex) {
+      synchronized (state) {
         if (isEmpty()) {
-          mutex.wait(timeout.toMillis());
+          state.wait(timeout.toMillis());
         }
       }
     }
     return reference.getOrElseThrow(TimeoutException::new);
   }
 
-  boolean isEmpty() {
+  boolean isCancelled() {
+    synchronized (state) {
+      return state.cancelled;
+    }
+  }
+
+  boolean isCompleted() {
+    synchronized (state) {
+      return state.completed;
+    }
+  }
+
+  private boolean isEmpty() {
     return reference.isEmpty();
+  }
+
+  private void setValue(Try<T> value) {
+    reference = Option.some(value);
+    consumers.forEach(reference::ifPresent);
+    state.notifyAll();
+  }
+
+  private static final class State {
+    boolean cancelled = false;
+    boolean completed = false;
   }
 }

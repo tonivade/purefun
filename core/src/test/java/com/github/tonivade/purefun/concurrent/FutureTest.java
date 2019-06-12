@@ -26,7 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -54,7 +53,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertEquals("Hello World!", future.get()));
   }
 
@@ -69,7 +68,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
@@ -84,7 +83,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertEquals("Hello World!", future.get()));
   }
 
@@ -99,7 +98,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertTrue(future::isSuccess),
         () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertEquals("Hello World!", future.get()));
   }
 
@@ -114,7 +113,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
@@ -130,7 +129,7 @@ public class FutureTest {
         () -> assertTrue(future::isCompleted),
         () -> assertFalse(future::isSuccess),
         () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCanceled),
+        () -> assertFalse(future::isCancelled),
         () -> assertThrows(NoSuchElementException.class, future::get));
   }
 
@@ -211,13 +210,23 @@ public class FutureTest {
   }
 
   @Test
-  @Disabled("it fails because someone is interrupting the thread before cancel it")
-  public void cancel() {
+  public void cancelled() {
     Future<String> future = Future.delay(Duration.ofSeconds(5), unit("Hello world!"));
 
     future.cancel();
 
-    assertTrue(future.isCanceled());
+    assertTrue(future.isCancelled());
+    assertFalse(future.isCompleted());
+  }
+
+  @Test
+  public void notCancelled() {
+    Future<String> future = Future.success("Hello world!");
+
+    future.cancel();
+
+    assertFalse(future.isCancelled());
+    assertTrue(future.isCompleted());
   }
 
   @Test
