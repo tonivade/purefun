@@ -287,7 +287,7 @@ final class AsyncValue<T> {
 
   private final Object mutex = new Object();
   private final Queue<Consumer1<T>> consumers = new LinkedList<>();
-  private Option<T> reference = Option.none();
+  private volatile Option<T> reference = Option.none();
 
   void onComplete(Consumer1<T> consumer) {
     if (reference.isEmpty()) {
