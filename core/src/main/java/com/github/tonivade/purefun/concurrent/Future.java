@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Function1.cons;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -42,7 +43,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   Try<T> await();
   Try<T> await(Duration timeout);
 
-  void cancel();
+  void cancel(boolean mayInterruptThread);
 
   boolean isCompleted();
   boolean isCancelled();
@@ -172,7 +173,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-      return run(executor, this,
+      return follow(executor, this,
           value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
     }
 
@@ -188,7 +189,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Future<T> orElse(Future<T> other) {
-      return run(executor, this, value -> value.fold(cons(other), Future::success));
+      return follow(executor, this, value -> value.fold(cons(other), Future::success));
     }
 
     @Override
@@ -212,8 +213,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     @Override
-    public void cancel() {
-      value.cancel();
+    public void cancel(boolean mayInterruptThread) {
+      value.cancel(mayInterruptThread);
     }
 
     @Override
@@ -253,19 +254,19 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       return new FutureImpl<>(executor, value -> value.set(producer.get()));
     }
 
-    static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
-      return new FutureImpl<>(executor, value -> executor.execute(() -> value.set(producer.get())));
-    }
-
     static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
       return new FutureImpl<>(executor,
           next -> current.onComplete(value -> next.set(mapper.apply(value))));
     }
 
-    static <T, R> Future<R> run(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+    static <T, R> Future<R> follow(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
       return new FutureImpl<>(executor,
-          next -> executor.execute(() -> current.onComplete(
-              value -> mapper.apply(value).onComplete(next::set))));
+          next -> current.onComplete(value -> mapper.apply(value).onComplete(next::set)));
+    }
+
+    static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
+      return new FutureImpl<>(executor,
+          value -> executor.execute(() -> { value.begin(); value.set(producer.get()); }));
     }
 
     private CheckedProducer<Try<T>> result() {
@@ -288,6 +289,13 @@ final class AsyncValue<T> {
   private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
   private volatile Option<Try<T>> reference = Option.none();
 
+  void begin() {
+    synchronized (state) {
+      state.thread = Thread.currentThread();
+      state.thread.setUncaughtExceptionHandler((t, ex) -> set(Try.failure(ex)));
+    }
+  }
+
   void onComplete(Consumer1<Try<T>> consumer) {
     if (isEmpty()) {
       synchronized (state) {
@@ -299,11 +307,14 @@ final class AsyncValue<T> {
     reference.ifPresent(consumer);
   }
 
-  void cancel() {
+  void cancel(boolean mayInterruptThread) {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {
           state.cancelled = true;
+          if (mayInterruptThread) {
+            state.interrupt();
+          }
           setValue(Try.failure(new CancellationException()));
         }
       }
@@ -368,5 +379,12 @@ final class AsyncValue<T> {
   private static final class State {
     boolean cancelled = false;
     boolean completed = false;
+    Thread thread = null;
+
+    void interrupt() {
+      if (nonNull(thread)) {
+        thread.interrupt();
+      }
+    }
   }
 }

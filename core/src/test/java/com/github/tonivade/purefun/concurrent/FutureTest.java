@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
@@ -27,12 +28,16 @@ import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
+@ExtendWith(MockitoExtension.class)
 public class FutureTest {
 
   @Mock
@@ -211,22 +216,39 @@ public class FutureTest {
 
   @Test
   public void cancelled() {
-    Future<String> future = Future.delay(Duration.ofSeconds(5), unit("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
 
-    future.cancel();
+    future.cancel(false);
 
     assertTrue(future.isCancelled());
     assertFalse(future.isCompleted());
+    assertTrue(future.isFailure());
+  }
+
+  @Test
+  public void interrupt(@Mock CheckedProducer<String> producer) throws InterruptedException {
+    Future<String> future = Future.delay(Duration.ofSeconds(1), producer);
+
+    Thread.sleep(50);
+
+    future.cancel(true);
+
+    assertTrue(future.isCancelled());
+    assertFalse(future.isCompleted());
+    assertTrue(future.isFailure());
+    Thread.sleep(1500);
+    verifyZeroInteractions(producer);
   }
 
   @Test
   public void notCancelled() {
     Future<String> future = Future.success("Hello world!");
 
-    future.cancel();
+    future.cancel(false);
 
     assertFalse(future.isCancelled());
     assertTrue(future.isCompleted());
+    assertTrue(future.isSuccess());
   }
 
   @Test
