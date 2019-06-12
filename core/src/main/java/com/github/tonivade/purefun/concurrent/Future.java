@@ -157,9 +157,9 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   final class FutureImpl<T> implements Future<T> {
 
     private final ExecutorService executor;
-    private final AsyncValue<Try<T>> value = new AsyncValue<>();
+    private final AsyncValue<T> value = new AsyncValue<>();
 
-    private FutureImpl(ExecutorService executor, Consumer1<AsyncValue<Try<T>>> task) {
+    private FutureImpl(ExecutorService executor, Consumer1<AsyncValue<T>> task) {
       this.executor = requireNonNull(executor);
       requireNonNull(task).accept(value);
     }
@@ -286,13 +286,13 @@ interface FutureModule {
 final class AsyncValue<T> {
 
   private final Object mutex = new Object();
-  private final Queue<Consumer1<T>> consumers = new LinkedList<>();
-  private volatile Option<T> reference = Option.none();
+  private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
+  private volatile Option<Try<T>> reference = Option.none();
 
-  void onComplete(Consumer1<T> consumer) {
-    if (reference.isEmpty()) {
+  void onComplete(Consumer1<Try<T>> consumer) {
+    if (isEmpty()) {
       synchronized (mutex) {
-        if (reference.isEmpty()) {
+        if (isEmpty()) {
           consumers.add(consumer);
         }
       }
@@ -300,22 +300,22 @@ final class AsyncValue<T> {
     reference.ifPresent(consumer);
   }
 
-  void set(T value) {
-    if (reference.isEmpty()) {
+  void set(Try<T> value) {
+    if (isEmpty()) {
       synchronized (mutex) {
-        if (reference.isEmpty()) {
+        if (isEmpty()) {
           reference = Option.some(value);
-          consumers.forEach(consumer -> consumer.accept(value));
+          consumers.forEach(reference::ifPresent);
           mutex.notifyAll();
-        } else throw new IllegalStateException("already setted: " + reference);
+        }
       }
     }
   }
 
-  T get() throws InterruptedException {
-    if (reference.isEmpty()) {
+  Try<T> get() throws InterruptedException {
+    if (isEmpty()) {
       synchronized (mutex) {
-        if (reference.isEmpty()) {
+        if (isEmpty()) {
           mutex.wait();
         }
       }
@@ -323,10 +323,12 @@ final class AsyncValue<T> {
     return reference.get();
   }
 
-  T get(Duration timeout) throws InterruptedException, TimeoutException {
-    synchronized (mutex) {
-      if (reference.isEmpty()) {
-        mutex.wait(timeout.toMillis());
+  Try<T> get(Duration timeout) throws InterruptedException, TimeoutException {
+    if (isEmpty()) {
+      synchronized (mutex) {
+        if (isEmpty()) {
+          mutex.wait(timeout.toMillis());
+        }
       }
     }
     return reference.getOrElseThrow(TimeoutException::new);
