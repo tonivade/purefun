@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.Consumer1;
@@ -37,13 +37,13 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
-  Future<T> toFuture(ExecutorService executor);
+  Future<T> toFuture(Executor executor);
 
   default void safeRunAsync(Consumer1<Try<T>> callback) {
     toFuture().onComplete(callback);
   }
 
-  default void safeRunAsync(ExecutorService executor, Consumer1<Try<T>> callback) {
+  default void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
     toFuture(executor).onComplete(callback);
   }
 
@@ -159,7 +159,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<T> toFuture(ExecutorService executor) {
+    public Future<T> toFuture(Executor executor) {
       return Future.success(executor, value);
     }
 
@@ -190,7 +190,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<R> toFuture(ExecutorService executor) {
+    public Future<R> toFuture(Executor executor) {
       return current.toFuture(executor).flatMap(next.andThen(IO::narrowK).andThen(io -> io.toFuture(executor)));
     }
 
@@ -219,7 +219,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<T> toFuture(ExecutorService executor) {
+    public Future<T> toFuture(Executor executor) {
       return Future.failure(executor, error);
     }
 
@@ -260,7 +260,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<T> toFuture(ExecutorService executor) {
+    public Future<T> toFuture(Executor executor) {
       return Future.from(task::get);
     }
 
@@ -289,7 +289,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<T> toFuture(ExecutorService executor) {
+    public Future<T> toFuture(Executor executor) {
       return Future.unit().andThen(lazy.get().toFuture(executor));
     }
 
@@ -324,7 +324,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<R> toFuture(ExecutorService executor) {
+    public Future<R> toFuture(Executor executor) {
       return acquire.toFuture(executor)
         .flatMap(value ->
           Future.success(new IOResource<>(value, release))
@@ -357,7 +357,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     }
 
     @Override
-    public Future<Try<T>> toFuture(ExecutorService executor) {
+    public Future<Try<T>> toFuture(Executor executor) {
       return current.toFuture().fold(Try::<T>failure, Try::success);
     }
 

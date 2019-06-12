@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
@@ -35,7 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 
 public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
 
-  ExecutorService DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+  Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
   final class µ implements Kind {}
 
@@ -103,7 +103,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return success(DEFAULT_EXECUTOR, value);
   }
 
-  static <T> Future<T> success(ExecutorService executor, T value) {
+  static <T> Future<T> success(Executor executor, T value) {
     return FutureImpl.sync(executor, () -> Try.success(value));
   }
 
@@ -111,7 +111,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return failure(DEFAULT_EXECUTOR, error);
   }
 
-  static <T> Future<T> failure(ExecutorService executor, Throwable error) {
+  static <T> Future<T> failure(Executor executor, Throwable error) {
     return FutureImpl.sync(executor, () -> Try.failure(error));
   }
 
@@ -127,7 +127,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return run(DEFAULT_EXECUTOR, task);
   }
 
-  static <T> Future<T> run(ExecutorService executor, CheckedProducer<T> task) {
+  static <T> Future<T> run(Executor executor, CheckedProducer<T> task) {
     return FutureImpl.async(executor, task.liftTry());
   }
 
@@ -135,7 +135,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return exec(DEFAULT_EXECUTOR, task);
   }
 
-  static Future<Unit> exec(ExecutorService executor, CheckedRunnable task) {
+  static Future<Unit> exec(Executor executor, CheckedRunnable task) {
     return run(executor, () -> { task.run(); return Unit.unit(); });
   }
 
@@ -143,7 +143,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return delay(DEFAULT_EXECUTOR, timeout, producer);
   }
 
-  static <T> Future<T> delay(ExecutorService executor, Duration timeout, CheckedProducer<T> producer) {
+  static <T> Future<T> delay(Executor executor, Duration timeout, CheckedProducer<T> producer) {
     return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
 
@@ -157,10 +157,10 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   final class FutureImpl<T> implements Future<T> {
 
-    private final ExecutorService executor;
+    private final Executor executor;
     private final AsyncValue<T> value = new AsyncValue<>();
 
-    private FutureImpl(ExecutorService executor, Consumer1<AsyncValue<T>> task) {
+    private FutureImpl(Executor executor, Consumer1<AsyncValue<T>> task) {
       this.executor = requireNonNull(executor);
       requireNonNull(task).accept(value);
     }
@@ -249,22 +249,22 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       throw new UnsupportedOperationException();
     }
 
-    static <T> Future<T> sync(ExecutorService executor, Producer<Try<T>> producer) {
+    static <T> Future<T> sync(Executor executor, Producer<Try<T>> producer) {
       return new FutureImpl<>(executor, value -> value.set(producer.get()));
     }
 
-    static <T> Future<T> async(ExecutorService executor, Producer<Try<T>> producer) {
-      return new FutureImpl<>(executor, value -> executor.submit(() -> value.set(producer.get())));
+    static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
+      return new FutureImpl<>(executor, value -> executor.execute(() -> value.set(producer.get())));
     }
 
-    static <T, R> Future<R> transform(ExecutorService executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
+    static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
       return new FutureImpl<>(executor,
           next -> current.onComplete(value -> next.set(mapper.apply(value))));
     }
 
-    static <T, R> Future<R> run(ExecutorService executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+    static <T, R> Future<R> run(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
       return new FutureImpl<>(executor,
-          next -> executor.submit(() -> current.onComplete(
+          next -> executor.execute(() -> current.onComplete(
               value -> mapper.apply(value).onComplete(next::set))));
     }
 
