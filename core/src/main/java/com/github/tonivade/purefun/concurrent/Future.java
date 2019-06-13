@@ -204,12 +204,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Try<T> await() {
-      return result().recover(Try::failure).get();
+      return value.get();
     }
 
     @Override
     public Try<T> await(Duration timeout) {
-      return result(timeout).recover(Try::failure).get();
+      return value.get(timeout);
     }
 
     @Override
@@ -268,14 +268,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
       return new FutureImpl<>(executor,
           value -> executor.execute(() -> { value.begin(); value.set(producer.get()); }));
     }
-
-    private CheckedProducer<Try<T>> result() {
-      return value::get;
-    }
-
-    private CheckedProducer<Try<T>> result(Duration timeout) {
-      return () -> value.get(timeout);
-    }
   }
 }
 
@@ -332,26 +324,34 @@ final class AsyncValue<T> {
     }
   }
 
-  Try<T> get() throws InterruptedException {
+  Try<T> get() {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {
-          state.wait();
+          try {
+            state.wait();
+          } catch (InterruptedException e) {
+            return Try.failure(e);
+          }
         }
       }
     }
     return reference.get();
   }
 
-  Try<T> get(Duration timeout) throws InterruptedException, TimeoutException {
+  Try<T> get(Duration timeout) {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {
-          state.wait(timeout.toMillis());
+          try {
+            state.wait(timeout.toMillis());
+          } catch (InterruptedException e) {
+            return Try.failure(e);
+          }
         }
       }
     }
-    return reference.getOrElseThrow(TimeoutException::new);
+    return reference.getOrElse(Try.failure(new TimeoutException()));
   }
 
   boolean isCancelled() {
