@@ -45,6 +45,10 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     return (Option<T>) hkt;
   }
 
+  static <T> Option<T> of(T value) {
+    return nonNull(value) ? some(value) : none();
+  }
+
   static <T> Option<T> of(Producer<T> producer) {
     T value = producer.get();
     if (nonNull(value)) {

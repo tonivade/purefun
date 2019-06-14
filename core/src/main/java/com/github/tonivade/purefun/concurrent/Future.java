@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Function1.cons;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -19,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -306,7 +308,7 @@ final class AsyncValue<T> {
 
   private final State state = new State();
   private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
-  private volatile Option<Try<T>> reference = Option.none();
+  private final AtomicReference<Try<T>> reference = new AtomicReference<>();
 
   void begin() {
     synchronized (state) {
@@ -316,14 +318,7 @@ final class AsyncValue<T> {
   }
 
   void onComplete(Consumer1<Try<T>> consumer) {
-    if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          consumers.add(consumer);
-        }
-      }
-    }
-    reference.ifPresent(consumer);
+    tryOnComplete(consumer).ifPresent(consumer);
   }
 
   void cancel(boolean mayInterruptThread) {
@@ -366,7 +361,7 @@ final class AsyncValue<T> {
         }
       }
     }
-    return reference.get();
+    return requireNonNull(reference.get());
   }
 
   Try<T> get(Duration timeout) {
@@ -382,7 +377,7 @@ final class AsyncValue<T> {
         }
       }
     }
-    return reference.getOrElse(Try.failure(new TimeoutException()));
+    return Option.of(reference::get).getOrElse(Try.failure(new TimeoutException()));
   }
 
   boolean isCancelled() {
@@ -397,13 +392,26 @@ final class AsyncValue<T> {
     }
   }
 
-  private boolean isEmpty() {
-    return reference.isEmpty();
+  private Option<Try<T>> tryOnComplete(Consumer1<Try<T>> consumer) {
+    Try<T> current = reference.get();
+    if (isNull(current)) {
+      synchronized (state) {
+        current = reference.get();
+        if (isNull(current)) {
+          consumers.add(consumer);
+        }
+      }
+    }
+    return Option.of(current);
   }
 
   private void setValue(Try<T> value) {
-    reference = Option.some(value);
-    consumers.forEach(reference::ifPresent);
+    reference.set(value);
+    consumers.forEach(consumer -> consumer.accept(value));
+  }
+
+  private boolean isEmpty() {
+    return isNull(reference.get());
   }
 
   private static final class State {
