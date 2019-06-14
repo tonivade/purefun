@@ -350,6 +350,7 @@ final class AsyncValue<T> {
           try {
             state.wait();
           } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return Try.failure(e);
           }
         }
@@ -365,6 +366,7 @@ final class AsyncValue<T> {
           try {
             state.wait(timeout.toMillis());
           } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return Try.failure(e);
           }
         }
