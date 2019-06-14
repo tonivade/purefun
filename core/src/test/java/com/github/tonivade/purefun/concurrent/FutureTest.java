@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -194,6 +195,33 @@ public class FutureTest {
     Future<String> result = future.orElse(Future.success("Hello world!"));
 
     assertEquals(Try.success("Hello world!"), result.await());
+  }
+
+  @Test
+  public void getOrElse() {
+    Future<String> success = Future.success("Hello world!");
+    Future<String> failure = Future.failure(new IllegalArgumentException());
+
+    assertAll(() -> assertEquals("Hello world!", success.getOrElse("or else")),
+              () -> assertEquals("or else", failure.getOrElse("or else")));
+  }
+
+  @Test
+  public void getOrElseThrow() {
+    Future<String> success = Future.success("Hello world!");
+    Future<String> failure = Future.failure(new IllegalArgumentException());
+
+    assertAll(() -> assertEquals("Hello world!", success.getOrElseThrow(NoSuchElementException::new)),
+              () -> assertThrows(NoSuchElementException.class, () -> failure.getOrElseThrow(NoSuchElementException::new)));
+  }
+
+  @Test
+  public void toCompletableFuture() throws InterruptedException, ExecutionException {
+    Future<String> success = Future.success("Hello world!");
+    Future<String> failure = Future.failure(new IllegalArgumentException());
+
+    assertAll(() -> assertEquals("Hello world!", success.toCompletableFuture().get()),
+              () -> assertThrows(ExecutionException.class, () -> failure.toCompletableFuture().get()));
   }
 
   @Test

@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -111,6 +112,13 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper);
 
   <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper);
+
+  default CompletableFuture<T> toCompletableFuture() {
+    CompletableFuture<T> completableFuture = new CompletableFuture<>();
+    onSuccess(completableFuture::complete);
+    onFailure(completableFuture::completeExceptionally);
+    return completableFuture;
+  }
 
   FutureModule getModule();
 
@@ -327,6 +335,7 @@ final class AsyncValue<T> {
             state.interrupt();
           }
           setValue(Try.failure(new CancellationException()));
+          state.notifyAll();
         }
       }
     }
@@ -338,6 +347,7 @@ final class AsyncValue<T> {
         if (isEmpty()) {
           state.completed = true;
           setValue(value);
+          state.notifyAll();
         }
       }
     }
@@ -394,7 +404,6 @@ final class AsyncValue<T> {
   private void setValue(Try<T> value) {
     reference = Option.some(value);
     consumers.forEach(reference::ifPresent);
-    state.notifyAll();
   }
 
   private static final class State {
