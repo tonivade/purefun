@@ -78,6 +78,18 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return await().getOrElseThrow(NoSuchElementException::new);
   }
 
+  default T getOrElse(T value) {
+    return getOrElse(Producer.cons(value));
+  }
+
+  default T getOrElse(Producer<T> value) {
+    return await().getOrElse(value);
+  }
+
+  default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
+    return await().getOrElseThrow(producer);
+  }
+
   default Throwable getCause() {
     return await().getCause();
   }
@@ -95,6 +107,8 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   Future<T> recover(Function1<Throwable, T> mapper);
+
+  <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper);
 
   <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper);
 
@@ -195,6 +209,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     @Override
     public Future<T> recover(Function1<Throwable, T> mapper) {
       return transform(executor, this, value -> value.recover(mapper));
+    }
+
+    @Override
+    public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
+      return transform(executor, this, value -> value.recoverWith(type, mapper));
     }
 
     @Override
