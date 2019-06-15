@@ -78,7 +78,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   @Override
   default T get() {
-    return await().getOrElseThrow(NoSuchElementException::new);
+    return getOrElseThrow(NoSuchElementException::new);
   }
 
   default T getOrElse(T value) {
@@ -197,7 +197,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-      return follow(executor, this,
+      return chain(executor, this,
           value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
     }
 
@@ -213,7 +213,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Future<T> orElse(Future<T> other) {
-      return follow(executor, this, value -> value.fold(cons(other), Future::success));
+      return chain(executor, this, value -> value.fold(cons(other), Future::success));
     }
 
     @Override
@@ -288,7 +288,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
           next -> current.onComplete(value -> next.set(mapper.apply(value))));
     }
 
-    static <T, R> Future<R> follow(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+    static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
       return new FutureImpl<>(executor,
           next -> current.onComplete(value -> mapper.apply(value).onComplete(next::set)));
     }
