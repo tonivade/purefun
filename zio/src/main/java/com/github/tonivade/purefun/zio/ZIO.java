@@ -141,7 +141,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return new Pure<>(value);
   }
 
-  static <R, E, A> ZIO<R, E, A> pure(Producer<A> task) {
+  static <R, E, A> ZIO<R, E, A> of(Producer<A> task) {
     return new Task<>(task.andThen(Either::right));
   }
 
@@ -248,9 +248,9 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     @Override
     public Future<Either<F, B>> toFuture(Executor executor, R env) {
       Future<Either<E, A>> future = current.toFuture(executor, env);
-      Future<Either<ZIO<R, F, B>, ZIO<R, F, B>>> flatMap =
-          future.flatMap(either -> Future.success(executor, either.bimap(nextError, next)));
-      return flatMap.flatMap(either -> either.fold(identity(), identity()).toFuture(executor, env));
+      Future<ZIO<R, F, B>> flatMap =
+          future.map(either -> either.bimap(nextError, next).fold(identity(), identity()));
+      return flatMap.flatMap(zio -> zio.toFuture(executor, env));
     }
 
     @Override
