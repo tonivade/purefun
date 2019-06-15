@@ -31,6 +31,8 @@ import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Try;
 
 public class IOTest {
@@ -77,7 +79,7 @@ public class IOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    program.toFuture().await(Duration.ofSeconds(5));
+    program.foldMap(FutureInstances.monadDefer(Future.DEFAULT_EXECUTOR)).fix1(Future::narrowK).await(Duration.ofSeconds(5));
 
     assertEquals(5, result.size());
   }
@@ -99,13 +101,14 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
 
-    assertEquals(Try.success("value"), bracket.toFuture().get());
+    assertEquals(Try.success("value"), future.get());
     verify(resultSet, timeout(1000)).close();
   }
 
   @Test
-  public void unsafeRunAsyncSuccess() {
+  public void safeRunAsyncSuccess() {
     IO.pure("hola").safeRunAsync(callback);
 
     verify(callback, timeout(1000)).accept(Try.success("hola"));

@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
@@ -12,6 +13,7 @@ import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public interface IOInstances {
@@ -34,6 +36,10 @@ public interface IOInstances {
 
   static MonadError<IO.µ, Throwable> monadError() {
     return new IOMonadError() {};
+  }
+  
+  static MonadDefer<IO.µ> monadDefer() {
+    return new IOMonadDefer() {};
   }
 }
 
@@ -89,5 +95,13 @@ interface IODefer extends Defer<IO.µ> {
   @Override
   default <A> IO<A> defer(Producer<Higher1<IO.µ, A>> defer) {
     return IO.suspend(defer.andThen(IO::narrowK));
+  }
+}
+
+interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer {
+
+  @Override
+  default <A, B> IO<B> bracket(Higher1<IO.µ, A> acquire, Function1<A, ? extends Higher1<IO.µ, B>> use, Consumer1<A> release) {
+    return IO.bracket(IO.narrowK(acquire), use.andThen(IO::narrowK), release::accept);
   }
 }

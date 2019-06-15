@@ -171,6 +171,14 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   static <T> Future<T> delay(Executor executor, Duration timeout, CheckedProducer<T> producer) {
     return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
+  
+  static <T> Future<T> defer(CheckedProducer<Future<T>> producer) {
+    return defer(DEFAULT_EXECUTOR, producer);
+  }
+  
+  static <T> Future<T> defer(Executor executor, CheckedProducer<Future<T>> producer) {
+    return run(executor, () -> producer.get()).flatten();
+  }
 
   static <T> Future<T> narrowK(Higher1<Future.µ, T> hkt) {
     return (Future<T>) hkt;

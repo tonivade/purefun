@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
@@ -32,12 +33,14 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   default Try<T> safeRunSync() {
     return Try.of(this::unsafeRunSync);
   }
-
+  
   default Future<T> toFuture() {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
-  Future<T> toFuture(Executor executor);
+  default Future<T> toFuture(Executor executor) {
+    return Future.run(executor, this::unsafeRunSync);
+  }
 
   default void safeRunAsync(Consumer1<Try<T>> callback) {
     toFuture().onComplete(callback);
@@ -46,6 +49,8 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   default void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
     toFuture(executor).onComplete(callback);
   }
+
+  <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad);
 
   @Override
   default <R> IO<R> map(Function1<T, R> map) {
@@ -129,12 +134,12 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return IOModule.UNIT;
   }
 
-  static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
+  static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
     return new Bracket<>(acquire, use, release);
   }
 
   static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use) {
-    return bracket(acquire, use, AutoCloseable::close);
+    return bracket(acquire, use, CheckedConsumer1.<T>of(AutoCloseable::close).unchecked());
   }
 
   static IO<Unit> sequence(Sequence<IO<?>> sequence) {
@@ -157,10 +162,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return value;
     }
-
+    
     @Override
-    public Future<T> toFuture(Executor executor) {
-      return Future.success(executor, value);
+    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+      return monad.pure(value);
     }
 
     @Override
@@ -188,10 +193,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public R unsafeRunSync() {
       return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
     }
-
+    
     @Override
-    public Future<R> toFuture(Executor executor) {
-      return current.toFuture(executor).flatMap(next.andThen(IO::narrowK).andThen(io -> io.toFuture(executor)));
+    public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
+      return monad.flatMap(current.foldMap(monad), next.andThen(IO::narrowK).andThen(io -> io.foldMap(monad)));
     }
 
     @Override
@@ -217,10 +222,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return sneakyThrow(error);
     }
-
+    
     @Override
-    public Future<T> toFuture(Executor executor) {
-      return Future.failure(executor, error);
+    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+      return monad.raiseError(error);
     }
 
     @Override
@@ -258,10 +263,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return task.get();
     }
-
+    
     @Override
-    public Future<T> toFuture(Executor executor) {
-      return Future.run(executor, task::get);
+    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+      return monad.later(task);
     }
 
     @Override
@@ -287,10 +292,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return lazy.get().unsafeRunSync();
     }
-
+    
     @Override
-    public Future<T> toFuture(Executor executor) {
-      return Future.run(executor, lazy::get).flatMap(io -> io.toFuture(executor));
+    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+      return monad.defer(() -> lazy.get().foldMap(monad));
     }
 
     @Override
@@ -308,9 +313,9 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     private final IO<T> acquire;
     private final Function1<T, IO<R>> use;
-    private final CheckedConsumer1<T> release;
+    private final Consumer1<T> release;
 
-    private Bracket(IO<T> acquire, Function1<T, IO<R>> use, CheckedConsumer1<T> release) {
+    private Bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
       this.acquire = requireNonNull(acquire);
       this.use = requireNonNull(use);
       this.release = requireNonNull(release);
@@ -322,13 +327,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
         return resource.apply(use).unsafeRunSync();
       }
     }
-
+    
     @Override
-    public Future<R> toFuture(Executor executor) {
-      return acquire.toFuture(executor)
-        .map(value -> new IOResource<>(value, release))
-            .flatMap(resource -> resource.apply(use).toFuture(executor)
-                .onComplete(result -> resource.close()));
+    public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
+      return monad.bracket(acquire.foldMap(monad), use.andThen(io -> io.foldMap(monad)), release);
     }
 
     @Override
@@ -354,10 +356,10 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Try<T> unsafeRunSync() {
       return Try.of(current::unsafeRunSync);
     }
-
+    
     @Override
-    public Future<Try<T>> toFuture(Executor executor) {
-      return current.toFuture(executor).fold(Try::<T>failure, Try::success);
+    public <F extends Kind> Higher1<F, Try<T>> foldMap(MonadDefer<F> monad) {
+      return monad.map(monad.attemp(current.foldMap(monad)), either -> either.fold(Try::failure, Try::success));
     }
 
     @Override
@@ -379,9 +381,9 @@ interface IOModule {
 final class IOResource<T> implements AutoCloseable {
 
   private final T resource;
-  private final CheckedConsumer1<T> release;
+  private final Consumer1<T> release;
 
-  IOResource(T resource, CheckedConsumer1<T> release) {
+  IOResource(T resource, Consumer1<T> release) {
     this.resource = requireNonNull(resource);
     this.release = requireNonNull(release);
   }
@@ -392,6 +394,6 @@ final class IOResource<T> implements AutoCloseable {
 
   @Override
   public void close() {
-    release.unchecked().accept(resource);
+    release.accept(resource);
   }
 }

@@ -27,8 +27,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.typeclasses.Defer;
-import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Filterable<T> {
 
@@ -93,14 +92,11 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     return mapEval(ignore -> next);
   }
 
-  static <F extends Kind> StreamOf<F> of(Monad<F> monad, Defer<F> defer) {
+  static <F extends Kind> StreamOf<F> of(MonadDefer<F> monad) {
     return new StreamOf<F>() {
 
       @Override
-      public Monad<F> monad() { return monad; }
-
-      @Override
-      public Defer<F> defer() { return defer; }
+      public MonadDefer<F> monadDefer() { return monad; }
     };
   }
 
@@ -114,11 +110,10 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
   interface StreamOf<F extends Kind> {
 
-    Monad<F> monad();
-    Defer<F> defer();
+    MonadDefer<F> monadDefer();
 
     default <T> Stream<F, T> empty() {
-      return new Nil<>(monad(), defer());
+      return new Nil<>(monadDefer());
     }
 
     @SuppressWarnings("unchecked")
@@ -127,15 +122,15 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     }
 
     default <T> Stream<F, T> pure(T value) {
-      return eval(monad().pure(value));
+      return eval(monadDefer().pure(value));
     }
 
     default <T> Stream<F, T> suspend(Producer<Stream<F, T>> lazy) {
-      return new Suspend<>(monad(), defer(), defer().defer(lazy.andThen(monad()::pure)));
+      return new Suspend<>(monadDefer(), monadDefer().defer(lazy.andThen(monadDefer()::pure)));
     }
 
     default <T> Stream<F, T> eval(Higher1<F, T> value) {
-      return new Cons<>(monad(), defer(), value, empty());
+      return new Cons<>(monadDefer(), value, empty());
     }
 
     default <T> Stream<F, T> from(Iterable<T> iterable) {
@@ -147,28 +142,28 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     }
 
     default <T> Stream<F, T> from(Sequence<T> sequence) {
-      return sequence.foldLeft(empty(), (acc, a) -> acc.append(monad().pure(a)));
+      return sequence.foldLeft(empty(), (acc, a) -> acc.append(monadDefer().pure(a)));
     }
 
     default <T> Stream<F, T> iterate(T seed, Operator1<T> generator) {
-      return new Cons<>(monad(), defer(), monad().pure(seed),
+      return new Cons<>(monadDefer(), monadDefer().pure(seed),
           suspend(() -> iterate(generator.apply(seed), generator)));
     }
 
     default <T> Stream<F, T> iterate(Producer<T> generator) {
-      return new Cons<>(monad(), defer(), monad().pure(generator.get()),
+      return new Cons<>(monadDefer(), monadDefer().pure(generator.get()),
           suspend(() -> iterate(generator)));
     }
 
     default <A, B, R> Stream<F, R> zipWith(Stream<F, A> s1, Stream<F, B> s2, Function2<A, B, R> combinator) {
-      return new Suspend<>(monad(), defer(), defer().defer(
-        () -> monad().map2(s1.split(), s2.split(),
+      return new Suspend<>(monadDefer(), monadDefer().defer(
+        () -> monadDefer().map2(s1.split(), s2.split(),
           (op1, op2) -> {
             Higher1<Option.µ, Stream<F, R>> result = StreamModule.map2(op1, op2,
               (t1, t2) -> {
-                Higher1<F, R> head = monad().map2(t1.get1(), t2.get1(), combinator);
+                Higher1<F, R> head = monadDefer().map2(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
-                return new Cons<>(monad(), defer(), head, tail);
+                return new Cons<>(monadDefer(), head, tail);
               });
             return Option.narrowK(result).getOrElse(this::empty);
           })
@@ -184,14 +179,14 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
     }
 
     default <A> Stream<F, A> merge(Stream<F, A> s1, Stream<F, A> s2) {
-      return new Suspend<>(monad(), defer(), defer().defer(
-        () -> monad().map2(s1.split(), s2.split(),
+      return new Suspend<>(monadDefer(), monadDefer().defer(
+        () -> monadDefer().map2(s1.split(), s2.split(),
           (opt1, opt2) -> {
             Higher1<Option.µ, Stream<F, A>> result = StreamModule.map2(opt1, opt2,
               (t1, t2) -> {
                 Higher1<F, A> head = t1.get1();
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));
-                return new Cons<>(monad(), defer(), head, tail);
+                return new Cons<>(monadDefer(), head, tail);
               });
             return Option.narrowK(result).getOrElse(this::empty);
           })
@@ -202,14 +197,12 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
 
 final class Cons<F extends Kind, T> implements Stream<F, T> {
 
-  private final Monad<F> monad;
-  private final Defer<F> defer;
+  private final MonadDefer<F> monad;
   private final Higher1<F, T> head;
   private final Stream<F, T> tail;
 
-  Cons(Monad<F> monad, Defer<F> defer, Higher1<F, T> head, Stream<F, T> tail) {
+  Cons(MonadDefer<F> monad, Higher1<F, T> head, Stream<F, T> tail) {
     this.monad = requireNonNull(monad);
-    this.defer = requireNonNull(defer);
     this.head = requireNonNull(head);
     this.tail = requireNonNull(tail);
   }
@@ -325,7 +318,7 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   private <R> Stream<F, R> cons(Higher1<F, R> head, Stream<F, R> tail) {
-    return new Cons<>(monad, defer, head, tail);
+    return new Cons<>(monad, head, tail);
   }
 
   private <R> Stream<F, R> suspend(Producer<Stream<F, R>> stream) {
@@ -333,23 +326,21 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   private <R> Stream<F, R> suspendF(Producer<Higher1<F, Stream<F, R>>> stream) {
-    return new Suspend<>(monad, defer, defer.defer(stream));
+    return new Suspend<>(monad, monad.defer(stream));
   }
 
   private Stream<F, T> empty() {
-    return new Nil<>(monad, defer);
+    return new Nil<>(monad);
   }
 }
 
 final class Suspend<F extends Kind, T> implements Stream<F, T> {
 
-  private final Monad<F> monad;
-  private final Defer<F> defer;
+  private final MonadDefer<F> monad;
   private final Higher1<F, Stream<F, T>> evalStream;
 
-  Suspend(Monad<F> monad, Defer<F> defer, Higher1<F, Stream<F, T>> stream) {
+  Suspend(MonadDefer<F> monad, Higher1<F, Stream<F, T>> stream) {
     this.monad = requireNonNull(monad);
-    this.defer = requireNonNull(defer);
     this.evalStream = requireNonNull(stream);
   }
 
@@ -458,18 +449,16 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   private <R> Stream<F, R> suspend(Producer<Higher1<F, Stream<F, R>>> stream) {
-    return new Suspend<>(monad, defer, defer.defer(stream));
+    return new Suspend<>(monad, monad.defer(stream));
   }
 }
 
 final class Nil<F extends Kind, T> implements Stream<F, T> {
 
-  private final Monad<F> monad;
-  private final Defer<F> defer;
+  private final MonadDefer<F> monad;
 
-  Nil(Monad<F> monad, Defer<F> defer) {
+  Nil(MonadDefer<F> monad) {
     this.monad = requireNonNull(monad);
-    this.defer = requireNonNull(defer);
   }
 
   @Override
@@ -514,7 +503,7 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public Stream<F, T> append(Higher1<F, T> other) {
-    return new Cons<>(monad, defer, other, this);
+    return new Cons<>(monad, other, this);
   }
 
   @Override
@@ -524,7 +513,7 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Stream<F, R> collect(PartialFunction1<T, R> partial) {
-    return new Nil<>(monad, defer);
+    return new Nil<>(monad);
   }
 
   @Override
@@ -549,17 +538,17 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
 
   @Override
   public <R> Stream<F, R> map(Function1<T, R> map) {
-    return new Nil<>(monad, defer);
+    return new Nil<>(monad);
   }
 
   @Override
   public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
-    return new Nil<>(monad, defer);
+    return new Nil<>(monad);
   }
 
   @Override
   public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
-    return new Nil<>(monad, defer);
+    return new Nil<>(monad);
   }
 
   @Override

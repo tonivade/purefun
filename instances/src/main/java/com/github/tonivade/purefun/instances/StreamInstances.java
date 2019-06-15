@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
-import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -20,11 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public interface StreamInstances {
 
   static StreamOf<IO.µ> ofIO() {
-    return Stream.of(IOInstances.monad(), IOInstances.defer());
-  }
-
-  static StreamOf<Id.µ> ofId() {
-    return Stream.of(IdInstances.monad(), IdInstances.defer());
+    return Stream.of(IOInstances.monadDefer());
   }
   
   static <F extends Kind> Functor<Higher1<Stream.µ, F>> functor() {

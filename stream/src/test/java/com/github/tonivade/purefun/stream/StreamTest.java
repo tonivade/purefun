@@ -30,13 +30,11 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.StreamInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
-import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 
 public class StreamTest {
 
   final StreamOf<IO.µ> streamOfIO = StreamInstances.ofIO();
-  final StreamOf<Id.µ> streamOfId = StreamInstances.ofId();
 
   @Test
   public void map() {
@@ -49,19 +47,6 @@ public class StreamTest {
         .fix1(IO::narrowK);
 
     assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
-  }
-
-  @Test
-  public void mapOfId() {
-    Stream<Id.µ, String> pure1 = streamOfId.pure("hola");
-    Stream<Id.µ, String> pure2 = streamOfId.pure(" mundo");
-
-    Stream<Id.µ, String> result = pure1.concat(pure2)
-        .flatMap(string -> streamOfId.suspend(() -> streamOfId.pure(string.toUpperCase())));
-
-    Id<String> foldLeft = result.asString().fix1(Id::narrowK);
-
-    assertEquals("HOLA MUNDO", foldLeft.get());
   }
 
   @Test
