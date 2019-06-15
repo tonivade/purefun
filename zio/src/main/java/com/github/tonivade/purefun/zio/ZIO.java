@@ -154,6 +154,12 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return new Failure<>(error);
   }
 
+  static <R, A, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
+                                                Function1<A, ZIO<R, Throwable, B>> use,
+                                                Consumer1<A> release) {
+    return new Bracket<>(acquire, use, release);
+  }
+
   @SuppressWarnings("unchecked")
   static <R, E> ZIO<R, E, Unit> unit() {
     return (ZIO<R, E, Unit>) ZIOModule.UNIT;
@@ -408,13 +414,6 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<F, B>> toFuture(Executor executor, R env) {
-      Future<Either<E, A>> future = current.toFuture(executor, env);
-      Future<ZIO<R, F, B>> map = future.map(either -> either.fold(nextError, next));
-      return map.flatMap(zio -> zio.toFuture(executor, env));
-    }
-
-    @Override
     public <X extends Kind> Higher1<X, Either<F, B>> foldMap(R env, MonadDefer<X> monad) {
       Higher1<X, Either<E, A>> foldMap = current.foldMap(env, monad);
       Higher1<X, ZIO<R, F, B>> map = monad.map(foldMap, either -> either.fold(nextError, next));
@@ -431,9 +430,68 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
       return "FoldM(" + current + ", ?, ?)";
     }
   }
+
+  final class Bracket<R, A, B> implements ZIO<R, Throwable, B> {
+
+    private final ZIO<R, Throwable, A> acquire;
+    private final Function1<A, ZIO<R, Throwable, B>> use;
+    private final Consumer1<A> release;
+
+    private Bracket(ZIO<R, Throwable, A> acquire,
+                    Function1<A, ZIO<R, Throwable, B>> use,
+                    Consumer1<A> release) {
+      this.acquire = requireNonNull(acquire);
+      this.use = requireNonNull(use);
+      this.release = requireNonNull(release);
+    }
+
+    @Override
+    public Either<Throwable, B> provide(R env) {
+      try (ZIOResource<A> resource = new ZIOResource<>(acquire.provide(env), release)) {
+        return resource.apply(use).provide(env);
+      }
+    }
+
+    @Override
+    public <F extends Kind> Higher1<F, Either<Throwable, B>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.bracket(monad.flatMap(acquire.foldMap(env, monad), monad::fromEither),
+                           use.andThen(zio -> zio.foldMap(env, monad)),
+                           release);
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Bracket(" + acquire + ", ?, ?)";
+    }
+  }
 }
 
 interface ZIOModule {
 
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
+}
+
+final class ZIOResource<A> implements AutoCloseable {
+
+  private final Either<Throwable, A> resource;
+  private final Consumer1<A> release;
+
+  ZIOResource(Either<Throwable, A> resource, Consumer1<A> release) {
+    this.resource = requireNonNull(resource);
+    this.release = requireNonNull(release);
+  }
+
+  public <R, B> ZIO<R, Throwable, B> apply(Function1<A, ZIO<R, Throwable, B>> use) {
+    return resource.map(use).fold(ZIO::raiseError, identity());
+  }
+
+  @Override
+  public void close() {
+    resource.toOption().ifPresent(release);
+  }
 }
