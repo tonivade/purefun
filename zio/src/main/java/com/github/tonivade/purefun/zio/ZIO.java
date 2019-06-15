@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
@@ -34,7 +35,9 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   Either<E, A> provide(R env);
 
-  Future<Either<E, A>> toFuture(Executor executor, R env);
+  default Future<Either<E, A>> toFuture(Executor executor, R env) {
+    return Future.run(executor, () -> provide(env));
+  }
 
   default Future<Either<E, A>> toFuture(R env) {
     return toFuture(Future.DEFAULT_EXECUTOR, env);
@@ -47,6 +50,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   default void provideAsync(R env, Consumer1<Try<Either<E, A>>> callback) {
     provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
+
+  <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad);
 
   @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
@@ -181,8 +186,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(Executor executor, R env) {
-      return Future.success(executor, Either.right(value));
+    public <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.pure(Either.right(value));
     }
 
     @Override
@@ -210,8 +215,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(Executor executor, R env) {
-      return Future.success(executor, Either.left(error));
+    public <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.pure(Either.left(error));
     }
 
     @Override
@@ -246,11 +251,10 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<F, B>> toFuture(Executor executor, R env) {
-      Future<Either<E, A>> future = current.toFuture(executor, env);
-      Future<ZIO<R, F, B>> flatMap =
-          future.map(either -> either.bimap(nextError, next).fold(identity(), identity()));
-      return flatMap.flatMap(zio -> zio.toFuture(executor, env));
+    public <X extends Kind> Higher1<X, Either<F, B>> foldMap(R env, MonadDefer<X> monad) {
+      Higher1<X, Either<E, A>> foldMap = current.foldMap(env, monad);
+      Higher1<X,ZIO<R,F,B>> map = monad.map(foldMap, either -> either.bimap(nextError, next).fold(identity(), identity()));
+      return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 
     @Override
@@ -283,6 +287,11 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
+    public <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.later(task::get);
+    }
+
+    @Override
     public ZIOModule getModule() {
       throw new UnsupportedOperationException();
     }
@@ -307,8 +316,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<A, E>> toFuture(Executor executor, R env) {
-      return current.toFuture(executor, env).map(Either::swap);
+    public <F extends Kind> Higher1<F, Either<A, E>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.map(current.foldMap(env, monad), Either::swap);
     }
 
     @Override
@@ -336,8 +345,8 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<Throwable, A>> toFuture(Executor executor, R env) {
-      return Future.run(executor, () -> Try.of(current).toEither());
+    public <F extends Kind> Higher1<F, Either<Throwable, A>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.later(() -> Try.of(current).toEither());
     }
 
     @Override
@@ -365,9 +374,9 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(Executor executor, R env) {
-      return Future.run(executor, () -> function.apply(env))
-          .flatMap(zio -> zio.toFuture(executor, env));
+    public <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
+      Higher1<F, ZIO<R, E, A>> later = monad.later(() -> function.apply(env));
+      return monad.flatMap(later, zio -> zio.foldMap(env, monad));
     }
 
     @Override
@@ -403,6 +412,13 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
       Future<Either<E, A>> future = current.toFuture(executor, env);
       Future<ZIO<R, F, B>> map = future.map(either -> either.fold(nextError, next));
       return map.flatMap(zio -> zio.toFuture(executor, env));
+    }
+
+    @Override
+    public <X extends Kind> Higher1<X, Either<F, B>> foldMap(R env, MonadDefer<X> monad) {
+      Higher1<X, Either<E, A>> foldMap = current.foldMap(env, monad);
+      Higher1<X, ZIO<R, F, B>> map = monad.map(foldMap, either -> either.fold(nextError, next));
+      return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 
     @Override

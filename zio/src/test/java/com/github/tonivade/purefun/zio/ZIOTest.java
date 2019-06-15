@@ -13,7 +13,9 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
 
 public class ZIOTest {
@@ -127,8 +129,10 @@ public class ZIOTest {
                     .andThen(currentThread))));
 
     Either<Throwable, ImmutableList<String>> result =
-        program.toFuture(nothing()).await(Duration.ofSeconds(5)).get();
+        program.foldMap(nothing(), FutureInstances.monadDefer()).fix1(Future::narrowK)
+          .await(Duration.ofSeconds(5)).get();
 
+    System.out.println(result);
     assertEquals(Either.right(5), result.map(ImmutableList::size));
   }
 
