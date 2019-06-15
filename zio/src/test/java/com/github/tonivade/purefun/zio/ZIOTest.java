@@ -7,11 +7,17 @@ package com.github.tonivade.purefun.zio;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -117,6 +123,17 @@ public class ZIOTest {
   }
 
   @Test
+  public void bracket() throws SQLException {
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getString("id")).thenReturn("value");
+
+    ZIO<Nothing, Throwable, String> bracket = ZIO.bracket(open(resultSet), getString("id"));
+
+    assertEquals(Either.right("value"), bracket.provide(nothing()));
+    verify(resultSet).close();
+  }
+
+  @Test
   public void safeRunAsync() {
     Ref<ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
     ZIO<Nothing, Throwable, ImmutableList<String>> currentThread =
@@ -138,5 +155,13 @@ public class ZIOTest {
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
     return ZIO.from(() -> Integer.parseInt(string));
+  }
+
+  private ZIO<Nothing, Throwable, ResultSet> open(ResultSet resultSet) {
+    return ZIO.pure(resultSet);
+  }
+
+  private Function1<ResultSet, ZIO<Nothing, Throwable, String>> getString(String column) {
+    return resultSet -> ZIO.from(() -> resultSet.getString(column));
   }
 }

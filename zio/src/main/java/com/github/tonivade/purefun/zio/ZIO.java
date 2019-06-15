@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Executor;
 
+import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -152,6 +153,11 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
     return new Failure<>(error);
+  }
+
+  static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
+                                                                      Function1<A, ZIO<R, Throwable, B>> use) {
+    return new Bracket<>(acquire, use, CheckedConsumer1.<A>of(AutoCloseable::close).unchecked());
   }
 
   static <R, A, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
