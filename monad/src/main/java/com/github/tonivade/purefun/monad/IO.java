@@ -261,7 +261,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public Future<T> toFuture(Executor executor) {
-      return Future.from(task::get);
+      return Future.run(executor, task::get);
     }
 
     @Override
@@ -290,7 +290,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public Future<T> toFuture(Executor executor) {
-      return Future.unit().andThen(lazy.get().toFuture(executor));
+      return Future.run(executor, lazy::get).flatMap(io -> io.toFuture(executor));
     }
 
     @Override
@@ -327,7 +327,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Future<R> toFuture(Executor executor) {
       return acquire.toFuture(executor)
         .flatMap(value ->
-          Future.success(new IOResource<>(value, release))
+          Future.success(executor, new IOResource<>(value, release))
             .flatMap(resource -> resource.apply(use).toFuture(executor)
                 .onComplete(result -> resource.close())));
     }
@@ -358,7 +358,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     public Future<Try<T>> toFuture(Executor executor) {
-      return current.toFuture().fold(Try::<T>failure, Try::success);
+      return current.toFuture(executor).fold(Try::<T>failure, Try::success);
     }
 
     @Override

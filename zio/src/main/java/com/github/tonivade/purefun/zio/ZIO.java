@@ -337,7 +337,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
     @Override
     public Future<Either<Throwable, A>> toFuture(Executor executor, R env) {
-      return Future.run(() -> Try.of(current).toEither());
+      return Future.run(executor, () -> Try.of(current).toEither());
     }
 
     @Override

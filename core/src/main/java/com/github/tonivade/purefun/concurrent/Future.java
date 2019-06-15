@@ -176,10 +176,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return (Future<T>) hkt;
   }
 
-  static Future<Unit> unit() {
-    return FutureModule.UNIT;
-  }
-
   final class FutureImpl<T> implements Future<T> {
 
     private final Executor executor;
@@ -300,9 +296,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 }
 
-interface FutureModule {
-  Future<Unit> UNIT = Future.success(Unit.unit());
-}
+interface FutureModule { }
 
 final class AsyncValue<T> {
 
