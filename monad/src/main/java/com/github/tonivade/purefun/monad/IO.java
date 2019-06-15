@@ -326,10 +326,9 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     @Override
     public Future<R> toFuture(Executor executor) {
       return acquire.toFuture(executor)
-        .flatMap(value ->
-          Future.success(executor, new IOResource<>(value, release))
+        .map(value -> new IOResource<>(value, release))
             .flatMap(resource -> resource.apply(use).toFuture(executor)
-                .onComplete(result -> resource.close())));
+                .onComplete(result -> resource.close()));
     }
 
     @Override
