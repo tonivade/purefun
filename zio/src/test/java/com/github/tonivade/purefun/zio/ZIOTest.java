@@ -149,7 +149,6 @@ public class ZIOTest {
         program.foldMap(nothing(), FutureInstances.monadDefer()).fix1(Future::narrowK)
           .await(Duration.ofSeconds(5)).get();
 
-    System.out.println(result);
     assertEquals(Either.right(5), result.map(ImmutableList::size));
   }
 
