@@ -130,6 +130,18 @@ Validation<String, String> email = Validation.valid("john.smith@example.net");
 Valdation<Sequence<String>, Person> person = Validation.map2(name, email, Person::new); 
 ```
 
+### Future
+
+This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
+
+```java
+  Future<String> future = Future.success("Hello world!");
+
+  Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+
+  assertEquals(Try.success("HELLO WORLD!"), result.await());
+```
+
 ## Tuples
 
 These classes allow to hold some values together, as tuples. There are tuples from 1 to 5.
@@ -229,18 +241,6 @@ This is a experimental implementation of IO Monad in java. Inspired in this [wor
   echo.unsafeRunSync();
 ```
 
-### Future
-
-This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
-
-```java
-  Future<String> future = Future.success("Hello world!");
-
-  Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
-
-  assertEquals(Try.success("HELLO WORLD!"), result.await());
-```
-
 ### Trampoline
 
 Implements recursion using an iteration and is stack safe.
@@ -254,7 +254,7 @@ Implements recursion using an iteration and is stack safe.
   }
 ```
 
-### Free Monad
+## Free Monad
 
 Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly 
 inestable implementation and I have implemented because it can be implemented. Inspired 
@@ -274,18 +274,7 @@ in this [work](https://github.com/xuwei-k/free-monad-java).
   IO.narrowK(foldMap).unsafeRunSync();
 ```
 
-### Kleisli
-
-Also I implemented the Kleisli composition for functions that returns monadic values like `Option`, `Try` or `Either`.
-
-```java
-  Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
-  Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
-
-  Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
-
-  assertEquals(Try.success(61.5), result);
-```
+## Monad Transformers
 
 ### OptionT
 
@@ -338,7 +327,20 @@ Monad Transformer for `Writer` type
               () -> assertEquals(Id.of(listOf("add 5", "plus 2")), writer.getLog()));
 ```
 
-### Stream
+### Kleisli
+
+Also I implemented the Kleisli composition for functions that returns monadic values like `Option`, `Try` or `Either`.
+
+```java
+  Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
+  Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
+
+  Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
+
+  assertEquals(Try.success(61.5), result);
+```
+
+## Stream
 
 An experimental version of a `Stream` like scala fs2 project.
 
@@ -356,6 +358,12 @@ An experimental version of a `Stream` like scala fs2 project.
     String content = readFile.unsafeRunSync();
 ```
 
+## ZIO
+
+An experimental version of `ZIO`
+
+TODO
+
 ## Type Classes
 
 Some type classes are implemented
@@ -367,7 +375,9 @@ Some type classes are implemented
            |      /      |      \ 
        Alternative      Monad    ApplicativeError
                          |      /
-                      MonadError
+                      MonadError      Bracket
+                           \            /
+                    Defer -- MonadDefer
 ```
 
 ### Semigroup
@@ -531,6 +541,17 @@ public interface Semigroupal<F extends Kind> {
 public interface Defer<F extends Kind> {
 
   <A> Higher1<F, A> defer(Producer<Higher1<F, A>> defer);
+}
+```
+
+### MonadDefer
+
+```java
+public interface MonadDefer<F extends Kind> extends MonadError<F, Throwable>, Bracket<F>, Defer<F> {
+
+  default <A> Higher1<F, A> later(Producer<A> later) {
+    return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
+  }
 }
 ```
 
