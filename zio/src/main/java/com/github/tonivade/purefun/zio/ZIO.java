@@ -147,7 +147,7 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return new Pure<>(value);
   }
 
-  static <R, E, A> ZIO<R, E, A> of(Producer<A> task) {
+  static <R, E, A> ZIO<R, E, A> task(Producer<A> task) {
     return new Task<>(task.andThen(Either::right));
   }
 

@@ -21,27 +21,27 @@ public final class Ref<A> {
   }
 
   public <R, E> ZIO<R, E, A> get() {
-    return ZIO.of(value::get);
+    return ZIO.task(value::get);
   }
 
   public <R, E> ZIO<R, E, Unit> set(A newValue) {
-    return ZIO.of(() -> { value.set(newValue); return unit(); });
+    return ZIO.task(() -> { value.set(newValue); return unit(); });
   }
 
   public <R, E> ZIO<R, E, Unit> lazySet(A newValue) {
-    return ZIO.of(() -> { value.lazySet(newValue); return unit(); });
+    return ZIO.task(() -> { value.lazySet(newValue); return unit(); });
   }
 
   public <R, E> ZIO<R, E, A> getAndSet(A newValue) {
-    return ZIO.of(() -> value.getAndSet(newValue));
+    return ZIO.task(() -> value.getAndSet(newValue));
   }
 
   public <R, E> ZIO<R, E, A> updateAndGet(Function1<A, A> update) {
-    return ZIO.of(() -> value.updateAndGet(update::apply));
+    return ZIO.task(() -> value.updateAndGet(update::apply));
   }
 
   public <R, E> ZIO<R, E, A> getAndUpdate(Function1<A, A> update) {
-    return ZIO.of(() -> value.getAndUpdate(update::apply));
+    return ZIO.task(() -> value.getAndUpdate(update::apply));
   }
 
   public static <R, E, A> Ref<A> of(A value) {
