@@ -20,14 +20,14 @@ import com.github.tonivade.purefun.type.Try;
 interface Promise<T> {
 
   boolean tryComplete(Try<T> value);
-  
+
   default Promise<T> complete(Try<T> value) {
     if (tryComplete(value)) {
       return this;
     } else throw new IllegalStateException("promise already completed");
   }
 
-  default Promise<T> succeced(T value) {
+  default Promise<T> succeeded(T value) {
     return complete(Try.success(value));
   }
 
@@ -41,7 +41,7 @@ interface Promise<T> {
   Try<T> get(Duration timeout);
 
   boolean isCompleted();
-  
+
   static <T> Promise<T> make() {
     return new PromiseImpl<>();
   }
@@ -52,7 +52,7 @@ final class PromiseImpl<T> implements Promise<T> {
   private final State state = new State();
   private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
   private final AtomicReference<Try<T>> reference = new AtomicReference<>();
-  
+
   @Override
   public boolean tryComplete(Try<T> value) {
     if (isEmpty()) {
@@ -67,7 +67,7 @@ final class PromiseImpl<T> implements Promise<T> {
     }
     return false;
   }
-  
+
   @Override
   public Try<T> get() {
     if (isEmpty()) {
