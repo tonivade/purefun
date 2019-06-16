@@ -86,7 +86,7 @@ public class PromiseTest {
   public void alreadyCompleted() {
     Promise<String> promise = Promise.<String>make().succeeded("hola mundo!");
 
-    assertThrows(IllegalStateException.class, () -> promise.failed(new NullPointerException()));
+    assertThrows(IllegalStateException.class, () -> promise.failed(new UnsupportedOperationException()));
   }
 
   @Test
