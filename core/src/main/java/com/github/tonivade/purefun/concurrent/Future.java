@@ -5,22 +5,15 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Function1.cons;
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Duration;
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -34,7 +27,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
@@ -187,11 +179,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   final class FutureImpl<T> implements Future<T> {
 
     private final Executor executor;
-    private final AsyncValue<T> value = new AsyncValue<>();
+    private final Promise<T> promise = Promise.make();
 
-    private FutureImpl(Executor executor, Consumer1<AsyncValue<T>> task) {
+    private FutureImpl(Executor executor, Consumer1<Promise<T>> task) {
       this.executor = requireNonNull(executor);
-      requireNonNull(task).accept(value);
+      requireNonNull(task).accept(promise);
     }
 
     @Override
@@ -237,44 +229,44 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
     @Override
     public Try<T> await() {
-      return value.get();
+      return promise.get();
     }
 
     @Override
     public Try<T> await(Duration timeout) {
-      return value.get(timeout);
+      return promise.get(timeout);
     }
 
     @Override
     public void cancel(boolean mayInterruptThread) {
-      value.cancel(mayInterruptThread);
+      promise.cancel(mayInterruptThread);
     }
 
     @Override
     public boolean isCompleted() {
-      return value.isCompleted();
+      return promise.isCompleted();
     }
 
     @Override
     public boolean isCancelled() {
-      return value.isCancelled();
+      return promise.isCancelled();
     }
 
     @Override
     public Future<T> onSuccess(Consumer1<T> callback) {
-      value.onComplete(value -> value.onSuccess(callback));
+      promise.onComplete(value -> value.onSuccess(callback));
       return this;
     }
 
     @Override
     public Future<T> onFailure(Consumer1<Throwable> callback) {
-      value.onComplete(value -> value.onFailure(callback));
+      promise.onComplete(value -> value.onFailure(callback));
       return this;
     }
 
     @Override
     public Future<T> onComplete(Consumer1<Try<T>> callback) {
-      value.onComplete(callback);
+      promise.onComplete(callback);
       return this;
     }
 
@@ -284,147 +276,24 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     }
 
     static <T> Future<T> sync(Executor executor, Producer<Try<T>> producer) {
-      return new FutureImpl<>(executor, value -> value.set(producer.get()));
+      return new FutureImpl<>(executor, value -> value.complete(producer.get()));
     }
 
     static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
       return new FutureImpl<>(executor,
-          next -> current.onComplete(value -> next.set(mapper.apply(value))));
+          next -> current.onComplete(value -> next.complete(mapper.apply(value))));
     }
 
     static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
       return new FutureImpl<>(executor,
-          next -> current.onComplete(value -> mapper.apply(value).onComplete(next::set)));
+          next -> current.onComplete(value -> mapper.apply(value).onComplete(next::complete)));
     }
 
     static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
       return new FutureImpl<>(executor,
-          value -> executor.execute(() -> { value.begin(); value.set(producer.get()); }));
+          value -> executor.execute(() -> { value.begin(); value.complete(producer.get()); }));
     }
   }
 }
 
 interface FutureModule { }
-
-final class AsyncValue<T> {
-
-  private final State state = new State();
-  private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
-  private final AtomicReference<Try<T>> reference = new AtomicReference<>();
-
-  void begin() {
-    synchronized (state) {
-      state.thread = Thread.currentThread();
-      state.thread.setUncaughtExceptionHandler((t, ex) -> set(Try.failure(ex)));
-    }
-  }
-
-  void onComplete(Consumer1<Try<T>> consumer) {
-    tryOnComplete(consumer).ifPresent(consumer);
-  }
-
-  void cancel(boolean mayInterruptThread) {
-    if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          state.cancelled = true;
-          if (mayInterruptThread) {
-            state.interrupt();
-          }
-          setValue(Try.failure(new CancellationException()));
-          state.notifyAll();
-        }
-      }
-    }
-  }
-
-  void set(Try<T> value) {
-    if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          state.completed = true;
-          setValue(value);
-          state.notifyAll();
-        }
-      }
-    }
-  }
-
-  Try<T> get() {
-    if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          try {
-            state.wait();
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return Try.failure(e);
-          }
-        }
-      }
-    }
-    return requireNonNull(reference.get());
-  }
-
-  Try<T> get(Duration timeout) {
-    if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          try {
-            state.wait(timeout.toMillis());
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return Try.failure(e);
-          }
-        }
-      }
-    }
-    return Option.of(reference::get).getOrElse(Try.failure(new TimeoutException()));
-  }
-
-  boolean isCancelled() {
-    synchronized (state) {
-      return state.cancelled;
-    }
-  }
-
-  boolean isCompleted() {
-    synchronized (state) {
-      return state.completed;
-    }
-  }
-
-  private Option<Try<T>> tryOnComplete(Consumer1<Try<T>> consumer) {
-    Try<T> current = reference.get();
-    if (isNull(current)) {
-      synchronized (state) {
-        current = reference.get();
-        if (isNull(current)) {
-          consumers.add(consumer);
-        }
-      }
-    }
-    return Option.of(current);
-  }
-
-  private void setValue(Try<T> value) {
-    reference.set(value);
-    consumers.forEach(consumer -> consumer.accept(value));
-  }
-
-  private boolean isEmpty() {
-    return isNull(reference.get());
-  }
-
-  private static final class State {
-    boolean cancelled = false;
-    boolean completed = false;
-    Thread thread = null;
-
-    void interrupt() {
-      if (nonNull(thread)) {
-        thread.interrupt();
-      }
-    }
-  }
-}
