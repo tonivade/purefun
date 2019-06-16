@@ -60,10 +60,10 @@ final class CancellableImpl<T> implements Cancellable<T> {
   }
   
   private static final class State {
-    boolean cancelled = false;
-    Thread thread = null;
+    private boolean cancelled = false;
+    private Thread thread = null;
 
-    void interrupt() {
+    private void interrupt() {
       if (nonNull(thread)) {
         thread.interrupt();
       }

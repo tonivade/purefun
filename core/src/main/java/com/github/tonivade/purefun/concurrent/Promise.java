@@ -137,6 +137,6 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   private static final class State {
-    boolean completed = false;
+    private boolean completed = false;
   }
 }
