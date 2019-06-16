@@ -5,13 +5,11 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -20,17 +18,21 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 interface Promise<T> {
+
+  boolean tryComplete(Try<T> value);
   
-  void begin();
-
-  void complete(Try<T> value);
-
-  default void succeced(T value) {
-    complete(Try.success(value));
+  default Promise<T> complete(Try<T> value) {
+    if (tryComplete(value)) {
+      return this;
+    } else throw new IllegalStateException("promise already completed");
   }
 
-  default void errored(Throwable error) {
-    complete(Try.failure(error));
+  default Promise<T> succeced(T value) {
+    return complete(Try.success(value));
+  }
+
+  default Promise<T> failed(Throwable error) {
+    return complete(Try.failure(error));
   }
 
   void onComplete(Consumer1<Try<T>> consumer);
@@ -38,9 +40,6 @@ interface Promise<T> {
   Try<T> get();
   Try<T> get(Duration timeout);
 
-  void cancel(boolean mayInterruptThread);
-
-  boolean isCancelled();
   boolean isCompleted();
   
   static <T> Promise<T> make() {
@@ -55,16 +54,18 @@ final class PromiseImpl<T> implements Promise<T> {
   private final AtomicReference<Try<T>> reference = new AtomicReference<>();
   
   @Override
-  public void complete(Try<T> value) {
+  public boolean tryComplete(Try<T> value) {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {
           state.completed = true;
           setValue(value);
           state.notifyAll();
+          return true;
         }
       }
     }
+    return false;
   }
   
   @Override
@@ -102,40 +103,9 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   @Override
-  public void cancel(boolean mayInterruptThread) {
-    if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          state.cancelled = true;
-          if (mayInterruptThread) {
-            state.interrupt();
-          }
-          setValue(Try.failure(new CancellationException()));
-          state.notifyAll();
-        }
-      }
-    }
-  }
-
-  @Override
-  public boolean isCancelled() {
-    synchronized (state) {
-      return state.cancelled;
-    }
-  }
-
-  @Override
   public boolean isCompleted() {
     synchronized (state) {
       return state.completed;
-    }
-  }
-
-  @Override
-  public void begin() {
-    synchronized (state) {
-      state.thread = Thread.currentThread();
-      state.thread.setUncaughtExceptionHandler((t, ex) -> errored(ex));
     }
   }
 
@@ -167,14 +137,6 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   private static final class State {
-    boolean cancelled = false;
     boolean completed = false;
-    Thread thread = null;
-
-    void interrupt() {
-      if (nonNull(thread)) {
-        thread.interrupt();
-      }
-    }
   }
 }

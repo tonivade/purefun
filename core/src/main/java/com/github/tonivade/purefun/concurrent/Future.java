@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
@@ -176,124 +177,126 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return (Future<T>) hkt;
   }
 
-  final class FutureImpl<T> implements Future<T> {
-
-    private final Executor executor;
-    private final Promise<T> promise = Promise.make();
-
-    private FutureImpl(Executor executor, Consumer1<Promise<T>> task) {
-      this.executor = requireNonNull(executor);
-      requireNonNull(task).accept(promise);
-    }
-
-    @Override
-    public <R> Future<R> map(Function1<T, R> mapper) {
-      return transform(executor, this, value -> value.map(mapper));
-    }
-
-    @Override
-    public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
-      return chain(executor, this,
-          value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
-    }
-
-    @Override
-    public <R> Future<R> andThen(Future<R> next) {
-      return flatMap(ignore -> next);
-    }
-
-    @Override
-    public Future<T> filter(Matcher1<T> matcher) {
-      return transform(executor, this, value -> value.filter(matcher));
-    }
-
-    @Override
-    public Future<T> orElse(Future<T> other) {
-      return chain(executor, this, value -> value.fold(cons(other), Future::success));
-    }
-
-    @Override
-    public Future<T> recover(Function1<Throwable, T> mapper) {
-      return transform(executor, this, value -> value.recover(mapper));
-    }
-
-    @Override
-    public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
-      return transform(executor, this, value -> value.recoverWith(type, mapper));
-    }
-
-    @Override
-    public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
-      return transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
-    }
-
-    @Override
-    public Try<T> await() {
-      return promise.get();
-    }
-
-    @Override
-    public Try<T> await(Duration timeout) {
-      return promise.get(timeout);
-    }
-
-    @Override
-    public void cancel(boolean mayInterruptThread) {
-      promise.cancel(mayInterruptThread);
-    }
-
-    @Override
-    public boolean isCompleted() {
-      return promise.isCompleted();
-    }
-
-    @Override
-    public boolean isCancelled() {
-      return promise.isCancelled();
-    }
-
-    @Override
-    public Future<T> onSuccess(Consumer1<T> callback) {
-      promise.onComplete(value -> value.onSuccess(callback));
-      return this;
-    }
-
-    @Override
-    public Future<T> onFailure(Consumer1<Throwable> callback) {
-      promise.onComplete(value -> value.onFailure(callback));
-      return this;
-    }
-
-    @Override
-    public Future<T> onComplete(Consumer1<Try<T>> callback) {
-      promise.onComplete(callback);
-      return this;
-    }
-
-    @Override
-    public FutureModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    static <T> Future<T> sync(Executor executor, Producer<Try<T>> producer) {
-      return new FutureImpl<>(executor, value -> value.complete(producer.get()));
-    }
-
-    static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
-      return new FutureImpl<>(executor,
-          next -> current.onComplete(value -> next.complete(mapper.apply(value))));
-    }
-
-    static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
-      return new FutureImpl<>(executor,
-          next -> current.onComplete(value -> mapper.apply(value).onComplete(next::complete)));
-    }
-
-    static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
-      return new FutureImpl<>(executor,
-          value -> executor.execute(() -> { value.begin(); value.complete(producer.get()); }));
-    }
-  }
 }
 
 interface FutureModule { }
+
+final class FutureImpl<T> implements Future<T> {
+
+  private final Executor executor;
+  private final Promise<T> promise = Promise.make();
+  private final Cancellable<T> cancellable = Cancellable.from(promise);
+
+  private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> task) {
+    this.executor = requireNonNull(executor);
+    requireNonNull(task).accept(promise, cancellable);
+  }
+
+  @Override
+  public <R> Future<R> map(Function1<T, R> mapper) {
+    return transform(executor, this, value -> value.map(mapper));
+  }
+
+  @Override
+  public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
+    return chain(executor, this,
+        value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
+  }
+
+  @Override
+  public <R> Future<R> andThen(Future<R> next) {
+    return flatMap(ignore -> next);
+  }
+
+  @Override
+  public Future<T> filter(Matcher1<T> matcher) {
+    return transform(executor, this, value -> value.filter(matcher));
+  }
+
+  @Override
+  public Future<T> orElse(Future<T> other) {
+    return chain(executor, this, value -> value.fold(cons(other), Future::success));
+  }
+
+  @Override
+  public Future<T> recover(Function1<Throwable, T> mapper) {
+    return transform(executor, this, value -> value.recover(mapper));
+  }
+
+  @Override
+  public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
+    return transform(executor, this, value -> value.recoverWith(type, mapper));
+  }
+
+  @Override
+  public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
+    return transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
+  }
+
+  @Override
+  public Try<T> await() {
+    return promise.get();
+  }
+
+  @Override
+  public Try<T> await(Duration timeout) {
+    return promise.get(timeout);
+  }
+
+  @Override
+  public void cancel(boolean mayInterruptThread) {
+    cancellable.cancel(mayInterruptThread);
+  }
+
+  @Override
+  public boolean isCompleted() {
+    return promise.isCompleted();
+  }
+
+  @Override
+  public boolean isCancelled() {
+    return cancellable.isCancelled();
+  }
+
+  @Override
+  public Future<T> onSuccess(Consumer1<T> callback) {
+    promise.onComplete(value -> value.onSuccess(callback));
+    return this;
+  }
+
+  @Override
+  public Future<T> onFailure(Consumer1<Throwable> callback) {
+    promise.onComplete(value -> value.onFailure(callback));
+    return this;
+  }
+
+  @Override
+  public Future<T> onComplete(Consumer1<Try<T>> callback) {
+    promise.onComplete(callback);
+    return this;
+  }
+
+  @Override
+  public FutureModule getModule() {
+    throw new UnsupportedOperationException();
+  }
+
+  static <T> Future<T> sync(Executor executor, Producer<Try<T>> producer) {
+    return new FutureImpl<>(executor, (promise, cancel) -> promise.tryComplete(producer.get()));
+  }
+
+  static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
+    return new FutureImpl<>(executor,
+        (promise, cancel) -> current.onComplete(value -> promise.tryComplete(mapper.apply(value))));
+  }
+
+  static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+    return new FutureImpl<>(executor,
+        (promise, cancel) -> current.onComplete(value -> mapper.apply(value).onComplete(promise::tryComplete)));
+  }
+
+  static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
+    return new FutureImpl<>(executor,
+        (promise, cancel) -> executor.execute(() -> { cancel.updateThread(); promise.tryComplete(producer.get()); }));
+  }
+}

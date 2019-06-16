@@ -249,7 +249,7 @@ public class FutureTest {
     future.cancel(false);
 
     assertTrue(future.isCancelled());
-    assertFalse(future.isCompleted());
+    assertTrue(future.isCompleted());
     assertTrue(future.isFailure());
   }
 
@@ -262,7 +262,7 @@ public class FutureTest {
     future.cancel(true);
 
     assertTrue(future.isCancelled());
-    assertFalse(future.isCompleted());
+    assertTrue(future.isCompleted());
     assertTrue(future.isFailure());
     Thread.sleep(1500);
     verifyZeroInteractions(producer);
