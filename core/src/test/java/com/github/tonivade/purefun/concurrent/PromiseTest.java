@@ -139,4 +139,13 @@ public class PromiseTest {
     assertTrue(result.isFailure());
     assertTrue(result.getCause() instanceof InterruptedException);
   }
+
+  @Test
+  public void toFuture() {
+    Promise<String> promise = Promise.<String>make().succeeded("hola mundo!");
+
+    String result = promise.toFuture().get();
+
+    assertEquals("hola mundo!", result);
+  }
 }

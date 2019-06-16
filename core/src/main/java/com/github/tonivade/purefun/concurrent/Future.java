@@ -164,11 +164,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   static <T> Future<T> delay(Executor executor, Duration timeout, CheckedProducer<T> producer) {
     return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
-  
+
   static <T> Future<T> defer(CheckedProducer<Future<T>> producer) {
     return defer(DEFAULT_EXECUTOR, producer);
   }
-  
+
   static <T> Future<T> defer(Executor executor, CheckedProducer<Future<T>> producer) {
     return run(executor, () -> producer.get()).flatten();
   }
@@ -298,5 +298,9 @@ final class FutureImpl<T> implements Future<T> {
   static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
     return new FutureImpl<>(executor,
         (promise, cancel) -> executor.execute(() -> { cancel.updateThread(); promise.tryComplete(producer.get()); }));
+  }
+
+  static <T> Future<T> from(Executor executor, Promise<T> promise) {
+    return new FutureImpl<>(executor, (current, cancel) -> promise.onComplete(current::tryComplete));
   }
 }

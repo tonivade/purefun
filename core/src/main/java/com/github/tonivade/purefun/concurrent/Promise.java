@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNull;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -17,7 +18,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
-interface Promise<T> {
+public interface Promise<T> {
 
   boolean tryComplete(Try<T> value);
 
@@ -33,6 +34,14 @@ interface Promise<T> {
 
   default Promise<T> failed(Throwable error) {
     return complete(Try.failure(error));
+  }
+
+  default Future<T> toFuture() {
+    return toFuture(Future.DEFAULT_EXECUTOR);
+  }
+
+  default Future<T> toFuture(Executor executor) {
+    return FutureImpl.from(executor, this);
   }
 
   void onComplete(Consumer1<Try<T>> consumer);
