@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.instances.FutureInstances.monadDefer;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -240,8 +241,8 @@ public class StreamTest {
 
   @Test
   public void readFileAsync() {
-    Future<String> license = pureReadFile("../LICENSE").toFuture();
-    Future<String> notFound = pureReadFile("hjsjkdf").toFuture();
+    Future<String> license = pureReadFile("../LICENSE").foldMap(monadDefer()).fix1(Future::narrowK);
+    Future<String> notFound = pureReadFile("hjsjkdf").foldMap(monadDefer()).fix1(Future::narrowK);
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.await(Duration.ofSeconds(5)).get()),
         () -> assertEquals("--- file not found ---", notFound.await(Duration.ofSeconds(5)).get()));

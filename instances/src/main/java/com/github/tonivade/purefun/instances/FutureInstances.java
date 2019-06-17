@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -30,6 +32,7 @@ public interface FutureInstances {
   }
 
   static Applicative<Future.µ> applicative(Executor executor) {
+    requireNonNull(executor);
     return new FutureApplicative() {
 
       @Override
@@ -38,12 +41,13 @@ public interface FutureInstances {
       }
     };
   }
-  
+
   static Monad<Future.µ> monad() {
     return monad(Future.DEFAULT_EXECUTOR);
   }
 
   static Monad<Future.µ> monad(Executor executor) {
+    requireNonNull(executor);
     return new FutureMonad() {
 
       @Override
@@ -58,8 +62,9 @@ public interface FutureInstances {
   }
 
   static MonadError<Future.µ, Throwable> monadError(Executor executor) {
+    requireNonNull(executor);
     return new FutureMonadError() {
-      
+
       @Override
       public Executor executor() {
         return executor;
@@ -70,8 +75,9 @@ public interface FutureInstances {
   static MonadDefer<Future.µ> monadDefer() {
     return monadDefer(Future.DEFAULT_EXECUTOR);
   }
-  
+
   static MonadDefer<Future.µ> monadDefer(Executor executor) {
+    requireNonNull(executor);
     return new FutureMonadDefer() {
 
       @Override
@@ -91,7 +97,7 @@ interface FutureFunctor extends Functor<Future.µ> {
 }
 
 interface FuturePure extends Applicative<Future.µ> {
-  
+
   Executor executor();
 
   @Override
@@ -118,7 +124,8 @@ interface FutureMonad extends FuturePure, Monad<Future.µ> {
 }
 
 interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable> {
-  
+
+  @Override
   Executor executor();
 
   @Override
@@ -134,7 +141,7 @@ interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable>
 }
 
 interface FutureDefer extends Defer<Future.µ> {
-  
+
   Executor executor();
 
   @Override
