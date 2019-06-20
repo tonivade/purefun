@@ -14,6 +14,10 @@ public class FutureZIORuntime implements ZIORuntime<Future.µ> {
 
   private Executor executor;
 
+  public FutureZIORuntime() {
+    this(Future.DEFAULT_EXECUTOR);
+  }
+
   public FutureZIORuntime(Executor executor) {
     this.executor = requireNonNull(executor);
   }

@@ -13,6 +13,10 @@ public class FutureIORuntime implements IORuntime<Future.µ> {
 
   private final Executor executor;
 
+  public FutureIORuntime() {
+    this(Future.DEFAULT_EXECUTOR);
+  }
+
   public FutureIORuntime(Executor executor) {
     this.executor = requireNonNull(executor);
   }
