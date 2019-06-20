@@ -46,6 +46,14 @@ public interface Promise<T> {
 
   void onComplete(Consumer1<Try<T>> consumer);
 
+  default void onSuccess(Consumer1<T> consumer) {
+    onComplete(value -> value.onSuccess(consumer));
+  }
+
+  default void onFailure(Consumer1<Throwable> consumer) {
+    onComplete(value -> value.onFailure(consumer));
+  }
+
   Try<T> get();
   Try<T> get(Duration timeout);
 
