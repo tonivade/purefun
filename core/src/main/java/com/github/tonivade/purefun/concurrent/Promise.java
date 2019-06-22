@@ -44,14 +44,14 @@ public interface Promise<T> {
     return FutureImpl.from(executor, this);
   }
 
-  void onComplete(Consumer1<Try<T>> consumer);
+  Promise<T> onComplete(Consumer1<Try<T>> consumer);
 
-  default void onSuccess(Consumer1<T> consumer) {
-    onComplete(value -> value.onSuccess(consumer));
+  default Promise<T> onSuccess(Consumer1<T> consumer) {
+    return onComplete(value -> value.onSuccess(consumer));
   }
 
-  default void onFailure(Consumer1<Throwable> consumer) {
-    onComplete(value -> value.onFailure(consumer));
+  default Promise<T> onFailure(Consumer1<Throwable> consumer) {
+    return onComplete(value -> value.onFailure(consumer));
   }
 
   Try<T> get();
@@ -127,11 +127,12 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   @Override
-  public void onComplete(Consumer1<Try<T>> consumer) {
-    tryOnComplete(consumer).ifPresent(consumer);
+  public Promise<T> onComplete(Consumer1<Try<T>> consumer) {
+    current(consumer).ifPresent(consumer);
+    return this;
   }
 
-  private Option<Try<T>> tryOnComplete(Consumer1<Try<T>> consumer) {
+  private Option<Try<T>> current(Consumer1<Try<T>> consumer) {
     Try<T> current = reference.get();
     if (isNull(current)) {
       synchronized (state) {

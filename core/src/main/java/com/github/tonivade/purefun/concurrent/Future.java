@@ -115,11 +115,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return completableFuture;
   }
 
-  default Promise<T> toPromise() {
-    Promise<T> promise = Promise.make();
-    onComplete(promise::complete);
-    return promise;
-  }
+  Promise<T> toPromise();
 
   FutureModule getModule();
 
@@ -237,6 +233,11 @@ final class FutureImpl<T> implements Future<T> {
   @Override
   public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
     return transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
+  }
+
+  @Override
+  public Promise<T> toPromise() {
+    return promise;
   }
 
   @Override
