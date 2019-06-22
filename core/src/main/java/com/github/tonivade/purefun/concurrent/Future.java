@@ -115,6 +115,12 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
     return completableFuture;
   }
 
+  default Promise<T> toPromise() {
+    Promise<T> promise = Promise.make();
+    onComplete(promise::complete);
+    return promise;
+  }
+
   FutureModule getModule();
 
   static <T> Future<T> success(T value) {

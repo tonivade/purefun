@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
@@ -37,6 +38,10 @@ public interface Function1<A, R> {
 
   default Function1<A, Try<R>> liftTry() {
     return value -> Try.of(() -> apply(value));
+  }
+
+  default Function1<A, Id<R>> liftId() {
+    return value -> Id.of(apply(value));
   }
 
   default Function1<A, Either<Throwable, R>> liftEither() {
