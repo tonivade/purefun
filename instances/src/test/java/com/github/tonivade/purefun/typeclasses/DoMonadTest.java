@@ -18,7 +18,7 @@ public class DoMonadTest {
   public void map() {
     Id<String> result = with(IdInstances.monad(), Id.of("value"))
       .map(String::toUpperCase)
-      .get(Id::narrowK);
+      .fix(Id::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -27,7 +27,7 @@ public class DoMonadTest {
   public void flatMap() {
     Id<String> result = with(IdInstances.monad(), Id.of("value"))
       .flatMap(string -> Id.of(string.toUpperCase()))
-      .get(Id::narrowK);
+      .fix(Id::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }

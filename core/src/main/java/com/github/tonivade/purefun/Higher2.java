@@ -14,4 +14,9 @@ public interface Higher2<F extends Kind, A, B> extends Higher1<Higher1<F, A>, B>
   default <R> R fix2(Function1<? super Higher2<F, A, B>, ? extends R> function) {
     return function.apply(this);
   }
+
+  @SuppressWarnings("unchecked")
+  static <F extends Kind, A, B> Higher2<F, A, B> narrowK(Higher1<Higher1<F, A>, B> value) {
+    return (Higher2<F, A, B>) value;
+  }
 }

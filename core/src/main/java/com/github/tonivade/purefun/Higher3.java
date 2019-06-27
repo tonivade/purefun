@@ -19,4 +19,14 @@ public interface Higher3<F extends Kind, A, B, C> extends Higher2<Higher1<F, A>,
   default <R> R fix3(Function1<? super Higher3<F, A, B, C>, ? extends R> function) {
     return function.apply(this);
   }
+
+  @SuppressWarnings("unchecked")
+  static <F extends Kind, A, B, C> Higher3<F, A, B, C> narrowK(Higher1<Higher1<Higher1<F, A>, B>, C> value) {
+    return (Higher3<F, A, B, C>) value;
+  }
+
+  @SuppressWarnings("unchecked")
+  static <F extends Kind, A, B, C> Higher3<F, A, B, C> narrowK(Higher2<Higher1<F, A>, B, C> value) {
+    return (Higher3<F, A, B, C>) value;
+  }
 }

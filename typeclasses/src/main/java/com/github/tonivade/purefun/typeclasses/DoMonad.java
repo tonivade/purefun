@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -15,6 +16,7 @@ import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 
 public final class DoMonad<F extends Kind, A> {
 
@@ -30,7 +32,7 @@ public final class DoMonad<F extends Kind, A> {
     return value;
   }
 
-  public <R> R get(Function1<Higher1<F, A>, R> mapper) {
+  public <R> R fix(Function1<Higher1<F, A>, R> mapper) {
     return mapper.apply(value);
   }
 
@@ -38,10 +40,14 @@ public final class DoMonad<F extends Kind, A> {
      consumer.accept(value);
   }
 
+  public <R> Higher1<F, R> returns(R value) {
+    return monad.pure(value);
+  }
+
   public <R> DoMonad<F, R> map(Function1<A, R> mapper) {
     return with(monad, monad.map(value, mapper));
   }
-  
+
   public <R> DoMonad<F, R> andThen(Producer<Higher1<F, R>> producer) {
     return with(monad, monad.flatMap(value, i -> producer.get()));
   }
@@ -71,6 +77,10 @@ public final class DoMonad<F extends Kind, A> {
 
   public <R> DoMonad<F, R> flatMap(Function1<A, ? extends Higher1<F, R>> mapper) {
     return with(monad, monad.flatMap(value, mapper));
+  }
+
+  public static <F extends Kind> DoMonad<F, Unit> with(Monad<F> monad) {
+    return new DoMonad<>(monad, monad.pure(unit()));
   }
 
   public static <F extends Kind, T> DoMonad<F, T> with(Monad<F> monad, Higher1<F, T> value) {
