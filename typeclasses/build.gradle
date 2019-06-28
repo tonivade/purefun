@@ -2,6 +2,7 @@ archivesBaseName = 'purefun-typeclasses'
 
 dependencies {
   compile project(':core')
+  testCompile project(':instances')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
 }
