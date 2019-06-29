@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
@@ -27,8 +29,8 @@ public final class For<F extends Kind> {
   }
 
   public static <F extends Kind, T> For1<F, T> with(Monad<F> monad,
-                                                    Higher1<F, T> value) {
-    return new For1<>(monad, value);
+                                                    Higher1<F, T> value1) {
+    return new For1<>(monad, value1);
   }
 
   public static <F extends Kind, T, R> For2<F, T, R> with(Monad<F> monad,
@@ -59,5 +61,32 @@ public final class For<F extends Kind> {
                                                                             Higher1<F, D> value4,
                                                                             Higher1<F, E> value5) {
     return new For5<>(monad, value1, value2, value3, value4, value5);
+  }
+}
+
+abstract class AbstractFor<F extends Kind, A> {
+
+  protected final Monad<F> monad;
+  protected final Higher1<F, A> value;
+
+  protected AbstractFor(Monad<F> monad, Higher1<F, A> value) {
+    this.monad = requireNonNull(monad);
+    this.value = requireNonNull(value);
+  }
+
+  public Higher1<F, A> get() {
+    return value;
+  }
+
+  public <R> R fix(Function1<Higher1<F, A>, R> mapper) {
+    return mapper.apply(value);
+  }
+
+  public void end(Consumer1<Higher1<F, A>> consumer) {
+     consumer.accept(value);
+  }
+
+  public <R> Higher1<F, R> returns(R value) {
+    return monad.pure(value);
   }
 }

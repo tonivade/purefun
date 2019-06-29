@@ -4,38 +4,25 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static java.util.Objects.requireNonNull;
-
-import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple1;
 
-public final class For1<F extends Kind, A> {
-
-  private final Monad<F> monad;
-  private final Higher1<F, A> value;
+public final class For1<F extends Kind, A> extends AbstractFor<F, A> {
 
   protected For1(Monad<F> monad, Higher1<F, A> value) {
-    this.monad = requireNonNull(monad);
-    this.value = requireNonNull(value);
+    super(monad, value);
   }
 
-  public Higher1<F, A> get() {
-    return value;
+  public Higher1<F, Tuple1<A>> tuple() {
+    return monad.map(value, Tuple::of);
   }
 
-  public <R> R fix(Function1<Higher1<F, A>, R> mapper) {
-    return mapper.apply(value);
-  }
-
-  public void end(Consumer1<Higher1<F, A>> consumer) {
-     consumer.accept(value);
-  }
-
-  public <R> Higher1<F, R> returns(R value) {
-    return monad.pure(value);
+  public <R> Higher1<F, R> yield(Function1<A, R> combinator) {
+    return monad.map(value, combinator);
   }
 
   public <R> For2<F, A, R> map(Function1<A, R> mapper) {

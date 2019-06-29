@@ -44,7 +44,7 @@ public class ForTest {
           .andThen(() -> Id.of("c"))
           .andThen(() -> Id.of("d"))
           .andThen(() -> Id.of("e"))
-          .get()
+          .tuple()
           .fix1(Id::narrowK);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
