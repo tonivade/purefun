@@ -147,6 +147,10 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     return new Pure<>(value);
   }
 
+  static <R, E, A> ZIO<R, E, A> defer(Producer<ZIO<R, E, A>> lazy) {
+    return new Suspend<>(lazy);
+  }
+
   static <R, E, A> ZIO<R, E, A> task(Producer<A> task) {
     return new Task<>(task.andThen(Either::right));
   }
@@ -294,11 +298,6 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     }
 
     @Override
-    public Future<Either<E, A>> toFuture(Executor executor, R env) {
-      return Future.run(executor, task::get);
-    }
-
-    @Override
     public <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
       return monad.later(task::get);
     }
@@ -311,6 +310,35 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
     @Override
     public String toString() {
       return "Task(?)";
+    }
+  }
+
+  final class Suspend<R, E, A> implements ZIO<R, E, A> {
+
+    private Producer<ZIO<R, E, A>> lazy;
+
+    private Suspend(Producer<ZIO<R, E, A>> lazy) {
+      this.lazy = requireNonNull(lazy);
+    }
+
+    @Override
+    public Either<E, A> provide(R env) {
+      return lazy.get().provide(env);
+    }
+
+    @Override
+    public <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.defer(() -> lazy.get().foldMap(env, monad));
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Suspend(?)";
     }
   }
 
