@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
@@ -15,18 +17,24 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.instances.EitherTInstances;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
+import com.github.tonivade.purefun.instances.ZIOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.transformer.OptionT;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.zio.ZIO;
 
 public class MonadDeferTest {
 
   private MonadDefer<IO.µ> ioMonadDefer = IOInstances.monadDefer();
+  private MonadDefer<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>> zioMonadDefer =
+      ZIOInstances.monadDefer();
   private MonadDefer<Future.µ> futureMonadDefer = FutureInstances.monadDefer();
   private MonadDefer<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>> eitherTMonadDefer =
       EitherTInstances.monadDefer(ioMonadDefer);
@@ -172,6 +180,41 @@ public class MonadDeferTest {
     String result = bracket.fix1(Future::narrowK).getOrElse("fail");
 
     assertEquals("fail", result);
+    verify(resource).close();
+  }
+
+  @Test
+  public void zioBracket() throws Exception {
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> bracket =
+        zioMonadDefer.bracket(ZIO.pure(resource), r -> ZIO.pure("done"));
+
+    Either<Throwable, String> result = bracket.fix1(ZIO::narrowK).provide(nothing());
+
+    assertEquals(Either.right("done"), result);
+    verify(resource).close();
+  }
+
+  @Test
+  public void zioBracketAcquireError() throws Exception {
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> bracket =
+        zioMonadDefer.bracket(ZIO.raiseError(new IllegalStateException()),
+                              r -> ZIO.pure("done"));
+
+    Either<Throwable, String> result = bracket.fix1(ZIO::narrowK).provide(nothing());
+
+    assertTrue(result.isLeft());
+    verify(resource, never()).close();
+  }
+
+  @Test
+  public void zioBracketUseError() throws Exception {
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> bracket =
+        zioMonadDefer.bracket(ZIO.pure(resource),
+                              r -> ZIO.raiseError(new UnsupportedOperationException()));
+
+    Either<Throwable, String> result = bracket.fix1(ZIO::narrowK).provide(nothing());
+
+    assertTrue(result.isLeft());
     verify(resource).close();
   }
 }

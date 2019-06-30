@@ -4,13 +4,20 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.zio.ZIO.µ;
 
 public interface ZIOInstances {
 
@@ -28,6 +35,14 @@ public interface ZIOInstances {
 
   static <R, E> MonadError<Higher1<Higher1<ZIO.µ, R>, E>, E> monadError() {
     return new ZIOMonadError<R, E>() {};
+  }
+
+  static <R> MonadThrow<Higher1<Higher1<ZIO.µ, R>, Throwable>> monadThrow() {
+    return new ZIOMonadThrow<R>() { };
+  }
+
+  static <R> MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>> monadDefer() {
+    return new ZIOMonadDefer<R>() { };
   }
 }
 
@@ -86,3 +101,33 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
     return zio.foldM(mapError, map);
   }
 }
+
+interface ZIOMonadThrow<R>
+    extends ZIOMonadError<R, Throwable>,
+            MonadThrow<Higher1<Higher1<ZIO.µ, R>, Throwable>> { }
+
+interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
+
+  @Override
+  default <A> ZIO<R, Throwable, A>
+          defer(Producer<Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A>> defer) {
+    return ZIO.defer(() -> defer.andThen(ZIO::narrowK).get());
+  }
+}
+
+interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
+
+  @Override
+  default <A, B> ZIO<R, Throwable, B>
+          bracket(Higher1<Higher1<Higher1<µ, R>, Throwable>, A> acquire,
+                  Function1<A, ? extends Higher1<Higher1<Higher1<µ, R>, Throwable>, B>> use,
+                  Consumer1<A> release) {
+    return ZIO.bracket(acquire.fix1(ZIO::narrowK), use.andThen(ZIO::narrowK), release);
+  }
+}
+
+interface ZIOMonadDefer<R>
+    extends MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>>,
+            ZIOMonadThrow<R>,
+            ZIODefer<R>,
+            ZIOBracket<R> { }
