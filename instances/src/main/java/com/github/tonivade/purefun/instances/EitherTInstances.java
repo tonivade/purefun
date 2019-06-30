@@ -4,8 +4,11 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -14,9 +17,12 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
 public interface EitherTInstances {
 
@@ -42,6 +48,15 @@ public interface EitherTInstances {
     };
   }
 
+  static <F extends Kind> MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadThrow(Monad<F> monadF) {
+    requireNonNull(monadF);
+    return new EitherTMonadThrowFromMonad<F>() {
+
+      @Override
+      public Monad<F> monadF() { return monadF; }
+    };
+  }
+
   static <F extends Kind, L> MonadError<Higher1<Higher1<EitherT.µ, F>, L>, L> monadError(MonadError<F, L> monadErrorF) {
     requireNonNull(monadErrorF);
     return new EitherTMonadErrorFromMonadError<F, L>() {
@@ -51,19 +66,41 @@ public interface EitherTInstances {
     };
   }
 
-  static <F extends Kind, L> Defer<Higher1<Higher1<EitherT.µ, F>, L>> defer(Monad<F> monadF, Defer<F> deferF) {
-    requireNonNull(monadF);
-    requireNonNull(deferF);
-    return new EitherTDefer<F, L>() {
+  static <F extends Kind> MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadThrow(MonadThrow<F> monadThrowF) {
+    requireNonNull(monadThrowF);
+    return new EitherTMonadThrowFromMonadThrow<F>() {
 
       @Override
-      public Monad<F> monadF() { return monadF; }
-
-      @Override
-      public Defer<F> deferF() { return deferF; }
+      public MonadThrow<F> monadF() { return monadThrowF; }
     };
   }
 
+  static <F extends Kind, L> Defer<Higher1<Higher1<EitherT.µ, F>, L>> defer(MonadDefer<F> monadDeferF) {
+    requireNonNull(monadDeferF);
+    return new EitherTDefer<F, L>() {
+
+      @Override
+      public Monad<F> monadF() { return monadDeferF; }
+
+      @Override
+      public Defer<F> deferF() { return monadDeferF; }
+    };
+  }
+
+  static <F extends Kind> MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadDefer(MonadDefer<F> monadDeferF) {
+    requireNonNull(monadDeferF);
+    return new EitherTMonadDefer<F>() {
+
+      @Override
+      public Monad<F> monadF() { return monadDeferF; }
+
+      @Override
+      public Defer<F> deferF() { return monadDeferF; }
+
+      @Override
+      public Bracket<F> bracketF() { return monadDeferF; }
+    };
+  }
 }
 
 interface EitherTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<EitherT.µ, F>, L>> {
@@ -95,13 +132,19 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E>
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> handler) {
     return EitherT.of(monadF(),
         monadF().flatMap(EitherT.narrowK(value).value(),
-            either -> either.fold(e -> handler.andThen(EitherT::narrowK).apply(e).value(),
+            either -> either.fold(
+                e -> handler.andThen(EitherT::narrowK).apply(e).value(),
                 a -> monadF().pure(Either.right(a)))));
   }
 }
 
+interface EitherTMonadThrowFromMonad<F extends Kind>
+    extends EitherTMonadErrorFromMonad<F, Throwable>,
+            MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }
+
 interface EitherTMonadErrorFromMonadError<F extends Kind, E>
-    extends MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>, EitherTMonad<F, E> {
+    extends MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>,
+            EitherTMonad<F, E> {
 
   @Override
   MonadError<F, E> monadF();
@@ -119,6 +162,10 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E>
   }
 }
 
+interface EitherTMonadThrowFromMonadThrow<F extends Kind>
+    extends EitherTMonadErrorFromMonadError<F, Throwable>,
+            MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }
+
 interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.µ, F>, E>> {
 
   Monad<F> monadF();
@@ -129,3 +176,29 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.
     return EitherT.of(monadF(), deferF().defer(() -> defer.andThen(EitherT::narrowK).get().value()));
   }
 }
+
+interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT.µ, F>, Throwable>> {
+
+  Bracket<F> bracketF();
+  Monad<F> monadF();
+
+  @Override
+  default <A, B> EitherT<F, Throwable, B>
+          bracket(Higher1<Higher1<Higher1<EitherT.µ, F>, Throwable>, A> acquire,
+                  Function1<A, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, Throwable>, B>> use,
+                  Consumer1<A> release) {
+    Higher1<F, Either<Throwable, B>> bracket =
+        bracketF().bracket(
+            acquire.fix1(EitherT::narrowK).value(),
+            either -> either.fold(
+                error -> monadF().pure(Either.left(error)),
+                value -> use.andThen(EitherT::narrowK).apply(value).value()),
+            either -> either.fold(cons(unit()), release.asFunction()));
+    return EitherT.of(monadF(), bracket);
+  }
+}
+
+interface EitherTMonadDefer<F extends Kind>
+    extends EitherTMonadThrowFromMonad<F>,
+            EitherTDefer<F, Throwable>,
+            EitherTBracket<F>, MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }

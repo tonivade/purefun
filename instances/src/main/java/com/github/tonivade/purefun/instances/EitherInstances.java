@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface EitherInstances {
@@ -54,6 +55,10 @@ public interface EitherInstances {
 
   static <L> MonadError<Higher1<Either.µ, L>, L> monadError() {
     return new EitherMonadError<L>() {};
+  }
+
+  static <L> MonadThrow<Higher1<Either.µ, Throwable>> monadThrow() {
+    return new EitherMonadThrow() {};
   }
 
   static <L> Foldable<Higher1<Either.µ, L>> foldable() {
@@ -121,6 +126,8 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.
     return Either.narrowK(value).fold(handler.andThen(Either::narrowK), Either::right);
   }
 }
+
+interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Higher1<Either.µ, Throwable>> { }
 
 interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
 
