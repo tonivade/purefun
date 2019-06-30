@@ -14,7 +14,7 @@ public interface Bracket<F extends Kind> extends MonadError<F, Throwable> {
 
   <A, B> Higher1<F, B> bracket(Higher1<F, A> acquire, Function1<A, ? extends Higher1<F, B>> use, Consumer1<A> release);
 
-  default <A extends AutoCloseable, B> Higher1<F, B> bracket(Higher1<F, A> aquire, Function1<A, ? extends Higher1<F, B>> use) {
-    return bracket(aquire, use, CheckedConsumer1.<A>of(AutoCloseable::close).unchecked());
+  default <A extends AutoCloseable, B> Higher1<F, B> bracket(Higher1<F, A> acquire, Function1<A, ? extends Higher1<F, B>> use) {
+    return bracket(acquire, use, CheckedConsumer1.<A>of(AutoCloseable::close).unchecked());
   }
 }
