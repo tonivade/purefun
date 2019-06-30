@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.zio.ZIO;
-import com.github.tonivade.purefun.zio.ZIO.µ;
 
 public interface ZIOInstances {
 
@@ -119,8 +118,8 @@ interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> 
 
   @Override
   default <A, B> ZIO<R, Throwable, B>
-          bracket(Higher1<Higher1<Higher1<µ, R>, Throwable>, A> acquire,
-                  Function1<A, ? extends Higher1<Higher1<Higher1<µ, R>, Throwable>, B>> use,
+          bracket(Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A> acquire,
+                  Function1<A, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, B>> use,
                   Consumer1<A> release) {
     return ZIO.bracket(acquire.fix1(ZIO::narrowK), use.andThen(ZIO::narrowK), release);
   }
