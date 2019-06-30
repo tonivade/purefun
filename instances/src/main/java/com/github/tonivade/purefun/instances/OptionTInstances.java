@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -16,8 +15,8 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.transformer.OptionT.µ;
 import com.github.tonivade.purefun.type.Option;
@@ -39,16 +38,16 @@ public interface OptionTInstances {
     return new OptionTMonad<F>() {
 
       @Override
-      public Monad<F> monadThrowF() { return monadF; }
+      public Monad<F> monadF() { return monadF; }
     };
   }
 
-  static <F extends Kind> MonadError<Higher1<OptionT.µ, F>, Nothing> monadError(Monad<F> monadF) {
+  static <F extends Kind> MonadError<Higher1<OptionT.µ, F>, Unit> monadError(Monad<F> monadF) {
     requireNonNull(monadF);
     return new OptionTMonadErrorFromMonad<F>() {
 
       @Override
-      public Monad<F> monadThrowF() { return monadF; }
+      public Monad<F> monadF() { return monadF; }
     };
   }
 
@@ -57,7 +56,7 @@ public interface OptionTInstances {
     return new OptionTMonadErrorFromMonadError<F, E>() {
 
       @Override
-      public MonadError<F, E> monadThrowF() { return monadErrorF; }
+      public MonadError<F, E> monadF() { return monadErrorF; }
     };
   }
 
@@ -66,20 +65,19 @@ public interface OptionTInstances {
     return new OptionTMonadThrow<F>() {
 
       @Override
-      public MonadError<F, Throwable> monadThrowF() { return monadThrowF; }
+      public MonadError<F, Throwable> monadF() { return monadThrowF; }
     };
   }
 
-  static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(Monad<F> monadF, Defer<F> deferF) {
-    requireNonNull(monadF);
-    requireNonNull(deferF);
+  static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(MonadDefer<F> monadDeferF) {
+    requireNonNull(monadDeferF);
     return new OptionTDefer<F>() {
 
       @Override
-      public Monad<F> monadThrowF() { return monadF; }
+      public Monad<F> monadF() { return monadDeferF; }
 
       @Override
-      public Defer<F> deferF() { return deferF; }
+      public Defer<F> deferF() { return monadDeferF; }
     };
   }
 
@@ -90,7 +88,7 @@ public interface OptionTInstances {
       public Defer<F> deferF() { return monadDeferF; }
 
       @Override
-      public MonadThrow<F> monadThrowF() { return monadDeferF; }
+      public MonadThrow<F> monadF() { return monadDeferF; }
 
       @Override
       public Bracket<F> bracketF() { return monadDeferF; }
@@ -101,11 +99,11 @@ public interface OptionTInstances {
 
 interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
 
-  Monad<F> monadThrowF();
+  Monad<F> monadF();
 
   @Override
   default <T> OptionT<F, T> pure(T value) {
-    return OptionT.some(monadThrowF(), value);
+    return OptionT.some(monadF(), value);
   }
 
   @Override
@@ -116,20 +114,20 @@ interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
 }
 
 interface OptionTMonadErrorFromMonad<F extends Kind>
-    extends MonadError<Higher1<OptionT.µ, F>, Nothing>, OptionTMonad<F> {
+    extends MonadError<Higher1<OptionT.µ, F>, Unit>, OptionTMonad<F> {
 
   @Override
-  default <A> OptionT<F, A> raiseError(Nothing error) {
-    return OptionT.none(monadThrowF());
+  default <A> OptionT<F, A> raiseError(Unit error) {
+    return OptionT.none(monadF());
   }
 
   @Override
   default <A> OptionT<F, A> handleErrorWith(Higher1<Higher1<OptionT.µ, F>, A> value,
-      Function1<Nothing, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
-    return OptionT.of(monadThrowF(),
-        monadThrowF().flatMap(OptionT.narrowK(value).value(),
-            option -> option.fold(() -> handler.andThen(OptionT::narrowK).apply(nothing()).value(),
-                a -> monadThrowF().pure(Option.some(a)))));
+      Function1<Unit, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
+    return OptionT.of(monadF(),
+        monadF().flatMap(OptionT.narrowK(value).value(),
+            option -> option.fold(() -> handler.andThen(OptionT::narrowK).apply(unit()).value(),
+                a -> monadF().pure(Option.some(a)))));
   }
 }
 
@@ -137,17 +135,17 @@ interface OptionTMonadErrorFromMonadError<F extends Kind, E>
     extends MonadError<Higher1<OptionT.µ, F>, E>, OptionTMonad<F> {
 
   @Override
-  MonadError<F, E> monadThrowF();
+  MonadError<F, E> monadF();
 
   @Override
   default <A> OptionT<F, A> raiseError(E error) {
-    return OptionT.of(monadThrowF(), monadThrowF().raiseError(error));
+    return OptionT.of(monadF(), monadF().raiseError(error));
   }
 
   @Override
   default <A> OptionT<F, A> handleErrorWith(Higher1<Higher1<OptionT.µ, F>, A> value,
       Function1<E, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
-    return OptionT.of(monadThrowF(), monadThrowF().handleErrorWith(OptionT.narrowK(value).value(),
+    return OptionT.of(monadF(), monadF().handleErrorWith(OptionT.narrowK(value).value(),
         error -> handler.andThen(OptionT::narrowK).apply(error).value()));
   }
 }
@@ -158,18 +156,18 @@ interface OptionTMonadThrow<F extends Kind>
 
 interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
 
-  Monad<F> monadThrowF();
+  Monad<F> monadF();
   Defer<F> deferF();
 
   @Override
   default <A> OptionT<F, A> defer(Producer<Higher1<Higher1<OptionT.µ, F>, A>> defer) {
-    return OptionT.of(monadThrowF(), deferF().defer(() -> defer.andThen(OptionT::narrowK).get().value()));
+    return OptionT.of(monadF(), deferF().defer(() -> defer.andThen(OptionT::narrowK).get().value()));
   }
 }
 
 interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>> {
 
-  MonadThrow<F> monadThrowF();
+  MonadThrow<F> monadF();
   Defer<F> deferF();
   Bracket<F> bracketF();
 
@@ -181,10 +179,10 @@ interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>>
         bracketF().bracket(
             acquire.fix1(OptionT::narrowK).value(),
             option -> option.fold(
-                () -> monadThrowF().raiseError(new NoSuchElementException("could not acquire resource")),
+                () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
                 value -> use.andThen(OptionT::narrowK).apply(value).value()),
             option -> option.fold(() -> unit(), release.asFunction()));
-    return OptionT.of(monadThrowF(), bracket);
+    return OptionT.of(monadF(), bracket);
   }
 }
 
