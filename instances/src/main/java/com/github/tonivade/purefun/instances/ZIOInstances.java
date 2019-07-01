@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.zio.ZIO;
 
 public interface ZIOInstances {
@@ -42,6 +43,10 @@ public interface ZIOInstances {
 
   static <R> MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>> monadDefer() {
     return new ZIOMonadDefer<R>() { };
+  }
+
+  static <R, A> Reference<Higher1<Higher1<ZIO.µ, R>, Throwable>, A> ref(A value) {
+    return Reference.of(monadDefer(), value);
   }
 }
 

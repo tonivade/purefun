@@ -18,11 +18,14 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
+import com.github.tonivade.purefun.instances.ZIOInstances;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Reference;
 
 public class ZIOTest {
 
@@ -135,9 +138,10 @@ public class ZIOTest {
 
   @Test
   public void safeRunAsync() {
-    Ref<ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
+    Reference<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, ImmutableList<String>> ref =
+        ZIOInstances.ref(ImmutableList.empty());
     ZIO<Nothing, Throwable, ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName()));
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(ZIO::narrowK);
 
     ZIO<Nothing, Throwable, ImmutableList<String>> program = currentThread
         .andThen(currentThread

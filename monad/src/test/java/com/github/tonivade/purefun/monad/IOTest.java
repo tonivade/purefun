@@ -18,9 +18,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,8 +29,11 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Reference;
 
 public class IOTest {
 
@@ -70,18 +70,21 @@ public class IOTest {
 
   @Test
   public void safeRunAsync() {
-    List<String> result = Collections.synchronizedList(new ArrayList<>());
-    IO<Unit> currentThread = IO.exec(() -> result.add(Thread.currentThread().getName()));
+    Reference<IO.µ, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
+    IO<ImmutableList<String>> currentThread =
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO::narrowK);
 
-    IO<Unit> program = currentThread
+    IO<ImmutableList<String>> program = currentThread
         .andThen(currentThread
             .andThen(currentThread
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    program.foldMap(FutureInstances.monadDefer(Future.DEFAULT_EXECUTOR)).fix1(Future::narrowK).await(Duration.ofSeconds(5));
+    Try<ImmutableList<String>> result =
+        program.foldMap(FutureInstances.monadDefer())
+          .fix1(Future::narrowK).await(Duration.ofSeconds(5));
 
-    assertEquals(5, result.size());
+    assertEquals(Try.success(5), result.map(ImmutableList::size));
   }
 
   @Test

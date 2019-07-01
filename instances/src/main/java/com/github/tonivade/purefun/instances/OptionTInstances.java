@@ -18,7 +18,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.OptionT;
-import com.github.tonivade.purefun.transformer.OptionT.µ;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -26,6 +25,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface OptionTInstances {
 
@@ -95,6 +95,9 @@ public interface OptionTInstances {
     };
   }
 
+  static <F extends Kind, A> Reference<Higher1<OptionT.µ, F>, A> ref(MonadDefer<F> monadF, A value) {
+    return Reference.of(monadDefer(monadF), value);
+  }
 }
 
 interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
@@ -172,8 +175,8 @@ interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>>
   Bracket<F> bracketF();
 
   @Override
-  default <A, B> OptionT<F, B> bracket(Higher1<Higher1<µ, F>, A> acquire,
-                                       Function1<A, ? extends Higher1<Higher1<µ, F>, B>> use,
+  default <A, B> OptionT<F, B> bracket(Higher1<Higher1<OptionT.µ, F>, A> acquire,
+                                       Function1<A, ? extends Higher1<Higher1<OptionT.µ, F>, B>> use,
                                        Consumer1<A> release) {
     Higher1<F, Option<B>> bracket =
         bracketF().bracket(

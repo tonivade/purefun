@@ -23,6 +23,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface EitherTInstances {
 
@@ -99,6 +100,11 @@ public interface EitherTInstances {
 
       @Override
       public Bracket<F> bracketF() { return monadDeferF; }
+
+      @Override
+      public <A> Higher1<F, Either<Throwable, A>> acquireRecover(Throwable error) {
+        return monadDeferF.pure(Either.left(error));
+      }
     };
   }
 
@@ -114,7 +120,24 @@ public interface EitherTInstances {
 
       @Override
       public Bracket<F> bracketF() { return monadDeferF; }
+
+      @Override
+      public <A> Higher1<F, Either<Throwable, A>> acquireRecover(Throwable error) {
+        return monadDeferF.raiseError(error);
+      }
     };
+  }
+
+  static <F extends Kind, A>
+         Reference<Higher1<Higher1<EitherT.µ, F>, Throwable>, A>
+         refFromMonad(MonadDefer<F> monadDeferF, A value) {
+    return Reference.of(monadDeferFromMonad(monadDeferF), value);
+  }
+
+  static <F extends Kind, A>
+         Reference<Higher1<Higher1<EitherT.µ, F>, Throwable>, A>
+         refFromMonadThrow(MonadDefer<F> monadDeferF, A value) {
+    return Reference.of(monadDeferFromMonadThrow(monadDeferF), value);
   }
 }
 
@@ -193,10 +216,11 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.
   }
 }
 
-interface EitherTBracketFromMonad<F extends Kind> extends Bracket<Higher1<Higher1<EitherT.µ, F>, Throwable>> {
+interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT.µ, F>, Throwable>> {
 
   Bracket<F> bracketF();
   Monad<F> monadF();
+  <A> Higher1<F, Either<Throwable, A>> acquireRecover(Throwable error);
 
   @Override
   default <A, B> EitherT<F, Throwable, B>
@@ -207,28 +231,7 @@ interface EitherTBracketFromMonad<F extends Kind> extends Bracket<Higher1<Higher
         bracketF().bracket(
             acquire.fix1(EitherT::narrowK).value(),
             either -> either.fold(
-                error -> monadF().pure(Either.left(error)),
-                value -> use.andThen(EitherT::narrowK).apply(value).value()),
-            either -> either.fold(cons(unit()), release.asFunction()));
-    return EitherT.of(monadF(), bracket);
-  }
-}
-
-interface EitherTBracketFromMonadThrow<F extends Kind> extends Bracket<Higher1<Higher1<EitherT.µ, F>, Throwable>> {
-
-  Bracket<F> bracketF();
-  MonadThrow<F> monadF();
-
-  @Override
-  default <A, B> EitherT<F, Throwable, B>
-          bracket(Higher1<Higher1<Higher1<EitherT.µ, F>, Throwable>, A> acquire,
-                  Function1<A, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, Throwable>, B>> use,
-                  Consumer1<A> release) {
-    Higher1<F, Either<Throwable, B>> bracket =
-        bracketF().bracket(
-            acquire.fix1(EitherT::narrowK).value(),
-            either -> either.fold(
-                error -> monadF().raiseError(error),
+                error -> acquireRecover(error),
                 value -> use.andThen(EitherT::narrowK).apply(value).value()),
             either -> either.fold(cons(unit()), release.asFunction()));
     return EitherT.of(monadF(), bracket);
@@ -238,11 +241,11 @@ interface EitherTBracketFromMonadThrow<F extends Kind> extends Bracket<Higher1<H
 interface EitherTMonadDeferFromMonad<F extends Kind>
     extends EitherTMonadThrowFromMonad<F>,
             EitherTDefer<F, Throwable>,
-            EitherTBracketFromMonad<F>,
+            EitherTBracket<F>,
             MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }
 
 interface EitherTMonadDeferFromMonadThrow<F extends Kind>
     extends EitherTMonadThrowFromMonadThrow<F>,
             EitherTDefer<F, Throwable>,
-            EitherTBracketFromMonadThrow<F>,
+            EitherTBracket<F>,
             MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }

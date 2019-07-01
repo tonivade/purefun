@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -145,25 +144,5 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
 
   default <V> Higher1<F, Either<L, V>> flatMapF(Function1<R, Higher1<F, Either<L, V>>> map) {
    return monad().flatMap(value(), v -> v.fold(left -> monad().pure(Either.left(left)), map));
-  }
-}
-
-class Resource<F extends Kind, L, R, V> implements AutoCloseable {
-
-  private final V value;
-  private final Consumer1<V> release;
-
-  public Resource(V value, Consumer1<V> release) {
-    this.value = requireNonNull(value);
-    this.release = requireNonNull(release);
-  }
-
-  public EitherT<F, L, R> apply(Function1<V, EitherT<F, L, R>> use) {
-    return use.apply(value);
-  }
-
-  @Override
-  public void close() throws Exception {
-    release.accept(value);
   }
 }

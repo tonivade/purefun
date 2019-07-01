@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface IOInstances {
 
@@ -37,9 +38,13 @@ public interface IOInstances {
   static MonadError<IO.µ, Throwable> monadError() {
     return new IOMonadError() {};
   }
-  
+
   static MonadDefer<IO.µ> monadDefer() {
     return new IOMonadDefer() {};
+  }
+
+  static <A> Reference<IO.µ, A> ref(A value) {
+    return Reference.of(monadDefer(), value);
   }
 }
 

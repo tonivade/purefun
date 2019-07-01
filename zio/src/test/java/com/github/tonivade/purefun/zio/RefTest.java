@@ -17,16 +17,16 @@ public class RefTest {
 
   @Test
   public void get() {
-    Ref<String> ref = Ref.of("Hello World!");
+    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
 
-    ZIO<Object, Object, String> result = ref.get();
+    ZIO<Nothing, Nothing, String> result = ref.get();
 
     assertEquals(Either.right("Hello World!"), result.provide(nothing()));
   }
 
   @Test
   public void set() {
-    Ref<String> ref = Ref.of("Hello World!");
+    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, Unit> set = ref.set("Something else");
     ZIO<Nothing, Nothing, String> result = set.andThen(ref.get());
@@ -36,7 +36,7 @@ public class RefTest {
 
   @Test
   public void lazySet() {
-    Ref<String> ref = Ref.of("Hello World!");
+    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, Unit> lazySet = ref.lazySet("Something else");
     ZIO<Nothing, Nothing, String> result = lazySet.andThen(ref.get());
@@ -46,7 +46,7 @@ public class RefTest {
 
   @Test
   public void getAndSet() {
-    Ref<String> ref = Ref.of("Hello World!");
+    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, String> result = ref.getAndSet("Something else");
     ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(ref.get());
@@ -57,7 +57,7 @@ public class RefTest {
 
   @Test
   public void getAndUpdate() {
-    Ref<String> ref = Ref.of("Hello World!");
+    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
 
     ZIO<Nothing, Nothing, String> result = ref.getAndUpdate(String::toUpperCase);
     ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(ref.get());
@@ -68,9 +68,9 @@ public class RefTest {
 
   @Test
   public void updateAndGet() {
-    Ref<String> ref = Ref.of("Hello World!");
+    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
 
-    ZIO<Object, Object, String> result = ref.updateAndGet(String::toUpperCase);
+    ZIO<Nothing, Nothing, String> result = ref.updateAndGet(String::toUpperCase);
 
     assertEquals(Either.right("HELLO WORLD!"), result.provide(nothing()));
   }
