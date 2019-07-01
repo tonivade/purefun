@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.typeclasses.BiFunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
 public interface ValidationInstances {
 
@@ -49,6 +50,9 @@ public interface ValidationInstances {
     return new ValidationMonadError<E>() {};
   }
 
+  static MonadThrow<Higher1<Validation.µ, Throwable>> monadThrow() {
+    return new ValidationMonadThrow() {};
+  }
 }
 
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
@@ -107,3 +111,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
     return Validation.narrowK(value).fold(handler.andThen(Validation::narrowK), Validation::valid);
   }
 }
+
+interface ValidationMonadThrow
+    extends ValidationMonadError<Throwable>,
+            MonadThrow<Higher1<Validation.µ, Throwable>> { }

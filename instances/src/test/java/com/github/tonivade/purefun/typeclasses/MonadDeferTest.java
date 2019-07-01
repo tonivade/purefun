@@ -36,8 +36,10 @@ public class MonadDeferTest {
   private MonadDefer<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>> zioMonadDefer =
       ZIOInstances.monadDefer();
   private MonadDefer<Future.µ> futureMonadDefer = FutureInstances.monadDefer();
-  private MonadDefer<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>> eitherTMonadDefer =
-      EitherTInstances.monadDefer(ioMonadDefer);
+  private MonadDefer<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>> eitherTMonadDeferFromMonad =
+      EitherTInstances.monadDeferFromMonad(ioMonadDefer);
+  private MonadDefer<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>> eitherTMonadDeferFromMonadThrow =
+      EitherTInstances.monadDeferFromMonadThrow(ioMonadDefer);
   private MonadDefer<Higher1<OptionT.µ, IO.µ>> optionTMonadDefer =
       OptionTInstances.monadDefer(ioMonadDefer);
 
@@ -77,8 +79,8 @@ public class MonadDeferTest {
   @Test
   public void eitherTBracket() throws Exception {
     Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> bracket =
-        eitherTMonadDefer.bracket(EitherT.right(IOInstances.monad(), resource),
-                                  r -> EitherT.right(IOInstances.monad(), "done"));
+        eitherTMonadDeferFromMonad.bracket(EitherT.right(IOInstances.monad(), resource),
+                                           r -> EitherT.right(IOInstances.monad(), "done"));
 
     String result = bracket.fix1(EitherT::narrowK).get().fix1(IO::narrowK).unsafeRunSync();
 
@@ -89,8 +91,20 @@ public class MonadDeferTest {
   @Test
   public void eitherTBracketAcquireError() throws Exception {
     Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> bracket =
-        eitherTMonadDefer.bracket(EitherT.left(IOInstances.monad(), new IllegalStateException()),
-                                  r -> EitherT.right(IOInstances.monad(), "done"));
+        eitherTMonadDeferFromMonadThrow.bracket(EitherT.left(IOInstances.monad(), new IllegalStateException()),
+                                                r -> EitherT.right(IOInstances.monad(), "done"));
+
+    assertThrows(IllegalStateException.class,
+                 () -> bracket.fix1(EitherT::narrowK).value().fix1(IO::narrowK).unsafeRunSync());
+
+    verify(resource, never()).close();
+  }
+
+  @Test
+  public void eitherTBracketAcquireError2() throws Exception {
+    Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> bracket =
+        eitherTMonadDeferFromMonad.bracket(EitherT.left(IOInstances.monad(), new IllegalStateException()),
+                                           r -> EitherT.right(IOInstances.monad(), "done"));
 
     Throwable error = bracket.fix1(EitherT::narrowK).getLeft().fix1(IO::narrowK).unsafeRunSync();
 
@@ -101,8 +115,9 @@ public class MonadDeferTest {
   @Test
   public void eitherTBracketUseError() throws Exception {
     Higher1<Higher1<Higher1<EitherT.µ, IO.µ>, Throwable>, String> bracket =
-        eitherTMonadDefer.bracket(EitherT.right(IOInstances.monad(), resource),
-                                  r -> EitherT.left(IOInstances.monad(), new UnsupportedOperationException()));
+        eitherTMonadDeferFromMonad.bracket(EitherT.right(IOInstances.monad(), resource),
+                                           r -> EitherT.left(IOInstances.monad(),
+                                                             new UnsupportedOperationException()));
 
     Throwable error = bracket.fix1(EitherT::narrowK).getLeft().fix1(IO::narrowK).unsafeRunSync();
 

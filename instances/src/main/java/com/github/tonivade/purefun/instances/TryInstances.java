@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface TryInstances {
@@ -47,6 +48,10 @@ public interface TryInstances {
 
   static MonadError<Try.µ, Throwable> monadError() {
     return new TryMonadError() {};
+  }
+
+  static MonadThrow<Try.µ> monadThrow() {
+    return new TryMonadThrow() {};
   }
 
   static Foldable<Try.µ> foldable() {
@@ -104,6 +109,8 @@ interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
     return Try.narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
   }
 }
+
+interface TryMonadThrow extends TryMonadError, MonadThrow<Try.µ> { }
 
 interface TryFoldable extends Foldable<Try.µ> {
 
