@@ -1,7 +1,9 @@
 archivesBaseName = 'purefun-processor'
 
 dependencies {
+  implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
   implementation 'com.squareup:javapoet:1.11.1'
+  implementation project(':kind:annotation')
   testImplementation libs.junitJupiter
   testImplementation libs.junitRunner
   testImplementation libs.equalsVerifier
