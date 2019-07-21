@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun;
 
 import static com.google.common.truth.Truth.assert_;
@@ -12,7 +16,7 @@ import com.google.testing.compile.JavaFileObjects;
 public class HigherKindProcessorTest {
 
   @Test
-  public void testName() {
+  public void compiles() {
     JavaFileObject file = JavaFileObjects.forSourceLines("test.Foo", 
         "package test;",
 
@@ -23,9 +27,6 @@ public class HigherKindProcessorTest {
         "@HigherKind",
         "public class Foo<T> implements Higher1<Foo.µ, T> {",
           "public static final class µ implements Kind {}",
-          "public static <T> Foo<T> narrowK(Higher1<Foo.µ, T> hkt) {",
-            "return (Foo<T>) hkt;",
-          "}",
         "}");
     
     assert_().about(javaSource()).that(file)
