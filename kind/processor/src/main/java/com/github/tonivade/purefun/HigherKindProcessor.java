@@ -52,7 +52,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     tree.accept(new TreeTranslator() {
       @Override
       public void visitClassDef(JCClassDecl clazz) {
-        // TODO ???
+        // TODO add narrowK method
         TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
         
         clazz.defs.forEach(tree -> {
@@ -73,13 +73,6 @@ public class HigherKindProcessor extends AbstractProcessor {
             clazz.defs);
       }
     });
-    
-//    public JCTree.JCClassDecl ClassDef(JCTree.JCModifiers mods,
-//        Name name,
-//        List<JCTree.JCTypeParameter> typarams,
-//        JCTree.JCExpression extending,
-//        List<JCTree.JCExpression> implementing,
-//        List<JCTree> defs)
 
     List<? extends TypeParameterElement> typeParameters = element.getTypeParameters();
     ClassName kind = ClassName.get(element);
