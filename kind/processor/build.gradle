@@ -1,6 +1,7 @@
 archivesBaseName = 'purefun-processor'
 
 dependencies {
+  implementation 'com.squareup:javapoet:1.11.1'
   testImplementation libs.junitJupiter
   testImplementation libs.junitRunner
   testImplementation libs.equalsVerifier
