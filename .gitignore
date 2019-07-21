@@ -1,4 +1,4 @@
 /bin/
 .gradle
 build
-*/bin/
+**/bin/
