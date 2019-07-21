@@ -4,14 +4,16 @@
  */
 package com.github.tonivade.purefun;
 
+import java.util.function.Function;
+
 public interface Higher2<F extends Kind, A, B> extends Higher1<Higher1<F, A>, B> {
 
   @Override
-  default <R> R fix1(Function1<? super Higher1<Higher1<F, A>, B>, ? extends R> function) {
+  default <R> R fix1(Function<? super Higher1<Higher1<F, A>, B>, ? extends R> function) {
     return Higher1.super.fix1(function);
   }
 
-  default <R> R fix2(Function1<? super Higher2<F, A, B>, ? extends R> function) {
+  default <R> R fix2(Function<? super Higher2<F, A, B>, ? extends R> function) {
     return function.apply(this);
   }
 
