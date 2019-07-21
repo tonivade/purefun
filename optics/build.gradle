@@ -1,8 +1,8 @@
 archivesBaseName = 'purefun-optics'
 
 dependencies {
-  compile project(':core')
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.equalsVerifier
+  implementation project(':core')
+  testImplementation libs.junitJupiter
+  testImplementation libs.junitRunner
+  testImplementation libs.equalsVerifier
 }

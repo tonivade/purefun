@@ -1,11 +1,11 @@
 archivesBaseName = 'purefun-free'
 
 dependencies {
-  compile project(':core')
-  compile project(':typeclasses')
-  testCompile project(':monad')
-  testCompile project(':instances')
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.equalsVerifier
+  implementation project(':core')
+  implementation project(':typeclasses')
+  testImplementation project(':monad')
+  testImplementation project(':instances')
+  testImplementation libs.junitJupiter
+  testImplementation libs.junitRunner
+  testImplementation libs.equalsVerifier
 }

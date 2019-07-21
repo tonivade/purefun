@@ -15,7 +15,9 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
 
+@HigherKind
 public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
   public static final class µ implements Kind { }
