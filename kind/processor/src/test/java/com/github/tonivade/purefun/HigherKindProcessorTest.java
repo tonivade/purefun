@@ -17,7 +17,7 @@ public class HigherKindProcessorTest {
 
   @Test
   public void compiles() {
-    JavaFileObject file = JavaFileObjects.forSourceLines("test.Foo", 
+    JavaFileObject file = JavaFileObjects.forSourceLines("test.Foo",
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
@@ -28,7 +28,7 @@ public class HigherKindProcessorTest {
         "public class Foo<T> implements Higher1<Foo.µ, T> {",
           "public static final class µ implements Kind {}",
         "}");
-    
+
     assert_().about(javaSource()).that(file)
       .processedWith(new HigherKindProcessor())
       .compilesWithoutError();
