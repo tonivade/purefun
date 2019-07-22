@@ -3,6 +3,7 @@ archivesBaseName = 'purefun-core'
 dependencies {
   api project(':kind:annotation')
   annotationProcessor project(':kind:processor')
+  compileOnly project(':kind:processor')
   testImplementation libs.junitJupiter
   testImplementation libs.junitRunner
   testImplementation libs.equalsVerifier
