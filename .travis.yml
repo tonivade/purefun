@@ -2,7 +2,7 @@ dist: trusty
 sudo: required
 language: java
 jdk:
-  - openjdk12
+  - openjdk8
 branches:
  only:
   - master
