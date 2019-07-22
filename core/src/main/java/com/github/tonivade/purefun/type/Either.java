@@ -20,13 +20,11 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
-@HigherKind
 public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
   final class µ implements Kind {}

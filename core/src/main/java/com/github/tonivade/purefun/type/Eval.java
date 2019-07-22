@@ -10,11 +10,9 @@ import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 
-@HigherKind
 @FunctionalInterface
 public interface Eval<T> extends FlatMap1<Eval.µ, T> {
 

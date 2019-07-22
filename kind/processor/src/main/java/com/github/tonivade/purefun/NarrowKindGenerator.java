@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.tools.Diagnostic;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.model.JavacElements;
@@ -17,10 +18,12 @@ import com.sun.tools.javac.util.List;
 
 public class NarrowKindGenerator extends TreeTranslator {
 
+  private final ProcessingEnvironment processingEnv;
   private final TreeMaker maker;
   private final JavacElements elements;
 
   public NarrowKindGenerator(ProcessingEnvironment processingEnv) {
+    this.processingEnv = processingEnv;
     this.maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
     this.elements = JavacElements.instance(((JavacProcessingEnvironment) processingEnv).getContext());
   }
@@ -29,6 +32,8 @@ public class NarrowKindGenerator extends TreeTranslator {
   public void visitClassDef(JCClassDecl clazz) {
     JCMethodDecl narrowK = narrowK(clazz);
 
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
+
     result = maker.ClassDef(
         clazz.mods,
         clazz.name,
@@ -36,8 +41,6 @@ public class NarrowKindGenerator extends TreeTranslator {
         clazz.extending,
         clazz.implementing,
         clazz.defs.append(narrowK));
-
-    super.visitClassDef(clazz);
   }
 
   private JCMethodDecl narrowK(JCClassDecl clazz) {

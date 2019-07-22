@@ -7,7 +7,6 @@ package com.github.tonivade.purefun;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -24,15 +23,10 @@ import com.sun.tools.javac.tree.JCTree;
 public class HigherKindProcessor extends AbstractProcessor {
 
   @Override
-  public synchronized void init(ProcessingEnvironment processingEnv) {
-    super.init(processingEnv);
-  }
-
-  @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     for (TypeElement annotation : annotations) {
       for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "found at " + element);
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "@HigherKind found at " + element);
         generateNarrowK((TypeElement) element);
       }
     }
@@ -41,7 +35,7 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void generateNarrowK(TypeElement element) {
     Trees trees = Trees.instance(processingEnv);
-    JCTree tree = (JCTree) trees.getTree(element);
+    JCTree tree = (JCTree) trees.getPath(element).getCompilationUnit();
     tree.accept(new NarrowKindGenerator(processingEnv));
   }
 }

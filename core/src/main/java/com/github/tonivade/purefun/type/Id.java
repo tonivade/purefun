@@ -13,9 +13,9 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
 public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
@@ -70,9 +70,5 @@ public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
   public static <T> Id<T> of(T value) {
     return new Id<>(value);
-  }
-
-  public static <T> Id<T> narrowK(Higher1<Id.µ, T> hkt) {
-    return (Id<T>) hkt;
   }
 }

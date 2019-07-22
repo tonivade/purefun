@@ -21,7 +21,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -29,7 +28,6 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
-@HigherKind
 public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E> {
 
   final class µ implements Kind {}
