@@ -4,12 +4,15 @@
  */
 package com.github.tonivade.purefun;
 
+import java.util.Optional;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.TreeMaker;
@@ -19,31 +22,39 @@ import com.sun.tools.javac.util.List;
 public class NarrowKindGenerator extends TreeTranslator {
 
   private final ProcessingEnvironment processingEnv;
-  private final TreeMaker maker;
-  private final JavacElements elements;
 
   public NarrowKindGenerator(ProcessingEnvironment processingEnv) {
     this.processingEnv = processingEnv;
-    this.maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
-    this.elements = JavacElements.instance(((JavacProcessingEnvironment) processingEnv).getContext());
   }
 
   @Override
   public void visitClassDef(JCClassDecl clazz) {
-    JCMethodDecl narrowK = narrowK(clazz);
+    TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
+    if (isHigherKindAnnotation(clazz).isPresent()) {
+      JCMethodDecl narrowK = narrowKFor(maker, clazz);
 
-    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
+      processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
 
-    result = maker.ClassDef(
+      result = maker.ClassDef(
         clazz.mods,
         clazz.name,
         clazz.typarams,
         clazz.extending,
         clazz.implementing,
         clazz.defs.append(narrowK));
+    } else {
+      result = clazz;
+    }
   }
 
-  private JCMethodDecl narrowK(JCClassDecl clazz) {
+  private Optional<JCAnnotation> isHigherKindAnnotation(JCClassDecl clazz) {
+    return clazz.mods.annotations.stream()
+      .filter(annotation -> annotation.annotationType.type.toString().equals(HigherKind.class.getName()))
+      .findFirst();
+  }
+
+  private JCMethodDecl narrowKFor(TreeMaker maker, JCClassDecl clazz) {
+    JavacElements elements = JavacElements.instance(((JavacProcessingEnvironment) processingEnv).getContext());
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
