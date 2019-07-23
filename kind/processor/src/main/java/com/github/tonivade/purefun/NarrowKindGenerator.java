@@ -29,12 +29,12 @@ public class NarrowKindGenerator extends TreeTranslator {
 
   @Override
   public void visitClassDef(JCClassDecl clazz) {
-    TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
     if (isHigherKindAnnotation(clazz).isPresent()) {
-      JCMethodDecl narrowK = narrowKFor(maker, clazz);
+      JCMethodDecl narrowK = narrowKFor(clazz);
 
       processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
 
+      TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
       result = maker.ClassDef(
         clazz.mods,
         clazz.name,
@@ -53,7 +53,8 @@ public class NarrowKindGenerator extends TreeTranslator {
       .findFirst();
   }
 
-  private JCMethodDecl narrowKFor(TreeMaker maker, JCClassDecl clazz) {
+  private JCMethodDecl narrowKFor(JCClassDecl clazz) {
+    TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
     JavacElements elements = JavacElements.instance(((JavacProcessingEnvironment) processingEnv).getContext());
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
