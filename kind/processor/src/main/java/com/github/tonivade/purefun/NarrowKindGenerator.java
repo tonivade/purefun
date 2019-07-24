@@ -12,29 +12,38 @@ import javax.tools.Diagnostic;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.tree.TreeTranslator;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 
 public class NarrowKindGenerator extends TreeTranslator {
 
   private final ProcessingEnvironment processingEnv;
+  private final Context context;
+  private final JavacElements elements;
+  private final TreeMaker maker;
 
   public NarrowKindGenerator(ProcessingEnvironment processingEnv) {
     this.processingEnv = processingEnv;
+    this.context = ((JavacProcessingEnvironment) processingEnv).getContext();
+    this.elements = JavacElements.instance(context);
+    this.maker = TreeMaker.instance(context);
   }
 
   @Override
   public void visitClassDef(JCClassDecl clazz) {
     if (isHigherKindAnnotation(clazz).isPresent()) {
       JCMethodDecl narrowK = narrowKFor(clazz);
+      fixPos(narrowK, clazz.pos);
 
       processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
 
-      TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
       result = maker.ClassDef(
         clazz.mods,
         clazz.name,
@@ -54,8 +63,6 @@ public class NarrowKindGenerator extends TreeTranslator {
   }
 
   private JCMethodDecl narrowKFor(JCClassDecl clazz) {
-    TreeMaker maker = TreeMaker.instance(((JavacProcessingEnvironment) processingEnv).getContext());
-    JavacElements elements = JavacElements.instance(((JavacProcessingEnvironment) processingEnv).getContext());
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
@@ -83,5 +90,17 @@ public class NarrowKindGenerator extends TreeTranslator {
                             List.of(maker.Ident(elements.getName("T")))),
                         maker.Ident(elements.getName("hkt")))))),
         null);
+  }
+
+  private void fixPos(JCTree newTree, int basePos) {
+    newTree.accept(new TreeScanner() {
+      @Override
+      public void scan(JCTree tree) {
+        if (tree != null) {
+          tree.pos += basePos;
+          super.scan(tree);
+        }
+      }
+    });
   }
 }
