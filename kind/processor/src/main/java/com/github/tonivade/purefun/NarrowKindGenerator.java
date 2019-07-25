@@ -14,24 +14,31 @@ import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCReturn;
+import com.sun.tools.javac.tree.JCTree.JCTypeApply;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
 
 public class NarrowKindGenerator extends TreeTranslator {
 
   private final ProcessingEnvironment processingEnv;
-  private final Context context;
   private final JavacElements elements;
   private final TreeMaker maker;
 
   public NarrowKindGenerator(ProcessingEnvironment processingEnv) {
     this.processingEnv = processingEnv;
-    this.context = ((JavacProcessingEnvironment) processingEnv).getContext();
+    Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
     this.elements = JavacElements.instance(context);
     this.maker = TreeMaker.instance(context);
   }
@@ -39,7 +46,7 @@ public class NarrowKindGenerator extends TreeTranslator {
   @Override
   public void visitClassDef(JCClassDecl clazz) {
     if (isHigherKindAnnotation(clazz).isPresent()) {
-      JCMethodDecl narrowK = narrowKFor(clazz);
+      JCMethodDecl narrowK = narrowKindFor(clazz);
       fixPos(narrowK, clazz.pos);
 
       processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
@@ -62,34 +69,56 @@ public class NarrowKindGenerator extends TreeTranslator {
       .findFirst();
   }
 
-  private JCMethodDecl narrowKFor(JCClassDecl clazz) {
+  private JCMethodDecl narrowKindFor(JCClassDecl clazz) {
+    return narrowK("T", "µ", clazz.name, "hkt");
+  }
+
+  private JCMethodDecl narrowK(String typeParam, String kindName, Name className, String varName) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
-        maker.TypeApply(
-            maker.Ident(clazz.name),
-            List.of(maker.Ident(elements.getName("T")))),
-        List.of(maker.TypeParameter(elements.getName("T"), List.nil())),
-        List.of(
-            maker.VarDef(
-                maker.Modifiers(Flags.ReceiverParamFlags),
-                elements.getName("hkt"),
-                maker.TypeApply(
-                    maker.Ident(elements.getName("Higher1")),
-                    List.of(
-                        maker.Select(maker.Ident(clazz.name), elements.getName("µ")),
-                        maker.Ident(elements.getName("T")))),
-                null)),
+        returnType(className, typeParam),
+        typeParam(typeParam),
+        List.of(higherKind1(className, kindName, typeParam, varName)),
         List.nil(),
-        maker.Block(0,
-            List.of(
-                maker.Return(
-                    maker.TypeCast(
-                        maker.TypeApply(
-                            maker.Ident(clazz.name),
-                            List.of(maker.Ident(elements.getName("T")))),
-                        maker.Ident(elements.getName("hkt")))))),
+        block(returnValue(typeCast(className, typeParam, varName))),
         null);
+  }
+
+  private JCBlock block(JCReturn returnValue) {
+    return maker.Block(0, List.of(returnValue));
+  }
+
+  private JCReturn returnValue(JCExpression expression) {
+    return maker.Return(expression);
+  }
+
+  private JCTypeCast typeCast(Name className, String typeParam, String varName) {
+    return maker.TypeCast(
+        returnType(className, typeParam),
+        maker.Ident(elements.getName(varName)));
+  }
+
+  private JCVariableDecl higherKind1(Name className, String kindName, String typeParam, String varName) {
+    return maker.VarDef(
+        maker.Modifiers(Flags.ReceiverParamFlags),
+        elements.getName(varName),
+        maker.TypeApply(
+            maker.Ident(elements.getName("Higher1")),
+            List.of(
+                maker.Select(maker.Ident(className), elements.getName(kindName)),
+                maker.Ident(elements.getName(typeParam)))),
+        null);
+  }
+
+  private List<JCTypeParameter> typeParam(String typeParam) {
+    return List.of(maker.TypeParameter(elements.getName(typeParam), List.nil()));
+  }
+
+  private JCTypeApply returnType(Name className, String typeParam) {
+    return maker.TypeApply(
+        maker.Ident(className),
+        List.of(maker.Ident(elements.getName(typeParam))));
   }
 
   private void fixPos(JCTree newTree, int basePos) {

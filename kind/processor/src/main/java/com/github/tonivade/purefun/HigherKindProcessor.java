@@ -27,7 +27,11 @@ public class HigherKindProcessor extends AbstractProcessor {
     for (TypeElement annotation : annotations) {
       for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "@HigherKind found at " + element);
-        generateNarrowK((TypeElement) element);
+        try {
+          generateNarrowK((TypeElement) element);
+        } catch (RuntimeException e) {
+          processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error generating code", element);
+        }
       }
     }
     return true;
