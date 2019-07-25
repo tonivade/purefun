@@ -64,7 +64,6 @@ public class NarrowKindGenerator extends TreeTranslator {
     } else {
       result = clazz;
     }
-    System.out.println(result);
   }
 
   private JCClassDecl generateHigher1Kind(JCClassDecl clazz, JCAnnotation annotation) {
@@ -76,7 +75,7 @@ public class NarrowKindGenerator extends TreeTranslator {
     JCTypeApply higher1 = higher1Kind(higher1(select(clazz.name, kindName), typeParam));
     JCMethodDecl narrowKOf1 = narrowKindOf1(higher1, clazz.name, varName, typeParam);
     fixPos(witness, clazz.pos);
-    fixPos(narrowKOf1, witness.pos);
+    fixPos(narrowKOf1, clazz.pos + witness.pos);
 
     printNote("witness generated: " + witness);
     printNote("method narrowK generated: " + narrowKOf1);
