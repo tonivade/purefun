@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 public class HigherKindProcessorTest {
 
   @Test
-  public void compiles() {
+  public void compilesKind1() {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
@@ -25,7 +25,6 @@ public class HigherKindProcessorTest {
 
         "@HigherKind",
         "public class Foo<T> {",
-          "public String toString() { return \"Foo\"; }",
         "}");
 
     assert_().about(javaSource()).that(file)
@@ -34,19 +33,38 @@ public class HigherKindProcessorTest {
   }
 
   @Test
-  public void compilesWhenMoreThanOneDefinition() {
+  public void compilesKind2() {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
         "import com.github.tonivade.purefun.Kind;",
         "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Higher2;",
 
         "@HigherKind",
-        "public class Foo<T> {",
-          "public String toString() { return \"Foo\"; }",
-        "}",
-        "interface FooModule {}");
+        "public class Foo<T, V> {",
+        "}");
+
+    assert_().about(javaSource()).that(file)
+      .processedWith(new HigherKindProcessor())
+      .compilesWithoutError();
+  }
+
+  @Test
+  public void compilesKind3() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "package test;",
+
+        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Higher2;",
+        "import com.github.tonivade.purefun.Higher3;",
+
+        "@HigherKind",
+        "public class Foo<T, V, U> {",
+        "}");
 
     assert_().about(javaSource()).that(file)
       .processedWith(new HigherKindProcessor())
