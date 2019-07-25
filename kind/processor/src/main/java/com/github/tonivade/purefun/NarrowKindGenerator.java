@@ -87,7 +87,7 @@ public class NarrowKindGenerator extends TreeTranslator {
       clazz.name,
       clazz.typarams,
       clazz.extending,
-      clazz.implementing.append(higher1),
+      clazz.implementing.append(higher1Kind(clazz.name, kindName, typeParam)),
       clazz.defs.append(witness).append(narrowKOf1));
   }
 
@@ -117,7 +117,7 @@ public class NarrowKindGenerator extends TreeTranslator {
       clazz.name,
       clazz.typarams,
       clazz.extending,
-      clazz.implementing.append(higher2),
+      clazz.implementing.append(higher2Kind(clazz.name, kindName, typeParam1, typeParam2)),
       clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2));
   }
 
@@ -153,7 +153,7 @@ public class NarrowKindGenerator extends TreeTranslator {
       clazz.name,
       clazz.typarams,
       clazz.extending,
-      clazz.implementing.append(higher3),
+      clazz.implementing.append(higher3Kind(clazz.name, kindName, typeParam1, typeParam2, typeParam3)),
       clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2).append(narrowKOf3));
   }
 
@@ -237,6 +237,18 @@ public class NarrowKindGenerator extends TreeTranslator {
         varName,
         typeDef,
         null);
+  }
+
+  private JCTypeApply higher1Kind(Name className, Name kindName, Name typeParam) {
+    return higher1Kind(higher1(select(className, kindName), typeParam));
+  }
+
+  private JCTypeApply higher2Kind(Name className, Name kindName, Name typeParam1, Name typeParam2) {
+    return higher2Kind(higher2(select(className, kindName), typeParam1, typeParam2));
+  }
+
+  private JCTypeApply higher3Kind(Name className, Name kindName, Name typeParam1, Name typeParam2, Name typeParam3) {
+    return higher3Kind(higher3(select(className, kindName), typeParam1, typeParam2, typeParam3));
   }
 
   private JCTypeApply higher1Kind(List<JCExpression> type) {
