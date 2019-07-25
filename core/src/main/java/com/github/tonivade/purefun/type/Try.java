@@ -31,8 +31,6 @@ import com.github.tonivade.purefun.data.Sequence;
 @HigherKind
 public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
-  final class µ implements Kind {}
-
   static <T> Try<T> success(T value) {
     return new Success<>(value);
   }

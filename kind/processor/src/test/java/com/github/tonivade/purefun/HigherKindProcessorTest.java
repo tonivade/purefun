@@ -24,8 +24,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Higher1;",
 
         "@HigherKind",
-        "public class Foo<T> implements Higher1<Foo.µ, T> {",
-          "public static final class µ implements Kind {}",
+        "public class Foo<T> {",
           "public String toString() { return \"Foo\"; }",
         "}");
 
@@ -44,8 +43,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Higher1;",
 
         "@HigherKind",
-        "public class Foo<T> implements Higher1<Foo.µ, T> {",
-          "public static final class µ implements Kind {}",
+        "public class Foo<T> {",
           "public String toString() { return \"Foo\"; }",
         "}",
         "interface FooModule {}");

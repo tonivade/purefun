@@ -32,8 +32,6 @@ import com.github.tonivade.purefun.data.Sequence;
 @HigherKind
 public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder<T> {
 
-  final class µ implements Kind {}
-
   static <T> Option<T> some(T value) {
     return new Some<>(value);
   }

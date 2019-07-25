@@ -17,6 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
@@ -45,22 +46,42 @@ public class NarrowKindGenerator extends TreeTranslator {
 
   @Override
   public void visitClassDef(JCClassDecl clazz) {
-    if (isHigherKindAnnotation(clazz).isPresent()) {
-      JCMethodDecl narrowK = narrowKindFor(clazz);
-      fixPos(narrowK, clazz.pos);
-
-      processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "method narrowK generated: " + narrowK);
-
-      result = maker.ClassDef(
-        clazz.mods,
-        clazz.name,
-        clazz.typarams,
-        clazz.extending,
-        clazz.implementing,
-        clazz.defs.append(narrowK));
+    Optional<JCAnnotation> higherKindAnnotation = isHigherKindAnnotation(clazz);
+    if (higherKindAnnotation.isPresent()) {
+      if (clazz.typarams.length() == 1) {
+        result = generateHigher1Kind(clazz, higherKindAnnotation.get());
+      }
     } else {
       result = clazz;
     }
+  }
+
+  private JCClassDecl generateHigher1Kind(JCClassDecl clazz, JCAnnotation annotation) {
+    Name typeParam = clazz.typarams.head.name;
+    Name kindName = elements.getName("µ");
+    Name varName = elements.getName("hkt");
+
+    JCMethodDecl narrowK = narrowKindFor(clazz, typeParam, kindName, varName);
+    JCClassDecl witness = kindWitness("µ");
+    JCTypeApply higher1 = higher1Kind(clazz.name, kindName, typeParam);
+    fixPos(witness, clazz.pos);
+    fixPos(narrowK, witness.pos);
+
+    printNote("witness generated: " + witness);
+    printNote("method narrowK generated: " + narrowK);
+    printNote("implements generated: " + higher1);
+
+    return maker.ClassDef(
+      clazz.mods,
+      clazz.name,
+      clazz.typarams,
+      clazz.extending,
+      clazz.implementing.append(higher1),
+      clazz.defs.append(witness).append(narrowK));
+  }
+
+  private void printNote(String note) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, note);
   }
 
   private Optional<JCAnnotation> isHigherKindAnnotation(JCClassDecl clazz) {
@@ -68,20 +89,34 @@ public class NarrowKindGenerator extends TreeTranslator {
       .filter(annotation -> annotation.annotationType.type.toString().equals(HigherKind.class.getName()))
       .findFirst();
   }
-
-  private JCMethodDecl narrowKindFor(JCClassDecl clazz) {
-    return narrowK("T", "µ", clazz.name, "hkt");
+  
+  private JCClassDecl kindWitness(String name) {
+    return maker.ClassDef(
+        maker.Modifiers(Flags.PUBLIC | Flags.STATIC), 
+        elements.getName(name), 
+        List.nil(), 
+        null, 
+        List.of(implementsKind()), 
+        List.nil());
   }
 
-  private JCMethodDecl narrowK(String typeParam, String kindName, Name className, String varName) {
+  private JCIdent implementsKind() {
+    return maker.Ident(elements.getName("Kind"));
+  }
+
+  private JCMethodDecl narrowKindFor(JCClassDecl clazz, Name typeParam, Name kindName, Name varName) {
+    return narrowK(typeParam, kindName, clazz.name, varName);
+  }
+
+  private JCMethodDecl narrowK(Name typeParam, Name kindName, Name className, Name varName) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
         returnType(className, typeParam),
-        typeParam(typeParam),
-        List.of(higherKind1(className, kindName, typeParam, varName)),
+        List.of(typeParam(typeParam)),
+        List.of(variable(varName, higher1Kind(className, kindName, typeParam))),
         List.nil(),
-        block(returnValue(typeCast(className, typeParam, varName))),
+        block(returns(typeCast(className, typeParam, varName))),
         null);
   }
 
@@ -89,36 +124,40 @@ public class NarrowKindGenerator extends TreeTranslator {
     return maker.Block(0, List.of(returnValue));
   }
 
-  private JCReturn returnValue(JCExpression expression) {
+  private JCReturn returns(JCExpression expression) {
     return maker.Return(expression);
   }
 
-  private JCTypeCast typeCast(Name className, String typeParam, String varName) {
+  private JCTypeCast typeCast(Name className, Name typeParam, Name varName) {
     return maker.TypeCast(
         returnType(className, typeParam),
-        maker.Ident(elements.getName(varName)));
+        maker.Ident(varName));
   }
 
-  private JCVariableDecl higherKind1(Name className, String kindName, String typeParam, String varName) {
+  private JCVariableDecl variable(Name varName, JCExpression typeDef) {
     return maker.VarDef(
         maker.Modifiers(Flags.ReceiverParamFlags),
-        elements.getName(varName),
-        maker.TypeApply(
-            maker.Ident(elements.getName("Higher1")),
-            List.of(
-                maker.Select(maker.Ident(className), elements.getName(kindName)),
-                maker.Ident(elements.getName(typeParam)))),
+        varName,
+        typeDef,
         null);
   }
 
-  private List<JCTypeParameter> typeParam(String typeParam) {
-    return List.of(maker.TypeParameter(elements.getName(typeParam), List.nil()));
+  private JCTypeApply higher1Kind(Name className, Name kindName, Name typeParam) {
+    return maker.TypeApply(
+        maker.Ident(elements.getName("Higher1")),
+        List.of(
+            maker.Select(maker.Ident(className), kindName),
+            maker.Ident(typeParam)));
   }
 
-  private JCTypeApply returnType(Name className, String typeParam) {
+  private JCTypeParameter typeParam(Name typeParam) {
+    return maker.TypeParameter(typeParam, List.nil());
+  }
+
+  private JCTypeApply returnType(Name className, Name typeParam) {
     return maker.TypeApply(
         maker.Ident(className),
-        List.of(maker.Ident(elements.getName(typeParam))));
+        List.of(maker.Ident(typeParam)));
   }
 
   private void fixPos(JCTree newTree, int basePos) {

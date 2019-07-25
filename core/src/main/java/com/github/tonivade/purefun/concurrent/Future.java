@@ -36,8 +36,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
-  final class µ implements Kind {}
-
   Try<T> await();
   Try<T> await(Duration timeout);
 

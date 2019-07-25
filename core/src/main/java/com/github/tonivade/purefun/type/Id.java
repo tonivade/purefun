@@ -20,8 +20,6 @@ import com.github.tonivade.purefun.Kind;
 @HigherKind
 public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
 
-  public static final class µ implements Kind { }
-
   private final T value;
 
   private Id(T value) {
