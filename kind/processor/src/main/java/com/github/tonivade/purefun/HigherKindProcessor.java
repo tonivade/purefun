@@ -16,6 +16,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 
 @SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
@@ -40,6 +41,6 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void generateNarrowK(TypeElement element) {
     Trees trees = Trees.instance(processingEnv);
     JCTree tree = (JCTree) trees.getPath(element).getCompilationUnit();
-    tree.accept(new NarrowKindGenerator(processingEnv));
+    tree.accept(new HigherKindTranslator(((JavacProcessingEnvironment) processingEnv).getContext()));
   }
 }

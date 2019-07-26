@@ -8,12 +8,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.Diagnostic;
-
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.model.JavacElements;
-import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -29,41 +25,31 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
-import com.sun.tools.javac.tree.TreeTranslator;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
-public class NarrowKindGenerator extends TreeTranslator {
+public class HigherKindGenerator {
 
-  private final ProcessingEnvironment processingEnv;
   private final JavacElements elements;
   private final TreeMaker maker;
 
-  public NarrowKindGenerator(ProcessingEnvironment processingEnv) {
-    this.processingEnv = processingEnv;
-    Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
-    this.elements = JavacElements.instance(context);
-    this.maker = TreeMaker.instance(context);
+  public HigherKindGenerator(JavacElements elements, TreeMaker maker) {
+    this.elements = elements;
+    this.maker = maker;
   }
-  
-  @Override
-  public void visitClassDef(JCClassDecl clazz) {
-    Optional<JCAnnotation> higherKindAnnotation = isHigherKindAnnotation(clazz);
-    if (higherKindAnnotation.isPresent()) {
-      if (clazz.typarams.length() == 1) {
-        result = generateHigher1Kind(clazz, higherKindAnnotation.get());
-      } else if (clazz.typarams.length() == 2) {
-        result = generateHigher2Kind(clazz, higherKindAnnotation.get());
-      } else if (clazz.typarams.length() == 3) {
-        result = generateHigher3Kind(clazz, higherKindAnnotation.get());
-      } else {
-        printNote("not supported kind greater than 3");
-        result = clazz;
-      }
+
+  Optional<JCTree> generate(JCClassDecl clazz, JCAnnotation annotation) {
+    JCTree tree = null;
+    if (clazz.typarams.length() == 1) {
+      tree = generateHigher1Kind(clazz, annotation);
+    } else if (clazz.typarams.length() == 2) {
+      tree = generateHigher2Kind(clazz, annotation);
+    } else if (clazz.typarams.length() == 3) {
+      tree = generateHigher3Kind(clazz, annotation);
     } else {
-      result = clazz;
+      tree = clazz;
     }
+    return Optional.ofNullable(tree);
   }
 
   private JCClassDecl generateHigher1Kind(JCClassDecl clazz, JCAnnotation annotation) {
@@ -76,10 +62,6 @@ public class NarrowKindGenerator extends TreeTranslator {
     JCMethodDecl narrowKOf1 = narrowKindOf1(higher1, clazz.name, varName, typeParam);
     fixPos(witness, clazz.pos);
     fixPos(narrowKOf1, clazz.pos + witness.pos);
-
-    printNote("witness generated: " + witness);
-    printNote("method narrowK generated: " + narrowKOf1);
-    printNote("implements generated: " + higher1);
 
     return maker.ClassDef(
       clazz.mods,
@@ -104,12 +86,6 @@ public class NarrowKindGenerator extends TreeTranslator {
     fixPos(witness, clazz.pos);
     fixPos(narrowKOf1, witness.pos);
     fixPos(narrowKOf2, narrowKOf1.pos);
-
-    printNote("witness generated: " + witness);
-    printNote("method narrowK generated: " + narrowKOf1);
-    printNote("method narrowK generated: " + narrowKOf2);
-    printNote("implements generated: " + higher1);
-    printNote("implements generated: " + higher2);
 
     return maker.ClassDef(
       clazz.mods,
@@ -139,14 +115,6 @@ public class NarrowKindGenerator extends TreeTranslator {
     fixPos(narrowKOf2, narrowKOf1.pos);
     fixPos(narrowKOf3, narrowKOf2.pos);
 
-    printNote("witness generated: " + witness);
-    printNote("method narrowK generated: " + narrowKOf1);
-    printNote("method narrowK generated: " + narrowKOf2);
-    printNote("method narrowK generated: " + narrowKOf3);
-    printNote("implements generated: " + higher1);
-    printNote("implements generated: " + higher2);
-    printNote("implements generated: " + higher3);
-
     return maker.ClassDef(
       clazz.mods,
       clazz.name,
@@ -156,23 +124,13 @@ public class NarrowKindGenerator extends TreeTranslator {
       clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2).append(narrowKOf3));
   }
 
-  private void printNote(String note) {
-    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, note);
-  }
-
-  private Optional<JCAnnotation> isHigherKindAnnotation(JCClassDecl clazz) {
-    return clazz.mods.annotations.stream()
-      .filter(annotation -> annotation.annotationType.type.toString().equals(HigherKind.class.getName()))
-      .findFirst();
-  }
-  
   private JCClassDecl kindWitness(Name name) {
     return maker.ClassDef(
-        maker.Modifiers(Flags.PUBLIC | Flags.STATIC | Flags.FINAL), 
-        name, 
-        List.nil(), 
-        null, 
-        List.of(implementsKind()), 
+        maker.Modifiers(Flags.PUBLIC | Flags.STATIC | Flags.FINAL),
+        name,
+        List.nil(),
+        null,
+        List.of(implementsKind()),
         List.nil());
   }
 
@@ -324,4 +282,5 @@ public class NarrowKindGenerator extends TreeTranslator {
       }
     });
   }
+
 }
