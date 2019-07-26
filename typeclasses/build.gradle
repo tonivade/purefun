@@ -1,9 +1,9 @@
 archivesBaseName = 'purefun-typeclasses'
 
 dependencies {
-  implementation project(':core')
-  testImplementation project(':instances')
-  testImplementation project(':monad')
-  testImplementation libs.junitJupiter
-  testImplementation libs.junitRunner
+  compile project(':core')
+  testCompile project(':instances')
+  testCompile project(':monad')
+  testCompile libs.junitJupiter
+  testCompile libs.junitRunner
 }
