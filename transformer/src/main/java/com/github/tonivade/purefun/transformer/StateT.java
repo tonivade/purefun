@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
@@ -21,10 +22,8 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
-// FIXME @HigherKind
+@HigherKind
 public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, A> {
-
-  final class µ implements Kind {}
 
   Monad<F> monad();
   Higher1<F, Tuple2<S, A>> run(S state);
@@ -98,19 +97,5 @@ public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, 
 
   static <F extends Kind, S, A> StateT<F, S, A> of(Monad<F> monad, Function1<S, Higher1<F, Tuple2<S, A>>> run) {
     return state(monad, run);
-  }
-
-  static <F extends Kind, S, A> StateT<F, S, A> narrowK(Higher3<StateT.µ, F, S, A> hkt) {
-    return (StateT<F, S, A>) hkt;
-  }
-
-  static <F extends Kind, S, A> StateT<F, S, A> narrowK(Higher2<Higher1<StateT.µ, F>, S, A> hkt) {
-    return (StateT<F, S, A>) hkt;
-  }
-
-  @SuppressWarnings("unchecked")
-  static <F extends Kind, S, A> StateT<F, S, A> narrowK(Higher1<Higher1<Higher1<StateT.µ, F>, S>, A> hkt) {
-    // XXX: I don't know why, but compiler says here there's an unsafe cast
-    return (StateT<F, S, A>) hkt;
   }
 }

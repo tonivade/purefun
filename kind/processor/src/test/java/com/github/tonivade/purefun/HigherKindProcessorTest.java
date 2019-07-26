@@ -23,7 +23,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Kind;",
         "import com.github.tonivade.purefun.Higher1;",
 
-        "@HigherKind",
+        "@HigherKind(name = \"x\")",
         "public class Foo<T> {",
         "}");
 
