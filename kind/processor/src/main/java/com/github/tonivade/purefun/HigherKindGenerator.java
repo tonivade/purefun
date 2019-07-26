@@ -84,8 +84,8 @@ public class HigherKindGenerator {
     JCMethodDecl narrowKOf1 = narrowKindOf1(higher1, clazz.name, varName, typeParam1, typeParam2);
     JCMethodDecl narrowKOf2 = narrowKindOf2(higher2, clazz.name, varName, typeParam1, typeParam2);
     fixPos(witness, clazz.pos);
-    fixPos(narrowKOf1, witness.pos);
-    fixPos(narrowKOf2, narrowKOf1.pos);
+    fixPos(narrowKOf1, clazz.pos + witness.pos);
+    fixPos(narrowKOf2, clazz.pos + witness.pos + narrowKOf1.pos);
 
     return maker.ClassDef(
       clazz.mods,

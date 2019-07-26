@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Holder;
@@ -27,9 +28,8 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
+@HigherKind
 public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, T> {
-
-  final class µ implements Kind {}
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -37,14 +37,6 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
 
   static <E, T> Validation<E, T> invalid(E error) {
     return new Invalid<>(error);
-  }
-
-  static <E, T> Validation<E, T> narrowK(Higher2<Validation.µ, E, T> hkt) {
-    return (Validation<E, T>) hkt;
-  }
-
-  static <E, T> Validation<E, T> narrowK(Higher1<Higher1<Validation.µ, E>, T> hkt) {
-    return (Validation<E, T>) hkt;
   }
 
   boolean isValid();

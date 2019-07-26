@@ -29,7 +29,7 @@ public class HigherKindProcessor extends AbstractProcessor {
       for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "@HigherKind found at " + element);
         try {
-          generateNarrowK((TypeElement) element);
+          generate((TypeElement) element);
         } catch (RuntimeException e) {
           processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "error generating code", element);
         }
@@ -38,7 +38,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     return true;
   }
 
-  private void generateNarrowK(TypeElement element) {
+  private void generate(TypeElement element) {
     Trees trees = Trees.instance(processingEnv);
     JCTree tree = (JCTree) trees.getPath(element).getCompilationUnit();
     tree.accept(new HigherKindTranslator(((JavacProcessingEnvironment) processingEnv).getContext()));
