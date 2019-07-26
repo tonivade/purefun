@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -20,9 +21,8 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
+@HigherKind
 public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, Filterable<T> {
-
-  final class µ implements Kind {}
 
   Monad<F> monad();
   Higher1<F, Option<T>> value();
@@ -89,14 +89,6 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
 
   static <F extends Kind, T> OptionT<F, T> none(Monad<F> monad) {
     return lift(monad, Option.none());
-  }
-
-  static <F extends Kind, T> OptionT<F, T> narrowK(Higher2<OptionT.µ, F, T> hkt) {
-    return (OptionT<F, T>) hkt;
-  }
-
-  static <F extends Kind, T> OptionT<F, T> narrowK(Higher1<Higher1<OptionT.µ, F>, T> hkt) {
-    return (OptionT<F, T>) hkt;
   }
 
   default <R> Higher1<F, Option<R>> flatMapF(Function1<T, Higher1<F, Option<R>>> map) {

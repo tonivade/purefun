@@ -33,6 +33,24 @@ public class HigherKindProcessorTest {
   }
 
   @Test
+  public void compilesKind1WithBounds() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "package test;",
+
+        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+
+        "@HigherKind",
+        "public class Foo<T extends Kind> {",
+        "}");
+
+    assert_().about(javaSource()).that(file)
+      .processedWith(new HigherKindProcessor())
+      .compilesWithoutError();
+  }
+
+  @Test
   public void compilesKind2() {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
@@ -44,6 +62,25 @@ public class HigherKindProcessorTest {
 
         "@HigherKind",
         "public class Foo<T, V> {",
+        "}");
+
+    assert_().about(javaSource()).that(file)
+      .processedWith(new HigherKindProcessor())
+      .compilesWithoutError();
+  }
+
+  @Test
+  public void compilesKind2WithBounds() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "package test;",
+
+        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Higher2;",
+
+        "@HigherKind",
+        "public class Foo<T extends Kind, V> {",
         "}");
 
     assert_().about(javaSource()).that(file)
@@ -64,6 +101,26 @@ public class HigherKindProcessorTest {
 
         "@HigherKind",
         "public class Foo<T, V, U> {",
+        "}");
+
+    assert_().about(javaSource()).that(file)
+      .processedWith(new HigherKindProcessor())
+      .compilesWithoutError();
+  }
+
+  @Test
+  public void compilesKind3WithBounds() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "package test;",
+
+        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Higher2;",
+        "import com.github.tonivade.purefun.Higher3;",
+
+        "@HigherKind",
+        "public class Foo<T extends Kind, V, U> {",
         "}");
 
     assert_().about(javaSource()).that(file)

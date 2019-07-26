@@ -12,16 +12,16 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 
+@HigherKind
 @FunctionalInterface
 public interface State<S, A> extends FlatMap2<State.µ, S, A> {
-
-  final class µ implements Kind {}
 
   Tuple2<S, A> run(S state);
 
@@ -72,13 +72,5 @@ public interface State<S, A> extends FlatMap2<State.µ, S, A> {
 
   static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, Function2<A, B, C> mapper) {
     return sa.flatMap(a -> sb.map(b -> mapper.curried().apply(a).apply(b)));
-  }
-
-  static <S, A> State<S, A> narrowK(Higher2<State.µ, S, A> hkt) {
-    return (State<S, A>) hkt;
-  }
-
-  static <S, A> State<S, A> narrowK(Higher1<Higher1<State.µ, S>, A> hkt) {
-    return (State<S, A>) hkt;
   }
 }

@@ -12,14 +12,14 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Holder;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
+@HigherKind
 public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
-
-  final class µ implements Kind {}
 
   Trampoline<T> apply();
 
@@ -68,10 +68,6 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 
   static <T> Trampoline<T> more(Producer<Trampoline<T>> next) {
     return new More<>(next);
-  }
-
-  static <T> Trampoline<T> narrowK(Higher1<Trampoline.µ, T> hkt) {
-    return (Trampoline<T>) hkt;
   }
 
   final class Done<T> implements Trampoline<T> {

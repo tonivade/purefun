@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
@@ -20,9 +21,8 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
+@HigherKind
 public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L, A> {
-
-  final class µ implements Kind {}
 
   Monoid<L> monoid();
   Monad<F> monad();
@@ -92,18 +92,5 @@ public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L
       @Override
       public Higher1<F, Tuple2<L, A>> value() { return value; }
     };
-  }
-
-  static <F extends Kind, L, A> WriterT<F, L, A> narrowK(Higher3<WriterT.µ, F, L, A> hkt) {
-    return (WriterT<F, L, A>) hkt;
-  }
-
-  static <F extends Kind, L, A> WriterT<F, L, A> narrowK(Higher2<Higher1<WriterT.µ, F>, L, A> hkt) {
-    return (WriterT<F, L, A>) hkt;
-  }
-
-  @SuppressWarnings("unchecked")
-  static <F extends Kind, L, A> WriterT<F, L, A> narrowK(Higher1<Higher1<Higher1<WriterT.µ, F>, L>, A> hkt) {
-    return (WriterT<F, L, A>) hkt;
   }
 }

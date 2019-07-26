@@ -1,6 +1,7 @@
 archivesBaseName = 'purefun-zio'
 
 dependencies {
+  annotationProcessor project(':kind:processor')
   implementation project(':core')
   implementation project(':typeclasses')
   testImplementation project(':monad')

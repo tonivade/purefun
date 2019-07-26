@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
+// FIXME @HigherKind
 public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, A> {
 
   final class µ implements Kind {}

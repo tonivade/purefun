@@ -9,11 +9,11 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
 
+@HigherKind
 @FunctionalInterface
 public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {
-
-  final class µ implements Kind {}
 
   A eval(R reader);
 
@@ -37,13 +37,5 @@ public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {
 
   static <R, A> Reader<R, A> reader(Function1<R, A> run) {
     return run::apply;
-  }
-
-  static <R, A> Reader<R, A> narrowK(Higher2<Reader.µ, R, A> hkt) {
-    return (Reader<R, A>) hkt;
-  }
-
-  static <R, A> Reader<R, A> narrowK(Higher1<Higher1<Reader.µ, R>, A> hkt) {
-    return (Reader<R, A>) hkt;
   }
 }

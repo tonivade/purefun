@@ -53,7 +53,7 @@ public class HigherKindGenerator {
   }
 
   private JCClassDecl generateHigher1Kind(JCClassDecl clazz, JCAnnotation annotation) {
-    Name typeParam = clazz.typarams.head.name;
+    JCTypeParameter typeParam = clazz.typarams.head;
     Name kindName = elements.getName("µ");
     Name varName = elements.getName("hkt");
 
@@ -73,8 +73,8 @@ public class HigherKindGenerator {
   }
 
   private JCTree generateHigher2Kind(JCClassDecl clazz, JCAnnotation annotation) {
-    Name typeParam1 = clazz.typarams.head.name;
-    Name typeParam2 = clazz.typarams.tail.head.name;
+    JCTypeParameter typeParam1 = clazz.typarams.head;
+    JCTypeParameter typeParam2 = clazz.typarams.tail.head;
     Name kindName = elements.getName("µ");
     Name varName = elements.getName("hkt");
 
@@ -97,9 +97,9 @@ public class HigherKindGenerator {
   }
 
   private JCTree generateHigher3Kind(JCClassDecl clazz, JCAnnotation annotation) {
-    Name typeParam1 = clazz.typarams.head.name;
-    Name typeParam2 = clazz.typarams.tail.head.name;
-    Name typeParam3 = clazz.typarams.tail.tail.head.name;
+    JCTypeParameter typeParam1 = clazz.typarams.head;
+    JCTypeParameter typeParam2 = clazz.typarams.tail.head;
+    JCTypeParameter typeParam3 = clazz.typarams.tail.tail.head;
     Name kindName = elements.getName("µ");
     Name varName = elements.getName("hkt");
 
@@ -138,36 +138,45 @@ public class HigherKindGenerator {
     return maker.Ident(elements.getName("Kind"));
   }
 
-  private JCMethodDecl narrowKindOf1(JCExpression param, Name className, Name varName, Name... typeParams) {
+  private JCMethodDecl narrowKindOf1(JCExpression param,
+                                     Name className,
+                                     Name varName,
+                                     JCTypeParameter... typeParams) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
         returnType(className, typeParams),
-        names2TypeParams(typeParams),
+        params2Type(typeParams),
         List.of(variable(varName, param)),
         List.nil(),
         block(returns(typeCast(className, varName, typeParams))),
         null);
   }
 
-  private JCMethodDecl narrowKindOf2(JCExpression param, Name className, Name varName, Name... typeParams) {
+  private JCMethodDecl narrowKindOf2(JCExpression param,
+                                     Name className,
+                                     Name varName,
+                                     JCTypeParameter... typeParams) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
         returnType(className, typeParams),
-        names2TypeParams(typeParams),
+        params2Type(typeParams),
         List.of(variable(varName, param)),
         List.nil(),
         block(returns(typeCast(className, varName, typeParams))),
         null);
   }
 
-  private JCMethodDecl narrowKindOf3(JCExpression param, Name className, Name varName, Name... typeParams) {
+  private JCMethodDecl narrowKindOf3(JCExpression param,
+                                     Name className,
+                                     Name varName,
+                                     JCTypeParameter... typeParams) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
         elements.getName("narrowK"),
         returnType(className, typeParams),
-        names2TypeParams(typeParams),
+        params2Type(typeParams),
         List.of(variable(varName, param)),
         List.nil(),
         block(returns(typeCast(className, varName, typeParams))),
@@ -182,7 +191,7 @@ public class HigherKindGenerator {
     return maker.Return(expression);
   }
 
-  private JCTypeCast typeCast(Name className, Name varName, Name... typeParams) {
+  private JCTypeCast typeCast(Name className, Name varName, JCTypeParameter... typeParams) {
     return maker.TypeCast(
         returnType(className, typeParams),
         maker.Ident(varName));
@@ -196,15 +205,24 @@ public class HigherKindGenerator {
         null);
   }
 
-  private JCTypeApply higher1Kind(Name className, Name kindName, Name typeParam) {
+  private JCTypeApply higher1Kind(Name className,
+                                  Name kindName,
+                                  JCTypeParameter typeParam) {
     return higher1Kind(higher1(select(className, kindName), typeParam));
   }
 
-  private JCTypeApply higher2Kind(Name className, Name kindName, Name typeParam1, Name typeParam2) {
+  private JCTypeApply higher2Kind(Name className,
+                                  Name kindName,
+                                  JCTypeParameter typeParam1,
+                                  JCTypeParameter typeParam2) {
     return higher2Kind(higher2(select(className, kindName), typeParam1, typeParam2));
   }
 
-  private JCTypeApply higher3Kind(Name className, Name kindName, Name typeParam1, Name typeParam2, Name typeParam3) {
+  private JCTypeApply higher3Kind(Name className,
+                                  Name kindName,
+                                  JCTypeParameter typeParam1,
+                                  JCTypeParameter typeParam2,
+                                  JCTypeParameter typeParam3) {
     return higher3Kind(higher3(select(className, kindName), typeParam1, typeParam2, typeParam3));
   }
 
@@ -220,55 +238,76 @@ public class HigherKindGenerator {
     return maker.TypeApply(maker.Ident(elements.getName("Higher3")), type);
   }
 
-  private JCTypeApply nestedHigher1(Name className, Name kindName, Name typeParam1, Name typeParam2) {
+  private JCTypeApply nestedHigher1(Name className,
+                                    Name kindName,
+                                    JCTypeParameter typeParam1,
+                                    JCTypeParameter typeParam2)
+  {
     return higher1Kind(higher1(higher1Kind(higher1(select(className, kindName), typeParam1)), typeParam2));
   }
 
-  private JCTypeApply nestedHigher1(Name className, Name kindName, Name typeParam1, Name typeParam2, Name typeParam3) {
+  private JCTypeApply nestedHigher1(Name className,
+                                    Name kindName,
+                                    JCTypeParameter typeParam1,
+                                    JCTypeParameter typeParam2,
+                                    JCTypeParameter typeParam3) {
     return higher1Kind(higher1(nestedHigher1(className, kindName, typeParam1, typeParam2), typeParam3));
   }
 
-  private JCTypeApply nestedHigher2(Name className, Name kindName, Name typeParam1, Name typeParam2, Name typeParam3) {
+  private JCTypeApply nestedHigher2(Name className,
+                                    Name kindName,
+                                    JCTypeParameter typeParam1,
+                                    JCTypeParameter typeParam2,
+                                    JCTypeParameter typeParam3) {
     return higher2Kind(higher2(higher1Kind(higher1(select(className, kindName), typeParam1)), typeParam2, typeParam3));
   }
 
-  private List<JCExpression> higher1(JCExpression nested, Name typeParam) {
-    return List.of(nested, maker.Ident(typeParam));
+  private List<JCExpression> higher1(JCExpression nested, JCTypeParameter typeParam) {
+    return List.of(nested, maker.Ident(typeParam.name));
   }
 
-  private List<JCExpression> higher2(JCExpression nested, Name typeParam1, Name typeParam2) {
-    return List.of(nested, maker.Ident(typeParam1), maker.Ident(typeParam2));
+  private List<JCExpression> higher2(JCExpression nested,
+                                     JCTypeParameter typeParam1,
+                                     JCTypeParameter typeParam2) {
+    return List.of(nested, maker.Ident(typeParam1.name), maker.Ident(typeParam2.name));
   }
 
-  private List<JCExpression> higher3(JCExpression nested, Name typeParam1, Name typeParam2, Name typeParam3) {
-    return List.of(nested, maker.Ident(typeParam1), maker.Ident(typeParam2), maker.Ident(typeParam3));
+  private List<JCExpression> higher3(JCExpression nested,
+                                     JCTypeParameter typeParam1,
+                                     JCTypeParameter typeParam2,
+                                     JCTypeParameter typeParam3) {
+    return List.of(nested, maker.Ident(typeParam1.name), maker.Ident(typeParam2.name), maker.Ident(typeParam3.name));
   }
 
-  private JCTypeParameter typeParam(Name typeParam) {
-    return maker.TypeParameter(typeParam, List.nil());
-  }
-
-  private JCTypeApply returnType(Name className, Name... typeParams) {
+  private JCTypeApply returnType(Name className, JCTypeParameter... typeParams) {
     return maker.TypeApply(
         maker.Ident(className),
-        names2Ident(typeParams));
+        params2Ident(typeParams));
   }
 
   private JCFieldAccess select(Name className, Name kindName) {
     return maker.Select(maker.Ident(className), kindName);
   }
 
-  private List<JCExpression> names2Ident(Name... typeParams) {
-    return mapNames(maker::Ident, typeParams);
+  private List<JCExpression> params2Ident(JCTypeParameter... typeParams) {
+    return mapParams(this::ident, typeParams);
   }
 
-  private List<JCTypeParameter> names2TypeParams(Name... typeParams) {
-    return mapNames(this::typeParam, typeParams);
+  private List<JCTypeParameter> params2Type(JCTypeParameter... typeParams) {
+    return mapParams(this::typeParam, typeParams);
   }
 
-  private <T extends JCTree> List<T> mapNames(Function<Name, T> mapper, Name... typeParams) {
+  private <T extends JCTree> List<T> mapParams(Function<JCTypeParameter, T> mapper, JCTypeParameter... typeParams) {
     return Stream.of(typeParams).map(mapper)
         .reduce(List.nil(), List::append, List::appendList);
+  }
+
+  private JCIdent ident(JCTypeParameter typeParam) {
+    return maker.Ident(typeParam.name);
+  }
+
+  private JCTypeParameter typeParam(JCTypeParameter typeParam) {
+    return maker.TypeParameter(typeParam.name, typeParam.bounds);
   }
 
   private void fixPos(JCTree newTree, int basePos) {

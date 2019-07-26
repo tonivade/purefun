@@ -10,15 +10,15 @@ import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
+@HigherKind
 public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
-
-  final class µ implements Kind {}
 
   static <F extends Kind, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
@@ -30,14 +30,6 @@ public interface Free<F extends Kind, T> extends FlatMap2<Free.µ, F, T> {
 
   static <F extends Kind, T> Free<F, T> liftF(Functor<F> functor, Higher1<F, T> value) {
     return suspend(functor.map(value, Free::pure));
-  }
-
-  static <F extends Kind, T> Free<F, T> narrowK(Higher2<Free.µ, F, T> hkt) {
-    return (Free<F, T>) hkt;
-  }
-
-  static <F extends Kind, T> Free<F, T> narrowK(Higher1<Higher1<Free.µ, F>, T> hkt) {
-    return (Free<F, T>) hkt;
   }
 
   @Override

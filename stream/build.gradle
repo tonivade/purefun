@@ -1,6 +1,7 @@
 archivesBaseName = 'purefun-stream'
 
 dependencies {
+  annotationProcessor project(':kind:processor')
   implementation project(':core')
   implementation project(':typeclasses')
   implementation project(':monad')
