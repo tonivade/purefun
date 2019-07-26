@@ -9,6 +9,7 @@ import java.util.Optional;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.Context;
@@ -21,6 +22,13 @@ public class HigherKindTranslator extends TreeTranslator {
     JavacElements elements = JavacElements.instance(context);
     TreeMaker maker = TreeMaker.instance(context);
     this.generator = new HigherKindGenerator(elements, maker);
+  }
+
+  @Override
+  public void visitTopLevel(JCCompilationUnit unit) {
+    result = generator.imports(unit).orElse(unit);
+
+    super.visitTopLevel(unit);
   }
 
   @Override

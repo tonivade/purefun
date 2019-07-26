@@ -6,9 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind

@@ -15,6 +15,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -32,12 +33,33 @@ import com.sun.tools.javac.util.Name;
 
 public class HigherKindGenerator {
 
+  private static final String WITNESS = "µ";
+  private static final String NARROWK = "narrowK";
+  private static final String KIND = "com.github.tonivade.purefun.Kind";
+  private static final String HIGHER1 = "com.github.tonivade.purefun.Higher1";
+  private static final String HIGHER2 = "com.github.tonivade.purefun.Higher2";
+  private static final String HIGHER3 = "com.github.tonivade.purefun.Higher3";
+
   private final JavacElements elements;
   private final TreeMaker maker;
 
   public HigherKindGenerator(JavacElements elements, TreeMaker maker) {
     this.elements = elements;
     this.maker = maker;
+  }
+
+  public Optional<JCTree> imports(JCCompilationUnit unit) {
+    JCExpression kind = maker.QualIdent(elements.getTypeElement(KIND));
+    JCExpression higher1 = maker.QualIdent(elements.getTypeElement(HIGHER1));
+    JCExpression higher2 = maker.QualIdent(elements.getTypeElement(HIGHER2));
+    JCExpression higher3 = maker.QualIdent(elements.getTypeElement(HIGHER3));
+    List<JCTree> newDefs = unit.defs
+      .prepend(maker.Import(kind, false))
+      .prepend(maker.Import(higher1, false))
+      .prepend(maker.Import(higher2, false))
+      .prepend(maker.Import(higher3, false));
+    unit.defs = newDefs;
+    return Optional.of(unit);
   }
 
   public Optional<JCTree> generate(JCClassDecl clazz, JCAnnotation annotation) {
@@ -64,7 +86,7 @@ public class HigherKindGenerator {
         .map(assign -> ((JCLiteral) assign.rhs))
         .map(literal -> (String) literal.value);
 
-    return elements.getName(name.orElse("µ"));
+    return elements.getName(name.orElse(WITNESS));
   }
 
   private JCClassDecl generateHigher1Kind(JCClassDecl clazz, Name kindName, Name varName) {
@@ -153,7 +175,7 @@ public class HigherKindGenerator {
                                      JCTypeParameter... typeParams) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
-        elements.getName("narrowK"),
+        elements.getName(NARROWK),
         returnType(className, typeParams),
         params2Type(typeParams),
         List.of(variable(varName, param)),
@@ -168,7 +190,7 @@ public class HigherKindGenerator {
                                      JCTypeParameter... typeParams) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
-        elements.getName("narrowK"),
+        elements.getName(NARROWK),
         returnType(className, typeParams),
         params2Type(typeParams),
         List.of(variable(varName, param)),
@@ -183,7 +205,7 @@ public class HigherKindGenerator {
                                      JCTypeParameter... typeParams) {
     return maker.MethodDef(
         maker.Modifiers(Flags.PUBLIC | Flags.STATIC),
-        elements.getName("narrowK"),
+        elements.getName(NARROWK),
         returnType(className, typeParams),
         params2Type(typeParams),
         List.of(variable(varName, param)),
@@ -330,5 +352,4 @@ public class HigherKindGenerator {
       }
     });
   }
-
 }

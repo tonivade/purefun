@@ -20,8 +20,6 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Higher1;",
 
         "@HigherKind(name = \"x\")",
         "public class Foo<T> {",
@@ -38,8 +36,6 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Higher1;",
 
         "@HigherKind",
         "public class Foo<T extends Kind> {",
@@ -56,9 +52,6 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Higher1;",
-        "import com.github.tonivade.purefun.Higher2;",
 
         "@HigherKind",
         "public class Foo<T, V> {",
@@ -75,9 +68,6 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Higher1;",
-        "import com.github.tonivade.purefun.Higher2;",
 
         "@HigherKind",
         "public class Foo<T extends Kind, V> {",
@@ -94,10 +84,6 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Higher1;",
-        "import com.github.tonivade.purefun.Higher2;",
-        "import com.github.tonivade.purefun.Higher3;",
 
         "@HigherKind",
         "public class Foo<T, V, U> {",
@@ -114,10 +100,6 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Higher1;",
-        "import com.github.tonivade.purefun.Higher2;",
-        "import com.github.tonivade.purefun.Higher3;",
 
         "@HigherKind",
         "public class Foo<T extends Kind, V, U> {",
