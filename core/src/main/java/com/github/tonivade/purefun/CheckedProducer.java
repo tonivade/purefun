@@ -47,7 +47,7 @@ public interface CheckedProducer<A> extends Recoverable {
     return recover(this::sneakyThrow);
   }
 
-  static <A> CheckedProducer<A> unit(A value) {
+  static <A> CheckedProducer<A> cons(A value) {
     return () -> value;
   }
 
