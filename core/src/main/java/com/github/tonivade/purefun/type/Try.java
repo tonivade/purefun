@@ -111,6 +111,10 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
   }
 
+  default Try<T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
+
   default Try<T> filterOrElse(Matcher1<T> matcher, Producer<Try<T>> producer) {
     if (isFailure() || matcher.match(get())) {
       return this;

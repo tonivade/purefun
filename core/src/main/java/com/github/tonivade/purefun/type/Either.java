@@ -107,6 +107,10 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     return Option.none();
   }
 
+  default Option<Either<L, R>> filterNot(Matcher1<R> matcher) {
+    return filter(matcher.negate());
+  }
+
   default Either<L, R> filterOrElse(Matcher1<R> matcher, Producer<Either<L, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;

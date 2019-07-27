@@ -97,6 +97,10 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     return none();
   }
 
+  default Option<T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
+
   default Option<T> orElse(Option<T> orElse) {
     if (isEmpty()) {
       return orElse;

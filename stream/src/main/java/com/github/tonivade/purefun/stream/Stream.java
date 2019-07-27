@@ -55,6 +55,11 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> filter(Matcher1<T> matcher);
   Stream<F, T> takeWhile(Matcher1<T> matcher);
   Stream<F, T> dropWhile(Matcher1<T> matcher);
+  
+  @Override
+  default Stream<F, T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
 
   <R> Stream<F, R> collect(PartialFunction1<T, R> partial);
   <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator);

@@ -72,6 +72,10 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     return Option.none();
   }
 
+  default Option<Validation<E, T>> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
+
   default Validation<E, T> filterOrElse(Matcher1<T> matcher, Producer<Validation<E, T>> orElse) {
     if (isInvalid() || matcher.match(get())) {
       return this;

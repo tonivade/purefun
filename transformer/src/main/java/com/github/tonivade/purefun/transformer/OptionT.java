@@ -65,6 +65,11 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
   default OptionT<F, T> filter(Matcher1<T> filter) {
     return OptionT.of(monad(), monad().map(value(), v -> v.filter(filter)));
   }
+  
+  @Override
+  default OptionT<F, T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
 
   static <F extends Kind, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
     return OptionT.of(monad, monad.pure(value));

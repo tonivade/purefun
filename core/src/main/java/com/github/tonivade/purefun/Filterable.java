@@ -7,4 +7,6 @@ package com.github.tonivade.purefun;
 public interface Filterable<T> {
 
   Filterable<T> filter(Matcher1<T> matcher);
+
+  Filterable<T> filterNot(Matcher1<T> matcher);
 }

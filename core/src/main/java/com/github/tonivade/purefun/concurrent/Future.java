@@ -65,6 +65,11 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   @Override
   Future<T> filter(Matcher1<T> matcher);
+  
+  @Override
+  default Future<T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
 
   Future<T> orElse(Future<T> other);
 
