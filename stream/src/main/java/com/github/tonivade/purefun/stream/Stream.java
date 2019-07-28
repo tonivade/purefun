@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator1;
@@ -29,9 +30,8 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
+@HigherKind
 public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Filterable<T> {
-
-  final class µ implements Kind {}
 
   default Stream<F, T> head() {
     return take(1);
@@ -55,6 +55,11 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> filter(Matcher1<T> matcher);
   Stream<F, T> takeWhile(Matcher1<T> matcher);
   Stream<F, T> dropWhile(Matcher1<T> matcher);
+  
+  @Override
+  default Stream<F, T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
+  }
 
   <R> Stream<F, R> collect(PartialFunction1<T, R> partial);
   <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator);
@@ -98,14 +103,6 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       @Override
       public MonadDefer<F> monadDefer() { return monad; }
     };
-  }
-
-  static <F extends Kind, T> Stream<F, T> narrowK(Higher1<Higher1<Stream.µ, F>, T> hkt) {
-    return (Stream<F, T>) hkt;
-  }
-
-  static <F extends Kind, T> Stream<F, T> narrowK(Higher2<Stream.µ, F, T> hkt) {
-    return (Stream<F, T>) hkt;
   }
 
   interface StreamOf<F extends Kind> {

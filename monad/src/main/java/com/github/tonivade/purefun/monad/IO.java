@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
@@ -24,16 +25,15 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
+@HigherKind
 public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
-
-  final class µ implements Kind {}
 
   T unsafeRunSync();
 
   default Try<T> safeRunSync() {
     return Try.of(this::unsafeRunSync);
   }
-  
+
   default Future<T> toFuture() {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
@@ -146,10 +146,6 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
-  static <T> IO<T> narrowK(Higher1<IO.µ, T> hkt) {
-    return (IO<T>) hkt;
-  }
-
   final class Pure<T> implements IO<T> {
 
     private final T value;
@@ -162,7 +158,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return value;
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
       return monad.pure(value);
@@ -193,7 +189,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public R unsafeRunSync() {
       return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
       return monad.flatMap(current.foldMap(monad), next.andThen(IO::narrowK).andThen(io -> io.foldMap(monad)));
@@ -222,7 +218,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return sneakyThrow(error);
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
       return monad.raiseError(error);
@@ -263,7 +259,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return task.get();
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
       return monad.later(task);
@@ -292,7 +288,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public T unsafeRunSync() {
       return lazy.get().unsafeRunSync();
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
       return monad.defer(() -> lazy.get().foldMap(monad));
@@ -327,7 +323,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
         return resource.apply(use).unsafeRunSync();
       }
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
       return monad.bracket(acquire.foldMap(monad), use.andThen(io -> io.foldMap(monad)), release);
@@ -356,7 +352,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
     public Try<T> unsafeRunSync() {
       return Try.of(current::unsafeRunSync);
     }
-    
+
     @Override
     public <F extends Kind> Higher1<F, Try<T>> foldMap(MonadDefer<F> monad) {
       return monad.map(monad.attemp(current.foldMap(monad)), either -> either.fold(Try::failure, Try::success));

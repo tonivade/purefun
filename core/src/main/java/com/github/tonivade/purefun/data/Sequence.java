@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
+// FIXME @HigherKind
 public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E> {
 
   final class µ implements Kind {}
@@ -59,6 +60,10 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
 
   @Override
   Sequence<E> filter(Matcher1<E> matcher);
+
+  default Sequence<E> filterNot(Matcher1<E> matcher) {
+    return filter(matcher.negate());
+  }
 
   default Option<E> reduce(Operator2<E> operator) {
     return Option.from(stream().reduce(operator::apply));
@@ -147,11 +152,11 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
   static <A, B> Stream<Tuple2<A, B>> zip(Sequence<A> first, Sequence<B> second) {
     return zip(first.stream(), second.stream());
   }
-  
+
   static <A> Stream<Tuple2<A, Integer>> zipWithIndex(Stream<A> stream) {
     return zip(stream, iterate(0, x -> x + 1));
   }
-  
+
   static <A> Stream<Tuple2<A, Integer>> zipWithIndex(Sequence<A> sequence) {
     return zipWithIndex(sequence.stream());
   }

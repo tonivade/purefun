@@ -9,16 +9,14 @@ import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
+@HigherKind
 public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
-
-  final class µ implements Kind {}
 
   Monoid<L> monoid();
   Tuple2<L, A> value();
@@ -72,13 +70,5 @@ public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
       @Override
       public Tuple2<L, A> value() { return value; }
     };
-  }
-
-  static <L, T> Writer<L, T> narrowK(Higher2<Writer.µ, L, T> hkt) {
-    return (Writer<L, T>) hkt;
-  }
-
-  static <L, T> Writer<L, T> narrowK(Higher1<Higher1<Writer.µ, L>, T> hkt) {
-    return (Writer<L, T>) hkt;
   }
 }

@@ -1,9 +1,11 @@
 archivesBaseName = 'purefun-transformer'
 
 dependencies {
+  annotationProcessor project(':kind:processor')
   compile project(':core')
   compile project(':typeclasses')
   testCompile project(':instances')
+  testCompile project(':monad')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier

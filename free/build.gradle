@@ -1,6 +1,7 @@
 archivesBaseName = 'purefun-free'
 
 dependencies {
+  annotationProcessor project(':kind:processor')
   compile project(':core')
   compile project(':typeclasses')
   testCompile project(':monad')

@@ -9,14 +9,13 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
+@HigherKind
 public interface Kleisli<F extends Kind, Z, A> extends FlatMap3<Kleisli.µ, F, Z, A> {
-
-  final class µ implements Kind {}
 
   Monad<F> monad();
   Higher1<F, A> run(Z value);
@@ -58,19 +57,5 @@ public interface Kleisli<F extends Kind, Z, A> extends FlatMap3<Kleisli.µ, F, Z
       @Override
       public Higher1<F, B> run(A value) { return run.apply(value); }
     };
-  }
-
-  static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher3<Kleisli.µ, F, A, B> hkt) {
-    return (Kleisli<F, A, B>) hkt;
-  }
-
-  static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher2<Higher1<Kleisli.µ, F>, A, B> hkt) {
-    return (Kleisli<F, A, B>) hkt;
-  }
-
-  @SuppressWarnings("unchecked")
-  static <F extends Kind, A, B> Kleisli<F, A, B> narrowK(Higher1<Higher1<Higher1<Kleisli.µ, F>, A>, B> hkt) {
-    // XXX: I don't know why, but compiler says here there's an unsafe cast
-    return (Kleisli<F, A, B>) hkt;
   }
 }

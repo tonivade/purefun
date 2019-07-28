@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.CheckedProducer.failure;
-import static com.github.tonivade.purefun.CheckedProducer.unit;
+import static com.github.tonivade.purefun.CheckedProducer.cons;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -95,7 +95,7 @@ public class FutureTest {
 
   @Test
   public void onSuccessTimeout() {
-    Future<String> future = Future.delay(Duration.ofMillis(100), unit("Hello World!"));
+    Future<String> future = Future.delay(Duration.ofMillis(100), cons("Hello World!"));
 
     future.onSuccess(consumerSuccess).await();
 
@@ -216,7 +216,7 @@ public class FutureTest {
   }
 
   @Test
-  public void toCompletableFuture() throws InterruptedException, ExecutionException {
+  public void toCompletableFuture() {
     Future<String> success = Future.success("Hello world!");
     Future<String> failure = Future.failure(new IllegalArgumentException());
 
@@ -233,7 +233,7 @@ public class FutureTest {
 
   @Test
   public void awaitTimeout() {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
 
     Try<String> result = future.await(Duration.ofMillis(100));
 
@@ -244,7 +244,7 @@ public class FutureTest {
 
   @Test
   public void cancelled() {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), unit("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
 
     future.cancel(false);
 

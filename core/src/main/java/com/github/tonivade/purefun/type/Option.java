@@ -21,16 +21,15 @@ import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
+@HigherKind
 public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder<T> {
-
-  final class µ implements Kind {}
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -39,10 +38,6 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   @SuppressWarnings("unchecked")
   static <T> Option<T> none() {
     return (Option<T>) None.INSTANCE;
-  }
-
-  static <T> Option<T> narrowK(Higher1<Option.µ, T> hkt) {
-    return (Option<T>) hkt;
   }
 
   static <T> Option<T> of(T value) {
@@ -100,6 +95,10 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
       return this;
     }
     return none();
+  }
+
+  default Option<T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
   }
 
   default Option<T> orElse(Option<T> orElse) {

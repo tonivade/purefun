@@ -16,18 +16,16 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
+@HigherKind
 public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
-
-  final class µ implements Kind {}
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -35,14 +33,6 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
   static <L, R> Either<L, R> right(R value) {
     return new Right<>(value);
-  }
-
-  static <L, R> Either<L, R> narrowK(Higher2<Either.µ, L, R> hkt) {
-    return (Either<L, R>) hkt;
-  }
-
-  static <L, R> Either<L, R> narrowK(Higher1<Higher1<Either.µ, L>, R> hkt) {
-    return (Either<L, R>) hkt;
   }
 
   boolean isLeft();
@@ -115,6 +105,10 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
       return Option.some(this);
     }
     return Option.none();
+  }
+
+  default Option<Either<L, R>> filterNot(Matcher1<R> matcher) {
+    return filter(matcher.negate());
   }
 
   default Either<L, R> filterOrElse(Matcher1<R> matcher, Producer<Either<L, R>> orElse) {

@@ -20,16 +20,15 @@ import com.github.tonivade.purefun.Filterable;
 import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Holder;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
+@HigherKind
 public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
-
-  final class µ implements Kind {}
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -53,10 +52,6 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     } catch (Throwable error) {
       return failure(error);
     }
-  }
-
-  static <T> Try<T> narrowK(Higher1<Try.µ, T> hkt) {
-    return (Try<T>) hkt;
   }
 
   Throwable getCause();
@@ -114,6 +109,10 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   @Override
   default Try<T> filter(Matcher1<T> matcher) {
     return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
+  }
+
+  default Try<T> filterNot(Matcher1<T> matcher) {
+    return filter(matcher.negate());
   }
 
   default Try<T> filterOrElse(Matcher1<T> matcher, Producer<Try<T>> producer) {

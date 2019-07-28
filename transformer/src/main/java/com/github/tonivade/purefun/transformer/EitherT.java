@@ -11,8 +11,8 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -22,9 +22,8 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
+@HigherKind
 public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L, R> {
-
-  final class µ implements Kind {}
 
   Monad<F> monad();
   Higher1<F, Either<L, R>> value();
@@ -126,20 +125,6 @@ public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L
 
   static <F extends Kind, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
     return lift(monad, value.toEither());
-  }
-
-  static <F extends Kind, L, R> EitherT<F, L, R> narrowK(Higher3<EitherT.µ, F, L, R> hkt) {
-    return (EitherT<F, L, R>) hkt;
-  }
-
-  static <F extends Kind, S, A> EitherT<F, S, A> narrowK(Higher2<Higher1<EitherT.µ, F>, S, A> hkt) {
-    return (EitherT<F, S, A>) hkt;
-  }
-
-  @SuppressWarnings("unchecked")
-  static <F extends Kind, S, A> EitherT<F, S, A> narrowK(Higher1<Higher1<Higher1<EitherT.µ, F>, S>, A> hkt) {
-    // XXX: I don't know why, but compiler says here there's an unsafe cast
-    return (EitherT<F, S, A>) hkt;
   }
 
   default <V> Higher1<F, Either<L, V>> flatMapF(Function1<R, Higher1<F, Either<L, V>>> map) {

@@ -19,8 +19,8 @@ import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
@@ -30,9 +30,8 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
+@HigherKind
 public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
-
-  final class µ implements Kind {}
 
   Either<E, A> provide(R env);
 
@@ -173,19 +172,6 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
   @SuppressWarnings("unchecked")
   static <R, E> ZIO<R, E, Unit> unit() {
     return (ZIO<R, E, Unit>) ZIOModule.UNIT;
-  }
-
-  static <R, E, A> ZIO<R, E, A> narrowK(Higher3<ZIO.µ, R, E, A> hkt) {
-    return (ZIO<R, E, A>) hkt;
-  }
-
-  static <R, E, A> ZIO<R, E, A> narrowK(Higher2<Higher1<ZIO.µ, R>, E, A> hkt) {
-    return (ZIO<R, E, A>) hkt;
-  }
-
-  @SuppressWarnings("unchecked")
-  static <R, E, A> ZIO<R, E, A> narrowK(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> hkt) {
-    return (ZIO<R, E, A>) hkt;
   }
 
   final class Pure<R, E, A> implements ZIO<R, E, A> {

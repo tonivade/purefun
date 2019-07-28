@@ -24,12 +24,12 @@ public class CheckedProducerTest {
 
   @Test
   public void unitTest() throws Throwable {
-    assertEquals("hello world", CheckedProducer.unit("hello world").get());
+    assertEquals("hello world", CheckedProducer.cons("hello world").get());
   }
 
   @Test
   public void asFunction() throws Throwable {
-    CheckedProducer<String> producer = CheckedProducer.unit("hello world");
+    CheckedProducer<String> producer = CheckedProducer.cons("hello world");
 
     assertEquals("hello world", producer.asFunction().apply(unit()));
   }
@@ -37,7 +37,7 @@ public class CheckedProducerTest {
   @Test
   public void recover() {
     CheckedProducer<String> failure = CheckedProducer.failure(Exception::new);
-    CheckedProducer<String> success = CheckedProducer.unit("hola mundo");
+    CheckedProducer<String> success = CheckedProducer.cons("hola mundo");
 
     assertAll(
         () -> assertEquals("hello world", failure.recover(ex -> "hello world").get()),
