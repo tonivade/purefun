@@ -25,6 +25,10 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    return check() && apply(annotations, roundEnv);
+  }
+
+  private boolean apply(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     for (TypeElement annotation : annotations) {
       for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "@HigherKind found at " + element);
@@ -36,6 +40,18 @@ public class HigherKindProcessor extends AbstractProcessor {
       }
     }
     return true;
+  }
+
+  private boolean check() {
+    if (!verifyJavac()) {
+      processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "not supported");
+      return false;
+    }
+    return true;
+  }
+
+  private boolean verifyJavac() {
+    return processingEnv instanceof JavacProcessingEnvironment;
   }
 
   private void generate(TypeElement element) {
