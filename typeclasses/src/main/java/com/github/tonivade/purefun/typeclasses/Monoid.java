@@ -4,8 +4,10 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator2;
 
+@HigherKind
 public interface Monoid<T> extends Semigroup<T> {
 
   T zero();

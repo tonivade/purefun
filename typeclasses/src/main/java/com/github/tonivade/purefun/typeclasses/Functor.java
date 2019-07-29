@@ -11,9 +11,14 @@ import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.TypeClass;
 
 @TypeClass
-public interface Functor<F extends Kind> {
+public interface Functor<F extends Kind> extends Invariant<F> {
 
   <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map);
+
+  @Override
+  default <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
+    return map(value, map);
+  }
 
   static <F extends Kind, G extends Kind> Functor<Nested<F, G>> compose(Functor<F> f, Functor<G> g) {
     return new ComposedFunctor<F, G>() {
