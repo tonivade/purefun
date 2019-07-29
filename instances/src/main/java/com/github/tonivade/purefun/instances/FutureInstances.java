@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -88,6 +89,7 @@ public interface FutureInstances {
   }
 }
 
+@Instance
 interface FutureFunctor extends Functor<Future.µ> {
 
   @Override
@@ -96,6 +98,7 @@ interface FutureFunctor extends Functor<Future.µ> {
   }
 }
 
+@Instance
 interface FuturePure extends Applicative<Future.µ> {
 
   Executor executor();
@@ -106,6 +109,7 @@ interface FuturePure extends Applicative<Future.µ> {
   }
 }
 
+@Instance
 interface FutureApplicative extends FuturePure {
 
   @Override
@@ -114,6 +118,7 @@ interface FutureApplicative extends FuturePure {
   }
 }
 
+@Instance
 interface FutureMonad extends FuturePure, Monad<Future.µ> {
 
   @Override
@@ -123,6 +128,7 @@ interface FutureMonad extends FuturePure, Monad<Future.µ> {
   }
 }
 
+@Instance
 interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable> {
 
   @Override
@@ -140,6 +146,7 @@ interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable>
   }
 }
 
+@Instance
 interface FutureDefer extends Defer<Future.µ> {
 
   Executor executor();
@@ -150,6 +157,7 @@ interface FutureDefer extends Defer<Future.µ> {
   }
 }
 
+@Instance
 interface FutureBracket extends Bracket<Future.µ> {
 
   @Override
@@ -160,4 +168,5 @@ interface FutureBracket extends Bracket<Future.µ> {
   }
 }
 
+@Instance
 interface FutureMonadDefer extends MonadDefer<Future.µ>, FutureMonadError, FutureDefer, FutureBracket { }

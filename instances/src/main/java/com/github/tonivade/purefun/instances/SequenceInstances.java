@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -59,9 +60,9 @@ public interface SequenceInstances {
   static Foldable<Sequence.µ> foldable() {
     return new SequenceFoldable() {};
   }
-
 }
 
+@Instance
 interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 
   @Override
@@ -70,6 +71,7 @@ interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
   }
 }
 
+@Instance
 interface SequenceMonoid<T> extends SequenceSemigroup<T>, Monoid<Sequence<T>> {
 
   @Override
@@ -78,6 +80,7 @@ interface SequenceMonoid<T> extends SequenceSemigroup<T>, Monoid<Sequence<T>> {
   }
 }
 
+@Instance
 interface SequenceSemigroupK extends SemigroupK<Sequence.µ> {
 
   @Override
@@ -86,6 +89,7 @@ interface SequenceSemigroupK extends SemigroupK<Sequence.µ> {
   }
 }
 
+@Instance
 interface SequenceMonoidK extends MonoidK<Sequence.µ>, SequenceSemigroupK {
 
   @Override
@@ -94,6 +98,7 @@ interface SequenceMonoidK extends MonoidK<Sequence.µ>, SequenceSemigroupK {
   }
 }
 
+@Instance
 interface SequenceApplicative extends Applicative<Sequence.µ> {
 
   @Override
@@ -107,8 +112,10 @@ interface SequenceApplicative extends Applicative<Sequence.µ> {
   }
 }
 
+@Instance
 interface SequenceAlternative extends SequenceApplicative, SequenceMonoidK, Alternative<Sequence.µ> {}
 
+@Instance
 interface SequenceFoldable extends Foldable<Sequence.µ> {
 
   @Override
@@ -122,6 +129,7 @@ interface SequenceFoldable extends Foldable<Sequence.µ> {
   }
 }
 
+@Instance
 interface SequenceTraverse extends Traverse<Sequence.µ>, SequenceFoldable {
 
   @Override

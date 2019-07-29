@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -16,6 +17,7 @@ public interface StateInstances {
   }
 }
 
+@Instance
 interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
 
   @Override

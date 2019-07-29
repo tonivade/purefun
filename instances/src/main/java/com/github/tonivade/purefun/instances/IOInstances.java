@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.typeclasses.Comonad;
@@ -48,6 +49,7 @@ public interface IOInstances {
   }
 }
 
+@Instance
 interface IOFunctor extends Functor<IO.µ> {
 
   @Override
@@ -56,6 +58,7 @@ interface IOFunctor extends Functor<IO.µ> {
   }
 }
 
+@Instance
 interface IOComonad extends IOFunctor, Comonad<IO.µ> {
 
   @Override
@@ -69,6 +72,7 @@ interface IOComonad extends IOFunctor, Comonad<IO.µ> {
   }
 }
 
+@Instance
 interface IOMonad extends Monad<IO.µ> {
 
   @Override
@@ -82,6 +86,7 @@ interface IOMonad extends Monad<IO.µ> {
   }
 }
 
+@Instance
 interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   @Override
@@ -95,6 +100,7 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
   }
 }
 
+@Instance
 interface IODefer extends Defer<IO.µ> {
 
   @Override
@@ -103,6 +109,7 @@ interface IODefer extends Defer<IO.µ> {
   }
 }
 
+@Instance
 interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer {
 
   @Override

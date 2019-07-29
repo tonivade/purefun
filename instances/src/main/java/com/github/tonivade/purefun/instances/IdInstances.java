@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
@@ -49,6 +50,7 @@ public interface IdInstances {
   }
 }
 
+@Instance
 interface IdFunctor extends Functor<Id.µ> {
 
   @Override
@@ -57,6 +59,7 @@ interface IdFunctor extends Functor<Id.µ> {
   }
 }
 
+@Instance
 interface IdPure extends Applicative<Id.µ> {
 
   @Override
@@ -65,6 +68,7 @@ interface IdPure extends Applicative<Id.µ> {
   }
 }
 
+@Instance
 interface IdApplicative extends IdPure {
 
   @Override
@@ -73,6 +77,7 @@ interface IdApplicative extends IdPure {
   }
 }
 
+@Instance
 interface IdMonad extends IdPure, Monad<Id.µ> {
 
   @Override
@@ -81,6 +86,7 @@ interface IdMonad extends IdPure, Monad<Id.µ> {
   }
 }
 
+@Instance
 interface IdComonad extends IdFunctor, Comonad<Id.µ> {
 
   @Override
@@ -94,6 +100,7 @@ interface IdComonad extends IdFunctor, Comonad<Id.µ> {
   }
 }
 
+@Instance
 interface IdFoldable extends Foldable<Id.µ> {
 
   @Override
@@ -107,6 +114,7 @@ interface IdFoldable extends Foldable<Id.µ> {
   }
 }
 
+@Instance
 interface IdTraverse extends Traverse<Id.µ>, IdFoldable {
 
   @Override

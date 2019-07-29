@@ -15,9 +15,11 @@ import java.io.UncheckedIOException;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 
+@TypeClass
 public interface Console<F extends Kind> {
 
   Higher1<F, String> readln();

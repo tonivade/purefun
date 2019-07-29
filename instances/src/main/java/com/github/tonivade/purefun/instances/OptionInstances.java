@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern2;
@@ -75,6 +76,7 @@ public interface OptionInstances {
   }
 }
 
+@Instance
 interface OptionFunctor extends Functor<Option.µ> {
 
   @Override
@@ -83,6 +85,7 @@ interface OptionFunctor extends Functor<Option.µ> {
   }
 }
 
+@Instance
 interface OptionPure extends Applicative<Option.µ> {
 
   @Override
@@ -91,6 +94,7 @@ interface OptionPure extends Applicative<Option.µ> {
   }
 }
 
+@Instance
 interface OptionApplicative extends OptionPure {
 
   @Override
@@ -99,6 +103,7 @@ interface OptionApplicative extends OptionPure {
   }
 }
 
+@Instance
 interface OptionMonad extends OptionPure, Monad<Option.µ> {
 
   @Override
@@ -108,6 +113,7 @@ interface OptionMonad extends OptionPure, Monad<Option.µ> {
   }
 }
 
+@Instance
 interface OptionSemigroupK extends SemigroupK<Option.µ> {
 
   @Override
@@ -116,6 +122,7 @@ interface OptionSemigroupK extends SemigroupK<Option.µ> {
   }
 }
 
+@Instance
 interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option.µ> {
 
   @Override
@@ -124,8 +131,10 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option.µ> {
   }
 }
 
+@Instance
 interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option.µ> { }
 
+@Instance
 interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Nothing> {
 
   @Override
@@ -140,6 +149,7 @@ interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Nothing> {
   }
 }
 
+@Instance
 interface OptionFoldable extends Foldable<Option.µ> {
 
   @Override
@@ -154,6 +164,7 @@ interface OptionFoldable extends Foldable<Option.µ> {
   }
 }
 
+@Instance
 interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
 
   @Override
@@ -165,6 +176,7 @@ interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
   }
 }
 
+@Instance
 interface OptionSemigroupal extends Semigroupal<Option.µ> {
 
   @Override

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
@@ -50,6 +51,7 @@ public interface ZIOInstances {
   }
 }
 
+@Instance
 interface ZIOFunctor<R, E> extends Functor<Higher1<Higher1<ZIO.µ, R>, E>> {
 
   @Override
@@ -59,6 +61,7 @@ interface ZIOFunctor<R, E> extends Functor<Higher1<Higher1<ZIO.µ, R>, E>> {
   }
 }
 
+@Instance
 interface ZIOPure<R, E> extends Applicative<Higher1<Higher1<ZIO.µ, R>, E>> {
 
   @Override
@@ -67,6 +70,7 @@ interface ZIOPure<R, E> extends Applicative<Higher1<Higher1<ZIO.µ, R>, E>> {
   }
 }
 
+@Instance
 interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
 
   @Override
@@ -77,6 +81,7 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
   }
 }
 
+@Instance
 interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>, E>> {
 
   @Override
@@ -87,6 +92,7 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>
   }
 }
 
+@Instance
 interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1<ZIO.µ, R>, E>, E> {
 
   @Override
@@ -106,10 +112,12 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
   }
 }
 
+@Instance
 interface ZIOMonadThrow<R>
     extends ZIOMonadError<R, Throwable>,
             MonadThrow<Higher1<Higher1<ZIO.µ, R>, Throwable>> { }
 
+@Instance
 interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 
   @Override
@@ -119,6 +127,7 @@ interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
   }
 }
 
+@Instance
 interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 
   @Override
@@ -130,6 +139,7 @@ interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> 
   }
 }
 
+@Instance
 interface ZIOMonadDefer<R>
     extends MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>>,
             ZIOMonadThrow<R>,

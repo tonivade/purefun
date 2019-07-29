@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Eval.µ;
@@ -20,24 +21,25 @@ public interface EvalInstances {
   static Functor<Eval.µ> functor() {
     return new EvalFunctor() {};
   }
-  
+
   static Applicative<Eval.µ> applicative() {
     return new EvalApplicative() {};
   }
-  
+
   static Monad<Eval.µ> monad() {
     return new EvalMonad() {};
   }
-  
+
   static Comonad<Eval.µ> comonad() {
     return new EvalComonad() {};
   }
-  
+
   static Defer<Eval.µ> defer() {
     return new EvalDefer() {};
   }
 }
 
+@Instance
 interface EvalFunctor extends Functor<Eval.µ> {
 
   @Override
@@ -46,6 +48,7 @@ interface EvalFunctor extends Functor<Eval.µ> {
   }
 }
 
+@Instance
 interface EvalPure extends Applicative<Eval.µ> {
 
   @Override
@@ -54,6 +57,7 @@ interface EvalPure extends Applicative<Eval.µ> {
   }
 }
 
+@Instance
 interface EvalApplicative extends EvalPure {
 
   @Override
@@ -62,6 +66,7 @@ interface EvalApplicative extends EvalPure {
   }
 }
 
+@Instance
 interface EvalMonad extends EvalPure, Monad<Eval.µ> {
 
   @Override
@@ -70,19 +75,21 @@ interface EvalMonad extends EvalPure, Monad<Eval.µ> {
   }
 }
 
+@Instance
 interface EvalComonad extends EvalFunctor, Comonad<Eval.µ> {
 
   @Override
   default <A, B> Eval<B> coflatMap(Higher1<Eval.µ, A> value, Function1<Higher1<Eval.µ, A>, B> map) {
     return Eval.later(() -> map.apply(value));
   }
-  
+
   @Override
   default <A> A extract(Higher1<Eval.µ, A> value) {
     return Eval.narrowK(value).value();
   }
 }
 
+@Instance
 interface EvalDefer extends Defer<Eval.µ> {
 
   @Override

@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.transformer.Kleisli;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -23,6 +24,7 @@ public interface KleisliInstances {
   }
 }
 
+@Instance
 interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> {
 
   Monad<F> monadF();

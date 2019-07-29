@@ -4,21 +4,13 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Function1.identity;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.TypeClass;
 
 @TypeClass
-public interface Comonad<F extends Kind> extends Functor<F> {
+public interface Contravariant<F extends Kind> {
 
-  <A, B> Higher1<F, B> coflatMap(Higher1<F, A> value, Function1<Higher1<F, A>, B> map);
-
-  <A> A extract(Higher1<F, A> value);
-
-  default <A> Higher1<F, Higher1<F, A>> coflatten(Higher1<F, A> value) {
-    return coflatMap(value, identity());
-  }
+  <A, B> Higher1<F, B> contramap(Higher1<F, A> value, Function1<B, A> map);
 }

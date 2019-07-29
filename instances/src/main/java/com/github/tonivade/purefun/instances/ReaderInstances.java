@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.Reader;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -16,8 +17,9 @@ public interface ReaderInstances {
   }
 }
 
+@Instance
 interface ReaderMonad<R> extends Monad<Higher1<Reader.µ, R>> {
-  
+
   @Override
   default <T> Reader<R, T> pure(T value) {
     return Reader.pure(value);

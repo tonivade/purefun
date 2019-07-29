@@ -12,8 +12,10 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nested;
+import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.type.Eval;
 
+@TypeClass
 interface ComposedFunctor<F extends Kind, G extends Kind> extends Functor<Nested<F, G>> {
 
   Functor<F> f();

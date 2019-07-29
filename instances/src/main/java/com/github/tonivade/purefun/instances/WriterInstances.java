@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.Writer;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -24,8 +25,9 @@ public interface WriterInstances {
   }
 }
 
+@Instance
 interface WriterMonad<L> extends Monad<Higher1<Writer.µ, L>> {
-  
+
   Monoid<L> monoid();
 
   @Override

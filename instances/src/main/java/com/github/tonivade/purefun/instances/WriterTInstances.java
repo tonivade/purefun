@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.transformer.WriterT;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -28,6 +29,7 @@ public interface WriterTInstances {
   }
 }
 
+@Instance
 interface WriterTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<WriterT.µ, F>, L>> {
 
   Monad<F> monadF();

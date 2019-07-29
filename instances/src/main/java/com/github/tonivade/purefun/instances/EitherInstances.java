@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
@@ -70,6 +71,7 @@ public interface EitherInstances {
   }
 }
 
+@Instance
 interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
 
   @Override
@@ -78,6 +80,7 @@ interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
   }
 }
 
+@Instance
 interface EitherBiFunctor extends BiFunctor<Either.µ> {
 
   @Override
@@ -87,6 +90,7 @@ interface EitherBiFunctor extends BiFunctor<Either.µ> {
   }
 }
 
+@Instance
 interface EitherPure<L> extends Applicative<Higher1<Either.µ, L>> {
 
   @Override
@@ -95,6 +99,7 @@ interface EitherPure<L> extends Applicative<Higher1<Either.µ, L>> {
   }
 }
 
+@Instance
 interface EitherApplicative<L> extends EitherPure<L> {
 
   @Override
@@ -104,6 +109,7 @@ interface EitherApplicative<L> extends EitherPure<L> {
   }
 }
 
+@Instance
 interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
 
   @Override
@@ -113,6 +119,7 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
   }
 }
 
+@Instance
 interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.µ, L>, L> {
 
   @Override
@@ -127,8 +134,10 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.
   }
 }
 
+@Instance
 interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Higher1<Either.µ, Throwable>> { }
 
+@Instance
 interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
 
   @Override
@@ -143,6 +152,7 @@ interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
   }
 }
 
+@Instance
 interface EitherTraverse<L> extends Traverse<Higher1<Either.µ, L>>, EitherFoldable<L> {
 
   @Override

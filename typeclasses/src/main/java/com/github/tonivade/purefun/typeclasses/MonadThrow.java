@@ -5,7 +5,9 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.TypeClass;
 
+@TypeClass
 public interface MonadThrow<F extends Kind> extends MonadError<F, Throwable> {
 
 }

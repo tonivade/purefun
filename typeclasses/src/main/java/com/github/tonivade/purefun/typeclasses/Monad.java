@@ -9,7 +9,9 @@ import static com.github.tonivade.purefun.Function1.identity;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.TypeClass;
 
+@TypeClass
 public interface Monad<F extends Kind> extends Applicative<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);

@@ -10,8 +10,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nested;
+import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.type.Id;
 
+@TypeClass
 public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
 
   <G extends Kind, T, R> Higher1<G, Higher1<F, R>> traverse(Applicative<G> applicative, Higher1<F, T> value,

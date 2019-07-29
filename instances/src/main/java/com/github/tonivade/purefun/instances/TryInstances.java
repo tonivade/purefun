@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Eval;
@@ -63,6 +64,7 @@ public interface TryInstances {
   }
 }
 
+@Instance
 interface TryFunctor extends Functor<Try.µ> {
 
   @Override
@@ -71,6 +73,7 @@ interface TryFunctor extends Functor<Try.µ> {
   }
 }
 
+@Instance
 interface TryPure extends Applicative<Try.µ> {
 
   @Override
@@ -79,6 +82,7 @@ interface TryPure extends Applicative<Try.µ> {
   }
 }
 
+@Instance
 interface TryApplicative extends TryPure {
 
   @Override
@@ -87,6 +91,7 @@ interface TryApplicative extends TryPure {
   }
 }
 
+@Instance
 interface TryMonad extends TryPure, Monad<Try.µ> {
 
   @Override
@@ -96,6 +101,7 @@ interface TryMonad extends TryPure, Monad<Try.µ> {
   }
 }
 
+@Instance
 interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
 
   @Override
@@ -110,8 +116,10 @@ interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
   }
 }
 
+@Instance
 interface TryMonadThrow extends TryMonadError, MonadThrow<Try.µ> { }
 
+@Instance
 interface TryFoldable extends Foldable<Try.µ> {
 
   @Override
@@ -126,6 +134,7 @@ interface TryFoldable extends Foldable<Try.µ> {
   }
 }
 
+@Instance
 interface TryTraverse extends Traverse<Try.µ>, TryFoldable {
 
   @Override

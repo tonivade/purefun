@@ -8,7 +8,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.TypeClass;
 
+@TypeClass
 public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, Monad<F> {
 
   default <A> Higher1<F, A> ensure(Higher1<F, A> value, Producer<E> error, Matcher1<A> matcher) {

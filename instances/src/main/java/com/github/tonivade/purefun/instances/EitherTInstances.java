@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.transformer.EitherT;
@@ -141,6 +142,7 @@ public interface EitherTInstances {
   }
 }
 
+@Instance
 interface EitherTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<EitherT.µ, F>, L>> {
 
   Monad<F> monadF();
@@ -157,6 +159,7 @@ interface EitherTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<EitherT.
   }
 }
 
+@Instance
 interface EitherTMonadErrorFromMonad<F extends Kind, E>
     extends MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>, EitherTMonad<F, E> {
 
@@ -176,6 +179,7 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E>
   }
 }
 
+@Instance
 interface EitherTMonadErrorFromMonadError<F extends Kind, E>
     extends MonadError<Higher1<Higher1<EitherT.µ, F>, E>, E>,
             EitherTMonad<F, E> {
@@ -197,14 +201,17 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E>
   }
 }
 
+@Instance
 interface EitherTMonadThrowFromMonad<F extends Kind>
     extends EitherTMonadErrorFromMonad<F, Throwable>,
             MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }
 
+@Instance
 interface EitherTMonadThrowFromMonadThrow<F extends Kind>
     extends EitherTMonadErrorFromMonadError<F, Throwable>,
             MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }
 
+@Instance
 interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.µ, F>, E>> {
 
   Monad<F> monadF();
@@ -216,6 +223,7 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.
   }
 }
 
+@Instance
 interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT.µ, F>, Throwable>> {
 
   Bracket<F> bracketF();
@@ -238,12 +246,14 @@ interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT
   }
 }
 
+@Instance
 interface EitherTMonadDeferFromMonad<F extends Kind>
     extends EitherTMonadThrowFromMonad<F>,
             EitherTDefer<F, Throwable>,
             EitherTBracket<F>,
             MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> { }
 
+@Instance
 interface EitherTMonadDeferFromMonadThrow<F extends Kind>
     extends EitherTMonadThrowFromMonadThrow<F>,
             EitherTDefer<F, Throwable>,

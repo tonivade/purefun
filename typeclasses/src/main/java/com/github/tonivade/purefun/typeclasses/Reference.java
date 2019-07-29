@@ -12,8 +12,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
+@TypeClass
 public interface Reference<F extends Kind, A> {
 
   Higher1<F, A> get();

@@ -7,7 +7,9 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.TypeClass;
 
+@TypeClass
 public interface Defer<F extends Kind> {
 
   <A> Higher1<F, A> defer(Producer<Higher1<F, A>> defer);

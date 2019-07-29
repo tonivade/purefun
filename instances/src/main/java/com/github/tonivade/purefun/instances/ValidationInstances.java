@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -55,6 +56,7 @@ public interface ValidationInstances {
   }
 }
 
+@Instance
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 
   @Override
@@ -63,6 +65,7 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
   }
 }
 
+@Instance
 interface ValidationBiFunctor extends BiFunctor<Validation.µ> {
 
   @Override
@@ -72,6 +75,7 @@ interface ValidationBiFunctor extends BiFunctor<Validation.µ> {
   }
 }
 
+@Instance
 interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
 
   @Override
@@ -80,6 +84,7 @@ interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
   }
 }
 
+@Instance
 interface ValidationApplicative<E> extends ValidationPure<E> {
 
   @Override
@@ -89,6 +94,7 @@ interface ValidationApplicative<E> extends ValidationPure<E> {
   }
 }
 
+@Instance
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation.µ, E>> {
 
   @Override
@@ -98,6 +104,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
   }
 }
 
+@Instance
 interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation.µ, E>, E> {
 
   @Override
@@ -112,6 +119,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
   }
 }
 
+@Instance
 interface ValidationMonadThrow
     extends ValidationMonadError<Throwable>,
             MonadThrow<Higher1<Validation.µ, Throwable>> { }

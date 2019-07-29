@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream;
@@ -21,11 +22,11 @@ public interface StreamInstances {
   static StreamOf<IO.µ> ofIO() {
     return Stream.of(IOInstances.monadDefer());
   }
-  
+
   static <F extends Kind> Functor<Higher1<Stream.µ, F>> functor() {
     return new StreamFunctor<F>() {};
   }
-  
+
   static <F extends Kind> Applicative<Higher1<Stream.µ, F>> applicative(StreamOf<F> streamOf) {
     requireNonNull(streamOf);
     return new StreamApplicative<F>() {
@@ -34,7 +35,7 @@ public interface StreamInstances {
       public StreamOf<F> streamOf() { return streamOf; }
     };
   }
-  
+
   static <F extends Kind> Monad<Higher1<Stream.µ, F>> monad(StreamOf<F> streamOf) {
     requireNonNull(streamOf);
     return new StreamMonad<F>() {
@@ -45,16 +46,18 @@ public interface StreamInstances {
   }
 }
 
+@Instance
 interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream.µ, F>> {
-  
+
   @Override
   default <T, R> Stream<F, R> map(Higher1<Higher1<Stream.µ, F>, T> value, Function1<T, R> mapper) {
     return Stream.narrowK(value).map(mapper);
   }
 }
 
+@Instance
 interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream.µ, F>> {
-  
+
   StreamOf<F> streamOf();
 
   @Override
@@ -63,8 +66,9 @@ interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream.µ, F>> 
   }
 }
 
+@Instance
 interface StreamApplicative<F extends Kind> extends StreamPure<F> {
-  
+
   @Override
   default <T, R> Stream<F, R> ap(Higher1<Higher1<Stream.µ, F>, T> value,
       Higher1<Higher1<Stream.µ, F>, Function1<T, R>> apply) {
@@ -72,6 +76,7 @@ interface StreamApplicative<F extends Kind> extends StreamPure<F> {
   }
 }
 
+@Instance
 interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, StreamPure<F> {
 
   @Override
