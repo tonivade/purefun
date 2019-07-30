@@ -30,4 +30,15 @@ public interface Functor<F extends Kind> extends Invariant<F> {
       public Functor<G> g() { return g; }
     };
   }
+
+  static <F extends Kind, G extends Kind> Functor<Nested<F, G>> compose(Contravariant<F> f, Contravariant<G> g) {
+    return new ComposedContravariant<F, G>() {
+
+      @Override
+      public Contravariant<F> f() { return f; }
+
+      @Override
+      public Contravariant<G> g() { return g; }
+    };
+  }
 }

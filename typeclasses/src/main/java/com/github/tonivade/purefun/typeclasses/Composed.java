@@ -111,3 +111,87 @@ interface ComposedFoldable<F extends Kind, G extends Kind> extends Foldable<Nest
     return f().foldRight(unnest(value), initial, (a, lb) -> g().foldRight(a, lb, mapper));
   }
 }
+
+@Instance
+interface ComposedInvariant<F extends Kind, G extends Kind> extends Invariant<Nested<F, G>> {
+
+  Invariant<F> f();
+  Invariant<G> g();
+
+  @Override
+  default <A, B> Higher1<Nested<F, G>, B> imap(Higher1<Nested<F, G>, A> value,
+                                               Function1<A, B> map,
+                                               Function1<B, A> comap) {
+    Function1<Higher1<G, A>, Higher1<G, B>> map2 = ga -> g().imap(ga, map, comap);
+    Function1<Higher1<G, B>, Higher1<G, A>> comap2 = gb -> g().imap(gb, comap, map);
+    return nest(f().imap(unnest(value), map2, comap2));
+  }
+}
+
+@Instance
+interface ComposedInvariantCovariant<F extends Kind, G extends Kind> extends Invariant<Nested<F, G>> {
+
+  Invariant<F> f();
+  Functor<G> g();
+
+  @Override
+  default <A, B> Higher1<Nested<F, G>, B> imap(Higher1<Nested<F, G>, A> value,
+                                               Function1<A, B> map,
+                                               Function1<B, A> comap) {
+    Function1<Higher1<G, A>, Higher1<G, B>> map2 = ga -> g().map(ga, map);
+    Function1<Higher1<G, B>, Higher1<G, A>> comap2 = gb -> g().map(gb, comap);
+    return nest(f().imap(unnest(value), map2, comap2));
+  }
+}
+
+@Instance
+interface ComposedInvariantContravariant<F extends Kind, G extends Kind> extends Invariant<Nested<F, G>> {
+
+  Invariant<F> f();
+  Contravariant<G> g();
+
+  @Override
+  default <A, B> Higher1<Nested<F, G>, B> imap(Higher1<Nested<F, G>, A> value,
+                                               Function1<A, B> map,
+                                               Function1<B, A> comap) {
+    Function1<Higher1<G, A>, Higher1<G, B>> map2 = ga -> g().contramap(ga, comap);
+    Function1<Higher1<G, B>, Higher1<G, A>> comap2 = gb -> g().contramap(gb, map);
+    return nest(f().imap(unnest(value), map2, comap2));
+  }
+}
+
+@Instance
+interface ComposedCovariantContravariant<F extends Kind, G extends Kind> extends Contravariant<Nested<F, G>> {
+
+  Functor<F> f();
+  Contravariant<G> g();
+
+  @Override
+  default <A, B> Higher1<Nested<F, G>, B> contramap(Higher1<Nested<F, G>, A> value, Function1<B, A> map) {
+    return nest(f().map(unnest(value), ga -> g().contramap(ga, map)));
+  }
+}
+
+@Instance
+interface ComposedContravariant<F extends Kind, G extends Kind> extends Functor<Nested<F, G>> {
+
+  Contravariant<F> f();
+  Contravariant<G> g();
+
+  @Override
+  default <A, B> Higher1<Nested<F, G>, B> map(Higher1<Nested<F, G>, A> value, Function1<A, B> map) {
+    return nest(f().<Higher1<G, A>, Higher1<G, B>>contramap(unnest(value), gb -> g().contramap(gb, map)));
+  }
+}
+
+@Instance
+interface ComposedContravariantCovariant<F extends Kind, G extends Kind> extends Contravariant<Nested<F, G>> {
+
+  Contravariant<F> f();
+  Functor<G> g();
+
+  @Override
+  default <A, B> Higher1<Nested<F, G>, B> contramap(Higher1<Nested<F, G>, A> value, Function1<B, A> map) {
+    return nest(f().<Higher1<G, A>, Higher1<G, B>>contramap(unnest(value), gb -> g().map(gb, map)));
+  }
+}

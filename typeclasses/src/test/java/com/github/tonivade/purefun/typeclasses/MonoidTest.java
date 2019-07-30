@@ -12,11 +12,20 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class MonoidTest {
 
-  private final Monoid<Integer> monoid = Monoid.integer();
+  private final Monoid<Integer> intMonoid = Monoid.integer();
+
+  @Test
+  public void invariant() {
+    Monoid<String> strMonoid = intMonoid.imap(String::valueOf, Integer::parseInt);
+
+    assertEquals("0", strMonoid.zero());
+    assertEquals("3", strMonoid.combine("1", "2"));
+  }
 
   @TestFactory
   public Stream<DynamicNode> associativityLaw() {
@@ -27,28 +36,28 @@ public class MonoidTest {
   @TestFactory
   public Stream<DynamicNode> rightIdentityLaw() {
     return IntStream.range(0, 10)
-        .mapToObj(x -> dynamicTest("associativity law: " + x, () -> rightIdentity(x)));
+        .mapToObj(x -> dynamicTest("right identity law: " + x, () -> rightIdentity(x)));
   }
 
   @TestFactory
   public Stream<DynamicNode> leftIdentityLaw() {
     return IntStream.range(0, 10)
-        .mapToObj(x -> dynamicTest("associativity law: " + x, () -> leftIdentity(x)));
+        .mapToObj(x -> dynamicTest("left identity law: " + x, () -> leftIdentity(x)));
   }
 
   private void rightIdentity(Integer x) {
-    assertEquals(x, monoid.combine(x, monoid.zero()));
+    assertEquals(x, intMonoid.combine(x, intMonoid.zero()));
   }
 
   private void leftIdentity(Integer x) {
-    assertEquals(x, monoid.combine(monoid.zero(), x));
+    assertEquals(x, intMonoid.combine(intMonoid.zero(), x));
   }
 
   private void associativity() {
     Integer a = current().nextInt();
     Integer b = current().nextInt();
     Integer c = current().nextInt();
-    assertEquals(monoid.combine(monoid.combine(a, b), c),
-                 monoid.combine(a, monoid.combine(b, c)));
+    assertEquals(intMonoid.combine(intMonoid.combine(a, b), c),
+                 intMonoid.combine(a, intMonoid.combine(b, c)));
   }
 }
