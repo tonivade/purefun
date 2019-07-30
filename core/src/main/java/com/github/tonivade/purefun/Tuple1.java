@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.data.Sequence;
 
+@HigherKind
 public final class Tuple1<A> implements Tuple, Serializable {
 
   private static final long serialVersionUID = 6343431593011527978L;

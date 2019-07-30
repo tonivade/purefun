@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.instances.EitherInstances;
+import com.github.tonivade.purefun.instances.TupleInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
@@ -28,5 +30,10 @@ public class BiFunctorTest {
     assertAll(
         () -> verifyLaws(ValidationInstances.bifunctor(), Validation.valid("hola mundo")),
         () -> verifyLaws(ValidationInstances.bifunctor(), Validation.invalid("hola mundo")));
+  }
+
+  @Test
+  public void tupleBiFunctor() {
+    verifyLaws(TupleInstances.bifunctor(), Tuple.of("hola mundo", "adios"));
   }
 }
