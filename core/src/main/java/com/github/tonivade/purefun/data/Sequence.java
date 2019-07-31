@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
@@ -15,12 +14,9 @@ import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.github.tonivade.purefun.Filterable;
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -28,10 +24,8 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
-// FIXME @HigherKind
-public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filterable<E> {
-
-  final class µ implements Kind {}
+@HigherKind
+public interface Sequence<E> extends Iterable<E> {
 
   int size();
 
@@ -43,22 +37,10 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
 
   Sequence<E> reverse();
 
-  @Override
   <R> Sequence<R> map(Function1<E, R> mapper);
 
-  @Override
-  <R> Sequence<R> flatMap(Function1<E, ? extends Higher1<Sequence.µ, R>> mapper);
+  <R> Sequence<R> flatMap(Function1<E, Sequence<R>> mapper);
 
-  @SuppressWarnings("unchecked")
-  default <V> Sequence<V> flatten() {
-    try {
-      return ((Sequence<Sequence<V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
-  }
-
-  @Override
   Sequence<E> filter(Matcher1<E> matcher);
 
   default Sequence<E> filterNot(Matcher1<E> matcher) {
@@ -163,10 +145,6 @@ public interface Sequence<E> extends Iterable<E>, FlatMap1<Sequence.µ, E>, Filt
 
   static <E> Stream<E> asStream(Iterator<E> iterator) {
     return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
-  }
-
-  static <T> Sequence<T> narrowK(Higher1<Sequence.µ, T> hkt) {
-    return (Sequence<T>) hkt;
   }
 }
 

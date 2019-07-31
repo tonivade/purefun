@@ -7,16 +7,14 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind
-public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
+public interface Writer<L, A> {
 
   Monoid<L> monoid();
   Tuple2<L, A> value();
@@ -29,7 +27,6 @@ public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
     return value().get1();
   }
 
-  @Override
   default <B> Writer<L, B> map(Function1<A, B> mapper) {
     return bimap(monoid(), identity(), mapper);
   }
@@ -50,9 +47,8 @@ public interface Writer<L, A> extends FlatMap2<Writer.µ, L, A> {
     return writer(monoidV, value().map(mapper1, mapper2));
   }
 
-  @Override
-  default <B> Writer<L, B> flatMap(Function1<A, ? extends Higher2<Writer.µ, L, B>> mapper) {
-    Writer<L, B> apply = mapper.andThen(Writer::narrowK).apply(value().get2());
+  default <B> Writer<L, B> flatMap(Function1<A, Writer<L, B>> mapper) {
+    Writer<L, B> apply = mapper.apply(value().get2());
     Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
   }

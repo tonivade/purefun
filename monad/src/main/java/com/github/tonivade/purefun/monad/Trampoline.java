@@ -4,41 +4,33 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
+public interface Trampoline<T> {
 
   Trampoline<T> apply();
 
   boolean complete();
 
-  @Override
   T get();
 
-  @Override
   default <R> Trampoline<R> map(Function1<T, R> map) {
     return TrampolineModule.resume(this)
         .fold(next -> more(() -> next.map(map)),
               value -> done(map.apply(value)));
   }
 
-  @Override
-  default <R> Trampoline<R> flatMap(Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
+  default <R> Trampoline<R> flatMap(Function1<T, Trampoline<R>> map) {
     return TrampolineModule.resume(this)
-        .fold(next -> more(() -> next.flatMap(map)),
-              value -> map.andThen(Trampoline::narrowK).apply(value));
+        .fold(next -> more(() -> next.flatMap(map)), map::apply);
   }
 
   default <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {
@@ -47,16 +39,6 @@ public interface Trampoline<T> extends FlatMap1<Trampoline.µ, T>, Holder<T> {
 
   default T run() {
     return TrampolineModule.iterate(this).get();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  default <V> Trampoline<V> flatten() {
-    try {
-      return ((Trampoline<Trampoline<V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   TrampolineModule module();

@@ -13,21 +13,18 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
-public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, T> {
+public interface Validation<E, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -40,9 +37,9 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
   boolean isValid();
   boolean isInvalid();
 
+  T get();
   E getError();
 
-  @Override
   default <R> Validation<E, R> map(Function1<T, R> mapper) {
     if (isValid()) {
       return valid(mapper.apply(get()));
@@ -57,10 +54,9 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
     return valid(get());
   }
 
-  @Override
-  default <R> Validation<E, R> flatMap(Function1<T, ? extends Higher2<Validation.µ, E, R>> mapper) {
+  default <R> Validation<E, R> flatMap(Function1<T, Validation<E, R>> mapper) {
     if (isValid()) {
-      return mapper.andThen(Validation::narrowK).apply(get());
+      return mapper.apply(get());
     }
     return invalid(getError());
   }
@@ -120,16 +116,6 @@ public interface Validation<E, T> extends Holder<T>, FlatMap2<Validation.µ, E, 
 
   default Either<E, T> toEither() {
     return fold(Either::left, Either::right);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  default <V> Validation<E, V> flatten() {
-    try {
-      return ((Validation<E, Validation<E, V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   ValidationModule module();

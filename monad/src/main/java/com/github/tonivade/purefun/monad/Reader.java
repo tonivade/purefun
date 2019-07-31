@@ -4,25 +4,21 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
 @FunctionalInterface
-public interface Reader<R, A> extends FlatMap2<Reader.µ, R, A> {
+public interface Reader<R, A> {
 
   A eval(R reader);
 
-  @Override
   default <B> Reader<R, B> map(Function1<A, B> mapper) {
     return reader -> mapper.apply(eval(reader));
   }
 
-  @Override
-  default <B> Reader<R, B> flatMap(Function1<A, ? extends Higher2<Reader.µ, R, B>> mapper) {
-    return reader -> mapper.andThen(Reader::narrowK).apply(eval(reader)).eval(reader);
+  default <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
+    return reader -> mapper.apply(eval(reader)).eval(reader);
   }
 
   default <B> Reader<R, B> andThen(Reader<R, B> next) {

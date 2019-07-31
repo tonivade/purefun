@@ -6,28 +6,24 @@ package com.github.tonivade.purefun.transformer;
 
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public interface Kleisli<F extends Kind, Z, A> extends FlatMap3<Kleisli.µ, F, Z, A> {
+public interface Kleisli<F extends Kind, Z, A> {
 
   Monad<F> monad();
   Higher1<F, A> run(Z value);
 
-  @Override
   default <R> Kleisli<F, Z, R> map(Function1<A, R> map) {
     return Kleisli.of(monad(), value -> monad().map(run(value), map));
   }
 
-  @Override
-  default <R> Kleisli<F, Z, R> flatMap(Function1<A, ? extends Higher3<Kleisli.µ, F, Z, R>> map) {
-    return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.andThen(Kleisli::narrowK).apply(a).run(value)));
+  default <R> Kleisli<F, Z, R> flatMap(Function1<A, Kleisli<F, Z, R>> map) {
+    return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.apply(a).run(value)));
   }
 
   default <B> Kleisli<F, Z, B> compose(Kleisli<F, A, B> other) {

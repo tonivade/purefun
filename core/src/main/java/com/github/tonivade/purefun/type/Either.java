@@ -14,18 +14,15 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
-public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
+public interface Either<L, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -40,7 +37,6 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
   L getLeft();
   R getRight();
 
-  @Override
   default R get() {
     if (isRight()) {
       return getRight();
@@ -76,7 +72,6 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     return left(leftMapper.apply(getLeft()));
   }
 
-  @Override
   default <T> Either<L, T> map(Function1<R, T> map) {
     return bimap(Function1.identity(), map);
   }
@@ -85,17 +80,16 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
     return bimap(map, Function1.identity());
   }
 
-  @Override
-  default <T> Either<L, T> flatMap(Function1<R, ? extends Higher2<Either.µ, L, T>> map) {
+  default <T> Either<L, T> flatMap(Function1<R, Either<L, T>> map) {
     if (isRight()) {
-      return map.andThen(Either::narrowK).apply(getRight());
+      return map.apply(getRight());
     }
     return left(getLeft());
   }
 
-  default <T> Either<T, R> flatMapLeft(Function1<L, ? extends Higher2<Either.µ, T, R>> map) {
+  default <T> Either<T, R> flatMapLeft(Function1<L, Either<T, R>> map) {
     if (isLeft()) {
-      return map.andThen(Either::narrowK).apply(getLeft());
+      return map.apply(getLeft());
     }
     return right(getRight());
   }
@@ -154,16 +148,6 @@ public interface Either<L, R> extends FlatMap2<Either.µ, L, R>, Holder<R> {
 
   default Validation<L, R> toValidation() {
     return fold(Validation::invalid, Validation::valid);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  default <V> Either<L, V> flatten() {
-    try {
-      return ((Either<L, Either<L, V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   EitherModule module();

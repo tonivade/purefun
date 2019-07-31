@@ -11,7 +11,6 @@ import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
@@ -19,8 +18,6 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
-import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
@@ -56,8 +53,6 @@ public class ImmutableListTest {
               () -> assertEquals(listOf("a", "b", "c"), list.map(identity())),
               () -> assertEquals(listOf("A", "B", "C"), list.map(toUpperCase)),
               () -> assertEquals(listOf("A", "B", "C"), list.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(listOf("a", "b", "c"), listOf(list).flatten()),
-              () -> assertThrows(UnsupportedOperationException.class, () -> list.flatten()),
               () -> assertEquals(listOf("a", "b", "c"), list.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1)),
               () -> assertEquals(list, list.stream().collect(toImmutableList())),
@@ -88,14 +83,6 @@ public class ImmutableListTest {
               () -> assertEquals(ImmutableList.empty(), list.map(identity())),
               () -> assertEquals(ImmutableList.empty(), list.map(toUpperCase)),
               () -> assertEquals(ImmutableList.empty(), list.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(ImmutableList.empty(), listOf(list).flatten()),
-              () -> assertEquals(ImmutableList.empty(), list.flatten()),
               () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1)));
-  }
-
-  @Test
-  public void listLaws() {
-    MappableLaws.verifyLaws(listOf("a", "b", "c"));
-    FlatMap1Laws.verifyLaws(listOf("a", "b", "c"), Sequence::listOf);
   }
 }

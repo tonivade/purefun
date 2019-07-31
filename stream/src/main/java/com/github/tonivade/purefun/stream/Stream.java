@@ -10,12 +10,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
 
-import com.github.tonivade.purefun.Filterable;
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -31,7 +28,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Filterable<T> {
+public interface Stream<F extends Kind, T> {
 
   default Stream<F, T> head() {
     return take(1);
@@ -51,12 +48,10 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   Stream<F, T> take(int n);
   Stream<F, T> drop(int n);
 
-  @Override
   Stream<F, T> filter(Matcher1<T> matcher);
   Stream<F, T> takeWhile(Matcher1<T> matcher);
   Stream<F, T> dropWhile(Matcher1<T> matcher);
-  
-  @Override
+
   default Stream<F, T> filterNot(Matcher1<T> matcher) {
     return filter(matcher.negate());
   }
@@ -65,10 +60,8 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator);
   <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator);
 
-  @Override
   <R> Stream<F, R> map(Function1<T, R> map);
-  @Override
-  <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map);
+  <R> Stream<F, R> flatMap(Function1<T, Stream<F, R>> map);
   <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper);
 
   Stream<F, T> repeat();
@@ -98,11 +91,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
   }
 
   static <F extends Kind> StreamOf<F> of(MonadDefer<F> monad) {
-    return new StreamOf<F>() {
-
-      @Override
-      public MonadDefer<F> monadDefer() { return monad; }
-    };
+    return () -> monad;
   }
 
   interface StreamOf<F extends Kind> {
@@ -156,7 +145,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monadDefer(), monadDefer().defer(
         () -> monadDefer().map2(s1.split(), s2.split(),
           (op1, op2) -> {
-            Higher1<Option.µ, Stream<F, R>> result = StreamModule.map2(op1, op2,
+            Option<Stream<F, R>> result = StreamModule.map2(op1, op2,
               (t1, t2) -> {
                 Higher1<F, R> head = monadDefer().map2(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
@@ -179,7 +168,7 @@ public interface Stream<F extends Kind, T> extends FlatMap2<Stream.µ, F, T>, Fi
       return new Suspend<>(monadDefer(), monadDefer().defer(
         () -> monadDefer().map2(s1.split(), s2.split(),
           (opt1, opt2) -> {
-            Higher1<Option.µ, Stream<F, A>> result = StreamModule.map2(opt1, opt2,
+            Option<Stream<F, A>> result = StreamModule.map2(opt1, opt2,
               (t1, t2) -> {
                 Higher1<F, A> head = t1.get1();
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));
@@ -297,10 +286,10 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
+  public <R> Stream<F, R> flatMap(Function1<T, Stream<F, R>> map) {
     return suspendF(() ->
         monad.map(
-            monad.map(head, map.andThen(Stream::narrowK)::apply),
+            monad.map(head, map),
             s -> s.concat(tail.flatMap(map))));
   }
 
@@ -427,7 +416,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
+  public <R> Stream<F, R> flatMap(Function1<T, Stream<F, R>> map) {
     return lazyMap(s -> s.flatMap(map));
   }
 
@@ -544,7 +533,7 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> flatMap(Function1<T, ? extends Higher2<Stream.µ, F, R>> map) {
+  public <R> Stream<F, R> flatMap(Function1<T, Stream<F, R>> map) {
     return new Nil<>(monad);
   }
 

@@ -6,11 +6,9 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Unit.unit;
 
-import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
@@ -22,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
 @HigherKind
-public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, A> {
+public interface StateT<F extends Kind, S, A> {
 
   Monad<F> monad();
   Higher1<F, Tuple2<S, A>> run(S state);
@@ -31,16 +29,14 @@ public interface StateT<F extends Kind, S, A> extends FlatMap3<StateT.µ, F, S, 
     return monad().map(run(state), Tuple2::get2);
   }
 
-  @Override
   default <R> StateT<F, S, R> map(Function1<A, R> map) {
     return flatMap(value -> pure(monad(), map.apply(value)));
   }
 
-  @Override
-  default <R> StateT<F, S, R> flatMap(Function1<A, ? extends Higher3<StateT.µ, F, S, R>> map) {
+  default <R> StateT<F, S, R> flatMap(Function1<A, StateT<F, S, R>> map) {
     return state(monad(), state -> {
       Higher1<F, Tuple2<S, A>> newState = run(state);
-      return monad().flatMap(newState, state2 -> map.andThen(StateT::narrowK).apply(state2.get2()).run(state2.get1()));
+      return monad().flatMap(newState, state2 -> map.apply(state2.get2()).run(state2.get1()));
     });
   }
 

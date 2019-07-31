@@ -82,7 +82,7 @@ interface IOMonad extends Monad<IO.µ> {
 
   @Override
   default <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
-    return IO.narrowK(value).flatMap(map);
+    return IO.narrowK(value).flatMap(map.andThen(IO::narrowK));
   }
 }
 

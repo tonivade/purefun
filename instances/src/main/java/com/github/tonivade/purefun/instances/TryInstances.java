@@ -97,7 +97,7 @@ interface TryMonad extends TryPure, Monad<Try.µ> {
   @Override
   default <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
       Function1<T, ? extends Higher1<Try.µ, R>> map) {
-    return Try.narrowK(value).flatMap(map);
+    return Try.narrowK(value).flatMap(map.andThen(Try::narrowK));
   }
 }
 

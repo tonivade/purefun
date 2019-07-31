@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.CheckedProducer.failure;
 import static com.github.tonivade.purefun.CheckedProducer.cons;
+import static com.github.tonivade.purefun.CheckedProducer.failure;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -155,28 +155,6 @@ public class FutureTest {
     Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
     assertEquals(Try.success("HELLO WORLD!"), result.await());
-  }
-
-  @Test
-  public void flatten() {
-    Future<String> future = Future.success("Hello world!");
-
-    Future<String> result = future.map(string -> Future.run(string::toUpperCase)).flatten();
-
-    assertAll(
-        () -> assertTrue(result::isSuccess),
-        () -> assertTrue(result::isCompleted),
-        () -> assertEquals(Try.success("HELLO WORLD!"), result.await()));
-  }
-
-  @Test
-  public void flattenUnsupported() {
-    Future<Unit> result = Future.success("any").flatten();
-
-    assertAll(
-        () -> assertTrue(result::isFailure),
-        () -> assertTrue(result::isCompleted),
-        () -> assertTrue(result.getCause() instanceof UnsupportedOperationException));
   }
 
   @Test

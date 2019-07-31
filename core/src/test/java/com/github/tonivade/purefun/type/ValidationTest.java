@@ -25,7 +25,6 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.MappableLaws;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Operator3;
 import com.github.tonivade.purefun.Operator4;
@@ -112,10 +111,5 @@ public class ValidationTest {
               () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4", "error5")),
                   map5(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), invalid("error5"), sum5))
         );
-  }
-
-  @Test
-  public void functorLaws() {
-    MappableLaws.verifyLaws(valid("value"));
   }
 }

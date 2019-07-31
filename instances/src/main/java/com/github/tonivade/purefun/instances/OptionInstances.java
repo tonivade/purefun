@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Nothing.nothing;
 
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
@@ -109,7 +109,7 @@ interface OptionMonad extends OptionPure, Monad<Option.µ> {
   @Override
   default <T, R> Option<R> flatMap(Higher1<Option.µ, T> value,
       Function1<T, ? extends Higher1<Option.µ, R>> map) {
-    return Option.narrowK(value).flatMap(map);
+    return Option.narrowK(value).flatMap(map.andThen(Option::narrowK));
   }
 }
 

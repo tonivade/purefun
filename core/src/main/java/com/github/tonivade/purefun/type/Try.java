@@ -16,19 +16,15 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Filterable;
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
-public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
+public interface Try<T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -58,7 +54,8 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
   boolean isSuccess();
   boolean isFailure();
 
-  @Override
+  T get();
+
   default <R> Try<R> map(Function1<T, R> mapper) {
     if (isSuccess()) {
       return success(mapper.apply(get()));
@@ -66,10 +63,9 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     return failure(getCause());
   }
 
-  @Override
-  default <R> Try<R> flatMap(Function1<T, ? extends Higher1<Try.µ, R>> mapper) {
+  default <R> Try<R> flatMap(Function1<T, Try<R>> mapper) {
     if (isSuccess()) {
-      return mapper.andThen(Try::narrowK).apply(get());
+      return mapper.apply(get());
     }
     return failure(getCause());
   }
@@ -106,7 +102,6 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
     return this;
   }
 
-  @Override
   default Try<T> filter(Matcher1<T> matcher) {
     return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
   }
@@ -169,16 +164,6 @@ public interface Try<T> extends FlatMap1<Try.µ, T>, Filterable<T>, Holder<T> {
 
   default <E> Validation<E, T> toValidation(Function1<Throwable, E> map) {
     return fold(map.andThen(Validation::invalid), Validation::valid);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  default <V> Try<V> flatten() {
-    try {
-      return ((Try<Try<V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   TryModule module();
