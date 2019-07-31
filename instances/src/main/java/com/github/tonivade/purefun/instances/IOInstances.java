@@ -4,13 +4,21 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.typeclasses.Comonad;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -46,6 +54,10 @@ public interface IOInstances {
 
   static <A> Reference<IO.µ, A> ref(A value) {
     return Reference.of(monadDefer(), value);
+  }
+
+  static Console<IO.µ> console() {
+    return new ConsoleIO();
   }
 }
 
@@ -115,5 +127,44 @@ interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer {
   @Override
   default <A, B> IO<B> bracket(Higher1<IO.µ, A> acquire, Function1<A, ? extends Higher1<IO.µ, B>> use, Consumer1<A> release) {
     return IO.bracket(IO.narrowK(acquire), use.andThen(IO::narrowK), release::accept);
+  }
+}
+
+@Instance
+final class ConsoleIO implements Console<IO.µ> {
+
+  private final SystemConsole console = new SystemConsole();
+
+  @Override
+  public IO<String> readln() {
+    return IO.task(console::readln);
+  }
+
+  @Override
+  public IO<Unit> println(String text) {
+    return IO.exec(() -> console.println(text));
+  }
+}
+
+final class SystemConsole {
+
+  void println(String message) {
+    writer().println(message);
+  }
+
+  String readln() {
+    try {
+      return reader().readLine();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private BufferedReader reader() {
+    return new BufferedReader(new InputStreamReader(System.in));
+  }
+
+  private PrintWriter writer() {
+    return new PrintWriter(System.out, true);
   }
 }

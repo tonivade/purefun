@@ -5,8 +5,8 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.monad.Reader.reader;
 import static com.github.tonivade.purefun.monad.Reader.pure;
+import static com.github.tonivade.purefun.monad.Reader.reader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -18,9 +18,9 @@ public class ReaderTest {
   @Test
   public void flatMap() {
     Reader<ImmutableList<String>, String> reader = begin("<")
-        .flatMap(str -> read1(str))
-        .flatMap(str -> read2(str))
-        .flatMap(str -> read3(str))
+        .flatMap(this::read1)
+        .flatMap(this::read2)
+        .flatMap(this::read3)
         .flatMap(str -> end(str, ">"))
         .map(String::toUpperCase);
 

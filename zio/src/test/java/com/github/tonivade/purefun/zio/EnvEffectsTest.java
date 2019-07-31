@@ -14,8 +14,8 @@ import java.io.PrintWriter;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.monad.ConsoleExecutor;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 public class EnvEffectsTest {
 

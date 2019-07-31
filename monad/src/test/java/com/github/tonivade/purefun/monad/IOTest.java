@@ -32,12 +32,14 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
 public class IOTest {
 
-  private final Console<IO.µ> console = Console.io();
+  private final Console<IO.µ> console = IOInstances.console();
 
   @Mock
   private Consumer1<Try<String>> callback;

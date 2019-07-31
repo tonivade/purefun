@@ -17,6 +17,8 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.For;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -86,7 +88,7 @@ class Program<F extends Kind> {
 
 class IOProgramInterpreter implements ProgramK<IO.µ> {
 
-  final Console<IO.µ> console = Console.io();
+  final Console<IO.µ> console = IOInstances.console();
 
   @Override
   public IO<String> read() {
@@ -102,7 +104,7 @@ class IOProgramInterpreter implements ProgramK<IO.µ> {
 class StateProgramInterpreter
     implements ProgramK<Higher1<State.µ, ImmutableList<String>>> {
 
-  final Console<Higher1<State.µ, ImmutableList<String>>> console = Console.state();
+  final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
 
   @Override
   public State<ImmutableList<String>, String> read() {

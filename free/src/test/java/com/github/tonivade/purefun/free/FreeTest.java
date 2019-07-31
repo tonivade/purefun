@@ -22,10 +22,10 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
-import com.github.tonivade.purefun.monad.Console;
-import com.github.tonivade.purefun.monad.ConsoleExecutor;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
@@ -149,7 +149,7 @@ interface IOProgram<T> extends Higher1<IOProgram.µ, T> {
 
 class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
 
-  private final Console<Higher1<State.µ, ImmutableList<String>>> console = Console.state();
+  private final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Higher1<IOProgram.µ, X> from) {
@@ -164,7 +164,7 @@ class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, Im
 
 class IOProgramToIO implements Transformer<IOProgram.µ, IO.µ> {
 
-  private final Console<IO.µ> console = Console.io();
+  private final Console<IO.µ> console = IOInstances.console();
 
   @Override
   public <X> IO<X> apply(Higher1<IOProgram.µ, X> from) {
