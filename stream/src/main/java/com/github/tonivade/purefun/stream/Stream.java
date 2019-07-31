@@ -151,7 +151,7 @@ public interface Stream<F extends Kind, T> {
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
                 return new Cons<>(monadDefer(), head, tail);
               });
-            return Option.narrowK(result).getOrElse(this::empty);
+            return result.getOrElse(this::empty);
           })
         ));
     }
@@ -174,7 +174,7 @@ public interface Stream<F extends Kind, T> {
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));
                 return new Cons<>(monadDefer(), head, tail);
               });
-            return Option.narrowK(result).getOrElse(this::empty);
+            return result.getOrElse(this::empty);
           })
         ));
     }
