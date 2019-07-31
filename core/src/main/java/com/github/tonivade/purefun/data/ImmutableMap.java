@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
-public interface ImmutableMap<K, V> {
+public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
   Map<K, V> toMap();
 
@@ -40,6 +41,11 @@ public interface ImmutableMap<K, V> {
   ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger);
 
   int size();
+
+  @Override
+  default Iterator<Tuple2<K, V>> iterator() {
+    return entries().iterator();
+  }
 
   default void forEach(Consumer2<K, V> consumer) {
     entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
