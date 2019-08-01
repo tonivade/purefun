@@ -53,34 +53,17 @@ Except with typeclasses because is the only way to implement them in Java.
 So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't 
 necessary to implement the library.
 
-### Mappable
+### Annotation Processor
 
-It represent the arrow between two categories, in other words, it encapsulates a data type that can be mapped to other data type. 
+In order to simplify working with higher kinded types, in the last version I've included an annotation processor to generate all this boilerplate code
 
 ```java
-interface Mappable<W extends Kind, T> extends Higher1<W, T> {
-  <R> Mappable<W, R> map(Function1<T, R> map);
+@HigherKind
+interface SomeType<T>  {
 }
 ```
 
-### FlatMap1,2,3
-
-These interfaces define the method `flatMap` for the kinds 1, 2 and 3, so it can be called as `Monad` also, so as not to create
-confusion I named `FlatMap`.
-
-```java
-interface FlatMap1<W extends Kind, T> extends Higher1<W, T>, Mappable<W, T> {
-  <R> FlatMap1<W, R> flatMap(Function1<T, ? extends Higher1<W, R>> map);
-}
-```
-
-### Holder
-
-It represent a type that can hold any value. It defines these methods: `get` and `flatten`.
-
-### Filterable
-
-It represent a type that can be filtered. It defines one method: `filter`.
+With this annotation, all the above code, is generated automatically.
 
 ## Data types
 
