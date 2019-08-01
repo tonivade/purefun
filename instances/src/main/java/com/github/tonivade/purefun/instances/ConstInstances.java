@@ -8,7 +8,7 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
-import com.github.tonivade.purefun.monad.Const;
+import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
