@@ -7,7 +7,7 @@ package com.github.tonivade.purefun;
 @FunctionalInterface
 public interface CheckedRunnable extends Recoverable {
 
-  void run() throws Exception;
+  void run() throws Throwable;
 
   default CheckedProducer<Unit> asProducer() {
     return () -> { run(); return Unit.unit(); };
@@ -17,7 +17,7 @@ public interface CheckedRunnable extends Recoverable {
     return () -> {
       try {
         run();
-      } catch(Exception e) {
+      } catch(Throwable e) {
         mapper.accept(e);
       }
     };
@@ -27,7 +27,7 @@ public interface CheckedRunnable extends Recoverable {
     return recover(this::sneakyThrow);
   }
 
-  static <X extends Exception> CheckedRunnable failure(Producer<X> supplier) {
+  static <X extends Throwable> CheckedRunnable failure(Producer<X> supplier) {
     return () -> { throw supplier.get(); };
   }
 

@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.monad;
+package com.github.tonivade.purefun.runtimes;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -10,6 +10,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+
+import com.github.tonivade.purefun.monad.IO;
 
 public class ConsoleExecutor {
 

@@ -8,10 +8,8 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -23,19 +21,17 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
 @HigherKind
-public interface EitherT<F extends Kind, L, R> extends FlatMap3<EitherT.µ, F, L, R> {
+public interface EitherT<F extends Kind, L, R> {
 
   Monad<F> monad();
   Higher1<F, Either<L, R>> value();
 
-  @Override
   default <V> EitherT<F, L, V> map(Function1<R, V> map) {
     return EitherT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
-  @Override
-  default <V> EitherT<F, L, V> flatMap(Function1<R, ? extends Higher3<EitherT.µ, F, L, V>> map) {
-    return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherT::narrowK).apply(v).value()));
+  default <V> EitherT<F, L, V> flatMap(Function1<R, EitherT<F, L, V>> map) {
+    return EitherT.of(monad(), flatMapF(v -> map.apply(v).value()));
   }
 
   default <T, V> EitherT<F, T, V> bimap(Function1<L, T> leftMapper, Function1<R, V> rightMapper) {

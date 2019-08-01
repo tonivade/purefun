@@ -11,7 +11,6 @@ import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -21,8 +20,6 @@ import java.util.HashSet;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
-import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
@@ -56,8 +53,6 @@ public class ImmutableSetTest {
               () -> assertEquals(setOf("a", "b", "c"), set.map(identity())),
               () -> assertEquals(setOf("A", "B", "C"), set.map(toUpperCase)),
               () -> assertEquals(setOf("A", "B", "C"), set.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(setOf("a", "b", "c"), setOf(set).flatten()),
-              () -> assertThrows(UnsupportedOperationException.class, () -> set.flatten()),
               () -> assertEquals(setOf("a", "b", "c"), set.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)),
               () -> assertEquals(set, set.stream().collect(toImmutableSet())),
@@ -84,14 +79,6 @@ public class ImmutableSetTest {
               () -> assertEquals(ImmutableSet.empty(), set.map(identity())),
               () -> assertEquals(ImmutableSet.empty(), set.map(toUpperCase)),
               () -> assertEquals(ImmutableSet.empty(), set.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(ImmutableSet.empty(), setOf(set).flatten()),
-              () -> assertEquals(ImmutableSet.empty(), set.flatten()),
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)));
-  }
-
-  @Test
-  public void setLaws() {
-    MappableLaws.verifyLaws(setOf("a", "b", "c"));
-    FlatMap1Laws.verifyLaws(setOf("a", "b", "c"), Sequence::setOf);
   }
 }

@@ -11,7 +11,6 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
@@ -26,7 +25,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
+public interface IO<T> extends Recoverable {
 
   T unsafeRunSync();
 
@@ -52,13 +51,11 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
   <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad);
 
-  @Override
   default <R> IO<R> map(Function1<T, R> map) {
     return flatMap(map.andThen(IO::pure));
   }
 
-  @Override
-  default <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
+  default <R> IO<R> flatMap(Function1<T, IO<R>> map) {
     return new FlatMapped<>(this, map);
   }
 
@@ -178,21 +175,21 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
   final class FlatMapped<T, R> implements IO<R> {
 
     private final IO<T> current;
-    private final Function1<T, ? extends Higher1<IO.µ, R>> next;
+    private final Function1<T, IO<R>> next;
 
-    private FlatMapped(IO<T> current, Function1<T, ? extends Higher1<IO.µ, R>> next) {
+    private FlatMapped(IO<T> current, Function1<T, IO<R>> next) {
       this.current = requireNonNull(current);
       this.next = requireNonNull(next);
     }
 
     @Override
     public R unsafeRunSync() {
-      return next.andThen(IO::narrowK).apply(current.unsafeRunSync()).unsafeRunSync();
+      return next.apply(current.unsafeRunSync()).unsafeRunSync();
     }
 
     @Override
     public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
-      return monad.flatMap(current.foldMap(monad), next.andThen(IO::narrowK).andThen(io -> io.foldMap(monad)));
+      return monad.flatMap(current.foldMap(monad), next.andThen(io -> io.foldMap(monad)));
     }
 
     @Override
@@ -232,7 +229,7 @@ public interface IO<T> extends FlatMap1<IO.µ, T>, Recoverable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<T, ? extends Higher1<IO.µ, R>> map) {
+    public <R> IO<R> flatMap(Function1<T, IO<R>> map) {
       return (IO<R>) this;
     }
 

@@ -17,19 +17,15 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Filterable;
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
-public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder<T> {
+public interface Option<T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -59,7 +55,8 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
   boolean isPresent();
   boolean isEmpty();
 
-  @Override
+  T get();
+
   default <R> Option<R> map(Function1<T, R> mapper) {
     if (isPresent()) {
       return some(mapper.apply(get()));
@@ -67,10 +64,9 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     return none();
   }
 
-  @Override
-  default <R> Option<R> flatMap(Function1<T, ? extends Higher1<Option.µ, R>> map) {
+  default <R> Option<R> flatMap(Function1<T, Option<R>> map) {
     if (isPresent()) {
-      return map.andThen(Option::narrowK).apply(get());
+      return map.apply(get());
     }
     return none();
   }
@@ -89,7 +85,6 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
     return this;
   }
 
-  @Override
   default Option<T> filter(Matcher1<T> matcher) {
     if (isPresent() && matcher.match(get())) {
       return this;
@@ -144,16 +139,6 @@ public interface Option<T> extends FlatMap1<Option.µ, T>, Filterable<T>, Holder
 
   default Either<Throwable, T> toEither() {
     return fold(() -> Either.left(new NoSuchElementException()), Either::right);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  default <V> Option<V> flatten() {
-    try {
-      return ((Option<Option<V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   OptionModule module();

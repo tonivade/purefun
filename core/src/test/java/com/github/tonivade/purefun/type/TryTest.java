@@ -19,9 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
 
 public class TryTest {
 
@@ -234,26 +232,6 @@ public class TryTest {
     Try<String> try1 = Try.of(this::message);
 
     assertTrue(try1.isSuccess());
-  }
-
-  @Test
-  public void flatten() {
-    Try<Try<String>> tryOfTry = Try.success(Try.success("asdf"));
-
-    assertEquals(Try.success("asdf"), tryOfTry.flatten());
-  }
-
-  @Test
-  public void flattenError() {
-    Try<String> try1 = Try.success("asdf");
-
-    assertThrows(UnsupportedOperationException.class, () -> try1.flatten());
-  }
-
-  @Test
-  public void tryLaws() {
-    MappableLaws.verifyLaws(Try.success("Hola mundo"));
-    FlatMap1Laws.verifyLaws(Try.success("Hola mundo"), Try::success);
   }
 
   private String message() {

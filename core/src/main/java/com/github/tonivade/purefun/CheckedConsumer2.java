@@ -9,13 +9,13 @@ import static com.github.tonivade.purefun.Unit.unit;
 @FunctionalInterface
 public interface CheckedConsumer2<A, B> extends Recoverable {
 
-  void accept(A value1, B value2) throws Exception;
+  void accept(A value1, B value2) throws Throwable;
 
   default Consumer2<A, B> unchecked() {
     return (a, b) -> {
       try {
         accept(a, b);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         sneakyThrow(e);
       }
     };

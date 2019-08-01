@@ -82,7 +82,7 @@ interface IdMonad extends IdPure, Monad<Id.µ> {
 
   @Override
   default <T, R> Id<R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
-    return Id.narrowK(value).flatMap(map);
+    return Id.narrowK(value).flatMap(map.andThen(Id::narrowK));
   }
 }
 

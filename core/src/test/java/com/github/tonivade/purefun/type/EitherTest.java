@@ -19,7 +19,6 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
 
 public class EitherTest {
 
@@ -228,25 +227,6 @@ public class EitherTest {
               () -> assertEquals(emptyList(), left.stream().collect(toList())),
               () -> assertThrows(NoSuchElementException.class, () -> left.get()),
               () -> assertThrows(NoSuchElementException.class, () -> left.getRight()));
-  }
-
-  @Test
-  public void flatten() {
-    Either<String, Either<String, Integer>> eitherOfEither = Either.right(Either.right(10));
-
-    assertEquals(Either.right(10), eitherOfEither.flatten());
-  }
-
-  @Test
-  public void flattenError() {
-    Either<String, Integer> either = Either.right(10);
-
-    assertThrows(UnsupportedOperationException.class, () -> either.flatten());
-  }
-
-  @Test
-  public void rightLaws() {
-    MappableLaws.verifyLaws(Either.right("Hola"));
   }
 
   @Test

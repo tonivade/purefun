@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -19,19 +20,15 @@ import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer2;
-import com.github.tonivade.purefun.Filterable;
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Holder;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 @HigherKind
-public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable<T> {
+public interface Future<T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
@@ -55,25 +52,20 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   Future<T> onFailure(Consumer1<Throwable> callback);
   Future<T> onComplete(Consumer1<Try<T>> callback);
 
-  @Override
   <R> Future<R> map(Function1<T, R> mapper);
 
-  @Override
-  <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper);
+  <R> Future<R> flatMap(Function1<T, Future<R>> mapper);
 
   <R> Future<R> andThen(Future<R> next);
 
-  @Override
   Future<T> filter(Matcher1<T> matcher);
-  
-  @Override
+
   default Future<T> filterNot(Matcher1<T> matcher) {
     return filter(matcher.negate());
   }
 
   Future<T> orElse(Future<T> other);
 
-  @Override
   default T get() {
     return getOrElseThrow(NoSuchElementException::new);
   }
@@ -92,18 +84,6 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
 
   default Throwable getCause() {
     return await().getCause();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  default <V> Future<V> flatten() {
-    return flatMap(value -> {
-      try {
-        return (Future<V>) value;
-      } catch (ClassCastException e) {
-        return Future.failure(new UnsupportedOperationException(e));
-      }
-    });
   }
 
   Future<T> recover(Function1<Throwable, T> mapper);
@@ -176,7 +156,7 @@ public interface Future<T> extends FlatMap1<Future.µ, T>, Holder<T>, Filterable
   }
 
   static <T> Future<T> defer(Executor executor, CheckedProducer<Future<T>> producer) {
-    return run(executor, () -> producer.get()).flatten();
+    return run(executor, producer::get).flatMap(identity());
   }
 }
 
@@ -199,9 +179,9 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   @Override
-  public <R> Future<R> flatMap(Function1<T, ? extends Higher1<Future.µ, R>> mapper) {
+  public <R> Future<R> flatMap(Function1<T, Future<R>> mapper) {
     return chain(executor, this,
-        value -> value.fold(Future::failure, mapper.andThen(Future::narrowK)));
+        value -> value.fold(Future::failure, mapper));
   }
 
   @Override

@@ -8,11 +8,8 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.Filterable;
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -22,19 +19,17 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
 @HigherKind
-public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, Filterable<T> {
+public interface OptionT<F extends Kind, T> {
 
   Monad<F> monad();
   Higher1<F, Option<T>> value();
 
-  @Override
   default <R> OptionT<F, R> map(Function1<T, R> map) {
     return OptionT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
-  @Override
-  default <R> OptionT<F, R> flatMap(Function1<T, ? extends Higher2<OptionT.µ, F, R>> map) {
-    return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionT::narrowK).apply(v).value()));
+  default <R> OptionT<F, R> flatMap(Function1<T, OptionT<F, R>> map) {
+    return OptionT.of(monad(), flatMapF(v -> map.apply(v).value()));
   }
 
   default <R> Higher1<F, R> fold(Producer<R> orElse, Function1<T, R> map) {
@@ -61,12 +56,10 @@ public interface OptionT<F extends Kind, T> extends FlatMap2<OptionT.µ, F, T>, 
     return fold(orElse, identity());
   }
 
-  @Override
   default OptionT<F, T> filter(Matcher1<T> filter) {
     return OptionT.of(monad(), monad().map(value(), v -> v.filter(filter)));
   }
-  
-  @Override
+
   default OptionT<F, T> filterNot(Matcher1<T> matcher) {
     return filter(matcher.negate());
   }

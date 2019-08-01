@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 @FunctionalInterface
 public interface CheckedConsumer1<A> extends Recoverable {
 
-  void accept(A value) throws Exception;
+  void accept(A value) throws Throwable;
 
   default CheckedFunction1<A, Unit> asFunction() {
     return value -> { accept(value); return unit(); };
@@ -23,7 +23,7 @@ public interface CheckedConsumer1<A> extends Recoverable {
     return value -> {
       try {
         accept(value);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         sneakyThrow(e);
       }
     };

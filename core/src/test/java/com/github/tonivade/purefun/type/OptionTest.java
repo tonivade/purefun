@@ -20,9 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
 
 public class OptionTest {
 
@@ -160,26 +158,6 @@ public class OptionTest {
     Option<String> option = Option.of(this::message);
 
     assertTrue(option.isPresent());
-  }
-
-  @Test
-  public void optionLaws() {
-    MappableLaws.verifyLaws(Option.some("Hola mundo"));
-    FlatMap1Laws.verifyLaws(Option.some("Hola mundo"), Option::some);
-  }
-
-  @Test
-  public void flatten() {
-    Option<Option<String>> optionOfOption = Option.some(Option.some("asdf"));
-
-    assertEquals(Option.some("asdf"), optionOfOption.flatten());
-  }
-
-  @Test
-  public void flattenError() {
-    Option<String> option = Option.some("asdf");
-
-    assertThrows(UnsupportedOperationException.class, () -> option.flatten());
   }
 
   private String message() {

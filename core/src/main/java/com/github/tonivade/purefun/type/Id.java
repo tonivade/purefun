@@ -4,20 +4,16 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.FlatMap1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Holder;
 
 @HigherKind
-public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
+public final class Id<T> {
 
   private final T value;
 
@@ -25,29 +21,16 @@ public final class Id<T> implements Holder<T>, FlatMap1<Id.µ, T> {
     this.value = requireNonNull(value);
   }
 
-  @Override
   public <R> Id<R> map(Function1<T, R> map) {
     return map.andThen(Id::of).apply(value);
   }
 
-  @Override
-  public <R> Id<R> flatMap(Function1<T, ? extends Higher1<Id.µ, R>> map) {
-    return map.andThen(Id::narrowK).apply(value);
+  public <R> Id<R> flatMap(Function1<T, Id<R>> map) {
+    return map.apply(value);
   }
 
-  @Override
   public T get() {
     return value;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <V> Id<V> flatten() {
-    try {
-      return ((Id<Id<V>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   @Override

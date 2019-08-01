@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface CheckedFunction2<A, B, R> {
+public interface CheckedFunction2<A, B, R> extends Recoverable {
 
   R apply(A a, B b) throws Throwable;
 
@@ -23,6 +23,20 @@ public interface CheckedFunction2<A, B, R> {
 
   default <C> CheckedFunction1<C, R> compose(CheckedFunction1<C, A> beforeA, CheckedFunction1<C, B> beforeB) {
     return value -> apply(beforeA.apply(value), beforeB.apply(value));
+  }
+
+  default Function2<A, B, R> unchecked() {
+    return recover(this::sneakyThrow);
+  }
+
+  default Function2<A, B, R> recover(Function1<Throwable, R> mapper) {
+    return (a, b) -> {
+      try {
+        return apply(a, b);
+      } catch(Throwable e) {
+        return mapper.apply(e);
+      }
+    };
   }
 
   static <A, B, R> CheckedFunction2<A, B, R> of(CheckedFunction2<A, B, R> reference) {

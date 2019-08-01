@@ -33,6 +33,10 @@ public interface CheckedProducer<A> extends Recoverable {
     return () -> after.apply(get());
   }
 
+  default Producer<A> unchecked() {
+    return recover(this::sneakyThrow);
+  }
+
   default Producer<A> recover(Function1<Throwable, A> mapper) {
     return () -> {
       try {
@@ -41,10 +45,6 @@ public interface CheckedProducer<A> extends Recoverable {
         return mapper.apply(e);
       }
     };
-  }
-
-  default Producer<A> unchecked() {
-    return recover(this::sneakyThrow);
   }
 
   static <A> CheckedProducer<A> cons(A value) {

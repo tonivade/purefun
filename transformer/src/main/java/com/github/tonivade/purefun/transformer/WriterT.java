@@ -8,10 +8,8 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
-import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
@@ -21,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
 @HigherKind
-public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L, A> {
+public interface WriterT<F extends Kind, L, A> {
 
   Monoid<L> monoid();
   Monad<F> monad();
@@ -35,7 +33,6 @@ public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L
     return monad().map(value(), Tuple2::get1);
   }
 
-  @Override
   default <R> WriterT<F, L, R> map(Function1<A, R> mapper) {
     return bimap(monoid(), identity(), mapper);
   }
@@ -60,11 +57,10 @@ public interface WriterT<F extends Kind, L, A> extends FlatMap3<WriterT.µ, F, L
     return writer(monoid(), monadG, transformer.apply(value()));
   }
 
-  @Override
-  default <R> WriterT<F, L, R> flatMap(Function1<A, ? extends Higher3<WriterT.µ, F, L, R>> mapper) {
+  default <R> WriterT<F, L, R> flatMap(Function1<A, WriterT<F, L, R>> mapper) {
     return writer(monoid(), monad(),
         monad().flatMap(value(),
-            current -> monad().map(mapper.andThen(WriterT::narrowK).apply(current.get2()).value(),
+            current -> monad().map(mapper.apply(current.get2()).value(),
                 other -> Tuple.of(monoid().combine(current.get1(), other.get1()), other.get2()))));
   }
 

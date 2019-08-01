@@ -60,6 +60,6 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline.µ> {
   @Override
   default <T, R> Trampoline<R> flatMap(Higher1<Trampoline.µ, T> value,
       Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
-    return Trampoline.narrowK(value).flatMap(map);
+    return Trampoline.narrowK(value).flatMap(map.andThen(Trampoline::narrowK));
   }
 }

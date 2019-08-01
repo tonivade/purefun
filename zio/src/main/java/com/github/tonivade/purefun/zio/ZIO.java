@@ -15,11 +15,9 @@ import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.FlatMap3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -31,7 +29,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
+public interface ZIO<R, E, A> {
 
   Either<E, A> provide(R env);
 
@@ -53,14 +51,12 @@ public interface ZIO<R, E, A> extends FlatMap3<ZIO.µ, R, E, A> {
 
   <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad);
 
-  @Override
   default <B> ZIO<R, E, B> map(Function1<A, B> map) {
     return new FlatMapped<>(this, ZIO::raiseError, map.andThen(ZIO::pure));
   }
 
-  @Override
-  default <B> ZIO<R, E, B> flatMap(Function1<A, ? extends Higher3<ZIO.µ, R, E, B>> map) {
-    return new FlatMapped<>(this, ZIO::raiseError, map.andThen(ZIO::narrowK));
+  default <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
+    return new FlatMapped<>(this, ZIO::raiseError, map);
   }
 
   @SuppressWarnings("unchecked")

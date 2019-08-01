@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Executor;
@@ -124,7 +125,7 @@ interface FutureMonad extends FuturePure, Monad<Future.µ> {
   @Override
   default <T, R> Future<R> flatMap(Higher1<Future.µ, T> value,
       Function1<T, ? extends Higher1<Future.µ, R>> map) {
-    return Future.narrowK(value).flatMap(map);
+    return Future.narrowK(value).flatMap(map.andThen(Future::narrowK));
   }
 }
 
@@ -142,7 +143,8 @@ interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable>
   @Override
   default <A> Future<A> handleErrorWith(Higher1<Future.µ, A> value,
       Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
-    return Future.narrowK(value).fold(handler.andThen(Future::narrowK), success -> Future.success(executor(), success)).flatten();
+    return Future.narrowK(value).fold(handler.andThen(Future::narrowK),
+                                      success -> Future.success(executor(), success)).flatMap(identity());
   }
 }
 

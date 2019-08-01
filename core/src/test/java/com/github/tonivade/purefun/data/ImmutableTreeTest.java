@@ -13,7 +13,6 @@ import static java.util.Collections.emptyNavigableSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -23,8 +22,6 @@ import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.MappableLaws;
-import com.github.tonivade.purefun.FlatMap1Laws;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
@@ -54,7 +51,6 @@ public class ImmutableTreeTest {
               () -> assertEquals(treeOf("a", "b", "c"), tree.map(identity())),
               () -> assertEquals(treeOf("A", "B", "C"), tree.map(toUpperCase)),
               () -> assertEquals(treeOf("A", "B", "C"), tree.flatMap(toUpperCase.sequence())),
-              () -> assertThrows(UnsupportedOperationException.class, () -> tree.flatten()),
               () -> assertEquals(treeOf("a", "b", "c"), tree.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)),
               () -> assertEquals(Option.some("a"), tree.head()),
@@ -92,7 +88,6 @@ public class ImmutableTreeTest {
               () -> assertEquals(ImmutableTree.empty(), tree.map(identity())),
               () -> assertEquals(ImmutableTree.empty(), tree.map(toUpperCase)),
               () -> assertEquals(ImmutableTree.empty(), tree.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(ImmutableTree.empty(), tree.flatten()),
               () -> assertEquals(ImmutableTree.empty(), tree.filter(e -> e.length() > 1)),
               () -> assertEquals(Option.none(), tree.head()),
               () -> assertEquals(Option.none(), tree.tail()),
@@ -107,11 +102,5 @@ public class ImmutableTreeTest {
               () -> assertEquals(Option.none(), tree.ceiling("a")),
               () -> assertEquals(Option.none(), tree.ceiling("c"))
               );
-  }
-
-  @Test
-  public void treeLaws() {
-    MappableLaws.verifyLaws(treeOf("a", "b", "c"));
-    FlatMap1Laws.verifyLaws(treeOf("a", "b", "c"), Sequence::treeOf);
   }
 }

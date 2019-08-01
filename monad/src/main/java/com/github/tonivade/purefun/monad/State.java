@@ -7,10 +7,8 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
-import com.github.tonivade.purefun.FlatMap2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
@@ -19,20 +17,18 @@ import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
 @FunctionalInterface
-public interface State<S, A> extends FlatMap2<State.µ, S, A> {
+public interface State<S, A> {
 
   Tuple2<S, A> run(S state);
 
-  @Override
   default <R> State<S, R> map(Function1<A, R> mapper) {
     return flatMap(value -> pure(mapper.apply(value)));
   }
 
-  @Override
-  default <R> State<S, R> flatMap(Function1<A, ? extends Higher2<State.µ, S, R>> mapper) {
+  default <R> State<S, R> flatMap(Function1<A, State<S, R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
-      return mapper.andThen(State::narrowK).apply(run.get2()).run(run.get1());
+      return mapper.apply(run.get2()).run(run.get1());
     };
   }
 
