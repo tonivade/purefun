@@ -54,10 +54,14 @@ public interface Free<F extends Kind, T> {
 
   final class Pure<F extends Kind, T> implements Free<F, T> {
 
-    final T value;
+    private final T value;
 
     private Pure(T value) {
       this.value = requireNonNull(value);
+    }
+
+    public T get() {
+      return value;
     }
 
     @Override
@@ -73,10 +77,14 @@ public interface Free<F extends Kind, T> {
 
   final class Suspend<F extends Kind, T> implements Free<F, T> {
 
-    final Higher1<F, Free<F, T>> value;
+    private final Higher1<F, Free<F, T>> value;
 
     private Suspend(Higher1<F, Free<F, T>> value) {
       this.value = requireNonNull(value);
+    }
+
+    public Higher1<F, Free<F, T>> get() {
+      return value;
     }
 
     @Override
@@ -92,19 +100,26 @@ public interface Free<F extends Kind, T> {
 
   final class FlatMapped<F extends Kind, T, R> implements Free<F, R> {
 
-    final Free<F, T> value;
-    final Function1<T, Free<F, R>> map;
+    private final Free<F, T> value;
+    private final Function1<T, Free<F, R>> next;
 
-    private FlatMapped(Free<F, T> value, Function1<T, Free<F, R>> map) {
+    private FlatMapped(Free<F, T> value, Function1<T, Free<F, R>> next) {
       this.value = requireNonNull(value);
-      this.map = requireNonNull(map);
+      this.next = requireNonNull(next);
+    }
+
+    public Free<F, T> get() {
+      return value;
+    }
+
+    public Function1<T, Free<F, R>> next() {
+      return next;
     }
 
     @Override
     public <X> Free<F, X> flatMap(Function1<R, Free<F, X>> map) {
-      return new FlatMapped<>(value, free -> new FlatMapped<>(this.map.apply(free), map));
+      return new FlatMapped<>(value, free -> new FlatMapped<>(next.apply(free), map));
     }
-
 
     @Override
     public FreeModule module() {
@@ -131,22 +146,22 @@ interface FreeModule {
   static <X1, X2, F extends Kind, T> Either<Higher1<F, Free<F, T>>, T> resume(Free<F, T> current, Functor<F> functor) {
     while (true) {
       if (current instanceof Free.Suspend) {
-        return Either.left(asSuspend(current).value);
+        return Either.left(asSuspend(current).get());
       } else if (current instanceof Free.Pure) {
-        return Either.right(asPure(current).value);
+        return Either.right(asPure(current).get());
       }
       Free.FlatMapped<F, X1, T> flatMap1 = asFlatMapped(current);
-      Free<F, X1> innerFree1 = flatMap1.value;
+      Free<F, X1> innerFree1 = flatMap1.get();
       if (innerFree1 instanceof Free.Suspend) {
-        return Either.left(functor.map(asSuspend(innerFree1).value,
-                                       x1 -> x1.flatMap(flatMap1.map)));
+        return Either.left(functor.map(asSuspend(innerFree1).get(),
+                                       x1 -> x1.flatMap(flatMap1.next())));
       }
       if (innerFree1 instanceof Free.Pure) {
-        current = flatMap1.map.apply(asPure(innerFree1).value);
+        current = flatMap1.next().apply(asPure(innerFree1).get());
       } else {
         Free.FlatMapped<F, X2, X1> flatMap2 = asFlatMapped(innerFree1);
-        Free<F, X2> innerValue2 = flatMap2.value;
-        current = innerValue2.flatMap(x2 -> flatMap2.map.apply(x2).flatMap(flatMap1.map));
+        Free<F, X2> innerValue2 = flatMap2.get();
+        current = innerValue2.flatMap(x2 -> flatMap2.next().apply(x2).flatMap(flatMap1.next()));
       }
     }
   }
