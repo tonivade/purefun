@@ -5,9 +5,23 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface CheckedMatcher<A> {
+public interface CheckedMatcher<A> extends Recoverable {
 
   boolean match(A target) throws Throwable;
+
+  default Matcher1<A> unchecked() {
+    return recover(this::sneakyThrow);
+  }
+
+  default Matcher1<A> recover(Function1<Throwable, Boolean> mapper) {
+    return target -> {
+      try {
+        return match(target);
+      } catch (Throwable e) {
+        return mapper.apply(e);
+      }
+    };
+  }
 
   default CheckedMatcher<A> and(CheckedMatcher<A> other) {
     return request -> match(request) && other.match(request);

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 public class CheckedConsumer1Test {
 
   @Test
-  public void andThen() throws Exception {
+  public void andThen() throws Throwable {
     List<String> strings = new LinkedList<>();
 
     CheckedConsumer1<String> add = CheckedConsumer1.of(strings::add);

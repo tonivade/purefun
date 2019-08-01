@@ -21,6 +21,10 @@ public interface CheckedFunction1<A, R> extends Recoverable {
     return (B value) -> apply(before.apply(value));
   }
 
+  default Function1<A, R> unchecked() {
+    return recover(this::sneakyThrow);
+  }
+
   default Function1<A, R> recover(Function1<Throwable, R> mapper) {
     return value -> {
       try {
@@ -41,10 +45,6 @@ public interface CheckedFunction1<A, R> extends Recoverable {
 
   default Function1<A, Try<R>> liftTry() {
     return value -> Try.of(() -> apply(value));
-  }
-
-  default Function1<A, R> unchecked() {
-    return recover(this::sneakyThrow);
   }
 
   static <T> CheckedFunction1<T, T> identity() {
