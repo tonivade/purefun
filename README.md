@@ -6,7 +6,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/38422db161da48f09cd192c7e7caa7dd)](https://www.codacy.com/app/zeromock/purefun?utm_source=github.com&utm_medium=referral&utm_content=tonivade/purefun&utm_campaign=Badge_Coverage)
 [![Build Status](https://travis-ci.org/tonivade/purefun.svg?branch=master)](https://travis-ci.org/tonivade/purefun)
 
-This module was developed as the core of the zeromock project. It defines all the basic classes and interfaces 
+This module was developed as the core of the zeromock project. It defines all the basic classes and interfaces
 used in the rest of the project.
 
 Initially the module only holds a few basic interfaces and it has grown to become an entire
@@ -20,26 +20,24 @@ and also to Scala standard library authors. Their awesome work help me a lot.
 
 ## Disclaimer
 
-**This project is not ready to be used in production**, I use it to learn functional programming concepts by my self, but, 
-if you want to use it, **use it at your own risk**. Anyway if you think is useful for you, go ahead, also any 
+**This project is not ready to be used in production**, I use it to learn functional programming concepts by my self, but,
+if you want to use it, **use it at your own risk**. Anyway if you think is useful for you, go ahead, also any
 feedback and PR are very welcome.
 
-## Base Interfaces
-
-### Higher Kinded types
+## Higher Kinded Types
 
 In this project I have implemented some patterns of functional programming that need Higher Kinded Types. In Java
 there are not such thing, but it can be simulated using a especial codification of types.
 
-In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified 
-like this `Monad<F extends Kind>`. `Kind` is a simple mark interface. Then we can define a type using a special 
+In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified
+like this `Monad<F extends Kind>`. `Kind` is a simple mark interface. Then we can define a type using a special
 codification like this:
 
 ```java
 interface SomeType<T> extends Higher1<SomeType.µ, T> {
 
   interface µ extends Kind {}
-  
+
   // this is a safe cast
   static SomeType<T> narrowK(Higher1<SomeType.µ, T> hkt) {
     return (SomeType<T>) hkt;
@@ -50,25 +48,23 @@ interface SomeType<T> extends Higher1<SomeType.µ, T> {
 It can be triky but, but in the end is easy to work with. By the way, I tried to hide this details to the user of the library.
 Except with typeclasses because is the only way to implement them in Java.
 
-So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't 
+So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't
 necessary to implement the library.
 
-### Annotation Processor
+## Annotation Processor
 
-In order to simplify working with higher kinded types, in the last version I've included an annotation processor to generate all this boilerplate code
+In order to simplify working with higher kinded types, in the last version I've included an annotation processor to generate
+all this boilerplate code
 
 ```java
 @HigherKind
-interface SomeType<T>  {
+interface SomeType<T> {
 }
 ```
 
 With this annotation, all the above code, is generated automatically.
 
 ## Data types
-
-All these data types implement `FlatMap` and `Mappable` base interface and implement these methods: `get`, `map`, `flatMap`, 
-`filter`, `fold` and `flatten`.
 
 ### Option
 
@@ -102,7 +98,7 @@ Either<Integer, String> left = Either.left(100);
 
 ### Validation
 
-This type represents two different states, valid or invalid, an also it allows to combine several 
+This type represents two different states, valid or invalid, an also it allows to combine several
 validations using `map2` to `map5` methods.
 
 ```java
@@ -110,7 +106,19 @@ Validation<String, String> name = Validation.valid("John Smith");
 Validation<String, String> email = Validation.valid("john.smith@example.net");
 
 // Person has a constructor with two String parameters, name and email.
-Valdation<Sequence<String>, Person> person = Validation.map2(name, email, Person::new); 
+Valdation<Sequence<String>, Person> person = Validation.map2(name, email, Person::new);
+```
+
+### Const
+
+A object with a phantom parameter:
+
+```java
+  Const<String, Integer> constInt = Const.of("Hello world!");
+
+  Const<String, Float> constFloat = constInt.retag();
+
+  assertEquals("Hello world!", constFloat.value());
 ```
 
 ### Future
@@ -125,7 +133,7 @@ This is an experimental implementation of Future. Computations are executed in a
   assertEquals(Try.success("HELLO WORLD!"), result.await());
 ```
 
-## Tuples
+### Tuples
 
 These classes allow to hold some values together, as tuples. There are tuples from 1 to 5.
 
@@ -141,7 +149,7 @@ Java doesn't define immutable collections, so I have implemented some of them.
 
 ### Sequence
 
-Is the equivalent to java `Collection` interface. It defines all the common methods. Also implements `Monad` interface.
+Is the equivalent to java `Collection` interface. It defines all the common methods.
 
 ### ImmutableList
 
@@ -173,15 +181,15 @@ Also I have implemented some Monads that allows to combine some operations.
 
 ### State Monad
 
-Is the traditional State Modad from FP languages, like Haskel or Scala. It allows to combine 
+Is the traditional State Modad from FP languages, like Haskel or Scala. It allows to combine
 operations over a state. The state should be a immutable class. It recives an state and generates
 a tuple with the new state and an intermediate result.
 
 ```java
 State<ImmutableList<String>, Option<String>> read = State.state(list -> Tuple.of(list.tail(), list.head()));
-  
+
 Tuple<ImmutableList<String>, Option<String>> result = read.run(ImmutableList.of("a", "b", "c"));
-    
+
 assertEquals(Tuple.of(ImmutableList.of("b", "c"), Option.some("a")), result);
 ```
 
@@ -220,7 +228,7 @@ This is a experimental implementation of IO Monad in java. Inspired in this [wor
       .andThen(Console.read())
       .flatMap(name -> Console.print("Hello " + name))
       .andThen(Console.print("end"));
-      
+
   echo.unsafeRunSync();
 ```
 
@@ -239,11 +247,11 @@ Implements recursion using an iteration and is stack safe.
 
 ## Free Monad
 
-Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly 
-inestable implementation and I have implemented because it can be implemented. Inspired 
+Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly
+inestable implementation and I have implemented because it can be implemented. Inspired
 in this [work](https://github.com/xuwei-k/free-monad-java).
 
-```java 
+```java
   Free<IOProgram.µ, Unit> echo =
       IOProgram.write("what's your name?")
         .andThen(IOProgram.read())
@@ -337,30 +345,107 @@ An experimental version of a `Stream` like scala fs2 project.
       .foldLeft("", (a, b) -> a + "\n" + b)
       .fix1(IO::narrowK)
       .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
-    
+
     String content = readFile.unsafeRunSync();
 ```
 
 ## ZIO
 
-An experimental version of `ZIO`
+An experimental version of `ZIO`.
 
-TODO
+```java
+ZIO<Console, Throwable, Unit> echoProgram =
+  Console.println("what's your name?")
+      .andThen(Console.readln())
+      .flatMap(name -> Console.println("Hello " + name));
+
+interface Console {
+
+  <R extends Console> Console.Service<R> console();
+
+  static ZIO<Console, Throwable, String> readln() {
+    return ZIO.accessM(env -> env.console().readln());
+  }
+
+  static ZIO<Console, Throwable, Unit> println(String text) {
+    return ZIO.accessM(env -> env.console().println(text));
+  }
+
+  interface Service<R extends Console> {
+    ZIO<R, Throwable, String> readln();
+
+    ZIO<R, Throwable, Unit> println(String text);
+  }
+}
+```
 
 ## Type Classes
 
-Some type classes are implemented
+With higher kinded types simulation we can implement typeclases.
 
 ```
+                       Invariant -- Contravariant
+                             \
        SemigroupK           Functor -- Comonad
-           |               /       \       
+           |               /       \
          MonoidK   _ Applicative   Traverse -- Foldable
-           |      /      |      \ 
+           |      /      |      \
        Alternative      Monad    ApplicativeError
                          |      /
-                      MonadError      Bracket
-                           \            /
+                      MonadError
+                           \
+                        MonadThrow  Bracket
+                              \      /
                     Defer -- MonadDefer
+```
+
+### Functor
+
+```java
+public interface Functor<F extends Kind> extends Invariant<F> {
+
+  <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
+
+  @Override
+  default <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
+    return map(value, map);
+  }
+}
+```
+
+### Applicative
+
+```java
+public interface Applicative<F extends Kind> extends Functor<F> {
+
+  <T> Higher<F, T> pure(T value);
+
+  <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply);
+
+  @Override
+  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
+    return ap(value, pure(map));
+  }
+}
+```
+
+### Monad
+
+```java
+public interface Monad<F extends Kind> extends Applicative<F> {
+
+  <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
+
+  @Override
+  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
+    return flatMap(value, map.andThen(this::pure));
+  }
+
+  @Override
+  default <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply) {
+    return flatMap(apply, map -> map(value, map));
+  }
+}
 ```
 
 ### Semigroup
@@ -368,18 +453,22 @@ Some type classes are implemented
 It represents a binary operation over a type.
 
 ```java
-T combine(T t1, T t2);
+@FunctionalInterface
+public interface Semigroup<T> {
+  T combine(T t1, T t2);
+}
 ```
 
-There are instances for lists, strings and integers.
+There are instances for strings and integers.
 
 ### Monoid
 
-Extends `Semigroup` adding a zero operation that represent an identity.
+Extends `Semigroup` adding a `zero` operation that represent an identity.
 
 ```java
-T zero();
-T combine(T t1, T t2);
+public interface Monoid<T> extends Semigroup<T> {
+  T zero();
+}
 ```
 
 There are instances for strings and integers.
@@ -392,13 +481,19 @@ It represents a `Semigroup` but defined for a kind, like a List, so it extends a
 
 The same like `SemigroupK` but for a `Monoid`.
 
-### Functor
-
-With higher kinded types simulation, we can represent a `Functor` in Java.
+### Invariant
 
 ```java
-public interface Functor<F extends Kind> {
-  <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
+public interface Invariant<F extends Kind> {
+  <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap);
+}
+```
+
+### Contravariant
+
+```java
+public interface Contravariant<F extends Kind> extends Invariant<F> {
+  <A, B> Higher1<F, B> contramap(Higher1<F, A> value, Function1<B, A> map);
 }
 ```
 
@@ -407,24 +502,6 @@ public interface Functor<F extends Kind> {
 ```java
 public interface BiFunctor<F extends Kind> {
   <A, B, C, D> Higher2<F, C, D> bimap(Higher2<F, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
-}
-```
-
-### Applicative
-
-Also an `Applicative`
-
-```java
-public interface Applicative<F extends Kind> extends Functor<F> {
-
-  <T> Higher<F, T> pure(T value);
-
-  <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply);
-  
-  @Override
-  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
-    return ap(value, pure(map));
-  }
 }
 ```
 
@@ -439,29 +516,6 @@ public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
 }
 ```
 
-### Monad
-
-Also a `Monad`. It is difficult to explain what a monad is, many people have tried and this is my humble attempt. 
-It is something that allows to combine operations, in a functional way, but simulating the imperative style. 
-For example, `State`, `Reader`, `Writer` and `IO` monads are ways to combine operations.
-
-```java
-public interface Monad<F extends Kind> extends Applicative<F> {
-
-  <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
-
-  @Override
-  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
-    return flatMap(value, map.andThen(this::pure));
-  }
-  
-  @Override
-  default <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply) {
-    return flatMap(apply, map -> map(value, map));
-  }
-}
-```
-
 ### Monad Error
 
 ```java
@@ -470,6 +524,14 @@ public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, M
   default <A> Higher1<F, A> ensure(Higher1<F, A> value, Producer<E> error, Matcher1<A> matcher) {
     return flatMap(value, a -> matcher.match(a) ? pure(a) : raiseError(error.get()));
   }
+}
+```
+
+### Monad Throw
+
+```java
+public interface MonadThrow<F extends Kind> extends MonadError<F, Throwable> {
+
 }
 ```
 
@@ -527,10 +589,19 @@ public interface Defer<F extends Kind> {
 }
 ```
 
+### Bracket
+
+```java
+public interface Bracket<F extends Kind> {
+
+  <A, B> Higher1<F, B> bracket(Higher1<F, A> acquire, Function1<A, ? extends Higher1<F, B>> use, Consumer1<A> release);
+}
+```
+
 ### MonadDefer
 
 ```java
-public interface MonadDefer<F extends Kind> extends MonadError<F, Throwable>, Bracket<F>, Defer<F> {
+public interface MonadDefer<F extends Kind> extends MonadThrow<F>, Bracket<F>, Defer<F> {
 
   default <A> Higher1<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
@@ -556,8 +627,8 @@ This class helps to create readable `equals` methods. An example:
   @Override
   public boolean equals(Object obj) {
     return Equal.of(this)
-        .append(comparing(Data::getId))
-        .append(comparing(Data::getValue))
+        .comparing(Data::getId)
+        .comparing(Data::getValue)
         .applyTo(obj);
   }
 ```

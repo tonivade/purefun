@@ -6,6 +6,9 @@ package com.github.tonivade.purefun.type;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
+
+import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
@@ -24,6 +27,21 @@ public final class Const<T, A> {
   @SuppressWarnings("unchecked")
   public <B> Const<T, B> retag() {
     return (Const<T, B>) this;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return Equal.of(this).comparing(Const::get).applyTo(obj);
+  }
+
+  @Override
+  public String toString() {
+    return "Const(" + value + ")";
   }
 
   public static <T, A> Const<T, A> of(T value) {
