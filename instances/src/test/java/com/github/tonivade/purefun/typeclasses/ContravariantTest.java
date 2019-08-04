@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.type.Const;
 public class ContravariantTest {
 
   @Test
-  public void testName() {
+  public void constInstance() {
     Contravariant<Higher1<Const.µ, String>> instance = ConstInstances.contravariant();
 
     ContravariatLaws.verifyLaws(instance, Const.of("string"));
