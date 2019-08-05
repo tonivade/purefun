@@ -34,8 +34,12 @@ public final class For2<F extends Kind, A, B> extends AbstractFor<F, B> {
     return For.with(monad, value1, value, monad.map(value, mapper));
   }
 
+  public <R> For3<F, A, B, R> and(Higher1<F, R> next) {
+    return For.with(monad, value1, value, next);
+  }
+
   public <R> For3<F, A, B, R> andThen(Producer<Higher1<F, R>> producer) {
-    return For.with(monad, value1, value, monad.flatMap(value, i -> producer.get()));
+    return For.with(monad, value1, value, monad.andThen(value, producer));
   }
 
   public <R> For3<F, A, B, R> flatMap(Function1<B, ? extends Higher1<F, R>> mapper) {

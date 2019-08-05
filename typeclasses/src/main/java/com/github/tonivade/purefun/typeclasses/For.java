@@ -20,8 +20,12 @@ public final class For<F extends Kind> {
     this.monad = requireNonNull(monad);
   }
 
-  public <T> For1<F, T> andThen(Producer<Higher1<F, T>> value) {
-    return For.with(monad, value.get());
+  public <T> For1<F, T> and(Higher1<F, T> next) {
+    return For.with(monad, next);
+  }
+
+  public <T> For1<F, T> andThen(Producer<Higher1<F, T>> next) {
+    return and(next.get());
   }
 
   public static <F extends Kind> For<F> with(Monad<F> monad) {

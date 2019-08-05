@@ -39,11 +39,11 @@ public class ForTest {
   public void yield() {
     Id<Tuple5<String, String, String, String, String>> result =
         For.with(IdInstances.monad())
-          .andThen(() -> Id.of("a"))
-          .andThen(() -> Id.of("b"))
-          .andThen(() -> Id.of("c"))
-          .andThen(() -> Id.of("d"))
-          .andThen(() -> Id.of("e"))
+          .and(Id.of("a"))
+          .and(Id.of("b"))
+          .and(Id.of("c"))
+          .and(Id.of("d"))
+          .and(Id.of("e"))
           .tuple()
           .fix1(Id::narrowK);
 
