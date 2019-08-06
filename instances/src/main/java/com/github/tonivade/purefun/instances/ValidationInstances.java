@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.BiFunctor;
+import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -35,8 +35,8 @@ public interface ValidationInstances {
     return new ValidationFunctor<E>() {};
   }
 
-  static BiFunctor<Validation.µ> bifunctor() {
-    return new ValidationBiFunctor() {};
+  static Bifunctor<Validation.µ> bifunctor() {
+    return new ValidationBifunctor() {};
   }
 
   static <E> Applicative<Higher1<Validation.µ, E>> applicative() {
@@ -66,7 +66,7 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 }
 
 @Instance
-interface ValidationBiFunctor extends BiFunctor<Validation.µ> {
+interface ValidationBifunctor extends Bifunctor<Validation.µ> {
 
   @Override
   default <A, B, C, D> Validation<C, D> bimap(Higher2<Validation.µ, A, B> value,

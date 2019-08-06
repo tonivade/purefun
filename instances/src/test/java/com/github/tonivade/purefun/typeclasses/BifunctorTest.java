@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.laws.BiFunctorLaws.verifyLaws;
+import static com.github.tonivade.purefun.laws.BifunctorLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import org.junit.jupiter.api.Test;
@@ -16,24 +16,24 @@ import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
 
-public class BiFunctorTest {
+public class BifunctorTest {
 
   @Test
-  public void eitherBiFunctor() {
+  public void eitherBifunctor() {
     assertAll(
         () -> verifyLaws(EitherInstances.bifunctor(), Either.right("hola mundo")),
         () -> verifyLaws(EitherInstances.bifunctor(), Either.left("hola mundo")));
   }
 
   @Test
-  public void validationBiFunctor() {
+  public void validationBifunctor() {
     assertAll(
         () -> verifyLaws(ValidationInstances.bifunctor(), Validation.valid("hola mundo")),
         () -> verifyLaws(ValidationInstances.bifunctor(), Validation.invalid("hola mundo")));
   }
 
   @Test
-  public void tupleBiFunctor() {
+  public void tupleBifunctor() {
     verifyLaws(TupleInstances.bifunctor(), Tuple.of("hola mundo", "adios"));
   }
 }

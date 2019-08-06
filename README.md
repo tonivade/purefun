@@ -497,11 +497,19 @@ public interface Contravariant<F extends Kind> extends Invariant<F> {
 }
 ```
 
-### BiFunctor
+### Bifunctor
 
 ```java
-public interface BiFunctor<F extends Kind> {
+public interface Bifunctor<F extends Kind> {
   <A, B, C, D> Higher2<F, C, D> bimap(Higher2<F, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
+}
+```
+
+### Profunctor
+
+```java
+public interface Bifunctor<F extends Kind> {
+  <A, B, C, D> Higher2<F, C, D> dimap(Higher2<F, A, B> value, Function1<C, A> contramap, Function1<B, D> map);
 }
 ```
 

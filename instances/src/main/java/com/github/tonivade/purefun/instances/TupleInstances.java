@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.typeclasses.BiFunctor;
+import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 public interface TupleInstances {
@@ -19,8 +19,8 @@ public interface TupleInstances {
     return new Tuple1Functor() {};
   }
 
-  static BiFunctor<Tuple2.µ> bifunctor() {
-    return new Tuple2BiFunctor() {};
+  static Bifunctor<Tuple2.µ> bifunctor() {
+    return new Tuple2Bifunctor() {};
   }
 }
 
@@ -34,7 +34,7 @@ interface Tuple1Functor extends Functor<Tuple1.µ> {
 }
 
 @Instance
-interface Tuple2BiFunctor extends BiFunctor<Tuple2.µ> {
+interface Tuple2Bifunctor extends Bifunctor<Tuple2.µ> {
 
   @Override
   default <A, B, C, D> Tuple2<C, D> bimap(Higher2<Tuple2.µ, A, B> value,

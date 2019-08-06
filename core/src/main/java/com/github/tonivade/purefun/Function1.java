@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
+@HigherKind
 @FunctionalInterface
 public interface Function1<A, R> {
 

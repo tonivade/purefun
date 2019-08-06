@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.BiFunctor;
+import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -42,8 +42,8 @@ public interface EitherInstances {
     return new EitherFunctor<L>() {};
   }
 
-  static BiFunctor<Either.µ> bifunctor() {
-    return new EitherBiFunctor() {};
+  static Bifunctor<Either.µ> bifunctor() {
+    return new EitherBifunctor() {};
   }
 
   static <L> Applicative<Higher1<Either.µ, L>> applicative() {
@@ -81,7 +81,7 @@ interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
 }
 
 @Instance
-interface EitherBiFunctor extends BiFunctor<Either.µ> {
+interface EitherBifunctor extends Bifunctor<Either.µ> {
 
   @Override
   default <A, B, C, D> Either<C, D> bimap(Higher2<Either.µ, A, B> value,
