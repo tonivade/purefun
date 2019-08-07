@@ -100,7 +100,7 @@ public interface Sequence<E> extends Iterable<E> {
   }
 
   default Stream<Tuple2<Integer, E>> zipWithIndex() {
-    return zip(Stream.iterate(0, i -> i + 1), this.stream());
+    return zip(iterate(0, i -> i + 1), stream());
   }
 
   @SafeVarargs

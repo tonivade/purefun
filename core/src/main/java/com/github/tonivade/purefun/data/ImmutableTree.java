@@ -4,19 +4,18 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static java.util.Collections.emptyNavigableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -70,7 +69,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Stream<T> stream) {
-    return new JavaBasedImmutableTree<>(stream.collect(Collectors.toCollection(TreeSet::new)));
+    return new JavaBasedImmutableTree<>(stream.collect(toCollection(TreeSet::new)));
   }
 
   @SafeVarargs
@@ -79,7 +78,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> empty() {
-    return new JavaBasedImmutableTree<>(Collections.emptyNavigableSet());
+    return new JavaBasedImmutableTree<>(emptyNavigableSet());
   }
 
   static <E> Collector<E, ?, ImmutableTree<E>> toImmutableTree() {

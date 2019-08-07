@@ -73,11 +73,11 @@ public interface Either<L, R> {
   }
 
   default <T> Either<L, T> map(Function1<R, T> map) {
-    return bimap(Function1.identity(), map);
+    return bimap(identity(), map);
   }
 
   default <T> Either<T, R> mapLeft(Function1<L, T> map) {
-    return bimap(map, Function1.identity());
+    return bimap(map, identity());
   }
 
   default <T> Either<L, T> flatMap(Function1<R, Either<L, T>> map) {
