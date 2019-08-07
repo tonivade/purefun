@@ -9,16 +9,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.type.Option;
 
 public class YonedaTest {
+
+  private final Operator1<String> concat = string -> string.concat(string);
 
   @Test
   public void yoneda() {
     Yoneda<Option.µ, String> yoneda = Yoneda.of(Option.some("string"), functor());
 
-    Yoneda<Option.µ, String> result = yoneda.map(string -> string + string).map(string -> string + string);
+    Yoneda<Option.µ, String> result = yoneda.map(concat).map(concat);
 
-    assertEquals(Option.some("stringstringstringstring"), result.lower().fix1(Option::narrowK));
+    assertEquals(Option.some("stringstringstringstring"), result.lower());
   }
 }

@@ -10,16 +10,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.type.Option;
 
 public class CoyonedaTest {
+  
+  private final Operator1<String> concat = string -> string.concat(string);
 
   @Test
-  void coyoneda() {
+  public void coyoneda() {
     Coyoneda<Option.µ, String, String> coyoneda = Coyoneda.of(Option.some("string"), identity());
 
-    Coyoneda<Option.µ, String, String> result = coyoneda.map(string -> string + string).map(string -> string + string);
+    Coyoneda<Option.µ, String, String> result = coyoneda.map(concat).map(concat);
 
-    assertEquals(Option.some("stringstringstringstring"), result.run(functor()).fix1(Option::narrowK));
+    assertEquals(Option.some("stringstringstringstring"), result.run(functor()));
   }
 }
