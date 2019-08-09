@@ -404,12 +404,7 @@ With higher kinded types simulation we can implement typeclases.
 ```java
 public interface Functor<F extends Kind> extends Invariant<F> {
 
-  <T, R> Higher<F, R> map(Higher<F, T> value, Function1<T, R> map);
-
-  @Override
-  default <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
-    return map(value, map);
-  }
+  <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map);
 }
 ```
 
@@ -418,7 +413,7 @@ public interface Functor<F extends Kind> extends Invariant<F> {
 ```java
 public interface Applicative<F extends Kind> extends Functor<F> {
 
-  <T> Higher<F, T> pure(T value);
+  <T> Higher1<F, T> pure(T value);
 
   <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply);
 
@@ -508,7 +503,7 @@ public interface Bifunctor<F extends Kind> {
 ### Profunctor
 
 ```java
-public interface Bifunctor<F extends Kind> {
+public interface Profunctor<F extends Kind> {
   <A, B, C, D> Higher2<F, C, D> dimap(Higher2<F, A, B> value, Function1<C, A> contramap, Function1<B, D> map);
 }
 ```
