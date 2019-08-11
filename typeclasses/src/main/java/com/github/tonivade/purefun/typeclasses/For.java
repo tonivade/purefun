@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -25,7 +26,7 @@ public final class For<F extends Kind> {
   }
 
   public <T> For1<F, T> andThen(Producer<Higher1<F, T>> next) {
-    return and(next.get());
+    return For.with(monad, monad.andThen(monad.pure(unit()), next));
   }
 
   public static <F extends Kind> For<F> with(Monad<F> monad) {
