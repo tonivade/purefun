@@ -12,49 +12,49 @@ import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 
-public final class Prism<T, R> {
+public final class Prism<S, A> {
 
-  private final Function1<T, Option<R>> getOption;
-  private final Function1<R, T> reverseGet;
+  private final Function1<S, Option<A>> getOption;
+  private final Function1<A, S> reverseGet;
 
-  private Prism(Function1<T, Option<R>> getOption, Function1<R, T> reverseGet) {
+  private Prism(Function1<S, Option<A>> getOption, Function1<A, S> reverseGet) {
     this.getOption = requireNonNull(getOption);
     this.reverseGet = requireNonNull(reverseGet);
   }
 
-  public static <T, R> Prism<T, R> of(Function1<T, Option<R>> getOption, Function1<R, T> reverseGet) {
+  public static <S, A> Prism<S, A> of(Function1<S, Option<A>> getOption, Function1<A, S> reverseGet) {
     return new Prism<>(getOption, reverseGet);
   }
 
-  public Option<R> getOption(T target) {
+  public Option<A> getOption(S target) {
     return getOption.apply(target);
   }
 
-  public T reverseGet(R value) {
+  public S reverseGet(A value) {
     return reverseGet.apply(value);
   }
 
-  public Either<T, R> getOrModify(T target) {
+  public Either<S, A> getOrModify(S target) {
     return getOption(target).fold(cons(Either.left(target)), Either::right);
   }
 
-  public Operator1<T> modify(Operator1<R> mapper) {
+  public Operator1<S> modify(Operator1<A> mapper) {
     return target -> modifyOption(mapper).apply(target).getOrElse(target);
   }
 
-  public Operator1<T> set(R value) {
+  public Operator1<S> set(A value) {
     return modify(ignore -> value);
   }
 
-  public Function1<T, Option<T>> modifyOption(Operator1<R> mapper) {
+  public Function1<S, Option<S>> modifyOption(Operator1<A> mapper) {
     return target -> getOption(target).map(mapper).map(reverseGet);
   }
 
-  public Function1<T, Option<T>> setOption(R value) {
+  public Function1<S, Option<S>> setOption(A value) {
     return modifyOption(ignore -> value);
   }
 
-  public <V> Prism<T, V> compose(Prism<R, V> other) {
+  public <B> Prism<S, B> compose(Prism<A, B> other) {
     return new Prism<>(
         target -> this.getOption(target).flatMap(other::getOption),
         value -> this.reverseGet(other.reverseGet(value)));

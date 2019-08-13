@@ -12,6 +12,7 @@ import static java.util.stream.Stream.iterate;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.stream.Stream;
+
 import java.util.stream.StreamSupport;
 
 import com.github.tonivade.purefun.Function1;
