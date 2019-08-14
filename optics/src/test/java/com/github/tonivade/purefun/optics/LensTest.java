@@ -27,18 +27,20 @@ public class LensTest {
 
   @Test
   public void lensTest() {
-    assertAll(() -> assertEquals(pepe.getName(), nameLens.get(pepe)),
-              () -> assertEquals(paco, nameLens.set(pepe, paco.getName())),
-              () -> assertEquals(madrid.getCity(), cityAddressLens.get(pepe)),
-              () -> assertEquals(pepe.withAddress(alicante),
-                                 cityAddressLens.set(pepe, alicante.getCity())));
+    assertAll(
+      () -> assertEquals(pepe.getName(), nameLens.get(pepe)),
+      () -> assertEquals(paco, nameLens.set(pepe, paco.getName())),
+      () -> assertEquals(madrid.getCity(), cityAddressLens.get(pepe)),
+      () -> assertEquals(pepe.withAddress(alicante),
+                         cityAddressLens.set(pepe, alicante.getCity()))
+    );
   }
 
   @Test
   public void lensLaws() {
-    verifyLaws(nameLens, pepe, "paco");
-    verifyLaws(cityLens, madrid, "Alicante");
-    verifyLaws(cityAddressLens, pepe, "Alicante");
+    verifyLaws(nameLens, pepe, paco.getName());
+    verifyLaws(cityLens, madrid, alicante.getCity());
+    verifyLaws(cityAddressLens, pepe, alicante.getCity());
   }
 
   private <S, A> void verifyLaws(Lens<S, A> lens, S target, A value) {

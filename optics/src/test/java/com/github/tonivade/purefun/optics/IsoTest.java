@@ -38,7 +38,7 @@ public class IsoTest {
       () -> assertEquals(point, pointToPoint.get(point)),
       () -> assertEquals(point, identity.set(point)),
       () -> assertEquals(point, identity.get(point)),
-      () -> assertEquals(new Point(2, 4), pointToTuple.modify(point, tuple -> tuple.map(x -> x + 1, y -> y * 2)))
+      () -> assertEquals(new Point(2, 4), pointToTuple.modify(point, t -> t.map(x -> x + 1, y -> y * 2)))
     );
   }
 
