@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import static java.util.Objects.requireNonNull;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
-
-import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
 
 public final class Optional<S, A> {
 
@@ -59,5 +59,17 @@ public final class Optional<S, A> {
     return new Optional<>(
         target -> value -> this.modify(target, a -> other.set(a, value)),
         target -> this.getOrModify(target).flatMap(a -> other.getOrModify(a).bimap(b -> this.set(target, b), identity())) );
+  }
+
+  public <B> Optional<S, B> compose(Iso<A, B> other) {
+    return compose(other.asOptional());
+  }
+
+  public <B> Optional<S, B> compose(Prism<A, B> other) {
+    return compose(other.asOptional());
+  }
+
+  public <B> Optional<S, B> compose(Lens<A, B> other) {
+    return compose(other.asOptional());
   }
 }

@@ -4,10 +4,12 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static java.util.Objects.requireNonNull;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
-
-import static java.util.Objects.requireNonNull;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 
 public final class Iso<S, A> {
 
@@ -47,9 +49,33 @@ public final class Iso<S, A> {
     return mapper.compose(get).andThen(reverseGet)::apply;
   }
 
+  public Lens<S, A> asLens() {
+    return Lens.of(this.get, (target, value) -> this.set(value));
+  }
+
+  public Prism<S, A> asPrism() {
+    return Prism.of(this.get.andThen(Option::some), reverseGet);
+  }
+
+  public Optional<S, A> asOptional() {
+    return Optional.of((target, value) -> this.set(value), this.get.andThen(Either::right));
+  }
+
   public <B> Iso<S, B> compose(Iso<A, B> other) {
     return new Iso<>(
         this.get.andThen(other.get),
         this.reverseGet.compose(other.reverseGet));
+  }
+
+  public <B> Lens<S, B> compose(Lens<A, B> other) {
+    return asLens().compose(other);
+  }
+
+  public <B> Prism<S, B> compose(Prism<A, B> other) {
+    return asPrism().compose(other);
+  }
+
+  public <B> Optional<S, B> compose(Optional<A, B> other) {
+    return asOptional().compose(other);
   }
 }

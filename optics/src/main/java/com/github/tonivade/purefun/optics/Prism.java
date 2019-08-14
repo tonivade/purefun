@@ -42,8 +42,16 @@ public final class Prism<S, A> {
     return target -> modifyOption(mapper).apply(target).getOrElse(target);
   }
 
+  public S modify(S target, Operator1<A> mapper) {
+    return modify(mapper).apply(target);
+  }
+
   public Operator1<S> set(A value) {
     return modify(ignore -> value);
+  }
+
+  public S set(S target, A value) {
+    return set(value).apply(target);
   }
 
   public Function1<S, Option<S>> modifyOption(Operator1<A> mapper) {
@@ -54,9 +62,25 @@ public final class Prism<S, A> {
     return modifyOption(ignore -> value);
   }
 
+  public Optional<S, A> asOptional() {
+    return Optional.of(this::set, this::getOrModify);
+  }
+
   public <B> Prism<S, B> compose(Prism<A, B> other) {
     return new Prism<>(
         target -> this.getOption(target).flatMap(other::getOption),
         value -> this.reverseGet(other.reverseGet(value)));
+  }
+
+  public <B> Optional<S, B> compose(Optional<A, B> other) {
+    return asOptional().compose(other);
+  }
+
+  public <B> Prism<S, B> compose(Iso<A, B> other) {
+    return compose(other.asPrism());
+  }
+
+  public <B> Optional<S, B> compose(Lens<A, B> other) {
+    return asOptional().compose(other);
   }
 }

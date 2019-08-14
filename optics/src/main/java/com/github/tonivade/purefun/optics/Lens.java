@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.type.Either;
 
 public final class Lens<S, A> {
 
@@ -44,9 +45,25 @@ public final class Lens<S, A> {
     return modify(ignore -> newValue);
   }
 
+  public Optional<S, A> asOptional() {
+    return Optional.of(this::set, getter.andThen(Either::right));
+  }
+
   public <B> Lens<S, B> compose(Lens<A, B> other) {
     return new Lens<>(
         target -> other.get(this.get(target)),
         target -> value -> this.set(target).apply(other.modify(value).apply(this.get(target))));
+  }
+
+  public <B> Optional<S, B> compose(Optional<A, B> other) {
+    return asOptional().compose(other);
+  }
+
+  public <B> Lens<S, B> compose(Iso<A, B> other) {
+    return compose(other.asLens());
+  }
+
+  public <B> Optional<S, B> compose(Prism<A, B> other) {
+    return asOptional().compose(other.asOptional());
   }
 }

@@ -4,14 +4,15 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import org.junit.jupiter.api.Test;
-
-import java.awt.*;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.awt.Point;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 
 public class IsoTest {
 
@@ -20,6 +21,8 @@ public class IsoTest {
          point -> Tuple.of(point.x, point.y),
          tuple -> new Point(tuple.get1(), tuple.get2()));
    private final Iso<Tuple2<Integer, Integer>, Point> tupleToPoint = pointToTuple.reverse();
+   private final Iso<Point, Point> pointToPoint = pointToTuple.compose(tupleToPoint);
+   private final Iso<Point, Point> identity = Iso.identity();
 
    private final Point point = new Point(1, 2);
    private final Tuple2<Integer, Integer> tuple2 = Tuple.of(1, 2);
@@ -33,6 +36,10 @@ public class IsoTest {
          () -> assertEquals(point, tupleToPoint.get(tuple2)),
          () -> assertEquals(tuple2, tupleToPoint.reverse().reverse().set(point)),
          () -> assertEquals(point, tupleToPoint.reverse().reverse().get(tuple2)),
+         () -> assertEquals(point, pointToPoint.set(point)),
+         () -> assertEquals(point, pointToPoint.get(point)),
+         () -> assertEquals(point, identity.set(point)),
+         () -> assertEquals(point, identity.get(point)),
          () -> assertEquals(new Point(2, 4), pointToTuple.modify(point, tuple -> tuple.map(x -> x + 1, y -> y * 2)))
       );
    }
