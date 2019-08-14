@@ -35,7 +35,7 @@ public final class Lens<S, A> {
   }
 
   public Operator1<S> modify(Operator1<A> mapper) {
-    return delegate.modify(mapper::apply)::apply;
+    return delegate.modify(mapper)::apply;
   }
 
   public Operator1<S> modify(A newValue) {

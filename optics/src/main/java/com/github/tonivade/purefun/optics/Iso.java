@@ -42,7 +42,7 @@ public final class Iso<S, A> {
   }
 
   public Operator1<S> lift(Operator1<A> mapper) {
-    return delegate.lift(mapper::apply)::apply;
+    return delegate.lift(mapper)::apply;
   }
 
   public Lens<S, A> asLens() {
