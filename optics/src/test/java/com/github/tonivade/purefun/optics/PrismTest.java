@@ -19,9 +19,9 @@ import com.github.tonivade.purefun.type.Try;
 
 public class PrismTest {
 
+  private final Function1<String, Integer> parseInt = Integer::parseInt;
   private final Prism<Option<String>, String> someString = Prism.of(identity(), Option::some);
-  private final Prism<String, Integer> stringToInteger =
-        Prism.of(Function1.<String, Integer>of(Integer::parseInt).liftTry().andThen(Try::toOption), String::valueOf);
+  private final Prism<String, Integer> stringToInteger = Prism.of(parseInt.liftTry().andThen(Try::toOption), String::valueOf);
   private final Prism<Option<String>, Integer> someStringToInteger = someString.compose(stringToInteger);
 
   @Test
@@ -69,7 +69,11 @@ public class PrismTest {
 
   @Test
   public void prismLaws() {
-    assertAll(() -> assertTrue(stringToInteger.getOption("5").fold(cons(true), x -> x.equals(5))),
-              () -> assertEquals(Option.some(5), stringToInteger.getOption(stringToInteger.reverseGet(5))));
+    verifyLaws(stringToInteger, "5", 5);
+  }
+
+  private <S, A> void verifyLaws(Prism<S, A> prism, S target, A value) {
+    assertAll(() -> assertTrue(prism.getOption(target).fold(cons(true), x -> x.equals(value))),
+              () -> assertEquals(Option.some(value), prism.getOption(prism.reverseGet(value))));
   }
 }

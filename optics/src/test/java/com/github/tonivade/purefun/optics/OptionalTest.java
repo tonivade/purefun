@@ -43,11 +43,14 @@ public class OptionalTest {
 
   @Test
   public void optionalLaws() {
+    verifyLaws(optionalHead, list12, "3");
+  }
+
+  private <S, A> void verifyLaws(Optional<S, A> optional, S target, A value) {
     assertAll(
-      () -> assertEquals(list12, optionalHead.getOrModify(list12).fold(identity(),
-                                                                       value -> optionalHead.set(list12, value))),
-      () -> assertEquals(optionalHead.getOption(list12).map(ignore -> "3"),
-                         optionalHead.getOption(optionalHead.set(list12, "3")))
+      () -> assertEquals(target, optional.getOrModify(target).fold(identity(), a -> optional.set(target, a))),
+      () -> assertEquals(optional.getOption(target).map(ignore -> value),
+                         optional.getOption(optional.set(target, value)))
     );
   }
 }

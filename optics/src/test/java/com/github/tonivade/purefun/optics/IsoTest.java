@@ -44,9 +44,16 @@ public class IsoTest {
 
   @Test
   public void isoLaws() {
+    verifyLaws(pointToTuple, point, tuple);
+    verifyLaws(tupleToPoint, tuple, point);
+    verifyLaws(pointToPoint, point, point);
+    verifyLaws(identity, point, point);
+  }
+
+  private <S, A> void verifyLaws(Iso<S, A> iso, S target, A value) {
     assertAll(
-      () -> assertEquals(point, pointToTuple.set(pointToTuple.get(point))),
-      () -> assertEquals(tuple, pointToTuple.get(pointToTuple.set(tuple)))
+      () -> assertEquals(target, iso.set(iso.get(target))),
+      () -> assertEquals(value, iso.get(iso.set(value)))
     );
   }
 }

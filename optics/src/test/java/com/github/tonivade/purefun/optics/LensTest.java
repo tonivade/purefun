@@ -20,23 +20,32 @@ public class LensTest {
   private final Lens<Address, String> cityLens = Lens.of(Address::getCity, Address::withCity);
   private final Lens<Employee, String> cityAddressLens = addressLens.compose(cityLens);
 
+  private final Address madrid = new Address("Madrid");
+  private final Address alicante = new Address("Alicante");
+  private final Employee pepe = new Employee("pepe", madrid);
+  private final Employee paco = pepe.withName("paco");
+
   @Test
   public void lensTest() {
-    Employee employee = new Employee("pepe", new Address("Madrid"));
-
-    assertAll(() -> assertEquals("pepe", nameLens.get(employee)),
-              () -> assertEquals(employee.withName("paco"), nameLens.set(employee, "paco")),
-              () -> assertEquals("Madrid", cityAddressLens.get(employee)),
-              () -> assertEquals(employee.withAddress(new Address("Alicante")),
-                                 cityAddressLens.set(employee, "Alicante")));
+    assertAll(() -> assertEquals(pepe.getName(), nameLens.get(pepe)),
+              () -> assertEquals(paco, nameLens.set(pepe, paco.getName())),
+              () -> assertEquals(madrid.getCity(), cityAddressLens.get(pepe)),
+              () -> assertEquals(pepe.withAddress(alicante),
+                                 cityAddressLens.set(pepe, alicante.getCity())));
   }
 
   @Test
   public void lensLaws() {
-    Employee employee = new Employee("pepe", new Address("Madrid"));
+    verifyLaws(nameLens, pepe, "paco");
+    verifyLaws(cityLens, madrid, "Alicante");
+    verifyLaws(cityAddressLens, pepe, "Alicante");
+  }
 
-    assertAll(() -> assertEquals(employee, nameLens.set(employee, nameLens.get(employee))),
-              () -> assertEquals("paco", nameLens.get(nameLens.set(employee, "paco"))));
+  private <S, A> void verifyLaws(Lens<S, A> lens, S target, A value) {
+    assertAll(
+      () -> assertEquals(target, lens.set(target, lens.get(target))),
+      () -> assertEquals(value, lens.get(lens.set(target, value)))
+    );
   }
 }
 
