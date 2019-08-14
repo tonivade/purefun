@@ -16,31 +16,37 @@ import com.github.tonivade.purefun.Tuple2;
 
 public class IsoTest {
 
-   private final Iso<Point, Tuple2<Integer, Integer>> pointToTuple =
-       Iso.of(
-         point -> Tuple.of(point.x, point.y),
-         tuple -> new Point(tuple.get1(), tuple.get2()));
-   private final Iso<Tuple2<Integer, Integer>, Point> tupleToPoint = pointToTuple.reverse();
-   private final Iso<Point, Point> pointToPoint = pointToTuple.compose(tupleToPoint);
-   private final Iso<Point, Point> identity = Iso.identity();
+  private final Iso<Point, Tuple2<Integer, Integer>> pointToTuple =
+      Iso.of(p -> Tuple.of(p.x, p.y), t -> new Point(t.get1(), t.get2()));
+  private final Iso<Tuple2<Integer, Integer>, Point> tupleToPoint = pointToTuple.reverse();
+  private final Iso<Point, Point> pointToPoint = pointToTuple.compose(tupleToPoint);
+  private final Iso<Point, Point> identity = Iso.identity();
 
-   private final Point point = new Point(1, 2);
-   private final Tuple2<Integer, Integer> tuple2 = Tuple.of(1, 2);
+  private final Point point = new Point(1, 2);
+  private final Tuple2<Integer, Integer> tuple = Tuple.of(1, 2);
 
-   @Test
-   public void iso() {
-      assertAll(
-         () -> assertEquals(tuple2, pointToTuple.get(point)),
-         () -> assertEquals(point, pointToTuple.set(tuple2)),
-         () -> assertEquals(tuple2, tupleToPoint.set(point)),
-         () -> assertEquals(point, tupleToPoint.get(tuple2)),
-         () -> assertEquals(tuple2, tupleToPoint.reverse().reverse().set(point)),
-         () -> assertEquals(point, tupleToPoint.reverse().reverse().get(tuple2)),
-         () -> assertEquals(point, pointToPoint.set(point)),
-         () -> assertEquals(point, pointToPoint.get(point)),
-         () -> assertEquals(point, identity.set(point)),
-         () -> assertEquals(point, identity.get(point)),
-         () -> assertEquals(new Point(2, 4), pointToTuple.modify(point, tuple -> tuple.map(x -> x + 1, y -> y * 2)))
-      );
-   }
+  @Test
+  public void iso() {
+    assertAll(
+      () -> assertEquals(tuple, pointToTuple.get(point)),
+      () -> assertEquals(point, pointToTuple.set(tuple)),
+      () -> assertEquals(tuple, tupleToPoint.set(point)),
+      () -> assertEquals(point, tupleToPoint.get(tuple)),
+      () -> assertEquals(tuple, tupleToPoint.reverse().reverse().set(point)),
+      () -> assertEquals(point, tupleToPoint.reverse().reverse().get(tuple)),
+      () -> assertEquals(point, pointToPoint.set(point)),
+      () -> assertEquals(point, pointToPoint.get(point)),
+      () -> assertEquals(point, identity.set(point)),
+      () -> assertEquals(point, identity.get(point)),
+      () -> assertEquals(new Point(2, 4), pointToTuple.modify(point, tuple -> tuple.map(x -> x + 1, y -> y * 2)))
+    );
+  }
+
+  @Test
+  public void isoLaws() {
+    assertAll(
+      () -> assertEquals(point, pointToTuple.set(pointToTuple.get(point))),
+      () -> assertEquals(tuple, pointToTuple.get(pointToTuple.set(tuple)))
+    );
+  }
 }

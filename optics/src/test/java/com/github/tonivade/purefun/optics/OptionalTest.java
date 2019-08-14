@@ -4,15 +4,17 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Option;
-import org.junit.jupiter.api.Test;
-
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.zipWithIndex;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 
 public class OptionalTest {
 
@@ -21,19 +23,31 @@ public class OptionalTest {
     target -> target.head().fold(() -> Either.left(target), Either::right)
   );
 
+  private final ImmutableList<String> list12 = ImmutableList.of("1", "2");
+
   @Test
   public void optional() {
     assertAll(
-      () -> assertEquals(Either.right("1"), optionalHead.getOrModify(ImmutableList.of("1", "2"))),
+      () -> assertEquals(Either.right("1"), optionalHead.getOrModify(list12)),
       () -> assertEquals(Either.left(ImmutableList.empty()), optionalHead.getOrModify(ImmutableList.empty())),
-      () -> assertEquals(Option.some("1"), optionalHead.getOption(ImmutableList.of("1", "2"))),
+      () -> assertEquals(Option.some("1"), optionalHead.getOption(list12)),
       () -> assertEquals(Option.none(), optionalHead.getOption(ImmutableList.empty())),
-      () -> assertEquals(ImmutableList.of("3", "2"), optionalHead.set(ImmutableList.of("1", "2"), "3")),
+      () -> assertEquals(ImmutableList.of("3", "2"), optionalHead.set(list12, "3")),
       () -> assertEquals(ImmutableList.empty(), optionalHead.set(ImmutableList.empty(), "3")),
-      () -> assertEquals(ImmutableList.of("11", "2"), optionalHead.modify(ImmutableList.of("1", "2"), a -> a + a)),
+      () -> assertEquals(ImmutableList.of("11", "2"), optionalHead.modify(list12, a -> a + a)),
       () -> assertEquals(ImmutableList.empty(), optionalHead.modify(ImmutableList.empty(), a -> a + a)),
-      () -> assertEquals(Option.some(ImmutableList.of("11", "2")), optionalHead.modifyOption(ImmutableList.of("1", "2"), a -> a + a)),
+      () -> assertEquals(Option.some(ImmutableList.of("11", "2")), optionalHead.modifyOption(list12, a -> a + a)),
       () -> assertEquals(Option.none(), optionalHead.modifyOption(ImmutableList.empty(), a -> a + a))
+    );
+  }
+
+  @Test
+  public void optionalLaws() {
+    assertAll(
+      () -> assertEquals(list12, optionalHead.getOrModify(list12).fold(identity(),
+                                                                       value -> optionalHead.set(list12, value))),
+      () -> assertEquals(optionalHead.getOption(list12).map(ignore -> "3"),
+                         optionalHead.getOption(optionalHead.set(list12, "3")))
     );
   }
 }
