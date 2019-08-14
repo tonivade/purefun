@@ -8,63 +8,57 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Option;
 
 public final class Iso<S, A> {
 
-  private final Function1<S, A> get;
-  private final Function1<A, S> reverseGet;
+  private final PIso<S, S, A, A> delegate;
 
-  private Iso(Function1<S, A> get, Function1<A, S> reverseGet) {
-    this.get = requireNonNull(get);
-    this.reverseGet = requireNonNull(reverseGet);
+  protected Iso(PIso<S, S, A, A> delegate) {
+    this.delegate = requireNonNull(delegate);
   }
 
   public static <S, A> Iso<S, A> of(Function1<S, A> get, Function1<A, S> reverseGet) {
-    return new Iso<>(get, reverseGet);
+    return new Iso<>(PIso.of(get, reverseGet));
   }
 
   public static <S> Iso<S, S> identity() {
-    return new Iso<>(Function1.identity(), Function1.identity());
+    return new Iso<>(PIso.identity());
   }
 
   public Iso<A, S> reverse() {
-    return new Iso<>(reverseGet, get);
+    return new Iso<>(delegate.reverse());
   }
 
   public A get(S target) {
-    return get.apply(target);
+    return delegate.get(target);
   }
 
   public S set(A value) {
-    return reverseGet.apply(value);
+    return delegate.set(value);
   }
 
   public S modify(S target, Operator1<A> mapper) {
-    return lift(mapper).apply(target);
+    return delegate.modify(target, mapper);
   }
 
   public Operator1<S> lift(Operator1<A> mapper) {
-    return mapper.compose(get).andThen(reverseGet)::apply;
+    return delegate.lift(mapper::apply)::apply;
   }
 
   public Lens<S, A> asLens() {
-    return Lens.of(this.get, (target, value) -> this.set(value));
+    return new Lens<>(delegate.asLens());
   }
 
   public Prism<S, A> asPrism() {
-    return Prism.of(this.get.andThen(Option::some), reverseGet);
+    return new Prism<>(delegate.asPrism());
   }
 
   public Optional<S, A> asOptional() {
-    return Optional.of((target, value) -> this.set(value), this.get.andThen(Either::right));
+    return new Optional<>(delegate.asOptional());
   }
 
   public <B> Iso<S, B> compose(Iso<A, B> other) {
-    return new Iso<>(
-        this.get.andThen(other.get),
-        this.reverseGet.compose(other.reverseGet));
+    return new Iso<>(delegate.compose(other.delegate));
   }
 
   public <B> Lens<S, B> compose(Lens<A, B> other) {

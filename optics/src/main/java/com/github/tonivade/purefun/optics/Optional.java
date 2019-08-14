@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
@@ -15,50 +14,46 @@ import com.github.tonivade.purefun.type.Option;
 
 public final class Optional<S, A> {
 
-  private final Function1<S, Function1<A, S>> set;
-  private final Function1<S, Either<S, A>> getOrModify;
+  private final POptional<S, S, A, A> delegate;
 
-  private Optional(Function1<S, Function1<A, S>> set, Function1<S, Either<S, A>> getOrModify) {
-    this.set = requireNonNull(set);
-    this.getOrModify = requireNonNull(getOrModify);
+  protected Optional(POptional<S, S, A, A> delegate) {
+    this.delegate = requireNonNull(delegate);
   }
 
   public static <S, A> Optional<S, A> of(Function2<S, A, S> set, Function1<S, Either<S, A>> getOrModify) {
-    return new Optional<>(set.curried(), getOrModify);
+    return new Optional<>(POptional.of(set, getOrModify));
   }
 
   public Function1<A, S> set(S target) {
-    return set.apply(target);
+    return delegate.set(target);
   }
 
   public S set(S target, A value) {
-    return set(target).apply(value);
+    return delegate.set(target, value);
   }
 
   public Either<S, A> getOrModify(S target) {
-    return getOrModify.apply(target);
+    return delegate.getOrModify(target);
   }
 
   public Option<A> getOption(S target) {
-    return getOrModify(target).toOption();
+    return delegate.getOption(target);
   }
 
   public Operator1<S> lift(Operator1<A> mapper) {
-    return target -> modify(target, mapper);
+    return delegate.lift(mapper)::apply;
   }
 
   public S modify(S target, Operator1<A> mapper) {
-    return getOrModify(target).fold(identity(), value -> set(target, mapper.apply(value)));
+    return delegate.modify(target, mapper);
   }
 
   public Option<S> modifyOption(S target, Operator1<A> mapper) {
-    return getOption(target).map(value -> set(target, mapper.apply(value)));
+    return delegate.modifyOption(target, mapper);
   }
 
   public <B> Optional<S, B> compose(Optional<A, B> other) {
-    return new Optional<>(
-        target -> value -> this.modify(target, a -> other.set(a, value)),
-        target -> this.getOrModify(target).flatMap(a -> other.getOrModify(a).bimap(b -> this.set(target, b), identity())) );
+    return new Optional<>(delegate.compose(other.delegate));
   }
 
   public <B> Optional<S, B> compose(Iso<A, B> other) {

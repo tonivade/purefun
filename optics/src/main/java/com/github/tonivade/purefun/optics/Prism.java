@@ -5,7 +5,8 @@
 package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+
+import java.util.Objects;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
@@ -14,62 +15,58 @@ import com.github.tonivade.purefun.type.Option;
 
 public final class Prism<S, A> {
 
-  private final Function1<S, Option<A>> getOption;
-  private final Function1<A, S> reverseGet;
+  private final PPrism<S, S, A, A> delegate;
 
-  private Prism(Function1<S, Option<A>> getOption, Function1<A, S> reverseGet) {
-    this.getOption = requireNonNull(getOption);
-    this.reverseGet = requireNonNull(reverseGet);
+  protected Prism(PPrism<S, S, A, A> delegate) {
+    this.delegate = Objects.requireNonNull(delegate);
   }
 
   public static <S, A> Prism<S, A> of(Function1<S, Option<A>> getOption, Function1<A, S> reverseGet) {
-    return new Prism<>(getOption, reverseGet);
+    return new Prism<>(PPrism.of((S target) -> getOption.apply(target).fold(cons(Either.left(target)), Either::right), reverseGet));
   }
 
   public Option<A> getOption(S target) {
-    return getOption.apply(target);
+    return delegate.getOption(target);
   }
 
   public S reverseGet(A value) {
-    return reverseGet.apply(value);
+    return delegate.reverseGet(value);
   }
 
   public Either<S, A> getOrModify(S target) {
-    return getOption(target).fold(cons(Either.left(target)), Either::right);
+    return delegate.getOrModify(target);
   }
 
   public Operator1<S> modify(Operator1<A> mapper) {
-    return target -> modifyOption(mapper).apply(target).getOrElse(target);
+    return delegate.modify(mapper)::apply;
   }
 
   public S modify(S target, Operator1<A> mapper) {
-    return modify(mapper).apply(target);
+    return delegate.modify(target, mapper);
   }
 
   public Operator1<S> set(A value) {
-    return modify(ignore -> value);
+    return delegate.set(value)::apply;
   }
 
   public S set(S target, A value) {
-    return set(value).apply(target);
+    return delegate.set(target, value);
   }
 
   public Function1<S, Option<S>> modifyOption(Operator1<A> mapper) {
-    return target -> getOption(target).map(mapper).map(reverseGet);
+    return delegate.modifyOption(mapper);
   }
 
   public Function1<S, Option<S>> setOption(A value) {
-    return modifyOption(ignore -> value);
+    return delegate.setOption(value);
   }
 
   public Optional<S, A> asOptional() {
-    return Optional.of(this::set, this::getOrModify);
+    return new Optional<>(delegate.asOptional());
   }
 
   public <B> Prism<S, B> compose(Prism<A, B> other) {
-    return new Prism<>(
-        target -> this.getOption(target).flatMap(other::getOption),
-        value -> this.reverseGet(other.reverseGet(value)));
+    return new Prism<>(delegate.compose(other.delegate));
   }
 
   public <B> Optional<S, B> compose(Optional<A, B> other) {
