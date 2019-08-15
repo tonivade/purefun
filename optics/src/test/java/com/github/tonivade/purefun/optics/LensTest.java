@@ -4,11 +4,15 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static com.github.tonivade.purefun.Producer.cons;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Objects;
 
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Equal;

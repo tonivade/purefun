@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
@@ -20,8 +21,8 @@ public final class Optional<S, A> {
     this.delegate = requireNonNull(delegate);
   }
 
-  public static <S, A> Optional<S, A> of(Function2<S, A, S> set, Function1<S, Either<S, A>> getOrModify) {
-    return new Optional<>(POptional.of(set, getOrModify));
+  public static <S, A> Optional<S, A> of(Function2<S, A, S> set, Function1<S, Option<A>> getOption) {
+    return new Optional<>(POptional.of(set, target -> getOption.apply(target).fold(cons(Either.left(target)), Either::right)));
   }
 
   public Function1<A, S> set(S target) {

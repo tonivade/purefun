@@ -20,7 +20,7 @@ public class OptionalTest {
 
   private final Optional<ImmutableList<String>, String> optionalHead = Optional.of(
     (target, value) -> zipWithIndex(target).map(tuple -> tuple.get2() == 0 ? value : tuple.get1()).collect(toImmutableList()),
-    target -> target.head().fold(() -> Either.left(target), Either::right)
+    target -> target.head()
   );
 
   private final ImmutableList<String> list12 = ImmutableList.of("1", "2");
@@ -39,6 +39,19 @@ public class OptionalTest {
       () -> assertEquals(Option.some(ImmutableList.of("11", "2")), optionalHead.modifyOption(list12, a -> a + a)),
       () -> assertEquals(Option.none(), optionalHead.modifyOption(ImmutableList.empty(), a -> a + a))
     );
+  }
+
+  @Test
+  public void employee() {
+    Optional<Employee, Address> addressOptional = Optional.of(
+      Employee::withAddress, employee -> Option.of(employee::getAddress)
+    );
+
+    Address madrid = new Address("Madrid");
+    Employee pepe = new Employee("pepe", null);
+
+    assertEquals(Option.none(), addressOptional.getOption(pepe));
+    assertEquals(Option.some(madrid), addressOptional.getOption(addressOptional.set(pepe, madrid)));
   }
 
   @Test

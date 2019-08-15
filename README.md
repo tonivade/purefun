@@ -114,11 +114,11 @@ Valdation<Sequence<String>, Person> person = Validation.map2(name, email, Person
 A object with a phantom parameter:
 
 ```java
-  Const<String, Integer> constInt = Const.of("Hello world!");
+Const<String, Integer> constInt = Const.of("Hello world!");
 
-  Const<String, Float> constFloat = constInt.retag();
+Const<String, Float> constFloat = constInt.retag();
 
-  assertEquals("Hello world!", constFloat.value());
+assertEquals("Hello world!", constFloat.value());
 ```
 
 ### Future
@@ -126,11 +126,11 @@ A object with a phantom parameter:
 This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
 
 ```java
-  Future<String> future = Future.success("Hello world!");
+Future<String> future = Future.success("Hello world!");
 
-  Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
-  assertEquals(Try.success("HELLO WORLD!"), result.await());
+assertEquals(Try.success("HELLO WORLD!"), result.await());
 ```
 
 ### Tuples
@@ -224,12 +224,12 @@ assertAll(() -> assertEquals(Integer.valueOf(20), writer.getValue()),
 This is a experimental implementation of IO Monad in java. Inspired in this [work](https://gist.github.com/joergrathlev/f17092d3470dcf732be6).
 
 ```java
-  IO<Unit> echo = Console.print("write your name")
-      .andThen(Console.read())
-      .flatMap(name -> Console.print("Hello " + name))
-      .andThen(Console.print("end"));
+IO<Unit> echo = Console.print("write your name")
+  .andThen(Console.read())
+  .flatMap(name -> Console.print("Hello " + name))
+  .andThen(Console.print("end"));
 
-  echo.unsafeRunSync();
+echo.unsafeRunSync();
 ```
 
 ### Trampoline
@@ -237,12 +237,12 @@ This is a experimental implementation of IO Monad in java. Inspired in this [wor
 Implements recursion using an iteration and is stack safe.
 
 ```java
-  private Trampoline<Integer> fibLoop(Integer n) {
-    if (n < 2) {
-      return Trampoline.done(n);
-    }
-    return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -> x + y));
-  }
+private Trampoline<Integer> fibLoop(Integer n) {
+if (n < 2) {
+  return Trampoline.done(n);
+}
+return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -> x + y));
+}
 ```
 
 ## Free Monad
@@ -252,17 +252,17 @@ inestable implementation and I have implemented because it can be implemented. I
 in this [work](https://github.com/xuwei-k/free-monad-java).
 
 ```java
-  Free<IOProgram.µ, Unit> echo =
-      IOProgram.write("what's your name?")
-        .andThen(IOProgram.read())
-        .flatMap(text -> IOProgram.write("Hello " + text))
-        .andThen(IOProgram.write("end"));
+Free<IOProgram.µ, Unit> echo =
+  IOProgram.write("what's your name?")
+    .andThen(IOProgram.read())
+    .flatMap(text -> IOProgram.write("Hello " + text))
+    .andThen(IOProgram.write("end"));
 
-  Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(),
-                                            new IOProgramFunctor(),
-                                            new IOProgramInterperter());
+Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(),
+                                        new IOProgramFunctor(),
+                                        new IOProgramInterperter());
 
-  IO.narrowK(foldMap).unsafeRunSync();
+IO.narrowK(foldMap).unsafeRunSync();
 ```
 
 ## Monad Transformers
@@ -272,11 +272,11 @@ in this [work](https://github.com/xuwei-k/free-monad-java).
 Monad Transformer for `Option` type
 
 ```java
-  OptionT<IO.µ, String> some = OptionT.some(IO.monad(), "abc");
+OptionT<IO.µ, String> some = OptionT.some(IO.monad(), "abc");
 
-  OptionT<IO.µ, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
+OptionT<IO.µ, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
 
-  assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
 ```
 
 ### EitherT
@@ -284,11 +284,11 @@ Monad Transformer for `Option` type
 Monad Transformer for `Either` type
 
 ```java
-  EitherT<IO.µ, Nothing, String> right = EitherT.right(IO.monad(), "abc");
+EitherT<IO.µ, Nothing, String> right = EitherT.right(IO.monad(), "abc");
 
-  EitherT<IO.µ, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
+EitherT<IO.µ, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
 
-  assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
 ```
 
 ### StateT
@@ -296,12 +296,12 @@ Monad Transformer for `Either` type
 Monad Transformer for `State` type
 
 ```java
-  StateT<IO.µ, ImmutableList<String>, Unit> state =
-      pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
+StateT<IO.µ, ImmutableList<String>, Unit> state =
+  pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-  IO<Tuple2<ImmutableList<String>, Unit>> result = IO.narrowK(state.run(ImmutableList.empty()));
+IO<Tuple2<ImmutableList<String>, Unit>> result = IO.narrowK(state.run(ImmutableList.empty()));
 
-  assertEquals(Tuple.of(listOf("a", "b", "c"), nothing()), result.unsafeRunSync());
+assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
 ```
 
 ### WriterT
@@ -309,13 +309,13 @@ Monad Transformer for `State` type
 Monad Transformer for `Writer` type
 
 ```java
-    WriterT<Id.µ, Sequence<String>, Integer> writer =
-        WriterT.<Id.µ, Sequence<String>, Integer>pure(monoid, monad, 5)
-        .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("add 5"), value + 5)))
-        .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("plus 2"), value * 2)));
+WriterT<Id.µ, Sequence<String>, Integer> writer =
+    WriterT.<Id.µ, Sequence<String>, Integer>pure(monoid, monad, 5)
+    .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("add 5"), value + 5)))
+    .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("plus 2"), value * 2)));
 
-    assertAll(() -> assertEquals(Id.of(Integer.valueOf(20)), writer.getValue()),
-              () -> assertEquals(Id.of(listOf("add 5", "plus 2")), writer.getLog()));
+assertAll(() -> assertEquals(Id.of(Integer.valueOf(20)), writer.getValue()),
+          () -> assertEquals(Id.of(listOf("add 5", "plus 2")), writer.getLog()));
 ```
 
 ### Kleisli
@@ -323,12 +323,12 @@ Monad Transformer for `Writer` type
 Also I implemented the Kleisli composition for functions that returns monadic values like `Option`, `Try` or `Either`.
 
 ```java
-  Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
-  Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
+Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
+Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
 
-  Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
+Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
 
-  assertEquals(Try.success(61.5), result);
+assertEquals(Try.success(61.5), result);
 ```
 
 ## Stream
@@ -336,17 +336,17 @@ Also I implemented the Kleisli composition for functions that returns monadic va
 An experimental version of a `Stream` like scala fs2 project.
 
 ```java
-    StreamOf<IO.µ> streamOfIO = Stream.ofIO();
+StreamOf<IO.µ> streamOfIO = Stream.ofIO();
 
-    IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
-      .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
-      .takeWhile(Option::isPresent)
-      .map(Option::get)
-      .foldLeft("", (a, b) -> a + "\n" + b)
-      .fix1(IO::narrowK)
-      .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
+IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
+  .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
+  .takeWhile(Option::isPresent)
+  .map(Option::get)
+  .foldLeft("", (a, b) -> a + "\n" + b)
+  .fix1(IO::narrowK)
+  .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
 
-    String content = readFile.unsafeRunSync();
+String content = readFile.unsafeRunSync();
 ```
 
 ## ZIO
@@ -622,18 +622,109 @@ public interface Transformer<F extends Kind, G extends Kind> {
 }
 ```
 
+## Optics
+
+```
+         __Iso__
+        /       \
+    Lens        Prism
+        \       /
+         Optional
+```
+
+### Iso
+
+An `Iso` is an optic which converts elements of some type into elements of other type without loss.
+In other words, it's **isomorphic**.
+
+```java
+Point point = new Point(1, 2);
+
+Iso<Point, Tuple2<Integer, Integer>> pointToTuple = 
+  Iso.of(p -> Tuple.of(p.x, p.y), 
+         t -> new Point(t.get1(), t.get2()));
+
+assertEquals(point, pointToTuple.set(pointToTuple.get(point)));
+```
+
+### Lens
+
+A `Lens` is an optic used to zoom inside a structure. In other words, it's an abstraction of a setter and a getter 
+but with immutable objects.
+
+```java
+Lens<Employee, String> nameLens = Lens.of(Employee::getName, Employee::withName);
+
+Employee pepe = new Employee("pepe");
+
+assertEquals("pepe", nameLens.get(pepe));
+assertEquals("paco", nameLens.get(nameLens.set(pepe, "paco")));
+```
+
+We can compose Lenses to get deeper inside. For example, if we add an attribute of type `Address` into `Employee`.
+We can create a lens to access the city name of the address of the employee.
+
+```java
+Lens<Employee, Address> addressLens = Lens.of(Employee::getAddress, Employee::withAddress);
+Lens<Address, String> cityLens = Lens.of(Address::getCity, Address::withCity);
+Lens<Employee, String> cityAddressLens = addressLens.compose(cityLens);
+
+Employee pepe = new Employee("pepe", new Address("Madrid"));
+
+assertEquals("Madrid", cityAddressLens.get(pepe));
+```
+
+### Prism
+
+A `Prism` is a lossless invertible optic that can see into a structure and optionally find a value. 
+
+```java
+Function1<String, Option<Integer>> parseInt = ...; // is a method that only returns a value when the string can be parsed
+
+Prism<String, Integer> stringToInteger = Prism.of(parseInt, String::valueOf);
+
+assertEquals(Option.some(5), stringToInteger.getOption("5"));
+assertEquals(Option.none(), stringToInteger.getOption("a"));
+assertEquals("5", stringToInteger.reverseGet(5));
+```
+
+### Optional
+
+An `Optional` is an optic that allows to see into a structure and getting, setting like a `Lens` an optional find a value like a `Prism`.
+
+```java
+Optional<Employee, Address> addressOptional = Optional.of(
+  Employee::withAddress, employee -> Option.of(employee::getAddress)
+);
+
+Address madrid = new Address("Madrid");
+Employee pepe = new Employee("pepe", null);
+
+assertEquals(Option.none(), addressOptional.getOption(pepe));
+assertEquals(Option.some(madrid), addressOptional.getOption(addressOptional.set(pepe, madrid)));
+```
+
+### Composition
+
+|  | Optional | Prism | Lens | Iso |
+|------|------|-------|-------|-------|
+| Optional | Optional | Optional | Optional | Optional |
+| Prism | Optional | Prism | Optional | Prism |
+| Lens | Optional | Optional | Lens | Lens |
+| Iso | Optional | Prism | Lens | Iso |
+
 ## Equal
 
 This class helps to create readable `equals` methods. An example:
 
 ```java
-  @Override
-  public boolean equals(Object obj) {
-    return Equal.of(this)
-        .comparing(Data::getId)
-        .comparing(Data::getValue)
-        .applyTo(obj);
-  }
+@Override
+public boolean equals(Object obj) {
+  return Equal.of(this)
+    .comparing(Data::getId)
+    .comparing(Data::getValue)
+    .applyTo(obj);
+}
 ```
 
 ## License
