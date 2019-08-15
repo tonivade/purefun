@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
@@ -46,7 +47,7 @@ public final class PPrism<S, T, A, B> {
   }
 
   public Function1<S, T> set(B value) {
-    return modify(ignore -> value);
+    return modify(cons(value));
   }
 
   public T set(S target, B value) {

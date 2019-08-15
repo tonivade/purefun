@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
@@ -41,7 +42,7 @@ public final class PLens<S, T, A, B> {
   }
 
   public Function1<S, T> modify(B newValue) {
-    return modify(ignore -> newValue);
+    return modify(cons(newValue));
   }
 
   public POptional<S, T, A, B> asOptional() {
