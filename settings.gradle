@@ -1,3 +1,3 @@
 rootProject.name = 'purefun-parent'
 
-include "core", "monad", "stream", "typeclasses", "optics", "zio", "free", "transformer", "instances", "kind:annotation", "kind:processor"
+include "core", "monad", "stream", "typeclasses", "optics", "zio", "free", "transformer", "instances", "kind:annotation", "kind:processor", "generic"
