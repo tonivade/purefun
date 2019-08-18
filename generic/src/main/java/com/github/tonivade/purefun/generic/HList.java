@@ -10,6 +10,11 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Tuple1;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Tuple3;
+import com.github.tonivade.purefun.Tuple4;
+import com.github.tonivade.purefun.Tuple5;
 
 public interface HList<L extends HList<L>> {
 
@@ -58,6 +63,26 @@ public interface HList<L extends HList<L>> {
     return empty().prepend(element5).prepend(element4).prepend(element3).prepend(element2).prepend(element1);
   }
 
+  static <A> HCons<A, HNil> from(Tuple1<A> tuple) {
+    return tuple.applyTo(HList::of);
+  }
+
+  static <A, B> HCons<A, HCons<B, HNil>> from(Tuple2<A, B> tuple) {
+    return tuple.applyTo(HList::of);
+  }
+
+  static <A, B, C> HCons<A, HCons<B, HCons<C, HNil>>> from(Tuple3<A, B, C> tuple) {
+    return tuple.applyTo(HList::of);
+  }
+
+  static <A, B, C, D> HCons<A, HCons<B, HCons<C, HCons<D, HNil>>>> from(Tuple4<A, B, C, D> tuple) {
+    return tuple.applyTo(HList::of);
+  }
+
+  static <A, B, C, D, E> HCons<A, HCons<B, HCons<C, HCons<D, HCons<E, HNil>>>>> from(Tuple5<A, B, C, D, E> tuple) {
+    return tuple.applyTo(HList::of);
+  }
+
   static <L extends HList<L>> HAppend<HNil, L, L> append() {
     return new HAppend<>((empty, left) -> left);
   }
@@ -80,7 +105,7 @@ public interface HList<L extends HList<L>> {
 
     @Override
     public <E> HCons<E, HNil> prepend(E element) {
-      return HList.cons(element, this);
+      return cons(element, this);
     }
 
     @Override
@@ -129,7 +154,7 @@ public interface HList<L extends HList<L>> {
 
     @Override
     public <E> HCons<E, HCons<H, T>> prepend(E element) {
-      return HList.cons(element, this);
+      return cons(element, this);
     }
 
     @Override

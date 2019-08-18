@@ -39,6 +39,10 @@ public final class Tuple1<A> implements Tuple, Serializable {
     return new Tuple1<>(value1);
   }
 
+  public <R> R applyTo(Function1<A, R> function) {
+    return function.apply(value1);
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(value1);

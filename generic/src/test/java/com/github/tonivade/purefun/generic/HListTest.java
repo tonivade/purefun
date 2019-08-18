@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.generic;
 
 import static com.github.tonivade.purefun.generic.HList.append;
-import static com.github.tonivade.purefun.generic.HList.cons;
 import static com.github.tonivade.purefun.generic.HList.empty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.generic.HList.HAppend;
 import com.github.tonivade.purefun.generic.HList.HCons;
 import com.github.tonivade.purefun.generic.HList.HNil;
@@ -22,6 +23,7 @@ public class HListTest {
 
   @Test
   public void consTest() {
+    Tuple2<String, Integer> tuple = Tuple.of("Hola", 42);
     HCons<String, HCons<Integer, HNil>> hlist = HList.of("Hola", 42);
 
     assertAll(
@@ -30,7 +32,7 @@ public class HListTest {
         () -> assertEquals(empty(), hlist.tail().tail()),
         () -> assertEquals(2, hlist.size()),
         () -> assertFalse(hlist.isEmpty()),
-        () -> assertEquals(cons("Hola", cons(42, empty())), hlist),
+        () -> assertEquals(HList.from(tuple), hlist),
         () -> assertEquals("HCons(Hola,HCons(42,HNil))", hlist.toString())
       );
   }
