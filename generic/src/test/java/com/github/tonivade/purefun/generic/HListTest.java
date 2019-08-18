@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.generic;
 
 import static com.github.tonivade.purefun.generic.HList.append;
 import static com.github.tonivade.purefun.generic.HList.empty;
+import static com.github.tonivade.purefun.type.Option.none;
+import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -32,6 +34,8 @@ public class HListTest {
         () -> assertEquals(empty(), hlist.tail().tail()),
         () -> assertEquals(2, hlist.size()),
         () -> assertFalse(hlist.isEmpty()),
+        () -> assertEquals(some("Hola"), hlist.find(String.class)),
+        () -> assertEquals(none(), hlist.find(Void.class)),
         () -> assertEquals(HList.from(tuple), hlist),
         () -> assertEquals("HCons(Hola,HCons(42,HNil))", hlist.toString())
       );
@@ -45,6 +49,7 @@ public class HListTest {
         () -> assertEquals(0, hlist.size()),
         () -> assertTrue(hlist.isEmpty()),
         () -> assertEquals(empty(), hlist),
+        () -> assertEquals(none(), hlist.find(String.class)),
         () -> assertEquals("HNil", hlist.toString())
       );
   }

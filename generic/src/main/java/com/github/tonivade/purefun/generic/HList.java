@@ -15,12 +15,15 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
 import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
+import com.github.tonivade.purefun.type.Option;
 
 public interface HList<L extends HList<L>> {
 
   int size();
 
   <E> HCons<E, L> prepend(E element);
+
+  <E> Option<E> find(Class<? extends E> clazz);
 
   HListModule getModule();
 
@@ -109,6 +112,11 @@ public interface HList<L extends HList<L>> {
     }
 
     @Override
+    public <E> Option<E> find(Class<? extends E> clazz) {
+      return Option.none();
+    }
+
+    @Override
     public HListModule getModule() {
       throw new UnsupportedOperationException();
     }
@@ -145,6 +153,14 @@ public interface HList<L extends HList<L>> {
     @Override
     public <E> HCons<E, HCons<H, T>> prepend(E element) {
       return cons(element, this);
+    }
+
+    @Override
+    public <E> Option<E> find(Class<? extends E> clazz) {
+      if (clazz.isInstance(head)) {
+        return Option.some(clazz.cast(head));
+      }
+      return tail.find(clazz);
     }
 
     @Override
