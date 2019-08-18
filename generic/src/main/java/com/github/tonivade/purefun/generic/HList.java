@@ -11,32 +11,82 @@ import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function2;
 
-public class HList<L extends HList<L>> {
+public interface HList<L extends HList<L>> {
 
-  private HList() {}
+  int size();
 
-  public static HNil nil() {
+  <E> HCons<E, L> prepend(E element);
+
+  HListModule getModule();
+
+  default boolean isEmpty() {
+    return size() == 0;
+  }
+
+  static HNil empty() {
     return HNil.INSTANCE;
   }
 
-  public static <E, L extends HList<L>> HCons<E, L> cons(E element, L list) {
+  static <E, L extends HList<L>> HCons<E, L> cons(E element, L list) {
     return new HCons<>(element, list);
   }
 
-  public static <L extends HList<L>> HAppend<HNil, L, L> append() {
-    return new HAppend<>((hnil, left) -> left);
+  static <A> HCons<A, HNil> of(A element) {
+    return empty().prepend(element);
   }
 
-  public static <E, L extends HList<L>, R extends HList<R>, X extends HList<X>>
+  static <A, B> HCons<A, HCons<B, HNil>> of(A element1, B element2) {
+    return empty().prepend(element2).prepend(element1);
+  }
+
+  static <A, B, C> HCons<A, HCons<B, HCons<C, HNil>>> of(A element1, B element2, C element3) {
+    return empty().prepend(element3).prepend(element2).prepend(element1);
+  }
+
+  static <A, B, C, D> HCons<A, HCons<B, HCons<C, HCons<D, HNil>>>> of(A element1,
+                                                                      B element2,
+                                                                      C element3,
+                                                                      D element4) {
+    return empty().prepend(element4).prepend(element3).prepend(element2).prepend(element1);
+  }
+
+  static <A, B, C, D, E> HCons<A, HCons<B, HCons<C, HCons<D, HCons<E, HNil>>>>> of(A element1,
+                                                                                   B element2,
+                                                                                   C element3,
+                                                                                   D element4,
+                                                                                   E element5) {
+    return empty().prepend(element5).prepend(element4).prepend(element3).prepend(element2).prepend(element1);
+  }
+
+  static <L extends HList<L>> HAppend<HNil, L, L> append() {
+    return new HAppend<>((empty, left) -> left);
+  }
+
+  static <E, L extends HList<L>, R extends HList<R>, X extends HList<X>>
       HAppend<HCons<E, L>, R, HCons<E, X>> append(HAppend<L, R, X> append) {
     return new HAppend<>((left, right) -> cons(left.head(), append.append(left.tail(), right)));
   }
 
-  public static final class HNil extends HList<HNil> {
+  public static final class HNil implements HList<HNil> {
 
     private static final HNil INSTANCE = new HNil();
 
-    private HNil() { }
+    private HNil() {}
+
+    @Override
+    public int size() {
+      return 0;
+    }
+
+    @Override
+    public <E> HCons<E, HNil> prepend(E element) {
+      return HList.cons(element, this);
+    }
+
+    @Override
+    public HListModule getModule() {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public int hashCode() {
@@ -54,22 +104,37 @@ public class HList<L extends HList<L>> {
     }
   }
 
-  public static final class HCons<E, L extends HList<L>> extends HList<HCons<E, L>> {
+  public static final class HCons<H, T extends HList<T>> implements HList<HCons<H, T>> {
 
-    private final E head;
-    private final L tail;
+    private final H head;
+    private final T tail;
 
-    private HCons(E head, L tail) {
+    private HCons(H head, T tail) {
       this.head = requireNonNull(head);
       this.tail = requireNonNull(tail);
     }
 
-    public E head() {
+    public H head() {
       return head;
     }
 
-    public L tail() {
+    public T tail() {
       return tail;
+    }
+
+    @Override
+    public int size() {
+      return 1 + tail.size();
+    }
+
+    @Override
+    public <E> HCons<E, HCons<H, T>> prepend(E element) {
+      return HList.cons(element, this);
+    }
+
+    @Override
+    public HListModule getModule() {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -104,3 +169,5 @@ public class HList<L extends HList<L>> {
     }
   }
 }
+
+interface HListModule {}

@@ -6,9 +6,11 @@ package com.github.tonivade.purefun.generic;
 
 import static com.github.tonivade.purefun.generic.HList.append;
 import static com.github.tonivade.purefun.generic.HList.cons;
-import static com.github.tonivade.purefun.generic.HList.nil;
+import static com.github.tonivade.purefun.generic.HList.empty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,22 +21,36 @@ import com.github.tonivade.purefun.generic.HList.HNil;
 public class HListTest {
 
   @Test
-  public void hlist() {
-    HCons<String, HCons<Integer, HNil>> hlist = cons("Hola", cons(42, nil()));
+  public void consTest() {
+    HCons<String, HCons<Integer, HNil>> hlist = HList.of("Hola", 42);
 
     assertAll(
         () -> assertEquals("Hola", hlist.head()),
         () -> assertEquals(42, hlist.tail().head()),
-        () -> assertEquals(nil(), hlist.tail().tail()),
-        () -> assertEquals(cons("Hola", cons(42, nil())), hlist),
+        () -> assertEquals(empty(), hlist.tail().tail()),
+        () -> assertEquals(2, hlist.size()),
+        () -> assertFalse(hlist.isEmpty()),
+        () -> assertEquals(cons("Hola", cons(42, empty())), hlist),
         () -> assertEquals("HCons(Hola,HCons(42,HNil))", hlist.toString())
       );
   }
 
   @Test
+  public void emptyTest() {
+    HNil hlist = empty();
+
+    assertAll(
+        () -> assertEquals(0, hlist.size()),
+        () -> assertTrue(hlist.isEmpty()),
+        () -> assertEquals(empty(), hlist),
+        () -> assertEquals("HNil", hlist.toString())
+      );
+  }
+
+  @Test
   public void appendLists() {
-    HCons<Boolean, HNil> alist = cons(true, nil());
-    HCons<String, HCons<Integer, HNil>> blist = cons("Hola", cons(42, nil()));
+    HCons<Boolean, HNil> alist = HList.of(true);
+    HCons<String, HCons<Integer, HNil>> blist = HList.of("Hola", 42);
 
     HAppend<HNil,
             HCons<String, HCons<Integer, HNil>>,
@@ -49,7 +65,7 @@ public class HListTest {
         () -> assertEquals(true, append.head()),
         () -> assertEquals("Hola", append.tail().head()),
         () -> assertEquals(42, append.tail().tail().head()),
-        () -> assertEquals(nil(), append.tail().tail().tail()),
+        () -> assertEquals(empty(), append.tail().tail().tail()),
         () -> assertEquals("HCons(true,HCons(Hola,HCons(42,HNil)))", append.toString())
       );
   }
