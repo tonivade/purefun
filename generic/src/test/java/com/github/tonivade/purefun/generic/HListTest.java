@@ -4,8 +4,12 @@
  */
 package com.github.tonivade.purefun.generic;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.generic.HList.append;
+import static com.github.tonivade.purefun.generic.HList.compose;
 import static com.github.tonivade.purefun.generic.HList.empty;
+import static com.github.tonivade.purefun.generic.HList.foldr;
 import static com.github.tonivade.purefun.type.Option.none;
 import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -15,10 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.generic.HList.HAppend;
 import com.github.tonivade.purefun.generic.HList.HCons;
+import com.github.tonivade.purefun.generic.HList.HFoldr;
 import com.github.tonivade.purefun.generic.HList.HNil;
 
 public class HListTest {
@@ -75,5 +82,20 @@ public class HListTest {
         () -> assertEquals(empty(), append.tail().tail().tail()),
         () -> assertEquals("HCons(true,HCons(Hola,HCons(42,HNil)))", append.toString())
       );
+  }
+
+  @Test
+  public void foldrLists() {
+    HCons<Function1<String, Integer>, HCons<Function1<Integer, Integer>, HCons<Function1<Integer, Integer>, HNil>>> hlist =
+        HList.of(String::length, length -> length + 1, sum -> sum * 2);
+
+    HFoldr<Unit,
+           Function1<Integer, Integer>,
+           HCons<Function1<String, Integer>, HCons<Function1<Integer, Integer>, HCons<Function1<Integer, Integer>, HNil>>>,
+           Function1<String, Integer>> foldr = foldr(compose(), foldr(compose(), foldr(compose(), foldr())));
+
+    Function1<String, Integer> apply = foldr.foldr(unit(), identity(), hlist);
+
+    assertEquals(("abcde".length() + 1) * 2, apply.apply("abcde"));
   }
 }

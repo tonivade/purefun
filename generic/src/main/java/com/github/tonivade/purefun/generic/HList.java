@@ -9,12 +9,13 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
 import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Option;
 
 public interface HList<L extends HList<L>> {
@@ -87,12 +88,34 @@ public interface HList<L extends HList<L>> {
   }
 
   static <L extends HList<L>> HAppend<HNil, L, L> append() {
-    return new HAppend<>((empty, left) -> left);
+    return (empty, right) -> right;
   }
 
   static <E, L extends HList<L>, R extends HList<R>, X extends HList<X>>
       HAppend<HCons<E, L>, R, HCons<E, X>> append(HAppend<L, R, X> append) {
-    return new HAppend<>((left, right) -> cons(left.head(), append.append(left.tail(), right)));
+    return (left, right) -> cons(left.head(), append.append(left.tail(), right));
+  }
+
+  static <E, V> HFoldr<E, V, HNil, V> foldr() {
+    return (head, value, list) -> value;
+  }
+
+  static <F, E, V, L extends HList<L>, R, X> HFoldr<E, V, HCons<F, L>, X>
+      foldr(HApply<E, Tuple2<F, R>, X> apply, HFoldr<E, V, L, R> foldr) {
+    return (head, value, list) ->
+      apply.apply(head, Tuple2.of(list.head(), foldr.foldr(head, value, list.tail())));
+  }
+
+  static <A, B> HApply<Function1<A, B>, A, B> function() {
+    return (function, value) -> function.apply(value);
+  }
+
+  static <A> HApply<Unit, A, A> identity() {
+    return (unit, value) -> value;
+  }
+
+  static <A, B, C> HApply<Unit, Tuple2<Function1<A, B>, Function1<B, C>>, Function1<A, C>> compose() {
+    return (unit, tuple) -> tuple.get1().andThen(tuple.get2());
   }
 
   public static final class HNil implements HList<HNil> {
@@ -187,17 +210,19 @@ public interface HList<L extends HList<L>> {
     }
   }
 
-  public static final class HAppend<L extends HList<L>, R extends HList<R>, X extends HList<X>> {
+  public static interface HAppend<L extends HList<L>, R extends HList<R>, X extends HList<X>> {
 
-    private final Function2<L, R, X> append;
+    X append(L left, R right);
+  }
 
-    public HAppend(Function2<L, R, X> append) {
-      this.append = requireNonNull(append);
-    }
+  public static interface HFoldr<T, V, L extends HList<L>, R> {
 
-    public X append(L left, R right) {
-      return append.apply(left, right);
-    }
+    R foldr(T value, V initialValue, L list);
+  }
+
+  public static interface HApply<F, A, R> {
+
+    R apply(F context, A value);
   }
 }
 
