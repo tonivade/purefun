@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.generic;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.generic.HList.append;
+import static com.github.tonivade.purefun.generic.HList.combine;
 import static com.github.tonivade.purefun.generic.HList.compose;
 import static com.github.tonivade.purefun.generic.HList.empty;
 import static com.github.tonivade.purefun.generic.HList.foldr;
@@ -85,7 +86,7 @@ public class HListTest {
   }
 
   @Test
-  public void foldrLists() {
+  public void foldrListsWithFunctions() {
     HCons<Function1<String, Integer>, HCons<Function1<Integer, Integer>, HCons<Function1<Integer, Integer>, HNil>>> hlist =
         HList.of(String::length, length -> length + 1, sum -> sum * 2);
 
@@ -97,5 +98,15 @@ public class HListTest {
     Function1<String, Integer> apply = foldr.foldr(unit(), identity(), hlist);
 
     assertEquals(("abcde".length() + 1) * 2, apply.apply("abcde"));
+  }
+
+  @Test
+  public void foldrListsWithData() {
+    HCons<String, HCons<Integer, HNil>> hlist = HList.of("Hola", 42);
+
+    HFoldr<Unit, String, HCons<String, HCons<Integer, HNil>>, String> foldr =
+        foldr(combine((a, b) -> a + b), foldr(combine((a, b) -> a + b), foldr()));
+
+    assertEquals("Hola42", foldr.foldr(unit(), "", hlist));
   }
 }

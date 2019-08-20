@@ -10,12 +10,12 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
 import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Option;
 
 public interface HList<L extends HList<L>> {
@@ -110,12 +110,16 @@ public interface HList<L extends HList<L>> {
     return (function, value) -> function.apply(value);
   }
 
-  static <A> HApply<Unit, A, A> identity() {
-    return (unit, value) -> value;
+  static <F, A> HApply<F, A, A> identity() {
+    return (context, value) -> value;
   }
 
-  static <A, B, C> HApply<Unit, Tuple2<Function1<A, B>, Function1<B, C>>, Function1<A, C>> compose() {
-    return (unit, tuple) -> tuple.get1().andThen(tuple.get2());
+  static <F, A, B, C> HApply<F, Tuple2<Function1<A, B>, Function1<B, C>>, Function1<A, C>> compose() {
+    return combine(Function1::andThen);
+  }
+
+  static <F, A, B, C> HApply<F, Tuple2<A, B>, C> combine(Function2<A, B, C> combinator) {
+    return (context, tuple) -> tuple.applyTo(combinator);
   }
 
   public static final class HNil implements HList<HNil> {
