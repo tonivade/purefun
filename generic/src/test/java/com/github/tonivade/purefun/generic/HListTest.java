@@ -6,13 +6,13 @@ package com.github.tonivade.purefun.generic;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.generic.HList.append;
-import static com.github.tonivade.purefun.generic.HList.combine;
-import static com.github.tonivade.purefun.generic.HList.compose;
-import static com.github.tonivade.purefun.generic.HList.cons;
+import static com.github.tonivade.purefun.generic.HAppend.append;
+import static com.github.tonivade.purefun.generic.HApply.combine;
+import static com.github.tonivade.purefun.generic.HApply.compose;
+import static com.github.tonivade.purefun.generic.HApply.cons;
 import static com.github.tonivade.purefun.generic.HList.empty;
-import static com.github.tonivade.purefun.generic.HList.foldr;
-import static com.github.tonivade.purefun.generic.HList.map;
+import static com.github.tonivade.purefun.generic.HFoldr.foldr;
+import static com.github.tonivade.purefun.generic.HMap.map;
 import static com.github.tonivade.purefun.type.Option.none;
 import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -26,10 +26,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.generic.HList.HAppend;
 import com.github.tonivade.purefun.generic.HList.HCons;
-import com.github.tonivade.purefun.generic.HList.HFoldr;
-import com.github.tonivade.purefun.generic.HList.HMap;
 import com.github.tonivade.purefun.generic.HList.HNil;
 
 public class HListTest {

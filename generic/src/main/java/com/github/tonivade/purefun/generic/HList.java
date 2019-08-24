@@ -4,20 +4,17 @@
  */
 package com.github.tonivade.purefun.generic;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Objects;
-
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
 import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.type.Option;
+
+import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 public interface HList<L extends HList<L>> {
 
@@ -86,54 +83,6 @@ public interface HList<L extends HList<L>> {
 
   static <A, B, C, D, E> HCons<A, HCons<B, HCons<C, HCons<D, HCons<E, HNil>>>>> from(Tuple5<A, B, C, D, E> tuple) {
     return tuple.applyTo(HList::of);
-  }
-
-  static <L extends HList<L>> HAppend<HNil, L, L> append() {
-    return (empty, right) -> right;
-  }
-
-  static <E, L extends HList<L>, R extends HList<R>, X extends HList<X>>
-      HAppend<HCons<E, L>, R, HCons<E, X>> append(HAppend<L, R, X> append) {
-    return (left, right) -> cons(left.head(), append.append(left.tail(), right));
-  }
-
-  static <E, V> HFoldr<E, V, HNil, V> foldr() {
-    return (head, value, list) -> value;
-  }
-
-  static <F, E, V, L extends HList<L>, R, X> HFoldr<E, V, HCons<F, L>, X>
-      foldr(HApply<E, Tuple2<F, R>, X> apply, HFoldr<E, V, L, R> foldr) {
-    return (head, value, list) ->
-      apply.apply(head, Tuple.of(list.head(), foldr.foldr(head, value, list.tail())));
-  }
-
-  static <F> HMap<F, HNil, HNil> map() {
-    return (head, list) -> list;
-  }
-
-  static <F, E, R, L extends HList<L>, X extends HList<X>> HMap<F, HCons<E, L>, HCons<R, X>>
-      map(HApply<F, Tuple2<E, X>, HCons<R, X>> apply, HMap<F, L, X> map) {
-    return (head, list) -> apply.apply(head, Tuple.of(list.head(), map.map(head, list.tail())));
-  }
-
-  static <A, B> HApply<Function1<A, B>, A, B> function() {
-    return (function, value) -> function.apply(value);
-  }
-
-  static <F, A> HApply<F, A, A> identity() {
-    return (context, value) -> value;
-  }
-
-  static <F, A, B, C> HApply<F, Tuple2<Function1<A, B>, Function1<B, C>>, Function1<A, C>> compose() {
-    return combine(Function1::andThen);
-  }
-
-  static <F, A, B, C> HApply<F, Tuple2<A, B>, C> combine(Function2<A, B, C> combinator) {
-    return (context, tuple) -> tuple.applyTo(combinator);
-  }
-
-  static <F, E, R, L extends HList<L>> HApply<F, Tuple2<E, L>, HCons<R, L>> cons(Function1<E, R> mapper) {
-    return (context, tuple) -> tuple.map1(mapper).applyTo(HList::cons);
   }
 
   public static final class HNil implements HList<HNil> {
@@ -226,30 +175,6 @@ public interface HList<L extends HList<L>> {
     public String toString() {
       return "HCons(" + head + "," + tail + ")";
     }
-  }
-
-  @FunctionalInterface
-  public static interface HAppend<L extends HList<L>, R extends HList<R>, X extends HList<X>> {
-
-    X append(L left, R right);
-  }
-
-  @FunctionalInterface
-  public static interface HMap<E, L extends HList<L>, X extends HList<X>> {
-
-    X map(E head, L list);
-  }
-
-  @FunctionalInterface
-  public static interface HFoldr<T, V, L extends HList<L>, R> {
-
-    R foldr(T value, V initialValue, L list);
-  }
-
-  @FunctionalInterface
-  public static interface HApply<F, A, R> {
-
-    R apply(F context, A value);
   }
 }
 
