@@ -9,8 +9,10 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.generic.HList.append;
 import static com.github.tonivade.purefun.generic.HList.combine;
 import static com.github.tonivade.purefun.generic.HList.compose;
+import static com.github.tonivade.purefun.generic.HList.cons;
 import static com.github.tonivade.purefun.generic.HList.empty;
 import static com.github.tonivade.purefun.generic.HList.foldr;
+import static com.github.tonivade.purefun.generic.HList.map;
 import static com.github.tonivade.purefun.type.Option.none;
 import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -27,6 +29,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.generic.HList.HAppend;
 import com.github.tonivade.purefun.generic.HList.HCons;
 import com.github.tonivade.purefun.generic.HList.HFoldr;
+import com.github.tonivade.purefun.generic.HList.HMap;
 import com.github.tonivade.purefun.generic.HList.HNil;
 
 public class HListTest {
@@ -113,5 +116,15 @@ public class HListTest {
         () -> assertEquals("Hola42", foldString.foldr(unit(), "", hlist)),
         () -> assertEquals(46, foldInteger.foldr(unit(), 0, hlist))
       );
+  }
+
+  @Test
+  public void mapList() {
+    HCons<String, HCons<Integer, HNil>> hlist = HList.of("Hola", 42);
+
+    HMap<Unit, HCons<String, HCons<Integer, HNil>>, HCons<Integer, HCons<String, HNil>>> map =
+        map(cons(String::length), map(cons(String::valueOf), map()));
+
+    assertEquals(HList.of(4, "42"), map.map(unit(), hlist));
   }
 }

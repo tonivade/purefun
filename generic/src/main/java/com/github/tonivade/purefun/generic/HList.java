@@ -11,6 +11,7 @@ import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
@@ -103,7 +104,16 @@ public interface HList<L extends HList<L>> {
   static <F, E, V, L extends HList<L>, R, X> HFoldr<E, V, HCons<F, L>, X>
       foldr(HApply<E, Tuple2<F, R>, X> apply, HFoldr<E, V, L, R> foldr) {
     return (head, value, list) ->
-      apply.apply(head, Tuple2.of(list.head(), foldr.foldr(head, value, list.tail())));
+      apply.apply(head, Tuple.of(list.head(), foldr.foldr(head, value, list.tail())));
+  }
+
+  static <F> HMap<F, HNil, HNil> map() {
+    return (head, list) -> list;
+  }
+
+  static <F, E, R, L extends HList<L>, X extends HList<X>> HMap<F, HCons<E, L>, HCons<R, X>>
+      map(HApply<F, Tuple2<E, X>, HCons<R, X>> apply, HMap<F, L, X> map) {
+    return (head, list) -> apply.apply(head, Tuple.of(list.head(), map.map(head, list.tail())));
   }
 
   static <A, B> HApply<Function1<A, B>, A, B> function() {
@@ -120,6 +130,10 @@ public interface HList<L extends HList<L>> {
 
   static <F, A, B, C> HApply<F, Tuple2<A, B>, C> combine(Function2<A, B, C> combinator) {
     return (context, tuple) -> tuple.applyTo(combinator);
+  }
+
+  static <F, E, R, L extends HList<L>> HApply<F, Tuple2<E, L>, HCons<R, L>> cons(Function1<E, R> mapper) {
+    return (context, tuple) -> tuple.map1(mapper).applyTo(HList::cons);
   }
 
   public static final class HNil implements HList<HNil> {
@@ -218,6 +232,12 @@ public interface HList<L extends HList<L>> {
   public static interface HAppend<L extends HList<L>, R extends HList<R>, X extends HList<X>> {
 
     X append(L left, R right);
+  }
+
+  @FunctionalInterface
+  public static interface HMap<E, L extends HList<L>, X extends HList<X>> {
+
+    X map(E head, L list);
   }
 
   @FunctionalInterface
