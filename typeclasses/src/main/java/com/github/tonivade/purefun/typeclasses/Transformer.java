@@ -32,4 +32,13 @@ public interface Transformer<F extends Kind, G extends Kind> {
       }
     };
   }
+
+  static <F extends Kind> Transformer<F, F> identity() {
+    return new Transformer<F, F>() {
+      @Override
+      public <T> Higher1<F, T> apply(Higher1<F, T> from) {
+        return from;
+      }
+    };
+  }
 }

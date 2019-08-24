@@ -45,7 +45,7 @@ public class Pattern3<A, B, C, R> implements PartialFunction3<A, B, C, R> {
     return new Pattern3<>(pattern.add(matcher.tupled(), handler.tupled()));
   }
 
-  public final static class CaseBuilder3<B, T, V, U, R> {
+  public static final class CaseBuilder3<B, T, V, U, R> {
 
     private final Function2<Matcher3<T, V, U>, Function3<T, V, U, R>, B> finisher;
     private final Matcher3<T, V, U> matcher;
