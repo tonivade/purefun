@@ -70,7 +70,7 @@ interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
 }
 
 @Instance
-interface ProducerComonad extends Comonad<Producer.µ> {
+interface ProducerComonad extends ProducerFunctor, Comonad<Producer.µ> {
 
   @Override
   default <A, B> Producer<B> coflatMap(Higher1<Producer.µ, A> value, Function1<Higher1<Producer.µ, A>, B> map) {
