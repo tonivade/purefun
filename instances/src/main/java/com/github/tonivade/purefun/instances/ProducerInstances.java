@@ -4,11 +4,14 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Producer.cons;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -24,6 +27,10 @@ public interface ProducerInstances {
 
   static Monad<Producer.µ> monad() {
     return new ProducerMonad() {};
+  }
+
+  static Comonad<Producer.µ> comonad() {
+    return new ProducerComonad() {};
   }
 }
 
@@ -59,5 +66,19 @@ interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
   @Override
   default <T, R> Producer<R> flatMap(Higher1<Producer.µ, T> value, Function1<T, ? extends Higher1<Producer.µ, R>> mapper) {
     return value.fix1(Producer::narrowK).flatMap(mapper.andThen(Producer::narrowK));
+  }
+}
+
+@Instance
+interface ProducerComonad extends Comonad<Producer.µ> {
+
+  @Override
+  default <A, B> Producer<B> coflatMap(Higher1<Producer.µ, A> value, Function1<Higher1<Producer.µ, A>, B> map) {
+    return cons(map.apply(value));
+  }
+
+  @Override
+  default <A> A extract(Higher1<Producer.µ, A> value) {
+    return value.fix1(Producer::narrowK).get();
   }
 }
