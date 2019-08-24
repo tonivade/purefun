@@ -7,9 +7,17 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.Unit.unit;
 
 @FunctionalInterface
-public interface Consumer1<A> {
+public interface Consumer1<A> extends Recoverable {
 
-  void accept(A value);
+  default void accept(A value) {
+    try {
+      run(value);
+    } catch (Throwable t) {
+      sneakyThrow(t);
+    }
+  }
+
+  void run(A value) throws Throwable;
 
   default Function1<A, Unit> asFunction() {
     return value -> { accept(value); return unit(); };

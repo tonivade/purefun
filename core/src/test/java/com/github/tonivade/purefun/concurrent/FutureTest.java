@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.CheckedProducer.cons;
-import static com.github.tonivade.purefun.CheckedProducer.failure;
+import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Producer.failure;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,8 +33,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
@@ -232,7 +232,7 @@ public class FutureTest {
   }
 
   @Test
-  public void interrupt(@Mock CheckedProducer<String> producer) throws InterruptedException {
+  public void interrupt(@Mock Producer<String> producer) throws InterruptedException {
     Future<String> future = Future.delay(Duration.ofSeconds(1), producer);
 
     Thread.sleep(50);

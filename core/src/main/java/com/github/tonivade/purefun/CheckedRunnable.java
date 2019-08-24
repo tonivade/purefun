@@ -9,7 +9,7 @@ public interface CheckedRunnable extends Recoverable {
 
   void run() throws Throwable;
 
-  default CheckedProducer<Unit> asProducer() {
+  default Producer<Unit> asProducer() {
     return () -> { run(); return Unit.unit(); };
   }
 

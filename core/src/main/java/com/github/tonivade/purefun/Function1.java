@@ -19,9 +19,17 @@ import com.github.tonivade.purefun.type.Try;
 
 @HigherKind
 @FunctionalInterface
-public interface Function1<A, R> {
+public interface Function1<A, R> extends Recoverable {
 
-  R apply(A value);
+  default R apply(A value) {
+    try {
+      return run(value);
+    } catch (Throwable t) {
+      return sneakyThrow(t);
+    }
+  }
+
+  R run(A value) throws Throwable;
 
   default <B> Function1<A, B> andThen(Function1<R, B> after) {
     return value -> after.apply(apply(value));
@@ -73,10 +81,6 @@ public interface Function1<A, R> {
 
   default Function1<A, Stream<R>> stream() {
     return value -> Stream.of(apply(value));
-  }
-
-  default CheckedFunction1<A, R> checked() {
-    return this::apply;
   }
 
   default Function1<A, R> memoized() {

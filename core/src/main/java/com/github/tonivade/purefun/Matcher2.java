@@ -5,9 +5,17 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface Matcher2<A, B> {
+public interface Matcher2<A, B> extends Recoverable {
 
-  boolean match(A a, B b);
+  default boolean match(A a, B b) {
+    try {
+      return run(a, b);
+    } catch (Throwable t) {
+      return sneakyThrow(t);
+    }
+  }
+
+  boolean run(A a, B b) throws Throwable;
 
   default Matcher1<Tuple2<A, B>> tupled() {
     return tuple -> match(tuple.get1(), tuple.get2());

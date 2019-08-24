@@ -9,7 +9,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Executor;
 
-import com.github.tonivade.purefun.CheckedConsumer1;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -136,7 +135,7 @@ public interface IO<T> extends Recoverable {
   }
 
   static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use) {
-    return bracket(acquire, use, CheckedConsumer1.<T>of(AutoCloseable::close).unchecked());
+    return bracket(acquire, use, AutoCloseable::close);
   }
 
   static IO<Unit> sequence(Sequence<IO<?>> sequence) {

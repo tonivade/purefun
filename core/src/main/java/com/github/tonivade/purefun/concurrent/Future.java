@@ -16,7 +16,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer2;
@@ -127,11 +126,11 @@ public interface Future<T> {
     return run(future::get);
   }
 
-  static <T> Future<T> run(CheckedProducer<T> task) {
+  static <T> Future<T> run(Producer<T> task) {
     return run(DEFAULT_EXECUTOR, task);
   }
 
-  static <T> Future<T> run(Executor executor, CheckedProducer<T> task) {
+  static <T> Future<T> run(Executor executor, Producer<T> task) {
     return FutureImpl.async(executor, task.liftTry());
   }
 
@@ -143,19 +142,19 @@ public interface Future<T> {
     return run(executor, () -> { task.run(); return Unit.unit(); });
   }
 
-  static <T> Future<T> delay(Duration timeout, CheckedProducer<T> producer) {
+  static <T> Future<T> delay(Duration timeout, Producer<T> producer) {
     return delay(DEFAULT_EXECUTOR, timeout, producer);
   }
 
-  static <T> Future<T> delay(Executor executor, Duration timeout, CheckedProducer<T> producer) {
+  static <T> Future<T> delay(Executor executor, Duration timeout, Producer<T> producer) {
     return run(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
 
-  static <T> Future<T> defer(CheckedProducer<Future<T>> producer) {
+  static <T> Future<T> defer(Producer<Future<T>> producer) {
     return defer(DEFAULT_EXECUTOR, producer);
   }
 
-  static <T> Future<T> defer(Executor executor, CheckedProducer<Future<T>> producer) {
+  static <T> Future<T> defer(Executor executor, Producer<Future<T>> producer) {
     return run(executor, producer::get).flatMap(identity());
   }
 }

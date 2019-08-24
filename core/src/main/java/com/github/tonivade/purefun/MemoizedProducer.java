@@ -21,7 +21,7 @@ final class MemoizedProducer<T> implements Producer<T> {
   }
 
   @Override
-  public T get() {
+  public T run() {
     return cache.computeIfAbsent(unit(), function::apply);
   }
 

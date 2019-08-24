@@ -9,9 +9,17 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 @FunctionalInterface
-public interface Function2<A, B, R> {
+public interface Function2<A, B, R> extends Recoverable {
 
-  R apply(A a, B b);
+  default R apply(A a, B b) {
+    try {
+      return run(a, b);
+    } catch (Throwable t) {
+      return sneakyThrow(t);
+    }
+  }
+
+  R run(A a, B b) throws Throwable;
 
   default Function1<A, Function1<B, R>> curried() {
     return a -> b -> apply(a, b);

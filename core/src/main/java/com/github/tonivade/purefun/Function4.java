@@ -5,9 +5,17 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface Function4<A, B, C, D, R> {
+public interface Function4<A, B, C, D, R> extends Recoverable {
 
-  R apply(A a, B b, C c, D d);
+  default R apply(A a, B b, C c, D d) {
+    try {
+      return run(a, b, c, d);
+    } catch (Throwable t) {
+      return sneakyThrow(t);
+    }
+  }
+
+  R run(A a, B b, C c, D d) throws Throwable;
 
   default Function1<A, Function1<B, Function1<C, Function1<D, R>>>> curried() {
     return a -> b -> c -> d -> apply(a, b, c, d);

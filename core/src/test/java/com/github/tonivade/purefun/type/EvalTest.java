@@ -10,13 +10,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.tonivade.purefun.Producer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.type.Eval;
 
 public class EvalTest {
 
@@ -31,8 +29,8 @@ public class EvalTest {
   }
 
   @Test
-  public void always() {
-    when(producer.get())
+  public void always() throws Throwable {
+    when(producer.run())
       .thenReturn("Hello World!");
 
     Eval<String> eval = Eval.always(producer);
@@ -45,8 +43,8 @@ public class EvalTest {
   }
 
   @Test
-  public void later() {
-    when(producer.get())
+  public void later() throws Throwable {
+    when(producer.run())
       .thenReturn("Hello World!");
 
     Eval<String> eval = Eval.later(producer);
@@ -55,7 +53,7 @@ public class EvalTest {
     assertEquals("Hello World!", eval.value());
     assertEquals("Hello World!", eval.value());
     assertEquals("Hello World!", eval.value());
-    verify(producer, times(1)).get();
+    verify(producer, times(1)).run();
   }
 
   @BeforeEach

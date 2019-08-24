@@ -10,9 +10,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Executor;
 
-import com.github.tonivade.purefun.CheckedConsumer1;
-import com.github.tonivade.purefun.CheckedFunction1;
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -122,15 +119,15 @@ public interface ZIO<R, E, A> {
     return value.flatMap(either -> either.fold(ZIO::raiseError, ZIO::pure));
   }
 
-  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(CheckedFunction1<A, B> function) {
+  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<A, B> function) {
     return value -> from(() -> function.apply(value));
   }
 
-  static <R, E, A> ZIO<R, E, A> from(Producer<Either<E, A>> task) {
+  static <R, E, A> ZIO<R, E, A> fromEither(Producer<Either<E, A>> task) {
     return new Task<>(task);
   }
 
-  static <R, A> ZIO<R, Throwable, A> from(CheckedProducer<A> task) {
+  static <R, A> ZIO<R, Throwable, A> from(Producer<A> task) {
     return new Attemp<>(task);
   }
 
@@ -156,7 +153,7 @@ public interface ZIO<R, E, A> {
 
   static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
                                                                       Function1<A, ZIO<R, Throwable, B>> use) {
-    return new Bracket<>(acquire, use, CheckedConsumer1.<A>of(AutoCloseable::close).unchecked());
+    return new Bracket<>(acquire, use, AutoCloseable::close);
   }
 
   static <R, A, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
@@ -355,9 +352,9 @@ public interface ZIO<R, E, A> {
 
   final class Attemp<R, A> implements ZIO<R, Throwable, A> {
 
-    private final CheckedProducer<A> current;
+    private final Producer<A> current;
 
-    private Attemp(CheckedProducer<A> current) {
+    private Attemp(Producer<A> current) {
       this.current = requireNonNull(current);
     }
 

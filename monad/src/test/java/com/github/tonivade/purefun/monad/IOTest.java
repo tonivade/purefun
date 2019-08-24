@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import com.github.tonivade.purefun.CheckedFunction1;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Unit;
@@ -164,7 +163,7 @@ public class IOTest {
     return getString(column).liftTry();
   }
 
-  private CheckedFunction1<ResultSet, String> getString(String column) {
+  private Function1<ResultSet, String> getString(String column) {
     return resultSet -> resultSet.getString(column);
   }
 }

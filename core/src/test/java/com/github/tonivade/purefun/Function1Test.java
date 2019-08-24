@@ -69,7 +69,7 @@ public class Function1Test {
   public void memoization() {
     Function1<String, String> toUpperCase = spy(new Function1<String, String>() {
       @Override
-      public String apply(String value) {
+      public String run(String value) {
         return value.toUpperCase();
       }
     });

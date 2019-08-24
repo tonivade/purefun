@@ -20,7 +20,7 @@ public class CheckedRunnableTest {
     CheckedRunnable task = CheckedRunnable.failure(IllegalAccessException::new);
 
     assertAll(() -> assertThrows(IllegalAccessException.class, task::run),
-              () -> assertTrue(task.asProducer().unchecked().liftTry().get().isFailure()),
+              () -> assertTrue(task.asProducer().liftTry().get().isFailure()),
               () -> {
                 Catcher catcher = new Catcher();
                 task.recover(catcher).run();
@@ -34,7 +34,7 @@ public class CheckedRunnableTest {
     CheckedRunnable task = CheckedRunnable.of(() -> System.out.println("hello world"));
 
     assertAll(() -> assertDoesNotThrow(task::run),
-              () -> assertTrue(task.asProducer().unchecked().liftTry().get().isSuccess()),
+              () -> assertTrue(task.asProducer().liftTry().get().isSuccess()),
               () -> {
                 Catcher catcher = new Catcher();
                 task.recover(catcher).run();
@@ -48,7 +48,7 @@ public class CheckedRunnableTest {
     private Throwable error;
 
     @Override
-    public void accept(Throwable error) {
+    public void run(Throwable error) {
       this.error = error;
     }
 

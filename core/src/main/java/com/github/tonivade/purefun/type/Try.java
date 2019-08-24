@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.CheckedProducer;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
@@ -42,7 +41,7 @@ public interface Try<T> {
     return new Failure<>(error);
   }
 
-  static <T> Try<T> of(CheckedProducer<T> supplier) {
+  static <T> Try<T> of(Producer<T> supplier) {
     try {
       return success(supplier.get());
     } catch (Throwable error) {

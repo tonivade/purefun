@@ -10,12 +10,20 @@ import com.github.tonivade.purefun.type.Try;
 
 @HigherKind
 @FunctionalInterface
-public interface Producer<T> {
+public interface Producer<T> extends Recoverable {
 
-  T get();
+  default T get() {
+    try {
+      return run();
+    } catch (Throwable t) {
+      return sneakyThrow(t);
+    }
+  }
+
+  T run() throws Throwable;
 
   default <V> Function1<V, T> asFunction() {
-    return value -> get();
+    return value -> run();
   }
 
   default <R> Producer<R> map(Function1<T, R> after) {
@@ -44,6 +52,10 @@ public interface Producer<T> {
 
   static <T> Producer<T> cons(T value) {
     return () -> value;
+  }
+
+  static <A, X extends Throwable> Producer<A> failure(Producer<X> supplier) {
+    return () -> { throw supplier.get(); };
   }
 
   static <T> Producer<T> of(Producer<T> reference) {

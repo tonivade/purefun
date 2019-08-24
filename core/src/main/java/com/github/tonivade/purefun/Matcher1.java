@@ -10,9 +10,17 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 @FunctionalInterface
-public interface Matcher1<A> {
+public interface Matcher1<A> extends Recoverable {
 
-  boolean match(A target);
+  default boolean match(A target) {
+    try {
+      return run(target);
+    } catch (Throwable t) {
+      return sneakyThrow(t);
+    }
+  }
+
+  boolean run(A target) throws Throwable;
 
   default Matcher1<A> and(Matcher1<A> other) {
     return value -> match(value) && other.match(value);

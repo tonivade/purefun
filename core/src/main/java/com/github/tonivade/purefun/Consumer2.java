@@ -7,9 +7,17 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.Unit.unit;
 
 @FunctionalInterface
-public interface Consumer2<A, B> {
+public interface Consumer2<A, B> extends Recoverable {
 
-  void accept(A value1, B value2);
+  default void accept(A value1, B value2) {
+    try {
+      run(value1, value2);
+    } catch (Throwable t) {
+      sneakyThrow(t);
+    }
+  }
+
+  void run(A value1, B value2) throws Throwable;
 
   default Consumer2<A, B> andThen(Consumer2<A, B> after) {
     return (value1, value2) -> { accept(value1, value2); after.accept(value1, value2); };
