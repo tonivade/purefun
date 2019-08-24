@@ -9,7 +9,6 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.Eval.µ;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -52,7 +51,7 @@ interface EvalFunctor extends Functor<Eval.µ> {
 interface EvalPure extends Applicative<Eval.µ> {
 
   @Override
-  default <T> Higher1<µ, T> pure(T value) {
+  default <T> Eval<T> pure(T value) {
     return Eval.now(value);
   }
 }
@@ -61,7 +60,7 @@ interface EvalPure extends Applicative<Eval.µ> {
 interface EvalApplicative extends EvalPure {
 
   @Override
-  default <T, R> Higher1<µ, R> ap(Higher1<µ, T> value, Higher1<µ, Function1<T, R>> apply) {
+  default <T, R> Eval<R> ap(Higher1<Eval.µ, T> value, Higher1<Eval.µ, Function1<T, R>> apply) {
     return Eval.narrowK(value).flatMap(t -> Eval.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -93,7 +92,7 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval.µ> {
 interface EvalDefer extends Defer<Eval.µ> {
 
   @Override
-  default <A> Higher1<µ, A> defer(Producer<Higher1<Eval.µ, A>> defer) {
-    return Eval.defer(defer.andThen(Eval::narrowK));
+  default <A> Eval<A> defer(Producer<Higher1<Eval.µ, A>> defer) {
+    return Eval.defer(defer.map(Eval::narrowK));
   }
 }

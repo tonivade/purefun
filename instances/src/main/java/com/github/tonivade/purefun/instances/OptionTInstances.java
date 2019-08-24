@@ -170,7 +170,7 @@ interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
 
   @Override
   default <A> OptionT<F, A> defer(Producer<Higher1<Higher1<OptionT.µ, F>, A>> defer) {
-    return OptionT.of(monadF(), deferF().defer(() -> defer.andThen(OptionT::narrowK).get().value()));
+    return OptionT.of(monadF(), deferF().defer(() -> defer.map(OptionT::narrowK).get().value()));
   }
 }
 
@@ -191,7 +191,7 @@ interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>>
             option -> option.fold(
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
                 value -> use.andThen(OptionT::narrowK).apply(value).value()),
-            option -> option.fold(() -> unit(), release.asFunction()));
+            option -> option.fold(Unit::unit, release.asFunction()));
     return OptionT.of(monadF(), bracket);
   }
 }

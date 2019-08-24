@@ -155,7 +155,7 @@ interface FutureDefer extends Defer<Future.µ> {
 
   @Override
   default <A> Future<A> defer(Producer<Higher1<Future.µ, A>> defer) {
-    return Future.defer(executor(), defer.andThen(Future::narrowK)::get);
+    return Future.defer(executor(), defer.map(Future::narrowK)::get);
   }
 }
 

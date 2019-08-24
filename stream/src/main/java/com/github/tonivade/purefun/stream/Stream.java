@@ -112,7 +112,7 @@ public interface Stream<F extends Kind, T> {
     }
 
     default <T> Stream<F, T> suspend(Producer<Stream<F, T>> lazy) {
-      return new Suspend<>(monadDefer(), monadDefer().defer(lazy.andThen(monadDefer()::pure)));
+      return new Suspend<>(monadDefer(), monadDefer().defer(lazy.map(monadDefer()::pure)));
     }
 
     default <T> Stream<F, T> eval(Higher1<F, T> value) {
@@ -308,7 +308,7 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   private <R> Stream<F, R> suspend(Producer<Stream<F, R>> stream) {
-    return suspendF(stream.andThen(monad::pure));
+    return suspendF(stream.map(monad::pure));
   }
 
   private <R> Stream<F, R> suspendF(Producer<Higher1<F, Stream<F, R>>> stream) {

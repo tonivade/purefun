@@ -108,7 +108,7 @@ public interface IO<T> extends Recoverable {
   }
 
   static <T> IO<T> delay(Producer<T> lazy) {
-    return suspend(lazy.andThen(IO::pure));
+    return suspend(lazy.map(IO::pure));
   }
 
   static <T> IO<T> suspend(Producer<IO<T>> lazy) {

@@ -147,7 +147,7 @@ public interface ZIO<R, E, A> {
   }
 
   static <R, E, A> ZIO<R, E, A> task(Producer<A> task) {
-    return new Task<>(task.andThen(Either::right));
+    return new Task<>(task.map(Either::right));
   }
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {

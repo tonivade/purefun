@@ -18,7 +18,7 @@ public class ProducerTest {
   public void andThen() {
     Producer<String> producer = Producer.of(() -> "hello world");
 
-    Producer<String> andThen = producer.andThen(String::toUpperCase);
+    Producer<String> andThen = producer.map(String::toUpperCase);
 
     assertEquals("HELLO WORLD", andThen.get());
   }

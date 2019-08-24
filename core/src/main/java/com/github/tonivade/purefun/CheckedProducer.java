@@ -22,11 +22,11 @@ public interface CheckedProducer<A> extends Recoverable {
   }
 
   default Producer<Option<A>> liftOption() {
-    return liftTry().andThen(Try::toOption);
+    return liftTry().map(Try::toOption);
   }
 
   default Producer<Either<Throwable, A>> liftEither() {
-    return liftTry().andThen(Try::toEither);
+    return liftTry().map(Try::toEither);
   }
 
   default <R> CheckedProducer<R> andThen(CheckedFunction1<A, R> after) {

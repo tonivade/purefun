@@ -117,7 +117,7 @@ interface IODefer extends Defer<IO.µ> {
 
   @Override
   default <A> IO<A> defer(Producer<Higher1<IO.µ, A>> defer) {
-    return IO.suspend(defer.andThen(IO::narrowK));
+    return IO.suspend(defer.map(IO::narrowK));
   }
 }
 

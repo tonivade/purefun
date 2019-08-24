@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
+@HigherKind
 @FunctionalInterface
 public interface Producer<T> {
 
@@ -17,12 +18,16 @@ public interface Producer<T> {
     return value -> get();
   }
 
-  default <R> Producer<R> andThen(Function1<T, R> after) {
+  default <R> Producer<R> map(Function1<T, R> after) {
     return () -> after.apply(get());
   }
 
+  default <R> Producer<R> flatMap(Function1<T, Producer<R>> after) {
+    return () -> after.apply(get()).get();
+  }
+
   default Producer<Option<T>> liftOption() {
-    return () -> Option.of(this::get);
+    return map(Option::of);
   }
 
   default Producer<Try<T>> liftTry() {
@@ -30,7 +35,7 @@ public interface Producer<T> {
   }
 
   default Producer<Either<Throwable, T>> liftEither() {
-    return liftTry().andThen(Try::toEither);
+    return liftTry().map(Try::toEither);
   }
 
   default Producer<T> memoized() {

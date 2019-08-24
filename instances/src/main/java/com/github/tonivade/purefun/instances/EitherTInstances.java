@@ -219,7 +219,7 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.
 
   @Override
   default <A> EitherT<F, E, A> defer(Producer<Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> defer) {
-    return EitherT.of(monadF(), deferF().defer(() -> defer.andThen(EitherT::narrowK).get().value()));
+    return EitherT.of(monadF(), deferF().defer(() -> defer.map(EitherT::narrowK).get().value()));
   }
 }
 

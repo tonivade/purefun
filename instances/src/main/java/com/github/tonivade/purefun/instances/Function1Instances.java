@@ -19,7 +19,7 @@ public interface Function1Instances {
 @Instance
 interface Function1Profunctor extends Profunctor<Function1.µ> {
   @Override
-  default <A, B, C, D> Higher2<Function1.µ, C, D> dimap(Higher2<Function1.µ, A, B> value, Function1<C, A> contramap, Function1<B, D> map) {
+  default <A, B, C, D> Function1<C, D> dimap(Higher2<Function1.µ, A, B> value, Function1<C, A> contramap, Function1<B, D> map) {
     Function1<A, B> function = value.fix2(Function1::narrowK);
     return function.compose(contramap).andThen(map);
   }

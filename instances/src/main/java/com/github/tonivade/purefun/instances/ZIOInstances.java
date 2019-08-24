@@ -123,7 +123,7 @@ interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
   @Override
   default <A> ZIO<R, Throwable, A>
           defer(Producer<Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A>> defer) {
-    return ZIO.defer(() -> defer.andThen(ZIO::narrowK).get());
+    return ZIO.defer(() -> defer.map(ZIO::narrowK).get());
   }
 }
 
