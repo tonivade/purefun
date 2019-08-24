@@ -104,9 +104,14 @@ public class HListTest {
   public void foldrListsWithData() {
     HCons<String, HCons<Integer, HNil>> hlist = HList.of("Hola", 42);
 
-    HFoldr<Unit, String, HCons<String, HCons<Integer, HNil>>, String> foldr =
+    HFoldr<Unit, String, HCons<String, HCons<Integer, HNil>>, String> foldString =
         foldr(combine((a, b) -> a + b), foldr(combine((a, b) -> a + b), foldr()));
+    HFoldr<Unit, Integer, HCons<String, HCons<Integer, HNil>>, Integer> foldInteger =
+        foldr(combine((a, b) -> a.length() + b), foldr(combine((a, b) -> a + b), foldr()));
 
-    assertEquals("Hola42", foldr.foldr(unit(), "", hlist));
+    assertAll(
+        () -> assertEquals("Hola42", foldString.foldr(unit(), "", hlist)),
+        () -> assertEquals(46, foldInteger.foldr(unit(), 0, hlist))
+      );
   }
 }

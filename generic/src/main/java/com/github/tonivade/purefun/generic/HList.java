@@ -214,16 +214,19 @@ public interface HList<L extends HList<L>> {
     }
   }
 
+  @FunctionalInterface
   public static interface HAppend<L extends HList<L>, R extends HList<R>, X extends HList<X>> {
 
     X append(L left, R right);
   }
 
+  @FunctionalInterface
   public static interface HFoldr<T, V, L extends HList<L>, R> {
 
     R foldr(T value, V initialValue, L list);
   }
 
+  @FunctionalInterface
   public static interface HApply<F, A, R> {
 
     R apply(F context, A value);
