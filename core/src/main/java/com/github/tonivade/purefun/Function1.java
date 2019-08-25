@@ -39,6 +39,10 @@ public interface Function1<A, R> extends Recoverable {
     return value -> apply(before.apply(value));
   }
 
+  default <B> Function1<A, B> flatMap(Function1<R, Function1<A, B>> after) {
+    return value -> after.apply(apply(value)).apply(value);
+  }
+
   default Function1<A, Optional<R>> liftOptional() {
     return value -> Optional.ofNullable(apply(value));
   }
@@ -109,10 +113,8 @@ public interface Function1<A, R> extends Recoverable {
     return ignore -> cons;
   }
 
-  static <A, T> Function1<A, T> fail() {
-    return ignore -> {
-      throw new UnsupportedOperationException();
-    };
+  static <X extends Throwable, A, T> Function1<A, T> fail(Producer<X> supplier) {
+    return ignore -> { throw supplier.get(); };
   }
 
   static <A, R> Function1<A, R> of(Function1<A, R> reference) {

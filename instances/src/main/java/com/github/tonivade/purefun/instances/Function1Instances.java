@@ -5,14 +5,65 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
+import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Profunctor;
 
 public interface Function1Instances {
 
+  static <T> Functor<Higher1<Function1.µ, T>> functor() {
+    return new Function1Functor<T>() {};
+  }
+
+  static <T> Applicative<Higher1<Function1.µ, T>> applicative() {
+    return new Function1Applicative<T>() {};
+  }
+
+  static <T> Monad<Higher1<Function1.µ, T>> monad() {
+    return new Function1Monad<T>() {};
+  }
+
   static Profunctor<Function1.µ> profunctor() {
     return new Function1Profunctor() {};
+  }
+}
+
+@Instance
+interface Function1Functor<T> extends Functor<Higher1<Function1.µ, T>> {
+  @Override
+  default <A, R> Function1<T, R> map(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, R> map) {
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
+    return function.andThen(map);
+  }
+}
+
+interface Function1Pure<T> extends Applicative<Higher1<Function1.µ, T>> {
+  @Override
+  default <A> Function1<T, A> pure(A value) {
+    return Function1.cons(value);
+  }
+}
+
+@Instance
+interface Function1Applicative<T> extends Function1Pure<T> {
+  @Override
+  default <A, R> Function1<T, R> ap(Higher1<Higher1<Function1.µ, T>, A> value, Higher1<Higher1<Function1.µ, T>, Function1<A, R>> apply) {
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
+    Function1<T, Function1<A, R>> map = Higher2.narrowK(apply).fix2(Function1::narrowK);
+    return function.flatMap(a -> map.andThen(f -> f.apply(a)));
+  }
+}
+
+@Instance
+interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ, T>> {
+  @Override
+  default <A, R> Function1<T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
+    return function.flatMap(map.andThen(Function1::narrowK));
   }
 }
 

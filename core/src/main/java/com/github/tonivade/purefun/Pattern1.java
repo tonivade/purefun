@@ -19,7 +19,7 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
   }
 
   public static <A, R> Pattern1<A, R> build() {
-    return new Pattern1<>(PartialFunction1.of(never(), fail()));
+    return new Pattern1<>(PartialFunction1.of(never(), fail(UnsupportedOperationException::new)));
   }
 
   public CaseBuilder1<Pattern1<A, R>, A, R> when(Matcher1<A> matcher) {
