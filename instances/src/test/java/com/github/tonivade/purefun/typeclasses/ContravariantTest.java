@@ -6,12 +6,13 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.laws.ContravariatLaws.verifyLaws;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.github.tonivade.purefun.*;
+import com.github.tonivade.purefun.instances.Function1Instances;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Nested;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.laws.ContravariatLaws;
@@ -25,6 +26,20 @@ public class ContravariantTest {
     Contravariant<Higher1<Const.µ, String>> instance = ConstInstances.contravariant();
 
     verifyLaws(instance, Const.of("string"));
+  }
+
+  @Test
+  public void function1Instance() {
+    Contravariant<Conested<Function1.µ, Double>> instance = Function1Instances.<Double>contravariant();
+
+    Function1<Integer, Double> int2double = Integer::doubleValue;
+    Function1<String, Integer> string2Int = String::length;
+
+    Higher1<Conested<Function1.µ, Double>, Integer> conest = Conested.<Function1.µ, Integer, Double>conest(int2double);
+    Higher1<Conested<Function1.µ, Double>, String> contramap = instance.contramap(conest, string2Int);
+    Function1<String, Double> result = Conested.<Function1.µ, String, Double>counnest(contramap).fix1(Function1::narrowK);
+
+    assertEquals(4.0, result.apply("hola"));
   }
 
   @Test

@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import com.github.tonivade.purefun.Conested;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Profunctor;
@@ -25,6 +27,10 @@ public interface Function1Instances {
 
   static <T> Monad<Higher1<Function1.µ, T>> monad() {
     return new Function1Monad<T>() {};
+  }
+
+  static <T> Contravariant<Conested<Function1.µ, T>> contravariant() {
+    return new Function1Contravariant<T>() {};
   }
 
   static Profunctor<Function1.µ> profunctor() {
@@ -64,6 +70,15 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ
   default <A, R> Function1<T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
     Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
     return function.flatMap(map.andThen(Function1::narrowK));
+  }
+}
+
+@Instance
+interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ, R>> {
+  @Override
+  default <A, B> Higher1<Conested<Function1.µ, R>, B> contramap(Higher1<Conested<Function1.µ, R>, A> value, Function1<B, A> map) {
+    Function1<A, R> function = Conested.<Function1.µ, A, R>counnest(value).fix1(Function1::narrowK);
+    return Conested.<Function1.µ, B, R>conest(function.compose(map));
   }
 }
 

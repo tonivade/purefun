@@ -22,6 +22,10 @@ public interface Higher3<F extends Kind, A, B, C> extends Higher2<Higher1<F, A>,
     return function.apply(this);
   }
 
+  default Higher3<F, A, B, C> kind3() {
+    return this;
+  }
+
   @SuppressWarnings("unchecked")
   static <F extends Kind, A, B, C> Higher3<F, A, B, C> narrowK(Higher1<Higher1<Higher1<F, A>, B>, C> value) {
     return (Higher3<F, A, B, C>) value;
