@@ -13,7 +13,7 @@ import java.io.PrintStream;
 
 import com.github.tonivade.purefun.monad.IO;
 
-public class ConsoleExecutor {
+public final class ConsoleExecutor {
 
   private final StringBuilder input = new StringBuilder();
   private final ByteArrayOutputStream output = new ByteArrayOutputStream();

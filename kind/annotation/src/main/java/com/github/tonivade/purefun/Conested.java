@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Conested<F extends Kind, A> extends Higher1<F, A> {
+public interface Conested<F extends Kind, A> extends Kind {
 
   @SuppressWarnings("unchecked")
-  static <F extends Kind, A, B> Higher1<Conested<F, B>, A> conest(Higher1<Higher1<F, A>, B> counested) {
-    return (Higher1<Conested<F, B>, A>) Higher1.class.cast(counested);
+  static <F extends Kind, A, B> Higher1<Conested<F, B>, A> conest(Higher1<Higher1<F, A>, B> counnested) {
+    return (Higher1<Conested<F, B>, A>) Higher1.class.cast(counnested);
   }
   
   @SuppressWarnings("unchecked")

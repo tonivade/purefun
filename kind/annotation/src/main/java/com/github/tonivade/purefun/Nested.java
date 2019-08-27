@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Nested<F extends Kind, G extends Kind> extends Higher1<F, G> {
+public interface Nested<F extends Kind, G extends Kind> extends Kind {
 
   @SuppressWarnings("unchecked")
   static <F extends Kind, G extends Kind, A> Higher1<Nested<F, G>, A> nest(Higher1<F, Higher1<G, A>> unnested) {
