@@ -9,8 +9,6 @@ import static com.github.tonivade.purefun.data.ImmutableList.empty;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.laws.FoldableLaws.verifyLaws;
 import static com.github.tonivade.purefun.type.Eval.now;
-import static com.github.tonivade.purefun.type.Option.none;
-import static com.github.tonivade.purefun.type.Option.some;
 import static com.github.tonivade.purefun.typeclasses.Foldable.compose;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +46,8 @@ public class FoldableTest {
   public void composed() {
     Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(SequenceInstances.foldable(), OptionInstances.foldable());
 
-    assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(), nest(listOf(some(1).kind1(), Option.<Integer>none().kind1(), some(2).kind1()).kind1())));
+    assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(),
+      nest(listOf(Option.some(1).kind1(), Option.<Integer>none().kind1(), Option.some(2).kind1()).kind1())));
   }
 
   @Test

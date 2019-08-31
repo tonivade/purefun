@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Producer.cons;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
@@ -74,7 +72,7 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer.µ> {
 
   @Override
   default <A, B> Higher1<Producer.µ, B> coflatMap(Higher1<Producer.µ, A> value, Function1<Higher1<Producer.µ, A>, B> map) {
-    return cons(map.apply(value)).kind1();
+    return Producer.cons(map.apply(value)).kind1();
   }
 
   @Override

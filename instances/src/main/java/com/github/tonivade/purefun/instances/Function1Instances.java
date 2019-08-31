@@ -15,7 +15,8 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Profunctor;
 
-import static com.github.tonivade.purefun.Conested.*;
+import static com.github.tonivade.purefun.Conested.conest;
+import static com.github.tonivade.purefun.Conested.counnest;
 
 public interface Function1Instances {
 

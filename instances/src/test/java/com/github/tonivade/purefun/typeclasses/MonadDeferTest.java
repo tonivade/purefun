@@ -4,19 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.util.NoSuchElementException;
-
-import net.bytebuddy.implementation.bytecode.Throw;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -30,6 +17,17 @@ import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.zio.ZIO;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.NoSuchElementException;
+
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class MonadDeferTest {
 

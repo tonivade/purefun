@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -29,14 +28,14 @@ public class TraverseTest {
 
   @Test
   public void seuence() {
-    Sequence<Option<String>> seq = listOf(some("a"), some("b"), some("c"));
+    Sequence<Option<String>> seq = listOf(Option.some("a"), Option.some("b"), Option.some("c"));
 
     Traverse<Sequence.µ> instance = SequenceInstances.traverse();
 
     Higher1<Option.µ, Higher1<Sequence.µ, String>> result =
         instance.traverse(OptionInstances.applicative(), seq.kind1(), x -> x.map(String::toUpperCase).kind1());
 
-    assertEquals(some(listOf("A", "B", "C")), result);
+    assertEquals(Option.some(listOf("A", "B", "C")), result);
   }
 
   @Test
