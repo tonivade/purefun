@@ -16,21 +16,21 @@ public class TransformerTest {
 
   @Test
   public void apply() {
-    Try<String> success = new OptionToTry().apply(Option.some("hello world!"));
+    Higher1<Try.µ, String> success = new OptionToTry().apply(Option.some("hello world!").kind1());
 
     assertEquals(Try.success("hello world!"), success);
   }
 
   @Test
   public void andThen() {
-    Higher1<Option.µ, String> some = new OptionToTry().andThen(new TryToOption()).apply(Option.some("hello world!"));
+    Higher1<Option.µ, String> some = new OptionToTry().andThen(new TryToOption()).apply(Option.some("hello world!").kind1());
 
     assertEquals(Option.some("hello world!"), some);
   }
 
   @Test
   public void compose() {
-    Higher1<Try.µ, String> some = new OptionToTry().compose(new TryToOption()).apply(Try.success("hello world!"));
+    Higher1<Try.µ, String> some = new OptionToTry().compose(new TryToOption()).apply(Try.success("hello world!").kind1());
 
     assertEquals(Try.success("hello world!"), some);
   }
@@ -38,14 +38,14 @@ public class TransformerTest {
 
 class OptionToTry implements Transformer<Option.µ, Try.µ> {
   @Override
-  public <X> Try<X> apply(Higher1<Option.µ, X> from) {
-    return Option.narrowK(from).map(Try::success).getOrElse(Try::failure);
+  public <X> Higher1<Try.µ, X> apply(Higher1<Option.µ, X> from) {
+    return Option.narrowK(from).map(Try::success).getOrElse(Try::failure).kind1();
   }
 }
 
 class TryToOption implements Transformer<Try.µ, Option.µ> {
   @Override
-  public <X> Option<X> apply(Higher1<Try.µ, X> from) {
-    return Try.narrowK(from).toOption();
+  public <X> Higher1<Option.µ, X> apply(Higher1<Try.µ, X> from) {
+    return Try.narrowK(from).toOption().kind1();
   }
 }

@@ -55,7 +55,7 @@ public class ApplicativeTest {
   @Test
   public void map5Some() {
     Higher1<Option.µ, Integer> map5 =
-        OptionInstances.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.some(5), sum);
+        OptionInstances.applicative().map5(Option.some(1).kind1(), Option.some(2).kind1(), Option.some(3).kind1(), Option.some(4).kind1(), Option.some(5).kind1(), sum);
 
     assertEquals(Option.some(15), map5);
   }
@@ -63,7 +63,7 @@ public class ApplicativeTest {
   @Test
   public void map5None() {
     Higher1<Option.µ, Integer> map5 =
-        OptionInstances.applicative().map5(Option.some(1), Option.some(2), Option.some(3), Option.some(4), Option.none(), sum);
+        OptionInstances.applicative().map5(Option.some(1).kind1(), Option.some(2).kind1(), Option.some(3).kind1(), Option.some(4).kind1(), Option.<Integer>none().kind1(), sum);
 
     assertEquals(Option.none(), map5);
   }

@@ -68,8 +68,8 @@ public interface TryInstances {
 interface TryFunctor extends Functor<Try.µ> {
 
   @Override
-  default <T, R> Try<R> map(Higher1<Try.µ, T> value, Function1<T, R> mapper) {
-    return Try.narrowK(value).map(mapper);
+  default <T, R> Higher1<Try.µ, R> map(Higher1<Try.µ, T> value, Function1<T, R> mapper) {
+    return Try.narrowK(value).map(mapper).kind1();
   }
 }
 
@@ -77,8 +77,8 @@ interface TryFunctor extends Functor<Try.µ> {
 interface TryPure extends Applicative<Try.µ> {
 
   @Override
-  default <T> Try<T> pure(T value) {
-    return Try.success(value);
+  default <T> Higher1<Try.µ, T> pure(T value) {
+    return Try.success(value).kind1();
   }
 }
 
@@ -86,8 +86,8 @@ interface TryPure extends Applicative<Try.µ> {
 interface TryApplicative extends TryPure {
 
   @Override
-  default <T, R> Try<R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
-    return Try.narrowK(value).flatMap(t -> Try.narrowK(apply).map(f -> f.apply(t)));
+  default <T, R> Higher1<Try.µ, R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
+    return Try.narrowK(value).flatMap(t -> Try.narrowK(apply).map(f -> f.apply(t))).kind1();
   }
 }
 
@@ -95,9 +95,9 @@ interface TryApplicative extends TryPure {
 interface TryMonad extends TryPure, Monad<Try.µ> {
 
   @Override
-  default <T, R> Try<R> flatMap(Higher1<Try.µ, T> value,
+  default <T, R> Higher1<Try.µ, R> flatMap(Higher1<Try.µ, T> value,
       Function1<T, ? extends Higher1<Try.µ, R>> map) {
-    return Try.narrowK(value).flatMap(map.andThen(Try::narrowK));
+    return Try.narrowK(value).flatMap(map.andThen(Try::<R>narrowK)).kind1();
   }
 }
 
@@ -105,14 +105,14 @@ interface TryMonad extends TryPure, Monad<Try.µ> {
 interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
 
   @Override
-  default <A> Try<A> raiseError(Throwable error) {
-    return Try.failure(error);
+  default <A> Higher1<Try.µ, A> raiseError(Throwable error) {
+    return Try.<A>failure(error).kind1();
   }
 
   @Override
-  default <A> Try<A> handleErrorWith(Higher1<Try.µ, A> value,
+  default <A> Higher1<Try.µ, A> handleErrorWith(Higher1<Try.µ, A> value,
       Function1<Throwable, ? extends Higher1<Try.µ, A>> handler) {
-    return Try.narrowK(value).fold(handler.andThen(Try::narrowK), Try::success);
+    return Try.narrowK(value).fold(handler.andThen(Try::<A>narrowK), Try::success).kind1();
   }
 }
 
@@ -142,7 +142,7 @@ interface TryTraverse extends Traverse<Try.µ>, TryFoldable {
       Applicative<G> applicative, Higher1<Try.µ, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
     return Try.narrowK(value).fold(
-        t -> applicative.pure(Try.failure(t)),
-        t -> applicative.map(mapper.apply(t), Try::success));
+        t -> applicative.pure(Try.<R>failure(t).kind1()),
+        t -> applicative.map(mapper.apply(t), x -> Try.success(x).kind1()));
   }
 }

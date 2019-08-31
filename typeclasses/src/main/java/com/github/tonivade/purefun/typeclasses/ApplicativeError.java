@@ -20,7 +20,7 @@ public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
   <A> Higher1<F, A> handleErrorWith(Higher1<F, A> value, Function1<E, ? extends Higher1<F, A>> handler);
 
   default <A> Higher1<F, A> handleError(Higher1<F, A> value, Function1<E, A> handler) {
-    return handleErrorWith(value, handler.andThen(this::pure));
+    return handleErrorWith(value, handler.andThen(this::<A>pure));
   }
 
   default <A> Higher1<F, A> recoverWith(Higher1<F, A> value, PartialFunction1<E, Higher1<F, A>> handler) {
@@ -28,7 +28,7 @@ public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
   }
 
   default <A> Higher1<F, A> recover(Higher1<F, A> value, PartialFunction1<E, A> handler) {
-    return recoverWith(value, handler.andThen(this::pure));
+    return recoverWith(value, handler.andThen(this::<A>pure));
   }
 
   default <A> Higher1<F, Either<E, A>> attemp(Higher1<F, A> value) {
@@ -36,10 +36,10 @@ public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
   }
 
   default <A> Higher1<F, A> fromTry(Try<A> value, Function1<Throwable, E> recover) {
-    return value.fold(recover.andThen(this::raiseError), this::pure);
+    return value.fold(recover.andThen(this::raiseError), this::<A>pure);
   }
 
   default <A> Higher1<F, A> fromEither(Either<E, A> value) {
-    return value.fold(this::raiseError, this::pure);
+    return value.fold(this::raiseError, this::<A>pure);
   }
 }

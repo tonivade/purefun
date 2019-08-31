@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.transformer.WriterT;
@@ -36,13 +37,13 @@ interface WriterTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<WriterT.
   Monoid<L> monoid();
 
   @Override
-  default <T> WriterT<F, L, T> pure(T value) {
-    return WriterT.pure(monoid(), monadF(), value);
+  default <T> Higher3<WriterT.µ, F, L, T> pure(T value) {
+    return WriterT.pure(monoid(), monadF(), value).kind3();
   }
 
   @Override
-  default <T, R> WriterT<F, L, R> flatMap(Higher1<Higher1<Higher1<WriterT.µ, F>, L>, T> value,
+  default <T, R> Higher3<WriterT.µ, F, L, R> flatMap(Higher1<Higher1<Higher1<WriterT.µ, F>, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<WriterT.µ, F>, L>, R>> map) {
-    return WriterT.narrowK(value).flatMap(map.andThen(WriterT::narrowK));
+    return WriterT.narrowK(value).flatMap(map.andThen(WriterT::<F, L, R>narrowK)).kind3();
   }
 }

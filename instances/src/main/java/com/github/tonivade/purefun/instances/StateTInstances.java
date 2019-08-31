@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.transformer.StateT;
@@ -31,13 +32,13 @@ interface StateTMonad<F extends Kind, S> extends Monad<Higher1<Higher1<StateT.µ
   Monad<F> monadF();
 
   @Override
-  default <T> StateT<F, S, T> pure(T value) {
-    return StateT.pure(monadF(), value);
+  default <T> Higher3<StateT.µ, F, S, T> pure(T value) {
+    return StateT.<F, S, T>pure(monadF(), value).kind3();
   }
 
   @Override
-  default <T, R> StateT<F, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, F>, S>, T> value,
+  default <T, R> Higher3<StateT.µ, F, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, F>, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<StateT.µ, F>, S>, R>> map) {
-    return StateT.narrowK(value).flatMap(map.andThen(StateT::narrowK));
+    return StateT.narrowK(value).flatMap(map.andThen(StateT::<F, S, R>narrowK)).kind3();
   }
 }

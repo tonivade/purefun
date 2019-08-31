@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Executor;
 
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IORuntime;
@@ -26,7 +27,7 @@ public class FutureIORuntime implements IORuntime<Future.µ> {
   }
 
   @Override
-  public <A> Future<A> run(IO<A> effect) {
-    return effect.foldMap(monadDefer(executor)).fix1(Future::narrowK);
+  public <A> Higher1<Future.µ, A> run(IO<A> effect) {
+    return effect.foldMap(monadDefer(executor));
   }
 }

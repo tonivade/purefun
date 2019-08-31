@@ -36,19 +36,19 @@ public class FoldableTest {
   @Test
   public void laws() {
     assertAll(
-        () -> verifyLaws(IdInstances.foldable(), Id.of("hola")),
-        () -> verifyLaws(TryInstances.foldable(), Try.success("hola")),
-        () -> verifyLaws(EitherInstances.foldable(), Either.right("hola")),
-        () -> verifyLaws(OptionInstances.foldable(), Option.some("hola")),
-        () -> verifyLaws(SequenceInstances.foldable(), Sequence.listOf("hola")),
-        () -> verifyLaws(compose(SequenceInstances.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola")))));
+        () -> verifyLaws(IdInstances.foldable(), Id.of("hola").kind1()),
+        () -> verifyLaws(TryInstances.foldable(), Try.success("hola").kind1()),
+        () -> verifyLaws(EitherInstances.foldable(), Either.right("hola").kind1()),
+        () -> verifyLaws(OptionInstances.foldable(), Option.some("hola").kind1()),
+        () -> verifyLaws(SequenceInstances.foldable(), Sequence.listOf("hola").kind1()),
+        () -> verifyLaws(compose(SequenceInstances.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola").kind1()).kind1())));
   }
 
   @Test
   public void composed() {
     Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(SequenceInstances.foldable(), OptionInstances.foldable());
 
-    assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(), nest(listOf(some(1), none(), some(2)))));
+    assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(), nest(listOf(some(1).kind1(), Option.<Integer>none().kind1(), some(2).kind1()).kind1())));
   }
 
   @Test
@@ -56,12 +56,12 @@ public class FoldableTest {
     Foldable<Sequence.µ> instance = SequenceInstances.foldable();
 
     assertAll(
-        () -> assertEquals("abc", instance.foldLeft(listOf("a", "b", "c"), "", String::concat)),
-        () -> assertEquals("abc", instance.foldRight(listOf("a", "b", "c"), now(""), (a, lb) -> lb.map(b -> a + b)).value()),
-        () -> assertEquals("abc", instance.fold(Monoid.string(), listOf("a", "b", "c"))),
-        () -> assertEquals("ABC", instance.foldMap(Monoid.string(), listOf("a", "b", "c"), String::toUpperCase)),
-        () -> assertEquals(Option.some("abc"), instance.reduce(listOf("a", "b", "c"), String::concat)),
-        () -> assertEquals(Id.of("abc"), instance.foldM(IdInstances.monad(), listOf("a", "b", "c"), "", (a, b) -> Id.of(a + b))));
+        () -> assertEquals("abc", instance.foldLeft(listOf("a", "b", "c").kind1(), "", String::concat)),
+        () -> assertEquals("abc", instance.foldRight(listOf("a", "b", "c").kind1(), now(""), (a, lb) -> lb.map(b -> a + b)).value()),
+        () -> assertEquals("abc", instance.fold(Monoid.string(), listOf("a", "b", "c").kind1())),
+        () -> assertEquals("ABC", instance.foldMap(Monoid.string(), listOf("a", "b", "c").kind1(), String::toUpperCase)),
+        () -> assertEquals(Option.some("abc"), instance.reduce(listOf("a", "b", "c").kind1(), String::concat)),
+        () -> assertEquals(Id.of("abc"), instance.foldM(IdInstances.monad(), listOf("a", "b", "c").kind1(), "", (a, b) -> Id.of(a + b).kind1())));
   }
 
   @Test
@@ -69,18 +69,18 @@ public class FoldableTest {
     Foldable<Higher1<Either.µ, Throwable>> instance = EitherInstances.foldable();
 
     assertAll(
-        () -> assertEquals(empty(), instance.foldLeft(Either.left(new Error()), empty(), ImmutableList::append)),
-        () -> assertEquals(listOf("hola!"), instance.foldLeft(Either.right("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Either.left(new Error()), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Either.right("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals("", instance.fold(Monoid.string(), Either.left(new Error()))),
-        () -> assertEquals("hola!", instance.fold(Monoid.string(), Either.right("hola!"))),
-        () -> assertEquals(Option.none(), instance.reduce(Either.left(new Error()), String::concat)),
-        () -> assertEquals(Option.some("hola!"), instance.reduce(Either.right("hola!"), String::concat)),
-        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Either.left(new Error()), Sequence::listOf)),
-        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Either.right("hola!"), Sequence::listOf)),
-        () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Either.left(new Error()), empty(), (acc, a) -> Id.of(acc.append(a)))),
-        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Either.right("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
+        () -> assertEquals(empty(), instance.foldLeft(Either.<Throwable, String>left(new Error()).kind1(), empty(), ImmutableList::append)),
+        () -> assertEquals(listOf("hola!"), instance.foldLeft(Either.<Throwable, String>right("hola!").kind1(), empty(), ImmutableList::append)),
+        () -> assertEquals(empty(), instance.foldRight(Either.<Throwable, String>left(new Error()).kind1(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Either.<Throwable, String>right("hola!").kind1(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals("", instance.fold(Monoid.string(), Either.<Throwable, String>left(new Error()).kind1())),
+        () -> assertEquals("hola!", instance.fold(Monoid.string(), Either.<Throwable, String>right("hola!").kind1())),
+        () -> assertEquals(Option.none(), instance.reduce(Either.<Throwable, String>left(new Error()).kind1(), String::concat)),
+        () -> assertEquals(Option.some("hola!"), instance.reduce(Either.<Throwable, String>right("hola!").kind1(), String::concat)),
+        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Either.<Throwable, String>left(new Error()).kind1(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Either.<Throwable, String>right("hola!").kind1(), Sequence::listOf)),
+        () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Either.<Throwable, String>left(new Error()).kind1(), empty(), (acc, a) -> Id.of(acc.append(a)).kind1())),
+        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Either.<Throwable, String>right("hola!").kind1(), empty(), (acc, a) -> Id.of(acc.append(a)).kind1())));
   }
 
   @Test
@@ -88,18 +88,18 @@ public class FoldableTest {
     Foldable<Option.µ> instance = OptionInstances.foldable();
 
     assertAll(
-        () -> assertEquals(empty(), instance.foldLeft(Option.none(), empty(), ImmutableList::append)),
-        () -> assertEquals(listOf("hola!"), instance.foldLeft(Option.some("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Option.none(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Option.some("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals("", instance.fold(Monoid.string(), Option.none())),
-        () -> assertEquals("hola!", instance.fold(Monoid.string(), Option.some("hola!"))),
-        () -> assertEquals(Option.none(), instance.reduce(Option.none(), String::concat)),
-        () -> assertEquals(Option.some("hola!"), instance.reduce(Option.some("hola!"), String::concat)),
-        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Option.none(), Sequence::listOf)),
-        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Option.some("hola!"), Sequence::listOf)),
-        () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Option.none(), empty(), (acc, a) -> Id.of(acc.append(a)))),
-        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Option.some("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
+        () -> assertEquals(empty(), instance.foldLeft(Option.<String>none().kind1(), empty(), ImmutableList::append)),
+        () -> assertEquals(listOf("hola!"), instance.foldLeft(Option.some("hola!").kind1(), empty(), ImmutableList::append)),
+        () -> assertEquals(empty(), instance.foldRight(Option.<String>none().kind1(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Option.some("hola!").kind1(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals("", instance.fold(Monoid.string(), Option.<String>none().kind1())),
+        () -> assertEquals("hola!", instance.fold(Monoid.string(), Option.some("hola!").kind1())),
+        () -> assertEquals(Option.none(), instance.reduce(Option.<String>none().kind1(), String::concat)),
+        () -> assertEquals(Option.some("hola!"), instance.reduce(Option.some("hola!").kind1(), String::concat)),
+        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Option.<String>none().kind1(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Option.some("hola!").kind1(), Sequence::listOf)),
+        () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Option.<String>none().kind1(), empty(), (acc, a) -> Id.of(acc.append(a)).kind1())),
+        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Option.some("hola!").kind1(), empty(), (acc, a) -> Id.of(acc.append(a)).kind1())));
   }
 
   @Test
@@ -107,17 +107,17 @@ public class FoldableTest {
     Foldable<Try.µ> instance = TryInstances.foldable();
 
     assertAll(
-        () -> assertEquals(empty(), instance.foldLeft(Try.failure(), empty(), ImmutableList::append)),
-        () -> assertEquals(listOf("hola!"), instance.foldLeft(Try.success("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Try.failure(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Try.success("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals("", instance.fold(Monoid.string(), Try.failure())),
-        () -> assertEquals("hola!", instance.fold(Monoid.string(), Try.success("hola!"))),
-        () -> assertEquals(Option.none(), instance.reduce(Try.failure(), String::concat)),
-        () -> assertEquals(Option.some("hola!"), instance.reduce(Try.success("hola!"), String::concat)),
-        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Try.failure(), Sequence::listOf)),
-        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Try.success("hola!"), Sequence::listOf)),
-        () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Try.failure(), empty(), (acc, a) -> Id.of(acc.append(a)))),
-        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Try.success("hola!"), empty(), (acc, a) -> Id.of(acc.append(a)))));
+        () -> assertEquals(empty(), instance.foldLeft(Try.<String>failure().kind1(), empty(), ImmutableList::append)),
+        () -> assertEquals(listOf("hola!"), instance.foldLeft(Try.success("hola!").kind1(), empty(), ImmutableList::append)),
+        () -> assertEquals(empty(), instance.foldRight(Try.<String>failure().kind1(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.foldRight(Try.success("hola!").kind1(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals("", instance.fold(Monoid.string(), Try.<String>failure().kind1())),
+        () -> assertEquals("hola!", instance.fold(Monoid.string(), Try.success("hola!").kind1())),
+        () -> assertEquals(Option.none(), instance.reduce(Try.<String>failure().kind1(), String::concat)),
+        () -> assertEquals(Option.some("hola!"), instance.reduce(Try.success("hola!").kind1(), String::concat)),
+        () -> assertEquals(empty(), instance.foldMap(SequenceInstances.monoid(), Try.<String>failure().kind1(), Sequence::listOf)),
+        () -> assertEquals(listOf("hola!"), instance.foldMap(SequenceInstances.monoid(), Try.success("hola!").kind1(), Sequence::listOf)),
+        () -> assertEquals(Id.of(empty()), instance.foldM(IdInstances.monad(), Try.<String>failure().kind1(), empty(), (acc, a) -> Id.of(acc.append(a)).kind1())),
+        () -> assertEquals(Id.of(listOf("hola!")), instance.foldM(IdInstances.monad(), Try.success("hola!").kind1(), empty(), (acc, a) -> Id.of(acc.append(a)).kind1())));
   }
 }

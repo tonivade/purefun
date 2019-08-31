@@ -14,6 +14,6 @@ import com.github.tonivade.purefun.type.Try;
 public interface MonadDefer<F extends Kind> extends MonadThrow<F>, Bracket<F>, Defer<F> {
 
   default <A> Higher1<F, A> later(Producer<A> later) {
-    return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
+    return defer(() -> Try.of(later::get).fold(this::<A>raiseError, this::<A>pure));
   }
 }

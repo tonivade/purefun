@@ -34,7 +34,7 @@ public class TraverseTest {
     Traverse<Sequence.µ> instance = SequenceInstances.traverse();
 
     Higher1<Option.µ, Higher1<Sequence.µ, String>> result =
-        instance.traverse(OptionInstances.applicative(), seq, x -> x.map(String::toUpperCase));
+        instance.traverse(OptionInstances.applicative(), seq.kind1(), x -> x.map(String::toUpperCase).kind1());
 
     assertEquals(some(listOf("A", "B", "C")), result);
   }
@@ -47,11 +47,11 @@ public class TraverseTest {
 
     assertAll(
         () -> assertEquals(Option.some(Either.right("HELLO!")),
-            instance.traverse(OptionInstances.applicative(), Either.right(Option.some("hello!")),
-                t -> t.map(String::toUpperCase))),
+            instance.traverse(OptionInstances.applicative(), Either.<Throwable, Option<String>>right(Option.some("hello!")).kind1(),
+                t -> t.map(String::toUpperCase).kind1())),
         () -> assertEquals(Option.some(Either.left(error)),
-            instance.traverse(OptionInstances.applicative(), Either.<Throwable, Option<String>>left(error),
-                t -> t.map(String::toUpperCase))));
+            instance.traverse(OptionInstances.applicative(), Either.<Throwable, Option<String>>left(error).kind1(),
+                t -> t.map(String::toUpperCase).kind1())));
   }
 
   @Test
@@ -59,8 +59,8 @@ public class TraverseTest {
     Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(OptionInstances.traverse(), IdInstances.traverse());
 
     assertEquals(Try.success(Option.some(Id.of("HOLA!"))),
-        composed.traverse(TryInstances.applicative(), nest(Option.some(Id.of(Try.success("hola!")))),
-            t -> t.map(String::toUpperCase)));
+        composed.traverse(TryInstances.applicative(), nest(Option.some(Id.of(Try.success("hola!")).kind1()).kind1()),
+            t -> t.map(String::toUpperCase).kind1()));
   }
 
   @Test
@@ -69,8 +69,8 @@ public class TraverseTest {
 
     assertAll(
         () -> assertEquals(Option.some(Id.of("HELLO!")),
-            instance.traverse(OptionInstances.applicative(), Id.of(Option.some("hello!")),
-                t -> t.map(String::toUpperCase))));
+            instance.traverse(OptionInstances.applicative(), Id.of(Option.some("hello!")).kind1(),
+                t -> t.map(String::toUpperCase).kind1())));
   }
 
   @Test
@@ -79,11 +79,11 @@ public class TraverseTest {
 
     assertAll(
         () -> assertEquals(Try.success(Option.some("HELLO!")),
-            instance.traverse(TryInstances.applicative(), Option.some(Try.success("hello!")),
-                t -> t.map(String::toUpperCase))),
+            instance.traverse(TryInstances.applicative(), Option.some(Try.success("hello!")).kind1(),
+                t -> t.map(String::toUpperCase).kind1())),
         () -> assertEquals(Try.success(Option.none()),
-            instance.traverse(TryInstances.applicative(), Option.<Try<String>>none(),
-                t -> t.map(String::toUpperCase))));
+            instance.traverse(TryInstances.applicative(), Option.<Try<String>>none().kind1(),
+                t -> t.map(String::toUpperCase).kind1())));
   }
 
   @Test
@@ -94,10 +94,10 @@ public class TraverseTest {
 
     assertAll(
         () -> assertEquals(Option.some(Try.success("HELLO!")),
-            instance.traverse(OptionInstances.applicative(), Try.success(Option.some("hello!")),
-                t -> t.map(String::toUpperCase))),
+            instance.traverse(OptionInstances.applicative(), Try.success(Option.some("hello!")).kind1(),
+                t -> t.map(String::toUpperCase).kind1())),
         () -> assertEquals(Option.some(Try.failure(error)),
-            instance.traverse(OptionInstances.applicative(), Try.<Option<String>>failure(error),
-                t -> t.map(String::toUpperCase))));
+            instance.traverse(OptionInstances.applicative(), Try.<Option<String>>failure(error).kind1(),
+                t -> t.map(String::toUpperCase).kind1())));
   }
 }

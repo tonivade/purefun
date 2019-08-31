@@ -18,9 +18,9 @@ public class ForTest {
   @Test
   public void map() {
     Id<String> result = For.with(IdInstances.monad())
-        .andThen(() -> Id.of("value"))
+        .andThen(() -> Id.of("value").kind1())
         .map(String::toUpperCase)
-        .fix(Id::narrowK);
+        .fix(Id::<String>narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -28,9 +28,9 @@ public class ForTest {
   @Test
   public void flatMap() {
     Id<String> result = For.with(IdInstances.monad())
-        .andThen(() -> Id.of("value"))
-        .flatMap(string -> Id.of(string.toUpperCase()))
-        .fix(Id::narrowK);
+        .andThen(() -> Id.of("value").kind1())
+        .flatMap(string -> Id.of(string.toUpperCase()).kind1())
+        .fix(Id::<String>narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -39,13 +39,13 @@ public class ForTest {
   public void yield() {
     Id<Tuple5<String, String, String, String, String>> result =
         For.with(IdInstances.monad())
-          .and(Id.of("a"))
-          .and(Id.of("b"))
-          .and(Id.of("c"))
-          .and(Id.of("d"))
-          .and(Id.of("e"))
+          .and(Id.of("a").kind1())
+          .and(Id.of("b").kind1())
+          .and(Id.of("c").kind1())
+          .and(Id.of("d").kind1())
+          .and(Id.of("e").kind1())
           .tuple()
-          .fix1(Id::narrowK);
+          .fix1(Id::<Tuple5<String, String, String, String, String>>narrowK);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
   }

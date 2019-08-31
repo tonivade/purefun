@@ -47,7 +47,7 @@ public interface Free<F extends Kind, T> {
   default <G extends Kind> Higher1<G, T> foldMap(Monad<G> monad,
                                                  Functor<F> functor,
                                                  Transformer<F, G> interpreter) {
-    return resume(functor).fold(left -> FreeModule.suspend(monad, functor, interpreter, left), monad::pure);
+    return resume(functor).fold(left -> FreeModule.suspend(monad, functor, interpreter, left), monad::<T>pure);
   }
 
   FreeModule module();

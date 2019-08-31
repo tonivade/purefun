@@ -32,14 +32,14 @@ public class FoldableLaws {
   private static <F extends Kind> void reduceConsistentWithFoldM(Foldable<F> instance,
       Higher1<F, String> value, Operator2<String> combinator) {
     assertEquals(
-        instance.foldM(OptionInstances.monad(), value, "", combinator.andThen(Option::some)),
+        instance.foldM(OptionInstances.monad(), value, "", combinator.andThen(Option::some).andThen(Option::kind1)),
         instance.reduce(value, combinator));
   }
 
   private static <F extends Kind> void foldMIdentity(Foldable<F> instance,
       Higher1<F, String> value, Operator2<String> combinator) {
     assertEquals(
-        instance.foldM(IdInstances.monad(), value, "", combinator.andThen(Id::of)),
+        instance.foldM(IdInstances.monad(), value, "", combinator.andThen(Id::of).andThen(Id::kind1)),
         Id.of(instance.foldLeft(value, "", combinator)),
         "foldM identity");
   }

@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.Executor;
 
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.zio.ZIO;
@@ -27,7 +28,7 @@ public class FutureZIORuntime implements ZIORuntime<Future.µ> {
   }
 
   @Override
-  public <R, E, A> Future<Either<E, A>> run(R env, ZIO<R, E, A> effect) {
-    return effect.foldMap(env, monadDefer(executor)).fix1(Future::narrowK);
+  public <R, E, A> Higher1<Future.µ, Either<E, A>> run(R env, ZIO<R, E, A> effect) {
+    return effect.foldMap(env, monadDefer(executor));
   }
 }

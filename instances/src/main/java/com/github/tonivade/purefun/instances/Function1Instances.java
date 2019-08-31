@@ -15,6 +15,8 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Profunctor;
 
+import static com.github.tonivade.purefun.Conested.*;
+
 public interface Function1Instances {
 
   static <T> Functor<Higher1<Function1.µ, T>> functor() {
@@ -41,35 +43,35 @@ public interface Function1Instances {
 @Instance
 interface Function1Functor<T> extends Functor<Higher1<Function1.µ, T>> {
   @Override
-  default <A, R> Function1<T, R> map(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, R> map) {
-    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
-    return function.andThen(map);
+  default <A, R> Higher2<Function1.µ, T, R> map(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, R> map) {
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::<T, A>narrowK);
+    return function.andThen(map).kind2();
   }
 }
 
 interface Function1Pure<T> extends Applicative<Higher1<Function1.µ, T>> {
   @Override
-  default <A> Function1<T, A> pure(A value) {
-    return Function1.cons(value);
+  default <A> Higher2<Function1.µ, T, A> pure(A value) {
+    return Function1.<T, A>cons(value).kind2();
   }
 }
 
 @Instance
 interface Function1Applicative<T> extends Function1Pure<T> {
   @Override
-  default <A, R> Function1<T, R> ap(Higher1<Higher1<Function1.µ, T>, A> value, Higher1<Higher1<Function1.µ, T>, Function1<A, R>> apply) {
-    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
-    Function1<T, Function1<A, R>> map = Higher2.narrowK(apply).fix2(Function1::narrowK);
-    return function.flatMap(a -> map.andThen(f -> f.apply(a)));
+  default <A, R> Higher2<Function1.µ, T, R> ap(Higher1<Higher1<Function1.µ, T>, A> value, Higher1<Higher1<Function1.µ, T>, Function1<A, R>> apply) {
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::<T, A>narrowK);
+    Function1<T, Function1<A, R>> map = Higher2.narrowK(apply).fix2(Function1::<T, Function1<A, R>>narrowK);
+    return function.flatMap(a -> map.andThen(f -> f.apply(a))).kind2();
   }
 }
 
 @Instance
 interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ, T>> {
   @Override
-  default <A, R> Function1<T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
-    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
-    return function.flatMap(map.andThen(Function1::narrowK));
+  default <A, R> Higher2<Function1.µ, T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::<T, A>narrowK);
+    return function.flatMap(map.andThen(Function1::<T, R>narrowK)).kind2();
   }
 }
 
@@ -77,16 +79,16 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ
 interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ, R>> {
   @Override
   default <A, B> Higher1<Conested<Function1.µ, R>, B> contramap(Higher1<Conested<Function1.µ, R>, A> value, Function1<B, A> map) {
-    Function1<A, R> function = Conested.<Function1.µ, A, R>counnest(value).fix1(Function1::narrowK);
-    return Conested.<Function1.µ, B, R>conest(function.compose(map));
+    Function1<A, R> function = counnest(value).fix1(Function1::<A, R>narrowK);
+    return conest(function.compose(map).kind1());
   }
 }
 
 @Instance
 interface Function1Profunctor extends Profunctor<Function1.µ> {
   @Override
-  default <A, B, C, D> Function1<C, D> dimap(Higher2<Function1.µ, A, B> value, Function1<C, A> contramap, Function1<B, D> map) {
-    Function1<A, B> function = value.fix2(Function1::narrowK);
-    return function.compose(contramap).andThen(map);
+  default <A, B, C, D> Higher2<Function1.µ, C, D> dimap(Higher2<Function1.µ, A, B> value, Function1<C, A> contramap, Function1<B, D> map) {
+    Function1<A, B> function = value.fix2(Function1::<A, B>narrowK);
+    return function.compose(contramap).andThen(map).kind2();
   }
 }

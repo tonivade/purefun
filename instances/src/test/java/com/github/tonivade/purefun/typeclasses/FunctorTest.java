@@ -30,42 +30,42 @@ public class FunctorTest {
 
   @Test
   public void idFunctor() {
-    verifyLaws(IdInstances.functor(), Id.of("hola mundo!"));
+    verifyLaws(IdInstances.functor(), Id.of("hola mundo!").kind1());
   }
 
   @Test
   public void tupleFunctor() {
-    verifyLaws(TupleInstances.functor(), Tuple.of("hola mundo!"));
+    verifyLaws(TupleInstances.functor(), Tuple.of("hola mundo!").kind1());
   }
 
   @Test
   public void optionFunctor() {
-    verifyLaws(OptionInstances.functor(), Option.some("hola mundo!"));
+    verifyLaws(OptionInstances.functor(), Option.some("hola mundo!").kind1());
   }
 
   @Test
   public void tryFunctor() {
-    verifyLaws(TryInstances.functor(), Try.success("hola mundo!"));
+    verifyLaws(TryInstances.functor(), Try.success("hola mundo!").kind1());
   }
 
   @Test
   public void eitherFunctor() {
-    verifyLaws(EitherInstances.functor(), Either.right("hola mundo!"));
+    verifyLaws(EitherInstances.functor(), Either.right("hola mundo!").kind1());
   }
 
   @Test
   public void validationFunctor() {
-    verifyLaws(ValidationInstances.functor(), Validation.valid("hola mundo!"));
+    verifyLaws(ValidationInstances.functor(), Validation.valid("hola mundo!").kind2());
   }
 
   @Test
   public void traverseFunctor() {
-    verifyLaws(SequenceInstances.traverse(), Sequence.listOf("hola mundo!"));
+    verifyLaws(SequenceInstances.traverse(), Sequence.listOf("hola mundo!").kind1());
   }
 
   @Test
   public void composedCovariantFunctor() {
-    verifyLaws(Functor.compose(OptionInstances.functor(), IdInstances.functor()), nest(Option.some(Id.of("hola mundo!"))));
+    verifyLaws(Functor.compose(OptionInstances.functor(), IdInstances.functor()), nest(Option.some(Id.of("hola mundo!").kind1()).kind1()));
   }
 
   @Test

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
@@ -15,7 +16,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 public interface ConstInstances {
 
   static <T, A> Eq<Higher1<Higher1<Const.µ, T>, A>> eq(Eq<T> eq) {
-    return (a, b) -> eq.eqv(a.fix1(Const::narrowK).get(), a.fix1(Const::narrowK).get());
+    return (a, b) -> eq.eqv(a.fix1(Const::<T, A>narrowK).get(), a.fix1(Const::<T, A>narrowK).get());
   }
 
   static <T> Functor<Higher1<Const.µ, T>> functor() {
@@ -31,8 +32,8 @@ public interface ConstInstances {
 interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
 
   @Override
-  default <A, B> Const<T, B> map(Higher1<Higher1<Const.µ, T>, A> value, Function1<A, B> map) {
-    return value.fix1(Const::narrowK).retag();
+  default <A, B> Higher2<Const.µ, T, B> map(Higher1<Higher1<Const.µ, T>, A> value, Function1<A, B> map) {
+    return value.fix1(Const::<T, A>narrowK).<B>retag().kind2();
   }
 }
 
@@ -40,7 +41,7 @@ interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
 interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
 
   @Override
-  default <A, B> Const<T, B> contramap(Higher1<Higher1<Const.µ, T>, A> value, Function1<B, A> map) {
-    return value.fix1(Const::narrowK).retag();
+  default <A, B> Higher2<Const.µ, T, B> contramap(Higher1<Higher1<Const.µ, T>, A> value, Function1<B, A> map) {
+    return value.fix1(Const::<T, A>narrowK).<B>retag().kind2();
   }
 }

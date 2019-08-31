@@ -22,8 +22,8 @@ public class ProfunctorTest {
   public void dimap() {
     Profunctor<Function1.µ> profunctor = Function1Instances.profunctor();
     
-    Higher2<Function1.µ, Integer, Double> result = profunctor.dimap(parseInt, toString, toDouble);
+    Higher2<Function1.µ, Integer, Double> result = profunctor.dimap(parseInt.kind2(), toString, toDouble);
     
-    assertEquals(2.0, result.fix2(Function1::narrowK).apply(2));
+    assertEquals(2.0, result.fix2(Function1::<Integer, Double>narrowK).apply(2));
   }
 }

@@ -112,7 +112,7 @@ public interface Stream<F extends Kind, T> {
     }
 
     default <T> Stream<F, T> suspend(Producer<Stream<F, T>> lazy) {
-      return new Suspend<>(monadDefer(), monadDefer().defer(lazy.map(monadDefer()::pure)));
+      return new Suspend<>(monadDefer(), monadDefer().defer(lazy.map(monadDefer()::<Stream<F, T>>pure)));
     }
 
     default <T> Stream<F, T> eval(Higher1<F, T> value) {
@@ -179,6 +179,8 @@ public interface Stream<F extends Kind, T> {
         ));
     }
   }
+
+  // TODO: unfold method
 }
 
 final class Cons<F extends Kind, T> implements Stream<F, T> {
@@ -308,7 +310,7 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   }
 
   private <R> Stream<F, R> suspend(Producer<Stream<F, R>> stream) {
-    return suspendF(stream.map(monad::pure));
+    return suspendF(stream.map(monad::<Stream<F, R>>pure));
   }
 
   private <R> Stream<F, R> suspendF(Producer<Higher1<F, Stream<F, R>>> stream) {

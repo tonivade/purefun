@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.github.tonivade.purefun.Higher2;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -31,7 +32,7 @@ public class TaglessTest {
 
   @Test
   public void stateInterpreter() {
-    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix1(State::narrowK);
+    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix1(State::<ImmutableList<String>, Unit>narrowK);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(listOf("Toni"));
 
@@ -91,13 +92,13 @@ class IOProgramInterpreter implements ProgramK<IO.µ> {
   final Console<IO.µ> console = IOInstances.console();
 
   @Override
-  public IO<String> read() {
-    return console.readln().fix1(IO::narrowK);
+  public Higher1<IO.µ, String> read() {
+    return console.readln().fix1(IO::<String>narrowK).kind1();
   }
 
   @Override
-  public IO<Unit> write(String string) {
-    return console.println(string).fix1(IO::narrowK);
+  public Higher1<IO.µ, Unit> write(String string) {
+    return console.println(string).fix1(IO::<Unit>narrowK).kind1();
   }
 }
 
@@ -107,12 +108,12 @@ class StateProgramInterpreter
   final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
 
   @Override
-  public State<ImmutableList<String>, String> read() {
-    return console.readln().fix1(State::narrowK);
+  public Higher2<State.µ, ImmutableList<String>, String> read() {
+    return console.readln().fix1(State::<ImmutableList<String>, String>narrowK).kind2();
   }
 
   @Override
-  public State<ImmutableList<String>, Unit> write(String string) {
-    return console.println(string).fix1(State::narrowK);
+  public Higher2<State.µ, ImmutableList<String>, Unit> write(String string) {
+    return console.println(string).fix1(State::<ImmutableList<String>, Unit>narrowK).kind2();
   }
 }

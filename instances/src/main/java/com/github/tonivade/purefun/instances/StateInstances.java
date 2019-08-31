@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Unit;
@@ -31,14 +32,14 @@ public interface StateInstances {
 interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
 
   @Override
-  default <T> State<S, T> pure(T value) {
-    return State.pure(value);
+  default <T> Higher2<State.µ, S, T> pure(T value) {
+    return State.<S, T>pure(value).kind2();
   }
 
   @Override
-  default <T, R> State<S, R> flatMap(Higher1<Higher1<State.µ, S>, T> value,
+  default <T, R> Higher2<State.µ, S, R> flatMap(Higher1<Higher1<State.µ, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<State.µ, S>, R>> map) {
-    return State.narrowK(value).flatMap(map.andThen(State::narrowK));
+    return State.narrowK(value).flatMap(map.andThen(State::<S, R>narrowK)).kind2();
   }
 }
 
@@ -46,12 +47,12 @@ interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
 final class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
 
   @Override
-  public State<ImmutableList<String>, String> readln() {
-    return State.<ImmutableList<String>, String>state(list -> Tuple.of(list.tail(), list.head().get()));
+  public Higher2<State.µ, ImmutableList<String>, String> readln() {
+    return State.<ImmutableList<String>, String>state(list -> Tuple.of(list.tail(), list.head().get())).kind2();
   }
 
   @Override
-  public State<ImmutableList<String>, Unit> println(String text) {
-    return State.<ImmutableList<String>, Unit>state(list -> Tuple.of(list.append(text), unit()));
+  public Higher2<State.µ, ImmutableList<String>, Unit> println(String text) {
+    return State.<ImmutableList<String>, Unit>state(list -> Tuple.of(list.append(text), unit())).kind2();
   }
 }

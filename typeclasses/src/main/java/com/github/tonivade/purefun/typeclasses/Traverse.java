@@ -26,7 +26,7 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
 
   @Override
   default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
-    return traverse(new IdApplicative(), value, t -> Id.of(map.apply(t))).fix1(Id::narrowK).get();
+    return Id.narrowK(traverse(new IdApplicative(), value, t -> Id.of(map.apply(t)).kind1())).get().kind1();
   }
 
   static <F extends Kind, G extends Kind> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
@@ -44,12 +44,12 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
 class IdApplicative implements Applicative<Id.µ> {
 
   @Override
-  public <T> Id<T> pure(T value) {
-    return Id.of(value);
+  public <T> Higher1<Id.µ, T> pure(T value) {
+    return Id.of(value).kind1();
   }
 
   @Override
-  public <T, R> Id<R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
-    return Id.narrowK(value).flatMap(t -> Id.narrowK(apply).map(f -> f.apply(t)));
+  public <T, R> Higher1<Id.µ, R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
+    return Id.narrowK(value).flatMap(t -> Id.narrowK(apply).map(f -> f.apply(t))).kind1();
   }
 }

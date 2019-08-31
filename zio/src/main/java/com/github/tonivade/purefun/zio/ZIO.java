@@ -467,7 +467,7 @@ public interface ZIO<R, E, A> {
 
     @Override
     public <F extends Kind> Higher1<F, Either<Throwable, B>> foldMap(R env, MonadDefer<F> monad) {
-      return monad.bracket(monad.flatMap(acquire.foldMap(env, monad), monad::fromEither),
+      return monad.bracket(monad.flatMap(acquire.foldMap(env, monad), monad::<A>fromEither),
                            use.andThen(zio -> zio.foldMap(env, monad)),
                            release);
     }

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -55,9 +56,9 @@ public interface ZIOInstances {
 interface ZIOFunctor<R, E> extends Functor<Higher1<Higher1<ZIO.µ, R>, E>> {
 
   @Override
-  default <A, B> ZIO<R, E, B>
+  default <A, B> Higher3<ZIO.µ, R, E, B>
           map(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value, Function1<A, B> map) {
-    return ZIO.narrowK(value).map(map);
+    return ZIO.narrowK(value).map(map).kind3();
   }
 }
 
@@ -65,8 +66,8 @@ interface ZIOFunctor<R, E> extends Functor<Higher1<Higher1<ZIO.µ, R>, E>> {
 interface ZIOPure<R, E> extends Applicative<Higher1<Higher1<ZIO.µ, R>, E>> {
 
   @Override
-  default <A> ZIO<R, E, A> pure(A value) {
-    return ZIO.pure(value);
+  default <A> Higher3<ZIO.µ, R, E, A> pure(A value) {
+    return ZIO.<R, E, A>pure(value).kind3();
   }
 }
 
@@ -74,10 +75,10 @@ interface ZIOPure<R, E> extends Applicative<Higher1<Higher1<ZIO.µ, R>, E>> {
 interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
 
   @Override
-  default <A, B> ZIO<R, E, B>
+  default <A, B> Higher3<ZIO.µ, R, E, B>
           ap(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
              Higher1<Higher1<Higher1<ZIO.µ, R>, E>, Function1<A, B>> apply) {
-    return ZIO.narrowK(apply).flatMap(map -> ZIO.narrowK(value).map(map));
+    return ZIO.narrowK(apply).flatMap(map -> ZIO.narrowK(value).map(map)).kind3();
   }
 }
 
@@ -85,10 +86,10 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
 interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>, E>> {
 
   @Override
-  default <A, B> ZIO<R, E, B>
+  default <A, B> Higher3<ZIO.µ, R, E, B>
           flatMap(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
                   Function1<A, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, E>, B>> map) {
-    return ZIO.narrowK(value).flatMap(map.andThen(ZIO::narrowK));
+    return ZIO.narrowK(value).flatMap(map.andThen(ZIO::<R, E, B>narrowK)).kind3();
   }
 }
 
@@ -96,19 +97,19 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>
 interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1<ZIO.µ, R>, E>, E> {
 
   @Override
-  default <A> ZIO<R, E, A> raiseError(E error) {
-    return ZIO.raiseError(error);
+  default <A> Higher3<ZIO.µ, R, E, A> raiseError(E error) {
+    return ZIO.<R, E, A>raiseError(error).kind3();
   }
 
   @Override
-  default <A> ZIO<R, E, A>
+  default <A> Higher3<ZIO.µ, R, E, A>
           handleErrorWith(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
                           Function1<E, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIO::narrowK);
+    Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIO::<R, E, A>narrowK);
     Function1<A, ZIO<R, E, A>> map = ZIO::pure;
     ZIO<R, E, A> zio = ZIO.narrowK(value);
-    return zio.foldM(mapError, map);
+    return zio.foldM(mapError, map).kind3();
   }
 }
 
@@ -121,9 +122,9 @@ interface ZIOMonadThrow<R>
 interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 
   @Override
-  default <A> ZIO<R, Throwable, A>
+  default <A> Higher3<ZIO.µ, R, Throwable, A>
           defer(Producer<Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A>> defer) {
-    return ZIO.defer(() -> defer.map(ZIO::narrowK).get());
+    return ZIO.defer(() -> defer.map(ZIO::<R, Throwable, A>narrowK).get()).kind3();
   }
 }
 
@@ -131,11 +132,11 @@ interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 
   @Override
-  default <A, B> ZIO<R, Throwable, B>
+  default <A, B> Higher3<ZIO.µ, R, Throwable, B>
           bracket(Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A> acquire,
                   Function1<A, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return ZIO.bracket(acquire.fix1(ZIO::narrowK), use.andThen(ZIO::narrowK), release);
+    return ZIO.bracket(acquire.fix1(ZIO::<R, Throwable, A>narrowK), use.andThen(ZIO::<R, Throwable, B>narrowK), release).kind3();
   }
 }
 

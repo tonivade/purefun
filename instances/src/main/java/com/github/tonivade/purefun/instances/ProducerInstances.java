@@ -38,16 +38,16 @@ public interface ProducerInstances {
 interface ProducerFunctor extends Functor<Producer.µ> {
 
   @Override
-  default <T, R> Producer<R> map(Higher1<Producer.µ, T> value, Function1<T, R> mapper) {
-    return value.fix1(Producer::narrowK).map(mapper);
+  default <T, R> Higher1<Producer.µ, R> map(Higher1<Producer.µ, T> value, Function1<T, R> mapper) {
+    return value.fix1(Producer::<T>narrowK).map(mapper).kind1();
   }
 }
 
 interface ProducerPure extends Applicative<Producer.µ> {
 
   @Override
-  default <T> Producer<T> pure(T value) {
-    return Producer.cons(value);
+  default <T> Higher1<Producer.µ, T> pure(T value) {
+    return Producer.cons(value).kind1();
   }
 }
 
@@ -55,8 +55,8 @@ interface ProducerPure extends Applicative<Producer.µ> {
 interface ProducerApplicative extends ProducerPure {
 
   @Override
-  default <T, R> Producer<R> ap(Higher1<Producer.µ, T> value, Higher1<Producer.µ, Function1<T, R>> apply) {
-    return Producer.narrowK(value).flatMap(t -> Producer.narrowK(apply).map(f -> f.apply(t)));
+  default <T, R> Higher1<Producer.µ, R> ap(Higher1<Producer.µ, T> value, Higher1<Producer.µ, Function1<T, R>> apply) {
+    return Producer.narrowK(value).flatMap(t -> Producer.narrowK(apply).map(f -> f.apply(t))).kind1();
   }
 }
 
@@ -64,8 +64,8 @@ interface ProducerApplicative extends ProducerPure {
 interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
 
   @Override
-  default <T, R> Producer<R> flatMap(Higher1<Producer.µ, T> value, Function1<T, ? extends Higher1<Producer.µ, R>> mapper) {
-    return value.fix1(Producer::narrowK).flatMap(mapper.andThen(Producer::narrowK));
+  default <T, R> Higher1<Producer.µ, R> flatMap(Higher1<Producer.µ, T> value, Function1<T, ? extends Higher1<Producer.µ, R>> mapper) {
+    return value.fix1(Producer::<T>narrowK).flatMap(mapper.andThen(Producer::<R>narrowK)).kind1();
   }
 }
 
@@ -73,12 +73,12 @@ interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
 interface ProducerComonad extends ProducerFunctor, Comonad<Producer.µ> {
 
   @Override
-  default <A, B> Producer<B> coflatMap(Higher1<Producer.µ, A> value, Function1<Higher1<Producer.µ, A>, B> map) {
-    return cons(map.apply(value));
+  default <A, B> Higher1<Producer.µ, B> coflatMap(Higher1<Producer.µ, A> value, Function1<Higher1<Producer.µ, A>, B> map) {
+    return cons(map.apply(value)).kind1();
   }
 
   @Override
   default <A> A extract(Higher1<Producer.µ, A> value) {
-    return value.fix1(Producer::narrowK).get();
+    return value.fix1(Producer::<A>narrowK).get();
   }
 }

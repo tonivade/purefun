@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Conested.*;
 import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.laws.ContravariatLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +26,7 @@ public class ContravariantTest {
   public void constInstance() {
     Contravariant<Higher1<Const.µ, String>> instance = ConstInstances.contravariant();
 
-    verifyLaws(instance, Const.of("string"));
+    verifyLaws(instance, Const.<String, String>of("string").kind2());
   }
 
   @Test
@@ -35,9 +36,9 @@ public class ContravariantTest {
     Function1<Integer, Double> int2double = Integer::doubleValue;
     Function1<String, Integer> string2Int = String::length;
 
-    Higher1<Conested<Function1.µ, Double>, Integer> conest = Conested.<Function1.µ, Integer, Double>conest(int2double);
+    Higher1<Conested<Function1.µ, Double>, Integer> conest = conest(int2double.kind2());
     Higher1<Conested<Function1.µ, Double>, String> contramap = instance.contramap(conest, string2Int);
-    Function1<String, Double> result = Conested.<Function1.µ, String, Double>counnest(contramap).fix1(Function1::narrowK);
+    Function1<String, Double> result = counnest(contramap).fix1(Function1::<String, Double>narrowK);
 
     assertEquals(4.0, result.apply("hola"));
   }
@@ -46,9 +47,8 @@ public class ContravariantTest {
   public void composedCovariantContravariant() {
     Functor<Id.µ> functor = IdInstances.functor();
     Contravariant<Higher1<Const.µ, String>> contravariant = ConstInstances.contravariant();
-    Contravariant<Nested<Id.µ, Higher1<Const.µ, String>>> instance = 
-        Contravariant.compose(functor, contravariant);
+    Contravariant<Nested<Id.µ, Higher1<Const.µ, String>>> instance = Contravariant.compose(functor, contravariant);
 
-    verifyLaws(instance, nest(Id.of(Const.of("string"))));
+    verifyLaws(instance, nest(Id.of(Const.<String, String>of("string").kind1()).kind1()));
   }
 }

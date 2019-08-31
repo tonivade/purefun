@@ -65,8 +65,8 @@ public interface IOInstances {
 interface IOFunctor extends Functor<IO.µ> {
 
   @Override
-  default <T, R> IO<R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
-    return IO.narrowK(value).map(map);
+  default <T, R> Higher1<IO.µ, R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
+    return IO.narrowK(value).map(map).kind1();
   }
 }
 
@@ -75,7 +75,7 @@ interface IOComonad extends IOFunctor, Comonad<IO.µ> {
 
   @Override
   default <A, B> Higher1<IO.µ, B> coflatMap(Higher1<IO.µ, A> value, Function1<Higher1<IO.µ, A>, B> map) {
-    return IO.task(() -> map.apply(value));
+    return IO.task(() -> map.apply(value)).kind1();
   }
 
   @Override
@@ -88,13 +88,13 @@ interface IOComonad extends IOFunctor, Comonad<IO.µ> {
 interface IOMonad extends Monad<IO.µ> {
 
   @Override
-  default <T> IO<T> pure(T value) {
-    return IO.pure(value);
+  default <T> Higher1<IO.µ, T> pure(T value) {
+    return IO.pure(value).kind1();
   }
 
   @Override
-  default <T, R> IO<R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
-    return IO.narrowK(value).flatMap(map.andThen(IO::narrowK));
+  default <T, R> Higher1<IO.µ, R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
+    return IO.narrowK(value).flatMap(map.andThen(IO::<R>narrowK)).kind1();
   }
 }
 
@@ -102,13 +102,13 @@ interface IOMonad extends Monad<IO.µ> {
 interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   @Override
-  default <A> IO<A> raiseError(Throwable error) {
-    return IO.raiseError(error);
+  default <A> Higher1<IO.µ, A> raiseError(Throwable error) {
+    return IO.<A>raiseError(error).kind1();
   }
 
   @Override
-  default <A> IO<A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
-    return IO.narrowK(value).redeemWith(handler.andThen(IO::narrowK), this::pure);
+  default <A> Higher1<IO.µ, A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
+    return IO.narrowK(value).redeemWith(handler.andThen(IO::<A>narrowK), IO::pure).kind1();
   }
 }
 
@@ -116,8 +116,8 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 interface IODefer extends Defer<IO.µ> {
 
   @Override
-  default <A> IO<A> defer(Producer<Higher1<IO.µ, A>> defer) {
-    return IO.suspend(defer.map(IO::narrowK));
+  default <A> Higher1<IO.µ, A> defer(Producer<Higher1<IO.µ, A>> defer) {
+    return IO.suspend(defer.map(IO::<A>narrowK)).kind1();
   }
 }
 
@@ -125,8 +125,8 @@ interface IODefer extends Defer<IO.µ> {
 interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer {
 
   @Override
-  default <A, B> IO<B> bracket(Higher1<IO.µ, A> acquire, Function1<A, ? extends Higher1<IO.µ, B>> use, Consumer1<A> release) {
-    return IO.bracket(IO.narrowK(acquire), use.andThen(IO::narrowK), release::accept);
+  default <A, B> Higher1<IO.µ, B> bracket(Higher1<IO.µ, A> acquire, Function1<A, ? extends Higher1<IO.µ, B>> use, Consumer1<A> release) {
+    return IO.bracket(IO.narrowK(acquire), use.andThen(IO::<B>narrowK), release::accept).kind1();
   }
 }
 
@@ -136,13 +136,13 @@ final class ConsoleIO implements Console<IO.µ> {
   private final SystemConsole console = new SystemConsole();
 
   @Override
-  public IO<String> readln() {
-    return IO.task(console::readln);
+  public Higher1<IO.µ, String> readln() {
+    return IO.task(console::readln).kind1();
   }
 
   @Override
-  public IO<Unit> println(String text) {
-    return IO.exec(() -> console.println(text));
+  public Higher1<IO.µ, Unit> println(String text) {
+    return IO.exec(() -> console.println(text)).kind1();
   }
 }
 

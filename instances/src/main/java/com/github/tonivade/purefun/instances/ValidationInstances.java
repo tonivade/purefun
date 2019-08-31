@@ -60,8 +60,8 @@ public interface ValidationInstances {
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 
   @Override
-  default <T, R> Validation<E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
-    return Validation.narrowK(value).map(map);
+  default <T, R> Higher2<Validation.µ, E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
+    return Validation.narrowK(value).map(map).kind2();
   }
 }
 
@@ -69,9 +69,9 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 interface ValidationBifunctor extends Bifunctor<Validation.µ> {
 
   @Override
-  default <A, B, C, D> Validation<C, D> bimap(Higher2<Validation.µ, A, B> value,
+  default <A, B, C, D> Higher2<Validation.µ, C, D> bimap(Higher2<Validation.µ, A, B> value,
       Function1<A, C> leftMap, Function1<B, D> rightMap) {
-    return Validation.narrowK(value).mapError(leftMap).map(rightMap);
+    return Validation.narrowK(value).mapError(leftMap).map(rightMap).kind2();
   }
 }
 
@@ -79,8 +79,8 @@ interface ValidationBifunctor extends Bifunctor<Validation.µ> {
 interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
 
   @Override
-  default <T> Validation<E, T> pure(T value) {
-    return Validation.valid(value);
+  default <T> Higher2<Validation.µ, E, T> pure(T value) {
+    return Validation.<E, T>valid(value).kind2();
   }
 }
 
@@ -88,9 +88,9 @@ interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
 interface ValidationApplicative<E> extends ValidationPure<E> {
 
   @Override
-  default <T, R> Validation<E, R> ap(Higher1<Higher1<Validation.µ, E>, T> value,
+  default <T, R> Higher2<Validation.µ, E, R> ap(Higher1<Higher1<Validation.µ, E>, T> value,
       Higher1<Higher1<Validation.µ, E>, Function1<T, R>> apply) {
-    return Validation.narrowK(value).flatMap(t -> Validation.narrowK(apply).map(f -> f.apply(t)));
+    return Validation.narrowK(value).flatMap(t -> Validation.narrowK(apply).map(f -> f.apply(t))).kind2();
   }
 }
 
@@ -98,9 +98,9 @@ interface ValidationApplicative<E> extends ValidationPure<E> {
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation.µ, E>> {
 
   @Override
-  default <T, R> Validation<E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
+  default <T, R> Higher2<Validation.µ, E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
       Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
-    return Validation.narrowK(value).flatMap(map.andThen(Validation::narrowK));
+    return Validation.narrowK(value).flatMap(map.andThen(Validation::<E, R>narrowK)).kind2();
   }
 }
 
@@ -108,14 +108,14 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
 interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation.µ, E>, E> {
 
   @Override
-  default <A> Validation<E, A> raiseError(E error) {
-    return Validation.invalid(error);
+  default <A> Higher2<Validation.µ, E, A> raiseError(E error) {
+    return Validation.<E, A>invalid(error).kind2();
   }
 
   @Override
-  default <A> Validation<E, A> handleErrorWith(Higher1<Higher1<Validation.µ, E>, A> value,
+  default <A> Higher2<Validation.µ, E, A> handleErrorWith(Higher1<Higher1<Validation.µ, E>, A> value,
       Function1<E, ? extends Higher1<Higher1<Validation.µ, E>, A>> handler) {
-    return Validation.narrowK(value).fold(handler.andThen(Validation::narrowK), Validation::valid);
+    return Validation.narrowK(value).fold(handler.andThen(Validation::<E, A>narrowK), Validation::<E, A>valid).kind2();
   }
 }
 

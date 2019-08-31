@@ -146,7 +146,7 @@ public class ZIOTest {
                     .andThen(currentThread))));
 
     Either<Throwable, ImmutableList<String>> result =
-        program.foldMap(nothing(), FutureInstances.monadDefer()).fix1(Future::narrowK)
+        program.foldMap(nothing(), FutureInstances.monadDefer()).fix1(Future::<Either<Throwable, ImmutableList<String>>>narrowK)
           .await(Duration.ofSeconds(5)).get();
 
     assertEquals(Either.right(5), result.map(ImmutableList::size));

@@ -28,8 +28,8 @@ public interface TupleInstances {
 interface Tuple1Functor extends Functor<Tuple1.µ> {
 
   @Override
-  default <T, R> Tuple1<R> map(Higher1<Tuple1.µ, T> value, Function1<T, R> map) {
-    return value.fix1(Tuple1::narrowK).map(map);
+  default <T, R> Higher1<Tuple1.µ, R> map(Higher1<Tuple1.µ, T> value, Function1<T, R> map) {
+    return value.fix1(Tuple1::<T>narrowK).map(map).kind1();
   }
 }
 
@@ -37,9 +37,9 @@ interface Tuple1Functor extends Functor<Tuple1.µ> {
 interface Tuple2Bifunctor extends Bifunctor<Tuple2.µ> {
 
   @Override
-  default <A, B, C, D> Tuple2<C, D> bimap(Higher2<Tuple2.µ, A, B> value,
+  default <A, B, C, D> Higher2<Tuple2.µ, C, D> bimap(Higher2<Tuple2.µ, A, B> value,
                                           Function1<A, C> leftMap,
                                           Function1<B, D> rightMap) {
-    return value.fix2(Tuple2::narrowK).map(leftMap, rightMap);
+    return value.fix2(Tuple2::<A, B>narrowK).map(leftMap, rightMap).kind2();
   }
 }

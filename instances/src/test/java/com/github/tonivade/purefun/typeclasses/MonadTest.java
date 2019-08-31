@@ -54,11 +54,11 @@ public class MonadTest {
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();
 
-    assertAll(() -> assertEquals(some.map(toUpperCase), monad.map(some, toUpperCase)),
-              () -> assertEquals(some.map(toUpperCase), monad.flatMap(some, toUpperCase.liftOption())),
+    assertAll(() -> assertEquals(some.map(toUpperCase), monad.map(some.kind1(), toUpperCase)),
+              () -> assertEquals(some.map(toUpperCase), monad.flatMap(some.kind1(), toUpperCase.liftOption().andThen(Option::kind1))),
               () -> assertEquals(some, monad.pure("asdf")),
-              () -> assertEquals(none, monad.map(none, toUpperCase)),
-              () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption())),
-              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase))));
+              () -> assertEquals(none, monad.map(none.kind1(), toUpperCase)),
+              () -> assertEquals(none, monad.flatMap(none.kind1(), toUpperCase.liftOption().andThen(Option::kind1))),
+              () -> assertEquals(some.map(toUpperCase), monad.ap(some.kind1(), Option.some(toUpperCase).kind1())));
   }
 }

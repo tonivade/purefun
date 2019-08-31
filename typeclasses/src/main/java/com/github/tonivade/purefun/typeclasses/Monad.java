@@ -27,7 +27,7 @@ public interface Monad<F extends Kind> extends Applicative<F> {
 
   @Override
   default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
-    return flatMap(value, map.andThen(this::pure));
+    return flatMap(value, map.andThen(this::<R>pure));
   }
 
   @Override

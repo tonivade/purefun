@@ -56,7 +56,7 @@ public interface StateT<F extends Kind, S, A> {
   }
 
   static <F extends Kind, S, A> StateT<F, S, A> lift(Monad<F> monad, Function1<S, Tuple2<S, A>> run) {
-    return state(monad, run.andThen(monad::pure));
+    return state(monad, run.andThen(monad::<Tuple2<S, A>>pure));
   }
 
   static <F extends Kind, S, A> StateT<F, S, A> pure(Monad<F> monad, A value) {

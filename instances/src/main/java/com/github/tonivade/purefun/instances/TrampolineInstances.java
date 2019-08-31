@@ -31,8 +31,8 @@ public interface TrampolineInstances {
 interface TrampolineFunctor extends Functor<Trampoline.µ> {
 
   @Override
-  default <T, R> Trampoline<R> map(Higher1<Trampoline.µ, T> value, Function1<T, R> mapper) {
-    return Trampoline.narrowK(value).map(mapper);
+  default <T, R> Higher1<Trampoline.µ, R> map(Higher1<Trampoline.µ, T> value, Function1<T, R> mapper) {
+    return Trampoline.narrowK(value).map(mapper).kind1();
   }
 }
 
@@ -40,8 +40,8 @@ interface TrampolineFunctor extends Functor<Trampoline.µ> {
 interface TrampolinePure extends Applicative<Trampoline.µ> {
 
   @Override
-  default <T> Trampoline<T> pure(T value) {
-    return Trampoline.done(value);
+  default <T> Higher1<Trampoline.µ, T> pure(T value) {
+    return Trampoline.done(value).kind1();
   }
 }
 
@@ -49,8 +49,8 @@ interface TrampolinePure extends Applicative<Trampoline.µ> {
 interface TrampolineApplicative extends TrampolinePure {
 
   @Override
-  default <T, R> Trampoline<R> ap(Higher1<Trampoline.µ, T> value, Higher1<Trampoline.µ, Function1<T, R>> apply) {
-    return Trampoline.narrowK(value).flatMap(t -> Trampoline.narrowK(apply).map(f -> f.apply(t)));
+  default <T, R> Higher1<Trampoline.µ, R> ap(Higher1<Trampoline.µ, T> value, Higher1<Trampoline.µ, Function1<T, R>> apply) {
+    return Trampoline.narrowK(value).flatMap(t -> Trampoline.narrowK(apply).map(f -> f.apply(t))).kind1();
   }
 }
 
@@ -58,8 +58,8 @@ interface TrampolineApplicative extends TrampolinePure {
 interface TrampolineMonad extends TrampolinePure, Monad<Trampoline.µ> {
 
   @Override
-  default <T, R> Trampoline<R> flatMap(Higher1<Trampoline.µ, T> value,
+  default <T, R> Higher1<Trampoline.µ, R> flatMap(Higher1<Trampoline.µ, T> value,
       Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
-    return Trampoline.narrowK(value).flatMap(map.andThen(Trampoline::narrowK));
+    return Trampoline.narrowK(value).flatMap(map.andThen(Trampoline::<R>narrowK)).kind1();
   }
 }

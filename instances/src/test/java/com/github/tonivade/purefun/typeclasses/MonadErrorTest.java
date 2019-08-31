@@ -35,14 +35,14 @@ public class MonadErrorTest {
   @Test
   public void recover() {
     Higher1<Try.µ, String> recover =
-        monadError.recover(Try.failure("error"), PartialFunction1.of(always(), Throwable::toString));
+        monadError.recover(Try.<String>failure("error").kind1(), PartialFunction1.of(always(), Throwable::toString));
 
     assertEquals(Try.success("java.lang.Exception: error"), recover);
   }
 
   @Test
   public void attempRight() {
-    Higher1<Try.µ, Either<Throwable, String>> attemp = monadError.attemp(Try.success("hola mundo!"));
+    Higher1<Try.µ, Either<Throwable, String>> attemp = monadError.attemp(Try.success("hola mundo!").kind1());
 
     assertEquals(Try.success(Either.right("hola mundo!")), attemp);
   }
@@ -51,7 +51,7 @@ public class MonadErrorTest {
   public void attempLeft() {
     Exception error = new Exception("error");
 
-    Higher1<Try.µ, Either<Throwable, String>> attemp = monadError.attemp(Try.failure(error));
+    Higher1<Try.µ, Either<Throwable, String>> attemp = monadError.attemp(Try.<String>failure(error).kind1());
 
     assertEquals(Try.success(Either.left(error)), attemp);
   }
@@ -61,7 +61,7 @@ public class MonadErrorTest {
     Exception error = new Exception("error");
 
     Higher1<Try.µ, String> ensure =
-        monadError.ensure(Try.success("not ok"), cons(error), is("ok"));
+        monadError.ensure(Try.success("not ok").kind1(), cons(error), is("ok"));
 
     assertEquals(Try.failure(error), ensure);
   }
@@ -71,7 +71,7 @@ public class MonadErrorTest {
     Exception error = new Exception("error");
 
     Higher1<Try.µ, String> ensure =
-        monadError.ensure(Try.success("ok"), cons(error), is("ok"));
+        monadError.ensure(Try.success("ok").kind1(), cons(error), is("ok"));
 
     assertEquals(Try.success("ok"), ensure);
   }
@@ -104,8 +104,8 @@ public class MonadErrorTest {
     Higher1<Option.µ, String> pure = monadError.pure("is not ok");
     Higher1<Option.µ, String> raiseError = monadError.raiseError(nothing());
     Higher1<Option.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Option.µ, String> ensureOk = monadError.ensure(pure, () -> nothing(), value -> "is not ok".equals(value));
-    Higher1<Option.µ, String> ensureError = monadError.ensure(pure, () -> nothing(), value -> "is ok?".equals(value));
+    Higher1<Option.µ, String> ensureOk = monadError.ensure(pure, Nothing::nothing, "is not ok"::equals);
+    Higher1<Option.µ, String> ensureError = monadError.ensure(pure, Nothing::nothing, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Option.none(), raiseError),
@@ -122,8 +122,8 @@ public class MonadErrorTest {
     Higher1<Try.µ, String> pure = monadError.pure("is not ok");
     Higher1<Try.µ, String> raiseError = monadError.raiseError(error);
     Higher1<Try.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Try.µ, String> ensureOk = monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Try.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+    Higher1<Try.µ, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<Try.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Try.failure(error), raiseError),
@@ -140,8 +140,8 @@ public class MonadErrorTest {
     Higher1<Future.µ, String> pure = monadError.pure("is not ok");
     Higher1<Future.µ, String> raiseError = monadError.raiseError(error);
     Higher1<Future.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Future.µ, String> ensureOk = monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Future.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+    Higher1<Future.µ, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<Future.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Try.failure(error), Future.narrowK(raiseError).await()),
@@ -158,8 +158,8 @@ public class MonadErrorTest {
     Higher1<IO.µ, String> pure = monadError.pure("is not ok");
     Higher1<IO.µ, String> raiseError = monadError.raiseError(error);
     Higher1<IO.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Higher1<IO.µ, String> ensureOk = monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<IO.µ, String> ensureError = monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
+    Higher1<IO.µ, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<IO.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
         () -> assertThrows(RuntimeException.class, () -> IO.narrowK(raiseError).unsafeRunSync()),

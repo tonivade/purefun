@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.Writer;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -31,13 +32,13 @@ interface WriterMonad<L> extends Monad<Higher1<Writer.µ, L>> {
   Monoid<L> monoid();
 
   @Override
-  default <T> Writer<L, T> pure(T value) {
-    return Writer.pure(monoid(), value);
+  default <T> Higher2<Writer.µ, L, T> pure(T value) {
+    return Writer.pure(monoid(), value).kind2();
   }
 
   @Override
-  default <T, R> Writer<L, R> flatMap(Higher1<Higher1<Writer.µ, L>, T> value,
+  default <T, R> Higher2<Writer.µ, L, R> flatMap(Higher1<Higher1<Writer.µ, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Writer.µ, L>, R>> map) {
-    return Writer.narrowK(value).flatMap(map.andThen(Writer::narrowK));
+    return Writer.narrowK(value).flatMap(map.andThen(Writer::<L, R>narrowK)).kind2();
   }
 }

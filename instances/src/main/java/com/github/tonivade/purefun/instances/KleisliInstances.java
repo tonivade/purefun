@@ -8,6 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.transformer.Kleisli;
@@ -30,13 +31,13 @@ interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli.
   Monad<F> monadF();
 
   @Override
-  default <T> Kleisli<F, Z, T> pure(T value) {
-    return Kleisli.pure(monadF(), value);
+  default <T> Higher3<Kleisli.µ, F, Z, T> pure(T value) {
+    return Kleisli.<F, Z, T>pure(monadF(), value).kind3();
   }
 
   @Override
-  default <T, R> Kleisli<F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, T> value,
+  default <T, R> Higher3<Kleisli.µ, F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, R>> map) {
-    return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::narrowK));
+    return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::<F, Z, R>narrowK)).kind3();
   }
 }
