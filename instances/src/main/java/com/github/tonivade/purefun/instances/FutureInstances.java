@@ -15,13 +15,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.Bracket;
-import com.github.tonivade.purefun.typeclasses.Defer;
-import com.github.tonivade.purefun.typeclasses.Functor;
-import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
-import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.*;
 
 public interface FutureInstances {
 
@@ -34,14 +28,7 @@ public interface FutureInstances {
   }
 
   static Applicative<Future.µ> applicative(Executor executor) {
-    requireNonNull(executor);
-    return new FutureApplicative() {
-
-      @Override
-      public Executor executor() {
-        return executor;
-      }
-    };
+    return FutureApplicative.instance(requireNonNull(executor));
   }
 
   static Monad<Future.µ> monad() {
@@ -49,14 +36,7 @@ public interface FutureInstances {
   }
 
   static Monad<Future.µ> monad(Executor executor) {
-    requireNonNull(executor);
-    return new FutureMonad() {
-
-      @Override
-      public Executor executor() {
-        return executor;
-      }
-    };
+    return FutureMonad.instance(requireNonNull(executor));
   }
 
   static MonadError<Future.µ, Throwable> monadError() {
@@ -64,14 +44,7 @@ public interface FutureInstances {
   }
 
   static MonadError<Future.µ, Throwable> monadError(Executor executor) {
-    requireNonNull(executor);
-    return new FutureMonadError() {
-
-      @Override
-      public Executor executor() {
-        return executor;
-      }
-    };
+    return FutureMonadThrow.instance(requireNonNull(executor));
   }
 
   static MonadDefer<Future.µ> monadDefer() {
@@ -79,14 +52,7 @@ public interface FutureInstances {
   }
 
   static MonadDefer<Future.µ> monadDefer(Executor executor) {
-    requireNonNull(executor);
-    return new FutureMonadDefer() {
-
-      @Override
-      public Executor executor() {
-        return executor;
-      }
-    };
+    return FutureMonadDefer.instance(requireNonNull(executor));
   }
 }
 
@@ -113,6 +79,10 @@ interface FuturePure extends Applicative<Future.µ> {
 @Instance
 interface FutureApplicative extends FuturePure {
 
+  static FutureApplicative instance(Executor executor) {
+    return () -> executor;
+  }
+
   @Override
   default <T, R> Higher1<Future.µ, R> ap(Higher1<Future.µ, T> value, Higher1<Future.µ, Function1<T, R>> apply) {
     return Future.narrowK(value).flatMap(t -> Future.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -122,6 +92,10 @@ interface FutureApplicative extends FuturePure {
 @Instance
 interface FutureMonad extends FuturePure, Monad<Future.µ> {
 
+  static FutureMonad instance(Executor executor) {
+    return () -> executor;
+  }
+
   @Override
   default <T, R> Higher1<Future.µ, R> flatMap(Higher1<Future.µ, T> value,
       Function1<T, ? extends Higher1<Future.µ, R>> map) {
@@ -130,7 +104,11 @@ interface FutureMonad extends FuturePure, Monad<Future.µ> {
 }
 
 @Instance
-interface FutureMonadError extends FutureMonad, MonadError<Future.µ, Throwable> {
+interface FutureMonadThrow extends FutureMonad, MonadThrow<Future.µ> {
+
+  static FutureMonadThrow instance(Executor executor) {
+    return () -> executor;
+  }
 
   @Override
   Executor executor();
@@ -171,4 +149,9 @@ interface FutureBracket extends Bracket<Future.µ> {
 }
 
 @Instance
-interface FutureMonadDefer extends MonadDefer<Future.µ>, FutureMonadError, FutureDefer, FutureBracket { }
+interface FutureMonadDefer extends MonadDefer<Future.µ>, FutureMonadThrow, FutureDefer, FutureBracket {
+
+  static FutureMonadDefer instance(Executor executor) {
+    return () -> executor;
+  }
+}

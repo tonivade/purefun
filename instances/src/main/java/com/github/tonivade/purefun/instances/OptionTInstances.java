@@ -35,57 +35,27 @@ public interface OptionTInstances {
   }
 
   static <F extends Kind> Monad<Higher1<OptionT.µ, F>> monad(Monad<F> monadF) {
-    requireNonNull(monadF);
-    return new OptionTMonad<F>() {
-
-      @Override
-      public Monad<F> monadF() { return monadF; }
-    };
+    return OptionTMonad.instance(requireNonNull(monadF));
   }
 
   static <F extends Kind> MonadError<Higher1<OptionT.µ, F>, Unit> monadError(Monad<F> monadF) {
-    requireNonNull(monadF);
-    return new OptionTMonadErrorFromMonad<F>() {
-
-      @Override
-      public Monad<F> monadF() { return monadF; }
-    };
+    return OptionTMonadErrorFromMonad.instance(requireNonNull(monadF));
   }
 
   static <F extends Kind, E> MonadError<Higher1<OptionT.µ, F>, E> monadError(MonadError<F, E> monadErrorF) {
-    requireNonNull(monadErrorF);
-    return new OptionTMonadErrorFromMonadError<F, E>() {
-
-      @Override
-      public MonadError<F, E> monadF() { return monadErrorF; }
-    };
+    return OptionTMonadErrorFromMonadError.instance(requireNonNull(monadErrorF));
   }
 
   static <F extends Kind> MonadThrow<Higher1<OptionT.µ, F>> monadThrow(MonadThrow<F> monadThrowF) {
-    requireNonNull(monadThrowF);
-    return new OptionTMonadThrow<F>() {
-
-      @Override
-      public MonadThrow<F> monadF() { return monadThrowF; }
-    };
+    return OptionTMonadThrow.instance(requireNonNull(requireNonNull(monadThrowF)));
   }
 
   static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(MonadDefer<F> monadDeferF) {
-    requireNonNull(monadDeferF);
-    return new OptionTDefer<F>() {
-
-      @Override
-      public MonadDefer<F> monadF() { return monadDeferF; }
-    };
+    return OptionTDefer.instance(requireNonNull(monadDeferF));
   }
 
   static <F extends Kind> MonadDefer<Higher1<OptionT.µ, F>> monadDefer(MonadDefer<F> monadDeferF) {
-    requireNonNull(monadDeferF);
-    return new OptionTMonadDefer<F>() {
-
-      @Override
-      public MonadDefer<F> monadF() { return monadDeferF; }
-    };
+    return OptionTMonadDefer.instance(requireNonNull(monadDeferF));
   }
 
   static <F extends Kind, A> Reference<Higher1<OptionT.µ, F>, A> ref(MonadDefer<F> monadF, A value) {
@@ -95,6 +65,10 @@ public interface OptionTInstances {
 
 @Instance
 interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
+
+  static <F extends Kind> OptionTMonad<F> instance(Monad<F> monadF) {
+    return () -> monadF;
+  }
 
   Monad<F> monadF();
 
@@ -113,6 +87,10 @@ interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
 @Instance
 interface OptionTMonadErrorFromMonad<F extends Kind>
     extends MonadError<Higher1<OptionT.µ, F>, Unit>, OptionTMonad<F> {
+
+  static <F extends Kind> OptionTMonadErrorFromMonad<F> instance(Monad<F> monadF) {
+    return () -> monadF;
+  }
 
   @Override
   default <A> Higher2<OptionT.µ, F, A> raiseError(Unit error) {
@@ -134,6 +112,10 @@ interface OptionTMonadErrorFromMonad<F extends Kind>
 interface OptionTMonadErrorFromMonadError<F extends Kind, E>
     extends MonadError<Higher1<OptionT.µ, F>, E>, OptionTMonad<F> {
 
+  static <F extends Kind, E> OptionTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadF) {
+    return () -> monadF;
+  }
+
   @Override
   MonadError<F, E> monadF();
 
@@ -154,10 +136,19 @@ interface OptionTMonadErrorFromMonadError<F extends Kind, E>
 @Instance
 interface OptionTMonadThrow<F extends Kind>
     extends MonadThrow<Higher1<OptionT.µ, F>>,
-            OptionTMonadErrorFromMonadError<F, Throwable> { }
+            OptionTMonadErrorFromMonadError<F, Throwable> {
+
+  static <F extends Kind> OptionTMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
+    return () -> monadThrowF;
+  }
+}
 
 @Instance
 interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
+
+  static <F extends Kind> OptionTDefer<F> instance(MonadDefer<F> monadDeferF) {
+    return () -> monadDeferF;
+  }
 
   MonadDefer<F> monadF();
 
@@ -169,6 +160,10 @@ interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
 
 @Instance
 interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>> {
+
+  static <F extends Kind> OptionTBracket<F> instance(MonadDefer<F> monadDeferF) {
+    return () -> monadDeferF;
+  }
 
   MonadDefer<F> monadF();
 
@@ -192,4 +187,9 @@ interface OptionTMonadDefer<F extends Kind>
     extends OptionTMonadThrow<F>,
             OptionTDefer<F>,
             OptionTBracket<F>,
-            MonadDefer<Higher1<OptionT.µ, F>> { }
+            MonadDefer<Higher1<OptionT.µ, F>> {
+
+  static <F extends Kind> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
+    return () -> monadDeferF;
+  }
+}

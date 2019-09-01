@@ -16,17 +16,16 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface KleisliInstances {
   static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
-    requireNonNull(monadF);
-    return new KleisliMonad<F, Z>() {
-
-      @Override
-      public Monad<F> monadF() { return monadF; }
-    };
+    return KleisliMonad.instance(requireNonNull(monadF));
   }
 }
 
 @Instance
 interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> {
+
+  static <F extends Kind, Z> KleisliMonad<F, Z> instance(Monad<F> monadF) {
+    return () -> monadF;
+  }
 
   Monad<F> monadF();
 

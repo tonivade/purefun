@@ -17,17 +17,16 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public interface StateTInstances {
 
   static <F extends Kind, S> Monad<Higher1<Higher1<StateT.µ, F>, S>> monad(Monad<F> monadF) {
-    requireNonNull(monadF);
-    return new StateTMonad<F, S>() {
-
-      @Override
-      public Monad<F> monadF() { return monadF; }
-    };
+    return StateTMonad.instance(requireNonNull(monadF));
   }
 }
 
 @Instance
 interface StateTMonad<F extends Kind, S> extends Monad<Higher1<Higher1<StateT.µ, F>, S>> {
+
+  static <F extends Kind, S> StateTMonad<F, S> instance(Monad<F> monadF) {
+    return () -> monadF;
+  }
 
   Monad<F> monadF();
 

@@ -29,21 +29,11 @@ public interface StreamInstances {
   }
 
   static <F extends Kind> Applicative<Higher1<Stream.µ, F>> applicative(StreamOf<F> streamOf) {
-    requireNonNull(streamOf);
-    return new StreamApplicative<F>() {
-
-      @Override
-      public StreamOf<F> streamOf() { return streamOf; }
-    };
+    return StreamApplicative.instance(requireNonNull(streamOf));
   }
 
   static <F extends Kind> Monad<Higher1<Stream.µ, F>> monad(StreamOf<F> streamOf) {
-    requireNonNull(streamOf);
-    return new StreamMonad<F>() {
-
-      @Override
-      public StreamOf<F> streamOf() { return streamOf; }
-    };
+    return StreamMonad.instance(requireNonNull(streamOf));
   }
 }
 
@@ -70,6 +60,10 @@ interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream.µ, F>> 
 @Instance
 interface StreamApplicative<F extends Kind> extends StreamPure<F> {
 
+  static <F extends Kind> StreamApplicative<F> instance(StreamOf<F> streamOf) {
+    return () -> streamOf;
+  }
+
   @Override
   default <T, R> Higher2<Stream.µ, F, R> ap(Higher1<Higher1<Stream.µ, F>, T> value,
       Higher1<Higher1<Stream.µ, F>, Function1<T, R>> apply) {
@@ -79,6 +73,10 @@ interface StreamApplicative<F extends Kind> extends StreamPure<F> {
 
 @Instance
 interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, StreamPure<F> {
+
+  static <F extends Kind> StreamMonad<F> instance(StreamOf<F> streamOf) {
+    return () -> streamOf;
+  }
 
   @Override
   default <T, R> Higher2<Stream.µ, F, R> flatMap(Higher1<Higher1<Stream.µ, F>, T> value,

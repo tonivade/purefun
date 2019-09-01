@@ -17,8 +17,14 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public interface WriterTInstances {
   static <F extends Kind, L> Monad<Higher1<Higher1<WriterT.µ, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
-    requireNonNull(monoid);
-    requireNonNull(monadF);
+    return WriterTMonad.instance(requireNonNull(monoid), requireNonNull(monadF));
+  }
+}
+
+@Instance
+interface WriterTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<WriterT.µ, F>, L>> {
+
+  static <F extends Kind, L> Monad<Higher1<Higher1<WriterT.µ, F>, L>> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonad<F, L>() {
 
       @Override
@@ -28,10 +34,6 @@ public interface WriterTInstances {
       public Monad<F> monadF() { return monadF; }
     };
   }
-}
-
-@Instance
-interface WriterTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<WriterT.µ, F>, L>> {
 
   Monad<F> monadF();
   Monoid<L> monoid();
