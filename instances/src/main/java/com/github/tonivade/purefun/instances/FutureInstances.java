@@ -111,9 +111,6 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future.µ> {
   }
 
   @Override
-  Executor executor();
-
-  @Override
   default <A> Higher1<Future.µ, A> raiseError(Throwable error) {
     return Future.<A>failure(executor(), error).kind1();
   }
