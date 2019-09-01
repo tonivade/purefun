@@ -118,7 +118,7 @@ interface OptionSemigroupK extends SemigroupK<Option.µ> {
 
   @Override
   default <T> Higher1<Option.µ, T> combineK(Higher1<Option.µ, T> t1, Higher1<Option.µ, T> t2) {
-    return Option.narrowK(t1).fold(cons(Option.narrowK(t2)), Option::<T>some).kind1();
+    return Option.narrowK(t1).fold(cons(Option.narrowK(t2)), Option::some).kind1();
   }
 }
 
@@ -171,7 +171,7 @@ interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
   default <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(
       Applicative<G> applicative, Higher1<Option.µ, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
-    return Option.<T>narrowK(value).fold(
+    return Option.narrowK(value).fold(
         () -> applicative.pure(Option.<R>none().kind1()),
         t -> applicative.map(mapper.apply(t), x -> Option.some(x).kind1()));
   }

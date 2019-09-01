@@ -28,7 +28,7 @@ public class AlternativeLaws {
   private static <F extends Kind> void rightAbsorption(Alternative<F> instance) {
     assertEquals(
         instance.<String>zero(),
-        instance.ap(instance.<Integer>zero(), instance.pure(intToString)),
+        instance.ap(instance.zero(), instance.pure(intToString)),
         "right absorption");
   }
 
