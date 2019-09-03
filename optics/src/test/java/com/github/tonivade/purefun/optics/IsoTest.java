@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.awt.Point;
 
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.type.Option;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Tuple;
@@ -21,6 +24,8 @@ public class IsoTest {
   private final Iso<Tuple2<Integer, Integer>, Point> tupleToPoint = pointToTuple.reverse();
   private final Iso<Point, Point> pointToPoint = pointToTuple.compose(tupleToPoint);
   private final Iso<Point, Point> identity = Iso.identity();
+  private final Iso<Option<String>, Higher1<Option.µ, String>> optionToKind =
+    Iso.of(Option::kind1, Option::<String>narrowK);
 
   private final Point point = new Point(1, 2);
   private final Tuple2<Integer, Integer> tuple = Tuple.of(1, 2);
@@ -48,6 +53,7 @@ public class IsoTest {
     verifyLaws(tupleToPoint, tuple, point);
     verifyLaws(pointToPoint, point, point);
     verifyLaws(identity, point, point);
+    verifyLaws(optionToKind, Option.some("hola"), Option.some("hola").kind1());
   }
 
   private <S, A> void verifyLaws(Iso<S, A> iso, S target, A value) {

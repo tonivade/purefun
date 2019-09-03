@@ -58,7 +58,7 @@ public interface EitherInstances {
     return new EitherMonadError<L>() {};
   }
 
-  static <L> MonadThrow<Higher1<Either.µ, Throwable>> monadThrow() {
+  static MonadThrow<Higher1<Either.µ, Throwable>> monadThrow() {
     return new EitherMonadThrow() {};
   }
 

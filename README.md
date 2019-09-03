@@ -9,14 +9,16 @@
 This module was developed as the core of the zeromock project. It defines all the basic classes and interfaces
 used in the rest of the project.
 
-Initially the module only holds a few basic interfaces and it has grown to become an entire
+Initially the module only held a few basic interfaces and it has grown to become an entire
 functional programming library (well, a humble one), and now is an independent library.
 
-Working in this library helps me to learn and understand some important concepts
-of functional programming.
+Working in this library helped me to learn and understand some important concepts
+of functional programming, and over time I implemented higher kinded types and type classes
+in Java. I don't know if this will be helpful for somebody, but the work is here to everyone want to use it.
 
 Finally, I have to say thanks to vavr library author, this library is largely inspired in his work,
-and also to Scala standard library authors. Their awesome work help me a lot.
+and also to Scala standard library authors. And also, I used as reference the amazing projects Arrow (Kotlin) and
+Cats (Scala) to implement type classes. Their awesome work help me a lot.
 
 ## Disclaimer
 
@@ -38,6 +40,10 @@ interface SomeType<T> extends Higher1<SomeType.µ, T> {
 
   interface µ extends Kind {}
 
+  default Higher1<SomeType.µ, T> kind1() {
+    return this;
+  }
+
   // this is a safe cast
   static SomeType<T> narrowK(Higher1<SomeType.µ, T> hkt) {
     return (SomeType<T>) hkt;
@@ -46,7 +52,7 @@ interface SomeType<T> extends Higher1<SomeType.µ, T> {
 ```
 
 It can be triky but, but in the end is easy to work with. By the way, I tried to hide this details to the user of the library.
-Except with typeclasses because is the only way to implement them in Java.
+Except with type classes because is the only way to implement them in Java.
 
 So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't
 necessary to implement the library.
@@ -54,7 +60,7 @@ necessary to implement the library.
 ## Annotation Processor
 
 In order to simplify working with higher kinded types, in the last version I've included an annotation processor to generate
-all this boilerplate code
+all this boilerplate code:
 
 ```java
 @HigherKind
@@ -63,6 +69,12 @@ interface SomeType<T> {
 ```
 
 With this annotation, all the above code, is generated automatically.
+
+## Intellij plugin
+
+After the inclusion of annotation processing inside the project, part of the code didn't compile in any IDE, so
+I had to find a solution for that, so I implemented a plugin for Intellij. Mainly, this plugin is only useful for the
+development of the library. To use purefun as dependency is not necessary the annotation processing and the plugin.
 
 ## Data types
 
