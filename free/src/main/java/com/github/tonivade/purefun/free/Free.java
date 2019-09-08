@@ -4,16 +4,19 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static java.util.Objects.requireNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
+
+import static com.github.tonivade.purefun.Unit.unit;
+import static java.util.Objects.requireNonNull;
 
 @HigherKind
 public interface Free<F extends Kind, A> {
@@ -22,12 +25,13 @@ public interface Free<F extends Kind, A> {
     return new Pure<>(value);
   }
 
-  static <F extends Kind, T> Free<F, T> suspend(Higher1<F, Free<F, T>> value) {
+  static <F extends Kind, T> Free<F, T> liftF(Higher1<F, T> value) {
     return new Suspend<>(value);
   }
 
-  static <F extends Kind, T> Free<F, T> liftF(Functor<F> functor, Higher1<F, T> value) {
-    return suspend(functor.map(value, Free::pure));
+  static <F extends Kind, T> Free<F, T> defer(Producer<Free<F, T>> value) {
+    Free<F, Unit> pure = pure(unit());
+    return pure.flatMap(ignore -> value.get());
   }
 
   default <R> Free<F, R> map(Function1<A, R> map) {
@@ -76,9 +80,9 @@ public interface Free<F extends Kind, A> {
 
   final class Suspend<F extends Kind, A> implements Free<F, A> {
 
-    private final Higher1<F, Free<F, A>> value;
+    private final Higher1<F, A> value;
 
-    private Suspend(Higher1<F, Free<F, A>> value) {
+    private Suspend(Higher1<F, A> value) {
       this.value = requireNonNull(value);
     }
 
@@ -89,7 +93,7 @@ public interface Free<F extends Kind, A> {
 
     @Override
     public Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor) {
-      return Either.left(value);
+      return Either.left(functor.map(value, Free::pure));
     }
 
     @Override
@@ -117,7 +121,7 @@ public interface Free<F extends Kind, A> {
     public Either<Higher1<F, Free<F, B>>, B> resume(Functor<F> functor) {
       if (value instanceof Free.Suspend) {
         Free.Suspend<F, A> suspend = (Free.Suspend<F, A>) value;
-        return Either.left(functor.map(suspend.value, fa -> fa.flatMap(next)));
+        return Either.left(functor.map(suspend.value, next));
       }
       if (value instanceof Free.Pure) {
         Free.Pure<F, A> pure = (Free.Pure<F, A>) value;

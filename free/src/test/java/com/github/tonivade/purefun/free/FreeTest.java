@@ -4,9 +4,7 @@
  */
 package com.github.tonivade.purefun.free;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -15,13 +13,10 @@ import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Functor;
-import com.github.tonivade.purefun.typeclasses.Transformer;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Matcher1.instanceOf;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.free.Free.liftF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,11 +26,11 @@ public class FreeTest {
   Functor<IOProgram.µ> functor = new IOProgramFunctor();
 
   Free<IOProgram.µ, String> read() {
-    return liftF(functor, new IOProgram.Read<>(identity()).kind1());
+    return liftF(new IOProgram.Read<>(identity()).kind1());
   }
 
   Free<IOProgram.µ, Unit> write(String value) {
-    return liftF(functor, new IOProgram.Write<>(value, unit()).kind1());
+    return liftF(new IOProgram.Write<>(value, unit()).kind1());
   }
 
   final Free<IOProgram.µ, Unit> echo =
@@ -85,48 +80,5 @@ public class FreeTest {
                         .fold((value, next) -> "write(\"" + value + "\") then (" + showProgram(next) + ")",
                               (next) -> "text <- read() then (" + showProgram(next) + ")"),
               right -> "return(" + right + ")");
-  }
-}
-
-class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
-
-  private final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
-
-  @Override
-  public <X> Higher1<Higher1<State.µ, ImmutableList<String>>, X> apply(Higher1<IOProgram.µ, X> from) {
-    return Pattern1.<IOProgram<X>, State<ImmutableList<String>, X>>build()
-      .when(instanceOf(IOProgram.Read.class))
-        .then(program -> State.narrowK(console.readln()).map(program.asRead().next))
-      .when(instanceOf(IOProgram.Write.class))
-        .then(program -> State.narrowK(console.println(program.asWrite().value)).map(ignore -> program.asWrite().next))
-      .apply(IOProgram.narrowK(from)).kind1();
-  }
-}
-
-class IOProgramToIO implements Transformer<IOProgram.µ, IO.µ> {
-
-  private final Console<IO.µ> console = IOInstances.console();
-
-  @Override
-  public <X> Higher1<IO.µ, X> apply(Higher1<IOProgram.µ, X> from) {
-    return Pattern1.<IOProgram<X>, IO<X>>build()
-      .when(instanceOf(IOProgram.Read.class))
-        .then(program -> IO.narrowK(console.readln()).map(program.asRead().next))
-      .when(instanceOf(IOProgram.Write.class))
-        .then(program -> IO.narrowK(console.println(program.asWrite().value)).map(ignore -> program.asWrite().next))
-      .apply(IOProgram.narrowK(from)).kind1();
-  }
-}
-
-class IOProgramFunctor implements Functor<IOProgram.µ> {
-
-  @Override
-  public <T, R> Higher1<IOProgram.µ, R> map(Higher1<IOProgram.µ, T> value, Function1<T, R> map) {
-    return Pattern1.<IOProgram<T>, IOProgram<R>>build()
-      .when(instanceOf(IOProgram.Read.class))
-        .then(program -> new IOProgram.Read<>(program.asRead().next.andThen(map)))
-      .when(instanceOf(IOProgram.Write.class))
-        .then(program -> new IOProgram.Write<>(program.asWrite().value, map.apply(program.asWrite().next)))
-      .apply(IOProgram.narrowK(value)).kind1();
   }
 }
