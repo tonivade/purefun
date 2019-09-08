@@ -9,6 +9,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Pattern1;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
@@ -18,11 +19,22 @@ import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.instanceOf;
+import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.free.Free.liftF;
 import static java.util.Objects.requireNonNull;
 
 @HigherKind
 public interface IOProgram<T> {
+
+  static Free<IOProgram.µ, String> read() {
+    return liftF(new IOProgram.Read<>(identity()).kind1());
+  }
+
+  static Free<IOProgram.µ, Unit> write(String value) {
+    return liftF(new IOProgram.Write<>(value, unit()).kind1());
+  }
 
   <R> IOProgram<R> map(Function1<T, R> mapper);
 

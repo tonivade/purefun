@@ -16,28 +16,17 @@ import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import org.junit.jupiter.api.Test;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.free.Free.liftF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FreeTest {
 
-  Functor<IOProgram.µ> functor = new IOProgramFunctor();
-
-  Free<IOProgram.µ, String> read() {
-    return liftF(new IOProgram.Read<>(identity()).kind1());
-  }
-
-  Free<IOProgram.µ, Unit> write(String value) {
-    return liftF(new IOProgram.Write<>(value, unit()).kind1());
-  }
+  private static Functor<IOProgram.µ> functor = new IOProgramFunctor();
 
   final Free<IOProgram.µ, Unit> echo =
-      write("what's your name?")
-        .andThen(read())
-        .flatMap(text -> write("Hello " + text))
-        .andThen(write("end"));
+      IOProgram.write("what's your name?")
+        .andThen(IOProgram.read())
+        .flatMap(text -> IOProgram.write("Hello " + text))
+        .andThen(IOProgram.write("end"));
 
   @Test
   public void showProgram() {
