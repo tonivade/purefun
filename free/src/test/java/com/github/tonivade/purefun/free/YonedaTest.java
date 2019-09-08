@@ -18,7 +18,7 @@ public class YonedaTest {
 
   @Test
   public void yoneda() {
-    Yoneda<Option.µ, String> yoneda = Yoneda.of(Option.some("string"), functor());
+    Yoneda<Option.µ, String> yoneda = Yoneda.of(Option.some("string").kind1(), functor());
 
     Yoneda<Option.µ, String> result = yoneda.map(concat).map(concat);
 

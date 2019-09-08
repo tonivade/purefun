@@ -28,11 +28,11 @@ public interface Eq<T> {
     return comparing(Throwable::getMessage).and(comparingArray(Throwable::getStackTrace));
   }
 
-  public static <T, V> Eq<T> comparing(Function1<T, V> getter) {
+  static <T, V> Eq<T> comparing(Function1<T, V> getter) {
     return (a, b) -> Objects.equals(getter.apply(a), getter.apply(b));
   }
 
-  public static <T, V> Eq<T> comparingArray(Function1<T, V[]> getter) {
+  static <T, V> Eq<T> comparingArray(Function1<T, V[]> getter) {
     return (a, b) -> Arrays.deepEquals(getter.apply(a), getter.apply(b));
   }
 }
