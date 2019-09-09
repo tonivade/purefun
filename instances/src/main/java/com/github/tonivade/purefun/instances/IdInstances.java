@@ -10,9 +10,6 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Pattern1;
-import com.github.tonivade.purefun.TailRecursion;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -21,8 +18,6 @@ import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Traverse;
-
-import static com.github.tonivade.purefun.Matcher1.instanceOf;
 
 public interface IdInstances {
 
@@ -88,13 +83,6 @@ interface IdMonad extends IdPure, Monad<Id.µ> {
   @Override
   default <T, R> Higher1<Id.µ, R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
     return Id.narrowK(value).flatMap(map.andThen(Id::<R>narrowK)).kind1();
-  }
-
-  @Override
-  @TailRecursion
-  default <T, R> Higher1<Id.µ, R> tailRecM(T value, Function1<T, ? extends Higher1<Id.µ, Either<T, R>>> map) {
-    Either<T, R> either = map.apply(value).fix1(Id::narrowK).get();
-    return either.fold(left -> tailRecM(left, map), right -> Id.of(right).kind1());
   }
 }
 

@@ -4,9 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Nothing.nothing;
-
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -15,10 +12,8 @@ import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern2;
-import com.github.tonivade.purefun.TailRecursion;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Alternative;
@@ -31,6 +26,9 @@ import com.github.tonivade.purefun.typeclasses.MonoidK;
 import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
+
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Producer.cons;
 
 public interface OptionInstances {
 
@@ -112,14 +110,6 @@ interface OptionMonad extends OptionPure, Monad<Option.µ> {
   default <T, R> Higher1<Option.µ, R> flatMap(Higher1<Option.µ, T> value,
       Function1<T, ? extends Higher1<Option.µ, R>> map) {
     return Option.narrowK(value).flatMap(map.andThen(Option::<R>narrowK)).kind1();
-  }
-
-  @Override
-  @TailRecursion
-  default <T, R> Higher1<Option.µ, R> tailRecM(T value, Function1<T, ? extends Higher1<Option.µ, Either<T, R>>> map) {
-    Option<Either<T, R>> option = map.apply(value).fix1(Option::narrowK);
-    return option.fold(() -> Option.<R>none().kind1(),
-      either -> either.fold(left -> tailRecM(left, map), right -> Option.some(right).kind1()));
   }
 }
 
