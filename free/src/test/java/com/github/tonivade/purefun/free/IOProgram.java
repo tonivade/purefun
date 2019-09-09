@@ -4,11 +4,9 @@
  */
 package com.github.tonivade.purefun.free;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Pattern1;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
@@ -33,16 +31,9 @@ public interface IOProgram<T> {
     return liftF(new IOProgram.Write(value).kind1());
   }
 
-  <R> R fold(Function1<String, R> write, Producer<R> read);
-
   final class Read implements IOProgram<String> {
 
     private Read() { }
-
-    @Override
-    public <R> R fold(Function1<String, R> write, Producer<R> read) {
-      return read.get();
-    }
 
     @Override
     public String toString() {
@@ -60,11 +51,6 @@ public interface IOProgram<T> {
 
     public String value() {
       return value;
-    }
-
-    @Override
-    public <R> R fold(Function1<String, R> write, Producer<R> read) {
-      return write.apply(value);
     }
 
     @Override

@@ -46,19 +46,13 @@ public interface Free<F extends Kind, A> {
 
   Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor);
 
-  Free<F, A> step();
-
-  <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter);
-
-  default <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad,
-                                                 Functor<F> functor,
-                                                 Transformer<F, G> interpreter) {
-    return resume(functor).fold(left -> FreeModule.suspend(monad, functor, interpreter, left), monad::<A>pure);
-  }
-
   default <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, Transformer<F, G> interpreter) {
     return monad.tailRecM(this, value -> value.step().foldStep(monad, interpreter));
   }
+
+  Free<F, A> step();
+
+  <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter);
 
   FreeModule module();
 
@@ -184,12 +178,4 @@ public interface Free<F extends Kind, A> {
   }
 }
 
-interface FreeModule {
-
-  static <A, F extends Kind, G extends Kind> Higher1<G, A> suspend(Monad<G> monad,
-                                                                   Functor<F> functor,
-                                                                   Transformer<F, G> interpreter,
-                                                                   Higher1<F, Free<F, A>> left) {
-    return monad.flatMap(interpreter.apply(left), free -> free.foldMap(monad, functor, interpreter));
-  }
-}
+interface FreeModule { }
