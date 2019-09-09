@@ -4,9 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Nothing.nothing;
-
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -29,6 +26,9 @@ import com.github.tonivade.purefun.typeclasses.MonoidK;
 import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
+
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.Producer.cons;
 
 public interface OptionInstances {
 

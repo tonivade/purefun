@@ -260,7 +260,7 @@ return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -
 ## Free Monad
 
 Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly
-inestable implementation and I have implemented because it can be implemented. Inspired
+unstable implementation and I have implemented because it can be implemented. Inspired
 in this [work](https://github.com/xuwei-k/free-monad-java).
 
 ```java
@@ -270,9 +270,7 @@ Free<IOProgram.µ, Unit> echo =
     .flatMap(text -> IOProgram.write("Hello " + text))
     .andThen(IOProgram.write("end"));
 
-Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(),
-                                        new IOProgramFunctor(),
-                                        new IOProgramInterperter());
+Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(), new IOProgramInterperter());
 
 IO.narrowK(foldMap).unsafeRunSync();
 ```
