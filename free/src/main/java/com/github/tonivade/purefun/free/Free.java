@@ -46,10 +46,18 @@ public interface Free<F extends Kind, A> {
 
   Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor);
 
+  Free<F, A> step();
+
+  <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter);
+
   default <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad,
                                                  Functor<F> functor,
                                                  Transformer<F, G> interpreter) {
     return resume(functor).fold(left -> FreeModule.suspend(monad, functor, interpreter, left), monad::<A>pure);
+  }
+
+  default <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, Transformer<F, G> interpreter) {
+    return monad.tailRecM(this, value -> value.step().foldStep(monad, interpreter));
   }
 
   FreeModule module();
@@ -70,6 +78,16 @@ public interface Free<F extends Kind, A> {
     @Override
     public Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor) {
       return Either.right(value);
+    }
+
+    @Override
+    public Free<F, A> step() {
+      return this;
+    }
+
+    @Override
+    public <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+      return monad.pure(Either.right(value));
     }
 
     @Override
@@ -94,6 +112,16 @@ public interface Free<F extends Kind, A> {
     @Override
     public Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor) {
       return Either.left(functor.map(value, Free::pure));
+    }
+
+    @Override
+    public Free<F, A> step() {
+      return this;
+    }
+
+    @Override
+    public <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+      return monad.map(interpreter.apply(value), Either::right);
     }
 
     @Override
@@ -129,6 +157,24 @@ public interface Free<F extends Kind, A> {
       }
       Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;
       return flatMapped.value.flatMap(x -> flatMapped.next.apply(x).flatMap(next)).resume(functor);
+    }
+
+    @Override
+    public Free<F, B> step() {
+      if (value instanceof FlatMapped) {
+        Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;
+        return flatMapped.value.flatMap(x -> flatMapped.next.apply(x).flatMap(next)).step();
+      }
+      if (value instanceof Pure) {
+        Free.Pure<F, A> pure = (Free.Pure<F, A>) value;
+        return next.apply(pure.value).step();
+      }
+      return this;
+    }
+
+    @Override
+    public <G extends Kind> Higher1<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+      return monad.map(value.foldMap(monad, interpreter), next.andThen(Either::left));
     }
 
     @Override

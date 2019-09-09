@@ -11,11 +11,16 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.TypeClass;
+import com.github.tonivade.purefun.type.Either;
 
 @TypeClass
 public interface Monad<F extends Kind> extends Applicative<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
+
+  default <T, R> Higher1<F, R> tailRecM(T value, Function1<T, ? extends Higher1<F, Either<T, R>>> map) {
+    throw new UnsupportedOperationException("not implemented");
+  }
 
   default <T, R> Higher1<F, R> andThen(Higher1<F, T> value, Producer<? extends Higher1<F, R>> next) {
     return flatMap(value, ignore -> next.get());

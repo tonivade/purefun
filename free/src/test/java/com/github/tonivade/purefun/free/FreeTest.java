@@ -13,34 +13,22 @@ import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import com.github.tonivade.purefun.typeclasses.Functor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FreeTest {
 
-  private static Functor<IOProgram.µ> functor = new IOProgramFunctor();
-
-  final Free<IOProgram.µ, Unit> echo =
+  private final Free<IOProgram.µ, Unit> echo =
       IOProgram.write("what's your name?")
         .andThen(IOProgram.read())
         .flatMap(text -> IOProgram.write("Hello " + text))
         .andThen(IOProgram.write("end"));
 
   @Test
-  public void showProgram() {
-    assertEquals("write(\"what's your name?\") "
-                 + "then (text <- read() "
-                   + "then (write(\"Hello $text\") "
-                     + "then (write(\"end\") "
-                       + "then (return(Unit)))))", showProgram(echo));
-  }
-
-  @Test
   public void interpretState() {
     Higher1<Higher1<State.µ, ImmutableList<String>>, Unit> foldMap =
-        echo.foldMap(StateInstances.monad(), functor, new IOProgramToState());
+        echo.foldMap(StateInstances.monad(), new IOProgramToState());
 
     State<ImmutableList<String>, Unit> state = State.narrowK(foldMap);
 
@@ -52,7 +40,7 @@ public class FreeTest {
   @Test
   public void interpretIO() {
     Higher1<IO.µ, Unit> foldMap =
-        echo.foldMap(IOInstances.monad(), functor, new IOProgramToIO());
+        echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
     IO<Unit> echoIO = IO.narrowK(foldMap);
 
@@ -61,13 +49,5 @@ public class FreeTest {
     executor.run(echoIO);
 
     assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());
-  }
-
-  private <R> String showProgram(Free<IOProgram.µ, R> program) {
-    return program.resume(functor)
-        .fold(left -> IOProgram.narrowK(left)
-                        .fold((value, next) -> "write(\"" + value + "\") then (" + showProgram(next) + ")",
-                              (next) -> "text <- read() then (" + showProgram(next) + ")"),
-              right -> "return(" + right + ")");
   }
 }
