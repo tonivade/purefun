@@ -1,9 +1,9 @@
 ext {
   versions = [
-    junitEngine     : '5.5.1',
-    junitPlatform   : '1.5.1',
-    equalsVerifier  : '3.0.3',
-    mockito         : '2.28.2',
+    junitEngine     : '5.5.2',
+    junitPlatform   : '1.5.2',
+    equalsVerifier  : '3.1.9',
+    mockito         : '3.0.0',
     compileTesting  : '0.18'
   ]
   libs = [
