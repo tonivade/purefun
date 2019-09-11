@@ -19,44 +19,44 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 @HigherKind
-public interface Free<F extends Kind, A> {
+public abstract class Free<F extends Kind, A> {
 
-  static <F extends Kind, T> Free<F, T> pure(T value) {
+  private Free() {}
+
+  public static <F extends Kind, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
   }
 
-  static <F extends Kind, T> Free<F, T> liftF(Higher1<F, T> value) {
+  public static <F extends Kind, T> Free<F, T> liftF(Higher1<F, T> value) {
     return new Suspend<>(value);
   }
 
-  static <F extends Kind, T> Free<F, T> defer(Producer<Free<F, T>> value) {
+  public static <F extends Kind, T> Free<F, T> defer(Producer<Free<F, T>> value) {
     Free<F, Unit> pure = pure(unit());
     return pure.flatMap(ignore -> value.get());
   }
 
-  default <R> Free<F, R> map(Function1<A, R> map) {
+  public <R> Free<F, R> map(Function1<A, R> map) {
     return flatMap(map.andThen(Free::pure));
   }
 
-  <R> Free<F, R> flatMap(Function1<A, Free<F, R>> map);
+  public abstract <R> Free<F, R> flatMap(Function1<A, Free<F, R>> map);
 
-  default <R> Free<F, R> andThen(Free<F, R> next) {
+  public abstract Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor);
+
+  public abstract Free<F, A> step();
+
+  public <R> Free<F, R> andThen(Free<F, R> next) {
     return flatMap(ignore -> next);
   }
 
-  Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor);
-
-  default <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, Transformer<F, G> interpreter) {
+  public <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, Transformer<F, G> interpreter) {
     return monad.tailRecM(this, value -> value.step().foldStep(monad, interpreter));
   }
 
-  Free<F, A> step();
+  protected abstract <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter);
 
-  <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter);
-
-  FreeModule module();
-
-  final class Pure<F extends Kind, A> implements Free<F, A> {
+  public static final class Pure<F extends Kind, A> extends Free<F, A> {
 
     private final A value;
 
@@ -80,17 +80,12 @@ public interface Free<F extends Kind, A> {
     }
 
     @Override
-    public <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
       return monad.pure(Either.right(value));
-    }
-
-    @Override
-    public FreeModule module() {
-      throw new UnsupportedOperationException();
     }
   }
 
-  final class Suspend<F extends Kind, A> implements Free<F, A> {
+  public static final class Suspend<F extends Kind, A> extends Free<F, A> {
 
     private final Higher1<F, A> value;
 
@@ -114,17 +109,12 @@ public interface Free<F extends Kind, A> {
     }
 
     @Override
-    public <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
       return monad.map(interpreter.apply(value), Either::right);
-    }
-
-    @Override
-    public FreeModule module() {
-      throw new UnsupportedOperationException();
     }
   }
 
-  final class FlatMapped<F extends Kind, X, A, B> implements Free<F, B> {
+  public static final class FlatMapped<F extends Kind, X, A, B> extends Free<F, B> {
 
     private final Free<F, A> value;
     private final Function1<A, Free<F, B>> next;
@@ -167,15 +157,8 @@ public interface Free<F extends Kind, A> {
     }
 
     @Override
-    public <G extends Kind> Higher1<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+    protected <G extends Kind> Higher1<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
       return monad.map(value.foldMap(monad, interpreter), next.andThen(Either::left));
-    }
-
-    @Override
-    public FreeModule module() {
-      throw new UnsupportedOperationException();
     }
   }
 }
-
-interface FreeModule { }

@@ -18,6 +18,8 @@ public interface Monad<F extends Kind> extends Applicative<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
 
+  // XXX: this method in not thread safe. In fact, now I don't really know how to do it thread safe
+  // without real tail recursion optimization
   default <T, R> Higher1<F, R> tailRecM(T value, Function1<T, ? extends Higher1<F, Either<T, R>>> map) {
     return flatMap(map.apply(value), either -> either.fold(left -> tailRecM(left, map), this::<R>pure));
   }
