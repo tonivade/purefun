@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
-import com.github.tonivade.purefun.monad.Trampoline;
+import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;

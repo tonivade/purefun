@@ -4,6 +4,7 @@ dependencies {
   compile project(':core')
   compile project(':typeclasses')
   compile project(':monad')
+  compile project(':free')
   compile project(':transformer')
   compile project(':stream')
   compile project(':zio')
