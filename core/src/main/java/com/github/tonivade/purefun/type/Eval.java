@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.Unit;
  *   <li>Eval.later(): the computation is evaluated later, but only the first time, the result is memoized.</li>
  *   <li>Eval.always(): the computation is evaluated later, but is always executed.</li>
  * </ul>
- * <p><strong>Warning:</strong> Not thread safe</p>
+ * <p><strong>Warning:</strong> Not stack safe</p>
  * @param <T> result of the computation
  */
 @HigherKind
