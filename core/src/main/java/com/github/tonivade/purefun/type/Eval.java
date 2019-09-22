@@ -11,6 +11,17 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 
+/**
+ * <p>This is a monad that allows to control the evaluation of a computation or a value.</p>
+ * <p>There are 3 basic strategies:</p>
+ * <ul>
+ *   <li>Eval.now(): evaluated immediately</li>
+ *   <li>Eval.later(): the computation is evaluated later, but only the first time, the result is memoized.</li>
+ *   <li>Eval.always(): the computation is evaluated later, but is always executed.</li>
+ * </ul>
+ * <p><strong>Warning:</strong> Not thread safe</p>
+ * @param <T> result of the computation
+ */
 @HigherKind
 @FunctionalInterface
 public interface Eval<T> {

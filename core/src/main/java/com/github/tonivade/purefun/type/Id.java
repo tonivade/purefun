@@ -6,14 +6,22 @@ package com.github.tonivade.purefun.type;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 
+/**
+ * <p>This is the identity monad. It only wraps the value and nothing more.</p>
+ * <p>You can go from T to {@code Id<T>} and from {@code Id<T>} to T without loosing information.</p>
+ * @param <T> the wrapped value
+ */
 @HigherKind
-public final class Id<T> {
+public final class Id<T> implements Serializable {
+
+  private static final long serialVersionUID = -6295106408421985189L;
 
   private final T value;
 

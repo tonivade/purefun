@@ -24,6 +24,16 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
+/**
+ * <p>This type represents the presence or absence of a value, similar to {@code java.util.Optional}</p>
+ * <p>There are two possible values:</p>
+ * <ul>
+ *   <li>Option.none(): that represent the absence of a value</li>
+ *   <li>Option.some(): that represent the presence of a value</li>
+ * </ul>
+ * <p><strong>Note:</strong> it's serializable</p>
+ * @param <T> the wrapped value
+ */
 @HigherKind
 public interface Option<T> {
 
@@ -55,6 +65,11 @@ public interface Option<T> {
   boolean isPresent();
   boolean isEmpty();
 
+  /**
+   * Returns the value if available. If not, it throws {@code NoSuchElementException}
+   * @return the wrapped value
+   * @throws NoSuchElementException if value is not available
+   */
   T get();
 
   default <R> Option<R> map(Function1<T, R> mapper) {

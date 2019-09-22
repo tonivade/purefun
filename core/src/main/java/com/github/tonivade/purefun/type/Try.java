@@ -22,6 +22,15 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
+/**
+ * <p>This type represents the success or failure of a computation. It has two possible values:</p>
+ * <ul>
+ *   <li>Try.success(): when the computation is successful</li>
+ *   <li>Try.failure(): when the result of a computation is an exception</li>
+ * </ul>
+ * <p><strong>Note:</strong> it's serializable</p>
+ * @param <T> the wrapped value
+ */
 @HigherKind
 public interface Try<T> {
 
@@ -53,6 +62,11 @@ public interface Try<T> {
   boolean isSuccess();
   boolean isFailure();
 
+  /**
+   * Returns the value if available. If not, it throws {@code NoSuchElementException}
+   * @return the wrapped value
+   * @throws NoSuchElementException if value is not available
+   */
   T get();
 
   default <R> Try<R> map(Function1<T, R> mapper) {
