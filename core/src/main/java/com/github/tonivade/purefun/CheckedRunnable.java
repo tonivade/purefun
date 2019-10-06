@@ -4,6 +4,9 @@
  */
 package com.github.tonivade.purefun;
 
+/**
+ * <p>This interface represents a {@code Runnable} instance but it can throws any exception.</p>
+ */
 @FunctionalInterface
 public interface CheckedRunnable extends Recoverable {
 

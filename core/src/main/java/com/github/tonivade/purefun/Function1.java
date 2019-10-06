@@ -17,6 +17,12 @@ import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
+/**
+ * <p>This interface represents a function with a single parameter. Similar to {@code java.util.function.Function}.</p>
+ * <p>The function can throws checked exceptions, but calling {@code apply} method, the exception is sneaky thrown.</p>
+ * @param <A> type of function parameter
+ * @param <R> type of return value
+ */
 @HigherKind
 @FunctionalInterface
 public interface Function1<A, R> extends Recoverable {

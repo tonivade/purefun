@@ -7,6 +7,21 @@ package com.github.tonivade.purefun;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
+/**
+ * This is a utility class to generate more readable {@code equals} methods. It's based on {@code Eq} instances and it can combine
+ * some of them to generate a bigger function that verify the equivalence between to instances of the same type {@code T}.
+ *
+ * <pre>{@code
+ * @Override
+ * public boolean equals(Object obj) {
+ *   return Equal.of(this)
+ *     .comparing(Data::getId)
+ *     .comparing(Data::getValue)
+ *     .applyTo(obj);
+ * }
+ * }</pre>
+ * @param <T> type to which it applies
+ */
 public final class Equal<T> {
 
   private final T target;

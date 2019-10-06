@@ -6,6 +6,9 @@ package com.github.tonivade.purefun;
 
 import java.io.Serializable;
 
+/**
+ * Type that represents a single value called Unit.
+ */
 public final class Unit implements Serializable {
 
   private static final long serialVersionUID = -8253613036328680583L;

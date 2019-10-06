@@ -29,7 +29,8 @@ import com.github.tonivade.purefun.data.Sequence;
  *   <li>{@code Either.right(value)}: right value</li>
  * </ul>
  * <p>Usually this type is used to represent a return type in a function. The left value represent
- * when the function fails, and the right value when function returns normally.</p>
+ * when the function fails, and the right value when function returns normally. It's the alternative to exceptions.</p>
+ * <p>{@code Try<T>} and {@code Either<Throwable, T>} are isomorphisms.</p>
  * @param <L> type of the left value, negative case
  * @param <R> type of the right value, positive case
  */

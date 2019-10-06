@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.data.Sequence;
  *   <li>{@code Try.success()}: when the computation is successful</li>
  *   <li>{@code Try.failure()}: when the result of a computation is an exception</li>
  * </ul>
+ * <p>You can obtain an {@code Either<Throwable, T>} from {@code Try<T>}</p>
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */

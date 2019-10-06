@@ -4,6 +4,9 @@
  */
 package com.github.tonivade.purefun;
 
+/**
+ * Type that represents a value that cannot be instantiable. Similar to {@code Void} type.
+ */
 public final class Nothing {
 
   private Nothing() {}

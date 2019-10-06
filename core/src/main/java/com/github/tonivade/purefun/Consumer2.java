@@ -6,6 +6,12 @@ package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Unit.unit;
 
+/**
+ * <p>This interface represents a function that receives two parameters but it doesn't generate any result.</p>
+ * <p>It's like a {@code Function2<A, B, Unit>}</p>
+ * @param <A> the type of first parameter received by the function
+ * @param <B> the type of second parameter received by the function
+ */
 @FunctionalInterface
 public interface Consumer2<A, B> extends Recoverable {
 
