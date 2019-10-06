@@ -25,8 +25,8 @@ import com.github.tonivade.purefun.data.Sequence;
 /**
  * <p>This type represents the success or failure of a computation. It has two possible values:</p>
  * <ul>
- *   <li>Try.success(): when the computation is successful</li>
- *   <li>Try.failure(): when the result of a computation is an exception</li>
+ *   <li>{@code Try.success()}: when the computation is successful</li>
+ *   <li>{@code Try.failure()}: when the result of a computation is an exception</li>
  * </ul>
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value

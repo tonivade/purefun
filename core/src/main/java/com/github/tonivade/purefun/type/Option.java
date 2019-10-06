@@ -28,8 +28,8 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p>This type represents the presence or absence of a value, similar to {@code java.util.Optional}</p>
  * <p>There are two possible values:</p>
  * <ul>
- *   <li>Option.none(): that represent the absence of a value</li>
- *   <li>Option.some(): that represent the presence of a value</li>
+ *   <li>{@code Option.none()}: that represent the absence of a value</li>
+ *   <li>{@code Option.some(value)}: that represent the presence of a value</li>
  * </ul>
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value

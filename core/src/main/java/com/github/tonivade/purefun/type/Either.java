@@ -21,6 +21,18 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
+/**
+ * <p>This type represents two possible values, called left or right. In general left case is
+ * considered the negative case, and right case the positive case, so is right biased</p>
+ * <ul>
+ *   <li>{@code Either.left(value)}: left value</li>
+ *   <li>{@code Either.right(value)}: right value</li>
+ * </ul>
+ * <p>Usually this type is used to represent a return type in a function. The left value represent
+ * when the function fails, and the right value when function returns normally.</p>
+ * @param <L> type of the left value, negative case
+ * @param <R> type of the right value, positive case
+ */
 @HigherKind
 public interface Either<L, R> {
 
@@ -34,7 +46,17 @@ public interface Either<L, R> {
 
   boolean isLeft();
   boolean isRight();
+  /**
+   * Returns the left value if available. If not, it throws {@code NoSuchElementException}
+   * @return the left value
+   * @throws NoSuchElementException if left value is not available
+   */
   L getLeft();
+  /**
+   * Returns the right value if available. If not, it throws {@code NoSuchElementException}
+   * @return the right value
+   * @throws NoSuchElementException if right value is not available
+   */
   R getRight();
 
   default R get() {

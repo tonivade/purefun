@@ -23,6 +23,17 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
+/**
+ * <p>This type represents the validity or not of a value. There are two possible values:</p>
+ * <ul>
+ *   <li>{@code Validation.valid(value)}: when the value is valid</li>
+ *   <li>{@code Validation.invalid(error)}: when the value is invalid</li>
+ * </ul>
+ * <p>You can combine different values using mapN methods. Only when all values are valid, the
+ * final method is invoked, otherwise a combination of all errors is returned</p>
+ * @param <E> type of the error when invalid
+ * @param <T> type of the value when valid
+ */
 @HigherKind
 public interface Validation<E, T> {
 
@@ -37,7 +48,17 @@ public interface Validation<E, T> {
   boolean isValid();
   boolean isInvalid();
 
+  /**
+   * Returns the valid value if available. If not, it throws {@code NoSuchElementException}
+   * @return the valid value
+   * @throws NoSuchElementException if value is not available
+   */
   T get();
+  /**
+   * Returns the invalid value if available. If not, it throws {@code NoSuchElementException}
+   * @return the invalid value
+   * @throws NoSuchElementException if value is not available
+   */
   E getError();
 
   default <R> Validation<E, R> map(Function1<T, R> mapper) {
