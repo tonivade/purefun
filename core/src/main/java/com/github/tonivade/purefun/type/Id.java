@@ -15,7 +15,8 @@ import com.github.tonivade.purefun.HigherKind;
 
 /**
  * <p>This is the identity monad. It only wraps the value and nothing more.</p>
- * <p>You can go from T to {@code Id<T>} and from {@code Id<T>} to T without loosing information.</p>
+ * <p>You can go from {@code T} to {@code Id<T>} and from {@code Id<T>} to {@code T}
+ * without loosing information.</p>
  * @param <T> the wrapped value
  */
 @HigherKind

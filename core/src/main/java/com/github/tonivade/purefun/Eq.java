@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * <p>This interface represents a function that verify if two instances of a type are equivalent.</p>
- * <p>{@code Eq} instances can be composed using {@code and} method</p>
+ * <p>{@code Eq} instances can be composed using {@code and()} method</p>
  * @param <T> type to verify
  */
 @FunctionalInterface

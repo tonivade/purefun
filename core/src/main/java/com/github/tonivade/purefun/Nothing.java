@@ -5,7 +5,8 @@
 package com.github.tonivade.purefun;
 
 /**
- * Type that represents a value that cannot be instantiable. Similar to {@code Void} type.
+ * It represents a type that cannot be instantiated. Similar to {@link Void} * type
+ * in JVM but is not a substitution for {@code void}
  */
 public final class Nothing {
 

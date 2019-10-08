@@ -25,7 +25,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 /**
- * <p>This type represents the presence or absence of a value, similar to {@code java.util.Optional}</p>
+ * <p>This type represents the presence or absence of a value, similar to {@link java.util.Optional}</p>
  * <p>There are two possible values:</p>
  * <ul>
  *   <li>{@code Option.none()}: that represent the absence of a value</li>

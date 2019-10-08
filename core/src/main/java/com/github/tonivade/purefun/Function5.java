@@ -4,6 +4,17 @@
  */
 package com.github.tonivade.purefun;
 
+/**
+ * <p>This interface represents a function with a five parameters. There's no equivalence in the JVM.</p>
+ * <p>The function can throws checked exceptions, but calling {@code apply()} method, the exception is sneaky thrown. So, it
+ * can be used as a higher order function in {@link java.util.stream.Stream} or {@link java.util.Optional} API.</p>
+ * @param <A> type of first function parameter
+ * @param <B> type of second function parameter
+ * @param <C> type of third function parameter
+ * @param <D> type of fourth function parameter
+ * @param <E> type of fifth function parameter
+ * @param <R> type of return value
+ */
 @FunctionalInterface
 public interface Function5<A, B, C, D, E, R> extends Recoverable {
 

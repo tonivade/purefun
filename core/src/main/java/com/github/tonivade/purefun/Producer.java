@@ -9,9 +9,8 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
 /**
- * This interface represents a function without any parameter. Similar to {@code java.util.function.Supplier}
+ * This interface represents a function without any parameter. Similar to {@link java.util.function.Supplier}
  * but with additional functionality like the ability to memoize the result.
- *
  * @param <T> the returned type
  */
 @HigherKind
