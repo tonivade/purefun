@@ -42,18 +42,18 @@ public class MonadErrorTest {
 
   @Test
   public void attempRight() {
-    Higher1<Try.µ, Either<Throwable, String>> attemp = monadError.attemp(Try.success("hola mundo!").kind1());
+    Higher1<Try.µ, Either<Throwable, String>> attempt = monadError.attempt(Try.success("hola mundo!").kind1());
 
-    assertEquals(Try.success(Either.right("hola mundo!")), attemp);
+    assertEquals(Try.success(Either.right("hola mundo!")), attempt);
   }
 
   @Test
   public void attempLeft() {
     Exception error = new Exception("error");
 
-    Higher1<Try.µ, Either<Throwable, String>> attemp = monadError.attemp(Try.<String>failure(error).kind1());
+    Higher1<Try.µ, Either<Throwable, String>> attempt = monadError.attempt(Try.<String>failure(error).kind1());
 
-    assertEquals(Try.success(Either.left(error)), attemp);
+    assertEquals(Try.success(Either.left(error)), attempt);
   }
 
   @Test

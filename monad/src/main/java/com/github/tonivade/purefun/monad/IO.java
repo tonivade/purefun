@@ -62,12 +62,12 @@ public interface IO<T> extends Recoverable {
     return flatMap(ignore -> after);
   }
 
-  default IO<Try<T>> attemp() {
-    return new Attemp<>(this);
+  default IO<Try<T>> attempt() {
+    return new Attempt<>(this);
   }
 
   default IO<Either<Throwable, T>> either() {
-    return attemp().map(Try::toEither);
+    return attempt().map(Try::toEither);
   }
 
   default <L, R> IO<Either<L, R>> either(Function1<Throwable, L> mapError, Function1<T, R> mapper) {
@@ -75,11 +75,11 @@ public interface IO<T> extends Recoverable {
   }
 
   default <R> IO<R> redeem(Function1<Throwable, R> mapError, Function1<T, R> mapper) {
-    return attemp().map(try_ -> try_.fold(mapError, mapper));
+    return attempt().map(try_ -> try_.fold(mapError, mapper));
   }
 
   default <R> IO<R> redeemWith(Function1<Throwable, IO<R>> mapError, Function1<T, IO<R>> mapper) {
-    return attemp().flatMap(try_ -> try_.fold(mapError, mapper));
+    return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
   }
 
   default IO<T> recover(Function1<Throwable, T> mapError) {
@@ -336,11 +336,11 @@ public interface IO<T> extends Recoverable {
     }
   }
 
-  final class Attemp<T> implements IO<Try<T>> {
+  final class Attempt<T> implements IO<Try<T>> {
 
     private final IO<T> current;
 
-    private Attemp(IO<T> current) {
+    private Attempt(IO<T> current) {
       this.current = requireNonNull(current);
     }
 
@@ -351,7 +351,7 @@ public interface IO<T> extends Recoverable {
 
     @Override
     public <F extends Kind> Higher1<F, Try<T>> foldMap(MonadDefer<F> monad) {
-      return monad.map(monad.attemp(current.foldMap(monad)), either -> either.fold(Try::failure, Try::success));
+      return monad.map(monad.attempt(current.foldMap(monad)), either -> either.fold(Try::failure, Try::success));
     }
 
     @Override
@@ -361,7 +361,7 @@ public interface IO<T> extends Recoverable {
 
     @Override
     public String toString() {
-      return "Attemp(" + current + ")";
+      return "Attempt(" + current + ")";
     }
   }
 }

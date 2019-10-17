@@ -128,11 +128,11 @@ public interface ZIO<R, E, A> {
   }
 
   static <R, A> ZIO<R, Throwable, A> from(Producer<A> task) {
-    return new Attemp<>(task);
+    return new Attempt<>(task);
   }
 
   static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
-    return new Attemp<>(task.asProducer());
+    return new Attempt<>(task.asProducer());
   }
 
   static <R, E, A> ZIO<R, E, A> pure(A value) {
@@ -350,11 +350,11 @@ public interface ZIO<R, E, A> {
     }
   }
 
-  final class Attemp<R, A> implements ZIO<R, Throwable, A> {
+  final class Attempt<R, A> implements ZIO<R, Throwable, A> {
 
     private final Producer<A> current;
 
-    private Attemp(Producer<A> current) {
+    private Attempt(Producer<A> current) {
       this.current = requireNonNull(current);
     }
 
