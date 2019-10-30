@@ -54,12 +54,12 @@ interface MonoidInvariant extends Invariant<Monoid.µ> {
 
       @Override
       public B zero() {
-        return map.apply(value.fix1(Monoid::<A>narrowK).zero());
+        return map.apply(value.fix1(Monoid::narrowK).zero());
       }
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix1(Monoid::<A>narrowK).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.fix1(Monoid::narrowK).combine(comap.apply(t1), comap.apply(t2)));
       }
     }.kind1();
   }

@@ -180,7 +180,7 @@ interface ComposedContravariant<F extends Kind, G extends Kind> extends Functor<
 
   @Override
   default <A, B> Higher1<Nested<F, G>, B> map(Higher1<Nested<F, G>, A> value, Function1<A, B> map) {
-    return nest(f().<Higher1<G, A>, Higher1<G, B>>contramap(unnest(value), gb -> g().contramap(gb, map)));
+    return nest(f().contramap(unnest(value), gb -> g().contramap(gb, map)));
   }
 }
 
@@ -192,6 +192,6 @@ interface ComposedContravariantCovariant<F extends Kind, G extends Kind> extends
 
   @Override
   default <A, B> Higher1<Nested<F, G>, B> contramap(Higher1<Nested<F, G>, A> value, Function1<B, A> map) {
-    return nest(f().<Higher1<G, A>, Higher1<G, B>>contramap(unnest(value), gb -> g().map(gb, map)));
+    return nest(f().contramap(unnest(value), gb -> g().map(gb, map)));
   }
 }

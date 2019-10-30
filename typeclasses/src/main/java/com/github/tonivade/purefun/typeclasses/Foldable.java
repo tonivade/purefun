@@ -32,7 +32,7 @@ public interface Foldable<F extends Kind> {
   }
 
   default <A> Option<A> reduce(Higher1<F, A> value, Operator2<A> combinator) {
-    return foldLeft(value, Option.<A>none(),
+    return foldLeft(value, Option.none(),
         (option, a) -> option.fold(() -> Option.some(a), b -> Option.some(combinator.apply(b, a))));
   }
 
