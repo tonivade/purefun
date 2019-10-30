@@ -94,7 +94,7 @@ interface IOMonad extends Monad<IO.µ> {
 
   @Override
   default <T, R> Higher1<IO.µ, R> flatMap(Higher1<IO.µ, T> value, Function1<T, ? extends Higher1<IO.µ, R>> map) {
-    return IO.narrowK(value).flatMap(map.andThen(IO::<R>narrowK)).kind1();
+    return IO.narrowK(value).flatMap(map.andThen(IO::narrowK)).kind1();
   }
 }
 
@@ -108,7 +108,7 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
   @Override
   default <A> Higher1<IO.µ, A> handleErrorWith(Higher1<IO.µ, A> value, Function1<Throwable, ? extends Higher1<IO.µ, A>> handler) {
-    return IO.narrowK(value).redeemWith(handler.andThen(IO::<A>narrowK), IO::pure).kind1();
+    return IO.narrowK(value).redeemWith(handler.andThen(IO::narrowK), IO::pure).kind1();
   }
 }
 
@@ -117,7 +117,7 @@ interface IODefer extends Defer<IO.µ> {
 
   @Override
   default <A> Higher1<IO.µ, A> defer(Producer<Higher1<IO.µ, A>> defer) {
-    return IO.suspend(defer.map(IO::<A>narrowK)).kind1();
+    return IO.suspend(defer.map(IO::narrowK)).kind1();
   }
 }
 
@@ -126,7 +126,7 @@ interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer {
 
   @Override
   default <A, B> Higher1<IO.µ, B> bracket(Higher1<IO.µ, A> acquire, Function1<A, ? extends Higher1<IO.µ, B>> use, Consumer1<A> release) {
-    return IO.bracket(IO.narrowK(acquire), use.andThen(IO::<B>narrowK), release::accept).kind1();
+    return IO.bracket(IO.narrowK(acquire), use.andThen(IO::narrowK), release::accept).kind1();
   }
 }
 

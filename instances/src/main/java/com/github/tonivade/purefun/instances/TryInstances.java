@@ -97,7 +97,7 @@ interface TryMonad extends TryPure, Monad<Try.µ> {
   @Override
   default <T, R> Higher1<Try.µ, R> flatMap(Higher1<Try.µ, T> value,
       Function1<T, ? extends Higher1<Try.µ, R>> map) {
-    return Try.narrowK(value).flatMap(map.andThen(Try::<R>narrowK)).kind1();
+    return Try.narrowK(value).flatMap(map.andThen(Try::narrowK)).kind1();
   }
 }
 
@@ -112,7 +112,7 @@ interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
   @Override
   default <A> Higher1<Try.µ, A> handleErrorWith(Higher1<Try.µ, A> value,
       Function1<Throwable, ? extends Higher1<Try.µ, A>> handler) {
-    return Try.narrowK(value).fold(handler.andThen(Try::<A>narrowK), Try::success).kind1();
+    return Try.narrowK(value).fold(handler.andThen(Try::narrowK), Try::success).kind1();
   }
 }
 

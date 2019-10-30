@@ -45,7 +45,7 @@ public interface Function1Instances {
 interface Function1Functor<T> extends Functor<Higher1<Function1.µ, T>> {
   @Override
   default <A, R> Higher2<Function1.µ, T, R> map(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, R> map) {
-    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::<T, A>narrowK);
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
     return function.andThen(map).kind2();
   }
 }
@@ -61,8 +61,8 @@ interface Function1Pure<T> extends Applicative<Higher1<Function1.µ, T>> {
 interface Function1Applicative<T> extends Function1Pure<T> {
   @Override
   default <A, R> Higher2<Function1.µ, T, R> ap(Higher1<Higher1<Function1.µ, T>, A> value, Higher1<Higher1<Function1.µ, T>, Function1<A, R>> apply) {
-    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::<T, A>narrowK);
-    Function1<T, Function1<A, R>> map = Higher2.narrowK(apply).fix2(Function1::<T, Function1<A, R>>narrowK);
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
+    Function1<T, Function1<A, R>> map = Higher2.narrowK(apply).fix2(Function1::narrowK);
     return function.flatMap(a -> map.andThen(f -> f.apply(a))).kind2();
   }
 }
@@ -71,8 +71,8 @@ interface Function1Applicative<T> extends Function1Pure<T> {
 interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ, T>> {
   @Override
   default <A, R> Higher2<Function1.µ, T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
-    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::<T, A>narrowK);
-    return function.flatMap(map.andThen(Function1::<T, R>narrowK)).kind2();
+    Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
+    return function.flatMap(map.andThen(Function1::narrowK)).kind2();
   }
 }
 
@@ -80,7 +80,7 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ
 interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ, R>> {
   @Override
   default <A, B> Higher1<Conested<Function1.µ, R>, B> contramap(Higher1<Conested<Function1.µ, R>, A> value, Function1<B, A> map) {
-    Function1<A, R> function = counnest(value).fix1(Function1::<A, R>narrowK);
+    Function1<A, R> function = counnest(value).fix1(Function1::narrowK);
     return conest(function.compose(map).kind1());
   }
 }
@@ -89,7 +89,7 @@ interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ,
 interface Function1Profunctor extends Profunctor<Function1.µ> {
   @Override
   default <A, B, C, D> Higher2<Function1.µ, C, D> dimap(Higher2<Function1.µ, A, B> value, Function1<C, A> contramap, Function1<B, D> map) {
-    Function1<A, B> function = value.fix2(Function1::<A, B>narrowK);
+    Function1<A, B> function = value.fix2(Function1::narrowK);
     return function.compose(contramap).andThen(map).kind2();
   }
 }

@@ -80,7 +80,7 @@ interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
   @Override
   default <T, R> Higher2<OptionT.µ, F, R> flatMap(Higher1<Higher1<OptionT.µ, F>, T> value,
       Function1<T, ? extends Higher1<Higher1<OptionT.µ, F>, R>> map) {
-    return OptionT.narrowK(value).flatMap(map.andThen(OptionT::<F, R>narrowK)).kind2();
+    return OptionT.narrowK(value).flatMap(map.andThen(OptionT::narrowK)).kind2();
   }
 }
 
@@ -103,7 +103,7 @@ interface OptionTMonadErrorFromMonad<F extends Kind>
     return OptionT.of(monadF(),
         monadF().flatMap(OptionT.narrowK(value).value(),
             option -> option.fold(
-              () -> handler.andThen(OptionT::<F, A>narrowK).apply(unit()).value(),
+              () -> handler.andThen(OptionT::narrowK).apply(unit()).value(),
               a -> monadF().pure(Option.some(a))))).kind2();
   }
 }
@@ -129,7 +129,7 @@ interface OptionTMonadErrorFromMonadError<F extends Kind, E>
       Function1<E, ? extends Higher1<Higher1<OptionT.µ, F>, A>> handler) {
     return OptionT.of(monadF(),
       monadF().handleErrorWith(
-        OptionT.narrowK(value).value(), error -> handler.andThen(OptionT::<F, A>narrowK).apply(error).value())).kind2();
+        OptionT.narrowK(value).value(), error -> handler.andThen(OptionT::narrowK).apply(error).value())).kind2();
   }
 }
 
@@ -154,7 +154,7 @@ interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
 
   @Override
   default <A> Higher2<OptionT.µ, F, A> defer(Producer<Higher1<Higher1<OptionT.µ, F>, A>> defer) {
-    return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionT::<F, A>narrowK).get().value())).kind2();
+    return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionT::narrowK).get().value())).kind2();
   }
 }
 
@@ -173,10 +173,10 @@ interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>>
                                        Consumer1<A> release) {
     Higher1<F, Option<B>> bracket =
         monadF().bracket(
-            acquire.fix1(OptionT::<F, A>narrowK).value(),
+            acquire.fix1(OptionT::narrowK).value(),
             option -> option.fold(
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
-                value -> use.andThen(OptionT::<F, B>narrowK).apply(value).value()),
+                value -> use.andThen(OptionT::narrowK).apply(value).value()),
             option -> option.fold(Unit::unit, release.asFunction()));
     return OptionT.of(monadF(), bracket).kind2();
   }

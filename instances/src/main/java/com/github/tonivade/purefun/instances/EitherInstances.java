@@ -115,7 +115,7 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
   @Override
   default <T, R> Higher2<Either.µ, L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
-    return Either.narrowK(value).flatMap(map.andThen(Either::<L, R>narrowK)).kind2();
+    return Either.narrowK(value).flatMap(map.andThen(Either::narrowK)).kind2();
   }
 }
 
@@ -130,7 +130,7 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.
   @Override
   default <A> Higher2<Either.µ, L, A> handleErrorWith(Higher1<Higher1<Either.µ, L>, A> value,
       Function1<L, ? extends Higher1<Higher1<Either.µ, L>, A>> handler) {
-    return Either.narrowK(value).fold(handler.andThen(Either::<L, A>narrowK), Either::<L, A>right).kind2();
+    return Either.narrowK(value).fold(handler.andThen(Either::narrowK), Either::<L, A>right).kind2();
   }
 }
 

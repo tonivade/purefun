@@ -144,7 +144,7 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E>
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> handler) {
     return EitherT.of(monadF(),
                       monadF().handleErrorWith(EitherT.narrowK(value).value(),
-                                               error -> handler.andThen(EitherT::<F, E, A>narrowK).apply(error).value())).kind3();
+                                               error -> handler.andThen(EitherT::narrowK).apply(error).value())).kind3();
   }
 }
 
@@ -179,7 +179,7 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT.
 
   @Override
   default <A> Higher3<EitherT.µ, F, E, A> defer(Producer<Higher1<Higher1<Higher1<EitherT.µ, F>, E>, A>> defer) {
-    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherT::<F, E, A>narrowK).get().value())).kind3();
+    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherT::narrowK).get().value())).kind3();
   }
 }
 
@@ -197,10 +197,10 @@ interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT
                   Consumer1<A> release) {
     Higher1<F, Either<Throwable, B>> bracket =
         monadF().bracket(
-            acquire.fix1(EitherT::<F, Throwable, A>narrowK).value(),
+            acquire.fix1(EitherT::narrowK).value(),
             either -> either.fold(
                 this::acquireRecover,
-                value -> use.andThen(EitherT::<F, Throwable, B>narrowK).apply(value).value()),
+                value -> use.andThen(EitherT::narrowK).apply(value).value()),
             either -> either.fold(cons(unit()), release.asFunction()));
     return EitherT.of(monadF(), bracket).kind3();
   }

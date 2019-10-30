@@ -81,6 +81,6 @@ interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, Stre
   @Override
   default <T, R> Higher2<Stream.µ, F, R> flatMap(Higher1<Higher1<Stream.µ, F>, T> value,
       Function1<T, ? extends Higher1<Higher1<Stream.µ, F>, R>> mapper) {
-    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::<F, R>narrowK)).kind2();
+    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::narrowK)).kind2();
   }
 }

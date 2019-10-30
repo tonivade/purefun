@@ -89,7 +89,7 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>
   default <A, B> Higher3<ZIO.µ, R, E, B>
           flatMap(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
                   Function1<A, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, E>, B>> map) {
-    return ZIO.narrowK(value).flatMap(map.andThen(ZIO::<R, E, B>narrowK)).kind3();
+    return ZIO.narrowK(value).flatMap(map.andThen(ZIO::narrowK)).kind3();
   }
 }
 
@@ -106,7 +106,7 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
           handleErrorWith(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
                           Function1<E, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIO::<R, E, A>narrowK);
+    Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIO::narrowK);
     Function1<A, ZIO<R, E, A>> map = ZIO::pure;
     ZIO<R, E, A> zio = ZIO.narrowK(value);
     return zio.foldM(mapError, map).kind3();
@@ -124,7 +124,7 @@ interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
   @Override
   default <A> Higher3<ZIO.µ, R, Throwable, A>
           defer(Producer<Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A>> defer) {
-    return ZIO.defer(() -> defer.map(ZIO::<R, Throwable, A>narrowK).get()).kind3();
+    return ZIO.defer(() -> defer.map(ZIO::narrowK).get()).kind3();
   }
 }
 
@@ -136,7 +136,7 @@ interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> 
           bracket(Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, A> acquire,
                   Function1<A, ? extends Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return ZIO.bracket(acquire.fix1(ZIO::<R, Throwable, A>narrowK), use.andThen(ZIO::<R, Throwable, B>narrowK), release).kind3();
+    return ZIO.bracket(acquire.fix1(ZIO::narrowK), use.andThen(ZIO::narrowK), release).kind3();
   }
 }
 

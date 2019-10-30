@@ -93,6 +93,6 @@ interface EvalDefer extends Defer<Eval.µ> {
 
   @Override
   default <A> Higher1<Eval.µ, A> defer(Producer<Higher1<Eval.µ, A>> defer) {
-    return Eval.defer(defer.map(Eval::<A>narrowK)).kind1();
+    return Eval.defer(defer.map(Eval::narrowK)).kind1();
   }
 }

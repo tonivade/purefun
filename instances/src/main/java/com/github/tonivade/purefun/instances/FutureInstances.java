@@ -106,7 +106,7 @@ interface FutureMonad extends FuturePure, Monad<Future.µ> {
   @Override
   default <T, R> Higher1<Future.µ, R> flatMap(Higher1<Future.µ, T> value,
       Function1<T, ? extends Higher1<Future.µ, R>> map) {
-    return Future.narrowK(value).flatMap(map.andThen(Future::<R>narrowK)).kind1();
+    return Future.narrowK(value).flatMap(map.andThen(Future::narrowK)).kind1();
   }
 }
 
@@ -125,7 +125,7 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future.µ> {
   @Override
   default <A> Higher1<Future.µ, A> handleErrorWith(Higher1<Future.µ, A> value,
       Function1<Throwable, ? extends Higher1<Future.µ, A>> handler) {
-    return Future.narrowK(value).fold(handler.andThen(Future::<A>narrowK),
+    return Future.narrowK(value).fold(handler.andThen(Future::narrowK),
                                       success -> Future.success(executor(), success)).flatMap(identity()).kind1();
   }
 }
@@ -137,7 +137,7 @@ interface FutureDefer extends Defer<Future.µ> {
 
   @Override
   default <A> Higher1<Future.µ, A> defer(Producer<Higher1<Future.µ, A>> defer) {
-    return Future.defer(executor(), defer.map(Future::<A>narrowK)::get).kind1();
+    return Future.defer(executor(), defer.map(Future::narrowK)::get).kind1();
   }
 }
 
@@ -147,7 +147,7 @@ interface FutureBracket extends Bracket<Future.µ> {
   @Override
   default <A, B> Higher1<Future.µ, B> bracket(Higher1<Future.µ, A> acquire, Function1<A, ? extends Higher1<Future.µ, B>> use, Consumer1<A> release) {
     return Future.narrowK(acquire)
-      .flatMap(resource -> use.andThen(Future::<B>narrowK).apply(resource)
+      .flatMap(resource -> use.andThen(Future::narrowK).apply(resource)
           .onComplete(result -> release.accept(resource))).kind1();
   }
 }

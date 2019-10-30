@@ -29,6 +29,6 @@ interface ReaderMonad<R> extends Monad<Higher1<Reader.µ, R>> {
   @Override
   default <T, V> Higher2<Reader.µ, R, V> flatMap(Higher1<Higher1<Reader.µ, R>, T> value,
       Function1<T, ? extends Higher1<Higher1<Reader.µ, R>, V>> map) {
-    return Reader.narrowK(value).flatMap(map.andThen(Reader::<R, V>narrowK)).kind2();
+    return Reader.narrowK(value).flatMap(map.andThen(Reader::narrowK)).kind2();
   }
 }

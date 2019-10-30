@@ -100,7 +100,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
   @Override
   default <T, R> Higher2<Validation.µ, E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
       Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
-    return Validation.narrowK(value).flatMap(map.andThen(Validation::<E, R>narrowK)).kind2();
+    return Validation.narrowK(value).flatMap(map.andThen(Validation::narrowK)).kind2();
   }
 }
 
@@ -115,7 +115,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
   @Override
   default <A> Higher2<Validation.µ, E, A> handleErrorWith(Higher1<Higher1<Validation.µ, E>, A> value,
       Function1<E, ? extends Higher1<Higher1<Validation.µ, E>, A>> handler) {
-    return Validation.narrowK(value).fold(handler.andThen(Validation::<E, A>narrowK), Validation::<E, A>valid).kind2();
+    return Validation.narrowK(value).fold(handler.andThen(Validation::narrowK), Validation::<E, A>valid).kind2();
   }
 }
 

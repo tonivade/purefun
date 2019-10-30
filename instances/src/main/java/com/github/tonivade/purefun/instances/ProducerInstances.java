@@ -63,7 +63,7 @@ interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
 
   @Override
   default <T, R> Higher1<Producer.µ, R> flatMap(Higher1<Producer.µ, T> value, Function1<T, ? extends Higher1<Producer.µ, R>> mapper) {
-    return value.fix1(Producer::<T>narrowK).flatMap(mapper.andThen(Producer::<R>narrowK)).kind1();
+    return value.fix1(Producer::narrowK).flatMap(mapper.andThen(Producer::narrowK)).kind1();
   }
 }
 
@@ -77,6 +77,6 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer.µ> {
 
   @Override
   default <A> A extract(Higher1<Producer.µ, A> value) {
-    return value.fix1(Producer::<A>narrowK).get();
+    return value.fix1(Producer::narrowK).get();
   }
 }

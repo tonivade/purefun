@@ -38,6 +38,6 @@ interface StateTMonad<F extends Kind, S> extends Monad<Higher1<Higher1<StateT.µ
   @Override
   default <T, R> Higher3<StateT.µ, F, S, R> flatMap(Higher1<Higher1<Higher1<StateT.µ, F>, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<StateT.µ, F>, S>, R>> map) {
-    return StateT.narrowK(value).flatMap(map.andThen(StateT::<F, S, R>narrowK)).kind3();
+    return StateT.narrowK(value).flatMap(map.andThen(StateT::narrowK)).kind3();
   }
 }

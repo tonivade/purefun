@@ -38,6 +38,6 @@ interface WriterMonad<L> extends Monad<Higher1<Writer.µ, L>> {
   @Override
   default <T, R> Higher2<Writer.µ, L, R> flatMap(Higher1<Higher1<Writer.µ, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Writer.µ, L>, R>> map) {
-    return Writer.narrowK(value).flatMap(map.andThen(Writer::<L, R>narrowK)).kind2();
+    return Writer.narrowK(value).flatMap(map.andThen(Writer::narrowK)).kind2();
   }
 }

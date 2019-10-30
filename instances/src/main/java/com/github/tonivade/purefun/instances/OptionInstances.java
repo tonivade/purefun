@@ -109,7 +109,7 @@ interface OptionMonad extends OptionPure, Monad<Option.µ> {
   @Override
   default <T, R> Higher1<Option.µ, R> flatMap(Higher1<Option.µ, T> value,
       Function1<T, ? extends Higher1<Option.µ, R>> map) {
-    return Option.narrowK(value).flatMap(map.andThen(Option::<R>narrowK)).kind1();
+    return Option.narrowK(value).flatMap(map.andThen(Option::narrowK)).kind1();
   }
 }
 

@@ -37,6 +37,6 @@ interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli.
   @Override
   default <T, R> Higher3<Kleisli.µ, F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, R>> map) {
-    return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::<F, Z, R>narrowK)).kind3();
+    return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::narrowK)).kind3();
   }
 }

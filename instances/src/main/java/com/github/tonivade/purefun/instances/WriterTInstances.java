@@ -46,6 +46,6 @@ interface WriterTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<WriterT.
   @Override
   default <T, R> Higher3<WriterT.µ, F, L, R> flatMap(Higher1<Higher1<Higher1<WriterT.µ, F>, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<WriterT.µ, F>, L>, R>> map) {
-    return WriterT.narrowK(value).flatMap(map.andThen(WriterT::<F, L, R>narrowK)).kind3();
+    return WriterT.narrowK(value).flatMap(map.andThen(WriterT::narrowK)).kind3();
   }
 }
