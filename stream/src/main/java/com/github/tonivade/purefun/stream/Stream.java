@@ -111,6 +111,10 @@ public interface Stream<F extends Kind, T> {
       return eval(monadDefer().pure(value));
     }
 
+    default <T> Stream<F, T> cons(T head, Stream<F, T> tail) {
+      return pure(head).concat(tail);
+    }
+
     default <T> Stream<F, T> suspend(Producer<Stream<F, T>> lazy) {
       return new Suspend<>(monadDefer(), monadDefer().defer(lazy.map(monadDefer()::<Stream<F, T>>pure)));
     }
@@ -131,14 +135,16 @@ public interface Stream<F extends Kind, T> {
       return sequence.foldLeft(empty(), (acc, a) -> acc.append(monadDefer().pure(a)));
     }
 
+    default <T, S> Stream<F, T> unfold(S seed, Function1<S, Option<Tuple2<T, S>>> function) {
+      return suspend(() -> StreamModule.unfold(this, seed, function));
+    }
+
     default <T> Stream<F, T> iterate(T seed, Operator1<T> generator) {
-      return new Cons<>(monadDefer(), monadDefer().pure(seed),
-          suspend(() -> iterate(generator.apply(seed), generator)));
+      return cons(seed, suspend(() -> iterate(generator.apply(seed), generator)));
     }
 
     default <T> Stream<F, T> iterate(Producer<T> generator) {
-      return new Cons<>(monadDefer(), monadDefer().pure(generator.get()),
-          suspend(() -> iterate(generator)));
+      return unfold(unit(), unit -> Option.of(generator).map(next -> Tuple.of(next, unit)));
     }
 
     default <A, B, R> Stream<F, R> zipWith(Stream<F, A> s1, Stream<F, B> s2, Function2<A, B, R> combinator) {
@@ -179,8 +185,6 @@ public interface Stream<F extends Kind, T> {
         ));
     }
   }
-
-  // TODO: unfold method
 }
 
 final class Cons<F extends Kind, T> implements Stream<F, T> {
@@ -553,5 +557,12 @@ final class Nil<F extends Kind, T> implements Stream<F, T> {
 interface StreamModule {
   static <A, B, C> Option<C> map2(Option<A> fa, Option<B> fb, Function2<A, B, C> combiner) {
     return fa.flatMap(a -> fb.map(b -> combiner.apply(a, b)));
+  }
+
+  static <F extends Kind, T, S> Stream<F, T> unfold(Stream.StreamOf<F> streamOf, S seed,
+                                                    Function1<S, Option<Tuple2<T, S>>> function) {
+    return function.apply(seed)
+      .map(tuple -> streamOf.cons(tuple.get1(), streamOf.suspend(() -> unfold(streamOf, tuple.get2(), function))))
+      .getOrElse(streamOf::empty);
   }
 }

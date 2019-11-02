@@ -44,7 +44,7 @@ public class StreamTest {
 
     Stream<IO.µ, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix1(IO::narrowK).map(x -> x + a))
+    IO<String> foldRight = result.foldRight(IO.pure("").kind1(), (a, b) -> b.fix1(IO::narrowK).map(x -> x + a).kind1())
         .fix1(IO::narrowK);
 
     assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
@@ -66,7 +66,7 @@ public class StreamTest {
   public void mapEval() {
     Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2));
+    Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2).kind1());
 
     assertEquals(Integer.valueOf(12), run(result.foldLeft(0, (a, b) -> a + b)));
   }
@@ -75,7 +75,7 @@ public class StreamTest {
   public void append() {
     Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO.µ, Integer> result = stream.append(IO.pure(4));
+    Stream<IO.µ, Integer> result = stream.append(IO.pure(4).kind1());
 
     assertEquals(listOf(1, 2, 3, 4), run(result.asSequence()));
   }
@@ -84,7 +84,7 @@ public class StreamTest {
   public void prepend() {
     Stream<IO.µ, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO.µ, Integer> result = stream.prepend(IO.pure(0));
+    Stream<IO.µ, Integer> result = stream.prepend(IO.pure(0).kind1());
 
     assertEquals(listOf(0, 1, 2, 3), run(result.asSequence()));
   }
@@ -165,7 +165,7 @@ public class StreamTest {
   public void intersperse() {
     Stream<IO.µ, Integer> stream = streamOfIO.of(1, 2);
 
-    Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0));
+    Stream<IO.µ, Integer> result = stream.intersperse(IO.pure(0).kind1());
 
     assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
   }
@@ -215,7 +215,7 @@ public class StreamTest {
   public void foldLeftLazyness() {
     IO<String> fail = IO.raiseError(new NullPointerException());
 
-    IO<String> result = streamOfIO.eval(fail).asString().fix1(IO::narrowK);
+    IO<String> result = streamOfIO.eval(fail.kind1()).asString().fix1(IO::narrowK);
 
     assertThrows(NullPointerException.class, result::unsafeRunSync);
   }
@@ -224,8 +224,9 @@ public class StreamTest {
   public void foldRightLazyness() {
     IO<String> fail = IO.raiseError(new NullPointerException());
 
-    IO<String> result = streamOfIO.eval(fail)
-        .foldRight(IO.pure(""), (a, b) -> b.fix1(IO::narrowK).map(x -> a + x)).fix1(IO::narrowK);
+    IO<String> result = streamOfIO.eval(fail.kind1())
+      .foldRight(IO.pure("").kind1(), (a, b) -> b.fix1(IO::narrowK).map(x -> a + x).kind1())
+      .fix1(IO::narrowK);
 
     assertThrows(NullPointerException.class, result::unsafeRunSync);
   }
@@ -249,7 +250,7 @@ public class StreamTest {
   }
 
   private IO<String> pureReadFile(String file) {
-    return streamOfIO.eval(IO.task(() -> reader(file)))
+    return streamOfIO.eval(IO.task(() -> reader(file)).kind1())
       .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)
