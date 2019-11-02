@@ -17,11 +17,16 @@ import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.zio.ZIO;
 
 public interface StreamInstances {
 
   static StreamOf<IO.µ> ofIO() {
     return Stream.of(IOInstances.monadDefer());
+  }
+
+  static <R> StreamOf<Higher1<Higher1<ZIO.µ, R>, Throwable>> ofZIO() {
+    return Stream.of(ZIOInstances.monadDefer());
   }
 
   static <F extends Kind> Functor<Higher1<Stream.µ, F>> functor() {
@@ -81,6 +86,6 @@ interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, Stre
   @Override
   default <T, R> Higher2<Stream.µ, F, R> flatMap(Higher1<Higher1<Stream.µ, F>, T> value,
       Function1<T, ? extends Higher1<Higher1<Stream.µ, F>, R>> mapper) {
-    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::narrowK)).kind2();
+    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::<F, R>narrowK)).kind2();
   }
 }

@@ -93,6 +93,10 @@ public interface ZIO<R, E, A> {
     return foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure));
   }
 
+  default ZIO<R, Nothing, A> recover(Function1<E, A> mapError) {
+    return fold(mapError, identity());
+  }
+
   default ZIO<R, E, A> orElse(Producer<ZIO<R, E, A>> other) {
     return foldM(other.asFunction(), cons(this));
   }
