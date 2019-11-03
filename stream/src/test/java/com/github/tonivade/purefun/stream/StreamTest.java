@@ -4,9 +4,8 @@
  */
 package com.github.tonivade.purefun.stream;
 
-import static com.github.tonivade.purefun.Function1.*;
 import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Nothing.*;
+import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.instances.FutureInstances.monadDefer;
 import static java.util.Objects.nonNull;
@@ -23,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.zio.ZIO;
 import org.junit.jupiter.api.Test;
@@ -40,8 +38,8 @@ import com.github.tonivade.purefun.type.Option;
 
 public class StreamTest {
 
-  final StreamOf<IO.µ> streamOfIO = StreamInstances.ofIO();
-  final StreamOf<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>> streamOfZIO = StreamInstances.ofZIO();
+  private final StreamOf<IO.µ> streamOfIO = StreamInstances.ofIO();
+  private final StreamOf<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>> streamOfZIO = StreamInstances.ofZIO();
 
   @Test
   public void map() {
