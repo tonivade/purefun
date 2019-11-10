@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Producer.*;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
