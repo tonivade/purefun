@@ -9,16 +9,19 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 
-public final class For2<F extends Kind, A, B> extends AbstractFor<F, B> {
+public final class For2<F extends Kind, A, B> extends AbstractFor<F, A, B> {
 
-  private final Higher1<F, A> value1;
+  private final Producer<? extends Higher1<F, A>> value1;
 
-  protected For2(Monad<F> monad, Higher1<F, A> value1, Higher1<F, B> value2) {
+  protected For2(Monad<F> monad,
+                 Producer<? extends Higher1<F, A>> value1,
+                 Function1<A, ? extends Higher1<F, B>> value2) {
     super(monad, value2);
     this.value1 = requireNonNull(value1);
   }
@@ -28,7 +31,15 @@ public final class For2<F extends Kind, A, B> extends AbstractFor<F, B> {
   }
 
   public <R> Higher1<F, R> apply(Function2<A, B, R> combinator) {
-    return monad.map2(value1, value, combinator);
+    Higher1<F, A> fa = value1.get();
+    Higher1<F, B> fb = monad.flatMap(fa, value);
+    return monad.map2(fa, fb, combinator);
+  }
+
+  public <R> Higher1<F, R> yield(Function2<A, B, R> combine) {
+    return monad.flatMap(value1.get(),
+        a -> monad.map(value.apply(a),
+            b -> combine.apply(a, b)));
   }
 
   public <R> For3<F, A, B, R> map(Function1<B, R> mapper) {
@@ -44,6 +55,11 @@ public final class For2<F extends Kind, A, B> extends AbstractFor<F, B> {
   }
 
   public <R> For3<F, A, B, R> flatMap(Function1<B, ? extends Higher1<F, R>> mapper) {
-    return For.with(monad, value1, value, monad.flatMap(value, mapper));
+    return new For3<>(monad, value1, value, mapper);
+  }
+
+  @Override
+  public Higher1<F, B> get() {
+    return yield((a, b) -> b);
   }
 }

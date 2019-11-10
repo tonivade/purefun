@@ -14,15 +14,15 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple3;
 
-public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, C> {
+public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, B, C> {
 
-  private final Higher1<F, A> value1;
-  private final Higher1<F, B> value2;
+  private final Producer<? extends Higher1<F, A>> value1;
+  private final Function1<A, ? extends Higher1<F, B>> value2;
 
   protected For3(Monad<F> monad,
-                 Higher1<F, A> value1,
-                 Higher1<F, B> value2,
-                 Higher1<F, C> value3) {
+                 Producer<? extends Higher1<F, A>> value1,
+                 Function1<A, ? extends Higher1<F, B>> value2,
+                 Function1<B, ? extends Higher1<F, C>> value3) {
     super(monad, value3);
     this.value1 = requireNonNull(value1);
     this.value2 = requireNonNull(value2);
@@ -33,7 +33,17 @@ public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, C> {
   }
 
   public <R> Higher1<F, R> apply(Function3<A, B, C, R> combine) {
-    return monad.map3(value1, value2, value, combine);
+    Higher1<F, A> fa = value1.get();
+    Higher1<F, B> fb = monad.flatMap(fa, value2);
+    Higher1<F, C> fc = monad.flatMap(fb, value);
+    return monad.map3(fa, fb, fc, combine);
+  }
+
+  public <R> Higher1<F, R> yield(Function3<A, B, C, R> combine) {
+    return monad.flatMap(value1.get(),
+        a -> monad.flatMap(value2.apply(a),
+            b -> monad.map(value.apply(b),
+                c -> combine.apply(a, b, c))));
   }
 
   public <R> For4<F, A, B, C, R> map(Function1<C, R> mapper) {
@@ -49,6 +59,11 @@ public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, C> {
   }
 
   public <R> For4<F, A, B, C, R> flatMap(Function1<C, ? extends Higher1<F, R>> mapper) {
-    return For.with(monad, value1, value2, value, monad.flatMap(value, mapper));
+    return new For4<>(monad, value1, value2, value, mapper);
+  }
+
+  @Override
+  public Higher1<F, C> get() {
+    return yield((a, b, c) -> c);
   }
 }

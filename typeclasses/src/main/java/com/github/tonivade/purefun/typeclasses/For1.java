@@ -10,13 +10,16 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple1;
+import com.github.tonivade.purefun.Unit;
 
+import static com.github.tonivade.purefun.Function1.*;
 import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Unit.unit;
 
-public final class For1<F extends Kind, A> extends AbstractFor<F, A> {
+public final class For1<F extends Kind, A> extends AbstractFor<F, Unit, A> {
 
-  protected For1(Monad<F> monad, Higher1<F, A> value) {
-    super(monad, value);
+  protected For1(Monad<F> monad, Producer<Higher1<F, A>> value) {
+    super(monad, value.asFunction());
   }
 
   public Higher1<F, Tuple1<A>> tuple() {
@@ -24,7 +27,7 @@ public final class For1<F extends Kind, A> extends AbstractFor<F, A> {
   }
 
   public <R> Higher1<F, R> apply(Function1<A, R> combinator) {
-    return monad.map(value, combinator);
+    return monad.map(value.apply(unit()), combinator);
   }
 
   public <R> For2<F, A, R> map(Function1<A, R> mapper) {
@@ -40,6 +43,11 @@ public final class For1<F extends Kind, A> extends AbstractFor<F, A> {
   }
 
   public <R> For2<F, A, R> flatMap(Function1<A, ? extends Higher1<F, R>> mapper) {
-    return For.with(monad, value, monad.flatMap(value, mapper));
+    return new For2<>(monad, () -> value.apply(unit()), mapper);
+  }
+
+  @Override
+  public Higher1<F, A> get() {
+    return apply(identity());
   }
 }
