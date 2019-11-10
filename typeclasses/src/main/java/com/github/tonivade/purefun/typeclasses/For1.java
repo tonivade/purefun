@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Unit;
 
-import static com.github.tonivade.purefun.Function1.*;
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
 
