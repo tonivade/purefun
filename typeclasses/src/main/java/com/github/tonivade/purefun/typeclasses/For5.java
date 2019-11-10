@@ -32,10 +32,10 @@ public final class For5<F extends Kind, A, B, C, D, E> extends AbstractFor<F, E>
   }
 
   public Higher1<F, Tuple5<A, B, C, D, E>> tuple() {
-    return yield(Tuple5::of);
+    return apply(Tuple5::of);
   }
 
-  public <R> Higher1<F, R> yield(Function5<A, B, C, D, E, R> combine) {
+  public <R> Higher1<F, R> apply(Function5<A, B, C, D, E, R> combine) {
     return monad.map5(value1, value2, value3, value4, value, combine);
   }
 }

@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -35,6 +36,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <L> type of the left value, negative case
  * @param <R> type of the right value, positive case
  */
+@Sealed
 @HigherKind
 public interface Either<L, R> {
 

@@ -35,7 +35,7 @@ public interface Kleisli<F extends Kind, Z, A> {
   }
 
   static <F extends Kind, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
-    return Kleisli.of(monad, map.andThen(monad::pure)::apply);
+    return Kleisli.of(monad, map.andThen(monad::<B>pure)::apply);
   }
 
   static <F extends Kind, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {

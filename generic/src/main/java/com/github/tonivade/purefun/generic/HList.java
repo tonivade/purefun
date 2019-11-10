@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.generic;
 
 import com.github.tonivade.purefun.Equal;
+import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Tuple1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
@@ -16,6 +17,7 @@ import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
+@Sealed
 public interface HList<L extends HList<L>> {
 
   int size();
@@ -85,7 +87,7 @@ public interface HList<L extends HList<L>> {
     return tuple.applyTo(HList::of);
   }
 
-  public static final class HNil implements HList<HNil> {
+  final class HNil implements HList<HNil> {
 
     private static final HNil INSTANCE = new HNil();
 
@@ -117,7 +119,7 @@ public interface HList<L extends HList<L>> {
     }
   }
 
-  public static final class HCons<H, T extends HList<T>> implements HList<HCons<H, T>> {
+  final class HCons<H, T extends HList<T>> implements HList<HCons<H, T>> {
 
     private final H head;
     private final T tail;

@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
@@ -23,23 +24,23 @@ public final class For2<F extends Kind, A, B> extends AbstractFor<F, B> {
   }
 
   public Higher1<F, Tuple2<A, B>> tuple() {
-    return yield(Tuple2::of);
+    return apply(Tuple2::of);
   }
 
-  public <R> Higher1<F, R> yield(Function2<A, B, R> combinator) {
+  public <R> Higher1<F, R> apply(Function2<A, B, R> combinator) {
     return monad.map2(value1, value, combinator);
   }
 
   public <R> For3<F, A, B, R> map(Function1<B, R> mapper) {
-    return For.with(monad, value1, value, monad.map(value, mapper));
+    return flatMap(mapper.andThen(monad::<R>pure));
   }
 
   public <R> For3<F, A, B, R> and(Higher1<F, R> next) {
-    return For.with(monad, value1, value, next);
+    return andThen(cons(next));
   }
 
   public <R> For3<F, A, B, R> andThen(Producer<Higher1<F, R>> producer) {
-    return For.with(monad, value1, value, monad.andThen(value, producer));
+    return flatMap(producer.asFunction());
   }
 
   public <R> For3<F, A, B, R> flatMap(Function1<B, ? extends Higher1<F, R>> mapper) {

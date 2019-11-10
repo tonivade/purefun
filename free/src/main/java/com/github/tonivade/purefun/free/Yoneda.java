@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
+@FunctionalInterface
 public interface Yoneda<F extends Kind, A> {
 
   <B> Higher1<F, B> apply(Function1<A, B> map);

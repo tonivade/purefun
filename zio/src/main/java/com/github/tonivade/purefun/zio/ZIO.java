@@ -19,12 +19,14 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
+@Sealed
 @HigherKind
 public interface ZIO<R, E, A> {
 
@@ -379,7 +381,7 @@ public interface ZIO<R, E, A> {
 
     @Override
     public String toString() {
-      return "Attemp(" + current + ")";
+      return "Attempt(" + current + ")";
     }
   }
 

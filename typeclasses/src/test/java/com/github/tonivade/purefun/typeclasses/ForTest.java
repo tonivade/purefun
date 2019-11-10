@@ -27,16 +27,17 @@ public class ForTest {
 
   @Test
   public void flatMap() {
-    Id<String> result = For.with(IdInstances.monad())
-        .andThen(() -> Id.of("value").kind1())
-        .flatMap(string -> Id.of(string.toUpperCase()).kind1())
+    Monad<Id.µ> monad = IdInstances.monad();
+    Id<String> result = For.with(monad)
+        .andThen(() -> monad.pure("value"))
+        .flatMap(string -> monad.pure(string.toUpperCase()))
         .fix(Id::<String>narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
 
   @Test
-  public void yield() {
+  public void apply() {
     Id<Tuple5<String, String, String, String, String>> result =
         For.with(IdInstances.monad())
           .and(Id.of("a").kind1())

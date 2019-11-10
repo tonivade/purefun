@@ -32,7 +32,7 @@ public class TaglessTest {
 
   @Test
   public void stateInterpreter() {
-    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix1(State::<ImmutableList<String>, Unit>narrowK);
+    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix1(State::narrowK);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(listOf("Toni"));
 
@@ -93,12 +93,12 @@ class IOProgramInterpreter implements ProgramK<IO.µ> {
 
   @Override
   public Higher1<IO.µ, String> read() {
-    return console.readln().fix1(IO::<String>narrowK).kind1();
+    return console.readln().fix1(IO::narrowK).kind1();
   }
 
   @Override
   public Higher1<IO.µ, Unit> write(String string) {
-    return console.println(string).fix1(IO::<Unit>narrowK).kind1();
+    return console.println(string).fix1(IO::narrowK).kind1();
   }
 }
 
@@ -109,11 +109,11 @@ class StateProgramInterpreter
 
   @Override
   public Higher2<State.µ, ImmutableList<String>, String> read() {
-    return console.readln().fix1(State::<ImmutableList<String>, String>narrowK).kind2();
+    return console.readln().fix1(State::narrowK).kind2();
   }
 
   @Override
   public Higher2<State.µ, ImmutableList<String>, Unit> write(String string) {
-    return console.println(string).fix1(State::<ImmutableList<String>, Unit>narrowK).kind2();
+    return console.println(string).fix1(State::narrowK).kind2();
   }
 }

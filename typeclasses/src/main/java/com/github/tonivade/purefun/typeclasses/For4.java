@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Producer.*;
 import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
@@ -31,23 +32,23 @@ public final class For4<F extends Kind, A, B, C, D> extends AbstractFor<F, D> {
   }
 
   public Higher1<F, Tuple4<A, B, C, D>> tuple() {
-    return yield(Tuple4::of);
+    return apply(Tuple4::of);
   }
 
-  public <R> Higher1<F, R> yield(Function4<A, B, C, D, R> combine) {
+  public <R> Higher1<F, R> apply(Function4<A, B, C, D, R> combine) {
     return monad.map4(value1, value2, value3, value, combine);
   }
 
   public <R> For5<F, A, B, C, D, R> map(Function1<D, R> mapper) {
-    return For.with(monad, value1, value2, value3, value, monad.map(value, mapper));
+    return flatMap(mapper.andThen(monad::<R>pure));
   }
 
   public <R> For5<F, A, B, C, D, R> and(Higher1<F, R> next) {
-    return For.with(monad, value1, value2, value3, value, next);
+    return andThen(cons(next));
   }
 
   public <R> For5<F, A, B, C, D, R> andThen(Producer<Higher1<F, R>> producer) {
-    return For.with(monad, value1, value2, value3, value, monad.andThen(value, producer));
+    return flatMap(producer.asFunction());
   }
 
   public <R> For5<F, A, B, C, D, R> flatMap(Function1<D, ? extends Higher1<F, R>> mapper) {
