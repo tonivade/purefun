@@ -50,15 +50,15 @@ public class TaglessTest {
 
 class Program<F extends Kind> {
 
-  final Monad<F> monad;
-  final Console<F> console;
+  private final Monad<F> monad;
+  private final Console<F> console;
 
   Program(Monad<F> monad, Console<F> console) {
     this.monad = requireNonNull(monad);
     this.console = requireNonNull(console);
   }
 
-  Higher1<F, Unit> echo() {
+  public Higher1<F, Unit> echo() {
     return For.with(monad)
         .andThen(this::whatsYourName)
         .andThen(this::readName)

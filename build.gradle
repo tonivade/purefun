@@ -51,7 +51,7 @@ allprojects {
   }
 
   jacoco {
-    toolVersion = '0.8.4'
+    toolVersion = '0.8.5'
   }
 
   jacocoTestReport {
@@ -113,7 +113,9 @@ subprojects {
   }
 }
 
-def publishedProjects = subprojects.findAll()
+def publishedProjects = subprojects.findAll {
+  it.name != 'kind' && it.name != 'annotation'
+}
 
 task jacocoFullReport(type: JacocoReport, group: 'Coverage reports') {
   description = 'Generates an aggregate report from all subprojects'
