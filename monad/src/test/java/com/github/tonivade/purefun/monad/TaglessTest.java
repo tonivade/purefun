@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.github.tonivade.purefun.Higher2;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -26,9 +25,9 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public class TaglessTest {
 
   final Program<Higher1<State.µ, ImmutableList<String>>> stateProgram =
-      new Program<>(StateInstances.monad(), new StateProgramInterpreter());
+      new Program<>(StateInstances.monad(), StateInstances.console());
   final Program<IO.µ> ioProgram =
-      new Program<>(IOInstances.monad(), new IOProgramInterpreter());
+      new Program<>(IOInstances.monad(), IOInstances.console());
 
   @Test
   public void stateInterpreter() {
@@ -49,21 +48,14 @@ public class TaglessTest {
   }
 }
 
-interface ProgramK<F extends Kind> {
-
-  Higher1<F, String> read();
-
-  Higher1<F, Unit> write(String string);
-}
-
 class Program<F extends Kind> {
 
   final Monad<F> monad;
-  final ProgramK<F> io;
+  final Console<F> console;
 
-  Program(Monad<F> monad, ProgramK<F> io) {
+  Program(Monad<F> monad, Console<F> console) {
     this.monad = requireNonNull(monad);
-    this.io = requireNonNull(io);
+    this.console = requireNonNull(console);
   }
 
   Higher1<F, Unit> echo() {
@@ -75,45 +67,14 @@ class Program<F extends Kind> {
   }
 
   private Higher1<F, Unit> whatsYourName() {
-    return io.write("what's your name?");
+    return console.println("what's your name?");
   }
 
   private Higher1<F, String> readName() {
-    return io.read();
+    return console.readln();
   }
 
   private Higher1<F, Unit> sayHello(String name) {
-    return io.write("Hello " + name);
-  }
-}
-
-class IOProgramInterpreter implements ProgramK<IO.µ> {
-
-  final Console<IO.µ> console = IOInstances.console();
-
-  @Override
-  public Higher1<IO.µ, String> read() {
-    return console.readln().fix1(IO::narrowK).kind1();
-  }
-
-  @Override
-  public Higher1<IO.µ, Unit> write(String string) {
-    return console.println(string).fix1(IO::narrowK).kind1();
-  }
-}
-
-class StateProgramInterpreter
-    implements ProgramK<Higher1<State.µ, ImmutableList<String>>> {
-
-  final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
-
-  @Override
-  public Higher2<State.µ, ImmutableList<String>, String> read() {
-    return console.readln().fix1(State::narrowK).kind2();
-  }
-
-  @Override
-  public Higher2<State.µ, ImmutableList<String>, Unit> write(String string) {
-    return console.println(string).fix1(State::narrowK).kind2();
+    return console.println("Hello " + name);
   }
 }
