@@ -113,9 +113,7 @@ subprojects {
   }
 }
 
-def publishedProjects = subprojects.findAll {
-  it.name != 'kind' && it.name != 'annotation'
-}
+def publishedProjects = subprojects.findAll()
 
 task jacocoFullReport(type: JacocoReport, group: 'Coverage reports') {
   description = 'Generates an aggregate report from all subprojects'
@@ -125,11 +123,7 @@ task jacocoFullReport(type: JacocoReport, group: 'Coverage reports') {
   additionalSourceDirs.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
   sourceDirectories.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
   classDirectories.from = files(publishedProjects.sourceSets.main.output)
-  executionData.from = files(publishedProjects.jacocoTestReport.executionData)
-
-  doFirst {
-    executionData.from = files(executionData.findAll { it.exists() })
-  }
+  executionData.from = files(publishedProjects.jacocoTestReport.executionData).findAll { it.exists() }
 
   reports {
     html.enabled = true
