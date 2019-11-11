@@ -6,6 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.github.tonivade.purefun.Tuple3;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.monad.IO;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Tuple;
@@ -20,7 +23,7 @@ public class ForTest {
     Id<String> result = For.with(IdInstances.monad())
         .andThen(() -> Id.of("value").kind1())
         .map(String::toUpperCase)
-        .fix(Id::<String>narrowK);
+        .fix(Id::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -31,7 +34,7 @@ public class ForTest {
     Id<String> result = For.with(monad)
         .andThen(() -> monad.pure("value"))
         .flatMap(string -> monad.pure(string.toUpperCase()))
-        .fix(Id::<String>narrowK);
+        .fix(Id::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -40,14 +43,36 @@ public class ForTest {
   public void apply() {
     Id<Tuple5<String, String, String, String, String>> result =
         For.with(IdInstances.monad())
-          .and(Id.of("a").kind1())
-          .and(Id.of("b").kind1())
-          .and(Id.of("c").kind1())
-          .and(Id.of("d").kind1())
-          .and(Id.of("e").kind1())
+          .and("a")
+          .and("b")
+          .and("c")
+          .and("d")
+          .and("e")
           .tuple()
-          .fix1(Id::<Tuple5<String, String, String, String, String>>narrowK);
+          .fix1(Id::narrowK);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
+  }
+
+  @Test
+  public void applyVsYield() {
+    For5<IO.µ, Integer, Integer, Integer, Integer, Integer> program =
+      For.with(IOInstances.monad())
+        .and(1)
+        .map(a -> 1 + a)
+        .map(b -> 1 + b)
+        .map(c -> 1 + c)
+        .map(d -> 1 + d);
+
+    IO<Integer> yield =
+      program
+        .yield((a, b, c, d, e) -> a + b + c + d + e).fix1(IO::narrowK);
+
+    IO<Integer> apply =
+      program
+        .apply((a, b, c, d, e) -> a + b + c + d + e).fix1(IO::narrowK);
+
+    assertEquals(15, yield.unsafeRunSync());
+    assertEquals(15, apply.unsafeRunSync());
   }
 }

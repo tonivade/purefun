@@ -34,11 +34,15 @@ public final class For1<F extends Kind, A> extends AbstractFor<F, Unit, A> {
     return flatMap(mapper.andThen(monad::<R>pure));
   }
 
+  public <R> For2<F, A, R> and(R next) {
+    return and(monad.pure(next));
+  }
+
   public <R> For2<F, A, R> and(Higher1<F, R> next) {
     return andThen(cons(next));
   }
 
-  public <R> For2<F, A, R> andThen(Producer<Higher1<F, R>> producer) {
+  public <R> For2<F, A, R> andThen(Producer<? extends Higher1<F, R>> producer) {
     return flatMap(producer.asFunction());
   }
 

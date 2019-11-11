@@ -22,11 +22,15 @@ public final class For<F extends Kind> {
     this.monad = requireNonNull(monad);
   }
 
+  public <T> For1<F, T> and(T next) {
+    return For.with(monad, monad.pure(next));
+  }
+
   public <T> For1<F, T> and(Higher1<F, T> next) {
     return For.with(monad, next);
   }
 
-  public <T> For1<F, T> andThen(Producer<Higher1<F, T>> next) {
+  public <T> For1<F, T> andThen(Producer<? extends Higher1<F, T>> next) {
     return For.with(monad, monad.andThen(monad.pure(unit()), next));
   }
 
