@@ -53,17 +53,17 @@ abstract class AbstractFor<F extends Kind, A, B> {
     this.value = requireNonNull(value);
   }
 
-  public abstract Higher1<F, B> get();
+  public abstract Higher1<F, B> run();
 
   public <R> R fix(Function1<Higher1<F, B>, R> fix) {
-    return fix.apply(get());
+    return fix.apply(run());
   }
 
   public void end(Consumer1<Higher1<F, B>> consumer) {
-    consumer.accept(get());
+    consumer.accept(run());
   }
 
   public <R> Higher1<F, R> returns(R value) {
-    return monad.pure(value);
+    return monad.map(run(), ignore -> value);
   }
 }

@@ -51,7 +51,7 @@ public final class For1<F extends Kind, A> extends AbstractFor<F, Unit, A> {
   }
 
   @Override
-  public Higher1<F, A> get() {
+  public Higher1<F, A> run() {
     return apply(identity());
   }
 }

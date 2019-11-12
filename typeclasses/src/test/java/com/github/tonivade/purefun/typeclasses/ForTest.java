@@ -4,16 +4,24 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO;
-import org.junit.jupiter.api.Test;
-
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple5;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Id;
+import org.junit.jupiter.api.Test;
+
+import static com.github.tonivade.purefun.Unit.unit;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ForTest {
 
@@ -25,6 +33,21 @@ public class ForTest {
         .fix(Id::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
+  }
+
+  @Test
+  public void returns() {
+    Function1<String, String> mapper = mock(Function1.class);
+    when(mapper.apply(anyString())).thenReturn("called");
+    when(mapper.andThen(any())).thenCallRealMethod();
+
+    Higher1<Id.µ, Unit> result = For.with(IdInstances.monad())
+        .and("hola mundo!")
+        .map(mapper)
+        .returns(unit());
+
+    assertEquals(Id.of(unit()), result);
+    verify(mapper).apply("hola mundo!");
   }
 
   @Test

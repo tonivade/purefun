@@ -62,7 +62,7 @@ public final class For2<F extends Kind, A, B> extends AbstractFor<F, A, B> {
   }
 
   @Override
-  public Higher1<F, B> get() {
+  public Higher1<F, B> run() {
     return yield((a, b) -> b);
   }
 }

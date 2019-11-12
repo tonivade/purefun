@@ -63,7 +63,7 @@ class Program<F extends Kind> {
         .andThen(this::whatsYourName)
         .andThen(this::readName)
         .flatMap(this::sayHello)
-        .get();
+        .run();
   }
 
   private Higher1<F, Unit> whatsYourName() {

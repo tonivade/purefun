@@ -7,4 +7,5 @@ dependencies {
   testCompile project(':monad')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
+  testCompile libs.mockitoCore
 }
