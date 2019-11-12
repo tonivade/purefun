@@ -3,13 +3,18 @@ archivesBaseName = 'purefun-instances'
 dependencies {
   compile project(':core')
   compile project(':typeclasses')
-  compile project(':monad')
-  compile project(':free')
-  compile project(':transformer')
-  compile project(':stream')
-  compile project(':zio')
+  compileOnly project(':monad')
+  compileOnly project(':free')
+  compileOnly project(':transformer')
+  compileOnly project(':stream')
+  compileOnly project(':zio')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier
   testCompile libs.mockitoCore
+  testCompile project(':monad')
+  testCompile project(':free')
+  testCompile project(':transformer')
+  testCompile project(':stream')
+  testCompile project(':zio')
 }
