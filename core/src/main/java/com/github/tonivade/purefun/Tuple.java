@@ -12,6 +12,10 @@ public interface Tuple {
   
   Sequence<Object> toSequence();
 
+  default void forEach(Consumer1<? super Object> consumer) {
+    toSequence().forEach(consumer::accept);
+  }
+
   static <A> Tuple1<A> of(A value1) {
     return Tuple1.of(value1);
   }
