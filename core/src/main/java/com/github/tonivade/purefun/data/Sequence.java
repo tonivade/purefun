@@ -9,6 +9,7 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Stream.iterate;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.stream.Stream;
@@ -31,6 +32,14 @@ public interface Sequence<E> extends Iterable<E> {
   int size();
 
   boolean contains(E element);
+
+  default boolean containsAll(Sequence<E> elements) {
+    for (E e : elements) {
+      if (!contains(e)) return false;
+    }
+    return true;
+  }
+
   Sequence<E> append(E element);
   Sequence<E> remove(E element);
   Sequence<E> appendAll(Sequence<E> other);
@@ -104,6 +113,15 @@ public interface Sequence<E> extends Iterable<E> {
     return zip(iterate(0, i -> i + 1), stream());
   }
 
+  default E[] toArray(Function1<Integer, E[]> supplier) {
+    E[] array = supplier.apply(size());
+    int i = 0;
+    for (E element: this) {
+      array[i++] = element;
+    }
+    return array;
+  }
+
   @SafeVarargs
   static <E> ImmutableArray<E> arrayOf(E... elements) {
     return ImmutableArray.of(elements);
@@ -167,5 +185,104 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
   @Override
   public Tuple2<A, B> next() {
     return Tuple.of(first.next(), second.next());
+  }
+}
+
+final class UnmodifiableIterator<E> implements Iterator<E> {
+
+  private final Iterator<E> iterator;
+
+  UnmodifiableIterator(Iterator<E> iterator) {
+    this.iterator = requireNonNull(iterator);
+  }
+
+  @Override
+  public boolean hasNext() {
+    return iterator.hasNext();
+  }
+
+  @Override
+  public E next() {
+    return iterator.next();
+  }
+}
+
+final class SequenceCollection<E> implements Collection<E> {
+
+  private final Sequence<E> sequence;
+
+  SequenceCollection(Sequence<E> sequence) {
+    this.sequence = requireNonNull(sequence);
+  }
+
+  @Override
+  public int size() {
+    return sequence.size();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return sequence.isEmpty();
+  }
+
+  @Override
+  public boolean contains(Object o) {
+    return sequence.contains((E) o);
+  }
+
+  @Override
+  public Iterator<E> iterator() {
+    return sequence.iterator();
+  }
+
+  @Override
+  public Object[] toArray() {
+    Object[] array = new Object[sequence.size()];
+    int i = 0;
+    for (E element: sequence) {
+      array[i++] = element;
+    }
+    return array;
+  }
+
+  @Override
+  public <T> T[] toArray(T[] a) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean add(E e) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean remove(Object o) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean containsAll(Collection<?> c) {
+    Sequence<?> from = ImmutableList.from(c);
+    return sequence.containsAll((Sequence<E>) from);
+  }
+
+  @Override
+  public boolean addAll(Collection<? extends E> c) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean removeAll(Collection<?> c) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean retainAll(Collection<?> c) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void clear() {
+    throw new UnsupportedOperationException();
   }
 }

@@ -32,8 +32,12 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   @Override
   ImmutableTreeMap<K, V> put(K key, V value);
+
   @Override
-  ImmutableTreeMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other);
+  default ImmutableTreeMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
+    return ImmutableTreeMap.from(entries().appendAll(other));
+  }
+
   @Override
   ImmutableTreeMap<K, V> remove(K key);
 
@@ -186,13 +190,6 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     public ImmutableTreeMap<K, V> put(K key, V value) {
       NavigableMap<K, V> newMap = toNavigableMap();
       newMap.put(key, value);
-      return new JavaBasedImmutableTreeMap<>(newMap);
-    }
-
-    @Override
-    public ImmutableTreeMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
-      NavigableMap<K, V> newMap = toNavigableMap();
-      newMap.putAll(ImmutableTreeMap.from(other).toMap());
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
 

@@ -30,7 +30,11 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   Map<K, V> toMap();
 
   ImmutableMap<K, V> put(K key, V value);
-  ImmutableMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other);
+
+  default ImmutableMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
+    return ImmutableMap.from(entries().appendAll(other));
+  }
+
   ImmutableMap<K, V> remove(K key);
   Option<V> get(K key);
 
@@ -160,13 +164,6 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public ImmutableMap<K, V> put(K key, V value) {
       Map<K, V> newMap = toMap();
       newMap.put(key, value);
-      return new JavaBasedImmutableMap<>(newMap);
-    }
-
-    @Override
-    public ImmutableMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
-      Map<K, V> newMap = toMap();
-      newMap.putAll(ImmutableMap.from(other).toMap());
       return new JavaBasedImmutableMap<>(newMap);
     }
 

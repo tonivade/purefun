@@ -141,24 +141,20 @@ public interface ImmutableList<E> extends Sequence<E> {
     @Override
     public ImmutableList<E> appendAll(Sequence<E> other) {
       List<E> newList = toList();
-      for (E element : other) {
-        newList.add(element);
-      }
+      newList.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> removeAll(Sequence<E> other) {
       List<E> newList = toList();
-      for (E element : other) {
-        newList.remove(element);
-      }
+      newList.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public Iterator<E> iterator() {
-      return backend.iterator();
+      return new UnmodifiableIterator<>(backend.iterator());
     }
 
     @Override

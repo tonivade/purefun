@@ -114,8 +114,15 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
+    public ImmutableArray<E> sort(Comparator<E> comparator) {
+      List<E> list = toList();
+      Collections.sort(list, comparator);
+      return new JavaBasedImmutableArray<>(list);
+    }
+
+    @Override
     public Iterator<E> iterator() {
-      return backend.iterator();
+      return new UnmodifiableIterator<>(backend.iterator());
     }
 
     @Override
@@ -135,25 +142,14 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> appendAll(Sequence<E> other) {
       List<E> list = toList();
-      for (E element : other) {
-        list.add(element);
-      }
+      list.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableArray<>(list);
     }
 
     @Override
     public ImmutableArray<E> removeAll(Sequence<E> other) {
       List<E> list = toList();
-      for (E element : other) {
-        list.remove(element);
-      }
-      return new JavaBasedImmutableArray<>(list);
-    }
-
-    @Override
-    public ImmutableArray<E> sort(Comparator<E> comparator) {
-      List<E> list = toList();
-      Collections.sort(list, comparator);
+      list.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableArray<>(list);
     }
 
@@ -186,7 +182,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> insertAll(int position, Sequence<E> elements) {
       List<E> list = toList();
-      list.addAll(position, elements.stream().collect(Collectors.toList()));
+      list.addAll(position, new SequenceCollection<>(elements));
       return new JavaBasedImmutableArray<>(list);
     }
 

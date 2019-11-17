@@ -112,24 +112,6 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableSet<E> appendAll(Sequence<E> other) {
-      Set<E> newSet = toSet();
-      for (E element : other) {
-        newSet.add(element);
-      }
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
-    public ImmutableSet<E> removeAll(Sequence<E> other) {
-      Set<E> newSet = toSet();
-      for (E element : other) {
-        newSet.remove(element);
-      }
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
     public ImmutableSet<E> remove(E element) {
       Set<E> newSet = toSet();
       newSet.remove(element);
@@ -137,29 +119,41 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableSet<E> union(ImmutableSet<E> other) {
+    public ImmutableSet<E> appendAll(Sequence<E> other) {
       Set<E> newSet = toSet();
-      newSet.addAll(other.toSet());
+      newSet.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);
+    }
+
+    @Override
+    public ImmutableSet<E> removeAll(Sequence<E> other) {
+      Set<E> newSet = toSet();
+      newSet.removeAll(new SequenceCollection<>(other));
+      return new JavaBasedImmutableSet<>(newSet);
+    }
+
+    @Override
+    public ImmutableSet<E> union(ImmutableSet<E> other) {
+      return appendAll(other);
     }
 
     @Override
     public ImmutableSet<E> intersection(ImmutableSet<E> other) {
       Set<E> newSet = toSet();
-      newSet.retainAll(other.toSet());
+      newSet.retainAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
     public ImmutableSet<E> difference(ImmutableSet<E> other) {
       Set<E> newSet = toSet();
-      newSet.removeAll(other.toSet());
+      newSet.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
     public Iterator<E> iterator() {
-      return backend.iterator();
+      return new UnmodifiableIterator<>(backend.iterator());
     }
 
     @Override
