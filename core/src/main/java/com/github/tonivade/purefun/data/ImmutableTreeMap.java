@@ -146,11 +146,11 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
         .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2, ImmutableTreeModule.throwingMerge(), TreeMap::new)));
   }
 
-  static <K, V> Builder<K, V> builder() {
+  static <K extends Comparable, V> Builder<K, V> builder() {
     return new Builder<>();
   }
 
-  final class Builder<K, V> {
+  final class Builder<K extends Comparable, V> {
 
     private final NavigableMap<K, V> map = new TreeMap<>();
 

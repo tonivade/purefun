@@ -50,7 +50,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<E, Sequence<R>> mapper) {
-    return ImmutableSet.from(stream().flatMap(element -> mapper.apply(element).stream()));
+    return ImmutableSet.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
   }
 
   @Override
