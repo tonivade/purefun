@@ -11,6 +11,7 @@ import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -57,7 +58,8 @@ public class ImmutableSetTest {
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)),
               () -> assertEquals(set, set.stream().collect(toImmutableSet())),
               () -> assertEquals(setOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
-                  set.zipWithIndex().collect(toImmutableSet()))
+                  set.zipWithIndex().collect(toImmutableSet())),
+              () -> assertThrows(UnsupportedOperationException.class, set.iterator()::remove)
               );
   }
 

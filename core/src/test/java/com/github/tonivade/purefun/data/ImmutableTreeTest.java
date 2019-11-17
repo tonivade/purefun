@@ -13,6 +13,7 @@ import static java.util.Collections.emptyNavigableSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -67,7 +68,8 @@ public class ImmutableTreeTest {
               () -> assertEquals(Option.some("c"), tree.ceiling("c")),
               () -> assertEquals(tree, tree.stream().collect(toImmutableTree())),
               () -> assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
-                  tree.zipWithIndex().collect(toImmutableList()))
+                  tree.zipWithIndex().collect(toImmutableList())),
+              () -> assertThrows(UnsupportedOperationException.class, tree.iterator()::remove)
               );
   }
 

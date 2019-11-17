@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.emptyMap;
-import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -147,7 +147,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     private final Map<K, V> backend;
 
     private JavaBasedImmutableMap(Map<K, V> backend) {
-      this.backend = requireNonNull(backend);
+      this.backend = unmodifiableMap(backend);
     }
 
     @Override

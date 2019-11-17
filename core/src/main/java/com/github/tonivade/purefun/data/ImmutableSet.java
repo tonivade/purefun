@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Collections.emptySet;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
@@ -86,7 +86,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
     private final Set<E> backend;
 
     private JavaBasedImmutableSet(Set<E> backend) {
-      this.backend = requireNonNull(backend);
+      this.backend = unmodifiableSet(backend);
     }
 
     @Override
@@ -153,7 +153,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public Iterator<E> iterator() {
-      return new UnmodifiableIterator<>(backend.iterator());
+      return backend.iterator();
     }
 
     @Override

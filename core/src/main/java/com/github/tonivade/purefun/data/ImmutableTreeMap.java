@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static java.util.Collections.unmodifiableNavigableMap;
 import static java.util.Collections.emptyNavigableMap;
-import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -173,7 +173,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     private final NavigableMap<K, V> backend;
 
     private JavaBasedImmutableTreeMap(NavigableMap<K, V> backend) {
-      this.backend = requireNonNull(backend);
+      this.backend = unmodifiableNavigableMap(backend);
     }
 
     @Override

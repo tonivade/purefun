@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
@@ -97,7 +97,7 @@ public interface ImmutableList<E> extends Sequence<E> {
     private final List<E> backend;
 
     private JavaBasedImmutableList(List<E> backend) {
-      this.backend = requireNonNull(backend);
+      this.backend = unmodifiableList(backend);
     }
 
     @Override
@@ -154,7 +154,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public Iterator<E> iterator() {
-      return new UnmodifiableIterator<>(backend.iterator());
+      return backend.iterator();
     }
 
     @Override

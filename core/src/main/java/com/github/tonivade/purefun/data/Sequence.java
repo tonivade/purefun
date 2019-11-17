@@ -188,25 +188,6 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
   }
 }
 
-final class UnmodifiableIterator<E> implements Iterator<E> {
-
-  private final Iterator<E> iterator;
-
-  UnmodifiableIterator(Iterator<E> iterator) {
-    this.iterator = requireNonNull(iterator);
-  }
-
-  @Override
-  public boolean hasNext() {
-    return iterator.hasNext();
-  }
-
-  @Override
-  public E next() {
-    return iterator.next();
-  }
-}
-
 final class SequenceCollection<E> implements Collection<E> {
 
   private final Sequence<E> sequence;

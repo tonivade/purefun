@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static java.util.Collections.unmodifiableNavigableSet;
 import static java.util.Collections.emptyNavigableSet;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
@@ -92,7 +92,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     private final NavigableSet<E> backend;
 
     private JavaBasedImmutableTree(NavigableSet<E> backend) {
-      this.backend = requireNonNull(backend);
+      this.backend = unmodifiableNavigableSet(backend);
     }
 
     @Override
@@ -180,7 +180,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public Iterator<E> iterator() {
-      return new UnmodifiableIterator<>(backend.iterator());
+      return backend.iterator();
     }
 
     @Override

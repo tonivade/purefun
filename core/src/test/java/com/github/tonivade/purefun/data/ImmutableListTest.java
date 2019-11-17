@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
@@ -64,7 +65,8 @@ public class ImmutableListTest {
       () -> assertEquals(listOf("a", "b", "c"), list.filterNot(e -> e.length() > 1)),
       () -> assertEquals(list, list.stream().collect(toImmutableList())),
       () -> assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
-        list.zipWithIndex().collect(toImmutableList()))
+        list.zipWithIndex().collect(toImmutableList())),
+      () -> assertThrows(UnsupportedOperationException.class, list.iterator()::remove)
     );
   }
 
