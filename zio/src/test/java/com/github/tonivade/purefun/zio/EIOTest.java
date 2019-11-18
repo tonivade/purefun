@@ -23,42 +23,42 @@ public class EIOTest {
 
   @Test
   public void mapRight() {
-    Either<Throwable, Integer> result = parseInt("1").map(x -> x + 1).run();
+    Either<Throwable, Integer> result = parseInt("1").map(x -> x + 1).safeRunSync();
 
     assertEquals(Either.right(2), result);
   }
 
   @Test
   public void mapLeft() {
-    Either<Throwable, Integer> result = parseInt("lskjdf").map(x -> x + 1).run();
+    Either<Throwable, Integer> result = parseInt("lskjdf").map(x -> x + 1).safeRunSync();
 
     assertEquals(NumberFormatException.class, result.getLeft().getClass());
   }
 
   @Test
   public void mapError() {
-    Either<String, Integer> result = parseInt("lskjdf").mapError(Throwable::getMessage).run();
+    Either<String, Integer> result = parseInt("lskjdf").mapError(Throwable::getMessage).safeRunSync();
 
     assertEquals(Either.left("For input string: \"lskjdf\""), result);
   }
 
   @Test
   public void flatMapRight() {
-    Either<Throwable, Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).run();
+    Either<Throwable, Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).safeRunSync();
 
     assertEquals(Either.right(2), result);
   }
 
   @Test
   public void flatMapLeft() {
-    Either<Throwable, Integer> result = parseInt("lskjdf").flatMap(x -> pure(x + 1)).run();
+    Either<Throwable, Integer> result = parseInt("lskjdf").flatMap(x -> pure(x + 1)).safeRunSync();
 
     assertEquals(NumberFormatException.class, result.getLeft().getClass());
   }
 
   @Test
   public void flatMapError() {
-    Either<String, Integer> result = parseInt("lskjdf").flatMapError(e -> raiseError(e.getMessage())).run();
+    Either<String, Integer> result = parseInt("lskjdf").flatMapError(e -> raiseError(e.getMessage())).safeRunSync();
 
     assertEquals(Either.left("For input string: \"lskjdf\""), result);
   }
@@ -66,7 +66,7 @@ public class EIOTest {
   @Test
   public void bimapRight() {
     Either<String, Integer> result =
-        parseInt("1").bimap(Throwable::getMessage, x -> x + 1).run();
+        parseInt("1").bimap(Throwable::getMessage, x -> x + 1).safeRunSync();
 
     assertEquals(Either.right(2), result);
   }
@@ -74,35 +74,35 @@ public class EIOTest {
   @Test
   public void bimapLeft() {
     Either<String, Integer> result =
-        parseInt("lskjdf").bimap(Throwable::getMessage, x -> x + 1).run();
+        parseInt("lskjdf").bimap(Throwable::getMessage, x -> x + 1).safeRunSync();
 
     assertEquals(Either.left("For input string: \"lskjdf\""), result);
   }
 
   @Test
   public void foldRight() {
-    Integer result = parseInt("1").recover(e -> -1).run();
+    Integer result = parseInt("1").recover(e -> -1).unsafeRunSync();
 
     assertEquals(1, result);
   }
 
   @Test
   public void foldLeft() {
-    Integer result = parseInt("kjsdfdf").recover(e -> -1).run();
+    Integer result = parseInt("kjsdfdf").recover(e -> -1).unsafeRunSync();
 
     assertEquals(-1, result);
   }
 
   @Test
   public void orElseRight() {
-    Either<Throwable, Integer> result = parseInt("1").orElse(() -> pure(2)).run();
+    Either<Throwable, Integer> result = parseInt("1").orElse(() -> pure(2)).safeRunSync();
 
     assertEquals(Either.right(1), result);
   }
 
   @Test
   public void orElseLeft() {
-    Either<Throwable, Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).run();
+    Either<Throwable, Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).safeRunSync();
 
     assertEquals(Either.right(2), result);
   }
@@ -114,7 +114,7 @@ public class EIOTest {
 
     EIO<Throwable, String> bracket = EIO.bracket(open(resultSet), getString("id"));
 
-    assertEquals(Either.right("value"), bracket.run());
+    assertEquals(Either.right("value"), bracket.safeRunSync());
     verify(resultSet).close();
   }
 

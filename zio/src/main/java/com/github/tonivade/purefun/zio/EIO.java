@@ -37,7 +37,7 @@ public final class EIO<E, T> {
     return (ZIO<R, E, T>) value;
   }
 
-  public Either<E, T> run() {
+  public Either<E, T> safeRunSync() {
     return value.provide(nothing());
   }
 

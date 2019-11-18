@@ -22,7 +22,7 @@ public class UIOTest {
 
   @Test
   public void mapRight() {
-    Integer result = parseInt("1").map(x -> x + 1).run();
+    Integer result = parseInt("1").map(x -> x + 1).unsafeRunSync();
 
     assertEquals(2, result);
   }
@@ -31,12 +31,12 @@ public class UIOTest {
   public void mapLeft() {
     UIO<Integer> result = parseInt("lskjdf").map(x -> x + 1);
 
-    assertThrows(NumberFormatException.class, result::run);
+    assertThrows(NumberFormatException.class, result::unsafeRunSync);
   }
 
   @Test
   public void flatMapRight() {
-    Integer result = parseInt("1").flatMap(x -> pure(x + 1)).run();
+    Integer result = parseInt("1").flatMap(x -> pure(x + 1)).unsafeRunSync();
 
     assertEquals(2, result);
   }
@@ -45,19 +45,19 @@ public class UIOTest {
   public void flatMapLeft() {
     UIO<Integer> result = parseInt("kjere").flatMap(x -> pure(x + 1));
 
-    assertThrows(NumberFormatException.class, result::run);
+    assertThrows(NumberFormatException.class, result::unsafeRunSync);
   }
 
   @Test
   public void redeemRight() {
-    Integer result = parseInt("1").recover(e -> -1).run();
+    Integer result = parseInt("1").recover(e -> -1).unsafeRunSync();
 
     assertEquals(1, result);
   }
 
   @Test
   public void redeemLeft() {
-    Integer result = parseInt("kjsdfdf").recover(e -> -1).run();
+    Integer result = parseInt("kjsdfdf").recover(e -> -1).unsafeRunSync();
 
     assertEquals(-1, result);
   }
@@ -69,7 +69,7 @@ public class UIOTest {
 
     UIO<String> bracket = UIO.bracket(open(resultSet), getString("id"));
 
-    assertEquals("value", bracket.run());
+    assertEquals("value", bracket.unsafeRunSync());
     verify(resultSet).close();
   }
 
@@ -77,7 +77,7 @@ public class UIOTest {
   public void bracketError() {
     UIO<String> bracket = UIO.bracket(openError(), getString("id"));
 
-    assertThrows(SQLException.class, bracket::run);
+    assertThrows(SQLException.class, bracket::unsafeRunSync);
   }
 
   private UIO<Integer> parseInt(String string) {

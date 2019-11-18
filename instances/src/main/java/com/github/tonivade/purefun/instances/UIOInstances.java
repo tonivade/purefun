@@ -65,7 +65,7 @@ interface UIOPure extends Applicative<UIO.µ> {
 
   @Override
   default <A> Higher1<UIO.µ, A> pure(A value) {
-    return UIO.<A>pure(value).kind1();
+    return UIO.pure(value).kind1();
   }
 }
 

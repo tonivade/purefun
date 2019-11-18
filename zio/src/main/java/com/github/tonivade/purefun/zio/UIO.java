@@ -34,7 +34,7 @@ public final class UIO<T> {
     this.value = requireNonNull(value);
   }
 
-  public T run() {
+  public T unsafeRunSync() {
     return value.provide(nothing()).get();
   }
 
