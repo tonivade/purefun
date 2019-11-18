@@ -81,6 +81,10 @@ public final class UIO<T> {
     return new UIO<>(value.andThen(next.value));
   }
 
+  public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
+    return foldM(mapError.andThen(UIO::pure), map.andThen(UIO::pure));
+  }
+
   public <B> UIO<B> foldM(Function1<Throwable, UIO<B>> mapError, Function1<T, UIO<B>> map) {
     return new UIO<>(ZIO.redeem(value, error -> mapError.apply(error).value, x -> map.apply(x).value));
   }
