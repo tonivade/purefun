@@ -25,11 +25,11 @@ import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
 @HigherKind
-public class EIO<E, T> {
+public final class EIO<E, T> {
 
   private final ZIO<Nothing, E, T> value;
 
-  private EIO(ZIO<Nothing, E, T> value) {
+  EIO(ZIO<Nothing, E, T> value) {
     this.value = requireNonNull(value);
   }
 

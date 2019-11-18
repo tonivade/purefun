@@ -133,6 +133,6 @@ public class EIOTest {
   }
 
   private Function1<ResultSet, EIO<Throwable, String>> getString(String column) {
-    return resultSet -> EIO.from(() -> resultSet.getString(column));
+    return resultSet -> from(() -> resultSet.getString(column));
   }
 }

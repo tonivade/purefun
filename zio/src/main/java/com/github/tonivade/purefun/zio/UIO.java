@@ -25,16 +25,24 @@ import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
 @HigherKind
-public class UIO<T> {
+public final class UIO<T> {
 
   private final ZIO<Nothing, Nothing, T> value;
 
-  private UIO(ZIO<Nothing, Nothing, T> value) {
+  UIO(ZIO<Nothing, Nothing, T> value) {
     this.value = requireNonNull(value);
   }
 
   public T run() {
     return value.provide(nothing()).get();
+  }
+
+  public <R> ZIO<R, Nothing, T> toZIO() {
+    return (ZIO<R, Nothing, T>) value;
+  }
+
+  public EIO<Nothing, T> toEIO() {
+    return new EIO<>(value);
   }
 
   public Future<T> toFuture(Executor executor) {
@@ -71,6 +79,10 @@ public class UIO<T> {
 
   public <B> UIO<B> andThen(UIO<B> next) {
     return new UIO<>(value.andThen(next.value));
+  }
+
+  public <B> UIO<B> foldM(Function1<Throwable, UIO<B>> mapError, Function1<T, UIO<B>> map) {
+    return new UIO<>(ZIO.redeem(value, error -> mapError.apply(error).value, x -> map.apply(x).value));
   }
 
   public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {

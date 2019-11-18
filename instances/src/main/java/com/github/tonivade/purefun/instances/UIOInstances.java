@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -19,36 +18,35 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.zio.EIO;
 import com.github.tonivade.purefun.zio.UIO;
 
 public interface UIOInstances {
 
-  static <E> Functor<Higher1<EIO.µ, E>> functor() {
-    return new EIOFunctor<E>() {};
+  static <E> Functor<UIO.µ> functor() {
+    return new UIOFunctor() {};
   }
 
-  static <E> Applicative<Higher1<EIO.µ, E>> applicative() {
-    return new EIOApplicative<E>() {};
+  static <E> Applicative<UIO.µ> applicative() {
+    return new UIOApplicative() {};
   }
 
-  static <E> Monad<Higher1<EIO.µ, E>> monad() {
-    return new EIOMonad<E>() {};
+  static <E> Monad<UIO.µ> monad() {
+    return new UIOMonad() {};
   }
 
-  static <E> MonadError<Higher1<EIO.µ, E>, E> monadError() {
-    return new EIOMonadError<E>() {};
+  static <E> MonadError<UIO.µ, Throwable> monadError() {
+    return new UIOMonadError() {};
   }
 
-  static MonadThrow<Higher1<EIO.µ, Throwable>> monadThrow() {
-    return new EIOMonadThrow() { };
+  static MonadThrow<UIO.µ> monadThrow() {
+    return new UIOMonadThrow() { };
   }
 
-  static MonadDefer<Higher1<EIO.µ, Throwable>> monadDefer() {
-    return new EIOMonadDefer() { };
+  static MonadDefer<UIO.µ> monadDefer() {
+    return new UIOMonadDefer() { };
   }
 
-  static <A> Reference<Higher1<EIO.µ, Throwable>, A> ref(A value) {
+  static <A> Reference<UIO.µ, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
 }
@@ -101,13 +99,10 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
   default <A> Higher1<UIO.µ, A>
           handleErrorWith(Higher1<UIO.µ, A> value,
                           Function1<Throwable, ? extends Higher1<UIO.µ, A>> handler) {
-    // XXX: java8 fails to infer types, I have to do this in steps
     Function1<Throwable, UIO<A>> mapError = handler.andThen(UIO::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIO.narrowK(value);
-    // TODO: foldM
-    // return uio.foldM(mapError, map).kind2();
-    return null;
+    return uio.foldM(mapError, map).kind1();
   }
 }
 
