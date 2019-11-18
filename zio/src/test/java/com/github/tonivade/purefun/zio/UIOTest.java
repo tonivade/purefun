@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 import static com.github.tonivade.purefun.zio.UIO.from;
 import static com.github.tonivade.purefun.zio.UIO.pure;
+import static com.github.tonivade.purefun.zio.UIO.raiseError;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -85,14 +86,14 @@ public class UIOTest {
   }
 
   private UIO<ResultSet> open(ResultSet resultSet) {
-    return UIO.pure(resultSet);
+    return pure(resultSet);
   }
 
   private UIO<ResultSet> openError() {
-    return UIO.raiseError(new SQLException("error"));
+    return raiseError(new SQLException("error"));
   }
 
   private Function1<ResultSet, UIO<String>> getString(String column) {
-    return resultSet -> UIO.from(() -> resultSet.getString(column));
+    return resultSet -> from(() -> resultSet.getString(column));
   }
 }
