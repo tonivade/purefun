@@ -12,6 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.github.tonivade.purefun.instances.EIOInstances;
+import com.github.tonivade.purefun.instances.UIOInstances;
+import com.github.tonivade.purefun.zio.EIO;
+import com.github.tonivade.purefun.zio.UIO;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -166,5 +170,41 @@ public class MonadErrorTest {
         () -> assertEquals("not an error", IO.narrowK(handleError).unsafeRunSync()),
         () -> assertThrows(RuntimeException.class, () -> IO.narrowK(ensureError).unsafeRunSync()),
         () -> assertEquals("is not ok", IO.narrowK(ensureOk).unsafeRunSync()));
+  }
+
+  @Test
+  public void uio() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<UIO.µ, Throwable> monadError = UIOInstances.monadError();
+
+    Higher1<UIO.µ, String> pure = monadError.pure("is not ok");
+    Higher1<UIO.µ, String> raiseError = monadError.raiseError(error);
+    Higher1<UIO.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<UIO.µ, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<UIO.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+
+    assertAll(
+        () -> assertThrows(RuntimeException.class, () -> UIO.narrowK(raiseError).unsafeRunSync()),
+        () -> assertEquals("not an error", UIO.narrowK(handleError).unsafeRunSync()),
+        () -> assertThrows(RuntimeException.class, () -> UIO.narrowK(ensureError).unsafeRunSync()),
+        () -> assertEquals("is not ok", UIO.narrowK(ensureOk).unsafeRunSync()));
+  }
+
+  @Test
+  public void eio() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Higher1<EIO.µ, Throwable>, Throwable> monadError = EIOInstances.monadThrow();
+
+    Higher1<Higher1<EIO.µ, Throwable>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<EIO.µ, Throwable>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<EIO.µ, Throwable>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Higher1<EIO.µ, Throwable>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<Higher1<EIO.µ, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+
+    assertAll(
+        () -> assertEquals(Either.<Throwable, String>left(error), EIO.narrowK(raiseError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>right("not an error"), EIO.narrowK(handleError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>left(error), EIO.narrowK(ensureError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>right("is not ok"), EIO.narrowK(ensureOk).safeRunSync()));
   }
 }
