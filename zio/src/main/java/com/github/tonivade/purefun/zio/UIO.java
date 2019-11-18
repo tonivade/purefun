@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import java.util.concurrent.Executor;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
@@ -37,12 +38,12 @@ public final class UIO<T> {
     return value.provide(nothing()).get();
   }
 
-  public <R> ZIO<R, Nothing, T> toZIO() {
-    return (ZIO<R, Nothing, T>) value;
+  public <R> ZIO<R, Throwable, T> toZIO() {
+    return (ZIO<R, Throwable, T>) ZIO.redeem(value);
   }
 
-  public EIO<Nothing, T> toEIO() {
-    return new EIO<>(value);
+  public EIO<Throwable, T> toEIO() {
+    return new EIO<>(toZIO());
   }
 
   public Future<T> toFuture(Executor executor) {
@@ -81,12 +82,16 @@ public final class UIO<T> {
     return new UIO<>(value.andThen(next.value));
   }
 
-  public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
-    return foldM(mapError.andThen(UIO::pure), map.andThen(UIO::pure));
+  public UIO<T> recover(Function1<Throwable, T> mapError) {
+    return redeem(mapError, identity());
   }
 
-  public <B> UIO<B> foldM(Function1<Throwable, UIO<B>> mapError, Function1<T, UIO<B>> map) {
-    return new UIO<>(ZIO.redeem(value, error -> mapError.apply(error).value, x -> map.apply(x).value));
+  public <B> UIO<B> redeem(Function1<Throwable, B> mapError, Function1<T, B> map) {
+    return redeemWith(mapError.andThen(UIO::pure), map.andThen(UIO::pure));
+  }
+
+  public <B> UIO<B> redeemWith(Function1<Throwable, UIO<B>> mapError, Function1<T, UIO<B>> map) {
+    return new UIO<>(ZIO.redeem(value).foldM(error -> mapError.apply(error).value, x -> map.apply(x).value));
   }
 
   public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {
@@ -94,11 +99,11 @@ public final class UIO<T> {
   }
 
   public static <A> UIO<A> from(Producer<A> task) {
-    return new UIO<>(fold(ZIO.from(task)));
+    return fold(ZIO.from(task));
   }
 
   public static UIO<Unit> exec(CheckedRunnable task) {
-    return new UIO<>(fold(ZIO.exec(task)));
+    return fold(ZIO.exec(task));
   }
 
   public static <A> UIO<A> pure(A value) {
@@ -117,11 +122,19 @@ public final class UIO<T> {
     return new UIO<>(ZIO.task(task));
   }
 
+  public static <A extends AutoCloseable, B> UIO<B> bracket(UIO<A> acquire, Function1<A, UIO<B>> use) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.value), resource -> ZIO.redeem(use.apply(resource).value)));
+  }
+
+  public static <A, B> UIO<B> bracket(UIO<A> acquire, Function1<A, UIO<B>> use, Consumer1<A> release) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.value), resource -> ZIO.redeem(use.apply(resource).value), release));
+  }
+
   public static UIO<Unit> unit() {
     return new UIO<>(ZIO.unit());
   }
 
-  private static <A> ZIO<Nothing, Nothing, A> fold(ZIO<Nothing, Throwable, A> zio) {
-    return zio.foldM(error -> UIO.<A>raiseError(error).value, value -> pure(value).value);
+  private static <A> UIO<A> fold(ZIO<Nothing, Throwable, A> zio) {
+    return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).value, value -> pure(value).value));
   }
 }

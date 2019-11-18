@@ -157,8 +157,8 @@ public interface ZIO<R, E, A> {
     return new Failure<>(error);
   }
 
-  static <R, A, B> ZIO<R, Nothing, B> redeem(ZIO<R, Nothing, A> value, Function1<Throwable, ZIO<R, Nothing, B>> mapError, Function1<A, ZIO<R, Nothing, B>> map) {
-    return new Redeem<>(value, mapError, map);
+  static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, A> value) {
+    return new Redeem<>(value);
   }
 
   static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
@@ -389,25 +389,21 @@ public interface ZIO<R, E, A> {
     }
   }
 
-  final class Redeem<R, A, B> implements ZIO<R, Nothing, B> {
+  final class Redeem<R, A> implements ZIO<R, Throwable, A> {
 
     private final ZIO<R, Nothing, A> current;
-    private final Function1<Throwable, ZIO<R, Nothing, B>> mapError;
-    private final Function1<A, ZIO<R, Nothing, B>> map;
 
-    private Redeem(ZIO<R, Nothing, A> current, Function1<Throwable, ZIO<R, Nothing, B>> mapError, Function1<A, ZIO<R, Nothing, B>> map) {
+    private Redeem(ZIO<R, Nothing, A> current) {
       this.current = requireNonNull(current);
-      this.mapError = requireNonNull(mapError);
-      this.map = requireNonNull(map);
     }
 
     @Override
-    public Either<Nothing, B> provide(R env) {
-      return Try.of(() -> current.provide(env).get()).toEither().fold(mapError, map).provide(env);
+    public Either<Throwable, A> provide(R env) {
+      return Try.of(() -> current.provide(env).get()).toEither();
     }
 
     @Override
-    public <F extends Kind> Higher1<F, Either<Nothing, B>> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Kind> Higher1<F, Either<Throwable, A>> foldMap(R env, MonadDefer<F> monad) {
       return monad.later(() -> provide(env));
     }
 

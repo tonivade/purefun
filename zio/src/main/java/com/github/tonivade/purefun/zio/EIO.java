@@ -97,12 +97,12 @@ public final class EIO<E, T> {
     return new EIO<>(value.foldM(error -> mapError.apply(error).value, value -> map.apply(value).value));
   }
 
-  public <B> EIO<Nothing, B> fold(Function1<E, B> mapError, Function1<T, B> map) {
-    return new EIO<>(value.fold(mapError, map));
+  public <B> UIO<B> fold(Function1<E, B> mapError, Function1<T, B> map) {
+    return new UIO<>(value.fold(mapError, map));
   }
 
-  public EIO<Nothing, T> recover(Function1<E, T> mapError) {
-    return new EIO<>(value.recover(mapError));
+  public UIO<T> recover(Function1<E, T> mapError) {
+    return new UIO<>(value.recover(mapError));
   }
 
   public EIO<E, T> orElse(Producer<EIO<E, T>> other) {

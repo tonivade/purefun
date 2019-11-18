@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.zio;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.zio.EIO.from;
 import static com.github.tonivade.purefun.zio.EIO.pure;
 import static com.github.tonivade.purefun.zio.EIO.raiseError;
@@ -14,7 +13,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.type.Either;
 import org.junit.jupiter.api.Test;
 
@@ -83,32 +81,28 @@ public class EIOTest {
 
   @Test
   public void foldRight() {
-    Either<Nothing, Integer> result =
-        parseInt("1").fold(e -> -1, identity()).run();
+    Integer result = parseInt("1").recover(e -> -1).run();
 
-    assertEquals(Either.right(1), result);
+    assertEquals(1, result);
   }
 
   @Test
   public void foldLeft() {
-    Either<Nothing, Integer> result =
-        parseInt("kjsdfdf").fold(e -> -1, identity()).run();
+    Integer result = parseInt("kjsdfdf").recover(e -> -1).run();
 
-    assertEquals(Either.right(-1), result);
+    assertEquals(-1, result);
   }
 
   @Test
   public void orElseRight() {
-    Either<Throwable, Integer> result =
-        parseInt("1").orElse(() -> pure(2)).run();
+    Either<Throwable, Integer> result = parseInt("1").orElse(() -> pure(2)).run();
 
     assertEquals(Either.right(1), result);
   }
 
   @Test
   public void orElseLeft() {
-    Either<Throwable, Integer> result =
-        parseInt("kjsdfe").orElse(() -> pure(2)).run();
+    Either<Throwable, Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).run();
 
     assertEquals(Either.right(2), result);
   }

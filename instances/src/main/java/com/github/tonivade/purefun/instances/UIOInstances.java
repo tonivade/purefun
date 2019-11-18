@@ -102,7 +102,7 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
     Function1<Throwable, UIO<A>> mapError = handler.andThen(UIO::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIO.narrowK(value);
-    return uio.foldM(mapError, map).kind1();
+    return uio.redeemWith(mapError, map).kind1();
   }
 }
 
@@ -129,9 +129,7 @@ interface UIOBracket extends Bracket<UIO.µ> {
           bracket(Higher1<UIO.µ, A> acquire,
                   Function1<A, ? extends Higher1<UIO.µ, B>> use,
                   Consumer1<A> release) {
-    // TODO: bracket
-    // return UIO.bracket(acquire.fix1(UIO::narrowK), use.andThen(UIO::narrowK), release).kind1();
-    return null;
+    return UIO.bracket(acquire.fix1(UIO::narrowK), use.andThen(UIO::narrowK), release).kind1();
   }
 }
 
