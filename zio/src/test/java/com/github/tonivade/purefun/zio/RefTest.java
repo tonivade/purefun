@@ -4,74 +4,71 @@
  */
 package com.github.tonivade.purefun.zio;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.type.Either;
 
 public class RefTest {
 
   @Test
   public void get() {
-    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
+    Ref<String> ref = Ref.of("Hello World!");
 
-    ZIO<Nothing, Nothing, String> result = ref.get();
+    UIO<String> result = ref.get();
 
-    assertEquals(Either.right("Hello World!"), result.provide(nothing()));
+    assertEquals("Hello World!", result.unsafeRunSync());
   }
 
   @Test
   public void set() {
-    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
+    Ref<String> ref = Ref.of("Hello World!");
 
-    ZIO<Nothing, Nothing, Unit> set = ref.set("Something else");
-    ZIO<Nothing, Nothing, String> result = set.andThen(ref.get());
+    UIO<Unit> set = ref.set("Something else");
+    UIO<String> result = set.andThen(ref.get());
 
-    assertEquals(Either.right("Something else"), result.provide(nothing()));
+    assertEquals("Something else", result.unsafeRunSync());
   }
 
   @Test
   public void lazySet() {
-    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
+    Ref<String> ref = Ref.of("Hello World!");
 
-    ZIO<Nothing, Nothing, Unit> lazySet = ref.lazySet("Something else");
-    ZIO<Nothing, Nothing, String> result = lazySet.andThen(ref.get());
+    UIO<Unit> lazySet = ref.lazySet("Something else");
+    UIO<String> result = lazySet.andThen(ref.get());
 
-    assertEquals(Either.right("Something else"), result.provide(nothing()));
+    assertEquals("Something else", result.unsafeRunSync());
   }
 
   @Test
   public void getAndSet() {
-    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
+    Ref<String> ref = Ref.of("Hello World!");
 
-    ZIO<Nothing, Nothing, String> result = ref.getAndSet("Something else");
-    ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(ref.get());
+    UIO<String> result = ref.getAndSet("Something else");
+    UIO<String> afterUpdate = result.andThen(ref.get());
 
-    assertEquals(Either.right("Hello World!"), result.provide(nothing()));
-    assertEquals(Either.right("Something else"), afterUpdate.provide(nothing()));
+    assertEquals("Hello World!", result.unsafeRunSync());
+    assertEquals("Something else", afterUpdate.unsafeRunSync());
   }
 
   @Test
   public void getAndUpdate() {
-    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
+    Ref<String> ref = Ref.of("Hello World!");
 
-    ZIO<Nothing, Nothing, String> result = ref.getAndUpdate(String::toUpperCase);
-    ZIO<Nothing, Nothing, String> afterUpdate = result.andThen(ref.get());
+    UIO<String> result = ref.getAndUpdate(String::toUpperCase);
+    UIO<String> afterUpdate = result.andThen(ref.get());
 
-    assertEquals(Either.right("Hello World!"), result.provide(nothing()));
-    assertEquals(Either.right("HELLO WORLD!"), afterUpdate.provide(nothing()));
+    assertEquals("Hello World!", result.unsafeRunSync());
+    assertEquals("HELLO WORLD!", afterUpdate.unsafeRunSync());
   }
 
   @Test
   public void updateAndGet() {
-    Ref<Nothing, Nothing, String> ref = Ref.of("Hello World!");
+    Ref<String> ref = Ref.of("Hello World!");
 
-    ZIO<Nothing, Nothing, String> result = ref.updateAndGet(String::toUpperCase);
+    UIO<String> result = ref.updateAndGet(String::toUpperCase);
 
-    assertEquals(Either.right("HELLO WORLD!"), result.provide(nothing()));
+    assertEquals("HELLO WORLD!", result.unsafeRunSync());
   }
 }

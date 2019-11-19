@@ -13,9 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tonivade.purefun.instances.EIOInstances;
+import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
+import com.github.tonivade.purefun.instances.ZIOInstances;
 import com.github.tonivade.purefun.zio.EIO;
+import com.github.tonivade.purefun.zio.Task;
 import com.github.tonivade.purefun.zio.UIO;
+import com.github.tonivade.purefun.zio.ZIO;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -206,5 +210,41 @@ public class MonadErrorTest {
         () -> assertEquals(Either.<Throwable, String>right("not an error"), EIO.narrowK(handleError).safeRunSync()),
         () -> assertEquals(Either.<Throwable, String>left(error), EIO.narrowK(ensureError).safeRunSync()),
         () -> assertEquals(Either.<Throwable, String>right("is not ok"), EIO.narrowK(ensureOk).safeRunSync()));
+  }
+
+  @Test
+  public void task() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Task.µ, Throwable> monadError = TaskInstances.monadThrow();
+
+    Higher1<Task.µ, String> pure = monadError.pure("is not ok");
+    Higher1<Task.µ, String> raiseError = monadError.raiseError(error);
+    Higher1<Task.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Task.µ, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<Task.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+
+    assertAll(
+        () -> assertEquals(Either.<Throwable, String>left(error), Task.narrowK(raiseError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>right("not an error"), Task.narrowK(handleError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>left(error), Task.narrowK(ensureError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>right("is not ok"), Task.narrowK(ensureOk).safeRunSync()));
+  }
+
+  @Test
+  public void zio() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, Throwable> monadError = ZIOInstances.monadThrow();
+
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+
+    assertAll(
+        () -> assertEquals(Either.<Throwable, String>left(error), ZIO.narrowK(raiseError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>right("not an error"), ZIO.narrowK(handleError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>left(error), ZIO.narrowK(ensureError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>right("is not ok"), ZIO.narrowK(ensureOk).provide(nothing())));
   }
 }

@@ -135,21 +135,22 @@ public class ZIOTest {
 
   @Test
   public void safeRunAsync() {
-    Ref<Nothing, Throwable, ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
-    ZIO<Nothing, Throwable, ImmutableList<String>> currentThread =
+    Ref<ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
+    UIO<ImmutableList<String>> currentThread =
         ref.updateAndGet(list -> list.append(Thread.currentThread().getName()));
 
-    ZIO<Nothing, Throwable, ImmutableList<String>> program = currentThread
+    UIO<ImmutableList<String>> program = currentThread
         .andThen(currentThread
             .andThen(currentThread
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    Either<Throwable, ImmutableList<String>> result =
-        program.foldMap(nothing(), FutureInstances.monadDefer()).fix1(Future::<Either<Throwable, ImmutableList<String>>>narrowK)
-          .await(Duration.ofSeconds(5)).get();
+    ImmutableList<String> result =
+        program.foldMap(FutureInstances.monadDefer())
+            .fix1(Future::narrowK)
+            .await(Duration.ofSeconds(5)).get();
 
-    assertEquals(Either.right(5), result.map(ImmutableList::size));
+    assertEquals(5, result.size());
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {

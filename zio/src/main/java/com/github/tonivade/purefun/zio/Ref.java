@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Unit;
 
-public final class Ref<R, E, A> {
+public final class Ref<A> {
 
   private final AtomicReference<A> value;
 
@@ -20,31 +20,31 @@ public final class Ref<R, E, A> {
     this.value = requireNonNull(value);
   }
 
-  public ZIO<R, E, A> get() {
-    return ZIO.task(value::get);
+  public UIO<A> get() {
+    return UIO.task(value::get);
   }
 
-  public ZIO<R, E, Unit> set(A newValue) {
-    return ZIO.task(() -> { value.set(newValue); return unit(); });
+  public UIO<Unit> set(A newValue) {
+    return UIO.task(() -> { value.set(newValue); return unit(); });
   }
 
-  public ZIO<R, E, Unit> lazySet(A newValue) {
-    return ZIO.task(() -> { value.lazySet(newValue); return unit(); });
+  public UIO<Unit> lazySet(A newValue) {
+    return UIO.task(() -> { value.lazySet(newValue); return unit(); });
   }
 
-  public ZIO<R, E, A> getAndSet(A newValue) {
-    return ZIO.task(() -> value.getAndSet(newValue));
+  public UIO<A> getAndSet(A newValue) {
+    return UIO.task(() -> value.getAndSet(newValue));
   }
 
-  public ZIO<R, E, A> updateAndGet(Operator1<A> update) {
-    return ZIO.task(() -> value.updateAndGet(update::apply));
+  public UIO<A> updateAndGet(Operator1<A> update) {
+    return UIO.task(() -> value.updateAndGet(update::apply));
   }
 
-  public ZIO<R, E, A> getAndUpdate(Operator1<A> update) {
-    return ZIO.task(() -> value.getAndUpdate(update::apply));
+  public UIO<A> getAndUpdate(Operator1<A> update) {
+    return UIO.task(() -> value.getAndUpdate(update::apply));
   }
 
-  public static <R, E, A> Ref<R, E, A> of(A value) {
+  public static <A> Ref<A> of(A value) {
     return new Ref<>(new AtomicReference<>(value));
   }
 
