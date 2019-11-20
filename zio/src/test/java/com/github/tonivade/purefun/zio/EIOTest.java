@@ -155,7 +155,7 @@ public class EIOTest {
   @Test
   public void absorb() {
     Exception error = new Exception();
-    EIO<Throwable, Either<Throwable, Integer>> task = EIO.pure(Either.left(error));
+    EIO<Throwable, Either<Throwable, Integer>> task = pure(Either.left(error));
 
     Either<Throwable, Integer> result = EIO.absorb(task).safeRunSync();
 

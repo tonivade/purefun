@@ -124,7 +124,7 @@ public class TaskTest {
   @Test
   public void absorb() {
     Exception error = new Exception();
-    Task<Either<Throwable, Integer>> task = Task.pure(Either.left(error));
+    Task<Either<Throwable, Integer>> task = pure(Either.left(error));
 
     Try<Integer> result = Task.absorb(task).safeRunSync();
 
