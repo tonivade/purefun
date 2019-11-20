@@ -152,6 +152,16 @@ public class EIOTest {
     assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
   }
 
+  @Test
+  public void absorb() {
+    Exception error = new Exception();
+    EIO<Throwable, Either<Throwable, Integer>> task = EIO.pure(Either.left(error));
+
+    Either<Throwable, Integer> result = EIO.absorb(task).safeRunSync();
+
+    assertEquals(error, result.getLeft());
+  }
+
   private EIO<Throwable, Integer> parseInt(String string) {
     return from(() -> Integer.parseInt(string));
   }

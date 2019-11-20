@@ -153,6 +153,16 @@ public class ZIOTest {
     assertEquals(5, result.size());
   }
 
+  @Test
+  public void absorb() {
+    Exception error = new Exception();
+    ZIO<Nothing, Throwable, Either<Throwable, Integer>> task = ZIO.pure(Either.left(error));
+
+    Either<Throwable, Integer> result = ZIO.absorb(task).provide(nothing());
+
+    assertEquals(error, result.getLeft());
+  }
+
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
     return ZIO.from(() -> Integer.parseInt(string));
   }

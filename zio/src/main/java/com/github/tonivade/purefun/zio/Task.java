@@ -102,7 +102,7 @@ public final class Task<T> {
     return new Task<>(ZIO.map2(za.value, zb.value, mapper));
   }
 
-  public static <A> Task<A> flatAbsorb(Task<Either<Throwable, A>> value) {
+  public static <A> Task<A> absorb(Task<Either<Throwable, A>> value) {
     return new Task<>(ZIO.absorb(value.value));
   }
 

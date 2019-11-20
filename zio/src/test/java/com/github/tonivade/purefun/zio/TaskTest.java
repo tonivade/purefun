@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.zio;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,6 +119,16 @@ public class TaskTest {
     verify(callback, timeout(100)).accept(captor.capture());
 
     assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
+  }
+
+  @Test
+  public void absorb() {
+    Exception error = new Exception();
+    Task<Either<Throwable, Integer>> task = Task.pure(Either.left(error));
+
+    Try<Integer> result = Task.absorb(task).safeRunSync();
+
+    assertEquals(error, result.getCause());
   }
 
   private Task<Integer> parseInt(String string) {
