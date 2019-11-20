@@ -46,7 +46,7 @@ public final class EIO<E, T> {
   }
 
   public Future<Either<E, T>> toFuture() {
-    return value.toFuture(nothing());
+    return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
   public void async(Executor executor, Consumer1<Try<Either<E, T>>> callback) {
@@ -54,7 +54,7 @@ public final class EIO<E, T> {
   }
 
   public void async(Consumer1<Try<Either<E, T>>> callback) {
-    value.provideAsync(nothing(), callback);
+    async(Future.DEFAULT_EXECUTOR, callback);
   }
 
   public <F extends Kind> Higher1<F, Either<E, T>> foldMap(MonadDefer<F> monad) {

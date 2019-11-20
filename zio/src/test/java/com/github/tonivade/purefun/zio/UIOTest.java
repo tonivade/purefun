@@ -4,8 +4,15 @@
  */
 package com.github.tonivade.purefun.zio;
 
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.type.Try;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,10 +23,21 @@ import static com.github.tonivade.purefun.zio.UIO.raiseError;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UIOTest {
+
+  @Mock
+  private Consumer1<Try<Integer>> callback;
+  @Captor
+  private ArgumentCaptor<Try<Integer>> captor;
+
+  @BeforeEach
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+  }
 
   @Test
   public void mapRight() {
@@ -79,6 +97,22 @@ public class UIOTest {
     UIO<String> bracket = UIO.bracket(openError(), getString("id"));
 
     assertThrows(SQLException.class, bracket::unsafeRunSync);
+  }
+
+  @Test
+  public void asyncRight() {
+    parseInt("1").async(callback);
+
+    verify(callback, timeout(100)).accept(Try.success(1));
+  }
+
+  @Test
+  public void asyncLeft() {
+    parseInt("kjsdf").async(callback);
+
+    verify(callback, timeout(100)).accept(captor.capture());
+
+    assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
   }
 
   private UIO<Integer> parseInt(String string) {

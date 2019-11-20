@@ -9,17 +9,35 @@ import static com.github.tonivade.purefun.zio.EIO.pure;
 import static com.github.tonivade.purefun.zio.EIO.raiseError;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Try;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class EIOTest {
+
+  @Mock
+  private Consumer1<Try<Either<Throwable, Integer>>> callback;
+  @Captor
+  private ArgumentCaptor<Try<Either<Throwable, Integer>>> captor;
+
+  @BeforeEach
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+  }
 
   @Test
   public void mapRight() {
@@ -116,6 +134,22 @@ public class EIOTest {
 
     assertEquals(Either.right("value"), bracket.safeRunSync());
     verify(resultSet).close();
+  }
+
+  @Test
+  public void asyncRight() {
+    parseInt("1").async(callback);
+
+    verify(callback, timeout(100)).accept(Try.success(Either.right(1)));
+  }
+
+  @Test
+  public void asyncLeft() {
+    parseInt("kjsdf").async(callback);
+
+    verify(callback, timeout(100)).accept(captor.capture());
+
+    assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
   }
 
   private EIO<Throwable, Integer> parseInt(String string) {

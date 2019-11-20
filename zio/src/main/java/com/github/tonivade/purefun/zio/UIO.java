@@ -51,7 +51,7 @@ public final class UIO<T> {
   }
 
   public Future<T> toFuture() {
-    return value.toFuture(nothing()).map(Either::get);
+    return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {
@@ -59,7 +59,7 @@ public final class UIO<T> {
   }
 
   public void async(Consumer1<Try<T>> callback) {
-    value.provideAsync(nothing(), result -> callback.accept(result.map(Either::get)));
+    async(Future.DEFAULT_EXECUTOR, callback);
   }
 
   public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
