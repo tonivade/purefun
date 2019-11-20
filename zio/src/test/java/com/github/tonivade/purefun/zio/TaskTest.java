@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.zio;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Try;
 import org.junit.jupiter.api.Test;
 
 import java.sql.ResultSet;
@@ -22,30 +22,30 @@ public class TaskTest {
 
   @Test
   public void mapRight() {
-    Either<Throwable, Integer> result = parseInt("1").map(x -> x + 1).safeRunSync();
+    Try<Integer> result = parseInt("1").map(x -> x + 1).safeRunSync();
 
-    assertEquals(Either.right(2), result);
+    assertEquals(Try.success(2), result);
   }
 
   @Test
   public void mapLeft() {
-    Either<Throwable, Integer> result = parseInt("lskjdf").map(x -> x + 1).safeRunSync();
+    Try<Integer> result = parseInt("lskjdf").map(x -> x + 1).safeRunSync();
 
-    assertEquals(NumberFormatException.class, result.getLeft().getClass());
+    assertEquals(NumberFormatException.class, result.getCause().getClass());
   }
 
   @Test
   public void flatMapRight() {
-    Either<Throwable, Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).safeRunSync();
+    Try<Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).safeRunSync();
 
-    assertEquals(Either.right(2), result);
+    assertEquals(Try.success(2), result);
   }
 
   @Test
   public void flatMapLeft() {
-    Either<Throwable, Integer> result = parseInt("lskjdf").flatMap(x -> pure(x + 1)).safeRunSync();
+    Try<Integer> result = parseInt("lskjdf").flatMap(x -> pure(x + 1)).safeRunSync();
 
-    assertEquals(NumberFormatException.class, result.getLeft().getClass());
+    assertEquals(NumberFormatException.class, result.getCause().getClass());
   }
 
   @Test
@@ -64,16 +64,16 @@ public class TaskTest {
 
   @Test
   public void orElseRight() {
-    Either<Throwable, Integer> result = parseInt("1").orElse(() -> pure(2)).safeRunSync();
+    Try<Integer> result = parseInt("1").orElse(() -> pure(2)).safeRunSync();
 
-    assertEquals(Either.right(1), result);
+    assertEquals(Try.success(1), result);
   }
 
   @Test
   public void orElseLeft() {
-    Either<Throwable, Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).safeRunSync();
+    Try<Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).safeRunSync();
 
-    assertEquals(Either.right(2), result);
+    assertEquals(Try.success(2), result);
   }
 
   @Test
@@ -83,7 +83,7 @@ public class TaskTest {
 
     Task<String> bracket = Task.bracket(open(resultSet), getString("id"));
 
-    assertEquals(Either.right("value"), bracket.safeRunSync());
+    assertEquals(Try.success("value"), bracket.safeRunSync());
     verify(resultSet).close();
   }
 

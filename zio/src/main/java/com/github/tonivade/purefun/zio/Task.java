@@ -37,8 +37,8 @@ public final class Task<T> {
     return (ZIO<R, Throwable, T>) value;
   }
 
-  public Either<Throwable, T> safeRunSync() {
-    return value.provide(nothing());
+  public Try<T> safeRunSync() {
+    return value.provide(nothing()).fold(Try::failure, Try::success);
   }
 
   public Future<Either<Throwable, T>> toFuture(Executor executor) {

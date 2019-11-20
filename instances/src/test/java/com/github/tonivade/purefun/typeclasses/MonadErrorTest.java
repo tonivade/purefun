@@ -224,10 +224,10 @@ public class MonadErrorTest {
     Higher1<Task.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Either.<Throwable, String>left(error), Task.narrowK(raiseError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>right("not an error"), Task.narrowK(handleError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>left(error), Task.narrowK(ensureError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>right("is not ok"), Task.narrowK(ensureOk).safeRunSync()));
+        () -> assertEquals(Try.<String>failure(error), Task.narrowK(raiseError).safeRunSync()),
+        () -> assertEquals(Try.success("not an error"), Task.narrowK(handleError).safeRunSync()),
+        () -> assertEquals(Try.<String>failure(error), Task.narrowK(ensureError).safeRunSync()),
+        () -> assertEquals(Try.success("is not ok"), Task.narrowK(ensureOk).safeRunSync()));
   }
 
   @Test
