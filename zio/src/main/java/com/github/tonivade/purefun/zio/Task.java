@@ -37,6 +37,10 @@ public final class Task<T> {
     return (ZIO<R, Throwable, T>) value;
   }
 
+  public EIO<Throwable, T> toEIO() {
+    return new EIO<>(value);
+  }
+
   public Try<T> safeRunSync() {
     return value.provide(nothing()).fold(Try::failure, Try::success);
   }
@@ -109,7 +113,7 @@ public final class Task<T> {
     return new Task<>(ZIO.fromEither(task));
   }
 
-  public static <R, A> Task<A> from(Producer<A> task) {
+  public static <A> Task<A> from(Producer<A> task) {
     return new Task<>(ZIO.from(task));
   }
 
@@ -141,7 +145,7 @@ public final class Task<T> {
     return new Task<>(ZIO.bracket(acquire.value, resource -> use.apply(resource).value, release));
   }
 
-  public static <E> Task<Unit> unit() {
+  public static Task<Unit> unit() {
     return new Task<>(ZIO.unit());
   }
 }

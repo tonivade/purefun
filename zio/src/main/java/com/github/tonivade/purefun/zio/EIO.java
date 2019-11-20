@@ -109,11 +109,11 @@ public final class EIO<E, T> {
     return new EIO<>(value.orElse(() -> other.get().value));
   }
 
-  public static <E1, A, B, C> EIO<E1, C> map2(EIO<E1, A> za, EIO<E1, B> zb, Function2<A, B, C> mapper) {
+  public static <E, A, B, C> EIO<E, C> map2(EIO<E, A> za, EIO<E, B> zb, Function2<A, B, C> mapper) {
     return new EIO<>(ZIO.map2(za.value, zb.value, mapper));
   }
 
-  public static <E1, A> EIO<E1, A> absorb(EIO<E1, Either<E1, A>> value) {
+  public static <E, A> EIO<E, A> absorb(EIO<E, Either<E, A>> value) {
     return new EIO<>(ZIO.absorb(value.value));
   }
 
@@ -121,11 +121,11 @@ public final class EIO<E, T> {
     return ZIO.<Nothing, A, B>lift(function).andThen(EIO::new);
   }
 
-  public static <E1, A> EIO<E1, A> fromEither(Producer<Either<E1, A>> task) {
+  public static <E, A> EIO<E, A> fromEither(Producer<Either<E, A>> task) {
     return new EIO<>(ZIO.fromEither(task));
   }
 
-  public static <R, A> EIO<Throwable, A> from(Producer<A> task) {
+  public static <A> EIO<Throwable, A> from(Producer<A> task) {
     return new EIO<>(ZIO.from(task));
   }
 
