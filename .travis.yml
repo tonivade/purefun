@@ -6,7 +6,7 @@ branches:
  only:
   - master
 before_install:
-  - wget -O ~/codacy-coverage-reporter-assembly-latest.jar https://github.com/codacy/codacy-coverage-reporter/releases/download/4.0.5/codacy-coverage-reporter-4.0.5-assembly.jar
+  - wget -O ~/codacy-coverage-reporter-assembly-latest.jar https://github.com/codacy/codacy-coverage-reporter/releases/download/6.0.6/codacy-coverage-reporter-6.0.6-assembly.jar
 install: ./gradlew clean build
 script: ./gradlew test jacocoTestReport jacocoFullReport
 after_success:
