@@ -144,14 +144,14 @@ public class EIOTest {
   public void asyncRight() {
     parseInt("1").async(callback);
 
-    verify(callback, timeout(100)).accept(Try.success(Either.right(1)));
+    verify(callback, timeout(500)).accept(Try.success(Either.right(1)));
   }
 
   @Test
   public void asyncLeft() {
     parseInt("kjsdf").async(callback);
 
-    verify(callback, timeout(100)).accept(captor.capture());
+    verify(callback, timeout(500)).accept(captor.capture());
 
     assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
   }
