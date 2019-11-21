@@ -15,8 +15,12 @@ import static org.mockito.Mockito.when;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -160,6 +164,24 @@ public class EIOTest {
     Either<Throwable, Integer> result = EIO.absorb(task).safeRunSync();
 
     assertEquals(error, result.getLeft());
+  }
+
+  @Test
+  public void foldMapRight() {
+    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+
+    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
+
+    assertEquals(Either.right(0), future.fix1(IO::narrowK).unsafeRunSync());
+  }
+
+  @Test
+  public void foldMapLeft() {
+    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+
+    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
+
+    assertEquals(NumberFormatException.class, future.fix1(IO::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   private EIO<Throwable, Integer> parseInt(String string) {

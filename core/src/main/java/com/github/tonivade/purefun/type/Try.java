@@ -61,6 +61,10 @@ public interface Try<T> {
     }
   }
 
+  static <R> Try<R> fromEither(Either<Throwable, R> value) {
+    return value.fold(Try::failure, Try::success);
+  }
+
   Throwable getCause();
   boolean isSuccess();
   boolean isFailure();

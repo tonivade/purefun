@@ -353,7 +353,7 @@ public interface IO<T> extends Recoverable {
 
     @Override
     public <F extends Kind> Higher1<F, Try<T>> foldMap(MonadDefer<F> monad) {
-      return monad.map(monad.attempt(current.foldMap(monad)), either -> either.fold(Try::failure, Try::success));
+      return monad.map(monad.attempt(current.foldMap(monad)), Try::fromEither);
     }
 
     @Override

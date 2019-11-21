@@ -35,10 +35,6 @@ public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
     return handleErrorWith(map(value, Either::right), e -> pure(Either.left(e)));
   }
 
-  default <A> Higher1<F, A> fromTry(Try<A> value, Function1<Throwable, E> recover) {
-    return value.fold(recover.andThen(this::raiseError), this::<A>pure);
-  }
-
   default <A> Higher1<F, A> fromEither(Either<E, A> value) {
     return value.fold(this::raiseError, this::<A>pure);
   }

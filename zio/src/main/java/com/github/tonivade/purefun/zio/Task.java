@@ -62,8 +62,8 @@ public final class Task<T> {
     async(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Kind> Higher1<F, Try<T>> foldMap(MonadDefer<F> monad) {
-    return monad.map(value.foldMap(nothing(), monad), this::absorb);
+  public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+    return monad.flatMap(value.foldMap(nothing(), monad), monad::<T>fromEither);
   }
 
   public <B> Task<B> map(Function1<T, B> map) {

@@ -6,7 +6,11 @@ package com.github.tonivade.purefun.zio;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -113,6 +117,24 @@ public class UIOTest {
     verify(callback, timeout(100)).accept(captor.capture());
 
     assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
+  }
+
+  @Test
+  public void foldMapRight() {
+    MonadDefer<Future.µ> monadDefer = FutureInstances.monadDefer();
+
+    Higher1<Future.µ, Integer> future = parseInt("0").foldMap(monadDefer);
+
+    assertEquals(Try.success(0), future.fix1(Future::narrowK).await());
+  }
+
+  @Test
+  public void foldMapLeft() {
+    MonadDefer<Future.µ> monadDefer = FutureInstances.monadDefer();
+
+    Higher1<Future.µ, Integer> future = parseInt("jkdf").foldMap(monadDefer);
+
+    assertEquals(NumberFormatException.class, future.fix1(Future::narrowK).await().getCause().getClass());
   }
 
   private UIO<Integer> parseInt(String string) {

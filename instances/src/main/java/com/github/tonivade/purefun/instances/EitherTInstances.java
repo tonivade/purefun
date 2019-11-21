@@ -117,7 +117,7 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E>
     return EitherT.of(monadF(),
         monadF().flatMap(EitherT.narrowK(value).value(),
             either -> either.fold(
-                e -> handler.andThen(EitherT::<F, E, A>narrowK).apply(e).value(),
+                e -> handler.andThen(EitherT::narrowK).apply(e).value(),
                 a -> monadF().pure(Either.<E, A>right(a))).kind1())).kind3();
   }
 }

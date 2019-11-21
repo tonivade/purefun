@@ -15,6 +15,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
@@ -161,6 +166,24 @@ public class ZIOTest {
     Either<Throwable, Integer> result = ZIO.absorb(task).provide(nothing());
 
     assertEquals(error, result.getLeft());
+  }
+
+  @Test
+  public void foldMapRight() {
+    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+
+    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("0").foldMap(nothing(), monadDefer);
+
+    assertEquals(Either.right(0), future.fix1(IO::narrowK).unsafeRunSync());
+  }
+
+  @Test
+  public void foldMapLeft() {
+    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+
+    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
+
+    assertEquals(NumberFormatException.class, future.fix1(IO::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
