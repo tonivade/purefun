@@ -86,7 +86,7 @@ public final class Task<T> {
     return new Task<>(value.foldM(error -> mapError.apply(error).value, value -> map.apply(value).value));
   }
 
-  public <B> UIO<B> flatAbsorb(Function1<Throwable, B> mapError, Function1<T, B> map) {
+  public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
     return new UIO<>(value.fold(mapError, map));
   }
 
