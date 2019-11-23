@@ -31,7 +31,7 @@ public interface TaskInstances {
   }
 
   static Monad<Task.µ> monad() {
-    return new EIOMonad() {};
+    return new TaskMonad() {};
   }
 
   static MonadError<Task.µ, Throwable> monadError() {
