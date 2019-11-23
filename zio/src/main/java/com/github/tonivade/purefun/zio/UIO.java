@@ -38,12 +38,12 @@ public final class UIO<T> {
     return value.provide(nothing()).get();
   }
 
-  public <R> ZIO<R, Throwable, T> toZIO() {
-    return (ZIO<R, Throwable, T>) ZIO.redeem(value);
+  public <R> ZIO<R, Nothing, T> toZIO() {
+    return (ZIO<R, Nothing, T>) value;
   }
 
   public EIO<Throwable, T> toEIO() {
-    return new EIO<>(toZIO());
+    return new EIO<>(ZIO.redeem(value));
   }
 
   public Future<T> toFuture(Executor executor) {
