@@ -7,8 +7,10 @@ package com.github.tonivade.purefun.zio;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,8 @@ import java.sql.SQLException;
 import static com.github.tonivade.purefun.zio.UIO.from;
 import static com.github.tonivade.purefun.zio.UIO.pure;
 import static com.github.tonivade.purefun.zio.UIO.raiseError;
+import static com.github.tonivade.purefun.zio.UIO.unit;
+import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -137,6 +141,16 @@ public class UIOTest {
     assertThrows(NumberFormatException.class, future.fix1(IO::narrowK)::unsafeRunSync);
   }
 
+  @Test
+  public void testCompositionWithZIO() {
+    ZIO<Environment, Nothing, Integer> getValue = ZIO.access(Environment::getValue);
+    ZIO<Environment, Nothing, Integer> result = unit().<Environment>toZIO().andThen(getValue);
+
+    Environment env = new Environment(current().nextInt());
+
+    assertEquals(Either.right(env.getValue()), result.provide(env));
+  }
+
   private UIO<Integer> parseInt(String string) {
     return from(() -> Integer.parseInt(string));
   }
@@ -153,3 +167,4 @@ public class UIOTest {
     return resultSet -> from(() -> resultSet.getString(column));
   }
 }
+

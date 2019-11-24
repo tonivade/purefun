@@ -4,15 +4,6 @@
  */
 package com.github.tonivade.purefun.zio;
 
-import static com.github.tonivade.purefun.zio.EIO.from;
-import static com.github.tonivade.purefun.zio.EIO.pure;
-import static com.github.tonivade.purefun.zio.EIO.raiseError;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -30,6 +21,16 @@ import org.mockito.MockitoAnnotations;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static com.github.tonivade.purefun.zio.EIO.from;
+import static com.github.tonivade.purefun.zio.EIO.pure;
+import static com.github.tonivade.purefun.zio.EIO.raiseError;
+import static java.util.concurrent.ThreadLocalRandom.current;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class EIOTest {
 
@@ -182,6 +183,16 @@ public class EIOTest {
     Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
 
     assertEquals(NumberFormatException.class, future.fix1(IO::narrowK).unsafeRunSync().getLeft().getClass());
+  }
+
+  @Test
+  public void testCompositionWithZIO() {
+    ZIO<Environment, Throwable, Integer> getValue = ZIO.accessM(env -> ZIO.pure(env.getValue()));
+    ZIO<Environment, Throwable, Integer> result = EIO.<Throwable>unit().<Environment>toZIO().andThen(getValue);
+
+    Environment env = new Environment(current().nextInt());
+
+    assertEquals(Either.right(env.getValue()), result.provide(env));
   }
 
   private EIO<Throwable, Integer> parseInt(String string) {

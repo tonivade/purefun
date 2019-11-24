@@ -24,6 +24,8 @@ import java.sql.SQLException;
 
 import static com.github.tonivade.purefun.zio.Task.from;
 import static com.github.tonivade.purefun.zio.Task.pure;
+import static com.github.tonivade.purefun.zio.Task.unit;
+import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -151,6 +153,16 @@ public class TaskTest {
     Higher1<Future.µ, Integer> future = parseInt("jdjd").foldMap(monadDefer);
 
     assertEquals(NumberFormatException.class, future.fix1(Future::narrowK).await().getCause().getClass());
+  }
+
+  @Test
+  public void testCompositionWithZIO() {
+    ZIO<Environment, Throwable, Integer> getValue = ZIO.accessM(env -> ZIO.pure(env.getValue()));
+    ZIO<Environment, Throwable, Integer> result = unit().<Environment>toZIO().andThen(getValue);
+
+    Environment env = new Environment(current().nextInt());
+
+    assertEquals(Either.right(env.getValue()), result.provide(env));
   }
 
   private Task<Integer> parseInt(String string) {
