@@ -4,103 +4,42 @@
  */
 package com.github.tonivade.purefun.zio;
 
-import static com.github.tonivade.purefun.Unit.unit;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-
-import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.zio.util.ZConsole;
+import org.junit.jupiter.api.Test;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EnvEffectsTest {
 
   @Test
-  public void program() {
+  public void programLive() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(IO.task(() -> echo().provide(Console.live())));
+    executor.run(IO.task(() -> echo().provide(ZConsole.live())));
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }
 
-  private ZIO<Console, Throwable, Unit> echo() {
-    return Console.println("what's your name?")
-        .andThen(Console.readln())
-        .flatMap(name -> Console.println("Hello " + name));
+  @Test
+  public void programTest() {
+    Queue<String> input = new LinkedList<>(asList("Toni"));
+    Queue<String> output = new LinkedList<>();
+
+    echo().provide(ZConsole.test(input, output));
+
+    assertEquals(asList("what's your name?", "Hello Toni"), output);
+  }
+
+  private ZIO<ZConsole, Throwable, Unit> echo() {
+    return ZConsole.println("what's your name?")
+        .andThen(ZConsole.readln())
+        .flatMap(name -> ZConsole.println("Hello " + name));
   }
 }
-
-interface Console {
-
-  <R extends Console> Console.Service<R> console();
-
-  static ZIO<Console, Throwable, String> readln() {
-    return ZIO.accessM(env -> env.console().readln());
-  }
-
-  static ZIO<Console, Throwable, Unit> println(String text) {
-    return ZIO.accessM(env -> env.console().println(text));
-  }
-
-  interface Service<R extends Console> {
-    ZIO<R, Throwable, String> readln();
-
-    ZIO<R, Throwable, Unit> println(String text);
-  }
-
-  static Console test() {
-    return new Console() {
-
-      @Override
-      public <R extends Console> Service<R> console() {
-        return new Console.Service<R>() {
-
-          @Override
-          public ZIO<R, Throwable, String> readln() {
-            return ZIO.pure("Toni");
-          }
-
-          @Override
-          public ZIO<R, Throwable, Unit> println(String text) {
-            return ZIO.pure(unit());
-          }
-        };
-      }
-    };
-  }
-
-  static Console live() {
-    return new Console() {
-
-      @Override
-      public <R extends Console> Service<R> console() {
-        return new Console.Service<R>() {
-
-          @Override
-          public ZIO<R, Throwable, String> readln() {
-            return ZIO.from(() -> reader().readLine());
-          }
-
-          @Override
-          public ZIO<R, Throwable, Unit> println(String text) {
-            return ZIO.exec(() -> writer().println(text));
-          }
-
-          private BufferedReader reader() {
-            return new BufferedReader(new InputStreamReader(System.in));
-          }
-
-          private PrintWriter writer() {
-            return new PrintWriter(System.out, true);
-          }
-        };
-      }
-    };
-  }
-}
-

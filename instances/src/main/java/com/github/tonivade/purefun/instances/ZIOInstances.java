@@ -10,8 +10,10 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -146,3 +148,19 @@ interface ZIOMonadDefer<R>
             ZIOMonadThrow<R>,
             ZIODefer<R>,
             ZIOBracket<R> { }
+
+@Instance
+final class ConsoleZIO<R> implements Console<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
+
+  private final SystemConsole console = new SystemConsole();
+
+  @Override
+  public Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, String> readln() {
+    return ZIO.<R, Throwable, String>task(console::readln).kind1();
+  }
+
+  @Override
+  public Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, Unit> println(String text) {
+    return ZIO.<R>exec(() -> console.println(text)).kind1();
+  }
+}
