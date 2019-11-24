@@ -10,7 +10,6 @@ import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -158,7 +157,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public Set<E> toSet() {
-      return new HashSet<>(backend);
+      return new LinkedHashSet<>(backend);
     }
 
     @Override
