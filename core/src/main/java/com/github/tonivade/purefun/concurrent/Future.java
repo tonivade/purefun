@@ -179,17 +179,27 @@ final class FutureImpl<T> implements Future<T> {
 
   static <T, R> Future<R> transform(Future<T> current, Function1<Try<T>, Try<R>> mapper) {
     return new FutureImpl<>(
-        (executor, promise, cancel) -> current.apply(executor).onComplete(value -> promise.tryComplete(mapper.apply(value))));
+        (executor, promise, cancel) -> {
+          current.apply(executor).onComplete(value -> promise.tryComplete(mapper.apply(value)));
+        });
   }
 
   static <T, R> Future<R> chain(Future<T> current, Function1<Try<T>, Future<R>> mapper) {
     return new FutureImpl<>(
-        (executor, promise, cancel) -> current.apply(executor).onComplete(value -> mapper.apply(value).apply(executor).onComplete(promise::tryComplete)));
+        (executor, promise, cancel) -> {
+          current.apply(executor).onComplete(
+            value -> mapper.apply(value).apply(executor).onComplete(promise::tryComplete));
+        });
   }
 
   static <T> Future<T> async(Producer<Try<T>> producer) {
     return new FutureImpl<>(
-        (executor, promise, cancel) -> executor.execute(() -> { cancel.updateThread(); promise.tryComplete(producer.get()); }));
+        (executor, promise, cancel) -> {
+          executor.execute(() -> {
+            cancel.updateThread();
+            promise.tryComplete(producer.get());
+          });
+        });
   }
 
   static <T> Future<T> from(Promise<T> promise) {
@@ -198,6 +208,11 @@ final class FutureImpl<T> implements Future<T> {
 
   static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
     return new FutureImpl<>(
-      (executor, promise, cancellable) -> acquire.apply(executor).onComplete(resource -> resource.fold(Future::failure, use).apply(executor).onComplete(promise::tryComplete)).onSuccess(release));
+      (executor, promise, cancellable) -> {
+        acquire.apply(executor).onComplete(
+          resource -> resource.fold(Future::failure, use).apply(executor)
+            .onComplete(promise::tryComplete)
+            .onComplete(result -> resource.onSuccess(release)));
+      });
   }
 }
