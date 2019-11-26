@@ -46,12 +46,8 @@ public final class Task<T> {
     return absorb(value.provide(nothing()));
   }
 
-  public Future<Try<T>> toFuture(Executor executor) {
-    return value.toFuture(executor, nothing()).map(this::absorb);
-  }
-
   public Future<Try<T>> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
+    return value.toFuture(nothing()).map(this::absorb);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {

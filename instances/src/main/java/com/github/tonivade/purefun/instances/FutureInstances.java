@@ -19,10 +19,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
-import java.util.concurrent.Executor;
-
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
 
 public interface FutureInstances {
 
@@ -114,11 +111,7 @@ interface FutureBracket extends Bracket<Future.µ> {
 
   @Override
   default <A, B> Higher1<Future.µ, B> bracket(Higher1<Future.µ, A> acquire, Function1<A, ? extends Higher1<Future.µ, B>> use, Consumer1<A> release) {
-    // TODO:
-//    return Future.narrowK(acquire)
-//      .flatMap(resource -> use.andThen(Future::narrowK).apply(resource)
-//          .onComplete(result -> release.accept(resource))).kind1();
-    return null;
+    return Future.bracket(acquire.fix1(Future::narrowK), use.andThen(Future::narrowK), release).kind1();
   }
 }
 

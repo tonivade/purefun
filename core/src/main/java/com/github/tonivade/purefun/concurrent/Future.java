@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import com.github.tonivade.purefun.CheckedRunnable;
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
@@ -30,10 +31,18 @@ public interface Future<T> {
 
   Promise<T> apply(Executor executor);
 
-  void cancel(boolean mayInterruptThread);
-
   default Promise<T> apply() {
     return apply(DEFAULT_EXECUTOR);
+  }
+
+  void cancel(boolean mayInterruptThread);
+
+  default Try<T> await() {
+    return apply().get();
+  }
+
+  default Try<T> await(Executor executor) {
+    return apply(executor).get();
   }
 
   <R> Future<R> map(Function1<T, R> mapper);
@@ -88,6 +97,10 @@ public interface Future<T> {
 
   static <T> Future<T> defer(Producer<Future<T>> producer) {
     return run(producer::get).flatMap(identity());
+  }
+
+  static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+    return FutureImpl.bracket(acquire, use, release);
   }
 }
 
@@ -181,5 +194,10 @@ final class FutureImpl<T> implements Future<T> {
 
   static <T> Future<T> from(Promise<T> promise) {
     return new FutureImpl<>((executor, current, cancel) -> promise.onComplete(current::tryComplete));
+  }
+
+  static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+    return new FutureImpl<>(
+      (executor, promise, cancellable) -> acquire.apply(executor).onComplete(resource -> resource.fold(Future::failure, use).apply(executor).onComplete(promise::tryComplete)).onSuccess(release));
   }
 }

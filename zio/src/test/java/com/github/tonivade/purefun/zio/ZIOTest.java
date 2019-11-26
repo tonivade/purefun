@@ -152,7 +152,7 @@ public class ZIOTest {
     ImmutableList<String> result =
         program.foldMap(FutureInstances.monadDefer())
             .fix1(Future::narrowK)
-            .await(Duration.ofSeconds(5)).get();
+            .await().get();
 
     assertEquals(5, result.size());
   }
