@@ -70,10 +70,6 @@ public interface Function1<A, R> extends Recoverable {
     return value -> Future.run(() -> apply(value));
   }
 
-  default Function1<A, Future<R>> liftFuture(Executor executor) {
-    return value -> Future.run(executor, () -> apply(value));
-  }
-
   default Function1<A, Either<Throwable, R>> liftEither() {
     return liftTry().andThen(Try::toEither);
   }

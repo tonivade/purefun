@@ -144,8 +144,8 @@ public class PromiseTest {
   public void toFuture() {
     Promise<String> promise = Promise.<String>make().succeeded("hola mundo!");
 
-    String result = promise.toFuture().get();
+    Try<String> result = promise.get();
 
-    assertEquals("hola mundo!", result);
+    assertEquals(Try.success("hola mundo!"), result);
   }
 }

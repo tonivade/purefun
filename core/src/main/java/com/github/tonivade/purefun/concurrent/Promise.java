@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNull;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,11 +38,7 @@ public interface Promise<T> {
   }
 
   default Future<T> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
-  }
-
-  default Future<T> toFuture(Executor executor) {
-    return FutureImpl.from(executor, this);
+    return FutureImpl.from(this);
   }
 
   Promise<T> onComplete(Consumer1<Try<T>> consumer);
@@ -52,6 +49,13 @@ public interface Promise<T> {
 
   default Promise<T> onFailure(Consumer1<Throwable> consumer) {
     return onComplete(value -> value.onFailure(consumer));
+  }
+
+  default CompletableFuture<T> toCompletableFuture() {
+    CompletableFuture<T> completableFuture = new CompletableFuture<>();
+    onSuccess(completableFuture::complete);
+    onFailure(completableFuture::completeExceptionally);
+    return completableFuture;
   }
 
   Try<T> get();

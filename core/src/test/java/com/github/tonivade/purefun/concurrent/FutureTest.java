@@ -52,91 +52,74 @@ public class FutureTest {
   public void onCompleteSuccess() {
     Future<String> future = Future.success("Hello World!");
 
-    future.onComplete(tryConsumer).await();
+    Promise<String> promise = future.apply().onComplete(tryConsumer);
 
     assertAll(
         () -> verify(tryConsumer, timeout(1000)).accept(Try.success("Hello World!")),
-        () -> assertTrue(future::isCompleted),
-        () -> assertTrue(future::isSuccess),
-        () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCancelled),
-        () -> assertEquals("Hello World!", future.get()));
+        () -> assertTrue(promise::isCompleted),
+        () -> assertEquals(Try.success("Hello World!"), promise.get()));
   }
 
   @Test
   public void onCompleteFailure() {
-    Future<String> future = Future.failure(new IllegalArgumentException());
+    UnsupportedOperationException error = new UnsupportedOperationException();
+    Future<String> future = Future.failure(error);
 
-    future.onComplete(tryConsumer).await();
+    Promise<String> promise = future.apply().onComplete(tryConsumer);
 
     assertAll(
         () -> verify(tryConsumer, timeout(1000)).accept(any()),
-        () -> assertTrue(future::isCompleted),
-        () -> assertFalse(future::isSuccess),
-        () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCancelled),
-        () -> assertThrows(NoSuchElementException.class, future::get));
+        () -> assertTrue(promise::isCompleted),
+        () -> assertEquals(Try.failure(error), promise.get()));
   }
 
   @Test
   public void onSuccess() {
     Future<String> future = Future.success("Hello World!");
 
-    future.onSuccess(consumerSuccess).await();
+    Promise<String> promise = future.apply().onSuccess(consumerSuccess);
 
     assertAll(
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
-        () -> assertTrue(future::isCompleted),
-        () -> assertTrue(future::isSuccess),
-        () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCancelled),
-        () -> assertEquals("Hello World!", future.get()));
+        () -> assertTrue(promise::isCompleted),
+        () -> assertEquals(Try.success("Hello World!"), promise.get()));
   }
 
   @Test
   public void onSuccessTimeout() {
     Future<String> future = Future.delay(Duration.ofMillis(100), cons("Hello World!"));
 
-    future.onSuccess(consumerSuccess).await();
+    Promise<String> promise = future.apply().onSuccess(consumerSuccess);
 
     assertAll(
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
-        () -> assertTrue(future::isCompleted),
-        () -> assertTrue(future::isSuccess),
-        () -> assertFalse(future::isFailure),
-        () -> assertFalse(future::isCancelled),
-        () -> assertEquals("Hello World!", future.get()));
+        () -> assertTrue(promise::isCompleted),
+        () -> assertEquals(Try.success("Hello World!"), promise.get()));
   }
 
   @Test
   public void onFailure() {
-    Future<String> future = Future.failure(new IllegalArgumentException());
+    UnsupportedOperationException error = new UnsupportedOperationException();
+    Future<String> future = Future.failure(error);
 
-    future.onFailure(consumerFailure).await();
+    Promise<String> promise = future.apply().onFailure(consumerFailure);
 
     assertAll(
         () -> verify(consumerFailure, timeout(1000)).accept(any()),
-        () -> assertTrue(future::isCompleted),
-        () -> assertFalse(future::isSuccess),
-        () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCancelled),
-        () -> assertThrows(NoSuchElementException.class, future::get));
+        () -> assertTrue(promise::isCompleted),
+        () -> assertEquals(Try.failure(error), promise.get()));
   }
 
   @Test
   public void onFailureTimeout() {
-    Future<String> future = Future.delay(Duration.ofMillis(100),
-                                         failure(IllegalArgumentException::new));
+    Future<String> future = Future.delay(Duration.ofMillis(100), failure(UnsupportedOperationException::new));
 
-    future.onFailure(consumerFailure).await();
+    Promise<String> promise = future.apply().onFailure(consumerFailure);
 
     assertAll(
         () -> verify(consumerFailure, timeout(1000)).accept(any()),
-        () -> assertTrue(future::isCompleted),
-        () -> assertFalse(future::isSuccess),
-        () -> assertTrue(future::isFailure),
-        () -> assertFalse(future::isCancelled),
-        () -> assertThrows(NoSuchElementException.class, future::get));
+        () -> assertTrue(promise::isCompleted),
+        () -> assertEquals(UnsupportedOperationException.class, promise.get().getCause().getClass()));
   }
 
   @Test
@@ -145,7 +128,7 @@ public class FutureTest {
 
     Future<String> result = future.map(String::toUpperCase);
 
-    assertEquals(Try.success("HELLO WORLD!"), result.await());
+    assertEquals(Try.success("HELLO WORLD!"), result.apply().get());
   }
 
   @Test
@@ -154,7 +137,7 @@ public class FutureTest {
 
     Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
-    assertEquals(Try.success("HELLO WORLD!"), result.await());
+    assertEquals(Try.success("HELLO WORLD!"), result.apply().get());
   }
 
   @Test
@@ -163,7 +146,7 @@ public class FutureTest {
 
     Future<String> result = future.filter(string -> string.contains("Hello"));
 
-    assertEquals(Try.success("Hello world!"), result.await());
+    assertEquals(Try.success("Hello world!"), result.apply().get());
   }
 
   @Test
@@ -172,48 +155,21 @@ public class FutureTest {
 
     Future<String> result = future.orElse(Future.success("Hello world!"));
 
-    assertEquals(Try.success("Hello world!"), result.await());
-  }
-
-  @Test
-  public void getOrElse() {
-    Future<String> success = Future.success("Hello world!");
-    Future<String> failure = Future.failure(new IllegalArgumentException());
-
-    assertAll(() -> assertEquals("Hello world!", success.getOrElse("or else")),
-              () -> assertEquals("or else", failure.getOrElse("or else")));
-  }
-
-  @Test
-  public void getOrElseThrow() {
-    Future<String> success = Future.success("Hello world!");
-    Future<String> failure = Future.failure(new IllegalArgumentException());
-
-    assertAll(() -> assertEquals("Hello world!", success.getOrElseThrow(NoSuchElementException::new)),
-              () -> assertThrows(NoSuchElementException.class, () -> failure.getOrElseThrow(NoSuchElementException::new)));
-  }
-
-  @Test
-  public void toCompletableFuture() {
-    Future<String> success = Future.success("Hello world!");
-    Future<String> failure = Future.failure(new IllegalArgumentException());
-
-    assertAll(() -> assertEquals("Hello world!", success.toCompletableFuture().get()),
-              () -> assertThrows(ExecutionException.class, () -> failure.toCompletableFuture().get()));
+    assertEquals(Try.success("Hello world!"), result.apply().get());
   }
 
   @Test
   public void await() {
-    Future<String> future = Future.success("Hello world!");
+    Promise<String> future = Future.success("Hello world!").apply();
 
-    assertEquals(Try.success("Hello world!"), future.await(Duration.ofSeconds(1)));
+    assertEquals(Try.success("Hello world!"), future.get(Duration.ofSeconds(1)));
   }
 
   @Test
   public void awaitTimeout() {
     Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
 
-    Try<String> result = future.await(Duration.ofMillis(100));
+    Try<String> result = future.apply().get(Duration.ofMillis(100));
 
     assertAll(
         () -> assertTrue(result.isFailure()),
@@ -221,51 +177,14 @@ public class FutureTest {
   }
 
   @Test
-  public void cancelled() {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
-
-    future.cancel(false);
-
-    assertTrue(future.isCancelled());
-    assertTrue(future.isCompleted());
-    assertTrue(future.isFailure());
-  }
-
-  @Test
-  public void interrupt(@Mock Producer<String> producer) throws InterruptedException {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), producer);
-
-    Thread.sleep(50);
-
-    future.cancel(true);
-
-    assertTrue(future.isCancelled());
-    assertTrue(future.isCompleted());
-    assertTrue(future.isFailure());
-    Thread.sleep(1500);
-    verifyZeroInteractions(producer);
-  }
-
-  @Test
-  public void notCancelled() {
-    Future<String> future = Future.success("Hello world!");
-
-    future.cancel(false);
-
-    assertFalse(future.isCancelled());
-    assertTrue(future.isCompleted());
-    assertTrue(future.isSuccess());
-  }
-
-  @Test
   public void noDeadlock() {
-    ExecutorService executor = Executors.newFixedThreadPool(2);
+    ExecutorService executor = Executors.newFixedThreadPool(1);
     List<String> result = Collections.synchronizedList(new ArrayList<>());
 
-    currentThread(executor, result).andThen(
-        currentThread(executor, result).andThen(
-            currentThread(executor, result).andThen(
-                currentThread(executor, result)))).await(Duration.ofSeconds(5));
+    currentThread(result).andThen(
+        currentThread(result).andThen(
+            currentThread(result).andThen(
+                currentThread(result)))).apply(executor).get(Duration.ofSeconds(5));
 
     assertEquals(4, result.size());
   }
@@ -275,7 +194,7 @@ public class FutureTest {
     initMocks(this);
   }
 
-  private Future<Unit> currentThread(ExecutorService executor, List<String> result) {
-    return Future.exec(executor, () -> result.add(Thread.currentThread().getName()));
+  private Future<Unit> currentThread(List<String> result) {
+    return Future.exec(() -> result.add(Thread.currentThread().getName()));
   }
 }

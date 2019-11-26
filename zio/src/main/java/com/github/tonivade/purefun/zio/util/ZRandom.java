@@ -61,12 +61,12 @@ public interface ZRandom {
 
 class ZRandomImpl implements ZRandom {
 
-  private final String printableChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String PRINTABLE_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  private Random current;
+  private Random random;
 
-  ZRandomImpl(Random current) {
-    this.current = requireNonNull(current);
+  ZRandomImpl(Random random) {
+    this.random = requireNonNull(random);
   }
 
   @Override
@@ -75,37 +75,41 @@ class ZRandomImpl implements ZRandom {
 
       @Override
       public ZIO<R, Nothing, Integer> nextInt() {
-        return ZIO.task(current::nextInt);
+        return ZIO.task(random::nextInt);
       }
 
       @Override
       public ZIO<R, Nothing, Long> nextLong() {
-        return ZIO.task(current::nextLong);
+        return ZIO.task(random::nextLong);
       }
 
       @Override
       public ZIO<R, Nothing, Float> nextFloat() {
-        return ZIO.task(current::nextFloat);
+        return ZIO.task(random::nextFloat);
       }
 
       @Override
       public ZIO<R, Nothing, Double> nextDouble() {
-        return ZIO.task(current::nextDouble);
+        return ZIO.task(random::nextDouble);
       }
 
       @Override
       public ZIO<R, Nothing, Character> nextChar() {
-        return ZIO.task(() -> randomChar());
+        return ZIO.task(this::randomChar);
       }
 
       @Override
       public ZIO<R, Nothing, String> nextString(int length) {
-        return ZIO.task(() -> IntStream.range(0, length).mapToObj(x -> randomChar()).map(Object::toString).collect(joining()));
+        return ZIO.task(() -> randomString(length));
+      }
+
+      private Character randomChar() {
+        return PRINTABLE_CHARS.charAt(random.nextInt(PRINTABLE_CHARS.length()));
+      }
+
+      private String randomString(int length) {
+        return IntStream.range(0, length).mapToObj(x -> randomChar()).map(Object::toString).collect(joining());
       }
     };
-  }
-
-  private char randomChar() {
-    return printableChars.charAt(current.nextInt(printableChars.length()));
   }
 }
