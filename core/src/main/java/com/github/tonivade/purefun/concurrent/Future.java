@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
@@ -57,6 +58,7 @@ import com.github.tonivade.purefun.type.Try;
  * @see Try
  * @see Promise
  */
+@Sealed
 @HigherKind
 public interface Future<T> {
 
