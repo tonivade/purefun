@@ -33,7 +33,7 @@ public interface ZIO<R, E, A> {
   Either<E, A> provide(R env);
 
   default Future<Either<E, A>> toFuture(R env) {
-    return Future.run(() -> provide(env));
+    return Future.async(() -> provide(env));
   }
 
   default void provideAsync(Executor executor, R env, Consumer1<Try<Either<E, A>>> callback) {

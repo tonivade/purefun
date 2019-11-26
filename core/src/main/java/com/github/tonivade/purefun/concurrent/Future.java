@@ -37,7 +37,7 @@ import com.github.tonivade.purefun.type.Try;
  * <ul>
  *   <li>Future.success(value): returns a future that returns successfully with the given value.</li>
  *   <li>Future.failure(error): returns a future that returns an error with the given error.</li>
- *   <li>Future.run(computation): returns a future that eventually will execute the given computation.</li>
+ *   <li>Future.async(computation): returns a future that eventually will execute the given computation.</li>
  *   <li>Future.exec(runnable): returns a future that eventually will execute the given runnable.</li>
  *   <li>Future.delay(duration, computation): returns a future that eventually will execute the given computation, but after waiting the given duration.</li>
  *   <li>Future.defer(computation): returns a future that eventually will execute the given computation that returns another Future.</li>
@@ -109,27 +109,27 @@ public interface Future<T> {
   }
 
   static <T> Future<T> from(Callable<T> callable) {
-    return run(callable::call);
+    return async(callable::call);
   }
 
   static <T> Future<T> from(java.util.concurrent.Future<T> future) {
-    return run(future::get);
+    return async(future::get);
   }
 
-  static <T> Future<T> run(Producer<T> task) {
+  static <T> Future<T> async(Producer<T> task) {
     return FutureImpl.async(task.liftTry());
   }
 
   static Future<Unit> exec(CheckedRunnable task) {
-    return run(() -> { task.run(); return Unit.unit(); });
+    return async(() -> { task.run(); return Unit.unit(); });
   }
 
   static <T> Future<T> delay(Duration timeout, Producer<T> producer) {
-    return run(() -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
+    return async(() -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
   }
 
   static <T> Future<T> defer(Producer<Future<T>> producer) {
-    return run(producer::get).flatMap(identity());
+    return async(producer::get).flatMap(identity());
   }
 
   static <T extends AutoCloseable, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use) {

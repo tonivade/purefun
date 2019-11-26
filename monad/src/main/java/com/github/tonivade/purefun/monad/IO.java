@@ -35,7 +35,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default Future<T> toFuture() {
-    return Future.run(this::unsafeRunSync);
+    return Future.async(this::unsafeRunSync);
   }
 
   default void safeRunAsync(Consumer1<Try<T>> callback) {

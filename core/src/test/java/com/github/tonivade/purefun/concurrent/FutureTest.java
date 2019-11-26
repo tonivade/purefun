@@ -131,7 +131,7 @@ public class FutureTest {
   public void flatMap() {
     Future<String> future = Future.success("Hello world!");
 
-    Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
+    Future<String> result = future.flatMap(string -> Future.async(string::toUpperCase));
 
     assertEquals(Try.success("HELLO WORLD!"), result.apply().get());
   }

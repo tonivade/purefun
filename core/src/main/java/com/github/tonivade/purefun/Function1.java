@@ -7,7 +7,6 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 
 import java.util.Optional;
-import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.concurrent.Future;
@@ -67,7 +66,7 @@ public interface Function1<A, R> extends Recoverable {
   }
 
   default Function1<A, Future<R>> liftFuture() {
-    return value -> Future.run(() -> apply(value));
+    return value -> Future.async(() -> apply(value));
   }
 
   default Function1<A, Either<Throwable, R>> liftEither() {
