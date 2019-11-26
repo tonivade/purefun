@@ -4,6 +4,25 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.type.Try;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
+
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Producer.failure;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -12,25 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.type.Try;
 
 @ExtendWith(MockitoExtension.class)
 public class FutureTest {
@@ -161,13 +163,50 @@ public class FutureTest {
 
   @Test
   public void awaitTimeout() {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
+    Future<String> future = Future.delay(Duration.ofSeconds(10), cons("Hello world!"));
 
     Try<String> result = future.apply().get(Duration.ofMillis(100));
 
     assertAll(
         () -> assertTrue(result.isFailure()),
         () -> assertTrue(result.getCause() instanceof TimeoutException));
+  }
+
+  @Test
+  public void cancelled() throws InterruptedException {
+    Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
+
+    Promise<String> promise = future.apply();
+    Thread.sleep(50);
+    future.cancel(false);
+
+    assertTrue(promise.isCompleted());
+    assertTrue(promise.get().getCause() instanceof CancellationException);
+  }
+
+  @Test
+  public void interrupt(@Mock Producer<String> producer) throws InterruptedException {
+    Future<String> future = Future.delay(Duration.ofSeconds(1), producer);
+
+    Promise<String> promise = future.apply();
+    Thread.sleep(50);
+    future.cancel(true);
+
+    assertTrue(promise.isCompleted());
+    assertTrue(promise.get().getCause() instanceof CancellationException);
+    Thread.sleep(1500);
+    verifyZeroInteractions(producer);
+  }
+
+  @Test
+  public void notCancelled() {
+    Future<String> future = Future.success("Hello world!");
+
+    Promise<String> promise = future.apply();
+    future.cancel(false);
+
+    assertTrue(promise.isCompleted());
+    assertEquals(Try.success("Hello world!"), promise.get());
   }
 
   @Test
