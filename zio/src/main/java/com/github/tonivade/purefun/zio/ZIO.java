@@ -32,16 +32,12 @@ public interface ZIO<R, E, A> {
 
   Either<E, A> provide(R env);
 
-  default Future<Either<E, A>> toFuture(Executor executor, R env) {
-    return Future.run(executor, () -> provide(env));
-  }
-
   default Future<Either<E, A>> toFuture(R env) {
-    return toFuture(Future.DEFAULT_EXECUTOR, env);
+    return Future.run(() -> provide(env));
   }
 
   default void provideAsync(Executor executor, R env, Consumer1<Try<Either<E, A>>> callback) {
-    toFuture(executor, env).onComplete(callback);
+    toFuture(env).apply(executor).onComplete(callback);
   }
 
   default void provideAsync(R env, Consumer1<Try<Either<E, A>>> callback) {

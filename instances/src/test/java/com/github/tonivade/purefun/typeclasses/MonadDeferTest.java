@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.zio.ZIO;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -49,7 +50,7 @@ public class MonadDeferTest {
     Higher1<IO.µ, String> bracket =
         ioMonadDefer.bracket(IO.pure(resource).kind1(), r -> IO.pure("done").kind1());
 
-    String result = bracket.fix1(IO::<String>narrowK).unsafeRunSync();
+    String result = bracket.fix1(IO::narrowK).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -81,7 +82,7 @@ public class MonadDeferTest {
         eitherTMonadDeferFromMonad.bracket(EitherT.<IO.µ, Throwable, AutoCloseable>right(IOInstances.monad(), resource).kind3(),
                                            r -> EitherT.<IO.µ, Throwable, String>right(IOInstances.monad(), "done").kind3());
 
-    String result = bracket.fix1(EitherT::<IO.µ, Throwable, String>narrowK).get().fix1(IO::<String>narrowK).unsafeRunSync();
+    String result = bracket.fix1(EitherT::narrowK).get().fix1(IO::narrowK).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -94,7 +95,7 @@ public class MonadDeferTest {
                                                 r -> EitherT.<IO.µ, Throwable, String>right(IOInstances.monad(), "done").kind3());
 
     assertThrows(IllegalStateException.class,
-                 () -> bracket.fix1(EitherT::<IO.µ, Throwable, String>narrowK).value().fix1(IO::narrowK).unsafeRunSync());
+                 () -> bracket.fix1(EitherT::narrowK).value().fix1(IO::narrowK).unsafeRunSync());
 
     verify(resource, never()).close();
   }
@@ -105,7 +106,7 @@ public class MonadDeferTest {
         eitherTMonadDeferFromMonad.bracket(EitherT.<IO.µ, Throwable, AutoCloseable>left(IOInstances.monad(), new IllegalStateException()).kind3(),
                                            r -> EitherT.<IO.µ, Throwable, String>right(IOInstances.monad(), "done").kind3());
 
-    Throwable error = bracket.fix1(EitherT::<IO.µ, Throwable, String>narrowK).getLeft().fix1(IO::<Throwable>narrowK).unsafeRunSync();
+    Throwable error = bracket.fix1(EitherT::narrowK).getLeft().fix1(IO::narrowK).unsafeRunSync();
 
     assertEquals(IllegalStateException.class, error.getClass());
     verify(resource, never()).close();
@@ -118,7 +119,7 @@ public class MonadDeferTest {
                                            r -> EitherT.<IO.µ, Throwable, String>left(IOInstances.monad(),
                                                              new UnsupportedOperationException()).kind3());
 
-    Throwable error = bracket.fix1(EitherT::<IO.µ, Throwable, String>narrowK).getLeft().fix1(IO::<Throwable>narrowK).unsafeRunSync();
+    Throwable error = bracket.fix1(EitherT::narrowK).getLeft().fix1(IO::narrowK).unsafeRunSync();
 
     assertEquals(UnsupportedOperationException.class, error.getClass());
     verify(resource).close();
@@ -130,7 +131,7 @@ public class MonadDeferTest {
         optionTMonadDefer.bracket(OptionT.some(IOInstances.monad(), resource).kind2(),
                                   r -> OptionT.some(IOInstances.monad(), "done").kind2());
 
-    String result = bracket.fix1(OptionT::<IO.µ, String>narrowK).get().fix1(IO::<String>narrowK).unsafeRunSync();
+    String result = bracket.fix1(OptionT::narrowK).get().fix1(IO::narrowK).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -143,7 +144,7 @@ public class MonadDeferTest {
                                   r -> OptionT.some(IOInstances.monad(), "done").kind2());
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
-                 () -> bracket.fix1(OptionT::<IO.µ, String>narrowK).get().fix1(IO::narrowK).unsafeRunSync());
+                 () -> bracket.fix1(OptionT::narrowK).get().fix1(IO::narrowK).unsafeRunSync());
 
     assertEquals("could not acquire resource", error.getMessage());
     verify(resource, never()).close();
@@ -167,9 +168,9 @@ public class MonadDeferTest {
     Higher1<Future.µ, String> bracket =
         futureMonadDefer.bracket(Future.success(resource).kind1(), r -> Future.success("done").kind1());
 
-    String result = bracket.fix1(Future::<String>narrowK).getOrElse("fail");
+    Future<String> result = bracket.fix1(Future::narrowK).orElse(Future.success("fail"));
 
-    assertEquals("done", result);
+    assertEquals(Try.success("done"), result.await());
     verify(resource).close();
   }
 
@@ -179,9 +180,9 @@ public class MonadDeferTest {
         futureMonadDefer.bracket(Future.<AutoCloseable>failure(new IllegalStateException()).kind1(),
                                  r -> Future.success("done").kind1());
 
-    String result = bracket.fix1(Future::<String>narrowK).getOrElse("fail");
+    Future<String> result = bracket.fix1(Future::narrowK).orElse(Future.success("fail"));
 
-    assertEquals("fail", result);
+    assertEquals(Try.success("fail"), result.await());
     verify(resource, never()).close();
   }
 
@@ -191,9 +192,9 @@ public class MonadDeferTest {
         futureMonadDefer.bracket(Future.success(resource).kind1(),
                                  r -> Future.<String>failure(new UnsupportedOperationException()).kind1());
 
-    String result = bracket.fix1(Future::<String>narrowK).getOrElse("fail");
+    Future<String> result = bracket.fix1(Future::narrowK).orElse(Future.success("fail"));
 
-    assertEquals("fail", result);
+    assertEquals(Try.success("fail"), result.await());
     verify(resource).close();
   }
 
@@ -203,7 +204,7 @@ public class MonadDeferTest {
         zioMonadDefer.bracket(ZIO.<Nothing, Throwable, AutoCloseable>pure(resource).kind3(),
                               r -> ZIO.<Nothing, Throwable, String>pure("done").kind3());
 
-    Either<Throwable, String> result = bracket.fix1(ZIO::<Nothing, Throwable, String>narrowK).provide(nothing());
+    Either<Throwable, String> result = bracket.fix1(ZIO::narrowK).provide(nothing());
 
     assertEquals(Either.right("done"), result);
     verify(resource).close();
@@ -215,7 +216,7 @@ public class MonadDeferTest {
         zioMonadDefer.bracket(ZIO.<Nothing, Throwable, AutoCloseable>raiseError(new IllegalStateException()).kind3(),
                               r -> ZIO.<Nothing, Throwable, String>pure("done").kind3());
 
-    Either<Throwable, String> result = bracket.fix1(ZIO::<Nothing, Throwable, String>narrowK).provide(nothing());
+    Either<Throwable, String> result = bracket.fix1(ZIO::narrowK).provide(nothing());
 
     assertTrue(result.isLeft());
     verify(resource, never()).close();
@@ -227,7 +228,7 @@ public class MonadDeferTest {
         zioMonadDefer.bracket(ZIO.<Nothing, Throwable, AutoCloseable>pure(resource).kind3(),
                               r -> ZIO.<Nothing, Throwable, String>raiseError(new UnsupportedOperationException()).kind3());
 
-    Either<Throwable, String> result = bracket.fix1(ZIO::<Nothing, Throwable, String>narrowK).provide(nothing());
+    Either<Throwable, String> result = bracket.fix1(ZIO::narrowK).provide(nothing());
 
     assertTrue(result.isLeft());
     verify(resource).close();

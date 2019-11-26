@@ -35,19 +35,15 @@ public interface IO<T> extends Recoverable {
   }
 
   default Future<T> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
-  }
-
-  default Future<T> toFuture(Executor executor) {
-    return Future.run(executor, this::unsafeRunSync);
+    return Future.run(this::unsafeRunSync);
   }
 
   default void safeRunAsync(Consumer1<Try<T>> callback) {
-    toFuture().onComplete(callback);
+    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
   default void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
-    toFuture(executor).onComplete(callback);
+    toFuture().apply(executor).onComplete(callback);
   }
 
   <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad);

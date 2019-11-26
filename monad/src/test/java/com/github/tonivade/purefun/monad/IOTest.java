@@ -73,7 +73,7 @@ public class IOTest {
   public void safeRunAsync() {
     Reference<IO.µ, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO::<ImmutableList<String>>narrowK);
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO::narrowK);
 
     IO<ImmutableList<String>> program = currentThread
         .andThen(currentThread
@@ -83,7 +83,7 @@ public class IOTest {
 
     Try<ImmutableList<String>> result =
         program.foldMap(FutureInstances.monadDefer())
-          .fix1(Future::<ImmutableList<String>>narrowK).await(Duration.ofSeconds(5));
+          .fix1(Future::narrowK).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
   }
@@ -105,9 +105,9 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(Future::<Try<String>>narrowK);
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
 
-    assertEquals(Try.success("value"), future.get());
+    assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
   }
 

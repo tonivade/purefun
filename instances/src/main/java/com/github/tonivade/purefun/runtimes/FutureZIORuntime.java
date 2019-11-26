@@ -17,18 +17,8 @@ import com.github.tonivade.purefun.zio.ZIORuntime;
 
 public class FutureZIORuntime implements ZIORuntime<Future.µ> {
 
-  private Executor executor;
-
-  public FutureZIORuntime() {
-    this(Future.DEFAULT_EXECUTOR);
-  }
-
-  public FutureZIORuntime(Executor executor) {
-    this.executor = requireNonNull(executor);
-  }
-
   @Override
   public <R, E, A> Higher1<Future.µ, Either<E, A>> run(R env, ZIO<R, E, A> effect) {
-    return effect.foldMap(env, monadDefer(executor));
+    return effect.foldMap(env, monadDefer());
   }
 }

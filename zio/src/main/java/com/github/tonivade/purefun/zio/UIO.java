@@ -46,12 +46,8 @@ public final class UIO<T> {
     return new EIO<>(ZIO.redeem(value));
   }
 
-  public Future<T> toFuture(Executor executor) {
-    return value.toFuture(executor, nothing()).map(Either::get);
-  }
-
   public Future<T> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
+    return value.toFuture(nothing()).map(Either::get);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {

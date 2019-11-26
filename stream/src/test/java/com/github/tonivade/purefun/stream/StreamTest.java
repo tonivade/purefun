@@ -258,8 +258,8 @@ public class StreamTest {
     Future<String> license = pureReadFile("../LICENSE").foldMap(monadDefer()).fix1(Future::narrowK);
     Future<String> notFound = pureReadFile("hjsjkdf").foldMap(monadDefer()).fix1(Future::narrowK);
     assertAll(
-        () -> assertEquals(impureReadFile("../LICENSE"), license.await(Duration.ofSeconds(5)).get()),
-        () -> assertEquals("--- file not found ---", notFound.await(Duration.ofSeconds(5)).get()));
+        () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
+        () -> assertEquals("--- file not found ---", notFound.await().get()));
   }
 
   private IO<String> pureReadFile(String file) {

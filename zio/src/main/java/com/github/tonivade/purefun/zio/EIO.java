@@ -41,12 +41,8 @@ public final class EIO<E, T> {
     return value.provide(nothing());
   }
 
-  public Future<Either<E, T>> toFuture(Executor executor) {
-    return value.toFuture(executor, nothing());
-  }
-
   public Future<Either<E, T>> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
+    return value.toFuture(nothing());
   }
 
   public void async(Executor executor, Consumer1<Try<Either<E, T>>> callback) {

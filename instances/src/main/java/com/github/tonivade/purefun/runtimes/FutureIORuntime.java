@@ -16,18 +16,8 @@ import com.github.tonivade.purefun.monad.IORuntime;
 
 public class FutureIORuntime implements IORuntime<Future.µ> {
 
-  private final Executor executor;
-
-  public FutureIORuntime() {
-    this(Future.DEFAULT_EXECUTOR);
-  }
-
-  public FutureIORuntime(Executor executor) {
-    this.executor = requireNonNull(executor);
-  }
-
   @Override
   public <A> Higher1<Future.µ, A> run(IO<A> effect) {
-    return effect.foldMap(monadDefer(executor));
+    return effect.foldMap(monadDefer());
   }
 }
