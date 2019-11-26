@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.asStream;
-import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
 

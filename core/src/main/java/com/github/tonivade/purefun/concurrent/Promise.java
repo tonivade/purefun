@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 

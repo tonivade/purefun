@@ -4,6 +4,12 @@
  */
 package com.github.tonivade.purefun.zio;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static java.util.Objects.requireNonNull;
+
+import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -19,12 +25,6 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-import java.util.concurrent.Executor;
-
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Nothing.nothing;
-import static java.util.Objects.requireNonNull;
-
 @HigherKind
 public final class Task<T> {
 
@@ -34,6 +34,7 @@ public final class Task<T> {
     this.value = requireNonNull(value);
   }
 
+  @SuppressWarnings("unchecked")
   public <R> ZIO<R, Throwable, T> toZIO() {
     return (ZIO<R, Throwable, T>) value;
   }
