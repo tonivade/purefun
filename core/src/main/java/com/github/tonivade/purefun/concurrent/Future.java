@@ -38,7 +38,7 @@ public interface Future<T> {
   void cancel(boolean mayInterruptThread);
 
   default Try<T> await() {
-    return apply().get();
+    return await(DEFAULT_EXECUTOR);
   }
 
   default Try<T> await(Executor executor) {
