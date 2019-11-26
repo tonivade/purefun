@@ -173,18 +173,18 @@ final class FutureImpl<T> implements Future<T> {
     throw new UnsupportedOperationException();
   }
 
-  static <T> Future<T> sync(Producer<Try<T>> producer) {
+  protected static <T> Future<T> sync(Producer<Try<T>> producer) {
     return new FutureImpl<>((executor, promise, cancel) -> promise.tryComplete(producer.get()));
   }
 
-  static <T, R> Future<R> transform(Future<T> current, Function1<Try<T>, Try<R>> mapper) {
+  protected static <T, R> Future<R> transform(Future<T> current, Function1<Try<T>, Try<R>> mapper) {
     return new FutureImpl<>(
         (executor, promise, cancel) -> {
           current.apply(executor).onComplete(value -> promise.tryComplete(mapper.apply(value)));
         });
   }
 
-  static <T, R> Future<R> chain(Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+  protected static <T, R> Future<R> chain(Future<T> current, Function1<Try<T>, Future<R>> mapper) {
     return new FutureImpl<>(
         (executor, promise, cancel) -> {
           current.apply(executor).onComplete(
@@ -192,7 +192,7 @@ final class FutureImpl<T> implements Future<T> {
         });
   }
 
-  static <T> Future<T> async(Producer<Try<T>> producer) {
+  protected static <T> Future<T> async(Producer<Try<T>> producer) {
     return new FutureImpl<>(
         (executor, promise, cancel) -> {
           executor.execute(() -> {
@@ -202,11 +202,11 @@ final class FutureImpl<T> implements Future<T> {
         });
   }
 
-  static <T> Future<T> from(Promise<T> promise) {
+  protected static <T> Future<T> from(Promise<T> promise) {
     return new FutureImpl<>((executor, current, cancel) -> promise.onComplete(current::tryComplete));
   }
 
-  static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+  protected static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
     return new FutureImpl<>(
       (executor, promise, cancellable) -> {
         acquire.apply(executor).onComplete(
