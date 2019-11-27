@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Point;
 
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Option;
 import org.junit.jupiter.api.Test;
 

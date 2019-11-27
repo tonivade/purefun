@@ -148,11 +148,11 @@ final class ConsoleIO implements Console<IO.µ> {
 
 final class SystemConsole {
 
-  void println(String message) {
+  protected void println(String message) {
     writer().println(message);
   }
 
-  String readln() {
+  protected String readln() {
     try {
       return reader().readLine();
     } catch (IOException e) {

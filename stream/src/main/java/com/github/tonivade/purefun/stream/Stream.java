@@ -191,6 +191,7 @@ public interface Stream<F extends Kind, T> {
 }
 
 interface StreamModule {
+
   static <A, B, C> Option<C> map2(Option<A> fa, Option<B> fb, Function2<A, B, C> combiner) {
     return fa.flatMap(a -> fb.map(b -> combiner.apply(a, b)));
   }

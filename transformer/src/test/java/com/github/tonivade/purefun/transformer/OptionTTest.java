@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.typeclasses.Transformer;
 
 public class OptionTTest {
 
-  final Monad<Id.µ> monad = IdInstances.monad();
+  private final Monad<Id.µ> monad = IdInstances.monad();
 
   @Test
   public void map() {

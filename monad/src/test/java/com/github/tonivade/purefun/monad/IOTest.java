@@ -17,7 +17,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;

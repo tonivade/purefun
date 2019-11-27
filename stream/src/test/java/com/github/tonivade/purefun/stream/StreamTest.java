@@ -208,8 +208,8 @@ public class StreamTest {
   public void exists() {
     Stream<IO.µ, String> stream = streamOfIO.from(listOf("a", "b", "c"));
 
-    Higher1<IO.µ, Boolean> exists = stream.exists(x -> x.equals("c"));
-    Higher1<IO.µ, Boolean> notExists = stream.exists(x -> x.equals("z"));
+    Higher1<IO.µ, Boolean> exists = stream.exists(x -> "c".equals(x));
+    Higher1<IO.µ, Boolean> notExists = stream.exists(x -> "z".equals(x));
 
     assertTrue(run(exists));
     assertFalse(run(notExists));
@@ -217,22 +217,22 @@ public class StreamTest {
 
   @Test
   public void foldLeftLazyness() {
-    IO<String> fail = IO.raiseError(new NullPointerException());
+    IO<String> fail = IO.raiseError(new IllegalAccessException());
 
     IO<String> result = streamOfIO.eval(fail.kind1()).asString().fix1(IO::narrowK);
 
-    assertThrows(NullPointerException.class, result::unsafeRunSync);
+    assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
 
   @Test
   public void foldRightLazyness() {
-    IO<String> fail = IO.raiseError(new NullPointerException());
+    IO<String> fail = IO.raiseError(new IllegalAccessException());
 
     IO<String> result = streamOfIO.eval(fail.kind1())
       .foldRight(IO.pure("").kind1(), (a, b) -> b.fix1(IO::narrowK).map(x -> a + x).kind1())
       .fix1(IO::narrowK);
 
-    assertThrows(NullPointerException.class, result::unsafeRunSync);
+    assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
 
   @Test

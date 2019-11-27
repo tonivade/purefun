@@ -29,7 +29,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTTest {
 
-  final Monad<Id.µ> monad = IdInstances.monad();
+  private final Monad<Id.µ> monad = IdInstances.monad();
 
   @Test
   public void map() {
@@ -91,7 +91,7 @@ public class EitherTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<Higher1<EitherT.µ, com.github.tonivade.purefun.concurrent.Future.µ>, Throwable>, Throwable> monadError =
+    MonadError<Higher1<Higher1<EitherT.µ, Future.µ>, Throwable>, Throwable> monadError =
         EitherTInstances.monadError(FutureInstances.monadError());
 
     Higher1<Higher1<Higher1<EitherT.µ, Future.µ>, Throwable>, String> pure = monadError.pure("is not ok");

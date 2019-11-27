@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.transformer.StateT.lift;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -98,10 +97,10 @@ public class StateTTest {
   }
 
   private <T> Function1<T, StateT<IO.µ, ImmutableList<T>, T>> append(T nextVal) {
-    return value -> lift(monad, state -> Tuple.of(state.append(value), nextVal));
+    return value -> StateT.lift(monad, state -> Tuple.of(state.append(value), nextVal));
   }
 
   private <T> Function1<T, StateT<IO.µ, ImmutableList<T>, Unit>> end() {
-    return value -> lift(monad, state -> Tuple.of(state.append(value), unit()));
+    return value -> StateT.lift(monad, state -> Tuple.of(state.append(value), unit()));
   }
 }

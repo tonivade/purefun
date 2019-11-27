@@ -13,7 +13,6 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.instances.IOInstances;

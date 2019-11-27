@@ -15,15 +15,14 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
-import com.github.tonivade.purefun.transformer.WriterT;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public class WriterTTest {
 
-  final Monoid<Sequence<String>> monoid = SequenceInstances.monoid();
-  final Monad<Id.µ> monad = IdInstances.monad();
+  private final Monoid<Sequence<String>> monoid = SequenceInstances.monoid();
+  private final Monad<Id.µ> monad = IdInstances.monad();
 
   @Test
   public void writerTest() {

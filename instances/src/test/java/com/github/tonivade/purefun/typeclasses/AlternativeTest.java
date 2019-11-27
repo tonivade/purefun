@@ -19,10 +19,10 @@ import com.github.tonivade.purefun.instances.SequenceInstances;
 
 public class AlternativeTest {
 
-  final Alternative<Sequence.µ> instance = SequenceInstances.alternative();
+  private final Alternative<Sequence.µ> instance = SequenceInstances.alternative();
 
-  final Function1<Integer, Integer> twoTimes = a -> a * 2;
-  final Function1<Integer, Integer> plusFive = a -> a + 5;
+  private final Function1<Integer, Integer> twoTimes = a -> a * 2;
+  private final Function1<Integer, Integer> plusFive = a -> a + 5;
 
   @Test
   public void combineAndAp() {
@@ -47,7 +47,7 @@ public class AlternativeTest {
   }
 
   @Test
-  void composed() {
+  public void composed() {
     assertAll(() -> verifyLaws(Alternative.compose(OptionInstances.alternative(), SequenceInstances.alternative())));
   }
 }

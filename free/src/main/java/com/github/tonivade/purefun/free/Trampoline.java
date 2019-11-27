@@ -53,7 +53,7 @@ public interface Trampoline<T> {
 
   final class Done<T> implements Trampoline<T> {
 
-    final T value;
+    private final T value;
 
     private Done(T value) {
       this.value = requireNonNull(value);
@@ -82,7 +82,7 @@ public interface Trampoline<T> {
 
   final class More<T> implements Trampoline<T> {
 
-    final Producer<Trampoline<T>> next;
+    private final Producer<Trampoline<T>> next;
 
     private More(Producer<Trampoline<T>> next) {
       this.next = requireNonNull(next);
