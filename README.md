@@ -16,9 +16,11 @@ Working in this library helped me to learn and understand some important concept
 of functional programming, and over time I implemented higher kinded types and type classes
 in Java. I don't know if this will be helpful for somebody, but the work is here to everyone want to use it.
 
-Finally, I have to say thanks to vavr library author, this library is largely inspired in his work,
-and also to Scala standard library authors. And also, I used as reference the amazing projects Arrow (Kotlin) and
-Cats (Scala) to implement type classes. Their awesome work help me a lot.
+Finally, I have to say thanks to [vavr](https://www.vavr.io/) library author, this library is largely inspired in his work,
+and also to [Scala](https://www.scala-lang.org/) standard library authors. I don't want to forget some of the projects I've used as 
+reference: [Arrow](https://arrow-kt.io/) and [cats](https://typelevel.org/cats/) for type classes implementation, 
+[fs2](https://fs2.io/) for stream processing, and [ZIO](https://zio.dev/) to implement my own version in Java. 
+Their awesome work help me a lot.
 
 ## Disclaimer
 
@@ -135,7 +137,7 @@ assertEquals("Hello world!", constFloat.value());
 
 ### Future
 
-This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
+This is an experimental implementation of Future. Computations are executed in another thread.
 
 ```java
 Future<String> future = Future.success("Hello world!");
@@ -387,6 +389,14 @@ interface Console {
     ZIO<R, Throwable, Unit> println(String text);
   }
 }
+```
+
+Additionally, there are aliases for some ZIO special cases:
+
+```
+UIO<T>      =>  ZIO<Any, Nothing, T>
+EIO<E, T>   =>  ZIO<Any, E, T>
+Task<T>     =>  ZIO<Any, Throwable, T>
 ```
 
 ## Type Classes

@@ -5,8 +5,12 @@
 package com.github.tonivade.purefun.concurrent;
 
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableArray;
+import com.github.tonivade.purefun.data.ImmutableMap;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +22,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -222,6 +228,54 @@ public class FutureTest {
     assertEquals(4, result.size());
   }
 
+  @Test
+  public void alternative() {
+    Future<String> choiceTrue = Future.alternative(Future.success(true), Future.success("is true"), Future.success("not true"));
+    Future<String> choiceFalse = Future.alternative(Future.success(false), Future.success("is true"), Future.success("not true"));
+
+    assertEquals(Try.success("is true"), choiceTrue.await());
+    assertEquals(Try.success("not true"), choiceFalse.await());
+  }
+
+  @Test
+  public void choiceArray() {
+    ImmutableArray<Future<String>> options = Sequence.arrayOf(Future.success("zero"), Future.success("one"));
+
+    Future<String> choiceTrue = Future.choiceArray(Future.success(1), options);
+    Future<String> choiceFalse = Future.choiceArray(Future.success(0), options);
+    Future<String> noChoice = Future.choiceArray(Future.success(3), options);
+
+    assertEquals(Try.success("one"), choiceTrue.await());
+    assertEquals(Try.success("zero"), choiceFalse.await());
+    assertTrue(noChoice.await().getCause() instanceof NoSuchElementException);
+  }
+
+  @Test
+  public void choiceMap() {
+    ImmutableMap<Integer, Future<String>> options =
+      ImmutableMap.<Integer, Future<String>>builder()
+        .put(0, Future.success("zero")).put(1, Future.success("one")).build();
+
+    Future<String> choiceTrue = Future.choiceMap(Future.success(1), options);
+    Future<String> choiceFalse = Future.choiceMap(Future.success(0), options);
+    Future<String> noChoice = Future.choiceMap(Future.success(3), options);
+
+    assertEquals(Try.success("one"), choiceTrue.await());
+    assertEquals(Try.success("zero"), choiceFalse.await());
+    assertTrue(noChoice.await().getCause() instanceof NoSuchElementException);
+  }
+
+  @Test
+  public void choice() {
+    Future<String> choiceTrue = Future.choice(Future.success(1), zeroOrOne());
+    Future<String> choiceFalse = Future.choice(Future.success(0), zeroOrOne());
+    Future<String> noChoice = Future.choice(Future.success(3), zeroOrOne());
+
+    assertEquals(Try.success("1"), choiceTrue.await());
+    assertEquals(Try.success("0"), choiceFalse.await());
+    assertTrue(noChoice.await().getCause() instanceof NoSuchElementException);
+  }
+
   @BeforeEach
   public void setUp() {
     initMocks(this);
@@ -229,5 +283,9 @@ public class FutureTest {
 
   private Future<Unit> currentThread(List<String> result) {
     return Future.exec(() -> result.add(Thread.currentThread().getName()));
+  }
+
+  private PartialFunction1<Integer, Future<String>> zeroOrOne() {
+    return PartialFunction1.of(value -> value > -1 && value < 2, integer -> Future.success(integer.toString()));
   }
 }

@@ -4,26 +4,30 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import java.time.Duration;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer3;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableArray;
+import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.type.Try;
+
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Function1.identity;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * <p>This type is an abstraction of a computation deferred in time, that will be eventually executed in the future to obtain
@@ -141,6 +145,22 @@ public interface Future<T> {
   static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
     return FutureImpl.bracket(acquire, use, release);
   }
+
+  static <R> Future<R> alternative(Future<Boolean> matcher, Future<R> match, Future<R> notMatch) {
+    return FutureImpl.choice(matcher, PartialFunction1.of(Matcher1.always(), condition -> condition ? match : notMatch));
+  }
+
+  static <R> Future<R> choiceArray(Future<Integer> matcher, ImmutableArray<Future<R>> options) {
+    return FutureImpl.choice(matcher, PartialFunction1.from(options));
+  }
+
+  static <T, R> Future<R> choiceMap(Future<T> matcher, ImmutableMap<T, Future<R>> options) {
+    return FutureImpl.choice(matcher, PartialFunction1.from(options));
+  }
+
+  static <T, R> Future<R> choice(Future<T> matcher, PartialFunction1<T, Future<R>> options) {
+    return FutureImpl.choice(matcher, options);
+  }
 }
 
 interface FutureModule { }
@@ -249,5 +269,17 @@ final class FutureImpl<T> implements Future<T> {
           resource -> resource.fold(Future::failure, use).apply(executor)
             .onComplete(promise::tryComplete)
             .onComplete(result -> resource.onSuccess(release))));
+  }
+
+  protected static <T, R> Future<R> choice(Future<T> matcher, PartialFunction1<T, Future<R>> options) {
+    return new FutureImpl<>(
+      (executor, promise, cancellable) -> matcher.apply(executor)
+        .onComplete(input ->
+          input.map(value ->
+            options.lift().apply(value).getOrElse(() -> Future.failure(new NoSuchElementException()))
+              .apply(executor).onComplete(promise::tryComplete)
+          )
+        )
+    );
   }
 }
