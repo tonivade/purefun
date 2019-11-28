@@ -7,7 +7,7 @@ dependencies {
   compileOnly project(':free')
   compileOnly project(':transformer')
   compileOnly project(':stream')
-  compileOnly project(':zio')
+  compileOnly project(':effect')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner
   testCompile libs.equalsVerifier
@@ -16,5 +16,5 @@ dependencies {
   testCompile project(':free')
   testCompile project(':transformer')
   testCompile project(':stream')
-  testCompile project(':zio')
+  testCompile project(':effect')
 }

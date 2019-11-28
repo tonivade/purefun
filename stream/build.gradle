@@ -5,7 +5,7 @@ dependencies {
   compile project(':core')
   compile project(':typeclasses')
   testCompile project(':monad')
-  testCompile project(':zio')
+  testCompile project(':effect')
   testCompile project(':instances')
   testCompile libs.junitJupiter
   testCompile libs.junitRunner

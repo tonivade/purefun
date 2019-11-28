@@ -254,7 +254,7 @@ public interface ZIO<R, E, A> {
     @Override
     public <X extends Kind> Higher1<X, Either<F, B>> foldMap(R env, MonadDefer<X> monad) {
       Higher1<X, Either<E, A>> foldMap = current.foldMap(env, monad);
-      Higher1<X,ZIO<R,F,B>> map = monad.map(foldMap, either -> either.bimap(nextError, next).fold(identity(), identity()));
+      Higher1<X, ZIO<R, F, B>> map = monad.map(foldMap, either -> either.bimap(nextError, next).fold(identity(), identity()));
       return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 

@@ -1,4 +1,4 @@
-archivesBaseName = 'purefun-zio'
+archivesBaseName = 'purefun-effect'
 
 dependencies {
   annotationProcessor project(':kind:processor')
