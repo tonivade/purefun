@@ -20,10 +20,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Duration;
 
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.effect.ZIO;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;

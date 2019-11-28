@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.effect.ZIO;
 
 public interface StreamInstances {
 

@@ -16,10 +16,10 @@ import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.instances.ZIOInstances;
-import com.github.tonivade.purefun.zio.EIO;
-import com.github.tonivade.purefun.zio.Task;
-import com.github.tonivade.purefun.zio.UIO;
-import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.effect.EIO;
+import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.ZIO;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;

@@ -2,12 +2,12 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio;
+package com.github.tonivade.purefun.effect;
 
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import com.github.tonivade.purefun.zio.util.ZConsole;
+import com.github.tonivade.purefun.effect.util.ZConsole;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;

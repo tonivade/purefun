@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.zio.Task;
+import com.github.tonivade.purefun.effect.Task;
 
 public interface TaskInstances {
 

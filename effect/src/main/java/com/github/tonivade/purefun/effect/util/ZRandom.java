@@ -2,10 +2,10 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio.util;
+package com.github.tonivade.purefun.effect.util;
 
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.effect.ZIO;
 
 import java.util.Random;
 import java.util.stream.IntStream;

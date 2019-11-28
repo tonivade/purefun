@@ -2,11 +2,11 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio;
+package com.github.tonivade.purefun.effect;
 
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.zio.util.ZRandom;
+import com.github.tonivade.purefun.effect.util.ZRandom;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

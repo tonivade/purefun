@@ -2,13 +2,14 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio;
+package com.github.tonivade.purefun.effect;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.instances.FutureInstances;
+import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -22,17 +23,19 @@ import org.mockito.MockitoAnnotations;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.github.tonivade.purefun.zio.Task.from;
-import static com.github.tonivade.purefun.zio.Task.pure;
-import static com.github.tonivade.purefun.zio.Task.unit;
+import static com.github.tonivade.purefun.effect.UIO.from;
+import static com.github.tonivade.purefun.effect.UIO.pure;
+import static com.github.tonivade.purefun.effect.UIO.raiseError;
+import static com.github.tonivade.purefun.effect.UIO.unit;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TaskTest {
+public class UIOTest {
 
   @Mock
   private Consumer1<Try<Integer>> callback;
@@ -46,58 +49,44 @@ public class TaskTest {
 
   @Test
   public void mapRight() {
-    Try<Integer> result = parseInt("1").map(x -> x + 1).safeRunSync();
+    Integer result = parseInt("1").map(x -> x + 1).unsafeRunSync();
 
-    assertEquals(Try.success(2), result);
+    assertEquals(2, result);
   }
 
   @Test
   public void mapLeft() {
-    Try<Integer> result = parseInt("lskjdf").map(x -> x + 1).safeRunSync();
+    UIO<Integer> result = parseInt("lskjdf").map(x -> x + 1);
 
-    assertEquals(NumberFormatException.class, result.getCause().getClass());
+    assertThrows(NumberFormatException.class, result::unsafeRunSync);
   }
 
   @Test
   public void flatMapRight() {
-    Try<Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).safeRunSync();
+    Integer result = parseInt("1").flatMap(x -> pure(x + 1)).unsafeRunSync();
 
-    assertEquals(Try.success(2), result);
+    assertEquals(2, result);
   }
 
   @Test
   public void flatMapLeft() {
-    Try<Integer> result = parseInt("lskjdf").flatMap(x -> pure(x + 1)).safeRunSync();
+    UIO<Integer> result = parseInt("kjere").flatMap(x -> pure(x + 1));
 
-    assertEquals(NumberFormatException.class, result.getCause().getClass());
+    assertThrows(NumberFormatException.class, result::unsafeRunSync);
   }
 
   @Test
-  public void foldRight() {
+  public void redeemRight() {
     Integer result = parseInt("1").recover(e -> -1).unsafeRunSync();
 
     assertEquals(1, result);
   }
 
   @Test
-  public void foldLeft() {
+  public void redeemLeft() {
     Integer result = parseInt("kjsdfdf").recover(e -> -1).unsafeRunSync();
 
     assertEquals(-1, result);
-  }
-
-  @Test
-  public void orElseRight() {
-    Try<Integer> result = parseInt("1").orElse(() -> pure(2)).safeRunSync();
-
-    assertEquals(Try.success(1), result);
-  }
-
-  @Test
-  public void orElseLeft() {
-    Try<Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).safeRunSync();
-
-    assertEquals(Try.success(2), result);
   }
 
   @Test
@@ -105,10 +94,17 @@ public class TaskTest {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
 
-    Task<String> bracket = Task.bracket(open(resultSet), getString("id"));
+    UIO<String> bracket = UIO.bracket(open(resultSet), getString("id"));
 
-    assertEquals(Try.success("value"), bracket.safeRunSync());
+    assertEquals("value", bracket.unsafeRunSync());
     verify(resultSet).close();
+  }
+
+  @Test
+  public void bracketError() {
+    UIO<String> bracket = UIO.bracket(openError(), getString("id"));
+
+    assertThrows(SQLException.class, bracket::unsafeRunSync);
   }
 
   @Test
@@ -128,52 +124,47 @@ public class TaskTest {
   }
 
   @Test
-  public void absorb() {
-    Exception error = new Exception();
-    Task<Either<Throwable, Integer>> task = pure(Either.left(error));
-
-    Try<Integer> result = Task.absorb(task).safeRunSync();
-
-    assertEquals(error, result.getCause());
-  }
-
-  @Test
   public void foldMapRight() {
-    MonadDefer<Future.µ> monadDefer = FutureInstances.monadDefer();
+    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
 
-    Higher1<Future.µ, Integer> future = parseInt("0").foldMap(monadDefer);
+    Higher1<IO.µ, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Try.success(0), future.fix1(Future::narrowK).await());
+    assertEquals(0, future.fix1(IO::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<Future.µ> monadDefer = FutureInstances.monadDefer();
+    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
 
-    Higher1<Future.µ, Integer> future = parseInt("jdjd").foldMap(monadDefer);
+    Higher1<IO.µ, Integer> future = parseInt("jkdf").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(Future::narrowK).await().getCause().getClass());
+    assertThrows(NumberFormatException.class, future.fix1(IO::narrowK)::unsafeRunSync);
   }
 
   @Test
   public void testCompositionWithZIO() {
-    ZIO<Environment, Throwable, Integer> getValue = ZIO.accessM(env -> ZIO.pure(env.getValue()));
-    ZIO<Environment, Throwable, Integer> result = unit().<Environment>toZIO().andThen(getValue);
+    ZIO<Environment, Nothing, Integer> getValue = ZIO.access(Environment::getValue);
+    ZIO<Environment, Nothing, Integer> result = unit().<Environment>toZIO().andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
   }
 
-  private Task<Integer> parseInt(String string) {
+  private UIO<Integer> parseInt(String string) {
     return from(() -> Integer.parseInt(string));
   }
 
-  private Task<ResultSet> open(ResultSet resultSet) {
+  private UIO<ResultSet> open(ResultSet resultSet) {
     return pure(resultSet);
   }
 
-  private Function1<ResultSet, Task<String>> getString(String column) {
+  private UIO<ResultSet> openError() {
+    return raiseError(new SQLException("error"));
+  }
+
+  private Function1<ResultSet, UIO<String>> getString(String column) {
     return resultSet -> from(() -> resultSet.getString(column));
   }
 }
+

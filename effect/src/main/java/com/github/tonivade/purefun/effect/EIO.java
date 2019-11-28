@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio;
+package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
@@ -64,10 +64,6 @@ public final class EIO<E, T> {
 
   public <B> EIO<E, B> flatMap(Function1<T, EIO<E, B>> map) {
     return new EIO<>(value.flatMap(value -> map.apply(value).value));
-  }
-
-  public <B> EIO<E, B> flatten() {
-    return new EIO<>(value.flatten());
   }
 
   public EIO<T, E> swap() {

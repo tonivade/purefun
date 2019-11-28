@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio;
+package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
@@ -52,15 +52,6 @@ public interface ZIO<R, E, A> {
 
   default <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
     return new FlatMapped<>(this, ZIO::raiseError, map);
-  }
-
-  @SuppressWarnings("unchecked")
-  default <B> ZIO<R, E, B> flatten() {
-    try {
-      return ((ZIO<R, E, ZIO<R, E, B>>) this).flatMap(identity());
-    } catch (ClassCastException e) {
-      throw new UnsupportedOperationException("cannot be flattened");
-    }
   }
 
   default ZIO<R, A, E> swap() {

@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.effect.ZIO;
 
 public interface ZIOInstances {
 

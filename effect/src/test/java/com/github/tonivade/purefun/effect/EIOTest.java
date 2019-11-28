@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.zio;
+package com.github.tonivade.purefun.effect;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -22,9 +22,9 @@ import org.mockito.MockitoAnnotations;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.github.tonivade.purefun.zio.EIO.from;
-import static com.github.tonivade.purefun.zio.EIO.pure;
-import static com.github.tonivade.purefun.zio.EIO.raiseError;
+import static com.github.tonivade.purefun.effect.EIO.from;
+import static com.github.tonivade.purefun.effect.EIO.pure;
+import static com.github.tonivade.purefun.effect.EIO.raiseError;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;

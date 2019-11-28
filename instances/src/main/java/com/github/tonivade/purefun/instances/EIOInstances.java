@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.zio.EIO;
+import com.github.tonivade.purefun.effect.EIO;
 
 public interface EIOInstances {
 

@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.zio.ZIO;
+import com.github.tonivade.purefun.effect.ZIO;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
