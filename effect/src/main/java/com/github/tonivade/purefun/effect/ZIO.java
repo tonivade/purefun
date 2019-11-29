@@ -33,15 +33,19 @@ public interface ZIO<R, E, A> {
   Either<E, A> provide(R env);
 
   default Future<Either<E, A>> toFuture(R env) {
-    return Future.async(() -> provide(env));
+    return toFuture(Future.DEFAULT_EXECUTOR, env);
   }
 
-  default void provideAsync(Executor executor, R env, Consumer1<Try<Either<E, A>>> callback) {
-    toFuture(env).apply(executor).onComplete(callback);
+  default Future<Either<E, A>> toFuture(Executor executor, R env) {
+    return Future.async(executor, () -> provide(env));
   }
 
   default void provideAsync(R env, Consumer1<Try<Either<E, A>>> callback) {
     provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
+  }
+
+  default void provideAsync(Executor executor, R env, Consumer1<Try<Either<E, A>>> callback) {
+    toFuture(executor, env).onComplete(callback);
   }
 
   <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad);

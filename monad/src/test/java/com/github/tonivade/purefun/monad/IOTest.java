@@ -4,25 +4,6 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.monad.IO.narrowK;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.NoSuchElementException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Unit;
@@ -34,6 +15,24 @@ import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Reference;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.NoSuchElementException;
+
+import static com.github.tonivade.purefun.monad.IO.narrowK;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class IOTest {
 
@@ -149,6 +148,16 @@ public class IOTest {
     assertThrows(IllegalArgumentException.class, recover::unsafeRunSync);
   }
 
+  @Test
+  public void testStackSafety() {
+    IO<Integer> sum = sum(100000, 0);
+
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
+
+    assertThrows(StackOverflowError.class, sum::unsafeRunSync);
+    assertEquals(Try.success(705082704), futureSum.await());
+  }
+
   @BeforeEach
   public void setUp() {
     initMocks(this);
@@ -164,5 +173,12 @@ public class IOTest {
 
   private Function1<ResultSet, String> getString(String column) {
     return resultSet -> resultSet.getString(column);
+  }
+
+  private IO<Integer> sum(Integer n, Integer sum) {
+    if ( n == 0) {
+      return IO.pure(sum);
+    }
+    return IO.suspend(() -> sum( n - 1, sum +  n));
   }
 }

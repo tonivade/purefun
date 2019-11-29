@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
@@ -68,7 +69,7 @@ public class PromiseTest {
     promise.onComplete(consumer);
     promise.tryComplete(value);
 
-    verify(consumer).accept(value);
+    verify(consumer, timeout(1000)).accept(value);
   }
 
   @Test
@@ -79,7 +80,7 @@ public class PromiseTest {
     promise.tryComplete(value);
     promise.onComplete(consumer);
 
-    verify(consumer).accept(value);
+    verify(consumer, timeout(1000)).accept(value);
   }
 
   @Test

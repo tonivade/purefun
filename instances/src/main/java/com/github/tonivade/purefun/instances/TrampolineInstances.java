@@ -7,8 +7,10 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -24,6 +26,10 @@ public interface TrampolineInstances {
 
   static Monad<Trampoline.µ> monad() {
     return new TrampolineMonad() {};
+  }
+
+  static Defer<Trampoline.µ> defer() {
+    return new TrampolineDefer() {};
   }
 }
 
@@ -61,5 +67,14 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline.µ> {
   default <T, R> Higher1<Trampoline.µ, R> flatMap(Higher1<Trampoline.µ, T> value,
       Function1<T, ? extends Higher1<Trampoline.µ, R>> map) {
     return Trampoline.narrowK(value).flatMap(map.andThen(Trampoline::narrowK)).kind1();
+  }
+}
+
+@Instance
+interface TrampolineDefer extends Defer<Trampoline.µ> {
+
+  @Override
+  default <A> Higher1<Trampoline.µ, A> defer(Producer<Higher1<Trampoline.µ, A>> defer) {
+    return Trampoline.more(() -> defer.get().fix1(Trampoline::narrowK)).kind1();
   }
 }

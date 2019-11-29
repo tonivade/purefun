@@ -4,19 +4,19 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
 
 public interface Promise<T> {
 
@@ -36,10 +36,6 @@ public interface Promise<T> {
     return complete(Try.failure(error));
   }
 
-  default Future<T> toFuture() {
-    return FutureImpl.from(this);
-  }
-
   Promise<T> onComplete(Consumer1<Try<T>> consumer);
 
   default Promise<T> onSuccess(Consumer1<T> consumer) {
@@ -50,20 +46,17 @@ public interface Promise<T> {
     return onComplete(value -> value.onFailure(consumer));
   }
 
-  default CompletableFuture<T> toCompletableFuture() {
-    CompletableFuture<T> completableFuture = new CompletableFuture<>();
-    onSuccess(completableFuture::complete);
-    onFailure(completableFuture::completeExceptionally);
-    return completableFuture;
-  }
-
   Try<T> get();
   Try<T> get(Duration timeout);
 
   boolean isCompleted();
 
   static <T> Promise<T> make() {
-    return new PromiseImpl<>();
+    return make(Future.DEFAULT_EXECUTOR);
+  }
+
+  static <T> Promise<T> make(Executor executor) {
+    return new PromiseImpl<>(executor);
   }
 }
 
@@ -72,6 +65,12 @@ final class PromiseImpl<T> implements Promise<T> {
   private final State state = new State();
   private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
   private final AtomicReference<Try<T>> reference = new AtomicReference<>();
+
+  private final Executor executor;
+
+  PromiseImpl(Executor executor) {
+    this.executor = requireNonNull(executor);
+  }
 
   @Override
   public boolean tryComplete(Try<T> value) {
@@ -150,7 +149,11 @@ final class PromiseImpl<T> implements Promise<T> {
 
   private void setValue(Try<T> value) {
     reference.set(value);
-    consumers.forEach(consumer -> consumer.accept(value));
+    consumers.forEach(consumer -> submit(value, consumer));
+  }
+
+  private void submit(Try<T> value, Consumer1<Try<T>> consumer) {
+    executor.execute(() -> consumer.accept(value));
   }
 
   private boolean isEmpty() {
