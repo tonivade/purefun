@@ -28,11 +28,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * <p>This type is an abstraction of a computation deferred in time, that will be eventually executed in the future to obtain
- * a result. Despite other implementations of Future, this implementation doesn't execute immediately the computation in another
- * thread. Only when the method {@code apply} is called, providing an executor or using the default executor, the computation is started.
- * Then, the result of calling {@code apply} method, is a {@code Promise}. The user of the library can subscribe to events of the promise like
- * {@code onComplete}, {@code onSuccess} or {@code onFailure}; or call to {@code get} method and wait to obtain the result of the computation.</p>
+ * <p>This type is an abstraction of a computation executed in another thread. To run the computation an {@code Executor}
+ * should be provided. If no {@code Executor} is provided, then a default instance is used.</p>
  *
  * <p>The result of the computation is a {@code Try<T>}, this means that the computation can end successfully or with an error.</p>
  *

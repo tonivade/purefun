@@ -54,7 +54,7 @@ public class FutureTest {
   public void onCompleteSuccess() {
     Future<String> future = Future.success("Hello World!");
 
-    future.onComplete(tryConsumer);
+    future.onComplete(tryConsumer).await();
 
     assertAll(
         () -> verify(tryConsumer, timeout(1000)).accept(Try.success("Hello World!")),
@@ -68,7 +68,7 @@ public class FutureTest {
     UnsupportedOperationException error = new UnsupportedOperationException();
     Future<String> future = Future.failure(error);
 
-    future.onComplete(tryConsumer);
+    future.onComplete(tryConsumer).await();
 
     assertAll(
         () -> verify(tryConsumer, timeout(1000)).accept(any()),
@@ -81,7 +81,7 @@ public class FutureTest {
   public void onSuccess() {
     Future<String> future = Future.success("Hello World!");
 
-    future.onSuccess(consumerSuccess);
+    future.onSuccess(consumerSuccess).await();
 
     assertAll(
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
@@ -94,7 +94,7 @@ public class FutureTest {
   public void onSuccessTimeout() {
     Future<String> future = Future.delay(Duration.ofMillis(100), cons("Hello World!"));
 
-    future.onSuccess(consumerSuccess);
+    future.onSuccess(consumerSuccess).await();
 
     assertAll(
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
@@ -121,7 +121,7 @@ public class FutureTest {
   public void onFailureTimeout() {
     Future<String> future = Future.delay(Duration.ofMillis(100), failure(UnsupportedOperationException::new));
 
-    future.onFailure(consumerFailure);
+    future.onFailure(consumerFailure).await();
 
     assertAll(
         () -> verify(consumerFailure, timeout(1000)).accept(any()),

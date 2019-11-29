@@ -137,7 +137,7 @@ assertEquals("Hello world!", constFloat.value());
 
 ### Future
 
-This is an experimental implementation of Future. Computations are executed in another thread.
+This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
 
 ```java
 Future<String> future = Future.success("Hello world!");
