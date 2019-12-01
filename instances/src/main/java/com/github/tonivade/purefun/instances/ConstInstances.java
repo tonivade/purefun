@@ -20,16 +20,18 @@ public interface ConstInstances {
   }
 
   static <T> Functor<Higher1<Const.µ, T>> functor() {
-    return new ConstFunctor<T>() {};
+    return (ConstFunctor<T>) ConstFunctor.INSTANCE;
   }
 
   static <T> Contravariant<Higher1<Const.µ, T>> contravariant() {
-    return new ConstContravariant<T>() {};
+    return (ConstContravariant<T>) ConstContravariant.INSTANCE;
   }
 }
 
 @Instance
 interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
+
+  ConstFunctor<?> INSTANCE = new ConstFunctor() { };
 
   @Override
   default <A, B> Higher2<Const.µ, T, B> map(Higher1<Higher1<Const.µ, T>, A> value, Function1<A, B> map) {
@@ -39,6 +41,8 @@ interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
 
 @Instance
 interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
+
+  ConstContravariant<?> INSTANCE = new ConstContravariant<Object>() { };
 
   @Override
   default <A, B> Higher2<Const.µ, T, B> contramap(Higher1<Higher1<Const.µ, T>, A> value, Function1<B, A> map) {

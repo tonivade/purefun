@@ -16,16 +16,18 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 public interface TupleInstances {
 
   static Functor<Tuple1.µ> functor() {
-    return new Tuple1Functor() {};
+    return Tuple1Functor.INSTANCE;
   }
 
   static Bifunctor<Tuple2.µ> bifunctor() {
-    return new Tuple2Bifunctor() {};
+    return Tuple2Bifunctor.INSTANCE;
   }
 }
 
 @Instance
 interface Tuple1Functor extends Functor<Tuple1.µ> {
+
+  Tuple1Functor INSTANCE = new Tuple1Functor() { };
 
   @Override
   default <T, R> Higher1<Tuple1.µ, R> map(Higher1<Tuple1.µ, T> value, Function1<T, R> map) {
@@ -35,6 +37,8 @@ interface Tuple1Functor extends Functor<Tuple1.µ> {
 
 @Instance
 interface Tuple2Bifunctor extends Bifunctor<Tuple2.µ> {
+
+  Tuple2Bifunctor INSTANCE = new Tuple2Bifunctor() { };
 
   @Override
   default <A, B, C, D> Higher2<Tuple2.µ, C, D> bimap(Higher2<Tuple2.µ, A, B> value,

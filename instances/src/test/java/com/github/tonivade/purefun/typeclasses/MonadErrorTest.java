@@ -8,10 +8,12 @@ import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Matcher1.is;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
@@ -107,13 +109,13 @@ public class MonadErrorTest {
 
   @Test
   public void option() {
-    MonadError<Option.µ, Nothing> monadError = OptionInstances.monadError();
+    MonadError<Option.µ, Unit> monadError = OptionInstances.monadError();
 
     Higher1<Option.µ, String> pure = monadError.pure("is not ok");
-    Higher1<Option.µ, String> raiseError = monadError.raiseError(nothing());
+    Higher1<Option.µ, String> raiseError = monadError.raiseError(unit());
     Higher1<Option.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Option.µ, String> ensureOk = monadError.ensure(pure, Nothing::nothing, "is not ok"::equals);
-    Higher1<Option.µ, String> ensureError = monadError.ensure(pure, Nothing::nothing, "is ok?"::equals);
+    Higher1<Option.µ, String> ensureOk = monadError.ensure(pure, Unit::unit, "is not ok"::equals);
+    Higher1<Option.µ, String> ensureError = monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Option.none(), raiseError),

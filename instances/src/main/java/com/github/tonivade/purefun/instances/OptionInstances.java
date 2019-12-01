@@ -10,10 +10,10 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Alternative;
@@ -27,8 +27,8 @@ import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Unit.unit;
 
 public interface OptionInstances {
 
@@ -44,40 +44,42 @@ public interface OptionInstances {
   }
 
   static Functor<Option.µ> functor() {
-    return new OptionFunctor() {};
+    return OptionFunctor.INSTANCE;
   }
 
   static Applicative<Option.µ> applicative() {
-    return new OptionApplicative() {};
+    return OptionApplicative.INSTANCE;
   }
 
   static Alternative<Option.µ> alternative() {
-    return new OptionAlternative() {};
+    return OptionAlternative.INSTANCE;
   }
 
   static Monad<Option.µ> monad() {
-    return new OptionMonad() {};
+    return OptionMonad.INSTANCE;
   }
 
-  static MonadError<Option.µ, Nothing> monadError() {
-    return new OptionMonadError() {};
+  static MonadError<Option.µ, Unit> monadError() {
+    return OptionMonadError.INSTANCE;
   }
 
   static Traverse<Option.µ> traverse() {
-    return new OptionTraverse() {};
+    return OptionTraverse.INSTANCE;
   }
 
   static Semigroupal<Option.µ> semigroupal() {
-    return new OptionSemigroupal() {};
+    return OptionSemigroupal.INSTANCE;
   }
 
   static Foldable<Option.µ> foldable() {
-    return new OptionFoldable() {};
+    return OptionFoldable.INSTANCE;
   }
 }
 
 @Instance
 interface OptionFunctor extends Functor<Option.µ> {
+
+  Functor<Option.µ> INSTANCE = new OptionFunctor() { };
 
   @Override
   default <T, R> Higher1<Option.µ, R> map(Higher1<Option.µ, T> value, Function1<T, R> mapper) {
@@ -85,7 +87,6 @@ interface OptionFunctor extends Functor<Option.µ> {
   }
 }
 
-@Instance
 interface OptionPure extends Applicative<Option.µ> {
 
   @Override
@@ -97,6 +98,8 @@ interface OptionPure extends Applicative<Option.µ> {
 @Instance
 interface OptionApplicative extends OptionPure {
 
+  OptionApplicative INSTANCE = new OptionApplicative() { };
+
   @Override
   default <T, R> Higher1<Option.µ, R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
     return Option.narrowK(value).flatMap(t -> Option.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -105,6 +108,8 @@ interface OptionApplicative extends OptionPure {
 
 @Instance
 interface OptionMonad extends OptionPure, Monad<Option.µ> {
+
+  OptionMonad INSTANCE = new OptionMonad() { };
 
   @Override
   default <T, R> Higher1<Option.µ, R> flatMap(Higher1<Option.µ, T> value,
@@ -132,25 +137,31 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option.µ> {
 }
 
 @Instance
-interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option.µ> { }
+interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option.µ> {
+  OptionAlternative INSTANCE = new OptionAlternative() { };
+}
 
 @Instance
-interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Nothing> {
+interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Unit> {
+
+  OptionMonadError INSTANCE = new OptionMonadError() { };
 
   @Override
-  default <A> Higher1<Option.µ, A> raiseError(Nothing error) {
+  default <A> Higher1<Option.µ, A> raiseError(Unit error) {
     return Option.<A>none().kind1();
   }
 
   @Override
   default <A> Higher1<Option.µ, A> handleErrorWith(Higher1<Option.µ, A> value,
-      Function1<Nothing, ? extends Higher1<Option.µ, A>> handler) {
-    return Option.narrowK(value).fold(() -> Option.narrowK(handler.apply(nothing())).kind1(), this::pure);
+      Function1<Unit, ? extends Higher1<Option.µ, A>> handler) {
+    return Option.narrowK(value).fold(() -> Option.narrowK(handler.apply(unit())).kind1(), this::pure);
   }
 }
 
 @Instance
 interface OptionFoldable extends Foldable<Option.µ> {
+
+  OptionFoldable INSTANCE = new OptionFoldable() { };
 
   @Override
   default <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {
@@ -167,6 +178,8 @@ interface OptionFoldable extends Foldable<Option.µ> {
 @Instance
 interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
 
+  OptionTraverse INSTANCE = new OptionTraverse() { };
+
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(
       Applicative<G> applicative, Higher1<Option.µ, T> value,
@@ -179,6 +192,8 @@ interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
 
 @Instance
 interface OptionSemigroupal extends Semigroupal<Option.µ> {
+
+  OptionSemigroupal INSTANCE = new OptionSemigroupal() { };
 
   @Override
   default <A, B> Higher1<Option.µ, Tuple2<A, B>> product(Higher1<Option.µ, A> fa, Higher1<Option.µ, B> fb) {
