@@ -63,17 +63,17 @@ public interface Future<T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
-  void cancel(boolean mayInterruptThread);
-
   Try<T> await();
   Try<T> await(Duration timeout);
 
-  Future<T> onComplete(Consumer1<Try<T>> consumer);
-  Future<T> onSuccess(Consumer1<T> consumer);
-  Future<T> onFailure(Consumer1<Throwable> consumer);
+  void cancel(boolean mayInterruptThread);
 
   boolean isCompleted();
   boolean isCancelled();
+
+  Future<T> onSuccess(Consumer1<T> callback);
+  Future<T> onFailure(Consumer1<Throwable> callback);
+  Future<T> onComplete(Consumer1<Try<T>> callback);
 
   <R> Future<R> map(Function1<T, R> mapper);
 
@@ -115,14 +115,14 @@ public interface Future<T> {
 
   <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper);
 
-  Promise<T> toPromise();
-
   default CompletableFuture<T> toCompletableFuture() {
     CompletableFuture<T> completableFuture = new CompletableFuture<>();
     onSuccess(completableFuture::complete);
     onFailure(completableFuture::completeExceptionally);
     return completableFuture;
   }
+
+  Promise<T> toPromise();
 
   FutureModule getModule();
 
