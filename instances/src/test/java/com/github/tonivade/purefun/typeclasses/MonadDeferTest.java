@@ -24,8 +24,8 @@ import org.mockito.Mockito;
 import java.util.NoSuchElementException;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -157,7 +157,7 @@ public class MonadDeferTest {
                                   r -> OptionT.<IO.µ, String>none(IOInstances.monad()).kind2());
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
-                 () -> bracket.fix1(OptionT::<IO.µ, String>narrowK).get().fix1(IO::narrowK).unsafeRunSync());
+                 () -> bracket.fix1(OptionT::narrowK).get().fix1(IO::narrowK).unsafeRunSync());
 
     assertEquals("get() in none", error.getMessage());
     verify(resource).close();

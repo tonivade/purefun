@@ -2,12 +2,9 @@ archivesBaseName = 'purefun-stream'
 
 dependencies {
   annotationProcessor project(':kind:processor')
-  compile project(':core')
-  compile project(':typeclasses')
-  testCompile project(':monad')
-  testCompile project(':effect')
-  testCompile project(':instances')
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.equalsVerifier
+  api project(':core')
+  api project(':typeclasses')
+  testImplementation project(':monad')
+  testImplementation project(':effect')
+  testImplementation project(':instances')
 }

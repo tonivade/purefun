@@ -1,12 +1,7 @@
 archivesBaseName = 'purefun-processor'
 
 dependencies {
-  compile files("${System.getProperty('java.home')}/../lib/tools.jar")
-  compile project(':kind:annotation')
-  testCompile libs.compileTesting
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.equalsVerifier
-  testCompile libs.mockitoCore
-  testCompile libs.mockitoJunit
+  implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
+  implementation project(':kind:annotation')
+  testImplementation libs.compileTesting
 }

@@ -24,6 +24,7 @@ apply plugin: 'org.sonarqube'
 
 allprojects {
   apply plugin: 'java'
+  apply plugin: 'java-library'
   apply plugin: 'eclipse'
   apply plugin: 'jacoco'
   apply plugin: 'com.bmuschko.nexus'
@@ -108,8 +109,11 @@ subprojects {
   }
 
   dependencies {
-    testCompile libs.junitJupiter
+    testImplementation libs.junitJupiter
     testRuntime libs.junitRunner
+    testImplementation libs.equalsVerifier
+    testImplementation libs.mockitoCore
+    testImplementation libs.mockitoJunit
   }
 }
 

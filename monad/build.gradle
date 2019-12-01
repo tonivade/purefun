@@ -2,11 +2,7 @@ archivesBaseName = 'purefun-monad'
 
 dependencies {
   annotationProcessor project(':kind:processor')
-  compile project(':core')
-  compile project(':typeclasses')
-  testCompile project(':instances')
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.equalsVerifier
-  testCompile libs.mockitoCore
+  api project(':core')
+  api project(':typeclasses')
+  testImplementation project(':instances')
 }

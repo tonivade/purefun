@@ -2,10 +2,7 @@ archivesBaseName = 'purefun-typeclasses'
 
 dependencies {
   annotationProcessor project(':kind:processor')
-  compile project(':core')
-  testCompile project(':instances')
-  testCompile project(':monad')
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.mockitoCore
+  api project(':core')
+  testImplementation project(':instances')
+  testImplementation project(':monad')
 }

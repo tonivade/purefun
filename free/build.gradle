@@ -2,12 +2,9 @@ archivesBaseName = 'purefun-free'
 
 dependencies {
   annotationProcessor project(':kind:processor')
+  api project(':core')
+  api project(':typeclasses')
   testAnnotationProcessor project(':kind:processor')
-  compile project(':core')
-  compile project(':typeclasses')
-  testCompile project(':monad')
-  testCompile project(':instances')
-  testCompile libs.junitJupiter
-  testCompile libs.junitRunner
-  testCompile libs.equalsVerifier
+  testImplementation project(':monad')
+  testImplementation project(':instances')
 }
