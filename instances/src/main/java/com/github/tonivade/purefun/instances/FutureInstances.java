@@ -133,7 +133,6 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future.µ> {
   }
 }
 
-@Instance
 interface FutureDefer extends Defer<Future.µ>, ExecutorHolder {
 
   @Override
@@ -142,7 +141,6 @@ interface FutureDefer extends Defer<Future.µ>, ExecutorHolder {
   }
 }
 
-@Instance
 interface FutureBracket extends Bracket<Future.µ>, ExecutorHolder {
 
   @Override

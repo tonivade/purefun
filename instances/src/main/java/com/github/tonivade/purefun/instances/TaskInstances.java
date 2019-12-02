@@ -23,27 +23,27 @@ import com.github.tonivade.purefun.effect.Task;
 public interface TaskInstances {
 
   static Functor<Task.µ> functor() {
-    return new TaskFunctor() {};
+    return TaskFunctor.INSTANCE;
   }
 
-  static  Applicative<Task.µ> applicative() {
-    return new TaskApplicative() {};
+  static Applicative<Task.µ> applicative() {
+    return TaskApplicative.INSTANCE;
   }
 
   static Monad<Task.µ> monad() {
-    return new TaskMonad() {};
+    return TaskMonad.INSTANCE;
   }
 
   static MonadError<Task.µ, Throwable> monadError() {
-    return new TaskMonadError() {};
+    return TaskMonadError.INSTANCE;
   }
 
   static MonadThrow<Task.µ> monadThrow() {
-    return new TaskMonadThrow() { };
+    return TaskMonadThrow.INSTANCE;
   }
 
   static MonadDefer<Task.µ> monadDefer() {
-    return new TaskMonadDefer() { };
+    return TaskMonadDefer.INSTANCE;
   }
 
   static <A> Reference<Task.µ, A> ref(A value) {
@@ -54,6 +54,8 @@ public interface TaskInstances {
 @Instance
 interface TaskFunctor extends Functor<Task.µ> {
 
+  TaskFunctor INSTANCE = new TaskFunctor() { };
+
   @Override
   default <A, B> Higher1<Task.µ, B>
           map(Higher1<Task.µ, A> value, Function1<A, B> map) {
@@ -61,7 +63,6 @@ interface TaskFunctor extends Functor<Task.µ> {
   }
 }
 
-@Instance
 interface TaskPure extends Applicative<Task.µ> {
 
   @Override
@@ -72,6 +73,8 @@ interface TaskPure extends Applicative<Task.µ> {
 
 @Instance
 interface TaskApplicative extends TaskPure {
+
+  TaskApplicative INSTANCE = new TaskApplicative() { };
 
   @Override
   default <A, B> Higher1<Task.µ, B>
@@ -84,6 +87,8 @@ interface TaskApplicative extends TaskPure {
 @Instance
 interface TaskMonad extends TaskPure, Monad<Task.µ> {
 
+  TaskMonad INSTANCE = new TaskMonad() { };
+
   @Override
   default <A, B> Higher1<Task.µ, B>
           flatMap(Higher1<Task.µ, A> value,
@@ -94,6 +99,8 @@ interface TaskMonad extends TaskPure, Monad<Task.µ> {
 
 @Instance
 interface TaskMonadError extends TaskMonad, MonadError<Task.µ, Throwable> {
+
+  TaskMonadError INSTANCE = new TaskMonadError() { };
 
   @Override
   default <A> Higher1<Task.µ, A> raiseError(Throwable error) {
@@ -115,9 +122,10 @@ interface TaskMonadError extends TaskMonad, MonadError<Task.µ, Throwable> {
 @Instance
 interface TaskMonadThrow
     extends TaskMonadError,
-            MonadThrow<Task.µ> { }
+            MonadThrow<Task.µ> {
+  TaskMonadThrow INSTANCE = new TaskMonadThrow() { };
+}
 
-@Instance
 interface TaskDefer extends Defer<Task.µ> {
 
   @Override
@@ -127,7 +135,6 @@ interface TaskDefer extends Defer<Task.µ> {
   }
 }
 
-@Instance
 interface TaskBracket extends Bracket<Task.µ> {
 
   @Override
@@ -144,4 +151,6 @@ interface TaskMonadDefer
     extends MonadDefer<Task.µ>,
             TaskMonadThrow,
             TaskDefer,
-            TaskBracket { }
+            TaskBracket {
+  TaskMonadDefer INSTANCE = new TaskMonadDefer() { };
+}

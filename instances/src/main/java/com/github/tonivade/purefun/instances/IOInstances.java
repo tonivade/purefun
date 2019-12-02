@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -24,32 +25,29 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface IOInstances {
 
   static Functor<IO.µ> functor() {
-    return new IOFunctor() {};
+    return IOFunctor.INSTANCE;
   }
 
   static Monad<IO.µ> monad() {
-    return new IOMonad() {};
-  }
-
-  static Comonad<IO.µ> comonad() {
-    return new IOComonad() {};
-  }
-
-  static Defer<IO.µ> defer() {
-    return new IODefer() {};
+    return IOMonad.INSTANCE;
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
-    return new IOMonadError() {};
+    return IOMonadError.INSTANCE;
+  }
+
+  static MonadThrow<IO.µ> monadThrow() {
+    return IOMonadThrow.INSTANCE;
   }
 
   static MonadDefer<IO.µ> monadDefer() {
-    return new IOMonadDefer() {};
+    return IOMonadDefer.INSTANCE;
   }
 
   static <A> Reference<IO.µ, A> ref(A value) {
@@ -64,6 +62,8 @@ public interface IOInstances {
 @Instance
 interface IOFunctor extends Functor<IO.µ> {
 
+  IOFunctor INSTANCE = new IOFunctor() { };
+
   @Override
   default <T, R> Higher1<IO.µ, R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
     return IO.narrowK(value).map(map).kind1();
@@ -71,21 +71,9 @@ interface IOFunctor extends Functor<IO.µ> {
 }
 
 @Instance
-interface IOComonad extends IOFunctor, Comonad<IO.µ> {
-
-  @Override
-  default <A, B> Higher1<IO.µ, B> coflatMap(Higher1<IO.µ, A> value, Function1<Higher1<IO.µ, A>, B> map) {
-    return IO.task(() -> map.apply(value)).kind1();
-  }
-
-  @Override
-  default <A> A extract(Higher1<IO.µ, A> value) {
-    return IO.narrowK(value).unsafeRunSync();
-  }
-}
-
-@Instance
 interface IOMonad extends Monad<IO.µ> {
+
+  IOMonad INSTANCE = new IOMonad() { };
 
   @Override
   default <T> Higher1<IO.µ, T> pure(T value) {
@@ -101,6 +89,8 @@ interface IOMonad extends Monad<IO.µ> {
 @Instance
 interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
+  IOMonadError INSTANCE = new IOMonadError() { };
+
   @Override
   default <A> Higher1<IO.µ, A> raiseError(Throwable error) {
     return IO.<A>raiseError(error).kind1();
@@ -112,7 +102,10 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
   }
 }
 
-@Instance
+interface IOMonadThrow extends MonadThrow<IO.µ>, IOMonadError {
+  IOMonadThrow INSTANCE = new IOMonadThrow() { };
+}
+
 interface IODefer extends Defer<IO.µ> {
 
   @Override
@@ -121,13 +114,17 @@ interface IODefer extends Defer<IO.µ> {
   }
 }
 
-@Instance
-interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer {
+interface IOBracket extends Bracket<IO.µ> {
 
   @Override
   default <A, B> Higher1<IO.µ, B> bracket(Higher1<IO.µ, A> acquire, Function1<A, ? extends Higher1<IO.µ, B>> use, Consumer1<A> release) {
     return IO.bracket(IO.narrowK(acquire), use.andThen(IO::narrowK), release::accept).kind1();
   }
+}
+
+@Instance
+interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer, IOBracket {
+  IOMonadDefer INSTANCE = new IOMonadDefer() { };
 }
 
 @Instance

@@ -53,6 +53,10 @@ public interface ZIOInstances {
   static <R, A> Reference<Higher1<Higher1<ZIO.µ, R>, Throwable>, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
+
+  static <R> Console<Higher1<Higher1<ZIO.µ, R>, Throwable>> console() {
+    return new ConsoleZIO<>();
+  }
 }
 
 @Instance
@@ -131,10 +135,7 @@ interface ZIOMonadThrow<R>
   ZIOMonadThrow<?> INSTANCE = new ZIOMonadThrow<Object>() { };
 }
 
-@Instance
 interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
-
-  ZIODefer<?> INSTANCE = new ZIODefer<Object>() { };
 
   @Override
   default <A> Higher3<ZIO.µ, R, Throwable, A>
@@ -143,10 +144,7 @@ interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
   }
 }
 
-@Instance
 interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
-
-  ZIOBracket<?> INSTANCE = new ZIOBracket<Object>() { };
 
   @Override
   default <A, B> Higher3<ZIO.µ, R, Throwable, B>

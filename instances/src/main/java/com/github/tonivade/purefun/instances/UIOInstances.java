@@ -22,28 +22,28 @@ import com.github.tonivade.purefun.effect.UIO;
 
 public interface UIOInstances {
 
-  static <E> Functor<UIO.µ> functor() {
-    return new UIOFunctor() {};
+  static Functor<UIO.µ> functor() {
+    return UIOFunctor.INSTANCE;
   }
 
-  static <E> Applicative<UIO.µ> applicative() {
-    return new UIOApplicative() {};
+  static Applicative<UIO.µ> applicative() {
+    return UIOApplicative.INSTANCE;
   }
 
-  static <E> Monad<UIO.µ> monad() {
-    return new UIOMonad() {};
+  static Monad<UIO.µ> monad() {
+    return UIOMonad.INSTANCE;
   }
 
-  static <E> MonadError<UIO.µ, Throwable> monadError() {
-    return new UIOMonadError() {};
+  static MonadError<UIO.µ, Throwable> monadError() {
+    return UIOMonadError.INSTANCE;
   }
 
   static MonadThrow<UIO.µ> monadThrow() {
-    return new UIOMonadThrow() { };
+    return UIOMonadThrow.INSTANCE;
   }
 
   static MonadDefer<UIO.µ> monadDefer() {
-    return new UIOMonadDefer() { };
+    return UIOMonadDefer.INSTANCE;
   }
 
   static <A> Reference<UIO.µ, A> ref(A value) {
@@ -54,13 +54,14 @@ public interface UIOInstances {
 @Instance
 interface UIOFunctor extends Functor<UIO.µ> {
 
+  UIOFunctor INSTANCE = new UIOFunctor() { };
+
   @Override
   default <A, B> Higher1<UIO.µ, B> map(Higher1<UIO.µ, A> value, Function1<A, B> map) {
     return UIO.narrowK(value).map(map).kind1();
   }
 }
 
-@Instance
 interface UIOPure extends Applicative<UIO.µ> {
 
   @Override
@@ -72,6 +73,8 @@ interface UIOPure extends Applicative<UIO.µ> {
 @Instance
 interface UIOApplicative extends UIOPure {
 
+  UIOApplicative INSTANCE = new UIOApplicative() { };
+
   @Override
   default <A, B> Higher1<UIO.µ, B> ap(Higher1<UIO.µ, A> value, Higher1<UIO.µ, Function1<A, B>> apply) {
     return UIO.narrowK(apply).flatMap(map -> UIO.narrowK(value).map(map)).kind1();
@@ -81,6 +84,8 @@ interface UIOApplicative extends UIOPure {
 @Instance
 interface UIOMonad extends UIOPure, Monad<UIO.µ> {
 
+  UIOMonad INSTANCE = new UIOMonad() { };
+
   @Override
   default <A, B> Higher1<UIO.µ, B> flatMap(Higher1<UIO.µ, A> value, Function1<A, ? extends Higher1<UIO.µ, B>> map) {
     return UIO.narrowK(value).flatMap(map.andThen(UIO::narrowK)).kind1();
@@ -89,6 +94,8 @@ interface UIOMonad extends UIOPure, Monad<UIO.µ> {
 
 @Instance
 interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
+
+  UIOMonadError INSTANCE = new UIOMonadError() { };
 
   @Override
   default <A> Higher1<UIO.µ, A> raiseError(Throwable error) {
@@ -109,9 +116,10 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
 @Instance
 interface UIOMonadThrow
     extends UIOMonadError,
-            MonadThrow<UIO.µ> { }
+            MonadThrow<UIO.µ> {
+  UIOMonadThrow INSTANCE = new UIOMonadThrow() { };
+}
 
-@Instance
 interface UIODefer extends Defer<UIO.µ> {
 
   @Override
@@ -121,7 +129,6 @@ interface UIODefer extends Defer<UIO.µ> {
   }
 }
 
-@Instance
 interface UIOBracket extends Bracket<UIO.µ> {
 
   @Override
@@ -138,4 +145,6 @@ interface UIOMonadDefer
     extends MonadDefer<UIO.µ>,
             UIOMonadThrow,
             UIODefer,
-            UIOBracket { }
+            UIOBracket {
+  UIOMonadDefer INSTANCE = new UIOMonadDefer() { };
+}
