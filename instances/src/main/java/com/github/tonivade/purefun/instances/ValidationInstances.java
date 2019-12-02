@@ -32,32 +32,34 @@ public interface ValidationInstances {
   }
 
   static <E> Functor<Higher1<Validation.µ, E>> functor() {
-    return new ValidationFunctor<E>() {};
+    return (ValidationFunctor<E>) ValidationFunctor.INSTANCE;
   }
 
   static Bifunctor<Validation.µ> bifunctor() {
-    return new ValidationBifunctor() {};
+    return ValidationBifunctor.INSTANCE;
   }
 
   static <E> Applicative<Higher1<Validation.µ, E>> applicative() {
-    return new ValidationApplicative<E>() {};
+    return (ValidationApplicative<E>) ValidationApplicative.INSTANCE;
   }
 
   static <E> Monad<Higher1<Validation.µ, E>> monad() {
-    return new ValidationMonad<E>() {};
+    return (ValidationMonad<E>) ValidationMonad.INSTANCE;
   }
 
   static <E> MonadError<Higher1<Validation.µ, E>, E> monadError() {
-    return new ValidationMonadError<E>() {};
+    return (ValidationMonadError<E>) ValidationMonadError.INSTANCE;
   }
 
   static MonadThrow<Higher1<Validation.µ, Throwable>> monadThrow() {
-    return new ValidationMonadThrow() {};
+    return ValidationMonadThrow.INSTANCE;
   }
 }
 
 @Instance
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
+
+  ValidationFunctor<?> INSTANCE = new ValidationFunctor() { };
 
   @Override
   default <T, R> Higher2<Validation.µ, E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
@@ -68,6 +70,8 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 @Instance
 interface ValidationBifunctor extends Bifunctor<Validation.µ> {
 
+  ValidationBifunctor INSTANCE = new ValidationBifunctor() { };
+
   @Override
   default <A, B, C, D> Higher2<Validation.µ, C, D> bimap(Higher2<Validation.µ, A, B> value,
       Function1<A, C> leftMap, Function1<B, D> rightMap) {
@@ -75,7 +79,6 @@ interface ValidationBifunctor extends Bifunctor<Validation.µ> {
   }
 }
 
-@Instance
 interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
 
   @Override
@@ -87,6 +90,8 @@ interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
 @Instance
 interface ValidationApplicative<E> extends ValidationPure<E> {
 
+  ValidationApplicative<?> INSTANCE = new ValidationApplicative() { };
+
   @Override
   default <T, R> Higher2<Validation.µ, E, R> ap(Higher1<Higher1<Validation.µ, E>, T> value,
       Higher1<Higher1<Validation.µ, E>, Function1<T, R>> apply) {
@@ -97,6 +102,8 @@ interface ValidationApplicative<E> extends ValidationPure<E> {
 @Instance
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation.µ, E>> {
 
+  ValidationMonad<?> INSTANCE = new ValidationMonad() { };
+
   @Override
   default <T, R> Higher2<Validation.µ, E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
       Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
@@ -106,6 +113,8 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
 
 @Instance
 interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation.µ, E>, E> {
+
+  ValidationMonadError<?> INSTANCE = new ValidationMonadError() { };
 
   @Override
   default <A> Higher2<Validation.µ, E, A> raiseError(E error) {
@@ -122,4 +131,6 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
 @Instance
 interface ValidationMonadThrow
     extends ValidationMonadError<Throwable>,
-            MonadThrow<Higher1<Validation.µ, Throwable>> { }
+            MonadThrow<Higher1<Validation.µ, Throwable>> {
+  ValidationMonadThrow INSTANCE = new ValidationMonadThrow() { };
+}

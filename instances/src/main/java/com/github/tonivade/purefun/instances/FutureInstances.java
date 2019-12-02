@@ -74,9 +74,11 @@ interface FutureFunctor extends Functor<Future.µ> {
   }
 }
 
-interface FuturePure extends Applicative<Future.µ> {
-
+interface ExecutorHolder {
   Executor executor();
+}
+
+interface FuturePure extends Applicative<Future.µ>, ExecutorHolder {
 
   @Override
   default <T> Higher1<Future.µ, T> pure(T value) {
@@ -132,9 +134,7 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future.µ> {
 }
 
 @Instance
-interface FutureDefer extends Defer<Future.µ> {
-
-  Executor executor();
+interface FutureDefer extends Defer<Future.µ>, ExecutorHolder {
 
   @Override
   default <A> Higher1<Future.µ, A> defer(Producer<Higher1<Future.µ, A>> defer) {
@@ -143,9 +143,7 @@ interface FutureDefer extends Defer<Future.µ> {
 }
 
 @Instance
-interface FutureBracket extends Bracket<Future.µ> {
-
-  Executor executor();
+interface FutureBracket extends Bracket<Future.µ>, ExecutorHolder {
 
   @Override
   default <A, B> Higher1<Future.µ, B> bracket(Higher1<Future.µ, A> acquire, Function1<A, ? extends Higher1<Future.µ, B>> use, Consumer1<A> release) {

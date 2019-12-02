@@ -21,28 +21,31 @@ import static com.github.tonivade.purefun.Conested.counnest;
 public interface Function1Instances {
 
   static <T> Functor<Higher1<Function1.µ, T>> functor() {
-    return new Function1Functor<T>() {};
+    return (Function1Functor<T>) Function1Functor.INSTANCE;
   }
 
   static <T> Applicative<Higher1<Function1.µ, T>> applicative() {
-    return new Function1Applicative<T>() {};
+    return (Function1Applicative<T>) Function1Applicative.INSTANCE;
   }
 
   static <T> Monad<Higher1<Function1.µ, T>> monad() {
-    return new Function1Monad<T>() {};
+    return (Function1Monad<T>) Function1Monad.INSTANCE;
   }
 
   static <T> Contravariant<Conested<Function1.µ, T>> contravariant() {
-    return new Function1Contravariant<T>() {};
+    return (Function1Contravariant<T>) Function1Contravariant.INSTANCE;
   }
 
   static Profunctor<Function1.µ> profunctor() {
-    return new Function1Profunctor() {};
+    return Function1Profunctor.INSTANCE;
   }
 }
 
 @Instance
 interface Function1Functor<T> extends Functor<Higher1<Function1.µ, T>> {
+
+  Function1Functor<?> INSTANCE = new Function1Functor() { };
+
   @Override
   default <A, R> Higher2<Function1.µ, T, R> map(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, R> map) {
     Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
@@ -51,6 +54,7 @@ interface Function1Functor<T> extends Functor<Higher1<Function1.µ, T>> {
 }
 
 interface Function1Pure<T> extends Applicative<Higher1<Function1.µ, T>> {
+
   @Override
   default <A> Higher2<Function1.µ, T, A> pure(A value) {
     return Function1.<T, A>cons(value).kind2();
@@ -59,6 +63,9 @@ interface Function1Pure<T> extends Applicative<Higher1<Function1.µ, T>> {
 
 @Instance
 interface Function1Applicative<T> extends Function1Pure<T> {
+
+  Function1Applicative<?> INSTANCE = new Function1Applicative() { };
+
   @Override
   default <A, R> Higher2<Function1.µ, T, R> ap(Higher1<Higher1<Function1.µ, T>, A> value, Higher1<Higher1<Function1.µ, T>, Function1<A, R>> apply) {
     Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
@@ -69,6 +76,9 @@ interface Function1Applicative<T> extends Function1Pure<T> {
 
 @Instance
 interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ, T>> {
+
+  Function1Monad<?> INSTANCE = new Function1Monad() { };
+
   @Override
   default <A, R> Higher2<Function1.µ, T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
     Function1<T, A> function = Higher2.narrowK(value).fix2(Function1::narrowK);
@@ -78,6 +88,9 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ
 
 @Instance
 interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ, R>> {
+
+  Function1Contravariant<?> INSTANCE = new Function1Contravariant() { };
+
   @Override
   default <A, B> Higher1<Conested<Function1.µ, R>, B> contramap(Higher1<Conested<Function1.µ, R>, A> value, Function1<B, A> map) {
     Function1<A, R> function = counnest(value).fix1(Function1::narrowK);
@@ -87,6 +100,9 @@ interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ,
 
 @Instance
 interface Function1Profunctor extends Profunctor<Function1.µ> {
+
+  Function1Profunctor INSTANCE = new Function1Profunctor() { };
+
   @Override
   default <A, B, C, D> Higher2<Function1.µ, C, D> dimap(Higher2<Function1.µ, A, B> value, Function1<C, A> contramap, Function1<B, D> map) {
     Function1<A, B> function = value.fix2(Function1::narrowK);
