@@ -79,7 +79,7 @@ public interface SequenceInstances {
 @Instance
 interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 
-  SequenceSemigroup<?> INSTANCE = new SequenceSemigroup() { };
+  SequenceSemigroup<?> INSTANCE = new SequenceSemigroup<Object>() { };
 
   @Override
   default Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
@@ -90,7 +90,7 @@ interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 @Instance
 interface SequenceMonoid<T> extends SequenceSemigroup<T>, Monoid<Sequence<T>> {
 
-  SequenceMonoid<?> INSTANCE = new SequenceMonoid() { };
+  SequenceMonoid<?> INSTANCE = new SequenceMonoid<Object>() { };
 
   @Override
   default Sequence<T> zero() {
