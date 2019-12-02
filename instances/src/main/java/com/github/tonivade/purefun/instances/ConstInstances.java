@@ -13,10 +13,11 @@ import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
+@SuppressWarnings("unchecked")
 public interface ConstInstances {
 
   static <T, A> Eq<Higher1<Higher1<Const.µ, T>, A>> eq(Eq<T> eq) {
-    return (a, b) -> eq.eqv(a.fix1(Const::narrowK).get(), a.fix1(Const::<T, A>narrowK).get());
+    return (a, b) -> eq.eqv(a.fix1(Const::narrowK).get(), a.fix1(Const::narrowK).get());
   }
 
   static <T> Functor<Higher1<Const.µ, T>> functor() {
@@ -31,7 +32,7 @@ public interface ConstInstances {
 @Instance
 interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
 
-  ConstFunctor<?> INSTANCE = new ConstFunctor() { };
+  ConstFunctor<?> INSTANCE = new ConstFunctor<Object>() { };
 
   @Override
   default <A, B> Higher2<Const.µ, T, B> map(Higher1<Higher1<Const.µ, T>, A> value, Function1<A, B> map) {

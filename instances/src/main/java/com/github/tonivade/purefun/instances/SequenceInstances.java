@@ -24,6 +24,7 @@ import com.github.tonivade.purefun.typeclasses.Semigroup;
 import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
+@SuppressWarnings("unchecked")
 public interface SequenceInstances {
 
   static <T> Eq<Higher1<Sequence.µ, T>> eq(Eq<T> eqElement) {

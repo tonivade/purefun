@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
+@SuppressWarnings("unchecked")
 public interface ValidationInstances {
 
   static <E, T> Eq<Higher2<Validation.µ, E, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
@@ -59,7 +60,7 @@ public interface ValidationInstances {
 @Instance
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 
-  ValidationFunctor<?> INSTANCE = new ValidationFunctor() { };
+  ValidationFunctor<?> INSTANCE = new ValidationFunctor<Object>() { };
 
   @Override
   default <T, R> Higher2<Validation.µ, E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
@@ -90,7 +91,7 @@ interface ValidationPure<E> extends Applicative<Higher1<Validation.µ, E>> {
 @Instance
 interface ValidationApplicative<E> extends ValidationPure<E> {
 
-  ValidationApplicative<?> INSTANCE = new ValidationApplicative() { };
+  ValidationApplicative<?> INSTANCE = new ValidationApplicative<Object>() { };
 
   @Override
   default <T, R> Higher2<Validation.µ, E, R> ap(Higher1<Higher1<Validation.µ, E>, T> value,
@@ -102,7 +103,7 @@ interface ValidationApplicative<E> extends ValidationPure<E> {
 @Instance
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation.µ, E>> {
 
-  ValidationMonad<?> INSTANCE = new ValidationMonad() { };
+  ValidationMonad<?> INSTANCE = new ValidationMonad<Object>() { };
 
   @Override
   default <T, R> Higher2<Validation.µ, E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
@@ -114,7 +115,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
 @Instance
 interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation.µ, E>, E> {
 
-  ValidationMonadError<?> INSTANCE = new ValidationMonadError() { };
+  ValidationMonadError<?> INSTANCE = new ValidationMonadError<Object>() { };
 
   @Override
   default <A> Higher2<Validation.µ, E, A> raiseError(E error) {

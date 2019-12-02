@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.typeclasses.Profunctor;
 import static com.github.tonivade.purefun.Conested.conest;
 import static com.github.tonivade.purefun.Conested.counnest;
 
+@SuppressWarnings("unchecked")
 public interface Function1Instances {
 
   static <T> Functor<Higher1<Function1.µ, T>> functor() {
@@ -44,7 +45,7 @@ public interface Function1Instances {
 @Instance
 interface Function1Functor<T> extends Functor<Higher1<Function1.µ, T>> {
 
-  Function1Functor<?> INSTANCE = new Function1Functor() { };
+  Function1Functor<?> INSTANCE = new Function1Functor<Object>() { };
 
   @Override
   default <A, R> Higher2<Function1.µ, T, R> map(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, R> map) {
@@ -64,7 +65,7 @@ interface Function1Pure<T> extends Applicative<Higher1<Function1.µ, T>> {
 @Instance
 interface Function1Applicative<T> extends Function1Pure<T> {
 
-  Function1Applicative<?> INSTANCE = new Function1Applicative() { };
+  Function1Applicative<?> INSTANCE = new Function1Applicative<Object>() { };
 
   @Override
   default <A, R> Higher2<Function1.µ, T, R> ap(Higher1<Higher1<Function1.µ, T>, A> value, Higher1<Higher1<Function1.µ, T>, Function1<A, R>> apply) {
@@ -77,7 +78,7 @@ interface Function1Applicative<T> extends Function1Pure<T> {
 @Instance
 interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ, T>> {
 
-  Function1Monad<?> INSTANCE = new Function1Monad() { };
+  Function1Monad<?> INSTANCE = new Function1Monad<Object>() { };
 
   @Override
   default <A, R> Higher2<Function1.µ, T, R> flatMap(Higher1<Higher1<Function1.µ, T>, A> value, Function1<A, ? extends Higher1<Higher1<Function1.µ, T>, R>> map) {
@@ -89,7 +90,7 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Higher1<Function1.µ
 @Instance
 interface Function1Contravariant<R> extends Contravariant<Conested<Function1.µ, R>> {
 
-  Function1Contravariant<?> INSTANCE = new Function1Contravariant() { };
+  Function1Contravariant<?> INSTANCE = new Function1Contravariant<Object>() { };
 
   @Override
   default <A, B> Higher1<Conested<Function1.µ, R>, B> contramap(Higher1<Conested<Function1.µ, R>, A> value, Function1<B, A> map) {

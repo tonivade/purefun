@@ -25,6 +25,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
+@SuppressWarnings("unchecked")
 public interface EitherInstances {
 
   static <L, R> Eq<Higher2<Either.µ, L, R>> eq(Eq<L> leftEq, Eq<R> rightEq) {
@@ -74,7 +75,7 @@ public interface EitherInstances {
 @Instance
 interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
 
-  EitherFunctor<?> INSTANCE = new EitherFunctor() { };
+  EitherFunctor<?> INSTANCE = new EitherFunctor<Object>() { };
 
   @Override
   default <T, R> Higher2<Either.µ, L, R> map(Higher1<Higher1<Either.µ, L>, T> value, Function1<T, R> map) {
@@ -105,7 +106,7 @@ interface EitherPure<L> extends Applicative<Higher1<Either.µ, L>> {
 @Instance
 interface EitherApplicative<L> extends EitherPure<L> {
 
-  EitherApplicative<?> INSTANCE = new EitherApplicative() { };
+  EitherApplicative<?> INSTANCE = new EitherApplicative<Object>() { };
 
   @Override
   default <T, R> Higher2<Either.µ, L, R> ap(Higher1<Higher1<Either.µ, L>, T> value,
@@ -117,7 +118,7 @@ interface EitherApplicative<L> extends EitherPure<L> {
 @Instance
 interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
 
-  EitherMonad<?> INSTANCE = new EitherMonad() { };
+  EitherMonad<?> INSTANCE = new EitherMonad<Object>() { };
 
   @Override
   default <T, R> Higher2<Either.µ, L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
@@ -129,7 +130,7 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
 @Instance
 interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.µ, L>, L> {
 
-  EitherMonadError<?> INSTANCE = new EitherMonadError() { };
+  EitherMonadError<?> INSTANCE = new EitherMonadError<Object>() { };
 
   @Override
   default <A> Higher2<Either.µ, L, A> raiseError(L error) {
@@ -151,7 +152,7 @@ interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Highe
 @Instance
 interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
 
-  EitherFoldable<?> INSTANCE = new EitherFoldable() { };
+  EitherFoldable<?> INSTANCE = new EitherFoldable<Object>() { };
 
   @Override
   default <A, B> B foldLeft(Higher1<Higher1<Either.µ, L>, A> value, B initial, Function2<B, A, B> mapper) {
@@ -168,7 +169,7 @@ interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
 @Instance
 interface EitherTraverse<L> extends Traverse<Higher1<Either.µ, L>>, EitherFoldable<L> {
 
-  EitherTraverse<?> INSTANCE = new EitherTraverse() { };
+  EitherTraverse<?> INSTANCE = new EitherTraverse<Object>() { };
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either.µ, L>, R>> traverse(
