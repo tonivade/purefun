@@ -11,15 +11,18 @@ import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.Reader;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
+@SuppressWarnings("unchecked")
 public interface ReaderInstances {
 
   static <R> Monad<Higher1<Reader.µ, R>> monad() {
-    return new ReaderMonad<R>() {};
+    return (ReaderMonad<R>) ReaderMonad.INSTANCE;
   }
 }
 
 @Instance
 interface ReaderMonad<R> extends Monad<Higher1<Reader.µ, R>> {
+
+  ReaderMonad<?> INSTANCE = new ReaderMonad() { };
 
   @Override
   default <T> Higher2<Reader.µ, R, T> pure(T value) {

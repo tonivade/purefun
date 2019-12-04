@@ -55,7 +55,7 @@ public interface ZIOInstances {
   }
 
   static <R> Console<Higher1<Higher1<ZIO.µ, R>, Throwable>> console() {
-    return new ConsoleZIO<>();
+    return (ConsoleZIO<R>) ConsoleZIO.INSTANCE;
   }
 }
 
@@ -167,6 +167,8 @@ interface ZIOMonadDefer<R>
 
 @Instance
 final class ConsoleZIO<R> implements Console<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
+
+  static final ConsoleZIO<?> INSTANCE = new ConsoleZIO();
 
   private final SystemConsole console = new SystemConsole();
 

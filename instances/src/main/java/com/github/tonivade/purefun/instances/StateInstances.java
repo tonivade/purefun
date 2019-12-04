@@ -17,19 +17,22 @@ import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
+@SuppressWarnings("unchecked")
 public interface StateInstances {
 
   static <S> Monad<Higher1<State.µ, S>> monad() {
-    return new StateMonad<S>() { };
+    return (StateMonad<S>) StateMonad.INSTANCE;
   }
 
   static Console<Higher1<State.µ, ImmutableList<String>>> console() {
-    return new ConsoleState();
+    return ConsoleState.INSTANCE;
   }
 }
 
 @Instance
 interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
+
+  StateMonad<?> INSTANCE = new StateMonad<Object>() { };
 
   @Override
   default <T> Higher2<State.µ, S, T> pure(T value) {
@@ -45,6 +48,8 @@ interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
 
 @Instance
 final class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
+
+  static final ConsoleState INSTANCE = new ConsoleState();
 
   @Override
   public Higher2<State.µ, ImmutableList<String>, String> readln() {
