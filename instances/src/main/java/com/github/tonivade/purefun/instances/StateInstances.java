@@ -49,7 +49,7 @@ interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
 @Instance
 final class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
 
-  static final ConsoleState INSTANCE = new ConsoleState();
+  protected static final ConsoleState INSTANCE = new ConsoleState();
 
   @Override
   public Higher2<State.µ, ImmutableList<String>, String> readln() {
