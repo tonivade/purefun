@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import java.sql.SQLException;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import org.junit.jupiter.api.Test;
 
@@ -184,6 +186,16 @@ public class ZIOTest {
     assertEquals(NumberFormatException.class, future.fix1(IO::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
+  @Test
+  public void testStackSafety() {
+    UIO<Integer> sum = sum(100000, 0);
+
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
+
+    assertThrows(StackOverflowError.class, sum::unsafeRunSync, "ZIO is not stack safe :(");
+    assertEquals(Try.success(705082704), futureSum.await(), "but with a Future interpreter, it works :)");
+  }
+
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
     return ZIO.from(() -> Integer.parseInt(string));
   }
@@ -194,5 +206,12 @@ public class ZIOTest {
 
   private Function1<ResultSet, ZIO<Nothing, Throwable, String>> getString(String column) {
     return resultSet -> ZIO.from(() -> resultSet.getString(column));
+  }
+
+  private UIO<Integer> sum(Integer n, Integer sum) {
+    if ( n == 0) {
+      return UIO.pure(sum);
+    }
+    return UIO.defer(() -> sum( n - 1, sum + n));
   }
 }

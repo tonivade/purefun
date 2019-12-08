@@ -43,7 +43,8 @@ public class TrampolineTest {
     assertAll(
         () -> assertEquals(5050, sum(100)),
         () -> assertEquals(20100, sum(200)),
-        () -> assertEquals(45150, sum(300))
+        () -> assertEquals(45150, sum(300)),
+        () -> assertEquals(705082704, sum(100000))
         );
   }
 

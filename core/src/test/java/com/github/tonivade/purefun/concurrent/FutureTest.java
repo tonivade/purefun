@@ -260,6 +260,13 @@ public class FutureTest {
     assertEquals(4, result.size());
   }
 
+  @Test
+  public void testStackSafety() {
+    Future<Integer> sum = sum(100000, 0);
+
+    assertEquals(Try.success(705082704), sum.await(), "future is stack safe :)");
+  }
+
   @BeforeEach
   public void setUp() {
     initMocks(this);
@@ -267,5 +274,12 @@ public class FutureTest {
 
   private Future<Unit> currentThread(Executor executor, List<String> result) {
     return Future.exec(executor, () -> result.add(Thread.currentThread().getName()));
+  }
+
+  private Future<Integer> sum(Integer n, Integer sum) {
+    if ( n == 0) {
+      return Future.success(sum);
+    }
+    return Future.defer(() -> sum( n - 1, sum + n));
   }
 }
