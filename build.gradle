@@ -30,7 +30,7 @@ allprojects {
   apply plugin: 'com.bmuschko.nexus'
 
   group = 'com.github.tonivade'
-  version = '1.5'
+  version = '1.6-SNAPSHOT'
 
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
