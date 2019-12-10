@@ -64,4 +64,8 @@ public interface Function2<A, B, R> extends Recoverable {
   static <A, B, R> Function2<A, B, R> of(Function2<A, B, R> reference) {
     return reference;
   }
+
+  static <A, B, R> Function2<A, B, R> cons(R value) {
+    return (a, b) -> value;
+  }
 }

@@ -7,11 +7,13 @@ package com.github.tonivade.purefun.data;
 import static java.util.Objects.requireNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.iterate;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.util.stream.StreamSupport;
@@ -75,6 +77,14 @@ public interface Sequence<E> extends Iterable<E> {
 
   default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
+  }
+
+  default String join(String separator) {
+    return stream().map(Object::toString).collect(joining(separator));
+  }
+
+  default String join(String separator, String prefix, String suffix) {
+    return stream().map(Object::toString).collect(joining(separator, prefix, suffix));
   }
 
   default <R> Sequence<R> collect(PartialFunction1<E, R> function) {
