@@ -13,7 +13,6 @@ import static java.util.stream.Stream.iterate;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.util.stream.StreamSupport;
