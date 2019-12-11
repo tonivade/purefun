@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.type.Either;
 import static com.github.tonivade.purefun.Function1.identity;
 
 @TypeClass
-public interface Monad<F extends Kind> extends Applicative<F> {
+public interface Monad<F extends Kind> extends Selective<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
 
@@ -40,5 +40,10 @@ public interface Monad<F extends Kind> extends Applicative<F> {
   @Override
   default <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply) {
     return flatMap(apply, map -> map(value, map));
+  }
+
+  @Override
+  default <A, B> Higher1<F, B> select(Higher1<F, Either<A, B>> value, Higher1<F, Function1<A, B>> apply) {
+    return flatMap(value, either -> either.fold(a -> map(apply, map -> map.apply(a)), this::<B>pure));
   }
 }
