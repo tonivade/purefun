@@ -410,7 +410,9 @@ With higher kinded types simulation we can implement typeclases.
            |               /       \
          MonoidK   _ Applicative   Traverse -- Foldable
            |      /      |      \
-       Alternative      Monad    ApplicativeError
+       Alternative    Selective   ApplicativeError
+                         |        |
+                        Monad    /
                          |      /
                       MonadError
                            \
