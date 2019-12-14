@@ -102,15 +102,46 @@ public class ValidatorTest {
 
   @Test
   public void combine() {
-    Validator<String, String> lowercase =
+    Validator<String, String> validator =
         Validator.<String>nonNull()
-            .andThen(Validator.combine(Validator.nonEmpty(), Validator.match("[a-z]+"), join()));
+            .orElse(Validator.combine(Validator.nonEmpty(), Validator.match("[a-z]+"), join()));
 
     assertAll(
-      () -> assertEquals(Validation.valid("abc"), lowercase.validate("abc")),
-      () -> assertEquals(Validation.invalid("require non null"), lowercase.validate(null)),
-      () -> assertEquals(Validation.invalid("require non empty string,should match expresion: [a-z]+"), lowercase.validate("")),
-      () -> assertEquals(Validation.invalid("should match expresion: [a-z]+"), lowercase.validate("123"))
+        () -> assertEquals(Validation.valid("abc"), validator.validate("abc")),
+        () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
+        () -> assertEquals(Validation.invalid("require non empty string,should match expresion: [a-z]+"), validator.validate("")),
+        () -> assertEquals(Validation.invalid("should match expresion: [a-z]+"), validator.validate("123"))
+    );
+  }
+
+  @Test
+  public void combine3() {
+    Validator<String, String> validator =
+        Validator.<String>nonNull()
+            .orElse(Validator.combine(Validator.nonEmpty(), Validator.startsWith("a"), Validator.endsWith("z"), join()));
+
+    assertAll(
+        () -> assertEquals(Validation.valid("abz"), validator.validate("abz")),
+        () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
+        () -> assertEquals(Validation.invalid("require non empty string,require start with: a,require end with: z"), validator.validate("")),
+        () -> assertEquals(Validation.invalid("require start with: a,require end with: z"), validator.validate("b")),
+        () -> assertEquals(Validation.invalid("require end with: z"), validator.validate("ab"))
+    );
+  }
+
+  @Test
+  public void combine4() {
+    Validator<String, String> validator =
+        Validator.<String>nonNull()
+            .orElse(Validator.combine(Validator.nonEmpty(), Validator.startsWith("a"), Validator.contains("b"), Validator.endsWith("z"), join()));
+
+    assertAll(
+      () -> assertEquals(Validation.valid("abz"), validator.validate("abz")),
+      () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
+      () -> assertEquals(Validation.invalid("require non empty string,require start with: a,require contain string: b,require end with: z"), validator.validate("")),
+      () -> assertEquals(Validation.invalid("require start with: a,require contain string: b,require end with: z"), validator.validate("c")),
+      () -> assertEquals(Validation.invalid("require contain string: b,require end with: z"), validator.validate("ac")),
+      () -> assertEquals(Validation.invalid("require end with: z"), validator.validate("ab"))
     );
   }
 

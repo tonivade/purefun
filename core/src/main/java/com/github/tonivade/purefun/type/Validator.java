@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.data.Sequence;
 
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static com.github.tonivade.purefun.Function1.identity;
@@ -37,12 +36,17 @@ public interface Validator<E, T> {
 
   Validation<E, T> validate(T value);
 
+  default <F> Validator<F, T> mapError(Function1<E, F> mapper) {
+    requireNonNull(mapper);
+    return value -> validate(value).mapError(mapper);
+  }
+
   default <R> Validator<E, R> compose(Function1<R, T> getter) {
     requireNonNull(getter);
     return value -> validate(getter.apply(value)).map(Function1.cons(value));
   }
 
-  default Validator<E, T> andThen(Validator<E, T> then) {
+  default Validator<E, T> orElse(Validator<E, T> then) {
     requireNonNull(then);
     return value -> validate(value).flatMap(then::validate);
   }
@@ -177,16 +181,7 @@ public interface Validator<E, T> {
                                            Validator<E, T> v2,
                                            Validator<E, T> v3,
                                            Function1<Sequence<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(v3);
-    requireNonNull(reduce);
-    return value -> map3(
-        v1.validate(value),
-        v2.validate(value),
-        v3.validate(value),
-        Function3.cons(value))
-        .mapError(reduce);
+    return combine(combine(v1, v2), v3.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
   }
 
   static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
@@ -201,18 +196,7 @@ public interface Validator<E, T> {
                                            Validator<E, T> v3,
                                            Validator<E, T> v4,
                                            Function1<Sequence<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(v3);
-    requireNonNull(v4);
-    requireNonNull(reduce);
-    return value -> map4(
-        v1.validate(value),
-        v2.validate(value),
-        v3.validate(value),
-        v4.validate(value),
-        Function4.cons(value))
-        .mapError(reduce);
+    return combine(combine(v1, v2, v3), v4.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
   }
 
   static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
@@ -229,20 +213,7 @@ public interface Validator<E, T> {
                                            Validator<E, T> v4,
                                            Validator<E, T> v5,
                                            Function1<Sequence<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(v3);
-    requireNonNull(v4);
-    requireNonNull(v5);
-    requireNonNull(reduce);
-    return value -> map5(
-        v1.validate(value),
-        v2.validate(value),
-        v3.validate(value),
-        v4.validate(value),
-        v5.validate(value),
-        Function5.cons(value))
-        .mapError(reduce);
+    return combine(combine(v1, v2, v3, v4), v5.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
   }
 
   static <T> Validator<String, T> nonNull() {
@@ -384,7 +355,7 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<String>nonNull()
-        .andThen(combine(minLength(start), maxLength(end), join(message)));
+        .orElse(combine(minLength(start), maxLength(end), join(message)));
   }
 
   static Validator<String, Integer> range(int start, int end) {
@@ -396,7 +367,11 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<Integer>nonNull()
-        .andThen(combine(minValue(start), maxValue(end), join(message)));
+        .orElse(combine(minValue(start), maxValue(end), join(message)));
+  }
+
+  static <E> Function1<Sequence<Sequence<E>>, Sequence<E>> flatten() {
+    return seqOfSeqs -> seqOfSeqs.flatMap(identity());
   }
 
   static <E> Function1<Sequence<E>, String> join() {
