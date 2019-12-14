@@ -14,7 +14,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
-import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -36,7 +35,7 @@ public class FoldableLaws {
                                                                     Operator2<A> combinator) {
     assertEquals(
         instance.foldM(OptionInstances.monad(), value, initial, combinator.andThen(Option::some).andThen(Option::kind1)),
-        instance.reduce(value, combinator),
+        instance.reduce(value, combinator).kind1(),
         "reduce consistent law");
   }
 
@@ -46,7 +45,7 @@ public class FoldableLaws {
                                                         Operator2<A> combinator) {
     assertEquals(
         instance.foldM(IdInstances.monad(), value, initial, combinator.andThen(Id::of).andThen(Id::kind1)),
-        Id.of(instance.foldLeft(value, initial, combinator)),
+        Id.of(instance.foldLeft(value, initial, combinator)).kind1(),
         "foldM identity");
   }
 
