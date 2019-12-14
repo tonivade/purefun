@@ -65,6 +65,10 @@ public interface Function2<A, B, R> extends Recoverable {
     return reference;
   }
 
+  static <A, B, R> Function2<A, B, R> uncurried(Function1<A, Function1<B, R>> function) {
+    return (a, b) -> function.apply(a).apply(b);
+  }
+
   static <A, B, R> Function2<A, B, R> cons(R value) {
     return (a, b) -> value;
   }

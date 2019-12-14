@@ -45,6 +45,14 @@ public interface Applicative<F extends Kind> extends Functor<F> {
     return ap(fe, map4(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
 
+  default <A, B> Higher1<F, A> first(Higher1<F, A> fa, Higher1<F, B> fb) {
+    return map2(fa, fb, (a, b) -> a);
+  }
+
+  default <A, B> Higher1<F, B> last(Higher1<F, A> fa, Higher1<F, B> fb) {
+    return map2(fa, fb, (a, b) -> b);
+  }
+
   static <F extends Kind, G extends Kind> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {
     return new ComposedApplicative<F, G>() {
 
