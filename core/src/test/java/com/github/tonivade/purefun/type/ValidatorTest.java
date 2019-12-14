@@ -17,6 +17,7 @@ import java.util.Objects;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Validator.join;
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -109,7 +110,8 @@ public class ValidatorTest {
     assertAll(
         () -> assertEquals(Validation.valid("abc"), validator.validate("abc")),
         () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
-        () -> assertEquals(Validation.invalid("require non empty string,should match expresion: [a-z]+"), validator.validate("")),
+        () -> assertEquals(Validation.invalid(
+            "require non empty string,should match expresion: [a-z]+"), validator.validate("")),
         () -> assertEquals(Validation.invalid("should match expresion: [a-z]+"), validator.validate("123"))
     );
   }
@@ -127,8 +129,11 @@ public class ValidatorTest {
     assertAll(
         () -> assertEquals(Validation.valid("abz"), validator.validate("abz")),
         () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
-        () -> assertEquals(Validation.invalid("require non empty string,require start with: a,require end with: z"), validator.validate("")),
-        () -> assertEquals(Validation.invalid("require start with: a,require end with: z"), validator.validate("b")),
+        () -> assertEquals(Validation.invalid(
+            "require non empty string,require start with: a,require end with: z"),
+            validator.validate("")),
+        () -> assertEquals(Validation.invalid("require start with: a,require end with: z"),
+            validator.validate("b")),
         () -> assertEquals(Validation.invalid("require end with: z"), validator.validate("ab"))
     );
   }
@@ -147,32 +152,47 @@ public class ValidatorTest {
     assertAll(
         () -> assertEquals(Validation.valid("abz"), validator.validate("abz")),
         () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
-        () -> assertEquals(Validation.invalid("require non empty string,require start with: a,require contain string: b,require end with: z"), validator.validate("")),
-        () -> assertEquals(Validation.invalid("require start with: a,require contain string: b,require end with: z"), validator.validate("c")),
-        () -> assertEquals(Validation.invalid("require contain string: b,require end with: z"), validator.validate("ac")),
+        () -> assertEquals(Validation.invalid(
+            "require non empty string,require start with: a,require contain string: b,require end with: z"),
+            validator.validate("")),
+        () -> assertEquals(Validation.invalid(
+            "require start with: a,require contain string: b,require end with: z"),
+            validator.validate("c")),
+        () -> assertEquals(Validation.invalid(
+            "require contain string: b,require end with: z"),
+            validator.validate("ac")),
         () -> assertEquals(Validation.invalid("require end with: z"), validator.validate("ab"))
     );
   }
 
   @Test
   public void combine5() {
-    Validator<String, String> validator =
-        Validator.<String>nonNull()
-            .orElse(Validator.combine(
+    Validator<Sequence<String>, String> validator =
+            Validator.combine(
                 Validator.nonEmpty(),
                 Validator.startsWith("a"),
                 Validator.contains("b"),
                 Validator.endsWith("z"),
-                Validator.valid(),
-                join()));
+                Validator.lower());
 
     assertAll(
         () -> assertEquals(Validation.valid("abz"), validator.validate("abz")),
-        () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
-        () -> assertEquals(Validation.invalid("require non empty string,require start with: a,require contain string: b,require end with: z"), validator.validate("")),
-        () -> assertEquals(Validation.invalid("require start with: a,require contain string: b,require end with: z"), validator.validate("c")),
-        () -> assertEquals(Validation.invalid("require contain string: b,require end with: z"), validator.validate("ac")),
-        () -> assertEquals(Validation.invalid("require end with: z"), validator.validate("ab"))
+        () -> assertEquals(Validation.invalid(listOf(
+            "require non empty string",
+            "require start with: a",
+            "require contain string: b",
+            "require end with: z")), validator.validate("")),
+        () -> assertEquals(Validation.invalid(listOf(
+            "require start with: a",
+            "require contain string: b",
+            "require end with: z")), validator.validate("c")),
+        () -> assertEquals(Validation.invalid(listOf(
+            "require contain string: b",
+            "require end with: z")), validator.validate("ac")),
+        () -> assertEquals(Validation.invalid(listOf("require end with: z")),
+            validator.validate("ab")),
+        () -> assertEquals(Validation.invalid(listOf("require lowercase string")),
+            validator.validate("abCz"))
     );
   }
 
@@ -202,8 +222,7 @@ public class ValidatorTest {
     Tuple3<Integer, String, String> valid = Tuple.of(10, "some name", "asdfg");
     assertAll(
         () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
-        () -> assertEquals(Validation.invalid(
-            listOf(
+        () -> assertEquals(Validation.invalid(listOf(
                 "require min value: 0",
                 "require non empty string",
                 "should match expresion: [a-z]+")),
@@ -223,8 +242,7 @@ public class ValidatorTest {
     Tuple4<Integer, String, String, Integer> valid = Tuple.of(10, "some name", "asdfg", -1);
     assertAll(
         () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
-        () -> assertEquals(Validation.invalid(
-            listOf(
+        () -> assertEquals(Validation.invalid(listOf(
                 "require min value: 0",
                 "require non empty string",
                 "should match expresion: [a-z]+",
@@ -246,8 +264,7 @@ public class ValidatorTest {
     Tuple5<Integer, String, String, Integer, String> valid = Tuple.of(10, "some name", "asdfg", -1, "a jksdfd z");
     assertAll(
         () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
-        () -> assertEquals(Validation.invalid(
-            listOf(
+        () -> assertEquals(Validation.invalid(listOf(
                 "require min value: 0",
                 "require non empty string",
                 "should match expresion: [a-z]+",
@@ -264,8 +281,8 @@ final class Person {
   private final String name;
 
   Person(Integer age, String name) {
-    this.age = age;
-    this.name = name;
+    this.age = requireNonNull(age);
+    this.name = requireNonNull(name);
   }
 
   public Integer getAge() {
