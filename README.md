@@ -446,10 +446,27 @@ public interface Applicative<F extends Kind> extends Functor<F> {
 }
 ```
 
+### Selective
+
+```java
+public interface Selective<F extends Kind> extends Applicative<F> {
+
+  <A, B> Higher1<F, B> select(Higher1<F, Either<A, B>> value, Higher1<F, Function1<A, B>> apply);
+
+  default <A, B, C> Higher1<F, C> branch(Higher1<F, Either<A, B>> value,
+                                         Higher1<F, Function1<A, C>> applyA,
+                                         Higher1<F, Function1<B, C>> applyB) {
+    Higher1<F, Either<A, Either<B, C>>> abc = map(value, either -> either.map(Either::left));
+    Higher1<F, Function1<A, Either<B, C>>> fabc = map(applyA, fb -> fb.andThen(Either::right));
+    return select(select(abc, fabc), applyB);
+  }
+}
+```
+
 ### Monad
 
 ```java
-public interface Monad<F extends Kind> extends Applicative<F> {
+public interface Monad<F extends Kind> extends Selective<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
 
