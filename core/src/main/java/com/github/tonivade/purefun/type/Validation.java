@@ -141,6 +141,12 @@ public interface Validation<E, T> {
 
   ValidationModule module();
 
+  static <E, T, R> Validation<E, R> select(Validation<E, Either<T, R>> validation,
+                                           Validation<E, Function1<T, R>> apply) {
+    return validation.fold(Validation::invalid,
+        either -> either.fold(t -> apply.map(f -> f.apply(t)), Validation::valid));
+  }
+
   static <E, T1, T2, R> Validation<Sequence<E>, R> map2(Validation<E, T1> validation1,
                                                         Validation<E, T2> validation2,
                                                         Function2<T1, T2, R> mapper) {

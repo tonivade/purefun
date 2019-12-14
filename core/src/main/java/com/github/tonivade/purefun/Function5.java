@@ -49,5 +49,9 @@ public interface Function5<A, B, C, D, E, R> extends Recoverable {
   default Function5<A, B, C, D, E, R> memoized() {
     return (a, b, c, d, e) -> new MemoizedFunction<>(tupled()).apply(Tuple.of(a, b, c, d, e));
   }
+
+  static <A, B, C, D, E, R> Function5<A, B, C, D, E, R> cons(R value) {
+    return (a, b, c, d, e) -> value;
+  }
 }
 

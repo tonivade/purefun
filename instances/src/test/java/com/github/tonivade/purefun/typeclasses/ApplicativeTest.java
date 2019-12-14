@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -44,7 +45,7 @@ public class ApplicativeTest {
 
   @Test
   public void validationApplicative() {
-    verifyLaws(ValidationInstances.applicative());
+    verifyLaws(ValidationInstances.applicative(SequenceInstances.semigroup()));
   }
 
   @Test
