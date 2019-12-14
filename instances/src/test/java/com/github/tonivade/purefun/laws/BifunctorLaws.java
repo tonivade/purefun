@@ -15,45 +15,54 @@ import com.github.tonivade.purefun.typeclasses.Bifunctor;
 
 public class BifunctorLaws {
 
-  private static final Function1<String, String> toUpperCase = String::toUpperCase;
-  private static final Function1<String, String> toLowerCase = String::toLowerCase;
-
   public static <F extends Kind> void verifyLaws(Bifunctor<F> bifunctor, Higher2<F, String, String> value) {
     assertAll(() -> identityLaw(bifunctor, value),
-              () -> compositionLaw(bifunctor, value),
+              () -> compositionLaw(bifunctor, value,
+                  String::toUpperCase, String::toLowerCase, String::toUpperCase, String::toLowerCase),
               () -> mapIdentityLaw(bifunctor, value),
-              () -> mapComposition(bifunctor, value),
+              () -> mapComposition(bifunctor, value, String::toUpperCase, String::toLowerCase),
               () -> leftMapIdentityLaw(bifunctor, value),
-              () -> leftMapComposition(bifunctor, value));
+              () -> leftMapComposition(bifunctor, value, String::toUpperCase, String::toLowerCase));
   }
 
-  private static <F extends Kind> void identityLaw(Bifunctor<F> bifunctor, Higher2<F, String, String> value) {
+  private static <F extends Kind, A, B> void identityLaw(Bifunctor<F> bifunctor, Higher2<F, A, B> value) {
     assertEquals(value, bifunctor.bimap(value, identity(), identity()), "identity law");
   }
 
-  private static <F extends Kind> void compositionLaw(Bifunctor<F> bifunctor, Higher2<F, String, String> value) {
-    assertEquals(bifunctor.bimap(bifunctor.bimap(value, toUpperCase, toUpperCase), toLowerCase, toLowerCase),
-        bifunctor.bimap(value, toUpperCase.andThen(toLowerCase), toUpperCase.andThen(toLowerCase)),
+  private static <G extends Kind, A, B, C, D, E, F> void compositionLaw(Bifunctor<G> bifunctor,
+                                                                        Higher2<G, A, B> value,
+                                                                        Function1<A, C> f1,
+                                                                        Function1<C, D> f2,
+                                                                        Function1<B, E> g1,
+                                                                        Function1<E, F> g2) {
+    assertEquals(bifunctor.bimap(bifunctor.bimap(value, f1, g1), f2, g2),
+        bifunctor.bimap(value, f1.andThen(f2), g1.andThen(g2)),
         "composition law");
   }
 
-  private static <F extends Kind> void mapIdentityLaw(Bifunctor<F> functor, Higher2<F, String, String> value) {
+  private static <F extends Kind, A, B> void mapIdentityLaw(Bifunctor<F> functor, Higher2<F, A, B> value) {
     assertEquals(value, functor.map(value, identity()), "map identity law");
   }
 
-  private static <F extends Kind> void mapComposition(Bifunctor<F> functor, Higher2<F, String, String> value) {
-    assertEquals(functor.map(functor.map(value, toUpperCase), toLowerCase),
-                 functor.map(value, toUpperCase.andThen(toLowerCase)),
+  private static <F extends Kind, A, B, C, D> void mapComposition(Bifunctor<F> functor,
+                                                                  Higher2<F, A, B> value,
+                                                                  Function1<B, C> f,
+                                                                  Function1<C, D> g) {
+    assertEquals(functor.map(functor.map(value, f), g),
+                 functor.map(value, f.andThen(g)),
                  "map composition law");
   }
 
-  private static <F extends Kind> void leftMapIdentityLaw(Bifunctor<F> functor, Higher2<F, String, String> value) {
+  private static <F extends Kind, A, B> void leftMapIdentityLaw(Bifunctor<F> functor, Higher2<F, A, B> value) {
     assertEquals(value, functor.leftMap(value, identity()), "left map identity law");
   }
 
-  private static <F extends Kind> void leftMapComposition(Bifunctor<F> functor, Higher2<F, String, String> value) {
-    assertEquals(functor.leftMap(functor.leftMap(value, toUpperCase), toLowerCase),
-                 functor.leftMap(value, toUpperCase.andThen(toLowerCase)),
+  private static <F extends Kind, A, B, C, D> void leftMapComposition(Bifunctor<F> functor,
+                                                                      Higher2<F, A, B> value,
+                                                                      Function1<A, C> f,
+                                                                      Function1<C, D> g) {
+    assertEquals(functor.leftMap(functor.leftMap(value, f), g),
+                 functor.leftMap(value, f.andThen(g)),
                  "left map composition law");
   }
 }

@@ -14,28 +14,21 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 
 public class FunctorLaws {
 
-  private final static Function1<String, String> toUpperCase = String::toUpperCase;
-  private final static Function1<String, String> toLowerCase = String::toLowerCase;
-
   public static <F extends Kind> void verifyLaws(Functor<F> functor, Higher1<F, String> value) {
     assertAll(() -> identity(functor, value),
-              () -> composition(functor, value),
-              () -> associativity(functor, value));
+              () -> composition(functor, value, String::toUpperCase, String::length));
   }
 
-  private static <F extends Kind> void identity(Functor<F> functor, Higher1<F, String> value) {
+  private static <F extends Kind, A> void identity(Functor<F> functor, Higher1<F, A> value) {
     assertEquals(value, functor.map(value, Function1.identity()), "identity law");
   }
 
-  private static <F extends Kind> void composition(Functor<F> functor, Higher1<F, String> value) {
-    assertEquals(functor.map(functor.map(value, toUpperCase), toLowerCase),
-                 functor.map(value, toUpperCase.andThen(toLowerCase)),
+  private static <F extends Kind, A, B, C> void composition(Functor<F> functor,
+                                                            Higher1<F, A> value,
+                                                            Function1<A, B> f,
+                                                            Function1<B, C> g) {
+    assertEquals(functor.map(functor.map(value, f), g),
+                 functor.map(value, f.andThen(g)),
                  "composition law");
-  }
-
-  private static <F extends Kind> void associativity(Functor<F> functor, Higher1<F, String> value) {
-    assertEquals(functor.map(functor.map(value, toUpperCase), toLowerCase.andThen(toUpperCase)),
-                 functor.map(functor.map(value, toUpperCase.andThen(toLowerCase)), toUpperCase),
-                 "associativity law");
   }
 }

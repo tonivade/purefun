@@ -14,30 +14,30 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class MonadLaws {
 
-  private final static Function1<String, String> toUpperCase = String::toUpperCase;
-  private final static Function1<String, String> toLowerCase = String::toLowerCase;
-
   public static <F extends Kind> void verifyLaws(Monad<F> monad) {
-    assertAll(() -> leftIdentity(monad, monad.pure("hola mundo!")),
+    assertAll(() -> leftIdentity(monad, monad.pure("hola mundo!"), String::toUpperCase),
               () -> rightIdentity(monad, monad.pure("hola mundo!")),
-              () -> associativity(monad, monad.pure("hola mundo!")));
+              () -> associativity(monad, monad.pure("hola mundo!"), String::toLowerCase, String::length));
   }
 
-  private static <F extends Kind> void leftIdentity(Monad<F> monad, Higher1<F, String> value) {
-    assertEquals(monad.map(value, toUpperCase),
-                 monad.flatMap(value, string -> monad.pure(toUpperCase.apply(string))),
+  private static <F extends Kind, A, B> void leftIdentity(Monad<F> monad, Higher1<F, A> value, Function1<A, B> f) {
+    assertEquals(monad.map(value, f),
+                 monad.flatMap(value, a -> monad.pure(f.apply(a))),
                  "left identity law");
   }
 
-  private static <F extends Kind> void rightIdentity(Monad<F> monad, Higher1<F, String> value) {
+  private static <F extends Kind, A> void rightIdentity(Monad<F> monad, Higher1<F, A> value) {
     assertEquals(value,
-                 monad.flatMap(value, string -> monad.pure(string)),
+                 monad.flatMap(value, monad::<A>pure),
                  "right identity law");
   }
 
-  private static <F extends Kind> void associativity(Monad<F> monad, Higher1<F, String> value) {
-    assertEquals(monad.flatMap(monad.flatMap(value, v1 -> monad.pure(toUpperCase.apply(v1))), v2 -> monad.pure(toLowerCase.apply(v2))),
-                 monad.flatMap(value, v1 -> monad.flatMap(monad.pure(toUpperCase.apply(v1)), v2 -> monad.pure(toLowerCase.apply(v2)))),
+  private static <F extends Kind, A, B, C> void associativity(Monad<F> monad,
+                                                              Higher1<F, A> value,
+                                                              Function1<A, B> f,
+                                                              Function1<B, C> g) {
+    assertEquals(monad.flatMap(monad.flatMap(value, v1 -> monad.pure(f.apply(v1))), v2 -> monad.pure(g.apply(v2))),
+                 monad.flatMap(value, v1 -> monad.flatMap(monad.pure(f.apply(v1)), v2 -> monad.pure(g.apply(v2)))),
                  "associativity law");
   }
 }

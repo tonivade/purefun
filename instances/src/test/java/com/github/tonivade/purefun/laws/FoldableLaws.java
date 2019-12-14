@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -23,40 +24,51 @@ public class FoldableLaws {
 
   public static <F extends Kind> void verifyLaws(Foldable<F> instance, Higher1<F, String> value) {
     assertAll(
-        () -> foldLeftConsistentWithFoldMap(instance, value, String::toUpperCase),
-        () -> foldRightConsistentWithFoldMap(instance, value, String::toUpperCase),
-        () -> foldMIdentity(instance, value, String::concat),
-        () -> reduceConsistentWithFoldM(instance, value, String::concat));
+        () -> foldLeftConsistentWithFoldMap(instance, Monoid.string(), "", value, String::toUpperCase),
+        () -> foldRightConsistentWithFoldMap(instance, Monoid.string(), "", value, String::toUpperCase),
+        () -> foldMIdentity(instance, "", value, String::concat),
+        () -> reduceConsistentWithFoldM(instance, "", value, String::concat));
   }
 
-  private static <F extends Kind> void reduceConsistentWithFoldM(Foldable<F> instance,
-      Higher1<F, String> value, Operator2<String> combinator) {
+  private static <F extends Kind, A> void reduceConsistentWithFoldM(Foldable<F> instance,
+                                                                    A initial,
+                                                                    Higher1<F, A> value,
+                                                                    Operator2<A> combinator) {
     assertEquals(
-        instance.foldM(OptionInstances.monad(), value, "", combinator.andThen(Option::some).andThen(Option::kind1)),
-        instance.reduce(value, combinator));
+        instance.foldM(OptionInstances.monad(), value, initial, combinator.andThen(Option::some).andThen(Option::kind1)),
+        instance.reduce(value, combinator),
+        "reduce consistent law");
   }
 
-  private static <F extends Kind> void foldMIdentity(Foldable<F> instance,
-      Higher1<F, String> value, Operator2<String> combinator) {
+  private static <F extends Kind, A> void foldMIdentity(Foldable<F> instance,
+                                                        A initial,
+                                                        Higher1<F, A> value,
+                                                        Operator2<A> combinator) {
     assertEquals(
-        instance.foldM(IdInstances.monad(), value, "", combinator.andThen(Id::of).andThen(Id::kind1)),
-        Id.of(instance.foldLeft(value, "", combinator)),
+        instance.foldM(IdInstances.monad(), value, initial, combinator.andThen(Id::of).andThen(Id::kind1)),
+        Id.of(instance.foldLeft(value, initial, combinator)),
         "foldM identity");
   }
 
-  private static <F extends Kind> void foldLeftConsistentWithFoldMap(Foldable<F> instance,
-      Higher1<F, String> value, Function1<String, String> mapper) {
+  private static <F extends Kind, A, B> void foldLeftConsistentWithFoldMap(Foldable<F> instance,
+                                                                           Monoid<B> monoid,
+                                                                           B initial,
+                                                                           Higher1<F, A> value,
+                                                                           Function1<A, B> mapper) {
     assertEquals(
-        instance.foldLeft(value, "", (b, a) -> b + mapper.apply(a)),
-        instance.foldMap(Monoid.string(), value, mapper),
+        instance.foldLeft(value, initial, (b, a) -> monoid.combine(b, mapper.apply(a))),
+        instance.foldMap(monoid, value, mapper),
         "foldLeft consistent with foldMap");
   }
 
-  private static <F extends Kind> void foldRightConsistentWithFoldMap(Foldable<F> instance,
-      Higher1<F, String> value, Function1<String, String> mapper) {
+  private static <F extends Kind, A, B> void foldRightConsistentWithFoldMap(Foldable<F> instance,
+                                                                            Monoid<B> monoid,
+                                                                            B initial,
+                                                                            Higher1<F, A> value,
+                                                                            Function1<A, B> mapper) {
     assertEquals(
-        instance.foldRight(value, now(""), (a, lb) -> lb.map(b -> mapper.apply(a) + b)).value(),
-        instance.foldMap(Monoid.string(), value, mapper),
+        instance.foldRight(value, now(initial), (a, lb) -> lb.map(b -> monoid.combine(mapper.apply(a), b))).value(),
+        instance.foldMap(monoid, value, mapper),
         "foldRight consistent with foldMap");
   }
 }

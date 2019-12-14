@@ -14,41 +14,42 @@ import com.github.tonivade.purefun.typeclasses.Comonad;
 
 public class ComonadLaws {
 
-  private static final Function1<String, String> toUpperCase = String::toUpperCase;
-
   public static <F extends Kind> void verifyLaws(Comonad<F> comonad, Higher1<F, String> value) {
     assertAll(
         () -> extractCoflattenIdentity(comonad, value),
         () -> mapCoflattenIdentity(comonad, value),
-        () -> mapCoflatMapCoherence(comonad, value),
+        () -> mapCoflatMapCoherence(comonad, value, String::toUpperCase),
         () -> comonadLeftIdentity(comonad, value),
         () -> comonadRightIdentity(comonad, value, comonad::extract));
   }
 
-  private static <F extends Kind> void extractCoflattenIdentity(Comonad<F> comonad, Higher1<F, String> value) {
+  private static <F extends Kind, A> void extractCoflattenIdentity(Comonad<F> comonad, Higher1<F, A> value) {
     assertEquals(value, comonad.extract(comonad.coflatten(value)), "extract coflatten identity");
   }
 
-  private static <F extends Kind> void mapCoflattenIdentity(Comonad<F> comonad, Higher1<F, String> value) {
+  private static <F extends Kind, A> void mapCoflattenIdentity(Comonad<F> comonad, Higher1<F, A> value) {
     assertEquals(value, comonad.map(comonad.coflatten(value), comonad::extract), "map coflatten identity");
   }
 
-  private static <F extends Kind> void mapCoflatMapCoherence(Comonad<F> comonad, Higher1<F, String> value) {
+  private static <F extends Kind, A, B> void mapCoflatMapCoherence(Comonad<F> comonad,
+                                                                   Higher1<F, A> value,
+                                                                   Function1<A, B> f) {
     assertEquals(
-        comonad.map(value, toUpperCase),
-        comonad.coflatMap(value, toUpperCase.compose(comonad::extract)),
+        comonad.map(value, f),
+        comonad.coflatMap(value, f.compose(comonad::extract)),
         "map coflatMap coherence");
   }
 
-  private static <F extends Kind> void comonadLeftIdentity(Comonad<F> comonad, Higher1<F, String> value) {
+  private static <F extends Kind, A> void comonadLeftIdentity(Comonad<F> comonad, Higher1<F, A> value) {
     assertEquals(value, comonad.coflatMap(value, comonad::extract), "comonad left identity");
   }
 
-  private static <F extends Kind> void comonadRightIdentity(Comonad<F> comonad, Higher1<F, String> value,
-      Function1<Higher1<F, String>, String> coflatMap) {
+  private static <F extends Kind, A, B> void comonadRightIdentity(Comonad<F> comonad,
+                                                                  Higher1<F, A> value,
+                                                                  Function1<Higher1<F, A>, B> f) {
     assertEquals(
-        coflatMap.andThen(toUpperCase).apply(value),
-        comonad.extract(comonad.coflatMap(value, coflatMap.andThen(toUpperCase))),
+        comonad.extract(comonad.coflatMap(value, f)),
+        f.apply(value),
         "comonad right identity");
   }
 }
