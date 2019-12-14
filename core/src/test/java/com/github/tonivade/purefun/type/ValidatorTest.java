@@ -7,14 +7,16 @@ package com.github.tonivade.purefun.type;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Tuple3;
+import com.github.tonivade.purefun.Tuple4;
+import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.data.Sequence;
 import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.type.Validator.combine;
+import static com.github.tonivade.purefun.type.Validator.join;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -99,10 +101,10 @@ public class ValidatorTest {
   }
 
   @Test
-  public void test() {
+  public void combine() {
     Validator<String, String> lowercase =
         Validator.<String>nonNull()
-            .andThen(combine(Validator.nonEmpty(), Validator.match("[a-z]+"), seq -> seq.join(",")));
+            .andThen(Validator.combine(Validator.nonEmpty(), Validator.match("[a-z]+"), join()));
 
     assertAll(
       () -> assertEquals(Validation.valid("abc"), lowercase.validate("abc")),
@@ -113,17 +115,83 @@ public class ValidatorTest {
   }
 
   @Test
-  public void pojo() {
+  public void product2() {
     Validator<String, Integer> ageValidator = Validator.positive(() -> "age must be positive");
     Validator<String, String> nameValidator = Validator.nonEmpty(() -> "name must be non empty");
     Validator<Sequence<String>, Tuple2<Integer, String>> validator =
-        Validator.product(ageValidator, nameValidator, identity());
+        Validator.product(ageValidator, nameValidator);
 
     assertAll(
         () -> assertEquals(Validation.valid(new Person(10, "some name")),
             validator.validate(Tuple.of(10, "some name")).map(Tuple.applyTo(Person::new))),
         () -> assertEquals(Validation.invalid(listOf("age must be positive", "name must be non empty")),
             validator.validate(Tuple.of(-1, "")))
+    );
+  }
+
+  @Test
+  public void product3() {
+    Validator<String, Integer> v1 = Validator.positive();
+    Validator<String, String> v2 = Validator.nonEmpty();
+    Validator<String, String> v3 = Validator.match("[a-z]+");
+    Validator<Sequence<String>, Tuple3<Integer, String, String>> validator =
+        Validator.product(v1, v2, v3);
+
+    Tuple3<Integer, String, String> valid = Tuple.of(10, "some name", "asdfg");
+    assertAll(
+        () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
+        () -> assertEquals(Validation.invalid(
+            listOf(
+                "require min value: 0",
+                "require non empty string",
+                "should match expresion: [a-z]+")),
+            validator.validate(Tuple.of(-1, "", "")))
+    );
+  }
+
+  @Test
+  public void product4() {
+    Validator<String, Integer> v1 = Validator.positive();
+    Validator<String, String> v2 = Validator.nonEmpty();
+    Validator<String, String> v3 = Validator.match("[a-z]+");
+    Validator<String, Integer> v4 = Validator.negative();
+    Validator<Sequence<String>, Tuple4<Integer, String, String, Integer>> validator =
+        Validator.product(v1, v2, v3, v4);
+
+    Tuple4<Integer, String, String, Integer> valid = Tuple.of(10, "some name", "asdfg", -1);
+    assertAll(
+        () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
+        () -> assertEquals(Validation.invalid(
+            listOf(
+                "require min value: 0",
+                "require non empty string",
+                "should match expresion: [a-z]+",
+                "require max value: 0")),
+            validator.validate(Tuple.of(-1, "", "", 1)))
+    );
+  }
+
+  @Test
+  public void product5() {
+    Validator<String, Integer> v1 = Validator.positive();
+    Validator<String, String> v2 = Validator.nonEmpty();
+    Validator<String, String> v3 = Validator.match("[a-z]+");
+    Validator<String, Integer> v4 = Validator.negative();
+    Validator<String, String> v5 = Validator.combine(Validator.startsWith("a"), Validator.endsWith("z"), join(" and "));
+    Validator<Sequence<String>, Tuple5<Integer, String, String, Integer, String>> validator =
+        Validator.product(v1, v2, v3, v4, v5);
+
+    Tuple5<Integer, String, String, Integer, String> valid = Tuple.of(10, "some name", "asdfg", -1, "a jksdfd z");
+    assertAll(
+        () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
+        () -> assertEquals(Validation.invalid(
+            listOf(
+                "require min value: 0",
+                "require non empty string",
+                "should match expresion: [a-z]+",
+                "require max value: 0",
+                "require start with: a and require end with: z")),
+            validator.validate(Tuple.of(-1, "", "", 1, "x")))
     );
   }
 }

@@ -15,7 +15,6 @@ import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.Unit.unit;
@@ -24,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -157,19 +155,5 @@ public class SelectiveTest {
         () -> assertEquals(true, match.fix1(IO::narrowK).unsafeRunSync()),
         () -> assertEquals(false, notMatch.fix1(IO::narrowK).unsafeRunSync())
     );
-  }
-
-  @Test
-  @Disabled("stack overflow error")
-  public void whileS() {
-    Producer<Boolean> mock = mock(Producer.class);
-    when(mock.get()).thenReturn(false);
-    IO<Boolean> effect = IO.task(mock);
-
-    Higher1<IO.µ, Unit> whileS = monad.whileS(effect.kind1());
-
-    whileS.fix1(IO::narrowK).unsafeRunSync();
-
-    verify(mock, times(3)).get();
   }
 }

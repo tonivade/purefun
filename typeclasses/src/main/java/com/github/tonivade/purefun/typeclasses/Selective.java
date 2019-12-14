@@ -49,11 +49,6 @@ public interface Selective<F extends Kind> extends Applicative<F> {
     return values.foldRight(pure(true), (a, b) -> andS(b, condition.apply(a)));
   }
 
-  // XXX: StackOverflowError
-  default Higher1<F, Unit> whileS(Higher1<F, Boolean> value) {
-    return whenS(value, whileS(value));
-  }
-
   default Higher1<F, Either<Unit, Unit>> selector(Higher1<F, Boolean> value) {
     return map(value, when -> when ? Either.left(unit()) : Either.right(unit()));
   }

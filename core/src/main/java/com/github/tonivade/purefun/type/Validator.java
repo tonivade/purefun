@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.isNotNull;
 import static com.github.tonivade.purefun.Matcher1.not;
 import static com.github.tonivade.purefun.type.Validation.invalid;
@@ -52,6 +53,11 @@ public interface Validator<E, T> {
     return value -> matcher.match(value) ? valid(value) : invalid(error.get());
   }
 
+  static <E, A, B> Validator<Sequence<E>, Tuple2<A, B>> product(Validator<E, A> v1,
+                                                                Validator<E, B> v2) {
+    return product(v1, v2, identity());
+  }
+
   static <E, F, A, B> Validator<F, Tuple2<A, B>> product(Validator<E, A> v1,
                                                          Validator<E, B> v2,
                                                          Function1<Sequence<E>, F> reduce) {
@@ -63,6 +69,12 @@ public interface Validator<E, T> {
         v2.validate(value.get2()),
         Function2.cons(value))
         .mapError(reduce);
+  }
+
+  static <E, A, B, C> Validator<Sequence<E>, Tuple3<A, B, C>> product(Validator<E, A> v1,
+                                                                      Validator<E, B> v2,
+                                                                      Validator<E, C> v3) {
+    return product(v1, v2, v3, identity());
   }
 
   static <E, F, A, B, C> Validator<F, Tuple3<A, B, C>> product(Validator<E, A> v1,
@@ -79,6 +91,13 @@ public interface Validator<E, T> {
         v3.validate(value.get3()),
         Function3.cons(value))
         .mapError(reduce);
+  }
+
+  static <E, A, B, C, D> Validator<Sequence<E>, Tuple4<A, B, C, D>> product(Validator<E, A> v1,
+                                                                            Validator<E, B> v2,
+                                                                            Validator<E, C> v3,
+                                                                            Validator<E, D> v4) {
+    return product(v1, v2, v3, v4, identity());
   }
 
   static <E, F, A, B, C, D> Validator<F, Tuple4<A, B, C, D>> product(Validator<E, A> v1,
@@ -98,6 +117,14 @@ public interface Validator<E, T> {
         v4.validate(value.get4()),
         Function4.cons(value))
         .mapError(reduce);
+  }
+
+  static <F, A, B, C, D, E> Validator<Sequence<F>, Tuple5<A, B, C, D, E>> product(Validator<F, A> v1,
+                                                                                  Validator<F, B> v2,
+                                                                                  Validator<F, C> v3,
+                                                                                  Validator<F, D> v4,
+                                                                                  Validator<F, E> v5) {
+    return product(v1, v2, v3, v4, v5, identity());
   }
 
   static <F, G, A, B, C, D, E> Validator<G, Tuple5<A, B, C, D, E>> product(Validator<F, A> v1,
@@ -122,6 +149,11 @@ public interface Validator<E, T> {
         .mapError(reduce);
   }
 
+  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+                                                  Validator<E, T> v2) {
+    return combine(v1, v2, identity());
+  }
+
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
                                            Validator<E, T> v2,
                                            Function1<Sequence<E>, F> reduce) {
@@ -133,6 +165,12 @@ public interface Validator<E, T> {
         v2.validate(value),
         Function2.cons(value))
         .mapError(reduce);
+  }
+
+  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+                                                  Validator<E, T> v2,
+                                                  Validator<E, T> v3) {
+    return combine(v1, v2, v3, identity());
   }
 
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
@@ -149,6 +187,13 @@ public interface Validator<E, T> {
         v3.validate(value),
         Function3.cons(value))
         .mapError(reduce);
+  }
+
+  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+                                                  Validator<E, T> v2,
+                                                  Validator<E, T> v3,
+                                                  Validator<E, T> v4) {
+    return combine(v1, v2, v3, v4, identity());
   }
 
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
@@ -168,6 +213,14 @@ public interface Validator<E, T> {
         v4.validate(value),
         Function4.cons(value))
         .mapError(reduce);
+  }
+
+  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+                                                  Validator<E, T> v2,
+                                                  Validator<E, T> v3,
+                                                  Validator<E, T> v4,
+                                                  Validator<E, T> v5) {
+    return combine(v1, v2, v3, v4, v5, identity());
   }
 
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
@@ -229,7 +282,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> startsWith(String prefix, Producer<String> message) {
-    if (Objects.nonNull(prefix)) {
+    if (isNull(prefix)) {
       throw new IllegalArgumentException("prefix should not be null");
     }
     return from(value -> value.startsWith(prefix), message);
@@ -240,7 +293,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> contains(String substring, Producer<String> message) {
-    if (Objects.nonNull(substring)) {
+    if (isNull(substring)) {
       throw new IllegalArgumentException("string should not be null");
     }
     return from(value -> value.contains(substring), message);
@@ -251,7 +304,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> endsWith(String suffix, Producer<String> message) {
-    if (Objects.nonNull(suffix)) {
+    if (isNull(suffix)) {
       throw new IllegalArgumentException("suffix should not be null");
     }
     return from(value -> value.endsWith(suffix), message);
@@ -331,7 +384,7 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<String>nonNull()
-        .andThen(combine(minLength(start), maxLength(end), seq -> seq.join(",", message.get(), "")));
+        .andThen(combine(minLength(start), maxLength(end), join(message)));
   }
 
   static Validator<String, Integer> range(int start, int end) {
@@ -343,6 +396,22 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<Integer>nonNull()
-        .andThen(combine(minValue(start), maxValue(end), seq -> seq.join(",", message.get(), "")));
+        .andThen(combine(minValue(start), maxValue(end), join(message)));
+  }
+
+  static <E> Function1<Sequence<E>, String> join() {
+    return join(",");
+  }
+
+  static <E> Function1<Sequence<E>, String> join(String separator) {
+    return seq -> seq.join(separator);
+  }
+
+  static <E> Function1<Sequence<E>, String> join(Producer<String> message) {
+    return join(",", message);
+  }
+
+  static <E> Function1<Sequence<E>, String> join(String separator, Producer<String> message) {
+    return seq -> seq.join(separator, message.get(), "");
   }
 }
