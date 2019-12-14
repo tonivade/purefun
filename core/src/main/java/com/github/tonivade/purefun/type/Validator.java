@@ -22,12 +22,10 @@ import java.util.regex.Pattern;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.isNotNull;
 import static com.github.tonivade.purefun.Matcher1.not;
-import static com.github.tonivade.purefun.type.Validation.invalid;
 import static com.github.tonivade.purefun.type.Validation.map2;
 import static com.github.tonivade.purefun.type.Validation.map3;
 import static com.github.tonivade.purefun.type.Validation.map4;
 import static com.github.tonivade.purefun.type.Validation.map5;
-import static com.github.tonivade.purefun.type.Validation.valid;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
@@ -54,7 +52,7 @@ public interface Validator<E, T> {
   static <E, T> Validator<E, T> from(Matcher1<T> matcher, Producer<E> error) {
     requireNonNull(matcher);
     requireNonNull(error);
-    return value -> matcher.match(value) ? valid(value) : invalid(error.get());
+    return value -> matcher.match(value) ? Validation.valid(value) : Validation.invalid(error.get());
   }
 
   static <E, A, B> Validator<Sequence<E>, Tuple2<A, B>> product(Validator<E, A> v1,
@@ -214,6 +212,14 @@ public interface Validator<E, T> {
                                            Validator<E, T> v5,
                                            Function1<Sequence<E>, F> reduce) {
     return combine(combine(v1, v2, v3, v4), v5.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
+  }
+
+  static <E, T> Validator<E, T> valid() {
+    return Validation::valid;
+  }
+
+  static <E, T> Validator<E, T> invalid(E error) {
+    return value -> Validation.invalid(error);
   }
 
   static <T> Validator<String, T> nonNull() {
