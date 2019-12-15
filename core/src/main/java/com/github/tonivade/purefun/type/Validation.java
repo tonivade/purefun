@@ -349,7 +349,7 @@ public interface Validation<E, T> {
       return errors.iterator();
     }
 
-    static <E> Result<E> of(E... errors) {
+    public static <E> Result<E> of(E... errors) {
       return new Result<>(listOf(errors));
     }
 
@@ -360,7 +360,7 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this).comparing(x -> x.errors).applyTo(obj);
+      return Equal.of(this).comparing(r -> r.errors).applyTo(obj);
     }
 
     @Override
@@ -368,7 +368,7 @@ public interface Validation<E, T> {
       return "Result(" + errors + ")";
     }
 
-    static <E> Function1<Result<Result<E>>, Result<E>> flatten() {
+    public static <E> Function1<Result<Result<E>>, Result<E>> flatten() {
       return result -> new Result<>(result.errors.flatMap(r -> r.errors));
     }
   }
