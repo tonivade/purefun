@@ -164,6 +164,8 @@ public interface Option<T> {
 
     private static final long serialVersionUID = 7757183287962895363L;
 
+    private static final Equal<Some> EQUAL = Equal.of(Some.class).comparing(Option::get);
+
     private final T value;
 
     private Some(T value) {
@@ -197,9 +199,7 @@ public interface Option<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
-          .comparing(Option::get)
-          .applyTo(obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

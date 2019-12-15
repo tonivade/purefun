@@ -252,9 +252,9 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
+      return Equal.of(Valid.class)
           .comparing(Valid::get)
-          .applyTo(obj);
+          .applyTo(this, obj);
     }
 
     @Override
@@ -305,9 +305,9 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
+      return Equal.of(Invalid.class)
           .comparing(Invalid::getError)
-          .applyTo(obj);
+          .applyTo(this, obj);
     }
 
     @Override
@@ -365,7 +365,7 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this).comparing(r -> r.errors).applyTo(obj);
+      return Equal.of(Result.class).comparing(r -> r.errors).applyTo(this, obj);
     }
 
     @Override

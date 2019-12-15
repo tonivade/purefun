@@ -51,7 +51,7 @@ public final class With<A> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this).comparing(With::get).applyTo(obj);
+    return Equal.of(With.class).comparing(With::get).applyTo(this, obj);
   }
 
   public static <T> With<T> with(T value) {

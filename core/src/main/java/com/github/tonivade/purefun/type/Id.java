@@ -49,7 +49,7 @@ public final class Id<T> implements Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this).comparing(Id::get).applyTo(obj);
+    return Equal.of(Id.class).comparing(Id::get).applyTo(this, obj);
   }
 
   @Override

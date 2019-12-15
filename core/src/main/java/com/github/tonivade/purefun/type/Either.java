@@ -220,9 +220,9 @@ public interface Either<L, R> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
+      return Equal.of(Left.class)
           .comparing(Either::getLeft)
-          .applyTo(obj);
+          .applyTo(this, obj);
     }
 
     @Override
@@ -271,9 +271,9 @@ public interface Either<L, R> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
+      return Equal.of(Right.class)
           .comparing(Either::getRight)
-          .applyTo(obj);
+          .applyTo(this, obj);
     }
 
     @Override

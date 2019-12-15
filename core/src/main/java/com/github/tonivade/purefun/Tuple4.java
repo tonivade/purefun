@@ -86,12 +86,12 @@ public final class Tuple4<A, B, C, D> implements Tuple, Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this)
+    return Equal.of(Tuple4.class)
         .comparing(Tuple4::get1)
         .comparing(Tuple4::get2)
         .comparing(Tuple4::get3)
         .comparing(Tuple4::get4)
-        .applyTo(obj);
+        .applyTo(this, obj);
   }
 
   @Override

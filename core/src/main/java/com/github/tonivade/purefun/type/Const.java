@@ -36,7 +36,7 @@ public final class Const<T, A> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this).comparing(Const::get).applyTo(obj);
+    return Equal.of(Const.class).comparing(Const::get).applyTo(this, obj);
   }
 
   @Override

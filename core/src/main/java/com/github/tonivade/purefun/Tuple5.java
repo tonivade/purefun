@@ -97,13 +97,13 @@ public final class Tuple5<A, B, C, D, E> implements Tuple, Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this)
+    return Equal.of(Tuple5.class)
         .comparing(Tuple5::get1)
         .comparing(Tuple5::get2)
         .comparing(Tuple5::get3)
         .comparing(Tuple5::get4)
         .comparing(Tuple5::get5)
-        .applyTo(obj);
+        .applyTo(this, obj);
   }
 
   @Override

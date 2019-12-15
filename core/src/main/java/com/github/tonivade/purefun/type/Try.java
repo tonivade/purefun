@@ -192,6 +192,8 @@ public interface Try<T> {
 
     private static final long serialVersionUID = -3934628369477099278L;
 
+    private static final Equal<Success> EQUAL = Equal.of(Success.class).comparing(Try::get);
+
     private final T value;
 
     private Success(T value) {
@@ -230,9 +232,7 @@ public interface Try<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
-          .comparing(Try::get)
-          .applyTo(obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override
@@ -244,6 +244,9 @@ public interface Try<T> {
   final class Failure<T> implements Try<T>, Serializable {
 
     private static final long serialVersionUID = -8155444386075553318L;
+
+    private static final Equal<Failure> EQUAL =
+        Equal.of(Failure.class).comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
 
     private final Throwable cause;
 
@@ -291,10 +294,7 @@ public interface Try<T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
-          .comparing(Failure::getMessage)
-          .comparingArray(Failure::getStackTrace)
-          .applyTo(obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

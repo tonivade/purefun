@@ -172,9 +172,9 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
-          .append((a, b) -> Objects.equals(a.backend, b.backend))
-          .applyTo(obj);
+      return Equal.of(JavaBasedImmutableSet.class)
+          .comparing(x -> x.backend)
+          .applyTo(this, obj);
     }
 
     @Override

@@ -289,10 +289,10 @@ final class Person {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this)
+    return Equal.of(Person.class)
         .comparing(Person::getAge)
         .comparing(Person::getName)
-        .applyTo(obj);
+        .applyTo(this, obj);
   }
 
   @Override

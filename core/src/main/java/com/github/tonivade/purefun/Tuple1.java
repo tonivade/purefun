@@ -50,9 +50,9 @@ public final class Tuple1<A> implements Tuple, Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this)
+    return Equal.of(Tuple1.class)
         .comparing(Tuple1::get1)
-        .applyTo(obj);
+        .applyTo(this, obj);
   }
 
   @Override

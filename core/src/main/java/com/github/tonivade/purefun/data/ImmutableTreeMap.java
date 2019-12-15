@@ -279,9 +279,9 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
-          .append((a, b) -> Objects.equals(a.backend, b.backend))
-          .applyTo(obj);
+      return Equal.of(JavaBasedImmutableTreeMap.class)
+          .comparing(a -> a.backend)
+          .applyTo(this, obj);
     }
 
     @Override

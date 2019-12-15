@@ -83,10 +83,10 @@ class Employee {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this)
+    return Equal.of(Employee.class)
         .comparing(Employee::getName)
         .comparing(Employee::getAddress)
-        .applyTo(obj);
+        .applyTo(this, obj);
   }
 }
 
@@ -112,8 +112,8 @@ class Address {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this)
+    return Equal.of(Address.class)
         .comparing(Address::getCity)
-        .applyTo(obj);
+        .applyTo(this, obj);
   }
 }

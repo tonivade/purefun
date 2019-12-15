@@ -167,10 +167,10 @@ public interface HList<L extends HList<L>> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(this)
+      return Equal.of(HCons.class)
           .comparing(HCons::head)
           .comparing(HCons::tail)
-          .applyTo(obj);
+          .applyTo(this, obj);
     }
 
     @Override

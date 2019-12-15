@@ -107,7 +107,7 @@ public final class NonEmptyList<E> implements ImmutableList<E> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(this).comparing(v -> v.value).applyTo(obj);
+    return Equal.of(NonEmptyList.class).comparing(v -> v.value).applyTo(this, obj);
   }
 
   @Override
