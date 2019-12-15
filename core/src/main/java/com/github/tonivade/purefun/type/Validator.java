@@ -44,7 +44,7 @@ public interface Validator<E, T> {
     return value -> validate(getter.apply(value)).map(Function1.cons(value));
   }
 
-  default Validator<E, T> orElse(Validator<E, T> then) {
+  default Validator<E, T> andThen(Validator<E, T> then) {
     requireNonNull(then);
     return value -> validate(value).flatMap(then::validate);
   }
@@ -361,7 +361,7 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<String>nonNull()
-        .orElse(combine(minLength(start), maxLength(end), join(message)));
+        .andThen(combine(minLength(start), maxLength(end), join(message)));
   }
 
   static Validator<String, Integer> range(int start, int end) {
@@ -373,7 +373,7 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<Integer>nonNull()
-        .orElse(combine(minValue(start), maxValue(end), join(message)));
+        .andThen(combine(minValue(start), maxValue(end), join(message)));
   }
 
   static <E> Function1<Sequence<Sequence<E>>, Sequence<E>> flatten() {
