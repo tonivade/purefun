@@ -2,20 +2,16 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.type;
+package com.github.tonivade.purefun;
 
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Tuple3;
-import com.github.tonivade.purefun.Tuple4;
-import com.github.tonivade.purefun.Tuple5;
+import com.github.tonivade.purefun.type.Validation;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.type.Validation.Result;
 
 import java.util.Objects;
 
-import static com.github.tonivade.purefun.type.Validator.join;
+import static com.github.tonivade.purefun.Validator.join;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,7 +23,7 @@ public class ValidatorTest {
     Validator<String, Integer> validator = Validator.range(10, 20);
 
     assertAll(
-        () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
+        () -> Assertions.assertEquals(Validation.invalid("require non null"), validator.validate(null)),
         () -> assertEquals(Validation.invalid("require min value: 10"), validator.validate(0)),
         () -> assertEquals(Validation.invalid("require max value: 20"), validator.validate(100)),
         () -> assertEquals(Validation.valid(10), validator.validate(10)),

@@ -64,6 +64,11 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return ImmutableTree.from(stream().filter(matcher::match));
   }
 
+  @Override
+  default ImmutableTree<E> filterNot(Matcher1<E> matcher) {
+    return filter(matcher.negate());
+  }
+
   static <T> ImmutableTree<T> from(Iterable<T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }

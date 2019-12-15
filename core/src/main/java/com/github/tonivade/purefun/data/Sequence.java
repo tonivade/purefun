@@ -54,9 +54,7 @@ public interface Sequence<E> extends Iterable<E> {
 
   Sequence<E> filter(Matcher1<E> matcher);
 
-  default Sequence<E> filterNot(Matcher1<E> matcher) {
-    return filter(matcher.negate());
-  }
+  Sequence<E> filterNot(Matcher1<E> matcher);
 
   default Option<E> reduce(Operator2<E> operator) {
     return Option.from(stream().reduce(operator::apply));

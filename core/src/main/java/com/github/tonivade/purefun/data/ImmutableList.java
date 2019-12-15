@@ -69,6 +69,11 @@ public interface ImmutableList<E> extends Sequence<E> {
     return ImmutableList.from(stream().filter(matcher::match));
   }
 
+  @Override
+  default ImmutableList<E> filterNot(Matcher1<E> matcher) {
+    return filter(matcher.negate());
+  }
+
   static <T> ImmutableList<T> from(Iterable<T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }

@@ -57,6 +57,11 @@ public interface ImmutableSet<E> extends Sequence<E> {
     return ImmutableSet.from(stream().filter(matcher::match));
   }
 
+  @Override
+  default ImmutableSet<E> filterNot(Matcher1<E> matcher) {
+    return filter(matcher.negate());
+  }
+
   static <T> ImmutableSet<T> from(Iterable<T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }

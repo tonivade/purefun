@@ -66,6 +66,11 @@ public interface ImmutableArray<E> extends Sequence<E> {
     return ImmutableArray.from(stream().filter(matcher::match));
   }
 
+  @Override
+  default ImmutableArray<E> filterNot(Matcher1<E> matcher) {
+    return filter(matcher.negate());
+  }
+
   static <T> ImmutableArray<T> from(Iterable<T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }

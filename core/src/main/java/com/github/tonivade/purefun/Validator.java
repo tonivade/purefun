@@ -2,19 +2,9 @@
  * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.type;
+package com.github.tonivade.purefun;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Function3;
-import com.github.tonivade.purefun.Function4;
-import com.github.tonivade.purefun.Function5;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Tuple3;
-import com.github.tonivade.purefun.Tuple4;
-import com.github.tonivade.purefun.Tuple5;
+import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.type.Validation.Result;
 
 import java.util.regex.Pattern;
@@ -231,10 +221,10 @@ public interface Validator<E, T> {
   }
 
   static <T> Validator<String, T> nonNullAnd(Validator<String, T> then) {
-    return nonNullAnd(then, () -> "require non null");
+    return nonNullAnd(() -> "require non null", then);
   }
 
-  static <T> Validator<String, T> nonNullAnd(Validator<String, T> then, Producer<String> message) {
+  static <T> Validator<String, T> nonNullAnd(Producer<String> message, Validator<String, T> then) {
     return Validator.<T>nonNull(message).andThen(then);
   }
 

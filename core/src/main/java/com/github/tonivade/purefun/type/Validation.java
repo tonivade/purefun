@@ -5,6 +5,9 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Validator.nonEmpty;
+import static com.github.tonivade.purefun.Validator.nonNullAnd;
+import static com.github.tonivade.purefun.Validator.positive;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 
 import java.io.Serializable;
@@ -21,7 +24,8 @@ import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.Validator;
+import com.github.tonivade.purefun.data.NonEmptyList;
 
 /**
  * <p>This type represents the validity or not of a value. There are two possible values:</p>
@@ -46,7 +50,7 @@ public interface Validation<E, T> {
   }
 
   static <E, T> Validation<Result<E>, T> invalidOf(E error, E... errors) {
-    return new Invalid<>(Result.of(error).appendAll(errors));
+    return new Invalid<>(Result.of(error, errors));
   }
 
   boolean isValid();
@@ -199,11 +203,11 @@ public interface Validation<E, T> {
   }
 
   static Validation<String, String> requireNonEmpty(String value) {
-    return Validator.nonNullAnd(Validator.nonEmpty()).validate(value);
+    return nonNullAnd(nonEmpty()).validate(value);
   }
 
   static Validation<String, Integer> requirePositive(Integer value) {
-    return Validator.nonNullAnd(Validator.positive()).validate(value);
+    return nonNullAnd(positive()).validate(value);
   }
 
   final class Valid<E, T> implements Validation<E, T>, Serializable {
@@ -314,9 +318,9 @@ public interface Validation<E, T> {
 
   final class Result<E> implements Iterable<E> {
 
-    private final Sequence<E> errors;
+    private final NonEmptyList<E> errors;
 
-    private Result(Sequence<E> errors) {
+    private Result(NonEmptyList<E> errors) {
       this.errors = Objects.requireNonNull(errors);
     }
 
@@ -349,8 +353,9 @@ public interface Validation<E, T> {
       return errors.iterator();
     }
 
-    public static <E> Result<E> of(E... errors) {
-      return new Result<>(listOf(errors));
+    @SafeVarargs
+    public static <E> Result<E> of(E error, E... errors) {
+      return new Result<>(NonEmptyList.of(error, errors));
     }
 
     @Override
@@ -365,7 +370,7 @@ public interface Validation<E, T> {
 
     @Override
     public String toString() {
-      return "Result(" + errors + ")";
+      return "Result(" + errors.toList() + ")";
     }
 
     public static <E> Function1<Result<Result<E>>, Result<E>> flatten() {
