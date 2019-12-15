@@ -115,6 +115,17 @@ public interface Validation<E, T> {
     return fold(orElse.asFunction(), identity());
   }
 
+  default T getOrElseThrow() {
+    return getOrElseThrow(error -> new IllegalArgumentException(error.toString()));
+  }
+
+  default <X extends Throwable> T getOrElseThrow(Function1<E, X> mapper) throws X {
+    if (isInvalid()) {
+      throw mapper.apply(getError());
+    }
+    return get();
+  }
+
   default <U> U fold(Function1<E, U> invalidMap, Function1<T, U> validMap) {
     if (isValid()) {
       return validMap.apply(get());

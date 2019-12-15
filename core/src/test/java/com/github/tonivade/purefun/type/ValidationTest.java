@@ -112,4 +112,12 @@ public class ValidationTest {
                   map5(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), invalid("error5"), sum5))
         );
   }
+
+  @Test
+  public void getOrElseThrow() {
+    assertAll(
+        () -> assertThrows(IllegalArgumentException.class, () -> Validation.invalid("error").getOrElseThrow()),
+        () -> assertEquals("valid", Validation.valid("valid").getOrElseThrow())
+    );
+  }
 }
