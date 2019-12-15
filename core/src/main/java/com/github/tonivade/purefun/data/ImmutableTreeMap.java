@@ -170,6 +170,8 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     private static final long serialVersionUID = 8618845296089216532L;
 
+    private static final Equal<JavaBasedImmutableTreeMap> EQUAL = Equal.<JavaBasedImmutableTreeMap>of().comparing(a -> a.backend);
+
     private final NavigableMap<K, V> backend;
 
     private JavaBasedImmutableTreeMap(NavigableMap<K, V> backend) {
@@ -279,9 +281,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(JavaBasedImmutableTreeMap.class)
-          .comparing(a -> a.backend)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

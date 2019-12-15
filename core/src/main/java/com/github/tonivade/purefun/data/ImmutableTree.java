@@ -94,6 +94,8 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     private static final long serialVersionUID = -328223831102407507L;
 
+    private static final Equal<JavaBasedImmutableTree> EQUAL = Equal.<JavaBasedImmutableTree>of().comparing(a -> a.backend);
+
     private final NavigableSet<E> backend;
 
     private JavaBasedImmutableTree(NavigableSet<E> backend) {
@@ -200,9 +202,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(JavaBasedImmutableTree.class)
-          .comparing(a -> a.backend)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

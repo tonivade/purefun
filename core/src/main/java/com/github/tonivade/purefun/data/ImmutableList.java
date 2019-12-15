@@ -99,6 +99,8 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     private static final long serialVersionUID = -7468103369804662814L;
 
+    private static final Equal<JavaBasedImmutableList> EQUAL = Equal.<JavaBasedImmutableList>of().comparing(a -> a.backend);
+
     private final List<E> backend;
 
     private JavaBasedImmutableList(List<E> backend) {
@@ -174,9 +176,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(JavaBasedImmutableList.class)
-          .comparing(a -> a.backend)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

@@ -182,6 +182,8 @@ public interface Either<L, R> {
 
     private static final long serialVersionUID = 7040154642166638129L;
 
+    private static final Equal<Left> EQUAL = Equal.<Left>of().comparing(Left::getLeft);
+
     private L value;
 
     private Left(L value) {
@@ -220,9 +222,7 @@ public interface Either<L, R> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(Left.class)
-          .comparing(Either::getLeft)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override
@@ -231,7 +231,11 @@ public interface Either<L, R> {
     }
   }
 
-  final class Right<L, R> implements Either<L, R> {
+  final class Right<L, R> implements Either<L, R>, Serializable {
+
+    private static final long serialVersionUID = 164989996450592091L;
+
+    private static final Equal<Right> EQUAL = Equal.<Right>of().comparing(Right::getRight);
 
     private R value;
 
@@ -271,9 +275,7 @@ public interface Either<L, R> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(Right.class)
-          .comparing(Either::getRight)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

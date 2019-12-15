@@ -6,13 +6,18 @@ package com.github.tonivade.purefun.type;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
-public final class Const<T, A> {
+public final class Const<T, A> implements Serializable {
+
+  private static final long serialVersionUID = 7431389527943145565L;
+
+  private static final Equal<Const> EQUAL = Equal.<Const>of().comparing(Const::get);
 
   private final T value;
 
@@ -36,7 +41,7 @@ public final class Const<T, A> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(Const.class).comparing(Const::get).applyTo(this, obj);
+    return EQUAL.applyTo(this, obj);
   }
 
   @Override

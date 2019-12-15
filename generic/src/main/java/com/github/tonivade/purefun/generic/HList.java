@@ -121,6 +121,10 @@ public interface HList<L extends HList<L>> {
 
   final class HCons<H, T extends HList<T>> implements HList<HCons<H, T>> {
 
+    private static final Equal<HCons> EQUAL = Equal.<HCons>of()
+        .comparing(HCons::head)
+        .comparing(HCons::tail);
+
     private final H head;
     private final T tail;
 
@@ -167,10 +171,7 @@ public interface HList<L extends HList<L>> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(HCons.class)
-          .comparing(HCons::head)
-          .comparing(HCons::tail)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

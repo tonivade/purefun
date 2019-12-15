@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Matcher1;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +18,11 @@ import static com.github.tonivade.purefun.Validator.minValue;
 import static com.github.tonivade.purefun.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 
-public final class NonEmptyList<E> implements ImmutableList<E> {
+public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
+
+  private static final long serialVersionUID = 3291606155276185601L;
+
+  private static final Equal<NonEmptyList> EQUAL = Equal.<NonEmptyList>of().comparing(v -> v.value);
 
   private final ImmutableList<E> value;
 
@@ -107,7 +112,7 @@ public final class NonEmptyList<E> implements ImmutableList<E> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(NonEmptyList.class).comparing(v -> v.value).applyTo(this, obj);
+    return EQUAL.applyTo(this, obj);
   }
 
   @Override

@@ -96,6 +96,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     private static final long serialVersionUID = 5728385935547829871L;
 
+    private static final Equal<JavaBasedImmutableArray> EQUAL = Equal.<JavaBasedImmutableArray>of().comparing(a -> a.backend);
+
     private final List<E> backend;
 
     private JavaBasedImmutableArray(List<E> backend) {
@@ -204,9 +206,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(JavaBasedImmutableArray.class)
-          .comparing(a -> a.backend)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

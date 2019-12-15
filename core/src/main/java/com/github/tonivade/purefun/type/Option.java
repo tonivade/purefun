@@ -164,7 +164,7 @@ public interface Option<T> {
 
     private static final long serialVersionUID = 7757183287962895363L;
 
-    private static final Equal<Some> EQUAL = Equal.of(Some.class).comparing(Option::get);
+    private static final Equal<Some> EQUAL = Equal.<Some>of().comparing(Option::get);
 
     private final T value;
 

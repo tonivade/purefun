@@ -77,7 +77,7 @@ final class Data {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(Data.class)
+    return Equal.<Data>of()
         .comparing(Data::getId)
         .comparing(Data::getValue)
         .applyTo(this, obj);

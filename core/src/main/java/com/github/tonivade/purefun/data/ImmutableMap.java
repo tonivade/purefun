@@ -144,6 +144,8 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     private static final long serialVersionUID = -1236334562860351635L;
 
+    private static final Equal<JavaBasedImmutableMap> EQUAL = Equal.<JavaBasedImmutableMap>of().comparing(a -> a.backend);
+
     private final Map<K, V> backend;
 
     private JavaBasedImmutableMap(Map<K, V> backend) {
@@ -208,9 +210,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(JavaBasedImmutableMap.class)
-          .comparing(a -> a.backend)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

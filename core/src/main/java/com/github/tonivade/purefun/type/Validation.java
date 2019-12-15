@@ -214,6 +214,8 @@ public interface Validation<E, T> {
 
     private static final long serialVersionUID = -4276395187736455243L;
 
+    private static final Equal<Valid> EQUAL = Equal.<Valid>of().comparing(Valid::get);
+
     private final T value;
 
     private Valid(T value) {
@@ -252,9 +254,7 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(Valid.class)
-          .comparing(Valid::get)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override
@@ -266,6 +266,8 @@ public interface Validation<E, T> {
   final class Invalid<E, T> implements Validation<E, T>, Serializable {
 
     private static final long serialVersionUID = -5116403366555721062L;
+
+    private static final Equal<Invalid> EQUAL = Equal.<Invalid>of().comparing(Invalid::getError);
 
     private final E error;
 
@@ -305,9 +307,7 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(Invalid.class)
-          .comparing(Invalid::getError)
-          .applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override
@@ -316,7 +316,11 @@ public interface Validation<E, T> {
     }
   }
 
-  final class Result<E> implements Iterable<E> {
+  final class Result<E> implements Iterable<E>, Serializable {
+
+    private static final long serialVersionUID = -6528420803580087615L;
+
+    private static final Equal<Result> EQUAL = Equal.<Result>of().comparing(r -> r.errors);
 
     private final NonEmptyList<E> errors;
 
@@ -365,7 +369,7 @@ public interface Validation<E, T> {
 
     @Override
     public boolean equals(Object obj) {
-      return Equal.of(Result.class).comparing(r -> r.errors).applyTo(this, obj);
+      return EQUAL.applyTo(this, obj);
     }
 
     @Override

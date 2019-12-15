@@ -10,6 +10,8 @@ import java.util.Objects;
 
 public final class With<A> {
 
+  private static final Equal<With> EQUAL = Equal.<With>of().comparing(With::get);
+
   private final A value;
 
   private With(A value) {
@@ -51,7 +53,7 @@ public final class With<A> {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(With.class).comparing(With::get).applyTo(this, obj);
+    return EQUAL.applyTo(this, obj);
   }
 
   public static <T> With<T> with(T value) {

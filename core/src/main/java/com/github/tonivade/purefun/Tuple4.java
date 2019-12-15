@@ -15,6 +15,12 @@ public final class Tuple4<A, B, C, D> implements Tuple, Serializable {
 
   private static final long serialVersionUID = -2725249702715042810L;
 
+  private static final Equal<Tuple4> EQUAL = Equal.<Tuple4>of()
+      .comparing(Tuple4::get1)
+      .comparing(Tuple4::get2)
+      .comparing(Tuple4::get3)
+      .comparing(Tuple4::get4);
+
   private final A value1;
   private final B value2;
   private final C value3;
@@ -86,12 +92,7 @@ public final class Tuple4<A, B, C, D> implements Tuple, Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(Tuple4.class)
-        .comparing(Tuple4::get1)
-        .comparing(Tuple4::get2)
-        .comparing(Tuple4::get3)
-        .comparing(Tuple4::get4)
-        .applyTo(this, obj);
+    return EQUAL.applyTo(this, obj);
   }
 
   @Override

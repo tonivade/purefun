@@ -24,6 +24,8 @@ public final class Id<T> implements Serializable {
 
   private static final long serialVersionUID = -6295106408421985189L;
 
+  private static final Equal<Id> EQUAL = Equal.<Id>of().comparing(Id::get);
+
   private final T value;
 
   private Id(T value) {
@@ -49,7 +51,7 @@ public final class Id<T> implements Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    return Equal.of(Id.class).comparing(Id::get).applyTo(this, obj);
+    return EQUAL.applyTo(this, obj);
   }
 
   @Override

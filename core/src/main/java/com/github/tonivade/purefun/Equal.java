@@ -22,16 +22,14 @@ import static java.util.Objects.requireNonNull;
  */
 public final class Equal<T> {
 
-  private final Class<T> target;
   private final Eq<T> tester;
 
-  private Equal(Class<T> target, Eq<T> tester) {
-    this.target = requireNonNull(target);
+  private Equal(Eq<T> tester) {
     this.tester = requireNonNull(tester);
   }
 
   public Equal<T> append(Eq<T> other) {
-    return new Equal<>(target, tester.and(other));
+    return new Equal<>(tester.and(other));
   }
 
   public <V> Equal<T> comparing(Function1<T, V> getter) {
@@ -50,22 +48,22 @@ public final class Equal<T> {
     if (sameObjects(self, obj)) {
       return true;
     }
-    return sameClasses(obj) && areEquals(self, (T) obj);
+    return sameClasses(self, obj) && areEquals(self, (T) obj);
   }
 
   private boolean areEquals(T self, T other) {
     return tester.eqv(self, other);
   }
 
-  private boolean sameClasses(Object obj) {
-    return target == obj.getClass();
+  private boolean sameClasses(T self, Object obj) {
+    return self.getClass() == obj.getClass();
   }
 
   private boolean sameObjects(T self, Object obj) {
     return self == obj;
   }
 
-  public static <T> Equal<T> of(Class<T> target) {
-    return new Equal<>(target, Eq.always());
+  public static <T> Equal<T> of() {
+    return new Equal<>(Eq.always());
   }
 }
