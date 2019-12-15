@@ -4,11 +4,19 @@
  */
 package com.github.tonivade.purefun.type;
 
+import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.Operator3;
+import com.github.tonivade.purefun.Operator4;
+import com.github.tonivade.purefun.Operator5;
+import org.junit.jupiter.api.Test;
+
+import java.util.NoSuchElementException;
+
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.type.Option.none;
 import static com.github.tonivade.purefun.type.Option.some;
 import static com.github.tonivade.purefun.type.Validation.invalid;
+import static com.github.tonivade.purefun.type.Validation.invalidOf;
 import static com.github.tonivade.purefun.type.Validation.map2;
 import static com.github.tonivade.purefun.type.Validation.map3;
 import static com.github.tonivade.purefun.type.Validation.map4;
@@ -22,15 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.NoSuchElementException;
-
-import org.junit.jupiter.api.Test;
-
-import com.github.tonivade.purefun.Operator2;
-import com.github.tonivade.purefun.Operator3;
-import com.github.tonivade.purefun.Operator4;
-import com.github.tonivade.purefun.Operator5;
 
 public class ValidationTest {
 
@@ -85,16 +84,16 @@ public class ValidationTest {
   @Test
   public void map2Test() {
     assertAll(() -> assertEquals(valid(3), map2(valid(1), valid(2), sum2)),
-              () -> assertEquals(invalid(listOf("error")), map2(valid(1), invalid("error"), sum2)),
-              () -> assertEquals(invalid(listOf("error")), map2(invalid("error"), valid(1), sum2)),
-              () -> assertEquals(invalid(listOf("error1", "error2")), map2(invalid("error1"), invalid("error2"), sum2))
+              () -> assertEquals(invalidOf("error"), map2(valid(1), invalid("error"), sum2)),
+              () -> assertEquals(invalidOf("error"), map2(invalid("error"), valid(1), sum2)),
+              () -> assertEquals(invalidOf("error1", "error2"), map2(invalid("error1"), invalid("error2"), sum2))
         );
   }
 
   @Test
   public void map3Test() {
     assertAll(() -> assertEquals(valid(6), map3(valid(1), valid(2), valid(3), sum3)),
-              () -> assertEquals(invalid(listOf("error1", "error2", "error3")),
+              () -> assertEquals(invalidOf("error1", "error2", "error3"),
                   map3(invalid("error1"), invalid("error2"), invalid("error3"), sum3))
         );
   }
@@ -102,7 +101,7 @@ public class ValidationTest {
   @Test
   public void map4Test() {
     assertAll(() -> assertEquals(valid(10), map4(valid(1), valid(2), valid(3), valid(4), sum4)),
-              () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4")),
+              () -> assertEquals(invalidOf("error1", "error2", "error3", "error4"),
                   map4(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), sum4))
         );
   }
@@ -110,7 +109,7 @@ public class ValidationTest {
   @Test
   public void map5Test() {
     assertAll(() -> assertEquals(valid(15), map5(valid(1), valid(2), valid(3), valid(4), valid(5), sum5)),
-              () -> assertEquals(invalid(listOf("error1", "error2", "error3", "error4", "error5")),
+              () -> assertEquals(invalidOf("error1", "error2", "error3", "error4", "error5"),
                   map5(invalid("error1"), invalid("error2"), invalid("error3"), invalid("error4"), invalid("error5"), sum5))
         );
   }
@@ -118,8 +117,8 @@ public class ValidationTest {
   @Test
   public void getOrElseThrow() {
     assertAll(
-        () -> assertThrows(IllegalArgumentException.class, () -> Validation.invalid("error").getOrElseThrow()),
-        () -> assertEquals("valid", Validation.valid("valid").getOrElseThrow())
+        () -> assertThrows(IllegalArgumentException.class, () -> invalid("error").getOrElseThrow()),
+        () -> assertEquals("valid", valid("valid").getOrElseThrow())
     );
   }
 

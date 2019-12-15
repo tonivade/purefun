@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple3;
 import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
-import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Validation.Result;
 
 import java.util.regex.Pattern;
 
@@ -55,14 +55,14 @@ public interface Validator<E, T> {
     return value -> matcher.match(value) ? Validation.valid(value) : Validation.invalid(error.get());
   }
 
-  static <E, A, B> Validator<Sequence<E>, Tuple2<A, B>> product(Validator<E, A> v1,
+  static <E, A, B> Validator<Result<E>, Tuple2<A, B>> product(Validator<E, A> v1,
                                                                 Validator<E, B> v2) {
     return product(v1, v2, identity());
   }
 
   static <E, F, A, B> Validator<F, Tuple2<A, B>> product(Validator<E, A> v1,
                                                          Validator<E, B> v2,
-                                                         Function1<Sequence<E>, F> reduce) {
+                                                         Function1<Result<E>, F> reduce) {
     requireNonNull(v1);
     requireNonNull(v2);
     requireNonNull(reduce);
@@ -73,7 +73,7 @@ public interface Validator<E, T> {
         .mapError(reduce);
   }
 
-  static <E, A, B, C> Validator<Sequence<E>, Tuple3<A, B, C>> product(Validator<E, A> v1,
+  static <E, A, B, C> Validator<Result<E>, Tuple3<A, B, C>> product(Validator<E, A> v1,
                                                                       Validator<E, B> v2,
                                                                       Validator<E, C> v3) {
     return product(v1, v2, v3, identity());
@@ -82,7 +82,7 @@ public interface Validator<E, T> {
   static <E, F, A, B, C> Validator<F, Tuple3<A, B, C>> product(Validator<E, A> v1,
                                                                Validator<E, B> v2,
                                                                Validator<E, C> v3,
-                                                               Function1<Sequence<E>, F> reduce) {
+                                                               Function1<Result<E>, F> reduce) {
     requireNonNull(v1);
     requireNonNull(v2);
     requireNonNull(v3);
@@ -95,7 +95,7 @@ public interface Validator<E, T> {
         .mapError(reduce);
   }
 
-  static <E, A, B, C, D> Validator<Sequence<E>, Tuple4<A, B, C, D>> product(Validator<E, A> v1,
+  static <E, A, B, C, D> Validator<Result<E>, Tuple4<A, B, C, D>> product(Validator<E, A> v1,
                                                                             Validator<E, B> v2,
                                                                             Validator<E, C> v3,
                                                                             Validator<E, D> v4) {
@@ -106,7 +106,7 @@ public interface Validator<E, T> {
                                                                      Validator<E, B> v2,
                                                                      Validator<E, C> v3,
                                                                      Validator<E, D> v4,
-                                                                     Function1<Sequence<E>, F> reduce) {
+                                                                     Function1<Result<E>, F> reduce) {
     requireNonNull(v1);
     requireNonNull(v2);
     requireNonNull(v3);
@@ -121,7 +121,7 @@ public interface Validator<E, T> {
         .mapError(reduce);
   }
 
-  static <F, A, B, C, D, E> Validator<Sequence<F>, Tuple5<A, B, C, D, E>> product(Validator<F, A> v1,
+  static <F, A, B, C, D, E> Validator<Result<F>, Tuple5<A, B, C, D, E>> product(Validator<F, A> v1,
                                                                                   Validator<F, B> v2,
                                                                                   Validator<F, C> v3,
                                                                                   Validator<F, D> v4,
@@ -134,7 +134,7 @@ public interface Validator<E, T> {
                                                                            Validator<F, C> v3,
                                                                            Validator<F, D> v4,
                                                                            Validator<F, E> v5,
-                                                                           Function1<Sequence<F>, G> reduce) {
+                                                                           Function1<Result<F>, G> reduce) {
     requireNonNull(v1);
     requireNonNull(v2);
     requireNonNull(v3);
@@ -151,14 +151,14 @@ public interface Validator<E, T> {
         .mapError(reduce);
   }
 
-  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+  static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
                                                   Validator<E, T> v2) {
     return combine(v1, v2, identity());
   }
 
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
                                            Validator<E, T> v2,
-                                           Function1<Sequence<E>, F> reduce) {
+                                           Function1<Result<E>, F> reduce) {
     requireNonNull(v1);
     requireNonNull(v2);
     requireNonNull(reduce);
@@ -169,7 +169,7 @@ public interface Validator<E, T> {
         .mapError(reduce);
   }
 
-  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+  static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
                                                   Validator<E, T> v2,
                                                   Validator<E, T> v3) {
     return combine(v1, v2, v3, identity());
@@ -178,11 +178,11 @@ public interface Validator<E, T> {
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
                                            Validator<E, T> v2,
                                            Validator<E, T> v3,
-                                           Function1<Sequence<E>, F> reduce) {
-    return combine(combine(v1, v2), v3.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
+                                           Function1<Result<E>, F> reduce) {
+    return combine(combine(v1, v2), v3.mapError(Result::of), Result.<E>flatten().andThen(reduce));
   }
 
-  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+  static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
                                                   Validator<E, T> v2,
                                                   Validator<E, T> v3,
                                                   Validator<E, T> v4) {
@@ -193,11 +193,11 @@ public interface Validator<E, T> {
                                            Validator<E, T> v2,
                                            Validator<E, T> v3,
                                            Validator<E, T> v4,
-                                           Function1<Sequence<E>, F> reduce) {
-    return combine(combine(v1, v2, v3), v4.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
+                                           Function1<Result<E>, F> reduce) {
+    return combine(combine(v1, v2, v3), v4.mapError(Result::of), Result.<E>flatten().andThen(reduce));
   }
 
-  static <E, T> Validator<Sequence<E>, T> combine(Validator<E, T> v1,
+  static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
                                                   Validator<E, T> v2,
                                                   Validator<E, T> v3,
                                                   Validator<E, T> v4,
@@ -210,8 +210,8 @@ public interface Validator<E, T> {
                                            Validator<E, T> v3,
                                            Validator<E, T> v4,
                                            Validator<E, T> v5,
-                                           Function1<Sequence<E>, F> reduce) {
-    return combine(combine(v1, v2, v3, v4), v5.mapError(Sequence::listOf), Validator.<E>flatten().andThen(reduce));
+                                           Function1<Result<E>, F> reduce) {
+    return combine(combine(v1, v2, v3, v4), v5.mapError(Result::of), Result.<E>flatten().andThen(reduce));
   }
 
   static <E, T> Validator<E, T> valid() {
@@ -384,23 +384,19 @@ public interface Validator<E, T> {
         .andThen(combine(minValue(start), maxValue(end), join(message)));
   }
 
-  static <E> Function1<Sequence<Sequence<E>>, Sequence<E>> flatten() {
-    return seqOfSeqs -> seqOfSeqs.flatMap(identity());
+  static <E> Function1<Result<E>, String> join() {
+    return result -> result.join(",");
   }
 
-  static <E> Function1<Sequence<E>, String> join() {
-    return join(",");
+  static <E> Function1<Result<E>, String> join(String separator) {
+    return result -> result.join(separator);
   }
 
-  static <E> Function1<Sequence<E>, String> join(String separator) {
-    return seq -> seq.join(separator);
+  static <E> Function1<Result<E>, String> join(Producer<String> message) {
+    return result -> result.join(",", message);
   }
 
-  static <E> Function1<Sequence<E>, String> join(Producer<String> message) {
-    return join(",", message);
-  }
-
-  static <E> Function1<Sequence<E>, String> join(String separator, Producer<String> message) {
-    return seq -> seq.join(separator, message.get(), "");
+  static <E> Function1<Result<E>, String> join(String separator, Producer<String> message) {
+    return result -> result.join(separator, message);
   }
 }
