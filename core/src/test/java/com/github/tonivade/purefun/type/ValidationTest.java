@@ -13,6 +13,8 @@ import static com.github.tonivade.purefun.type.Validation.map2;
 import static com.github.tonivade.purefun.type.Validation.map3;
 import static com.github.tonivade.purefun.type.Validation.map4;
 import static com.github.tonivade.purefun.type.Validation.map5;
+import static com.github.tonivade.purefun.type.Validation.requireNonEmpty;
+import static com.github.tonivade.purefun.type.Validation.requireNonNull;
 import static com.github.tonivade.purefun.type.Validation.valid;
 import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -118,6 +120,19 @@ public class ValidationTest {
     assertAll(
         () -> assertThrows(IllegalArgumentException.class, () -> Validation.invalid("error").getOrElseThrow()),
         () -> assertEquals("valid", Validation.valid("valid").getOrElseThrow())
+    );
+  }
+
+  @Test
+  public void require() {
+    assertAll(
+        () -> assertEquals(invalid("require non null"), requireNonNull(null)),
+        () -> assertEquals(invalid("require non null"), requireNonEmpty(null)),
+        () -> assertEquals(invalid("require non empty string"), requireNonEmpty("")),
+        () -> assertEquals(valid("a"), requireNonEmpty("a")),
+        () -> assertEquals(invalid("require non null"), Validation.requirePositive(null)),
+        () -> assertEquals(invalid("require min value: 0"), Validation.requirePositive(-1)),
+        () -> assertEquals(valid(0), Validation.requirePositive(0))
     );
   }
 }

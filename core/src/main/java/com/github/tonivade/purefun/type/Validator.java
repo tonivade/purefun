@@ -230,6 +230,14 @@ public interface Validator<E, T> {
     return Validator.from(isNotNull(), message);
   }
 
+  static <T> Validator<String, T> nonNullAnd(Validator<String, T> then) {
+    return nonNullAnd(then, () -> "require non null");
+  }
+
+  static <T> Validator<String, T> nonNullAnd(Validator<String, T> then, Producer<String> message) {
+    return Validator.<T>nonNull(message).andThen(then);
+  }
+
   static Validator<String, String> nonEmpty() {
     return nonEmpty(() -> "require non empty string");
   }

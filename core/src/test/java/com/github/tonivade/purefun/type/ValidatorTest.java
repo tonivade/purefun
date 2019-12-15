@@ -104,8 +104,7 @@ public class ValidatorTest {
   @Test
   public void combine() {
     Validator<String, String> validator =
-        Validator.<String>nonNull()
-            .andThen(Validator.combine(Validator.nonEmpty(), Validator.match("[a-z]+"), join()));
+        Validator.nonNullAnd(Validator.combine(Validator.nonEmpty(), Validator.match("[a-z]+"), join()));
 
     assertAll(
         () -> assertEquals(Validation.valid("abc"), validator.validate("abc")),
@@ -119,8 +118,8 @@ public class ValidatorTest {
   @Test
   public void combine3() {
     Validator<String, String> validator =
-        Validator.<String>nonNull()
-            .andThen(Validator.combine(
+        Validator.nonNullAnd(
+            Validator.combine(
                 Validator.nonEmpty(),
                 Validator.startsWith("a"),
                 Validator.endsWith("z"),
@@ -141,8 +140,8 @@ public class ValidatorTest {
   @Test
   public void combine4() {
     Validator<String, String> validator =
-        Validator.<String>nonNull()
-            .andThen(Validator.combine(
+        Validator.nonNullAnd(
+            Validator.combine(
                 Validator.nonEmpty(),
                 Validator.startsWith("a"),
                 Validator.contains("b"),

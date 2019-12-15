@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
@@ -190,6 +189,18 @@ public interface Validation<E, T> {
         (t1, t2, t3, t4) -> mapper.curried().apply(t1).apply(t2).apply(t3).apply(t4)));
   }
 
+  static <T> Validation<String, T> requireNonNull(T value) {
+    return Validator.<T>nonNull().validate(value);
+  }
+
+  static Validation<String, String> requireNonEmpty(String value) {
+    return Validator.nonNullAnd(Validator.nonEmpty()).validate(value);
+  }
+
+  static Validation<String, Integer> requirePositive(Integer value) {
+    return Validator.nonNullAnd(Validator.positive()).validate(value);
+  }
+
   final class Valid<E, T> implements Validation<E, T>, Serializable {
 
     private static final long serialVersionUID = -4276395187736455243L;
@@ -197,7 +208,7 @@ public interface Validation<E, T> {
     private final T value;
 
     private Valid(T value) {
-      this.value = requireNonNull(value);
+      this.value = Objects.requireNonNull(value);
     }
 
     @Override
@@ -250,7 +261,7 @@ public interface Validation<E, T> {
     private final E error;
 
     private Invalid(E error) {
-      this.error = requireNonNull(error);
+      this.error = Objects.requireNonNull(error);
     }
 
     @Override
