@@ -764,10 +764,10 @@ This class helps to create readable `equals` methods. An example:
 ```java
 @Override
 public boolean equals(Object obj) {
-  return Equal.of(this)
+  return Equal.<Data>of()
     .comparing(Data::getId)
     .comparing(Data::getValue)
-    .applyTo(obj);
+    .applyTo(this, obj);
 }
 ```
 
