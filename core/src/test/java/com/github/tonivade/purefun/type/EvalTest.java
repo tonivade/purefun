@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.type.Eval.UNIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -26,6 +27,13 @@ public class EvalTest {
     Eval<String> eval = Eval.now("Hello World!");
 
     assertEquals("Hello World!", eval.value());
+  }
+
+  @Test
+  public void defer() {
+    Eval<String> eval = Eval.defer(() -> Eval.now("Hello World!")).map(ignore -> "Hola Mundo!");
+
+    assertEquals("Hola Mundo!", eval.value());
   }
 
   @Test
@@ -54,6 +62,15 @@ public class EvalTest {
     assertEquals("Hello World!", eval.value());
     assertEquals("Hello World!", eval.value());
     verify(producer, times(1)).run();
+  }
+
+  @Test
+  public void flatMapped() {
+    Eval<String> eval = UNIT
+        .map(ignore -> "hola")
+        .map(ignore -> "adios");
+
+    assertEquals("adios", eval.value());
   }
 
   @BeforeEach
