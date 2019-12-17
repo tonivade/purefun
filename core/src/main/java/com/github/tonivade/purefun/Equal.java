@@ -11,9 +11,9 @@ import static java.util.Objects.requireNonNull;
  * This is a utility class to generate more readable {@code equals()} methods. It's based on {@link Eq} instances and it can combine
  * some of them to generate a bigger function that verify the equivalence between two instances of the same type {@code T}.
  *
- * <pre><code>  {@literal @}Override
+ * <pre><code>  {@literal @Override}
  * public boolean equals(Object obj) {
- *   return Equal.<Data>of()
+ *   return{@literal <Equal.Data>}of()
  *     .comparing(Data::getId)
  *     .comparing(Data::getValue)
  *     .applyTo(this, obj);

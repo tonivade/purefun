@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Validation;
 import org.junit.jupiter.api.Test;
 
@@ -137,23 +138,31 @@ public class SelectiveTest {
 
   @Test
   public void allS() {
-    Higher1<IO.µ, Boolean> match = monad.allS(listOf("a", "b", "c"), a -> monad.pure(a.length() == 1));
-    Higher1<IO.µ, Boolean> notMatch = monad.allS(listOf("a", "b", "cd"), a -> monad.pure(a.length() == 1));
+    Eval<Higher1<IO.µ, Boolean>> match =
+        monad.allS(SequenceInstances.foldable(),
+            listOf("a", "b", "c").kind1(), a -> monad.pure(a.length() == 1));
+    Eval<Higher1<IO.µ, Boolean>> notMatch =
+        monad.allS(SequenceInstances.foldable(),
+            listOf("a", "b", "cd").kind1(), a -> monad.pure(a.length() == 1));
 
     assertAll(
-        () -> assertEquals(true, match.fix1(IO::narrowK).unsafeRunSync()),
-        () -> assertEquals(false, notMatch.fix1(IO::narrowK).unsafeRunSync())
+        () -> assertEquals(true, match.value().fix1(IO::narrowK).unsafeRunSync()),
+        () -> assertEquals(false, notMatch.value().fix1(IO::narrowK).unsafeRunSync())
     );
   }
 
   @Test
   public void anyS() {
-    Higher1<IO.µ, Boolean> match = monad.anyS(listOf("a", "b", "cd"), a -> monad.pure(a.length() > 1));
-    Higher1<IO.µ, Boolean> notMatch = monad.anyS(listOf("a", "b", "c"), a -> monad.pure(a.length() > 1));
+    Eval<Higher1<IO.µ, Boolean>> match =
+        monad.anyS(SequenceInstances.foldable(),
+            listOf("a", "b", "cd").kind1(), a -> monad.pure(a.length() > 1));
+    Eval<Higher1<IO.µ, Boolean>> notMatch =
+        monad.anyS(SequenceInstances.foldable(),
+            listOf("a", "b", "c").kind1(), a -> monad.pure(a.length() > 1));
 
     assertAll(
-        () -> assertEquals(true, match.fix1(IO::narrowK).unsafeRunSync()),
-        () -> assertEquals(false, notMatch.fix1(IO::narrowK).unsafeRunSync())
+        () -> assertEquals(true, match.value().fix1(IO::narrowK).unsafeRunSync()),
+        () -> assertEquals(false, notMatch.value().fix1(IO::narrowK).unsafeRunSync())
     );
   }
 }
