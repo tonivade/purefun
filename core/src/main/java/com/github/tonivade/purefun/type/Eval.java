@@ -39,15 +39,15 @@ public interface Eval<A> {
   }
 
   default <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
-    return new FlatMapped<R>() {
+    return new FlatMapped<A, R>() {
       @Override
-      protected <B> Eval<B> start() {
-        return (Eval<B>) Eval.this;
+      protected Eval<A> start() {
+        return Eval.this;
       }
 
       @Override
-      protected <B> Eval<R> run(B value) {
-        return map.apply((A) value);
+      protected Eval<R> run(A value) {
+        return map.apply(value);
       }
     };
   }
@@ -129,15 +129,15 @@ public interface Eval<A> {
 
     @Override
     public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
-      return new FlatMapped<R>() {
+      return new FlatMapped<A, R>() {
         @Override
-        protected <X> Eval<X> start() {
-          return (Eval<X>) defer.get();
+        protected Eval<A> start() {
+          return defer.get();
         }
 
         @Override
-        protected <X> Eval<R> run(X value) {
-          return map.apply((A) value);
+        protected Eval<R> run(A value) {
+          return map.apply(value);
         }
       };
     }
@@ -148,12 +148,12 @@ public interface Eval<A> {
     }
   }
 
-  abstract class FlatMapped<B> implements Eval<B> {
+  abstract class FlatMapped<A, B> implements Eval<B> {
 
     private FlatMapped() {}
 
-    protected abstract <A> Eval<A> start();
-    protected abstract <A> Eval<B> run(A value);
+    protected abstract Eval<A> start();
+    protected abstract Eval<B> run(A value);
 
     @Override
     public B value() {
@@ -162,23 +162,23 @@ public interface Eval<A> {
 
     @Override
     public <R> Eval<R> flatMap(Function1<B, Eval<R>> map) {
-      return new FlatMapped<R>() {
+      return new FlatMapped<B, R>() {
         @Override
-        protected <X> Eval<X> start() {
-          return FlatMapped.this.start();
+        protected Eval<B> start() {
+          return (Eval<B>) FlatMapped.this.start();
         }
 
         @Override
-        protected <X> Eval<R> run(X value1) {
-          return new FlatMapped<R>() {
+        protected Eval<R> run(B value1) {
+          return new FlatMapped<B, R>() {
             @Override
-            protected <Y> Eval<Y> start() {
-              return (Eval<Y>) FlatMapped.this.run(value1);
+            protected Eval<B> start() {
+              return FlatMapped.this.run((A) value1);
             }
 
             @Override
-            protected <Y> Eval<R> run(Y value2) {
-              return map.apply((B) value2);
+            protected Eval<R> run(B value2) {
+              return map.apply(value2);
             }
           };
         }
@@ -187,14 +187,14 @@ public interface Eval<A> {
 
     @Override
     public Eval<B> collapse() {
-      return new FlatMapped<B>() {
+      return new FlatMapped<A, B>() {
         @Override
-        protected <A> Eval<A> start() {
+        protected Eval<A> start() {
           return FlatMapped.this.start();
         }
 
         @Override
-        protected <A> Eval<B> run(A value) {
+        protected Eval<B> run(A value) {
           return FlatMapped.this.run(value).collapse();
         }
       };
