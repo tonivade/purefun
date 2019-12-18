@@ -4,7 +4,13 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.type.Eval.FALSE;
+import static com.github.tonivade.purefun.type.Eval.ONE;
+import static com.github.tonivade.purefun.type.Eval.TRUE;
 import static com.github.tonivade.purefun.type.Eval.UNIT;
+import static com.github.tonivade.purefun.type.Eval.ZERO;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -12,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -21,6 +28,17 @@ public class EvalTest {
 
   @Spy
   private Producer<String> producer;
+
+  @Test
+  public void constants() {
+    assertAll(
+        () -> assertEquals(unit(), UNIT.value()),
+        () -> assertEquals(0, ZERO.value()),
+        () -> assertEquals(1, ONE.value()),
+        () -> assertEquals(true, TRUE.value()),
+        () -> assertEquals(false, FALSE.value())
+    );
+  }
 
   @Test
   public void now() {
@@ -67,6 +85,8 @@ public class EvalTest {
   @Test
   public void flatMapped() {
     Eval<String> eval = UNIT
+        .map(ignore -> "hola")
+        .map(ignore -> "hola")
         .map(ignore -> "hola")
         .map(ignore -> "adios");
 
