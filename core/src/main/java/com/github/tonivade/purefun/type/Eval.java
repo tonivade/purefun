@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.StackSafe;
 import com.github.tonivade.purefun.Unit;
 
 import java.util.Stack;
@@ -27,7 +26,6 @@ import static java.util.Objects.requireNonNull;
  * @param <A> result of the computation
  */
 @HigherKind
-@StackSafe
 public interface Eval<A> {
 
   Eval<Boolean> TRUE = now(true);
@@ -43,6 +41,8 @@ public interface Eval<A> {
   }
 
   <R> Eval<R> flatMap(Function1<A, Eval<R>> map);
+
+  EvalModule getModule();
 
   static <T> Eval<T> now(T value) {
     return new Done<>(cons(value));
@@ -80,6 +80,11 @@ public interface Eval<A> {
     public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
       return new FlatMapped<>(cons(this), map::apply);
     }
+
+    @Override
+    public EvalModule getModule() {
+      throw new UnsupportedOperationException();
+    }
   }
 
   final class Defer<A> implements Eval<A> {
@@ -98,6 +103,11 @@ public interface Eval<A> {
     @Override
     public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
       return new FlatMapped<>(deferred::get, map::apply);
+    }
+
+    @Override
+    public EvalModule getModule() {
+      throw new UnsupportedOperationException();
     }
 
     protected Eval<A> next() {
@@ -124,6 +134,11 @@ public interface Eval<A> {
     @SuppressWarnings("unchecked")
     public <R> Eval<R> flatMap(Function1<B, Eval<R>> map) {
       return new FlatMapped<>(() -> (Eval<B>) start(), b -> new FlatMapped<>(() -> run((A) b), map::apply));
+    }
+
+    @Override
+    public EvalModule getModule() {
+      throw new UnsupportedOperationException();
     }
 
     protected Eval<A> start() {

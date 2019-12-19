@@ -12,6 +12,7 @@ import static com.github.tonivade.purefun.type.Eval.UNIT;
 import static com.github.tonivade.purefun.type.Eval.ZERO;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,6 +45,13 @@ public class EvalTest {
     Eval<String> eval = Eval.now("Hello World!");
 
     assertEquals("Hello World!", eval.value());
+  }
+
+  @Test
+  public void error() {
+    Eval<String> eval = Eval.raiseError(new UnsupportedOperationException());
+
+    assertThrows(UnsupportedOperationException.class, eval::value);
   }
 
   @Test

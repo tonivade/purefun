@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.EIOInstances;
+import com.github.tonivade.purefun.instances.EvalInstances;
 import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.instances.ZIOInstances;
@@ -22,6 +23,7 @@ import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
+import com.github.tonivade.purefun.type.Eval;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -158,6 +160,24 @@ public class MonadErrorTest {
         () -> assertEquals(Try.success("not an error"), Future.narrowK(handleError).await()),
         () -> assertEquals(Try.failure(error), Future.narrowK(ensureError).await()),
         () -> assertEquals(Try.success("is not ok"), Future.narrowK(ensureOk).await()));
+  }
+
+  @Test
+  public void eval() {
+    RuntimeException error = new RuntimeException("error");
+    MonadError<Eval.µ, Throwable> monadError = EvalInstances.monadError();
+
+    Higher1<Eval.µ, String> pure = monadError.pure("is not ok");
+    Higher1<Eval.µ, String> raiseError = monadError.raiseError(error);
+    Higher1<Eval.µ, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Higher1<Eval.µ, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Higher1<Eval.µ, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+
+    assertAll(
+        () -> assertThrows(RuntimeException.class, () -> Eval.narrowK(raiseError).value()),
+        () -> assertEquals("not an error", Eval.narrowK(handleError).value()),
+        () -> assertThrows(RuntimeException.class, () -> Eval.narrowK(ensureError).value()),
+        () -> assertEquals("is not ok", Eval.narrowK(ensureOk).value()));
   }
 
   @Test

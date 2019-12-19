@@ -9,11 +9,14 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
 public interface EvalInstances {
 
@@ -27,6 +30,14 @@ public interface EvalInstances {
 
   static Monad<Eval.µ> monad() {
     return EvalMonad.INSTANCE;
+  }
+
+  static MonadError<Eval.µ, Throwable> monadError() {
+    return EvalMonadError.INSTANCE;
+  }
+
+  static MonadThrow<Eval.µ> monadThrow() {
+    return EvalMonadThrow.INSTANCE;
   }
 
   static Comonad<Eval.µ> comonad() {
@@ -77,6 +88,29 @@ interface EvalMonad extends EvalPure, Monad<Eval.µ> {
   default <T, R> Higher1<Eval.µ, R> flatMap(Higher1<Eval.µ, T> value, Function1<T, ? extends Higher1<Eval.µ, R>> map) {
     return Eval.narrowK(value).flatMap(map.andThen(Eval::<R>narrowK)).kind1();
   }
+}
+
+@Instance
+interface EvalMonadError extends EvalMonad, MonadError<Eval.µ, Throwable> {
+
+  EvalMonadError INSTANCE = new EvalMonadError() { };
+
+  @Override
+  default <A> Higher1<Eval.µ, A> raiseError(Throwable error) {
+    return Eval.<A>raiseError(error).kind1();
+  }
+
+  @Override
+  default <A> Higher1<Eval.µ, A> handleErrorWith(
+      Higher1<Eval.µ, A> value, Function1<Throwable, ? extends Higher1<Eval.µ, A>> handler) {
+    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix1(Eval::narrowK)::value));
+    return attempt.flatMap(try_ -> try_.fold(handler.andThen(Eval::narrowK), Eval::now)).kind1();
+  }
+}
+
+@Instance
+interface EvalMonadThrow extends EvalMonadError, MonadThrow<Eval.µ> {
+  EvalMonadThrow INSTANCE = new EvalMonadThrow() { };
 }
 
 @Instance
