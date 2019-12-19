@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.StackSafe;
 import com.github.tonivade.purefun.Unit;
 
 import java.util.Stack;
@@ -23,51 +24,51 @@ import static java.util.Objects.requireNonNull;
  *   <li>Eval.later(): the computation is evaluated later, but only the first time, the result is memoized.</li>
  *   <li>Eval.always(): the computation is evaluated later, but is always executed.</li>
  * </ul>
- * <p><strong>Warning:</strong> Not stack safe</p>
  * @param <A> result of the computation
  */
 @HigherKind
-public abstract class Eval<A> {
+@StackSafe
+public interface Eval<A> {
 
-  public static Eval<Boolean> TRUE = now(true);
-  public static Eval<Boolean> FALSE = now(false);
-  public static Eval<Unit> UNIT = now(unit());
-  public static Eval<Integer> ZERO = now(0);
-  public static Eval<Integer> ONE = now(1);
+  Eval<Boolean> TRUE = now(true);
+  Eval<Boolean> FALSE = now(false);
+  Eval<Unit> UNIT = now(unit());
+  Eval<Integer> ZERO = now(0);
+  Eval<Integer> ONE = now(1);
 
-  private Eval() {}
+  A value();
 
-  public abstract A value();
-
-  public <R> Eval<R> map(Function1<A, R> map) {
+  default <R> Eval<R> map(Function1<A, R> map) {
     return flatMap(value -> now(map.apply(value)));
   }
 
-  public abstract <R> Eval<R> flatMap(Function1<A, Eval<R>> map);
+  <R> Eval<R> flatMap(Function1<A, Eval<R>> map);
 
-  protected abstract Eval<A> collapse();
-
-  public static <T> Eval<T> now(T value) {
+  static <T> Eval<T> now(T value) {
     return new Done<>(cons(value));
   }
 
-  public static <T> Eval<T> later(Producer<T> later) {
+  static <T> Eval<T> later(Producer<T> later) {
     return new Done<>(later.memoized());
   }
 
-  public static <T> Eval<T> always(Producer<T> always) {
+  static <T> Eval<T> always(Producer<T> always) {
     return new Done<>(always);
   }
 
-  public static <T> Eval<T> defer(Producer<Eval<T>> eval) {
+  static <T> Eval<T> defer(Producer<Eval<T>> eval) {
     return new Defer<>(eval);
   }
 
-  private static final class Done<A> extends Eval<A> {
+  static <T> Eval<T> raiseError(Throwable error) {
+    return new Done<>(() -> { throw error; });
+  }
+
+  final class Done<A> implements Eval<A> {
 
     private final Producer<A> producer;
 
-    private Done(Producer<A> producer) {
+    protected Done(Producer<A> producer) {
       this.producer = requireNonNull(producer);
     }
 
@@ -79,49 +80,44 @@ public abstract class Eval<A> {
     public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
       return new FlatMapped<>(cons(this), map::apply);
     }
-
-    protected Eval<A> collapse() {
-      return this;
-    }
   }
 
-  private static final class Defer<A> extends Eval<A> {
+  final class Defer<A> implements Eval<A> {
 
-    private final Producer<Eval<A>> defer;
+    private final Producer<Eval<A>> deferred;
 
-    private Defer(Producer<Eval<A>> defer) {
-      this.defer = requireNonNull(defer);
+    protected Defer(Producer<Eval<A>> deferred) {
+      this.deferred = requireNonNull(deferred);
     }
 
     @Override
     public A value() {
-      return collapse().value();
+      return EvalModule.collapse(this).value();
     }
 
     @Override
     public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
-      return new FlatMapped<>(defer::get, map::apply);
+      return new FlatMapped<>(deferred::get, map::apply);
     }
 
-    @Override
-    protected Eval<A> collapse() {
-      return defer.get().collapse();
+    protected Eval<A> next() {
+      return deferred.get();
     }
   }
 
-  private static final class FlatMapped<A, B> extends Eval<B> {
+  final class FlatMapped<A, B> implements Eval<B> {
 
     private final Producer<Eval<A>> start;
     private final Function1<A, Eval<B>> run;
 
-    private FlatMapped(Producer<Eval<A>> start, Function1<A, Eval<B>> run) {
+    protected FlatMapped(Producer<Eval<A>> start, Function1<A, Eval<B>> run) {
       this.start = requireNonNull(start);
       this.run = requireNonNull(run);
     }
 
     @Override
     public B value() {
-      return evaluate(this);
+      return EvalModule.evaluate(this);
     }
 
     @Override
@@ -130,30 +126,43 @@ public abstract class Eval<A> {
       return new FlatMapped<>(() -> (Eval<B>) start(), b -> new FlatMapped<>(() -> run((A) b), map::apply));
     }
 
-    @Override
-    protected Eval<B> collapse() {
-      return new FlatMapped<>(start, a -> run(a).collapse());
-    }
-
-    private Eval<A> start() {
+    protected Eval<A> start() {
       return start.get();
     }
 
-    private Eval<B> run(A value) {
+    protected Eval<B> run(A value) {
       return run.apply(value);
     }
   }
+}
+
+interface EvalModule {
+
+  static <A, X> Eval<A> collapse(Eval<A> eval) {
+    Eval<A> current = eval;
+    while (true) {
+      if (current instanceof Eval.Defer) {
+        Eval.Defer<A> defer = (Eval.Defer<A>) current;
+        current = defer.next();
+      } else if (current instanceof Eval.FlatMapped){
+        Eval.FlatMapped<X, A> flatMapped = (Eval.FlatMapped<X, A>) current;
+        current = new Eval.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
+        break;
+      } else break;
+    }
+    return current;
+  }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  private static <A> A evaluate(Eval<A> eval) {
+  static <A> A evaluate(Eval<A> eval) {
     Stack<Function1<Object, Eval>> stack = new Stack<>();
     Eval<A> current = eval;
     while (true) {
       if (current instanceof Eval.FlatMapped) {
-        FlatMapped currentFlatMapped = (FlatMapped) current;
+        Eval.FlatMapped currentFlatMapped = (Eval.FlatMapped) current;
         Eval<A> next = currentFlatMapped.start();
         if (next instanceof Eval.FlatMapped) {
-          FlatMapped nextFlatMapped = (FlatMapped) next;
+          Eval.FlatMapped nextFlatMapped = (Eval.FlatMapped) next;
           current = nextFlatMapped.start();
           stack.push(currentFlatMapped::run);
           stack.push(nextFlatMapped::run);

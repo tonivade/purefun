@@ -92,8 +92,22 @@ public class EvalTest {
     assertEquals("adios", eval.value());
   }
 
+  @Test
+  public void stackSafety() {
+    Eval<Integer> sum = sum(100000, 0);
+
+    assertEquals(705082704, sum.value());
+  }
+
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+  }
+
+  private Eval<Integer> sum(Integer n, Integer sum) {
+    if ( n == 0) {
+      return Eval.now(sum);
+    }
+    return Eval.defer(() -> sum( n - 1, sum + n));
   }
 }
