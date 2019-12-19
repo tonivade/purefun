@@ -159,10 +159,9 @@ interface EvalModule {
       if (current instanceof Eval.Defer) {
         Eval.Defer<A> defer = (Eval.Defer<A>) current;
         current = defer.next();
-      } else if (current instanceof Eval.FlatMapped){
+      } else if (current instanceof Eval.FlatMapped) {
         Eval.FlatMapped<X, A> flatMapped = (Eval.FlatMapped<X, A>) current;
-        current = new Eval.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
-        break;
+        return new Eval.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
       } else break;
     }
     return current;
@@ -186,9 +185,7 @@ interface EvalModule {
         }
       } else if (!stack.isEmpty()) {
         current = (Eval<A>) stack.pop().apply(current.value());
-      } else {
-        break;
-      }
+      } else break;
     }
     return current.value();
   }
