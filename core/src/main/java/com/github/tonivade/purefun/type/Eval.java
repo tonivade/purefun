@@ -85,6 +85,11 @@ public interface Eval<A> {
     public EvalModule getModule() {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public String toString() {
+      return "Done(?)";
+    }
   }
 
   final class Defer<A> implements Eval<A> {
@@ -112,6 +117,11 @@ public interface Eval<A> {
 
     protected Eval<A> next() {
       return deferred.get();
+    }
+
+    @Override
+    public String toString() {
+      return "Defer(?)";
     }
   }
 
@@ -147,6 +157,11 @@ public interface Eval<A> {
 
     protected Eval<B> run(A value) {
       return run.apply(value);
+    }
+
+    @Override
+    public String toString() {
+      return "FlatMapped(?, ?)";
     }
   }
 }

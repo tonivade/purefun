@@ -187,7 +187,7 @@ public class ZIOTest {
   }
 
   @Test
-  public void testStackSafety() {
+  public void stackSafety() {
     UIO<Integer> sum = sum(100000, 0);
 
     Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);

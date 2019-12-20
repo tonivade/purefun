@@ -5,8 +5,10 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Stack;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -21,6 +23,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
@@ -57,7 +60,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default <R> IO<R> flatMap(Function1<T, IO<R>> map) {
-    return new FlatMapped<>(this, map);
+    return new FlatMapped<>(cons(this), map);
   }
 
   default <R> IO<R> andThen(IO<R> after) {
@@ -175,22 +178,27 @@ public interface IO<T> extends Recoverable {
 
   final class FlatMapped<T, R> implements IO<R> {
 
-    private final IO<T> current;
+    private final Producer<IO<T>> current;
     private final Function1<T, IO<R>> next;
 
-    private FlatMapped(IO<T> current, Function1<T, IO<R>> next) {
+    protected FlatMapped(Producer<IO<T>> current, Function1<T, IO<R>> next) {
       this.current = requireNonNull(current);
       this.next = requireNonNull(next);
     }
 
     @Override
     public R unsafeRunSync() {
-      return next.apply(current.unsafeRunSync()).unsafeRunSync();
+      return IOModule.evaluate(this);
     }
 
     @Override
     public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
-      return monad.flatMap(current.foldMap(monad), next.andThen(io -> io.foldMap(monad)));
+      return monad.flatMap(current.get().foldMap(monad), next.andThen(io -> io.foldMap(monad)));
+    }
+
+    @Override
+    public <R1> IO<R1> flatMap(Function1<R, IO<R1>> map) {
+      return new IO.FlatMapped<>(() -> (IO<R>) start(), t -> new FlatMapped<>(() -> run((T) t), map::apply));
     }
 
     @Override
@@ -201,6 +209,14 @@ public interface IO<T> extends Recoverable {
     @Override
     public String toString() {
       return "FlatMapped(" + current + ", ?)";
+    }
+
+    protected IO<T> start() {
+      return current.get();
+    }
+
+    protected IO<R> run(T value) {
+      return next.apply(value);
     }
   }
 
@@ -284,7 +300,12 @@ public interface IO<T> extends Recoverable {
 
     @Override
     public T unsafeRunSync() {
-      return lazy.get().unsafeRunSync();
+      return IOModule.collapse(this).unsafeRunSync();
+    }
+
+    @Override
+    public <R> IO<R> flatMap(Function1<T, IO<R>> map) {
+      return new FlatMapped<>(lazy::get, map::apply);
     }
 
     @Override
@@ -300,6 +321,10 @@ public interface IO<T> extends Recoverable {
     @Override
     public String toString() {
       return "Suspend(?)";
+    }
+
+    protected IO<T> next() {
+      return lazy.get();
     }
   }
 
@@ -370,6 +395,43 @@ public interface IO<T> extends Recoverable {
 
 interface IOModule {
   IO<Unit> UNIT = IO.pure(Unit.unit());
+
+  static <A, X> IO<A> collapse(IO<A> eval) {
+    IO<A> current = eval;
+    while (true) {
+      if (current instanceof IO.Suspend) {
+        IO.Suspend<A> suspend = (IO.Suspend<A>) current;
+        current = suspend.next();
+      } else if (current instanceof IO.FlatMapped) {
+        IO.FlatMapped<X, A> flatMapped = (IO.FlatMapped<X, A>) current;
+        return new IO.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
+      } else break;
+    }
+    return current;
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  static <A> A evaluate(IO<A> eval) {
+    Stack<Function1<Object, IO>> stack = new Stack<>();
+    IO<A> current = eval;
+    while (true) {
+      if (current instanceof IO.FlatMapped) {
+        IO.FlatMapped currentFlatMapped = (IO.FlatMapped) current;
+        IO<A> next = currentFlatMapped.start();
+        if (next instanceof IO.FlatMapped) {
+          IO.FlatMapped nextFlatMapped = (IO.FlatMapped) next;
+          current = nextFlatMapped.start();
+          stack.push(currentFlatMapped::run);
+          stack.push(nextFlatMapped::run);
+        } else {
+          current = (IO<A>) currentFlatMapped.run(next.unsafeRunSync());
+        }
+      } else if (!stack.isEmpty()) {
+        current = (IO<A>) stack.pop().apply(current.unsafeRunSync());
+      } else break;
+    }
+    return current.unsafeRunSync();
+  }
 }
 
 final class IOResource<T> implements AutoCloseable {

@@ -149,13 +149,13 @@ public class IOTest {
   }
 
   @Test
-  public void testStackSafety() {
+  public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
     Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
 
-    assertThrows(StackOverflowError.class, sum::unsafeRunSync, "IO is not stack safe :(");
-    assertEquals(Try.success(705082704), futureSum.await(), "but with a Future interpreter, it works :)");
+    assertEquals(705082704, sum.unsafeRunSync());
+    assertEquals(Try.success(705082704), futureSum.await());
   }
 
   @BeforeEach
