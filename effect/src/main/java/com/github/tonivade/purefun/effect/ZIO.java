@@ -556,6 +556,7 @@ public interface ZIO<R, E, A> {
 interface ZIOModule {
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
 
+  @SuppressWarnings("unchecked")
   static <R, E, A, F, B> ZIO<R, E, A> collapse(ZIO<R, E, A> eval) {
     ZIO<R, E, A> current = eval;
     while (true) {

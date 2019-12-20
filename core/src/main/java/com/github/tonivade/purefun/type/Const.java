@@ -17,7 +17,7 @@ public final class Const<T, A> implements Serializable {
 
   private static final long serialVersionUID = 7431389527943145565L;
 
-  private static final Equal<Const> EQUAL = Equal.<Const>of().comparing(Const::get);
+  private static final Equal<Const<?, ?>> EQUAL = Equal.<Const<?, ?>>of().comparing(Const::get);
 
   private final T value;
 

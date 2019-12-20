@@ -22,7 +22,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
 
   private static final long serialVersionUID = 3291606155276185601L;
 
-  private static final Equal<NonEmptyList> EQUAL = Equal.<NonEmptyList>of().comparing(v -> v.value);
+  private static final Equal<NonEmptyList<?>> EQUAL = Equal.<NonEmptyList<?>>of().comparing(v -> v.value);
 
   private final ImmutableList<E> value;
 

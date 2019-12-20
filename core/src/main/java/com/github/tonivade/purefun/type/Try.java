@@ -192,7 +192,7 @@ public interface Try<T> {
 
     private static final long serialVersionUID = -3934628369477099278L;
 
-    private static final Equal<Success> EQUAL = Equal.<Success>of().comparing(Success::get);
+    private static final Equal<Success<?>> EQUAL = Equal.<Success<?>>of().comparing(Success::get);
 
     private final T value;
 
@@ -245,8 +245,8 @@ public interface Try<T> {
 
     private static final long serialVersionUID = -8155444386075553318L;
 
-    private static final Equal<Failure> EQUAL =
-        Equal.<Failure>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
+    private static final Equal<Failure<?>> EQUAL =
+        Equal.<Failure<?>>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
 
     private final Throwable cause;
 

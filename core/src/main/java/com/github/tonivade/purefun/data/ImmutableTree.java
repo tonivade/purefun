@@ -94,7 +94,8 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     private static final long serialVersionUID = -328223831102407507L;
 
-    private static final Equal<JavaBasedImmutableTree> EQUAL = Equal.<JavaBasedImmutableTree>of().comparing(a -> a.backend);
+    private static final Equal<JavaBasedImmutableTree<?>> EQUAL = 
+        Equal.<JavaBasedImmutableTree<?>>of().comparing(a -> a.backend);
 
     private final NavigableSet<E> backend;
 

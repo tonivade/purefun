@@ -130,6 +130,7 @@ public abstract class Free<F extends Kind, A> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Either<Higher1<F, Free<F, B>>, B> resume(Functor<F> functor) {
       if (value instanceof Free.Suspend) {
         Free.Suspend<F, A> suspend = (Free.Suspend<F, A>) value;
@@ -144,6 +145,7 @@ public abstract class Free<F extends Kind, A> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Free<F, B> step() {
       if (value instanceof FlatMapped) {
         Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;

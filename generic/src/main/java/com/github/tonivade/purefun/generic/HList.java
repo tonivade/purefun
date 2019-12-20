@@ -121,7 +121,7 @@ public interface HList<L extends HList<L>> {
 
   final class HCons<H, T extends HList<T>> implements HList<HCons<H, T>> {
 
-    private static final Equal<HCons> EQUAL = Equal.<HCons>of()
+    private static final Equal<HCons<?, ?>> EQUAL = Equal.<HCons<?, ?>>of()
         .comparing(HCons::head)
         .comparing(HCons::tail);
 

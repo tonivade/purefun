@@ -99,7 +99,8 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     private static final long serialVersionUID = -7468103369804662814L;
 
-    private static final Equal<JavaBasedImmutableList> EQUAL = Equal.<JavaBasedImmutableList>of().comparing(a -> a.backend);
+    private static final Equal<JavaBasedImmutableList<?>> EQUAL = 
+        Equal.<JavaBasedImmutableList<?>>of().comparing(a -> a.backend);
 
     private final List<E> backend;
 

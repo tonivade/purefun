@@ -10,7 +10,7 @@ import java.util.Objects;
 
 public final class With<A> {
 
-  private static final Equal<With> EQUAL = Equal.<With>of().comparing(With::get);
+  private static final Equal<With<?>> EQUAL = Equal.<With<?>>of().comparing(With::get);
 
   private final A value;
 

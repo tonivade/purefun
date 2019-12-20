@@ -87,7 +87,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     private static final long serialVersionUID = -4111867323115030715L;
 
-    private static final Equal<JavaBasedImmutableSet> EQUAL = Equal.<JavaBasedImmutableSet>of().comparing(x -> x.backend);
+    private static final Equal<JavaBasedImmutableSet<?>> EQUAL = 
+        Equal.<JavaBasedImmutableSet<?>>of().comparing(x -> x.backend);
 
     private final Set<E> backend;
 

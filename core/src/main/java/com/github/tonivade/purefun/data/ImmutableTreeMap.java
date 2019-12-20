@@ -170,7 +170,8 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     private static final long serialVersionUID = 8618845296089216532L;
 
-    private static final Equal<JavaBasedImmutableTreeMap> EQUAL = Equal.<JavaBasedImmutableTreeMap>of().comparing(a -> a.backend);
+    private static final Equal<JavaBasedImmutableTreeMap<?, ?>> EQUAL = 
+        Equal.<JavaBasedImmutableTreeMap<?, ?>>of().comparing(a -> a.backend);
 
     private final NavigableMap<K, V> backend;
 

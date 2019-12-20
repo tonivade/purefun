@@ -168,6 +168,7 @@ public interface Eval<A> {
 
 interface EvalModule {
 
+  @SuppressWarnings("unchecked")
   static <A, X> Eval<A> collapse(Eval<A> eval) {
     Eval<A> current = eval;
     while (true) {

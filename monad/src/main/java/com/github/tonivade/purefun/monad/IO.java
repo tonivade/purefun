@@ -400,6 +400,7 @@ interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
 
+  @SuppressWarnings("unchecked")
   static <A, X> IO<A> collapse(IO<A> eval) {
     IO<A> current = eval;
     while (true) {

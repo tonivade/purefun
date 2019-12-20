@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun;
 
 import com.github.tonivade.purefun.type.Validation;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.type.Validation.Result;
 

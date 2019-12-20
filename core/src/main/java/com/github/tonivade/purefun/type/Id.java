@@ -24,7 +24,7 @@ public final class Id<T> implements Serializable {
 
   private static final long serialVersionUID = -6295106408421985189L;
 
-  private static final Equal<Id> EQUAL = Equal.<Id>of().comparing(Id::get);
+  private static final Equal<Id<?>> EQUAL = Equal.<Id<?>>of().comparing(Id::get);
 
   private final T value;
 

@@ -16,7 +16,7 @@ public final class Tuple1<A> implements Tuple, Serializable {
 
   private static final long serialVersionUID = 6343431593011527978L;
 
-  private static final Equal<Tuple1> EQUAL = Equal.<Tuple1>of().comparing(Tuple1::get1);
+  private static final Equal<Tuple1<?>> EQUAL = Equal.<Tuple1<?>>of().comparing(Tuple1::get1);
 
   private final A value1;
 

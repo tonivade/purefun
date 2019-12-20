@@ -15,7 +15,7 @@ public final class Tuple4<A, B, C, D> implements Tuple, Serializable {
 
   private static final long serialVersionUID = -2725249702715042810L;
 
-  private static final Equal<Tuple4> EQUAL = Equal.<Tuple4>of()
+  private static final Equal<Tuple4<?, ?, ?, ?>> EQUAL = Equal.<Tuple4<?, ?, ?, ?>>of()
       .comparing(Tuple4::get1)
       .comparing(Tuple4::get2)
       .comparing(Tuple4::get3)

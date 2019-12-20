@@ -49,6 +49,7 @@ public interface Validation<E, T> {
     return new Invalid<>(error);
   }
 
+  @SafeVarargs
   static <E, T> Validation<Result<E>, T> invalidOf(E error, E... errors) {
     return new Invalid<>(Result.of(error, errors));
   }
@@ -214,7 +215,7 @@ public interface Validation<E, T> {
 
     private static final long serialVersionUID = -4276395187736455243L;
 
-    private static final Equal<Valid> EQUAL = Equal.<Valid>of().comparing(Valid::get);
+    private static final Equal<Valid<?, ?>> EQUAL = Equal.<Valid<?, ?>>of().comparing(Valid::get);
 
     private final T value;
 
@@ -267,7 +268,7 @@ public interface Validation<E, T> {
 
     private static final long serialVersionUID = -5116403366555721062L;
 
-    private static final Equal<Invalid> EQUAL = Equal.<Invalid>of().comparing(Invalid::getError);
+    private static final Equal<Invalid<?, ?>> EQUAL = Equal.<Invalid<?, ?>>of().comparing(Invalid::getError);
 
     private final E error;
 
@@ -320,7 +321,7 @@ public interface Validation<E, T> {
 
     private static final long serialVersionUID = -6528420803580087615L;
 
-    private static final Equal<Result> EQUAL = Equal.<Result>of().comparing(r -> r.errors);
+    private static final Equal<Result<?>> EQUAL = Equal.<Result<?>>of().comparing(r -> r.errors);
 
     private final NonEmptyList<E> errors;
 
@@ -332,6 +333,7 @@ public interface Validation<E, T> {
       return new Result<>(errors.append(error));
     }
 
+    @SuppressWarnings("unchecked")
     public Result<E> appendAll(E... errors) {
       return new Result<>(this.errors.appendAll(listOf(errors)));
     }
