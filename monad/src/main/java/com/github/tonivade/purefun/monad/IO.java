@@ -23,7 +23,6 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 

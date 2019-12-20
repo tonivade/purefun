@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Reference;
@@ -26,7 +25,6 @@ import java.util.NoSuchElementException;
 
 import static com.github.tonivade.purefun.monad.IO.narrowK;
 import static com.github.tonivade.purefun.monad.IO.unit;
-import static com.github.tonivade.purefun.type.Eval.UNIT;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
