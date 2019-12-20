@@ -4,10 +4,11 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Stack;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -50,28 +51,32 @@ public interface ZIO<R, E, A> {
 
   <F extends Kind> Higher1<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad);
 
-  default <B> ZIO<R, E, B> map(Function1<A, B> map) {
-    return new FlatMapped<>(this, ZIO::raiseError, map.andThen(ZIO::pure));
-  }
-
-  default <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
-    return new FlatMapped<>(this, ZIO::raiseError, map);
-  }
-
   default ZIO<R, A, E> swap() {
     return new Swap<>(this);
   }
 
-  default <B> ZIO<R, B, A> mapError(Function1<E, B> map) {
-    return new FlatMapped<>(this, map.andThen(ZIO::raiseError), ZIO::pure);
+  default <B> ZIO<R, E, B> map(Function1<A, B> map) {
+    return flatMap(map.andThen(ZIO::pure));
   }
 
-  default <F> ZIO<R, F, A> flatMapError(Function1<E, ZIO<R, F, A>> map) {
-    return new FlatMapped<>(this, map, ZIO::pure);
+  default <B> ZIO<R, B, A> mapError(Function1<E, B> map) {
+    return flatMapError(map.andThen(ZIO::raiseError));
   }
 
   default <B, F> ZIO<R, F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
-    return new FlatMapped<>(this, mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
+    return biflatMap(mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
+  }
+
+  default <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
+    return biflatMap(ZIO::<R, E, B>raiseError, map);
+  }
+
+  default <F> ZIO<R, F, A> flatMapError(Function1<E, ZIO<R, F, A>> map) {
+    return biflatMap(map, ZIO::<R, F, A>pure);
+  }
+
+  default <F, B> ZIO<R, F, B> biflatMap(Function1<E, ZIO<R, F, B>> left, Function1<A, ZIO<R, F, B>> right) {
+    return new FlatMapped<>(cons(this), left, right);
   }
 
   default <B> ZIO<R, E, B> andThen(ZIO<R, E, B> next) {
@@ -91,7 +96,7 @@ public interface ZIO<R, E, A> {
   }
 
   default ZIO<R, E, A> orElse(Producer<ZIO<R, E, A>> other) {
-    return foldM(other.asFunction(), cons(this));
+    return foldM(other.asFunction(), Function1.cons(this));
   }
 
   ZIOModule getModule();
@@ -170,9 +175,9 @@ public interface ZIO<R, E, A> {
 
   final class Pure<R, E, A> implements ZIO<R, E, A> {
 
-    private A value;
+    private final A value;
 
-    private Pure(A value) {
+    protected Pure(A value) {
       this.value = requireNonNull(value);
     }
 
@@ -201,7 +206,7 @@ public interface ZIO<R, E, A> {
 
     private E error;
 
-    private Failure(E error) {
+    protected Failure(E error) {
       this.error = requireNonNull(error);
     }
 
@@ -228,13 +233,13 @@ public interface ZIO<R, E, A> {
 
   final class FlatMapped<R, E, A, F, B> implements ZIO<R, F, B> {
 
-    private ZIO<R, E, A> current;
-    private Function1<E, ZIO<R, F, B>> nextError;
-    private Function1<A, ZIO<R, F, B>> next;
+    private final Producer<ZIO<R, E, A>> current;
+    private final Function1<E, ZIO<R, F, B>> nextError;
+    private final Function1<A, ZIO<R, F, B>> next;
 
-    private FlatMapped(ZIO<R, E, A> current,
-                       Function1<E, ZIO<R, F, B>> nextError,
-                       Function1<A, ZIO<R, F, B>> next) {
+    protected FlatMapped(Producer<ZIO<R, E, A>> current,
+                         Function1<E, ZIO<R, F, B>> nextError,
+                         Function1<A, ZIO<R, F, B>> next) {
       this.current = requireNonNull(current);
       this.nextError = requireNonNull(nextError);
       this.next = requireNonNull(next);
@@ -242,14 +247,31 @@ public interface ZIO<R, E, A> {
 
     @Override
     public Either<F, B> provide(R env) {
-      Either<ZIO<R, F, B>, ZIO<R, F, B>> bimap = current.provide(env).bimap(nextError, next);
-      return bimap.fold(identity(), identity()).provide(env);
+      return ZIOModule.evaluate(env, this);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <F1, B1> ZIO<R, F1, B1> biflatMap(Function1<F, ZIO<R, F1, B1>> left, Function1<B, ZIO<R, F1, B1>> right) {
+      return new FlatMapped<>(
+          () -> (ZIO<R, F, B>) start(),
+          f -> new FlatMapped<>(
+              () -> run((Either<E, A>) Either.left(f)),
+              left::apply,
+              right::apply)
+          ,
+          b -> new FlatMapped<>(
+              () -> run((Either<E, A>) Either.right(b)),
+              left::apply,
+              right::apply)
+      );
     }
 
     @Override
     public <X extends Kind> Higher1<X, Either<F, B>> foldMap(R env, MonadDefer<X> monad) {
-      Higher1<X, Either<E, A>> foldMap = current.foldMap(env, monad);
-      Higher1<X, ZIO<R, F, B>> map = monad.map(foldMap, either -> either.bimap(nextError, next).fold(identity(), identity()));
+      Higher1<X, Either<E, A>> foldMap = current.get().foldMap(env, monad);
+      Higher1<X, ZIO<R, F, B>> map =
+          monad.map(foldMap, either -> either.bimap(nextError, next).fold(identity(), identity()));
       return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 
@@ -262,13 +284,21 @@ public interface ZIO<R, E, A> {
     public String toString() {
       return "FlatMapped(" + current + ", ?, ?)";
     }
+
+    protected ZIO<R, E, A> start() {
+      return current.get();
+    }
+
+    protected ZIO<R, F, B> run(Either<E, A> value) {
+      return value.bimap(nextError, next).fold(identity(), identity());
+    }
   }
 
   final class Task<R, E, A> implements ZIO<R, E, A> {
 
-    private Producer<Either<E, A>> task;
+    private final Producer<Either<E, A>> task;
 
-    private Task(Producer<Either<E, A>> task) {
+    protected Task(Producer<Either<E, A>> task) {
       this.task = requireNonNull(task);
     }
 
@@ -295,15 +325,20 @@ public interface ZIO<R, E, A> {
 
   final class Suspend<R, E, A> implements ZIO<R, E, A> {
 
-    private Producer<ZIO<R, E, A>> lazy;
+    private final Producer<ZIO<R, E, A>> lazy;
 
-    private Suspend(Producer<ZIO<R, E, A>> lazy) {
+    protected Suspend(Producer<ZIO<R, E, A>> lazy) {
       this.lazy = requireNonNull(lazy);
     }
 
     @Override
     public Either<E, A> provide(R env) {
-      return lazy.get().provide(env);
+      return ZIOModule.collapse(this).provide(env);
+    }
+
+    @Override
+    public <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
+      return new FlatMapped<>(lazy::get, ZIO::raiseError, map::apply);
     }
 
     @Override
@@ -316,6 +351,10 @@ public interface ZIO<R, E, A> {
       throw new UnsupportedOperationException();
     }
 
+    protected ZIO<R, E, A> next() {
+      return lazy.get();
+    }
+
     @Override
     public String toString() {
       return "Suspend(?)";
@@ -324,9 +363,9 @@ public interface ZIO<R, E, A> {
 
   final class Swap<R, E, A> implements ZIO<R, A, E> {
 
-    private ZIO<R, E, A> current;
+    private final ZIO<R, E, A> current;
 
-    private Swap(ZIO<R, E, A> current) {
+    protected Swap(ZIO<R, E, A> current) {
       this.current = requireNonNull(current);
     }
 
@@ -355,7 +394,7 @@ public interface ZIO<R, E, A> {
 
     private final Producer<A> current;
 
-    private Attempt(Producer<A> current) {
+    protected Attempt(Producer<A> current) {
       this.current = requireNonNull(current);
     }
 
@@ -384,7 +423,7 @@ public interface ZIO<R, E, A> {
 
     private final ZIO<R, Nothing, A> current;
 
-    private Redeem(ZIO<R, Nothing, A> current) {
+    protected Redeem(ZIO<R, Nothing, A> current) {
       this.current = requireNonNull(current);
     }
 
@@ -411,9 +450,9 @@ public interface ZIO<R, E, A> {
 
   final class AccessM<R, E, A> implements ZIO<R, E, A> {
 
-    private Function1<R, ZIO<R, E, A>> function;
+    private final Function1<R, ZIO<R, E, A>> function;
 
-    private AccessM(Function1<R, ZIO<R, E, A>> function) {
+    protected AccessM(Function1<R, ZIO<R, E, A>> function) {
       this.function = requireNonNull(function);
     }
 
@@ -441,11 +480,11 @@ public interface ZIO<R, E, A> {
 
   final class FoldM<R, E, A, F, B> implements ZIO<R, F, B> {
 
-    private ZIO<R, E, A> current;
-    private Function1<E, ZIO<R, F, B>> nextError;
-    private Function1<A, ZIO<R, F, B>> next;
+    private final ZIO<R, E, A> current;
+    private final Function1<E, ZIO<R, F, B>> nextError;
+    private final Function1<A, ZIO<R, F, B>> next;
 
-    private FoldM(ZIO<R, E, A> current, Function1<E, ZIO<R, F, B>> nextError, Function1<A, ZIO<R, F, B>> next) {
+    protected FoldM(ZIO<R, E, A> current, Function1<E, ZIO<R, F, B>> nextError, Function1<A, ZIO<R, F, B>> next) {
       this.current = requireNonNull(current);
       this.nextError = requireNonNull(nextError);
       this.next = requireNonNull(next);
@@ -480,7 +519,7 @@ public interface ZIO<R, E, A> {
     private final Function1<A, ZIO<R, Throwable, B>> use;
     private final Consumer1<A> release;
 
-    private Bracket(ZIO<R, Throwable, A> acquire,
+    protected Bracket(ZIO<R, Throwable, A> acquire,
                     Function1<A, ZIO<R, Throwable, B>> use,
                     Consumer1<A> release) {
       this.acquire = requireNonNull(acquire);
@@ -515,8 +554,47 @@ public interface ZIO<R, E, A> {
 }
 
 interface ZIOModule {
-
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
+
+  static <R, E, A, F, B> ZIO<R, E, A> collapse(ZIO<R, E, A> eval) {
+    ZIO<R, E, A> current = eval;
+    while (true) {
+      if (current instanceof ZIO.Suspend) {
+        ZIO.Suspend<R, E, A> suspend = (ZIO.Suspend<R, E, A>) current;
+        current = suspend.next();
+      } else if (current instanceof ZIO.FlatMapped) {
+        ZIO.FlatMapped<R, F, B, E, A> flatMapped = (ZIO.FlatMapped<R, F, B, E, A>) current;
+        return new ZIO.FlatMapped<>(
+            flatMapped::start,
+            e -> collapse(flatMapped.run(Either.left(e))),
+            a -> collapse(flatMapped.run(Either.right(a))));
+      } else break;
+    }
+    return current;
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  static <R, E, A> Either<E, A> evaluate(R env, ZIO<R, E, A> eval) {
+    Stack<Function1<Either, ZIO>> stack = new Stack<>();
+    ZIO<R, E, A> current = eval;
+    while (true) {
+      if (current instanceof ZIO.FlatMapped) {
+        ZIO.FlatMapped currentFlatMapped = (ZIO.FlatMapped) current;
+        ZIO<R, E, A> next = currentFlatMapped.start();
+        if (next instanceof ZIO.FlatMapped) {
+          ZIO.FlatMapped nextFlatMapped = (ZIO.FlatMapped) next;
+          current = nextFlatMapped.start();
+          stack.push(currentFlatMapped::run);
+          stack.push(nextFlatMapped::run);
+        } else {
+          current = (ZIO<R, E, A>) currentFlatMapped.run(next.provide(env));
+        }
+      } else if (!stack.isEmpty()) {
+        current = (ZIO<R, E, A>) stack.pop().apply(current.provide(env));
+      } else break;
+    }
+    return current.provide(env);
+  }
 }
 
 final class ZIOResource<A> implements AutoCloseable {

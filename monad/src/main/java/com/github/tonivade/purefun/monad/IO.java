@@ -151,7 +151,7 @@ public interface IO<T> extends Recoverable {
 
     private final T value;
 
-    private Pure(T value) {
+    protected Pure(T value) {
       this.value = requireNonNull(value);
     }
 
@@ -197,8 +197,12 @@ public interface IO<T> extends Recoverable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <R1> IO<R1> flatMap(Function1<R, IO<R1>> map) {
-      return new IO.FlatMapped<>(() -> (IO<R>) start(), t -> new FlatMapped<>(() -> run((T) t), map::apply));
+      return new IO.FlatMapped<>(
+          () -> (IO<R>) start(),
+          r -> new FlatMapped<>(
+              () -> run((T) r), map::apply));
     }
 
     @Override
@@ -224,7 +228,7 @@ public interface IO<T> extends Recoverable {
 
     private final Throwable error;
 
-    private Failure(Throwable error) {
+    protected Failure(Throwable error) {
       this.error = requireNonNull(error);
     }
 
@@ -265,7 +269,7 @@ public interface IO<T> extends Recoverable {
 
     private final Producer<T> task;
 
-    private Task(Producer<T> task) {
+    protected Task(Producer<T> task) {
       this.task = requireNonNull(task);
     }
 
@@ -294,7 +298,7 @@ public interface IO<T> extends Recoverable {
 
     private final Producer<IO<T>> lazy;
 
-    private Suspend(Producer<IO<T>> lazy) {
+    protected Suspend(Producer<IO<T>> lazy) {
       this.lazy = requireNonNull(lazy);
     }
 
@@ -334,7 +338,7 @@ public interface IO<T> extends Recoverable {
     private final Function1<T, IO<R>> use;
     private final Consumer1<T> release;
 
-    private Bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
+    protected Bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
       this.acquire = requireNonNull(acquire);
       this.use = requireNonNull(use);
       this.release = requireNonNull(release);
@@ -367,7 +371,7 @@ public interface IO<T> extends Recoverable {
 
     private final IO<T> current;
 
-    private Attempt(IO<T> current) {
+    protected Attempt(IO<T> current) {
       this.current = requireNonNull(current);
     }
 
@@ -394,6 +398,7 @@ public interface IO<T> extends Recoverable {
 }
 
 interface IOModule {
+
   IO<Unit> UNIT = IO.pure(Unit.unit());
 
   static <A, X> IO<A> collapse(IO<A> eval) {

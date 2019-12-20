@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.monad.IO.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -187,13 +188,24 @@ public class ZIOTest {
   }
 
   @Test
+  public void flatMapped() {
+    UIO<String> uio = UIO.unit()
+        .map(ignore -> "hola")
+        .map(ignore -> "hola")
+        .map(ignore -> "hola")
+        .map(ignore -> "adios");
+
+    assertEquals("adios", uio.unsafeRunSync());
+  }
+
+  @Test
   public void stackSafety() {
     UIO<Integer> sum = sum(100000, 0);
 
     Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
 
-    assertThrows(StackOverflowError.class, sum::unsafeRunSync, "ZIO is not stack safe :(");
-    assertEquals(Try.success(705082704), futureSum.await(), "but with a Future interpreter, it works :)");
+    assertEquals(705082704, sum.unsafeRunSync());
+    assertEquals(Try.success(705082704), futureSum.await());
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
