@@ -38,7 +38,7 @@ public class FoldableTest {
         () -> verifyLaws(TryInstances.foldable(), Try.success("hola").kind1()),
         () -> verifyLaws(EitherInstances.foldable(), Either.right("hola").kind1()),
         () -> verifyLaws(OptionInstances.foldable(), Option.some("hola").kind1()),
-        () -> verifyLaws(SequenceInstances.foldable(), Sequence.listOf("hola").kind1()),
+        () -> verifyLaws(SequenceInstances.foldable(), listOf("hola").kind1()),
         () -> verifyLaws(compose(SequenceInstances.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola").kind1()).kind1())));
   }
 

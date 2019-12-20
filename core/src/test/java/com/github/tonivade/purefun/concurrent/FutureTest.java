@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.concurrent;
 
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;

@@ -23,7 +23,7 @@ public class ValidatorTest {
     Validator<String, Integer> validator = Validator.range(10, 20);
 
     assertAll(
-        () -> Assertions.assertEquals(Validation.invalid("require non null"), validator.validate(null)),
+        () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
         () -> assertEquals(Validation.invalid("require min value: 10"), validator.validate(0)),
         () -> assertEquals(Validation.invalid("require max value: 20"), validator.validate(100)),
         () -> assertEquals(Validation.valid(10), validator.validate(10)),

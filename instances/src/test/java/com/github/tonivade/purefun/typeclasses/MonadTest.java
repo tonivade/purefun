@@ -20,6 +20,8 @@ import com.github.tonivade.purefun.type.Option;
 
 public class MonadTest {
 
+  private final Function1<String, String> toUpperCase = String::toUpperCase;
+
   @Test
   public void idMonad() {
     verifyLaws(IdInstances.monad());
@@ -44,8 +46,6 @@ public class MonadTest {
   public void validationMonad() {
     verifyLaws(ValidationInstances.monad());
   }
-
-  private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
 
   @Test
   public void option() {
