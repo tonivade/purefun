@@ -39,8 +39,8 @@ public final class UIO<T> {
   }
 
   @SuppressWarnings("unchecked")
-  public <R> ZIO<R, Nothing, T> toZIO() {
-    return (ZIO<R, Nothing, T>) value;
+  public <R, E> ZIO<R, E, T> toZIO() {
+    return (ZIO<R, E, T>) value;
   }
 
   public EIO<Throwable, T> toEIO() {

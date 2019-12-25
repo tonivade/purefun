@@ -144,7 +144,7 @@ public class UIOTest {
   @Test
   public void testCompositionWithZIO() {
     ZIO<Environment, Nothing, Integer> getValue = ZIO.access(Environment::getValue);
-    ZIO<Environment, Nothing, Integer> result = unit().<Environment>toZIO().andThen(getValue);
+    ZIO<Environment, Nothing, Integer> result = unit().<Environment, Nothing>toZIO().andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 
