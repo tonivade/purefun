@@ -91,10 +91,6 @@ public final class UIO<T> {
     return new UIO<>(ZIO.map2(za.value, zb.value, mapper));
   }
 
-  public static <A> UIO<A> from(Producer<A> task) {
-    return fold(ZIO.from(task));
-  }
-
   public static UIO<Unit> exec(CheckedRunnable task) {
     return fold(ZIO.exec(task));
   }
@@ -104,7 +100,7 @@ public final class UIO<T> {
   }
 
   public static <A> UIO<A> raiseError(Throwable throwable) {
-    return new UIO<>(ZIO.task(() -> { throw throwable; }));
+    return new UIO<>(ZIO.fromEither(() -> { throw throwable; }));
   }
 
   public static <A> UIO<A> defer(Producer<UIO<A>> lazy) {
@@ -112,7 +108,7 @@ public final class UIO<T> {
   }
 
   public static <A> UIO<A> task(Producer<A> task) {
-    return new UIO<>(ZIO.task(task));
+    return fold(ZIO.task(task));
   }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(UIO<A> acquire, Function1<A, UIO<B>> use) {
@@ -128,6 +124,6 @@ public final class UIO<T> {
   }
 
   private static <A> UIO<A> fold(ZIO<Nothing, Throwable, A> zio) {
-    return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).value, value -> pure(value).value));
+    return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).value, value -> UIO.pure(value).value));
   }
 }

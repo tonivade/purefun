@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.Stack;
 import java.util.concurrent.Executor;
 
@@ -23,6 +24,7 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.effect.util.ZClock;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -83,7 +85,7 @@ public interface ZIO<R, E, A> {
     return flatMap(ignore -> next);
   }
 
-  default <B, F> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
+  default <F, B> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
     return new FoldM<>(this, mapError, map);
   }
 
@@ -122,15 +124,11 @@ public interface ZIO<R, E, A> {
   }
 
   static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<A, B> function) {
-    return value -> from(() -> function.apply(value));
+    return value -> task(() -> function.apply(value));
   }
 
   static <R, E, A> ZIO<R, E, A> fromEither(Producer<Either<E, A>> task) {
     return new Task<>(task);
-  }
-
-  static <R, A> ZIO<R, Throwable, A> from(Producer<A> task) {
-    return new Attempt<>(task);
   }
 
   static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
@@ -145,8 +143,8 @@ public interface ZIO<R, E, A> {
     return new Suspend<>(lazy);
   }
 
-  static <R, E, A> ZIO<R, E, A> task(Producer<A> task) {
-    return new Task<>(task.map(Either::right));
+  static <R, A> ZIO<R, Throwable, A> task(Producer<A> task) {
+    return new Attempt<>(task);
   }
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
@@ -155,6 +153,17 @@ public interface ZIO<R, E, A> {
 
   static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, A> value) {
     return new Redeem<>(value);
+  }
+
+  static <R extends ZClock, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> current, Duration initialDelay, int maxRetries) {
+    return current.<E, A>foldM(
+        error -> {
+          if (maxRetries > 0) {
+            ZIO<R, E, Unit> sleep = (ZIO<R, E, Unit>) ZClock.sleep(initialDelay);
+            return sleep.andThen(retry(current, initialDelay.plus(initialDelay), maxRetries - 1));
+          }
+          return ZIO.raiseError(error);
+        }, ZIO::<R, E, A>pure);
   }
 
   static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,

@@ -23,9 +23,9 @@ import org.mockito.MockitoAnnotations;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.github.tonivade.purefun.effect.UIO.from;
 import static com.github.tonivade.purefun.effect.UIO.pure;
 import static com.github.tonivade.purefun.effect.UIO.raiseError;
+import static com.github.tonivade.purefun.effect.UIO.task;
 import static com.github.tonivade.purefun.effect.UIO.unit;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -152,7 +152,7 @@ public class UIOTest {
   }
 
   private UIO<Integer> parseInt(String string) {
-    return from(() -> Integer.parseInt(string));
+    return task(() -> Integer.parseInt(string));
   }
 
   private UIO<ResultSet> open(ResultSet resultSet) {
@@ -164,7 +164,7 @@ public class UIOTest {
   }
 
   private Function1<ResultSet, UIO<String>> getString(String column) {
-    return resultSet -> from(() -> resultSet.getString(column));
+    return resultSet -> task(() -> resultSet.getString(column));
   }
 }
 

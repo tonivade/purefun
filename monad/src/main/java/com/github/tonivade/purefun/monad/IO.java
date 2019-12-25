@@ -8,9 +8,11 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.Stack;
 import java.util.concurrent.Executor;
 
+import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -118,11 +120,24 @@ public interface IO<T> extends Recoverable {
     return new Suspend<>(lazy);
   }
 
+  static <T> IO<T> retry(IO<T> current, Duration initialDelay, int maxRetries) {
+    return current.redeemWith(error -> {
+      if (maxRetries > 0) {
+        return sleep(initialDelay).andThen(retry(current, initialDelay.plus(initialDelay), maxRetries - 1));
+      }
+      return raiseError(error);
+    }, IO::pure);
+  }
+
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
     return task.andThen(IO::pure);
   }
 
-  static IO<Unit> exec(Runnable task) {
+  static IO<Unit> sleep(Duration duration) {
+    return exec(() -> Thread.sleep(duration.toMillis()));
+  }
+
+  static IO<Unit> exec(CheckedRunnable task) {
     return task(() -> { task.run(); return Unit.unit(); });
   }
 

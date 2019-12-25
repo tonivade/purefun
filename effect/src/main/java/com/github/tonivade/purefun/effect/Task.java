@@ -107,10 +107,6 @@ public final class Task<T> {
     return new Task<>(ZIO.fromEither(task));
   }
 
-  public static <A> Task<A> from(Producer<A> task) {
-    return new Task<>(ZIO.from(task));
-  }
-
   public static Task<Unit> exec(CheckedRunnable task) {
     return new Task<>(ZIO.exec(task));
   }

@@ -272,7 +272,7 @@ public class StreamTest {
   }
 
   private ZIO<Nothing, Nothing, String> pureReadFileZIO(String file) {
-    return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>from(() -> reader(file)).kind1())
+    return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>task(() -> reader(file)).kind1())
       .flatMap(reader -> streamOfZIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)

@@ -118,10 +118,6 @@ public final class EIO<E, T> {
     return new EIO<>(ZIO.fromEither(task));
   }
 
-  public static <A> EIO<Throwable, A> from(Producer<A> task) {
-    return new EIO<>(ZIO.from(task));
-  }
-
   public static EIO<Throwable, Unit> exec(CheckedRunnable task) {
     return new EIO<>(ZIO.exec(task));
   }
@@ -134,7 +130,7 @@ public final class EIO<E, T> {
     return new EIO<>(ZIO.defer(() -> lazy.get().value));
   }
 
-  public static <E, A> EIO<E, A> task(Producer<A> task) {
+  public static <A> EIO<Throwable, A> task(Producer<A> task) {
     return new EIO<>(ZIO.task(task));
   }
 

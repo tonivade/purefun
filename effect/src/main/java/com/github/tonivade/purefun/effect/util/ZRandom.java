@@ -4,7 +4,10 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
 
 import java.util.Random;
@@ -17,27 +20,27 @@ public interface ZRandom {
 
   <R extends ZRandom> ZRandom.Service<R> random();
 
-  static ZIO<ZRandom, Nothing, Integer> nextInt() {
-    return ZIO.accessM(env -> env.random().nextInt());
+  static <R extends ZRandom> ZIO<R, Nothing, Integer> nextInt() {
+    return ZIO.accessM(env -> env.<R>random().nextInt());
   }
 
-  static ZIO<ZRandom, Nothing, Long> nextLong() {
-    return ZIO.accessM(env -> env.random().nextLong());
+  static <R extends ZRandom> ZIO<R, Nothing, Long> nextLong() {
+    return ZIO.accessM(env -> env.<R>random().nextLong());
   }
 
-  static ZIO<ZRandom, Nothing, Float> nextFloat() {
-    return ZIO.accessM(env -> env.random().nextFloat());
+  static <R extends ZRandom> ZIO<R, Nothing, Float> nextFloat() {
+    return ZIO.accessM(env -> env.<R>random().nextFloat());
   }
 
-  static ZIO<ZRandom, Nothing, Double> nextDouble() {
-    return ZIO.accessM(env -> env.random().nextDouble());
+  static <R extends ZRandom> ZIO<R, Nothing, Double> nextDouble() {
+    return ZIO.accessM(env -> env.<R>random().nextDouble());
   }
 
-  static ZIO<ZRandom, Nothing, Character> nextChar() {
-    return ZIO.accessM(env -> env.random().nextChar());
+  static <R extends ZRandom> ZIO<R, Nothing, Character> nextChar() {
+    return ZIO.accessM(env -> env.<R>random().nextChar());
   }
 
-  static ZIO<ZRandom, Nothing, String> nextString(int length) {
+  static <R extends ZRandom> ZIO<ZRandom, Nothing, String> nextString(int length) {
     return ZIO.accessM(env -> env.random().nextString(length));
   }
 
@@ -75,32 +78,32 @@ class ZRandomImpl implements ZRandom {
 
       @Override
       public ZIO<R, Nothing, Integer> nextInt() {
-        return ZIO.task(random::nextInt);
+        return UIO.task(random::nextInt).toZIO();
       }
 
       @Override
       public ZIO<R, Nothing, Long> nextLong() {
-        return ZIO.task(random::nextLong);
+        return UIO.task(random::nextLong).toZIO();
       }
 
       @Override
       public ZIO<R, Nothing, Float> nextFloat() {
-        return ZIO.task(random::nextFloat);
+        return UIO.task(random::nextFloat).toZIO();
       }
 
       @Override
       public ZIO<R, Nothing, Double> nextDouble() {
-        return ZIO.task(random::nextDouble);
+        return UIO.task(random::nextDouble).toZIO();
       }
 
       @Override
       public ZIO<R, Nothing, Character> nextChar() {
-        return ZIO.task(this::randomChar);
+        return UIO.task(this::randomChar).toZIO();
       }
 
       @Override
       public ZIO<R, Nothing, String> nextString(int length) {
-        return ZIO.task(() -> randomString(length));
+        return UIO.task(() -> randomString(length)).toZIO();
       }
 
       private Character randomChar() {

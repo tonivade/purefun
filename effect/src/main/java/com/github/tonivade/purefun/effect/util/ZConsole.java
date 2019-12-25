@@ -16,12 +16,12 @@ public interface ZConsole {
 
   <R extends ZConsole> ZConsole.Service<R> console();
 
-  static ZIO<ZConsole, Throwable, String> readln() {
-    return ZIO.accessM(env -> env.console().readln());
+  static <R extends ZConsole> ZIO<R, Throwable, String> readln() {
+    return ZIO.accessM(env -> env.<R>console().readln());
   }
 
-  static ZIO<ZConsole, Throwable, Unit> println(String text) {
-    return ZIO.accessM(env -> env.console().println(text));
+  static <R extends ZConsole> ZIO<R, Throwable, Unit> println(String text) {
+    return ZIO.accessM(env -> env.<R>console().println(text));
   }
 
   interface Service<R extends ZConsole> {
@@ -60,7 +60,7 @@ public interface ZConsole {
 
           @Override
           public ZIO<R, Throwable, String> readln() {
-            return ZIO.from(() -> reader().readLine());
+            return ZIO.task(() -> reader().readLine());
           }
 
           @Override

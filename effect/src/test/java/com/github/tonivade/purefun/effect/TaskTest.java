@@ -22,8 +22,8 @@ import org.mockito.MockitoAnnotations;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.github.tonivade.purefun.effect.Task.from;
 import static com.github.tonivade.purefun.effect.Task.pure;
+import static com.github.tonivade.purefun.effect.Task.task;
 import static com.github.tonivade.purefun.effect.Task.unit;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -166,7 +166,7 @@ public class TaskTest {
   }
 
   private Task<Integer> parseInt(String string) {
-    return from(() -> Integer.parseInt(string));
+    return task(() -> Integer.parseInt(string));
   }
 
   private Task<ResultSet> open(ResultSet resultSet) {
@@ -174,6 +174,6 @@ public class TaskTest {
   }
 
   private Function1<ResultSet, Task<String>> getString(String column) {
-    return resultSet -> from(() -> resultSet.getString(column));
+    return resultSet -> task(() -> resultSet.getString(column));
   }
 }

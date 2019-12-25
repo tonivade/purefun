@@ -22,9 +22,9 @@ import org.mockito.MockitoAnnotations;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.github.tonivade.purefun.effect.EIO.from;
 import static com.github.tonivade.purefun.effect.EIO.pure;
 import static com.github.tonivade.purefun.effect.EIO.raiseError;
+import static com.github.tonivade.purefun.effect.EIO.task;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -196,7 +196,7 @@ public class EIOTest {
   }
 
   private EIO<Throwable, Integer> parseInt(String string) {
-    return from(() -> Integer.parseInt(string));
+    return task(() -> Integer.parseInt(string));
   }
 
   private EIO<Throwable, ResultSet> open(ResultSet resultSet) {
@@ -204,6 +204,6 @@ public class EIOTest {
   }
 
   private Function1<ResultSet, EIO<Throwable, String>> getString(String column) {
-    return resultSet -> from(() -> resultSet.getString(column));
+    return resultSet -> task(() -> resultSet.getString(column));
   }
 }

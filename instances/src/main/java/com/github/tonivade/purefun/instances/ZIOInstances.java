@@ -174,7 +174,7 @@ final class ConsoleZIO<R> implements Console<Higher1<Higher1<ZIO.µ, R>, Throwab
 
   @Override
   public Higher1<Higher1<Higher1<ZIO.µ, R>, Throwable>, String> readln() {
-    return ZIO.<R, Throwable, String>task(console::readln).kind1();
+    return ZIO.<R, String>task(console::readln).kind1();
   }
 
   @Override

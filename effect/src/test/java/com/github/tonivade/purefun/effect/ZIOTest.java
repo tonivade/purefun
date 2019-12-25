@@ -7,14 +7,18 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.effect.util.ZClock;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Try;
@@ -27,7 +31,11 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class ZIOTest {
 
   @Test
@@ -127,8 +135,7 @@ public class ZIOTest {
   }
 
   @Test
-  public void bracket() throws SQLException {
-    ResultSet resultSet = mock(ResultSet.class);
+  public void bracket(@Mock ResultSet resultSet) throws SQLException {
     when(resultSet.getString("id")).thenReturn("value");
 
     ZIO<Nothing, Throwable, String> bracket = ZIO.bracket(open(resultSet), getString("id"));
@@ -186,6 +193,30 @@ public class ZIOTest {
   }
 
   @Test
+  public void retryError(@Mock Producer<Either<Throwable, String>> computation) {
+    when(computation.get()).thenReturn(Either.left(new UnsupportedOperationException()));
+
+    Either<Throwable, String> provide = ZIO.retry(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+
+    assertTrue(provide.isLeft());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
+  public void retrySuccess(@Mock Producer<Either<Throwable, String>> computation) {
+    when(computation.get()).thenReturn(
+        Either.left(new UnsupportedOperationException()),
+        Either.left(new UnsupportedOperationException()),
+        Either.left(new UnsupportedOperationException()),
+        Either.right("OK"));
+
+    Either<Throwable, String> provide = ZIO.retry(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+
+    assertEquals("OK", provide.get());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
   public void flatMapped() {
     UIO<String> uio = UIO.unit()
         .map(ignore -> "hola")
@@ -207,7 +238,7 @@ public class ZIOTest {
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
-    return ZIO.from(() -> Integer.parseInt(string));
+    return ZIO.task(() -> Integer.parseInt(string));
   }
 
   private ZIO<Nothing, Throwable, ResultSet> open(ResultSet resultSet) {
@@ -215,7 +246,7 @@ public class ZIOTest {
   }
 
   private Function1<ResultSet, ZIO<Nothing, Throwable, String>> getString(String column) {
-    return resultSet -> ZIO.from(() -> resultSet.getString(column));
+    return resultSet -> ZIO.task(() -> resultSet.getString(column));
   }
 
   private UIO<Integer> sum(Integer n, Integer sum) {

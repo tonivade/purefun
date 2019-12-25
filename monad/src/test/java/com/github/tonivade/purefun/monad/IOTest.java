@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.monad;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -15,12 +16,14 @@ import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.NoSuchElementException;
 
 import static com.github.tonivade.purefun.monad.IO.narrowK;
@@ -29,18 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
+@ExtendWith(MockitoExtension.class)
 public class IOTest {
 
   private final Console<IO.µ> console = IOInstances.console();
-
-  @Mock
-  private Consumer1<Try<String>> callback;
 
   @Test
   public void pure() {
@@ -111,14 +113,14 @@ public class IOTest {
   }
 
   @Test
-  public void safeRunAsyncSuccess() {
+  public void safeRunAsyncSuccess(@Mock Consumer1<Try<String>> callback) {
     IO.pure("hola").safeRunAsync(callback);
 
     verify(callback, timeout(1000)).accept(Try.success("hola"));
   }
 
   @Test
-  public void unsafeRunAsyncFailure() {
+  public void unsafeRunAsyncFailure(@Mock Consumer1<Try<String>> callback) {
     RuntimeException error = new RuntimeException();
 
     IO.<String>raiseError(error).safeRunAsync(callback);
@@ -150,6 +152,16 @@ public class IOTest {
   }
 
   @Test
+  public void retry(@Mock Producer<String> computation) {
+    when(computation.get()).thenThrow(UnsupportedOperationException.class);
+
+    Try<String> retry = IO.retry(IO.task(computation), Duration.ofMillis(100), 3).attempt().unsafeRunSync();
+
+    assertTrue(retry.isFailure());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
   public void flatMapped() {
     IO<String> io = unit()
         .map(ignore -> "hola")
@@ -168,11 +180,6 @@ public class IOTest {
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
-  }
-
-  @BeforeEach
-  public void setUp() {
-    initMocks(this);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {
