@@ -4,9 +4,7 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
 

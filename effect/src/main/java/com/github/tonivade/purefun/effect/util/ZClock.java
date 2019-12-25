@@ -52,7 +52,7 @@ public interface ZClock {
 
           @Override
           public ZIO<R, Nothing, Unit> sleep(Duration duration) {
-            return UIO.<R>exec(() -> Thread.sleep(duration.toMillis())).toZIO();
+            return UIO.exec(() -> Thread.sleep(duration.toMillis())).toZIO();
           }
         };
       }
