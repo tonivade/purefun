@@ -217,6 +217,30 @@ public class ZIOTest {
   }
 
   @Test
+  public void repeatSuccess(@Mock Producer<Either<Throwable, String>> computation) {
+    when(computation.get()).thenReturn(Either.right("hola"));
+
+    Either<Throwable, String> provide = ZIO.repeat(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+
+    assertEquals("hola", provide.get());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
+  public void repeatFailure(@Mock Producer<Either<Throwable, String>> computation) {
+    when(computation.get()).thenReturn(
+        Either.right("hola"),
+        Either.right("hola"),
+        Either.right("hola"),
+        Either.left(new UnsupportedOperationException()));
+
+    Either<Throwable, String> provide = ZIO.repeat(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+
+    assertTrue(provide.isLeft());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
   public void flatMapped() {
     UIO<String> uio = UIO.unit()
         .map(ignore -> "hola")

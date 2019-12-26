@@ -92,6 +92,24 @@ public interface IO<T> extends Recoverable {
     return redeem(mapError, identity());
   }
 
+  default IO<T> retry(Duration initialDelay, int maxRetries) {
+    return redeemWith(error -> {
+      if (maxRetries > 0) {
+        return sleep(initialDelay).andThen(retry(initialDelay.plus(initialDelay), maxRetries - 1));
+      }
+      return raiseError(error);
+    }, IO::pure);
+  }
+
+  default IO<T> repeat(Duration delay, int times) {
+    return redeemWith(IO::raiseError, value -> {
+      if (times > 0) {
+        return sleep(delay).andThen(repeat(delay, times - 1));
+      }
+      return pure(value);
+    });
+  }
+
   @SuppressWarnings("unchecked")
   default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<X, T> function) {
     return recover(cause -> {
@@ -118,15 +136,6 @@ public interface IO<T> extends Recoverable {
 
   static <T> IO<T> suspend(Producer<IO<T>> lazy) {
     return new Suspend<>(lazy);
-  }
-
-  static <T> IO<T> retry(IO<T> current, Duration initialDelay, int maxRetries) {
-    return current.redeemWith(error -> {
-      if (maxRetries > 0) {
-        return sleep(initialDelay).andThen(retry(current, initialDelay.plus(initialDelay), maxRetries - 1));
-      }
-      return raiseError(error);
-    }, IO::pure);
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {

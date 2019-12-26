@@ -166,6 +166,17 @@ public interface ZIO<R, E, A> {
         }, ZIO::<R, E, A>pure);
   }
 
+  static <R extends ZClock, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> current, Duration delay, int times) {
+    return current.<E, A>foldM(
+        ZIO::<R, E, A>raiseError, value -> {
+          if (times > 0) {
+            ZIO<R, E, Unit> sleep = (ZIO<R, E, Unit>) ZClock.sleep(delay);
+            return sleep.andThen(repeat(current, delay, times - 1));
+          }
+          return ZIO.pure(value);
+        });
+  }
+
   static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
                                                                       Function1<A, ZIO<R, Throwable, B>> use) {
     return new Bracket<>(acquire, use, AutoCloseable::close);

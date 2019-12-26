@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.ResultSet;
@@ -155,10 +156,44 @@ public class IOTest {
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
-    Try<String> retry = IO.retry(IO.task(computation), Duration.ofMillis(100), 3).attempt().unsafeRunSync();
+    Try<String> retry = IO.task(computation).retry(Duration.ofMillis(100), 3).safeRunSync();
 
     assertTrue(retry.isFailure());
     verify(computation, times(4)).get();
+  }
+
+  @Test
+  public void retrySuccess(@Mock Producer<String> computation) {
+    when(computation.get())
+        .thenThrow(UnsupportedOperationException.class)
+        .thenThrow(UnsupportedOperationException.class)
+        .thenThrow(UnsupportedOperationException.class)
+        .thenReturn("hola");
+
+    Try<String> retry = IO.task(computation).retry(Duration.ofMillis(100), 3).safeRunSync();
+
+    assertEquals("hola", retry.get());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
+  public void repeatSuccess(@Mock Producer<String> computation) {
+    when(computation.get()).thenReturn("hola");
+
+    Try<String> repeat = IO.task(computation).repeat(Duration.ofMillis(100), 3).safeRunSync();
+
+    assertEquals("hola", repeat.get());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
+  public void repeatFailure(@Mock Producer<String> computation) {
+    when(computation.get()).thenReturn("hola").thenThrow(UnsupportedOperationException.class);
+
+    Try<String> repeat = IO.task(computation).repeat(Duration.ofMillis(100), 3).safeRunSync();
+
+    assertTrue(repeat.isFailure());
+    verify(computation, times(2)).get();
   }
 
   @Test
