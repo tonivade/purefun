@@ -92,6 +92,16 @@ public interface IO<T> extends Recoverable {
     return redeem(mapError, identity());
   }
 
+  @SuppressWarnings("unchecked")
+  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+    return recover(cause -> {
+      if (type.isAssignableFrom(cause.getClass())) {
+        return function.apply((X) cause);
+      }
+      return sneakyThrow(cause);
+    });
+  }
+
   default IO<T> retry(Duration initialDelay, int maxRetries) {
     return redeemWith(error -> {
       if (maxRetries > 0) {
@@ -107,16 +117,6 @@ public interface IO<T> extends Recoverable {
         return sleep(delay).andThen(repeat(delay, times - 1));
       }
       return pure(value);
-    });
-  }
-
-  @SuppressWarnings("unchecked")
-  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<X, T> function) {
-    return recover(cause -> {
-      if (type.isAssignableFrom(cause.getClass())) {
-        return function.apply((X) cause);
-      }
-      return sneakyThrow(cause);
     });
   }
 
