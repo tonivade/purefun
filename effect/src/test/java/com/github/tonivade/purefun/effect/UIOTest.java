@@ -142,7 +142,7 @@ public class UIOTest {
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
-    Try<String> retry = UIO.task(computation).retry().safeRunSync();
+    Try<String> retry = task(computation).retry().safeRunSync();
 
     assertTrue(retry.isFailure());
     verify(computation, times(2)).get();
@@ -152,7 +152,7 @@ public class UIOTest {
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
-    Try<String> repeat = UIO.task(computation).repeat().safeRunSync();
+    Try<String> repeat = task(computation).repeat().safeRunSync();
 
     assertEquals("hola", repeat.get());
     verify(computation, times(2)).get();

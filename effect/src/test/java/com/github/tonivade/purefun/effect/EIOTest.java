@@ -186,7 +186,7 @@ public class EIOTest {
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
-    Either<Throwable, String> retry = EIO.task(computation).retry().safeRunSync();
+    Either<Throwable, String> retry = task(computation).retry().safeRunSync();
 
     assertTrue(retry.isLeft());
     verify(computation, times(2)).get();
@@ -196,7 +196,7 @@ public class EIOTest {
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
-    Either<Throwable, String> repeat = EIO.task(computation).repeat().safeRunSync();
+    Either<Throwable, String> repeat = task(computation).repeat().safeRunSync();
 
     assertEquals("hola", repeat.get());
     verify(computation, times(2)).get();
