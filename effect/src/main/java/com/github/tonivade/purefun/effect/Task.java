@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -91,6 +92,46 @@ public final class Task<T> {
     return new Task<>(value.orElse(() -> other.get().value));
   }
 
+  public Task<T> repeat() {
+    return repeat(1);
+  }
+
+  public Task<T> repeat(int times) {
+    return repeat(unit(), times);
+  }
+
+  public Task<T> repeat(Duration delay) {
+    return repeat(delay, 1);
+  }
+
+  public Task<T> repeat(Duration delay, int times) {
+    return repeat(sleep(delay), times);
+  }
+
+  public Task<T> repeat(Task<Unit> pause, int times) {
+    return foldM(Task::raiseError, value -> (times > 0) ? pause.andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
+  }
+
+  public Task<T> retry() {
+    return retry(1);
+  }
+
+  public Task<T> retry(int maxRetries) {
+    return retry(unit(), maxRetries);
+  }
+
+  public Task<T> retry(Duration delay) {
+    return retry(delay, 1);
+  }
+
+  public Task<T> retry(Duration delay, int maxRetries) {
+    return retry(sleep(delay), maxRetries);
+  }
+
+  public Task<T> retry(Task<Unit> pause, int maxRetries) {
+    return foldM(error -> (maxRetries > 0) ? pause.andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error), Task::pure);
+  }
+
   public static <A, B, C> Task<C> map2(Task<A> za, Task<B> zb, Function2<A, B, C> mapper) {
     return new Task<>(ZIO.map2(za.value, zb.value, mapper));
   }
@@ -105,6 +146,10 @@ public final class Task<T> {
 
   public static <A> Task<A> fromEither(Producer<Either<Throwable, A>> task) {
     return new Task<>(ZIO.fromEither(task));
+  }
+
+  public static Task<Unit> sleep(Duration delay) {
+    return exec(() -> Thread.sleep(delay.toMillis()));
   }
 
   public static Task<Unit> exec(CheckedRunnable task) {

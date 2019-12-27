@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -100,6 +101,48 @@ public final class EIO<E, T> {
 
   public EIO<E, T> orElse(Producer<EIO<E, T>> other) {
     return new EIO<>(value.orElse(() -> other.get().value));
+  }
+
+  public EIO<E, T> repeat() {
+    return repeat(1);
+  }
+
+  public EIO<E, T> repeat(int times) {
+    return repeat(UIO.unit(), times);
+  }
+
+  public EIO<E, T> repeat(Duration delay) {
+    return repeat(delay, 1);
+  }
+
+  public EIO<E, T> repeat(Duration delay, int times) {
+    return repeat(UIO.sleep(delay), times);
+  }
+
+  public EIO<E, T> repeat(UIO<Unit> pause, int times) {
+    return foldM(EIO::raiseError, value -> (times > 0) ? pause.<E>toEIO().andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
+  }
+
+  public EIO<E, T> retry() {
+    return retry(1);
+  }
+
+  public EIO<E, T> retry(int maxRetries) {
+    return retry(UIO.unit(), maxRetries);
+  }
+
+  public EIO<E, T> retry(Duration delay) {
+    return retry(delay, 1);
+  }
+
+  public EIO<E, T> retry(Duration delay, int maxRetries) {
+    return retry(UIO.sleep(delay), maxRetries);
+  }
+
+  public EIO<E, T> retry(UIO<Unit> pause, int maxRetries) {
+    return foldM(error -> {
+      return (maxRetries > 0) ? pause.<E>toEIO().andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error);
+    }, EIO::pure);
   }
 
   public static <E, A, B, C> EIO<E, C> map2(EIO<E, A> za, EIO<E, B> zb, Function2<A, B, C> mapper) {

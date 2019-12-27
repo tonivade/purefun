@@ -155,6 +155,16 @@ public class IOTest {
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
+    Try<String> retry = IO.task(computation).retry().safeRunSync();
+
+    assertTrue(retry.isFailure());
+    verify(computation, times(2)).get();
+  }
+
+  @Test
+  public void retryFailure(@Mock Producer<String> computation) {
+    when(computation.get()).thenThrow(UnsupportedOperationException.class);
+
     Try<String> retry = IO.task(computation).retry(Duration.ofMillis(100), 3).safeRunSync();
 
     assertTrue(retry.isFailure());
@@ -192,6 +202,16 @@ public class IOTest {
     Try<String> repeat = IO.task(computation).repeat(Duration.ofMillis(100), 3).safeRunSync();
 
     assertTrue(repeat.isFailure());
+    verify(computation, times(2)).get();
+  }
+
+  @Test
+  public void repeat(@Mock Producer<String> computation) {
+    when(computation.get()).thenReturn("hola");
+
+    Try<String> repeat = IO.task(computation).repeat().safeRunSync();
+
+    assertEquals("hola", repeat.get());
     verify(computation, times(2)).get();
   }
 

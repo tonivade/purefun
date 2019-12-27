@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
@@ -61,7 +60,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default <R> IO<R> flatMap(Function1<T, IO<R>> map) {
-    return new FlatMapped<>(cons(this), map);
+    return new FlatMapped<>(Producer.cons(this), map);
   }
 
   default <R> IO<R> andThen(IO<R> after) {
@@ -102,22 +101,44 @@ public interface IO<T> extends Recoverable {
     });
   }
 
-  default IO<T> retry(Duration initialDelay, int maxRetries) {
-    return redeemWith(error -> {
-      if (maxRetries > 0) {
-        return sleep(initialDelay).andThen(retry(initialDelay.plus(initialDelay), maxRetries - 1));
-      }
-      return raiseError(error);
-    }, IO::pure);
+  default IO<T> repeat() {
+    return repeat(1);
+  }
+
+  default IO<T> repeat(int times) {
+    return repeat(unit(), times);
+  }
+
+  default IO<T> repeat(Duration delay) {
+    return repeat(delay, 1);
   }
 
   default IO<T> repeat(Duration delay, int times) {
-    return redeemWith(IO::raiseError, value -> {
-      if (times > 0) {
-        return sleep(delay).andThen(repeat(delay, times - 1));
-      }
-      return pure(value);
-    });
+    return repeat(sleep(delay), times);
+  }
+
+  default IO<T> repeat(IO<Unit> pause, int times) {
+    return redeemWith(IO::raiseError, value -> (times > 0) ? pause.andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
+  }
+
+  default IO<T> retry() {
+    return retry(1);
+  }
+
+  default IO<T> retry(int maxRetries) {
+    return retry(unit(), maxRetries);
+  }
+
+  default IO<T> retry(Duration delay) {
+    return retry(delay, 1);
+  }
+
+  default IO<T> retry(Duration delay, int maxRetries) {
+    return retry(sleep(delay), maxRetries);
+  }
+
+  default IO<T> retry(IO<Unit> pause, int maxRetries) {
+    return redeemWith(error -> (maxRetries > 0) ? pause.andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error), IO::pure);
   }
 
   IOModule getModule();

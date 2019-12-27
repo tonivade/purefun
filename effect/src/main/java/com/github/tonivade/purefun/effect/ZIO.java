@@ -24,7 +24,6 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.effect.util.ZClock;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -101,6 +100,60 @@ public interface ZIO<R, E, A> {
     return foldM(other.asFunction(), Function1.cons(this));
   }
 
+  default ZIO<R, E, A> repeat() {
+    return repeat(1);
+  }
+
+  default ZIO<R, E, A> repeat(int times) {
+    return repeat(UIO.unit(), times);
+  }
+
+  default ZIO<R, E, A> repeat(Duration delay) {
+    return repeat(UIO.sleep(delay), 1);
+  }
+
+  default ZIO<R, E, A> repeat(Duration delay, int times) {
+    return repeat(UIO.sleep(delay), times);
+  }
+
+  default ZIO<R, E, A> repeat(UIO<Unit> delay, int times) {
+    return foldM(
+        ZIO::<R, E, A>raiseError, value -> {
+          if (times > 0) {
+            ZIO<R, E, Unit> sleep = delay.toZIO();
+            return sleep.andThen(repeat(delay, times - 1));
+          }
+          return ZIO.<R, E, A>pure(value);
+        });
+  }
+
+  default ZIO<R, E, A> retry() {
+    return retry(1);
+  }
+
+  default ZIO<R, E, A> retry(int maxRetries) {
+    return retry(UIO.unit(), maxRetries);
+  }
+
+  default ZIO<R, E, A> retry(Duration delay) {
+    return retry(UIO.sleep(delay), 1);
+  }
+
+  default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
+    return retry(UIO.sleep(delay), maxRetries);
+  }
+
+  default ZIO<R, E, A> retry(UIO<Unit> pause, int maxRetries) {
+    return foldM(
+        error -> {
+          if (maxRetries > 0) {
+            ZIO<R, E, Unit> sleep = pause.toZIO();
+            return sleep.andThen(retry(pause.andThen(pause), maxRetries - 1));
+          }
+          return ZIO.raiseError(error);
+        }, ZIO::<R, E, A>pure);
+  }
+
   ZIOModule getModule();
 
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {
@@ -153,28 +206,6 @@ public interface ZIO<R, E, A> {
 
   static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, A> value) {
     return new Redeem<>(value);
-  }
-
-  static <R extends ZClock, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> current, Duration initialDelay, int maxRetries) {
-    return current.<E, A>foldM(
-        error -> {
-          if (maxRetries > 0) {
-            ZIO<R, E, Unit> sleep = (ZIO<R, E, Unit>) ZClock.sleep(initialDelay);
-            return sleep.andThen(retry(current, initialDelay.plus(initialDelay), maxRetries - 1));
-          }
-          return ZIO.raiseError(error);
-        }, ZIO::<R, E, A>pure);
-  }
-
-  static <R extends ZClock, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> current, Duration delay, int times) {
-    return current.<E, A>foldM(
-        ZIO::<R, E, A>raiseError, value -> {
-          if (times > 0) {
-            ZIO<R, E, Unit> sleep = (ZIO<R, E, Unit>) ZClock.sleep(delay);
-            return sleep.andThen(repeat(current, delay, times - 1));
-          }
-          return ZIO.pure(value);
-        });
   }
 
   static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
@@ -576,7 +607,6 @@ public interface ZIO<R, E, A> {
 interface ZIOModule {
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
 
-  @SuppressWarnings("unchecked")
   static <R, E, A, F, B> ZIO<R, E, A> collapse(ZIO<R, E, A> eval) {
     ZIO<R, E, A> current = eval;
     while (true) {

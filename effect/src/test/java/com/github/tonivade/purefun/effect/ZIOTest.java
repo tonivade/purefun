@@ -18,7 +18,6 @@ import java.time.Duration;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.effect.util.ZClock;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Try;
@@ -196,7 +195,7 @@ public class ZIOTest {
   public void retryError(@Mock Producer<Either<Throwable, String>> computation) {
     when(computation.get()).thenReturn(Either.left(new UnsupportedOperationException()));
 
-    Either<Throwable, String> provide = ZIO.retry(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+    Either<Throwable, String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3).provide(nothing());
 
     assertTrue(provide.isLeft());
     verify(computation, times(4)).get();
@@ -210,7 +209,7 @@ public class ZIOTest {
         Either.left(new UnsupportedOperationException()),
         Either.right("OK"));
 
-    Either<Throwable, String> provide = ZIO.retry(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+    Either<Throwable, String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3).provide(nothing());
 
     assertEquals("OK", provide.get());
     verify(computation, times(4)).get();
@@ -220,7 +219,7 @@ public class ZIOTest {
   public void repeatSuccess(@Mock Producer<Either<Throwable, String>> computation) {
     when(computation.get()).thenReturn(Either.right("hola"));
 
-    Either<Throwable, String> provide = ZIO.repeat(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+    Either<Throwable, String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3).provide(nothing());
 
     assertEquals("hola", provide.get());
     verify(computation, times(4)).get();
@@ -234,7 +233,7 @@ public class ZIOTest {
         Either.right("hola"),
         Either.left(new UnsupportedOperationException()));
 
-    Either<Throwable, String> provide = ZIO.repeat(ZIO.fromEither(computation), Duration.ofMillis(100), 3).provide(ZClock.live());
+    Either<Throwable, String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3).provide(nothing());
 
     assertTrue(provide.isLeft());
     verify(computation, times(4)).get();

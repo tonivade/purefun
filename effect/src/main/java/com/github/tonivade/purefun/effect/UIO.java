@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -38,13 +39,18 @@ public final class UIO<T> {
     return value.provide(nothing()).get();
   }
 
+  public Try<T> safeRunSync() {
+    return Try.of(this::unsafeRunSync);
+  }
+
   @SuppressWarnings("unchecked")
   public <R, E> ZIO<R, E, T> toZIO() {
     return (ZIO<R, E, T>) value;
   }
 
-  public EIO<Throwable, T> toEIO() {
-    return new EIO<>(ZIO.redeem(value));
+  @SuppressWarnings("unchecked")
+  public <E> EIO<E, T> toEIO() {
+    return new EIO<>((ZIO<Nothing, E, T>) value);
   }
 
   public Future<T> toFuture() {
@@ -87,8 +93,52 @@ public final class UIO<T> {
     return new UIO<>(ZIO.redeem(value).foldM(error -> mapError.apply(error).value, x -> map.apply(x).value));
   }
 
+  public UIO<T> repeat() {
+    return repeat(1);
+  }
+
+  public UIO<T> repeat(int times) {
+    return repeat(unit(), times);
+  }
+
+  public UIO<T> repeat(Duration delay) {
+    return repeat(delay, 1);
+  }
+
+  public UIO<T> repeat(Duration delay, int times) {
+    return repeat(sleep(delay), times);
+  }
+
+  public UIO<T> repeat(UIO<Unit> pause, int times) {
+    return redeemWith(UIO::raiseError, value -> (times > 0) ? pause.andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
+  }
+
+  public UIO<T> retry() {
+    return retry(1);
+  }
+
+  public UIO<T> retry(int maxRetries) {
+    return retry(unit(), maxRetries);
+  }
+
+  public UIO<T> retry(Duration delay) {
+    return retry(delay, 1);
+  }
+
+  public UIO<T> retry(Duration delay, int maxRetries) {
+    return retry(sleep(delay), maxRetries);
+  }
+
+  public UIO<T> retry(UIO<Unit> pause, int maxRetries) {
+    return redeemWith(error -> (maxRetries > 0) ? pause.andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error), UIO::pure);
+  }
+
   public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {
     return new UIO<>(ZIO.map2(za.value, zb.value, mapper));
+  }
+
+  public static UIO<Unit> sleep(Duration delay) {
+    return exec(() -> Thread.sleep(delay.toMillis()));
   }
 
   public static UIO<Unit> exec(CheckedRunnable task) {
