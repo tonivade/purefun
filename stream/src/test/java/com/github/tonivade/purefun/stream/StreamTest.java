@@ -22,6 +22,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.effect.EIO;
+import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +41,9 @@ import com.github.tonivade.purefun.type.Option;
 public class StreamTest {
 
   private final StreamOf<IO.µ> streamOfIO = StreamInstances.ofIO();
+  private final StreamOf<UIO.µ> streamOfUIO = StreamInstances.ofUIO();
+  private final StreamOf<Task.µ> streamOfTask = StreamInstances.ofTask();
+  private final StreamOf<Higher1<EIO.µ, Throwable>> streamOfEIO = StreamInstances.ofEIO();
   private final StreamOf<Higher1<Higher1<ZIO.µ, Nothing>, Throwable>> streamOfZIO = StreamInstances.ofZIO();
 
   @Test
@@ -71,7 +77,7 @@ public class StreamTest {
 
     Stream<IO.µ, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2).kind1());
 
-    assertEquals(Integer.valueOf(12), run(result.foldLeft(0, (a, b) -> a + b)));
+    assertEquals(Integer.valueOf(12), run(result.foldLeft(0, Integer::sum)));
   }
 
   @Test
@@ -236,8 +242,35 @@ public class StreamTest {
 
   @Test
   public void readFileIO() {
-    IO<String> license = pureReadFile("../LICENSE");
-    IO<String> notFound = pureReadFile("hjsjkdf");
+    IO<String> license = pureReadFileIO("../LICENSE");
+    IO<String> notFound = pureReadFileIO("hjsjkdf");
+    assertAll(
+        () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync()),
+        () -> assertEquals("--- file not found ---", notFound.unsafeRunSync()));
+  }
+
+  @Test
+  public void readFileUIO() {
+    UIO<String> license = pureReadFileUIO("../LICENSE");
+    UIO<String> notFound = pureReadFileUIO("hjsjkdf");
+    assertAll(
+        () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync()),
+        () -> assertEquals("--- file not found ---", notFound.unsafeRunSync()));
+  }
+
+  @Test
+  public void readFileTask() {
+    UIO<String> license = pureReadFileTask("../LICENSE");
+    UIO<String> notFound = pureReadFileTask("hjsjkdf");
+    assertAll(
+        () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync()),
+        () -> assertEquals("--- file not found ---", notFound.unsafeRunSync()));
+  }
+
+  @Test
+  public void readFileEIO() {
+    UIO<String> license = pureReadFileEIO("../LICENSE");
+    UIO<String> notFound = pureReadFileEIO("hjsjkdf");
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync()),
         () -> assertEquals("--- file not found ---", notFound.unsafeRunSync()));
@@ -254,21 +287,51 @@ public class StreamTest {
 
   @Test
   public void readFileAsync() {
-    Future<String> license = pureReadFile("../LICENSE").foldMap(monadDefer()).fix1(Future::narrowK);
-    Future<String> notFound = pureReadFile("hjsjkdf").foldMap(monadDefer()).fix1(Future::narrowK);
+    Future<String> license = pureReadFileIO("../LICENSE").foldMap(monadDefer()).fix1(Future::narrowK);
+    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(monadDefer()).fix1(Future::narrowK);
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
         () -> assertEquals("--- file not found ---", notFound.await().get()));
   }
 
-  private IO<String> pureReadFile(String file) {
+  private IO<String> pureReadFileIO(String file) {
     return streamOfIO.eval(IO.task(() -> reader(file)).kind1())
         .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
         .map(Option::get)
-        .foldLeft("", (a, b) -> a + "\n" + b)
+        .foldLeft("", (a, b) -> a + '\n' + b)
         .fix1(IO::narrowK)
         .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
+  }
+
+  private UIO<String> pureReadFileUIO(String file) {
+    return streamOfUIO.eval(UIO.task(() -> reader(file)).kind1())
+        .flatMap(reader -> streamOfUIO.iterate(() -> Option.of(() -> readLine(reader))))
+        .takeWhile(Option::isPresent)
+        .map(Option::get)
+        .foldLeft("", (a, b) -> a + '\n' + b)
+        .fix1(UIO::narrowK)
+        .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
+  }
+
+  private UIO<String> pureReadFileTask(String file) {
+    return streamOfTask.eval(Task.task(() -> reader(file)).kind1())
+        .flatMap(reader -> streamOfTask.iterate(() -> Option.of(() -> readLine(reader))))
+        .takeWhile(Option::isPresent)
+        .map(Option::get)
+        .foldLeft("", (a, b) -> a + '\n' + b)
+        .fix1(Task::narrowK)
+        .recover(cons("--- file not found ---"));
+  }
+
+  private UIO<String> pureReadFileEIO(String file) {
+    return streamOfEIO.eval(EIO.task(() -> reader(file)).kind1())
+        .flatMap(reader -> streamOfEIO.iterate(() -> Option.of(() -> readLine(reader))))
+        .takeWhile(Option::isPresent)
+        .map(Option::get)
+        .foldLeft("", (a, b) -> a + '\n' + b)
+        .fix1(EIO::narrowK)
+        .recover(cons("--- file not found ---"));
   }
 
   private ZIO<Nothing, Nothing, String> pureReadFileZIO(String file) {
@@ -276,7 +339,7 @@ public class StreamTest {
       .flatMap(reader -> streamOfZIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)
-      .foldLeft("", (a, b) -> a + "\n" + b)
+      .foldLeft("", (a, b) -> a + '\n' + b)
       .fix1(ZIO::narrowK)
       .recover(cons("--- file not found ---"));
   }

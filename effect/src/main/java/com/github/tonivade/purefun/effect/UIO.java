@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
@@ -27,7 +28,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class UIO<T> {
+public final class UIO<T> implements Recoverable {
 
   private final ZIO<Nothing, Nothing, T> value;
 
@@ -83,6 +84,16 @@ public final class UIO<T> {
 
   public UIO<T> recover(Function1<Throwable, T> mapError) {
     return redeem(mapError, identity());
+  }
+
+  @SuppressWarnings("unchecked")
+  public <X extends Throwable> UIO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+    return recover(cause -> {
+      if (type.isAssignableFrom(cause.getClass())) {
+        return function.apply((X) cause);
+      }
+      return sneakyThrow(cause);
+    });
   }
 
   public <B> UIO<B> redeem(Function1<Throwable, B> mapError, Function1<T, B> map) {

@@ -11,6 +11,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.effect.EIO;
+import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.Stream;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
@@ -27,6 +30,18 @@ public interface StreamInstances {
 
   static <R> StreamOf<Higher1<Higher1<ZIO.µ, R>, Throwable>> ofZIO() {
     return Stream.of(ZIOInstances.monadDefer());
+  }
+
+  static Stream.StreamOf<UIO.µ> ofUIO() {
+    return Stream.of(UIOInstances.monadDefer());
+  }
+
+  static Stream.StreamOf<Higher1<EIO.µ, Throwable>> ofEIO() {
+    return Stream.of(EIOInstances.monadDefer());
+  }
+
+  static Stream.StreamOf<Task.µ> ofTask() {
+    return Stream.of(TaskInstances.monadDefer());
   }
 
   static <F extends Kind> Functor<Higher1<Stream.µ, F>> functor() {
