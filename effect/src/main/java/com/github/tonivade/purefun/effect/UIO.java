@@ -109,10 +109,6 @@ public final class UIO<T> {
     return repeat(sleep(delay), times);
   }
 
-  public UIO<T> repeat(UIO<Unit> pause, int times) {
-    return redeemWith(UIO::raiseError, value -> (times > 0) ? pause.andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
-  }
-
   public UIO<T> retry() {
     return retry(1);
   }
@@ -129,8 +125,22 @@ public final class UIO<T> {
     return retry(sleep(delay), maxRetries);
   }
 
-  public UIO<T> retry(UIO<Unit> pause, int maxRetries) {
-    return redeemWith(error -> (maxRetries > 0) ? pause.andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error), UIO::pure);
+  private UIO<T> repeat(UIO<Unit> pause, int times) {
+    return redeemWith(UIO::raiseError, value -> {
+      if (times > 0)
+        return pause.andThen(repeat(pause, times - 1));
+      else
+        return pure(value);
+    });
+  }
+
+  private UIO<T> retry(UIO<Unit> pause, int maxRetries) {
+    return redeemWith(error -> {
+      if (maxRetries > 0)
+        return pause.andThen(retry(pause.repeat(), maxRetries - 1));
+      else
+        return raiseError(error);
+    }, UIO::pure);
   }
 
   public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {

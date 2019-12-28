@@ -106,7 +106,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default IO<T> repeat(int times) {
-    return repeat(unit(), times);
+    return IOModule.repeat(this, unit(), times);
   }
 
   default IO<T> repeat(Duration delay) {
@@ -114,11 +114,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default IO<T> repeat(Duration delay, int times) {
-    return repeat(sleep(delay), times);
-  }
-
-  default IO<T> repeat(IO<Unit> pause, int times) {
-    return redeemWith(IO::raiseError, value -> (times > 0) ? pause.andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
+    return IOModule.repeat(this, sleep(delay), times);
   }
 
   default IO<T> retry() {
@@ -126,7 +122,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default IO<T> retry(int maxRetries) {
-    return retry(unit(), maxRetries);
+    return IOModule.retry(this, unit(), maxRetries);
   }
 
   default IO<T> retry(Duration delay) {
@@ -134,11 +130,7 @@ public interface IO<T> extends Recoverable {
   }
 
   default IO<T> retry(Duration delay, int maxRetries) {
-    return retry(sleep(delay), maxRetries);
-  }
-
-  default IO<T> retry(IO<Unit> pause, int maxRetries) {
-    return redeemWith(error -> (maxRetries > 0) ? pause.andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error), IO::pure);
+    return IOModule.retry(this, sleep(delay), maxRetries);
   }
 
   IOModule getModule();
@@ -445,9 +437,8 @@ interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
 
-  @SuppressWarnings("unchecked")
-  static <A, X> IO<A> collapse(IO<A> eval) {
-    IO<A> current = eval;
+  static <A, X> IO<A> collapse(IO<A> self) {
+    IO<A> current = self;
     while (true) {
       if (current instanceof IO.Suspend) {
         IO.Suspend<A> suspend = (IO.Suspend<A>) current;
@@ -461,9 +452,9 @@ interface IOModule {
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  static <A> A evaluate(IO<A> eval) {
+  static <A> A evaluate(IO<A> self) {
     Stack<Function1<Object, IO>> stack = new Stack<>();
-    IO<A> current = eval;
+    IO<A> current = self;
     while (true) {
       if (current instanceof IO.FlatMapped) {
         IO.FlatMapped currentFlatMapped = (IO.FlatMapped) current;
@@ -481,6 +472,24 @@ interface IOModule {
       } else break;
     }
     return current.unsafeRunSync();
+  }
+
+  static <T> IO<T> repeat(IO<T> self, IO<Unit> pause, int times) {
+    return self.redeemWith(IO::raiseError, value -> {
+      if (times > 0)
+        return pause.andThen(repeat(self, pause, times - 1));
+      else
+        return IO.pure(value);
+    });
+  }
+
+  static <T> IO<T> retry(IO<T> self, IO<Unit> pause, int maxRetries) {
+    return self.redeemWith(error -> {
+      if (maxRetries > 0)
+        return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
+      else
+        return IO.raiseError(error);
+    }, IO::pure);
   }
 }
 

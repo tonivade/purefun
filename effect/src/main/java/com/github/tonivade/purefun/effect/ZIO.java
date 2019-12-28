@@ -105,26 +105,15 @@ public interface ZIO<R, E, A> {
   }
 
   default ZIO<R, E, A> repeat(int times) {
-    return repeat(UIO.unit(), times);
+    return ZIOModule.repeat(this, UIO.unit(), times);
   }
 
   default ZIO<R, E, A> repeat(Duration delay) {
-    return repeat(UIO.sleep(delay), 1);
+    return repeat(delay, 1);
   }
 
   default ZIO<R, E, A> repeat(Duration delay, int times) {
-    return repeat(UIO.sleep(delay), times);
-  }
-
-  default ZIO<R, E, A> repeat(UIO<Unit> delay, int times) {
-    return foldM(
-        ZIO::<R, E, A>raiseError, value -> {
-          if (times > 0) {
-            ZIO<R, E, Unit> sleep = delay.toZIO();
-            return sleep.andThen(repeat(delay, times - 1));
-          }
-          return ZIO.<R, E, A>pure(value);
-        });
+    return ZIOModule.repeat(this, UIO.sleep(delay), times);
   }
 
   default ZIO<R, E, A> retry() {
@@ -132,26 +121,15 @@ public interface ZIO<R, E, A> {
   }
 
   default ZIO<R, E, A> retry(int maxRetries) {
-    return retry(UIO.unit(), maxRetries);
+    return ZIOModule.retry(this, UIO.unit(), maxRetries);
   }
 
   default ZIO<R, E, A> retry(Duration delay) {
-    return retry(UIO.sleep(delay), 1);
+    return retry(delay, 1);
   }
 
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
-    return retry(UIO.sleep(delay), maxRetries);
-  }
-
-  default ZIO<R, E, A> retry(UIO<Unit> pause, int maxRetries) {
-    return foldM(
-        error -> {
-          if (maxRetries > 0) {
-            ZIO<R, E, Unit> sleep = pause.toZIO();
-            return sleep.andThen(retry(pause.andThen(pause), maxRetries - 1));
-          }
-          return ZIO.raiseError(error);
-        }, ZIO::<R, E, A>pure);
+    return ZIOModule.retry(this, UIO.sleep(delay), maxRetries);
   }
 
   ZIOModule getModule();
@@ -607,8 +585,8 @@ public interface ZIO<R, E, A> {
 interface ZIOModule {
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
 
-  static <R, E, A, F, B> ZIO<R, E, A> collapse(ZIO<R, E, A> eval) {
-    ZIO<R, E, A> current = eval;
+  static <R, E, A, F, B> ZIO<R, E, A> collapse(ZIO<R, E, A> self) {
+    ZIO<R, E, A> current = self;
     while (true) {
       if (current instanceof ZIO.Suspend) {
         ZIO.Suspend<R, E, A> suspend = (ZIO.Suspend<R, E, A>) current;
@@ -625,9 +603,9 @@ interface ZIOModule {
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  static <R, E, A> Either<E, A> evaluate(R env, ZIO<R, E, A> eval) {
+  static <R, E, A> Either<E, A> evaluate(R env, ZIO<R, E, A> self) {
     Stack<Function1<Either, ZIO>> stack = new Stack<>();
-    ZIO<R, E, A> current = eval;
+    ZIO<R, E, A> current = self;
     while (true) {
       if (current instanceof ZIO.FlatMapped) {
         ZIO.FlatMapped currentFlatMapped = (ZIO.FlatMapped) current;
@@ -645,6 +623,26 @@ interface ZIOModule {
       } else break;
     }
     return current.provide(env);
+  }
+
+  static <R, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> self, UIO<Unit> delay, int times) {
+    return self.foldM(
+        ZIO::<R, E, A>raiseError, value -> {
+          if (times > 0)
+            return delay.<R, E>toZIO().andThen(repeat(self, delay, times - 1));
+          else
+            return ZIO.<R, E, A>pure(value);
+        });
+  }
+
+  static <R, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> self, UIO<Unit> delay, int maxRetries) {
+    return self.foldM(
+        error -> {
+          if (maxRetries > 0)
+            return delay.<R, E>toZIO().andThen(retry(self, delay.repeat(), maxRetries - 1));
+          else
+            return ZIO.raiseError(error);
+        }, ZIO::<R, E, A>pure);
   }
 }
 

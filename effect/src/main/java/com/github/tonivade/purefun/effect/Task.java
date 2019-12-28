@@ -108,10 +108,6 @@ public final class Task<T> {
     return repeat(sleep(delay), times);
   }
 
-  public Task<T> repeat(Task<Unit> pause, int times) {
-    return foldM(Task::raiseError, value -> (times > 0) ? pause.andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
-  }
-
   public Task<T> retry() {
     return retry(1);
   }
@@ -128,8 +124,22 @@ public final class Task<T> {
     return retry(sleep(delay), maxRetries);
   }
 
-  public Task<T> retry(Task<Unit> pause, int maxRetries) {
-    return foldM(error -> (maxRetries > 0) ? pause.andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error), Task::pure);
+  private Task<T> repeat(Task<Unit> pause, int times) {
+    return foldM(Task::raiseError, value -> {
+      if (times > 0)
+        return pause.andThen(repeat(pause, times - 1));
+      else
+        return pure(value);
+    });
+  }
+
+  private Task<T> retry(Task<Unit> pause, int maxRetries) {
+    return foldM(error -> {
+      if (maxRetries > 0)
+        return pause.andThen(retry(pause.repeat(), maxRetries - 1));
+      else
+        return raiseError(error);
+    }, Task::pure);
   }
 
   public static <A, B, C> Task<C> map2(Task<A> za, Task<B> zb, Function2<A, B, C> mapper) {

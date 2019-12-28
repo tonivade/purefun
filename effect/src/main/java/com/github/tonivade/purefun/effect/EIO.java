@@ -119,10 +119,6 @@ public final class EIO<E, T> {
     return repeat(UIO.sleep(delay), times);
   }
 
-  public EIO<E, T> repeat(UIO<Unit> pause, int times) {
-    return foldM(EIO::raiseError, value -> (times > 0) ? pause.<E>toEIO().andThen(repeat(pause.andThen(pause), times - 1)) : pure(value));
-  }
-
   public EIO<E, T> retry() {
     return retry(1);
   }
@@ -139,9 +135,21 @@ public final class EIO<E, T> {
     return retry(UIO.sleep(delay), maxRetries);
   }
 
-  public EIO<E, T> retry(UIO<Unit> pause, int maxRetries) {
+  private EIO<E, T> repeat(UIO<Unit> pause, int times) {
+    return foldM(EIO::raiseError, value -> {
+      if (times > 0)
+        return pause.<E>toEIO().andThen(repeat(pause, times - 1));
+      else
+        return pure(value);
+    });
+  }
+
+  private EIO<E, T> retry(UIO<Unit> pause, int maxRetries) {
     return foldM(error -> {
-      return (maxRetries > 0) ? pause.<E>toEIO().andThen(retry(pause.andThen(pause), maxRetries - 1)) : raiseError(error);
+      if (maxRetries > 0)
+        return pause.<E>toEIO().andThen(retry(pause.repeat(), maxRetries - 1));
+      else
+        return raiseError(error);
     }, EIO::pure);
   }
 
