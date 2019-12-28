@@ -168,9 +168,8 @@ public interface Eval<A> {
 
 interface EvalModule {
 
-  @SuppressWarnings("unchecked")
-  static <A, X> Eval<A> collapse(Eval<A> eval) {
-    Eval<A> current = eval;
+  static <A, X> Eval<A> collapse(Eval<A> self) {
+    Eval<A> current = self;
     while (true) {
       if (current instanceof Eval.Defer) {
         Eval.Defer<A> defer = (Eval.Defer<A>) current;
@@ -184,9 +183,9 @@ interface EvalModule {
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  static <A> A evaluate(Eval<A> eval) {
+  static <A> A evaluate(Eval<A> self) {
     Stack<Function1<Object, Eval>> stack = new Stack<>();
-    Eval<A> current = eval;
+    Eval<A> current = self;
     while (true) {
       if (current instanceof Eval.FlatMapped) {
         Eval.FlatMapped currentFlatMapped = (Eval.FlatMapped) current;

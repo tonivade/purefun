@@ -235,10 +235,7 @@ public interface IO<T> extends Recoverable {
     @Override
     @SuppressWarnings("unchecked")
     public <R1> IO<R1> flatMap(Function1<R, IO<R1>> map) {
-      return new IO.FlatMapped<>(
-          () -> (IO<R>) start(),
-          r -> new FlatMapped<>(
-              () -> run((T) r), map::apply));
+      return new FlatMapped<>(() -> (IO<R>) start(), r -> new FlatMapped<>(() -> run((T) r), map::apply));
     }
 
     @Override

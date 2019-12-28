@@ -285,14 +285,9 @@ public interface ZIO<R, E, A> {
       return new FlatMapped<>(
           () -> (ZIO<R, F, B>) start(),
           f -> new FlatMapped<>(
-              () -> run((Either<E, A>) Either.left(f)),
-              left::apply,
-              right::apply)
-          ,
+              () -> run((Either<E, A>) Either.left(f)), left::apply, right::apply),
           b -> new FlatMapped<>(
-              () -> run((Either<E, A>) Either.right(b)),
-              left::apply,
-              right::apply)
+              () -> run((Either<E, A>) Either.right(b)), left::apply, right::apply)
       );
     }
 
