@@ -21,6 +21,8 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Sealed;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
@@ -99,6 +101,14 @@ public interface IO<T> extends Recoverable {
         return function.apply((X) cause);
       }
       return sneakyThrow(cause);
+    });
+  }
+
+  default IO<Tuple2<Duration, T>> timed() {
+    return IO.task(() -> {
+      long start = System.nanoTime();
+      T result = unsafeRunSync();
+      return Tuple.of(Duration.ofNanos(System.nanoTime() - start), result);
     });
   }
 

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.monad;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -234,6 +235,16 @@ public class IOTest {
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
+  }
+
+  @Test
+  public void timed() {
+    IO<Tuple2<Duration, Integer>> sum = sum(100000, 0).timed();
+
+    Tuple2<Duration, Integer> result = sum.unsafeRunSync();
+
+    assertEquals(705082704, result.get2());
+    assertTrue(result.get1().toMillis() > 0);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {
