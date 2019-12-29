@@ -11,7 +11,6 @@ import static java.util.Objects.requireNonNull;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Stack;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;

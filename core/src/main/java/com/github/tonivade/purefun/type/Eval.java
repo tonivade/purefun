@@ -11,7 +11,6 @@ import com.github.tonivade.purefun.Unit;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Stack;
 
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
