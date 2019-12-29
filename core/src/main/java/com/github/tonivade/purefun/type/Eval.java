@@ -9,6 +9,8 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import static com.github.tonivade.purefun.Producer.cons;
@@ -184,7 +186,7 @@ interface EvalModule {
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   static <A> A evaluate(Eval<A> self) {
-    Stack<Function1<Object, Eval>> stack = new Stack<>();
+    Deque<Function1<Object, Eval>> stack = new LinkedList<>();
     Eval<A> current = self;
     while (true) {
       if (current instanceof Eval.FlatMapped) {

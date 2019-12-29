@@ -8,7 +8,8 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
-import java.util.Stack;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -450,7 +451,7 @@ interface IOModule {
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   static <A> A evaluate(IO<A> self) {
-    Stack<Function1<Object, IO>> stack = new Stack<>();
+    Deque<Function1<Object, IO>> stack = new LinkedList<>();
     IO<A> current = self;
     while (true) {
       if (current instanceof IO.FlatMapped) {

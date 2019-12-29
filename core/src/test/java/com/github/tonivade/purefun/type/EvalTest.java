@@ -19,11 +19,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tonivade.purefun.Producer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class EvalTest {
 
   @Spy
@@ -104,18 +105,21 @@ public class EvalTest {
   public void stackSafety() {
     Eval<Integer> sum = sum(100000, 0);
 
+    assertThrows(StackOverflowError.class, () -> sumImpure(100000, 0));
     assertEquals(705082704, sum.value());
   }
 
-  @BeforeEach
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-  }
-
-  private Eval<Integer> sum(Integer n, Integer sum) {
-    if ( n == 0) {
+  private Eval<Integer> sum(int n, int sum) {
+    if (n == 0) {
       return Eval.now(sum);
     }
     return Eval.defer(() -> sum( n - 1, sum + n));
+  }
+
+  private Integer sumImpure(int n, int sum) {
+    if (n == 0) {
+      return sum;
+    }
+    return sumImpure( n - 1, sum + n);
   }
 }

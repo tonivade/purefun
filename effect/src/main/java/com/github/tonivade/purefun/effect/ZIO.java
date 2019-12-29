@@ -9,6 +9,8 @@ import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Stack;
 import java.util.concurrent.Executor;
 
@@ -599,7 +601,7 @@ interface ZIOModule {
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   static <R, E, A> Either<E, A> evaluate(R env, ZIO<R, E, A> self) {
-    Stack<Function1<Either, ZIO>> stack = new Stack<>();
+    Deque<Function1<Either, ZIO>> stack = new LinkedList<>();
     ZIO<R, E, A> current = self;
     while (true) {
       if (current instanceof ZIO.FlatMapped) {
