@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Transformer;
 
@@ -29,6 +30,10 @@ public abstract class Free<F extends Kind, A> {
 
   public static <F extends Kind, T> Free<F, T> liftF(Higher1<F, T> value) {
     return new Suspend<>(value);
+  }
+
+  public static <F extends Kind, G extends Kind, T> Free<G, T> inject(InjectK<F, G> inject, Higher1<F, T> value) {
+    return liftF(inject.inject(value));
   }
 
   public static <F extends Kind, T> Free<F, T> defer(Producer<Free<F, T>> value) {
