@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.free.EitherK;
@@ -59,9 +60,9 @@ interface EitherKFunctor<F extends Kind, G extends Kind> extends Functor<Higher1
   Functor<G> g();
 
   @Override
-  default <T, R> Higher1<Higher1<Higher1<EitherK.µ, F>, G>, R> map(
+  default <T, R> Higher3<EitherK.µ, F, G, R> map(
       Higher1<Higher1<Higher1<EitherK.µ, F>, G>, T> value, Function1<T, R> map) {
-    return value.fix1(EitherK::narrowK).map(f(), g(), map).kind1();
+    return value.fix1(EitherK::narrowK).map(f(), g(), map).kind3();
   }
 }
 
@@ -83,9 +84,9 @@ interface EitherKContravariant<F extends Kind, G extends Kind>
   Contravariant<G> g();
 
   @Override
-  default <A, B> Higher1<Higher1<Higher1<EitherK.µ, F>, G>, B> contramap(
+  default <A, B> Higher3<EitherK.µ, F, G, B> contramap(
       Higher1<Higher1<Higher1<EitherK.µ, F>, G>, A> value, Function1<B, A> map) {
-    return value.fix1(EitherK::narrowK).contramap(f(), g(), map).kind1();
+    return value.fix1(EitherK::narrowK).contramap(f(), g(), map).kind3();
   }
 }
 
@@ -108,10 +109,10 @@ interface EitherKComonad<F extends Kind, G extends Kind>
   Comonad<G> g();
 
   @Override
-  default <A, B> Higher1<Higher1<Higher1<EitherK.µ, F>, G>, B> coflatMap(
+  default <A, B> Higher3<EitherK.µ, F, G, B> coflatMap(
       Higher1<Higher1<Higher1<EitherK.µ, F>, G>, A> value,
       Function1<Higher1<Higher1<Higher1<EitherK.µ, F>, G>, A>, B> map) {
-    return value.fix1(EitherK::narrowK).coflatMap(f(), g(), eitherK -> map.apply(eitherK.kind1())).kind1();
+    return value.fix1(EitherK::narrowK).coflatMap(f(), g(), eitherK -> map.apply(eitherK.kind1())).kind3();
   }
 
   @Override
@@ -131,8 +132,8 @@ interface EitherKInjectKRight<F extends Kind, G extends Kind, R extends Kind>
   InjectK<F, R> inject();
 
   @Override
-  default  <T> Higher1<Higher1<Higher1<EitherK.µ, G>, R>, T> inject(Higher1<F, T> value) {
-    return EitherK.<G, R, T>right(inject().inject(value)).kind1();
+  default  <T> Higher3<EitherK.µ, G, R, T> inject(Higher1<F, T> value) {
+    return EitherK.<G, R, T>right(inject().inject(value)).kind3();
   }
 }
 
@@ -147,7 +148,7 @@ interface EitherKInjectKLeft<F extends Kind, G extends Kind> extends InjectK<F, 
   }
 
   @Override
-  default  <T> Higher1<Higher1<Higher1<EitherK.µ, F>, G>, T> inject(Higher1<F, T> value) {
-    return EitherK.<F, G, T>left(value).kind1();
+  default  <T> Higher3<EitherK.µ, F, G, T> inject(Higher1<F, T> value) {
+    return EitherK.<F, G, T>left(value).kind3();
   }
 }

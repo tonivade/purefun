@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nested;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.TypeClass;
 
 @TypeClass
@@ -24,6 +25,10 @@ public interface Applicative<F extends Kind> extends Functor<F> {
   @Override
   default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
     return ap(value, pure(map));
+  }
+
+  default <A, B> Higher1<F, Tuple2<A, B>> tuple(Higher1<F, A> fa, Higher1<F, B> fb) {
+    return map2(fa, fb, Tuple2::of);
   }
 
   default <A, B, R> Higher1<F, R> map2(Higher1<F, A> fa, Higher1<F, B> fb, Function2<A, B, R> mapper) {
