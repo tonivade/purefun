@@ -15,12 +15,15 @@ import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
 @HigherKind
-public final class EitherK<F extends Kind, G extends Kind, T> {
+public final class EitherK<F extends Kind, G extends Kind, T> implements Serializable {
+
+  private static final long serialVersionUID = -2305737717835278018L;
 
   private static final Equal<EitherK<?, ?, ?>> EQUAL =
       Equal.<EitherK<?, ?, ?>>of().comparing(eitherK -> eitherK.either);
