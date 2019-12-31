@@ -8,10 +8,10 @@ import static java.util.Objects.requireNonNull;
 @HigherKind
 public interface ConsoleAlg<T> {
   final class WriteLine implements ConsoleAlg<Unit> {
-    final String line;
-    WriteLine(String line) { this.line = requireNonNull(line); }
+    private final String line;
+    public WriteLine(String line) { this.line = requireNonNull(line); }
+
+    public String getLine() { return line; }
   }
-  final class ReadLine implements ConsoleAlg<String> {
-    ReadLine() { }
-  }
+  final class ReadLine implements ConsoleAlg<String> { }
 }

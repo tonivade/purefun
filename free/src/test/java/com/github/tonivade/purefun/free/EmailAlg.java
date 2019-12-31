@@ -8,11 +8,16 @@ import static java.util.Objects.requireNonNull;
 @HigherKind
 public interface EmailAlg<T> {
   final class SendEmail implements EmailAlg<Unit> {
-    final String to;
-    final String content;
-    SendEmail(String to, String content) {
+    private final String to;
+    private final String content;
+
+    public SendEmail(String to, String content) {
       this.to = requireNonNull(to);
       this.content = requireNonNull(content);
     }
+
+    public String getTo() { return to; }
+
+    public String getContent() { return content; }
   }
 }

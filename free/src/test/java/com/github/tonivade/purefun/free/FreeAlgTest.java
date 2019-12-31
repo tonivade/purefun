@@ -35,7 +35,8 @@ public class FreeAlgTest {
   @Test
   public void algebra() {
     Free<Higher1<Higher1<EitherK.µ, ConsoleAlg.µ>, EmailAlg.µ>, Unit> hello =
-        read().flatMap(name -> write("hello " + name)).andThen(send("toni@home", "hello"));
+        read().flatMap(name -> write("hello " + name))
+            .andThen(send("toni@home", "hello"));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("toni");
 
@@ -57,7 +58,7 @@ public class FreeAlgTest {
             }
             if (consoleAlg instanceof ConsoleAlg.WriteLine) {
               ConsoleAlg.WriteLine writeLine = (ConsoleAlg.WriteLine) consoleAlg;
-              return (Higher1<IO.µ, T>) console.println(writeLine.line);
+              return (Higher1<IO.µ, T>) console.println(writeLine.getLine());
             }
             throw new IllegalStateException();
           },
@@ -65,7 +66,8 @@ public class FreeAlgTest {
             EmailAlg<T> emailAlg = right.fix1(EmailAlg::narrowK);
             if (emailAlg instanceof EmailAlg.SendEmail) {
               EmailAlg.SendEmail sendEmail = (EmailAlg.SendEmail) emailAlg;
-              return (Higher1<IO.µ, T>) console.println("email to " + sendEmail.to + " with content " + sendEmail.content);
+              return (Higher1<IO.µ, T>) console.println(
+                  "email to " + sendEmail.getTo() + " with content " + sendEmail.getContent());
             }
             throw new IllegalStateException();
           }
