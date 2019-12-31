@@ -87,7 +87,7 @@ public class StateTTest {
   public void mapK() {
     StateT<IO.µ, Unit, String> stateIo = StateT.pure(monad, "abc");
 
-    StateT<Try.µ, Unit, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryTransformer());
+    StateT<Try.µ, Unit, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success(Tuple2.of(unit(), "abc")), Try.narrowK(stateTry.run(unit())));
   }

@@ -83,7 +83,7 @@ public class EitherTTest {
   public void mapK() {
     EitherT<IO.µ, Nothing, String> rightIo = EitherT.right(IOInstances.monad(), "abc");
 
-    EitherT<Try.µ, Nothing, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryTransformer());
+    EitherT<Try.µ, Nothing, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), Try.narrowK(rightTry.get()));
   }

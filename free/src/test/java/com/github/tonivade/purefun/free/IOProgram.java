@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.typeclasses.Console;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 import static com.github.tonivade.purefun.Matcher1.instanceOf;
 import static com.github.tonivade.purefun.free.Free.liftF;
@@ -68,7 +68,7 @@ public interface IOProgram<T> {
   }
 }
 
-class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
+class IOProgramToState implements FunctionK<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
 
   private final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
 
@@ -83,7 +83,7 @@ class IOProgramToState implements Transformer<IOProgram.µ, Higher1<State.µ, Im
   }
 }
 
-class IOProgramToIO implements Transformer<IOProgram.µ, IO.µ> {
+class IOProgramToIO implements FunctionK<IOProgram.µ, IO.µ> {
 
   private final Console<IO.µ> console = IOInstances.console();
 

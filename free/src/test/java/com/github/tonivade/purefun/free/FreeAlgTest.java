@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Console;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.instances.EitherKInstances.injectEitherKLeft;
@@ -45,32 +45,38 @@ public class FreeAlgTest {
     assertEquals("hello toni\nemail to toni@home with content hello\n", executor.getOutput());
   }
 
-  private static Transformer<Higher1<Higher1<EitherK.µ, ConsoleAlg.µ>, EmailAlg.µ>, IO.µ> interpreter() {
+  private static FunctionK<Higher1<Higher1<EitherK.µ, ConsoleAlg.µ>, EmailAlg.µ>, IO.µ> interpreter() {
     final Console<IO.µ> console = IOInstances.console();
-    return new Transformer<Higher1<Higher1<EitherK.µ, ConsoleAlg.µ>, EmailAlg.µ>, IO.µ>() {
+    return new FunctionK<Higher1<Higher1<EitherK.µ, ConsoleAlg.µ>, EmailAlg.µ>, IO.µ>() {
       @Override
       public <T> Higher1<IO.µ, T> apply(Higher1<Higher1<Higher1<EitherK.µ, ConsoleAlg.µ>, EmailAlg.µ>, T> from) {
-        return from.fix1(EitherK::narrowK).fold(
-          left -> {
-            ConsoleAlg<T> consoleAlg = left.fix1(ConsoleAlg::narrowK);
-            if (consoleAlg instanceof ConsoleAlg.ReadLine) {
-              return (Higher1<IO.µ, T>) console.readln();
+        return from.fix1(EitherK::narrowK).foldK(
+          new FunctionK<ConsoleAlg.µ, IO.µ>() {
+            @Override
+            public <X> Higher1<IO.µ, X> apply(Higher1<ConsoleAlg.µ, X> from) {
+              ConsoleAlg<X> consoleAlg = from.fix1(ConsoleAlg::narrowK);
+              if (consoleAlg instanceof ConsoleAlg.ReadLine) {
+                return (Higher1<IO.µ, X>) console.readln();
+              }
+              if (consoleAlg instanceof ConsoleAlg.WriteLine) {
+                ConsoleAlg.WriteLine writeLine = (ConsoleAlg.WriteLine) consoleAlg;
+                return (Higher1<IO.µ, X>) console.println(writeLine.getLine());
+              }
+              throw new IllegalStateException();
             }
-            if (consoleAlg instanceof ConsoleAlg.WriteLine) {
-              ConsoleAlg.WriteLine writeLine = (ConsoleAlg.WriteLine) consoleAlg;
-              return (Higher1<IO.µ, T>) console.println(writeLine.getLine());
-            }
-            throw new IllegalStateException();
           },
-          right -> {
-            EmailAlg<T> emailAlg = right.fix1(EmailAlg::narrowK);
-            if (emailAlg instanceof EmailAlg.SendEmail) {
-              EmailAlg.SendEmail sendEmail = (EmailAlg.SendEmail) emailAlg;
-              return (Higher1<IO.µ, T>) console.println(
-                  "email to " + sendEmail.getTo() + " with content " + sendEmail.getContent());
+            new FunctionK<EmailAlg.µ, IO.µ>() {
+              @Override
+              public <X> Higher1<IO.µ, X> apply(Higher1<EmailAlg.µ, X> from) {
+                EmailAlg<X> emailAlg = from.fix1(EmailAlg::narrowK);
+                if (emailAlg instanceof EmailAlg.SendEmail) {
+                  EmailAlg.SendEmail sendEmail = (EmailAlg.SendEmail) emailAlg;
+                  return (Higher1<IO.µ, X>) console.println(
+                      "email to " + sendEmail.getTo() + " with content " + sendEmail.getContent());
+                }
+                throw new IllegalStateException();
+              }
             }
-            throw new IllegalStateException();
-          }
         );
       }
     };

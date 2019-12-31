@@ -15,6 +15,10 @@ public interface Functor<F extends Kind> extends Invariant<F> {
 
   <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map);
 
+  default <A, B> Function1<Higher1<F, A>, Higher1<F, B>> lift(Function1<A, B> function) {
+    return fa -> map(fa, function);
+  }
+
   @Override
   default <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
     return map(value, map);

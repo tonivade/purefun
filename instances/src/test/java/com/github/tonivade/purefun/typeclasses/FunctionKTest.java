@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
-public class TransformerTest {
+public class FunctionKTest {
 
   @Test
   public void apply() {
@@ -36,14 +36,14 @@ public class TransformerTest {
   }
 }
 
-class OptionToTry implements Transformer<Option.µ, Try.µ> {
+class OptionToTry implements FunctionK<Option.µ, Try.µ> {
   @Override
   public <X> Higher1<Try.µ, X> apply(Higher1<Option.µ, X> from) {
     return Option.narrowK(from).map(Try::success).getOrElse(Try::failure).kind1();
   }
 }
 
-class TryToOption implements Transformer<Try.µ, Option.µ> {
+class TryToOption implements FunctionK<Try.µ, Option.µ> {
   @Override
   public <X> Higher1<Option.µ, X> apply(Higher1<Try.µ, X> from) {
     return Try.narrowK(from).toOption().kind1();

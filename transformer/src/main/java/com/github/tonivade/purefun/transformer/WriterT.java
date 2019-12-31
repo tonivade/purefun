@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public interface WriterT<F extends Kind, L, A> {
@@ -53,8 +53,8 @@ public interface WriterT<F extends Kind, L, A> {
     return writer(monoidV, monad(), monad().map(value(), tuple -> tuple.map(mapper1, mapper2)));
   }
 
-  default <G extends Kind> WriterT<G, L, A> mapK(Monad<G> monadG, Transformer<F, G> transformer) {
-    return writer(monoid(), monadG, transformer.apply(value()));
+  default <G extends Kind> WriterT<G, L, A> mapK(Monad<G> monadG, FunctionK<F, G> functionK) {
+    return writer(monoid(), monadG, functionK.apply(value()));
   }
 
   default <R> WriterT<F, L, R> flatMap(Function1<A, WriterT<F, L, R>> mapper) {

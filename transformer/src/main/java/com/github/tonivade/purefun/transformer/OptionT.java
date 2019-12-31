@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public interface OptionT<F extends Kind, T> {
@@ -36,8 +36,8 @@ public interface OptionT<F extends Kind, T> {
     return monad().map(value(), v -> v.fold(orElse, map));
   }
 
-  default <G extends Kind> OptionT<G, T> mapK(Monad<G> other, Transformer<F, G> transformer) {
-    return OptionT.of(other, transformer.apply(value()));
+  default <G extends Kind> OptionT<G, T> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+    return OptionT.of(other, functionK.apply(value()));
   }
 
   default Higher1<F, T> get() {

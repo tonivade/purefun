@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public interface StateT<F extends Kind, S, A> {
@@ -40,8 +40,8 @@ public interface StateT<F extends Kind, S, A> {
     });
   }
 
-  default <G extends Kind> StateT<G, S, A> mapK(Monad<G> other, Transformer<F, G> transformer) {
-    return state(other, state -> transformer.apply(run(state)));
+  default <G extends Kind> StateT<G, S, A> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+    return state(other, state -> functionK.apply(run(state)));
   }
 
   static <F extends Kind, S, A> StateT<F, S, A> state(Monad<F> monad, Function1<S, Higher1<F, Tuple2<S, A>>> run) {

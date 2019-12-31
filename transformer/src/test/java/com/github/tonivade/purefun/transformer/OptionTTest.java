@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 public class OptionTTest {
 
@@ -84,7 +84,7 @@ public class OptionTTest {
   public void mapK() {
     OptionT<IO.µ, String> someIo = OptionT.some(IOInstances.monad(), "abc");
 
-    OptionT<Try.µ, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryTransformer());
+    OptionT<Try.µ, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), Try.narrowK(someTry.get()));
   }
@@ -148,7 +148,7 @@ public class OptionTTest {
   }
 }
 
-class IOToTryTransformer implements Transformer<IO.µ, Try.µ> {
+class IOToTryFunctionK implements FunctionK<IO.µ, Try.µ> {
 
   @Override
   public <T> Higher1<Try.µ, T> apply(Higher1<IO.µ, T> from) {

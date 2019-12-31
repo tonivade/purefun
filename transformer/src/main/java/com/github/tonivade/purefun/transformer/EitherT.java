@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public interface EitherT<F extends Kind, L, R> {
@@ -46,8 +46,8 @@ public interface EitherT<F extends Kind, L, R> {
     return monad().map(value(), v -> v.fold(leftMapper, rightMapper));
   }
 
-  default <G extends Kind> EitherT<G, L, R> mapK(Monad<G> other, Transformer<F, G> transformer) {
-    return EitherT.of(other, transformer.apply(value()));
+  default <G extends Kind> EitherT<G, L, R> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+    return EitherT.of(other, functionK.apply(value()));
   }
 
   default EitherT<F, L, R> filterOrElse(Matcher1<R> filter, Producer<Either<L, R>> orElse) {

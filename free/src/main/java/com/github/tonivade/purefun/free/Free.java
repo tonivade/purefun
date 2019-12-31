@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.Transformer;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
@@ -55,11 +55,11 @@ public abstract class Free<F extends Kind, A> {
     return flatMap(ignore -> next);
   }
 
-  public <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, Transformer<F, G> interpreter) {
+  public <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, FunctionK<F, G> interpreter) {
     return monad.tailRecM(this, value -> value.step().foldStep(monad, interpreter));
   }
 
-  protected abstract <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter);
+  protected abstract <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter);
 
   public static final class Pure<F extends Kind, A> extends Free<F, A> {
 
@@ -85,7 +85,7 @@ public abstract class Free<F extends Kind, A> {
     }
 
     @Override
-    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       return monad.pure(Either.right(value));
     }
   }
@@ -114,7 +114,7 @@ public abstract class Free<F extends Kind, A> {
     }
 
     @Override
-    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       return monad.map(interpreter.apply(value), Either::right);
     }
   }
@@ -164,7 +164,7 @@ public abstract class Free<F extends Kind, A> {
     }
 
     @Override
-    protected <G extends Kind> Higher1<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, Transformer<F, G> interpreter) {
+    protected <G extends Kind> Higher1<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       return monad.map(value.foldMap(monad, interpreter), next.andThen(Either::left));
     }
   }
