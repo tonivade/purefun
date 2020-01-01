@@ -19,8 +19,6 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-import java.util.Objects;
-
 public class FoldableLaws {
 
   public static <F extends Kind> void verifyLaws(Foldable<F> instance, Higher1<F, String> value) {

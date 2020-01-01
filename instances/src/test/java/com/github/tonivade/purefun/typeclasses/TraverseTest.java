@@ -75,7 +75,7 @@ public class TraverseTest {
   }
 
   @Test
-  public void const_() {
+  public void testConst() {
     Traverse<Higher1<Const.µ, String>> instance = ConstInstances.traverse();
 
     assertAll(
@@ -98,7 +98,7 @@ public class TraverseTest {
   }
 
   @Test
-  public void try_() {
+  public void testTry() {
     Traverse<Try.µ> instance = TryInstances.traverse();
 
     Exception error = new Exception("error");

@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
-import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.laws.FoldableLaws.verifyLaws;
 import static com.github.tonivade.purefun.type.Eval.now;
