@@ -21,7 +21,6 @@ import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Selective;
 import com.github.tonivade.purefun.typeclasses.Semigroup;
 
-@SuppressWarnings("unchecked")
 public interface ValidationInstances {
 
   static <E, T> Eq<Higher2<Validation.µ, E, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
@@ -36,11 +35,11 @@ public interface ValidationInstances {
   }
 
   static <E> Functor<Higher1<Validation.µ, E>> functor() {
-    return (ValidationFunctor<E>) ValidationFunctor.INSTANCE;
+    return ValidationFunctor.instance();
   }
 
   static Bifunctor<Validation.µ> bifunctor() {
-    return ValidationBifunctor.INSTANCE;
+    return ValidationBifunctor.instance();
   }
 
   static <E> Applicative<Higher1<Validation.µ, E>> applicative(Semigroup<E> semigroup) {
@@ -52,22 +51,20 @@ public interface ValidationInstances {
   }
 
   static <E> Monad<Higher1<Validation.µ, E>> monad() {
-    return (ValidationMonad<E>) ValidationMonad.INSTANCE;
+    return ValidationMonad.instance();
   }
 
   static <E> MonadError<Higher1<Validation.µ, E>, E> monadError() {
-    return (ValidationMonadError<E>) ValidationMonadError.INSTANCE;
+    return ValidationMonadError.instance();
   }
 
   static MonadThrow<Higher1<Validation.µ, Throwable>> monadThrow() {
-    return ValidationMonadThrow.INSTANCE;
+    return ValidationMonadThrow.instance();
   }
 }
 
 @Instance
 interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
-
-  ValidationFunctor<?> INSTANCE = new ValidationFunctor<Object>() { };
 
   @Override
   default <T, R> Higher2<Validation.µ, E, R> map(Higher1<Higher1<Validation.µ, E>, T> value, Function1<T, R> map) {
@@ -77,8 +74,6 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation.µ, E>> {
 
 @Instance
 interface ValidationBifunctor extends Bifunctor<Validation.µ> {
-
-  ValidationBifunctor INSTANCE = new ValidationBifunctor() { };
 
   @Override
   default <A, B, C, D> Higher2<Validation.µ, C, D> bimap(Higher2<Validation.µ, A, B> value,
@@ -137,8 +132,6 @@ interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Hig
 @Instance
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation.µ, E>> {
 
-  ValidationMonad<?> INSTANCE = new ValidationMonad<Object>() { };
-
   @Override
   default <T, R> Higher2<Validation.µ, E, R> flatMap(Higher1<Higher1<Validation.µ, E>, T> value,
       Function1<T, ? extends Higher1<Higher1<Validation.µ, E>, R>> map) {
@@ -148,8 +141,6 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
 
 @Instance
 interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation.µ, E>, E> {
-
-  ValidationMonadError<?> INSTANCE = new ValidationMonadError<Object>() { };
 
   @Override
   default <A> Higher2<Validation.µ, E, A> raiseError(E error) {
@@ -166,6 +157,4 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
 @Instance
 interface ValidationMonadThrow
     extends ValidationMonadError<Throwable>,
-            MonadThrow<Higher1<Validation.µ, Throwable>> {
-  ValidationMonadThrow INSTANCE = new ValidationMonadThrow() { };
-}
+            MonadThrow<Higher1<Validation.µ, Throwable>> { }

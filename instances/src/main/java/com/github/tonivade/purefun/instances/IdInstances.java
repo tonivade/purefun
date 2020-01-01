@@ -26,34 +26,32 @@ public interface IdInstances {
   }
 
   static Functor<Id.µ> functor() {
-    return IdFunctor.INSTANCE;
+    return IdFunctor.instance();
   }
 
   static Applicative<Id.µ> applicative() {
-    return IdApplicative.INSTANCE;
+    return IdApplicative.instance();
   }
 
   static Monad<Id.µ> monad() {
-    return IdMonad.INSTANCE;
+    return IdMonad.instance();
   }
 
   static Comonad<Id.µ> comonad() {
-    return IdComonad.INSTANCE;
+    return IdComonad.instance();
   }
 
   static Foldable<Id.µ> foldable() {
-    return IdFoldable.INSTANCE;
+    return IdFoldable.instance();
   }
 
   static Traverse<Id.µ> traverse() {
-    return IdTraverse.INSTANCE;
+    return IdTraverse.instance();
   }
 }
 
 @Instance
 interface IdFunctor extends Functor<Id.µ> {
-
-  IdFunctor INSTANCE = new IdFunctor() { };
 
   @Override
   default <T, R> Higher1<Id.µ, R> map(Higher1<Id.µ, T> value, Function1<T, R> map) {
@@ -72,8 +70,6 @@ interface IdPure extends Applicative<Id.µ> {
 @Instance
 interface IdApplicative extends IdPure {
 
-  IdApplicative INSTANCE = new IdApplicative() { };
-
   @Override
   default <T, R> Higher1<Id.µ, R> ap(Higher1<Id.µ, T> value, Higher1<Id.µ, Function1<T, R>> apply) {
     return Id.narrowK(value).flatMap(t -> Id.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -83,8 +79,6 @@ interface IdApplicative extends IdPure {
 @Instance
 interface IdMonad extends IdPure, Monad<Id.µ> {
 
-  IdMonad INSTANCE = new IdMonad() { };
-
   @Override
   default <T, R> Higher1<Id.µ, R> flatMap(Higher1<Id.µ, T> value, Function1<T, ? extends Higher1<Id.µ, R>> map) {
     return Id.narrowK(value).flatMap(map.andThen(Id::narrowK)).kind1();
@@ -93,8 +87,6 @@ interface IdMonad extends IdPure, Monad<Id.µ> {
 
 @Instance
 interface IdComonad extends IdFunctor, Comonad<Id.µ> {
-
-  IdComonad INSTANCE = new IdComonad() { };
 
   @Override
   default <A, B> Higher1<Id.µ, B> coflatMap(Higher1<Id.µ, A> value, Function1<Higher1<Id.µ, A>, B> map) {
@@ -110,8 +102,6 @@ interface IdComonad extends IdFunctor, Comonad<Id.µ> {
 @Instance
 interface IdFoldable extends Foldable<Id.µ> {
 
-  IdFoldable INSTANCE = new IdFoldable() { };
-
   @Override
   default <A, B> B foldLeft(Higher1<Id.µ, A> value, B initial, Function2<B, A, B> mapper) {
     return mapper.apply(initial, Id.narrowK(value).get());
@@ -125,8 +115,6 @@ interface IdFoldable extends Foldable<Id.µ> {
 
 @Instance
 interface IdTraverse extends Traverse<Id.µ>, IdFoldable {
-
-  IdTraverse INSTANCE = new IdTraverse() { };
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Id.µ, R>> traverse(

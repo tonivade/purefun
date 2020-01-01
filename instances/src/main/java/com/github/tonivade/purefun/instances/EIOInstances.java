@@ -21,31 +21,30 @@ import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.effect.EIO;
 
-@SuppressWarnings("unchecked")
 public interface EIOInstances {
 
   static <E> Functor<Higher1<EIO.µ, E>> functor() {
-    return (EIOFunctor<E>) EIOFunctor.INSTANCE;
+    return EIOFunctor.instance();
   }
 
   static <E> Applicative<Higher1<EIO.µ, E>> applicative() {
-    return (EIOApplicative<E>) EIOApplicative.INSTANCE;
+    return EIOApplicative.instance();
   }
 
   static <E> Monad<Higher1<EIO.µ, E>> monad() {
-    return (EIOMonad<E>) EIOMonad.INSTANCE;
+    return EIOMonad.instance();
   }
 
   static <E> MonadError<Higher1<EIO.µ, E>, E> monadError() {
-    return (EIOMonadError<E>) EIOMonadError.INSTANCE;
+    return EIOMonadError.instance();
   }
 
   static MonadThrow<Higher1<EIO.µ, Throwable>> monadThrow() {
-    return EIOMonadThrow.INSTANCE;
+    return EIOMonadThrow.instance();
   }
 
   static MonadDefer<Higher1<EIO.µ, Throwable>> monadDefer() {
-    return EIOMonadDefer.INSTANCE;
+    return EIOMonadDefer.instance();
   }
 
   static <A> Reference<Higher1<EIO.µ, Throwable>, A> ref(A value) {
@@ -55,8 +54,6 @@ public interface EIOInstances {
 
 @Instance
 interface EIOFunctor<E> extends Functor<Higher1<EIO.µ, E>> {
-
-  EIOFunctor<?> INSTANCE = new EIOFunctor<Object>() { };
 
   @Override
   default <A, B> Higher2<EIO.µ, E, B>
@@ -76,8 +73,6 @@ interface EIOPure<E> extends Applicative<Higher1<EIO.µ, E>> {
 @Instance
 interface EIOApplicative<E> extends EIOPure<E> {
 
-  EIOApplicative<?> INSTANCE = new EIOApplicative<Object>() { };
-
   @Override
   default <A, B> Higher2<EIO.µ, E, B>
           ap(Higher1<Higher1<EIO.µ, E>, A> value,
@@ -89,8 +84,6 @@ interface EIOApplicative<E> extends EIOPure<E> {
 @Instance
 interface EIOMonad<E> extends EIOPure<E>, Monad<Higher1<EIO.µ, E>> {
 
-  EIOMonad<?> INSTANCE = new EIOMonad<Object>() { };
-
   @Override
   default <A, B> Higher2<EIO.µ, E, B>
           flatMap(Higher1<Higher1<EIO.µ, E>, A> value,
@@ -101,8 +94,6 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<Higher1<EIO.µ, E>> {
 
 @Instance
 interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO.µ, E>, E> {
-
-  EIOMonadError<?> INSTANCE = new EIOMonadError<Object>() { };
 
   @Override
   default <A> Higher2<EIO.µ, E, A> raiseError(E error) {
@@ -124,9 +115,7 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO.µ, E>, E
 @Instance
 interface EIOMonadThrow
     extends EIOMonadError<Throwable>,
-            MonadThrow<Higher1<EIO.µ, Throwable>> {
-  EIOMonadThrow INSTANCE = new EIOMonadThrow() { };
-}
+            MonadThrow<Higher1<EIO.µ, Throwable>> { }
 
 interface EIODefer extends Defer<Higher1<EIO.µ, Throwable>> {
 
@@ -153,6 +142,4 @@ interface EIOMonadDefer
     extends MonadDefer<Higher1<EIO.µ, Throwable>>,
             EIOMonadThrow,
             EIODefer,
-            EIOBracket {
-  EIOMonadDefer INSTANCE = new EIOMonadDefer() { };
-}
+            EIOBracket { }

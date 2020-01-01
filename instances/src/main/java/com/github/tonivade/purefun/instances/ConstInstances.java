@@ -20,7 +20,6 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-@SuppressWarnings("unchecked")
 public interface ConstInstances {
 
   static <T, A> Eq<Higher1<Higher1<Const.µ, T>, A>> eq(Eq<T> eq) {
@@ -28,7 +27,7 @@ public interface ConstInstances {
   }
 
   static <T> Functor<Higher1<Const.µ, T>> functor() {
-    return (ConstFunctor<T>) ConstFunctor.INSTANCE;
+    return ConstFunctor.instance();
   }
 
   static <T> Applicative<Higher1<Const.µ, T>> applicative(Monoid<T> monoid) {
@@ -59,7 +58,6 @@ interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
   }
 }
 
-@Instance
 interface ConstApplicative<T> extends Applicative<Higher1<Const.µ, T>> {
 
   static <T> ConstApplicative<T> instance(Monoid<T> monoid) {
@@ -93,7 +91,6 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
   }
 }
 
-@Instance
 interface ConstFoldable<T> extends Foldable<Higher1<Const.µ, T>> {
 
   ConstFoldable<?> INSTANCE = new ConstFoldable<Object>() { };

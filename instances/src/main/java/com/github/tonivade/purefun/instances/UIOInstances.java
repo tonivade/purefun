@@ -23,27 +23,27 @@ import com.github.tonivade.purefun.effect.UIO;
 public interface UIOInstances {
 
   static Functor<UIO.µ> functor() {
-    return UIOFunctor.INSTANCE;
+    return UIOFunctor.instance();
   }
 
   static Applicative<UIO.µ> applicative() {
-    return UIOApplicative.INSTANCE;
+    return UIOApplicative.instance();
   }
 
   static Monad<UIO.µ> monad() {
-    return UIOMonad.INSTANCE;
+    return UIOMonad.instance();
   }
 
   static MonadError<UIO.µ, Throwable> monadError() {
-    return UIOMonadError.INSTANCE;
+    return UIOMonadError.instance();
   }
 
   static MonadThrow<UIO.µ> monadThrow() {
-    return UIOMonadThrow.INSTANCE;
+    return UIOMonadThrow.instance();
   }
 
   static MonadDefer<UIO.µ> monadDefer() {
-    return UIOMonadDefer.INSTANCE;
+    return UIOMonadDefer.instance();
   }
 
   static <A> Reference<UIO.µ, A> ref(A value) {
@@ -53,8 +53,6 @@ public interface UIOInstances {
 
 @Instance
 interface UIOFunctor extends Functor<UIO.µ> {
-
-  UIOFunctor INSTANCE = new UIOFunctor() { };
 
   @Override
   default <A, B> Higher1<UIO.µ, B> map(Higher1<UIO.µ, A> value, Function1<A, B> map) {
@@ -73,8 +71,6 @@ interface UIOPure extends Applicative<UIO.µ> {
 @Instance
 interface UIOApplicative extends UIOPure {
 
-  UIOApplicative INSTANCE = new UIOApplicative() { };
-
   @Override
   default <A, B> Higher1<UIO.µ, B> ap(Higher1<UIO.µ, A> value, Higher1<UIO.µ, Function1<A, B>> apply) {
     return UIO.narrowK(apply).flatMap(map -> UIO.narrowK(value).map(map)).kind1();
@@ -84,8 +80,6 @@ interface UIOApplicative extends UIOPure {
 @Instance
 interface UIOMonad extends UIOPure, Monad<UIO.µ> {
 
-  UIOMonad INSTANCE = new UIOMonad() { };
-
   @Override
   default <A, B> Higher1<UIO.µ, B> flatMap(Higher1<UIO.µ, A> value, Function1<A, ? extends Higher1<UIO.µ, B>> map) {
     return UIO.narrowK(value).flatMap(map.andThen(UIO::narrowK)).kind1();
@@ -94,8 +88,6 @@ interface UIOMonad extends UIOPure, Monad<UIO.µ> {
 
 @Instance
 interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
-
-  UIOMonadError INSTANCE = new UIOMonadError() { };
 
   @Override
   default <A> Higher1<UIO.µ, A> raiseError(Throwable error) {
@@ -116,9 +108,7 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
 @Instance
 interface UIOMonadThrow
     extends UIOMonadError,
-            MonadThrow<UIO.µ> {
-  UIOMonadThrow INSTANCE = new UIOMonadThrow() { };
-}
+            MonadThrow<UIO.µ> { }
 
 interface UIODefer extends Defer<UIO.µ> {
 
@@ -145,6 +135,4 @@ interface UIOMonadDefer
     extends MonadDefer<UIO.µ>,
             UIOMonadThrow,
             UIODefer,
-            UIOBracket {
-  UIOMonadDefer INSTANCE = new UIOMonadDefer() { };
-}
+            UIOBracket { }

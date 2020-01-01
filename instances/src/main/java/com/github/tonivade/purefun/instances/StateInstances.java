@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public interface StateInstances {
 
   static <S> Monad<Higher1<State.µ, S>> monad() {
-    return (StateMonad<S>) StateMonad.INSTANCE;
+    return StateMonad.instance();
   }
 
   static Console<Higher1<State.µ, ImmutableList<String>>> console() {
@@ -31,8 +31,6 @@ public interface StateInstances {
 
 @Instance
 interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
-
-  StateMonad<?> INSTANCE = new StateMonad<Object>() { };
 
   @Override
   default <T> Higher2<State.µ, S, T> pure(T value) {
@@ -46,7 +44,6 @@ interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
   }
 }
 
-@Instance
 final class ConsoleState implements Console<Higher1<State.µ, ImmutableList<String>>> {
 
   protected static final ConsoleState INSTANCE = new ConsoleState();

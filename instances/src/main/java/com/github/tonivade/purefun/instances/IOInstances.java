@@ -30,23 +30,23 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 public interface IOInstances {
 
   static Functor<IO.µ> functor() {
-    return IOFunctor.INSTANCE;
+    return IOFunctor.instance();
   }
 
   static Monad<IO.µ> monad() {
-    return IOMonad.INSTANCE;
+    return IOMonad.instance();
   }
 
   static MonadError<IO.µ, Throwable> monadError() {
-    return IOMonadError.INSTANCE;
+    return IOMonadError.instance();
   }
 
   static MonadThrow<IO.µ> monadThrow() {
-    return IOMonadThrow.INSTANCE;
+    return IOMonadThrow.instance();
   }
 
   static MonadDefer<IO.µ> monadDefer() {
-    return IOMonadDefer.INSTANCE;
+    return IOMonadDefer.instance();
   }
 
   static <A> Reference<IO.µ, A> ref(A value) {
@@ -61,8 +61,6 @@ public interface IOInstances {
 @Instance
 interface IOFunctor extends Functor<IO.µ> {
 
-  IOFunctor INSTANCE = new IOFunctor() { };
-
   @Override
   default <T, R> Higher1<IO.µ, R> map(Higher1<IO.µ, T> value, Function1<T, R> map) {
     return IO.narrowK(value).map(map).kind1();
@@ -71,8 +69,6 @@ interface IOFunctor extends Functor<IO.µ> {
 
 @Instance
 interface IOMonad extends Monad<IO.µ> {
-
-  IOMonad INSTANCE = new IOMonad() { };
 
   @Override
   default <T> Higher1<IO.µ, T> pure(T value) {
@@ -88,8 +84,6 @@ interface IOMonad extends Monad<IO.µ> {
 @Instance
 interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
 
-  IOMonadError INSTANCE = new IOMonadError() { };
-
   @Override
   default <A> Higher1<IO.µ, A> raiseError(Throwable error) {
     return IO.<A>raiseError(error).kind1();
@@ -101,9 +95,8 @@ interface IOMonadError extends MonadError<IO.µ, Throwable>, IOMonad {
   }
 }
 
-interface IOMonadThrow extends MonadThrow<IO.µ>, IOMonadError {
-  IOMonadThrow INSTANCE = new IOMonadThrow() { };
-}
+@Instance
+interface IOMonadThrow extends MonadThrow<IO.µ>, IOMonadError { }
 
 interface IODefer extends Defer<IO.µ> {
 
@@ -122,11 +115,8 @@ interface IOBracket extends Bracket<IO.µ> {
 }
 
 @Instance
-interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer, IOBracket {
-  IOMonadDefer INSTANCE = new IOMonadDefer() { };
-}
+interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer, IOBracket { }
 
-@Instance
 final class ConsoleIO implements Console<IO.µ> {
 
   private final SystemConsole console = new SystemConsole();

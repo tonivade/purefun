@@ -14,7 +14,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -63,7 +62,6 @@ public interface OptionTInstances {
   }
 }
 
-@Instance
 interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
 
   static <F extends Kind> OptionTMonad<F> instance(Monad<F> monadF) {
@@ -84,7 +82,6 @@ interface OptionTMonad<F extends Kind> extends Monad<Higher1<OptionT.µ, F>> {
   }
 }
 
-@Instance
 interface OptionTMonadErrorFromMonad<F extends Kind>
     extends MonadError<Higher1<OptionT.µ, F>, Unit>, OptionTMonad<F> {
 
@@ -108,7 +105,6 @@ interface OptionTMonadErrorFromMonad<F extends Kind>
   }
 }
 
-@Instance
 interface OptionTMonadErrorFromMonadError<F extends Kind, E>
     extends MonadError<Higher1<OptionT.µ, F>, E>, OptionTMonad<F> {
 
@@ -133,7 +129,6 @@ interface OptionTMonadErrorFromMonadError<F extends Kind, E>
   }
 }
 
-@Instance
 interface OptionTMonadThrow<F extends Kind>
     extends MonadThrow<Higher1<OptionT.µ, F>>,
             OptionTMonadErrorFromMonadError<F, Throwable> {
@@ -143,7 +138,6 @@ interface OptionTMonadThrow<F extends Kind>
   }
 }
 
-@Instance
 interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
 
   static <F extends Kind> OptionTDefer<F> instance(MonadDefer<F> monadDeferF) {
@@ -158,7 +152,6 @@ interface OptionTDefer<F extends Kind> extends Defer<Higher1<OptionT.µ, F>> {
   }
 }
 
-@Instance
 interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>> {
 
   static <F extends Kind> OptionTBracket<F> instance(MonadDefer<F> monadDeferF) {
@@ -182,7 +175,6 @@ interface OptionTBracket<F extends Kind> extends Bracket<Higher1<OptionT.µ, F>>
   }
 }
 
-@Instance
 interface OptionTMonadDefer<F extends Kind>
     extends OptionTMonadThrow<F>,
             OptionTDefer<F>,

@@ -43,7 +43,6 @@ public interface Monoid<T> extends Semigroup<T> {
   }
 }
 
-@Instance
 interface MonoidInvariant extends Invariant<Monoid.µ> {
 
   @Override

@@ -50,7 +50,7 @@ public interface EitherKInstances {
   }
 
   static <F extends Kind, G extends Kind> InjectK<F, Higher1<Higher1<EitherK.µ, F>, G>> injectEitherKLeft() {
-    return (EitherKInjectKLeft<F, G>) EitherKInjectKLeft.INSTANCE;
+    return EitherKInjectKLeft.instance();
   }
 
   static <F extends Kind, R extends Kind, G extends Kind>
@@ -59,7 +59,6 @@ public interface EitherKInstances {
   }
 }
 
-@Instance
 interface EitherKFunctor<F extends Kind, G extends Kind> extends Functor<Higher1<Higher1<EitherK.µ, F>, G>> {
 
   static <F extends Kind, G extends Kind> EitherKFunctor<F, G> instance(Functor<F> functorF, Functor<G> functorG) {
@@ -81,7 +80,6 @@ interface EitherKFunctor<F extends Kind, G extends Kind> extends Functor<Higher1
   }
 }
 
-@Instance
 interface EitherKContravariant<F extends Kind, G extends Kind>
     extends Contravariant<Higher1<Higher1<EitherK.µ, F>, G>> {
 
@@ -105,7 +103,6 @@ interface EitherKContravariant<F extends Kind, G extends Kind>
   }
 }
 
-@Instance
 interface EitherKComonad<F extends Kind, G extends Kind>
     extends Comonad<Higher1<Higher1<EitherK.µ, F>, G>>, EitherKFunctor<F, G> {
 
@@ -136,7 +133,6 @@ interface EitherKComonad<F extends Kind, G extends Kind>
   }
 }
 
-@Instance
 interface EitherKInjectKRight<F extends Kind, G extends Kind, R extends Kind>
     extends InjectK<F, Higher1<Higher1<EitherK.µ, G>, R>> {
 
@@ -154,8 +150,6 @@ interface EitherKInjectKRight<F extends Kind, G extends Kind, R extends Kind>
 
 @Instance
 interface EitherKInjectKLeft<F extends Kind, G extends Kind> extends InjectK<F, Higher1<Higher1<EitherK.µ, F>, G>> {
-
-  EitherKInjectKLeft<?, ?> INSTANCE = new EitherKInjectKLeft<Kind, Kind>() { };
 
   @Override
   default  <T> Higher3<EitherK.µ, F, G, T> inject(Higher1<F, T> value) {

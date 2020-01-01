@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 public interface FutureInstances {
 
   static Functor<Future.µ> functor() {
-    return FutureFunctor.INSTANCE;
+    return FutureFunctor.instance();
   }
 
   static Applicative<Future.µ> applicative() {
@@ -66,8 +66,6 @@ public interface FutureInstances {
 @Instance
 interface FutureFunctor extends Functor<Future.µ> {
 
-  FutureFunctor INSTANCE = new FutureFunctor() { };
-
   @Override
   default <T, R> Higher1<Future.µ, R> map(Higher1<Future.µ, T> value, Function1<T, R> mapper) {
     return Future.narrowK(value).map(mapper).kind1();
@@ -86,7 +84,6 @@ interface FuturePure extends Applicative<Future.µ>, ExecutorHolder {
   }
 }
 
-@Instance
 interface FutureApplicative extends FuturePure {
 
   static FutureApplicative instance(Executor executor) {
@@ -99,7 +96,6 @@ interface FutureApplicative extends FuturePure {
   }
 }
 
-@Instance
 interface FutureMonad extends FuturePure, Monad<Future.µ> {
 
   static FutureMonad instance(Executor executor) {
@@ -113,7 +109,6 @@ interface FutureMonad extends FuturePure, Monad<Future.µ> {
   }
 }
 
-@Instance
 interface FutureMonadThrow extends FutureMonad, MonadThrow<Future.µ> {
 
   static FutureMonadThrow instance(Executor executor) {
@@ -149,7 +144,6 @@ interface FutureBracket extends Bracket<Future.µ>, ExecutorHolder {
   }
 }
 
-@Instance
 interface FutureMonadDefer extends MonadDefer<Future.µ>, FutureMonadThrow, FutureDefer, FutureBracket {
 
   static FutureMonadDefer instance(Executor executor) {

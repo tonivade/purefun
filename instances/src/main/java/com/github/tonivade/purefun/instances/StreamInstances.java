@@ -45,7 +45,7 @@ public interface StreamInstances {
   }
 
   static <F extends Kind> Functor<Higher1<Stream.µ, F>> functor() {
-    return new StreamFunctor<F>() {};
+    return StreamFunctor.instance();
   }
 
   static <F extends Kind> Applicative<Higher1<Stream.µ, F>> applicative(StreamOf<F> streamOf) {
@@ -66,7 +66,6 @@ interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream.µ, F>> {
   }
 }
 
-@Instance
 interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream.µ, F>> {
 
   StreamOf<F> streamOf();
@@ -77,7 +76,6 @@ interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream.µ, F>> 
   }
 }
 
-@Instance
 interface StreamApplicative<F extends Kind> extends StreamPure<F> {
 
   static <F extends Kind> StreamApplicative<F> instance(StreamOf<F> streamOf) {
@@ -91,7 +89,6 @@ interface StreamApplicative<F extends Kind> extends StreamPure<F> {
   }
 }
 
-@Instance
 interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, StreamPure<F> {
 
   static <F extends Kind> StreamMonad<F> instance(StreamOf<F> streamOf) {

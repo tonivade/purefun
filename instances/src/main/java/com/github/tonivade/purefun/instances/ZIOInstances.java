@@ -27,27 +27,27 @@ import com.github.tonivade.purefun.effect.ZIO;
 public interface ZIOInstances {
 
   static <R, E> Functor<Higher1<Higher1<ZIO.µ, R>, E>> functor() {
-    return (ZIOFunctor<R, E>) ZIOFunctor.INSTANCE;
+    return (ZIOFunctor<R, E>) ZIOFunctor.instance();
   }
 
   static <R, E> Applicative<Higher1<Higher1<ZIO.µ, R>, E>> applicative() {
-    return (ZIOApplicative<R, E>) ZIOApplicative.INSTANCE;
+    return (ZIOApplicative<R, E>) ZIOApplicative.instance();
   }
 
   static <R, E> Monad<Higher1<Higher1<ZIO.µ, R>, E>> monad() {
-    return (ZIOMonad<R, E>) ZIOMonad.INSTANCE;
+    return (ZIOMonad<R, E>) ZIOMonad.instance();
   }
 
   static <R, E> MonadError<Higher1<Higher1<ZIO.µ, R>, E>, E> monadError() {
-    return (ZIOMonadError<R, E>) ZIOMonadError.INSTANCE;
+    return (ZIOMonadError<R, E>) ZIOMonadError.instance();
   }
 
   static <R> MonadThrow<Higher1<Higher1<ZIO.µ, R>, Throwable>> monadThrow() {
-    return (ZIOMonadThrow<R>) ZIOMonadThrow.INSTANCE;
+    return (ZIOMonadThrow<R>) ZIOMonadThrow.instance();
   }
 
   static <R> MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>> monadDefer() {
-    return (ZIOMonadDefer<R>) ZIOMonadDefer.INSTANCE;
+    return (ZIOMonadDefer<R>) ZIOMonadDefer.instance();
   }
 
   static <R, A> Reference<Higher1<Higher1<ZIO.µ, R>, Throwable>, A> ref(A value) {
@@ -61,8 +61,6 @@ public interface ZIOInstances {
 
 @Instance
 interface ZIOFunctor<R, E> extends Functor<Higher1<Higher1<ZIO.µ, R>, E>> {
-
-  ZIOFunctor<?, ?> INSTANCE = new ZIOFunctor<Object, Object>() { };
 
   @Override
   default <A, B> Higher3<ZIO.µ, R, E, B>
@@ -82,8 +80,6 @@ interface ZIOPure<R, E> extends Applicative<Higher1<Higher1<ZIO.µ, R>, E>> {
 @Instance
 interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
 
-  ZIOApplicative<?, ?> INSTANCE = new ZIOApplicative<Object, Object>() { };
-
   @Override
   default <A, B> Higher3<ZIO.µ, R, E, B>
           ap(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
@@ -95,8 +91,6 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
 @Instance
 interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>, E>> {
 
-  ZIOMonad<?, ?> INSTANCE = new ZIOMonad<Object, Object>() { };
-
   @Override
   default <A, B> Higher3<ZIO.µ, R, E, B>
           flatMap(Higher1<Higher1<Higher1<ZIO.µ, R>, E>, A> value,
@@ -107,8 +101,6 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO.µ, R>
 
 @Instance
 interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1<ZIO.µ, R>, E>, E> {
-
-  ZIOMonadError<?, ?> INSTANCE = new ZIOMonadError<Object, Object>() { };
 
   @Override
   default <A> Higher3<ZIO.µ, R, E, A> raiseError(E error) {
@@ -130,10 +122,7 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
 @Instance
 interface ZIOMonadThrow<R>
     extends ZIOMonadError<R, Throwable>,
-            MonadThrow<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
-
-  ZIOMonadThrow<?> INSTANCE = new ZIOMonadThrow<Object>() { };
-}
+            MonadThrow<Higher1<Higher1<ZIO.µ, R>, Throwable>> { }
 
 interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 
@@ -160,12 +149,8 @@ interface ZIOMonadDefer<R>
     extends MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>>,
             ZIOMonadThrow<R>,
             ZIODefer<R>,
-            ZIOBracket<R> {
+            ZIOBracket<R> { }
 
-  ZIOMonadDefer<?> INSTANCE = new ZIOMonadDefer<Object>() { };
-}
-
-@Instance
 final class ConsoleZIO<R> implements Console<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 
   protected static final ConsoleZIO<?> INSTANCE = new ConsoleZIO();

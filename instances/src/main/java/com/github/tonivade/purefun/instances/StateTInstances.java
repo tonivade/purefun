@@ -9,7 +9,6 @@ import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.transformer.StateT;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -21,7 +20,6 @@ public interface StateTInstances {
   }
 }
 
-@Instance
 interface StateTMonad<F extends Kind, S> extends Monad<Higher1<Higher1<StateT.µ, F>, S>> {
 
   static <F extends Kind, S> StateTMonad<F, S> instance(Monad<F> monadF) {

@@ -36,38 +36,36 @@ public interface TryInstances {
   }
 
   static Functor<Try.µ> functor() {
-    return TryFunctor.INSTANCE;
+    return TryFunctor.instance();
   }
 
   static Applicative<Try.µ> applicative() {
-    return TryApplicative.INSTANCE;
+    return TryApplicative.instance();
   }
 
   static Monad<Try.µ> monad() {
-    return TryMonad.INSTANCE;
+    return TryMonad.instance();
   }
 
   static MonadError<Try.µ, Throwable> monadError() {
-    return TryMonadError.INSTANCE;
+    return TryMonadError.instance();
   }
 
   static MonadThrow<Try.µ> monadThrow() {
-    return TryMonadThrow.INSTANCE;
+    return TryMonadThrow.instance();
   }
 
   static Foldable<Try.µ> foldable() {
-    return TryFoldable.INSTANCE;
+    return TryFoldable.instance();
   }
 
   static Traverse<Try.µ> traverse() {
-    return TryTraverse.INSTANCE;
+    return TryTraverse.instance();
   }
 }
 
 @Instance
 interface TryFunctor extends Functor<Try.µ> {
-
-  TryFunctor INSTANCE = new TryFunctor() { };
 
   @Override
   default <T, R> Higher1<Try.µ, R> map(Higher1<Try.µ, T> value, Function1<T, R> mapper) {
@@ -86,8 +84,6 @@ interface TryPure extends Applicative<Try.µ> {
 @Instance
 interface TryApplicative extends TryPure {
 
-  TryApplicative INSTANCE = new TryApplicative() { };
-
   @Override
   default <T, R> Higher1<Try.µ, R> ap(Higher1<Try.µ, T> value, Higher1<Try.µ, Function1<T, R>> apply) {
     return Try.narrowK(value).flatMap(t -> Try.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -96,8 +92,6 @@ interface TryApplicative extends TryPure {
 
 @Instance
 interface TryMonad extends TryPure, Monad<Try.µ> {
-
-  TryMonad INSTANCE = new TryMonad() { };
 
   @Override
   default <T, R> Higher1<Try.µ, R> flatMap(Higher1<Try.µ, T> value,
@@ -108,8 +102,6 @@ interface TryMonad extends TryPure, Monad<Try.µ> {
 
 @Instance
 interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
-
-  TryMonadError INSTANCE = new TryMonadError() { };
 
   @Override
   default <A> Higher1<Try.µ, A> raiseError(Throwable error) {
@@ -124,14 +116,10 @@ interface TryMonadError extends TryMonad, MonadError<Try.µ, Throwable> {
 }
 
 @Instance
-interface TryMonadThrow extends TryMonadError, MonadThrow<Try.µ> {
-  TryMonadThrow INSTANCE = new TryMonadThrow() { };
-}
+interface TryMonadThrow extends TryMonadError, MonadThrow<Try.µ> { }
 
 @Instance
 interface TryFoldable extends Foldable<Try.µ> {
-
-  TryFoldable INSTANCE = new TryFoldable() { };
 
   @Override
   default <A, B> B foldLeft(Higher1<Try.µ, A> value, B initial, Function2<B, A, B> mapper) {
@@ -147,8 +135,6 @@ interface TryFoldable extends Foldable<Try.µ> {
 
 @Instance
 interface TryTraverse extends Traverse<Try.µ>, TryFoldable {
-
-  TryTraverse INSTANCE = new TryTraverse() { };
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Try.µ, R>> traverse(

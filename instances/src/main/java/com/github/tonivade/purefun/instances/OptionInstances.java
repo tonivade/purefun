@@ -44,42 +44,40 @@ public interface OptionInstances {
   }
 
   static Functor<Option.µ> functor() {
-    return OptionFunctor.INSTANCE;
+    return OptionFunctor.instance();
   }
 
   static Applicative<Option.µ> applicative() {
-    return OptionApplicative.INSTANCE;
+    return OptionApplicative.instance();
   }
 
   static Alternative<Option.µ> alternative() {
-    return OptionAlternative.INSTANCE;
+    return OptionAlternative.instance();
   }
 
   static Monad<Option.µ> monad() {
-    return OptionMonad.INSTANCE;
+    return OptionMonad.instance();
   }
 
   static MonadError<Option.µ, Unit> monadError() {
-    return OptionMonadError.INSTANCE;
+    return OptionMonadError.instance();
   }
 
   static Traverse<Option.µ> traverse() {
-    return OptionTraverse.INSTANCE;
+    return OptionTraverse.instance();
   }
 
   static Semigroupal<Option.µ> semigroupal() {
-    return OptionSemigroupal.INSTANCE;
+    return OptionSemigroupal.instance();
   }
 
   static Foldable<Option.µ> foldable() {
-    return OptionFoldable.INSTANCE;
+    return OptionFoldable.instance();
   }
 }
 
 @Instance
 interface OptionFunctor extends Functor<Option.µ> {
-
-  Functor<Option.µ> INSTANCE = new OptionFunctor() { };
 
   @Override
   default <T, R> Higher1<Option.µ, R> map(Higher1<Option.µ, T> value, Function1<T, R> mapper) {
@@ -98,8 +96,6 @@ interface OptionPure extends Applicative<Option.µ> {
 @Instance
 interface OptionApplicative extends OptionPure {
 
-  OptionApplicative INSTANCE = new OptionApplicative() { };
-
   @Override
   default <T, R> Higher1<Option.µ, R> ap(Higher1<Option.µ, T> value, Higher1<Option.µ, Function1<T, R>> apply) {
     return Option.narrowK(value).flatMap(t -> Option.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -108,8 +104,6 @@ interface OptionApplicative extends OptionPure {
 
 @Instance
 interface OptionMonad extends OptionPure, Monad<Option.µ> {
-
-  OptionMonad INSTANCE = new OptionMonad() { };
 
   @Override
   default <T, R> Higher1<Option.µ, R> flatMap(Higher1<Option.µ, T> value,
@@ -137,14 +131,10 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option.µ> {
 }
 
 @Instance
-interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option.µ> {
-  OptionAlternative INSTANCE = new OptionAlternative() { };
-}
+interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option.µ> { }
 
 @Instance
 interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Unit> {
-
-  OptionMonadError INSTANCE = new OptionMonadError() { };
 
   @Override
   default <A> Higher1<Option.µ, A> raiseError(Unit error) {
@@ -161,8 +151,6 @@ interface OptionMonadError extends OptionMonad, MonadError<Option.µ, Unit> {
 @Instance
 interface OptionFoldable extends Foldable<Option.µ> {
 
-  OptionFoldable INSTANCE = new OptionFoldable() { };
-
   @Override
   default <A, B> B foldLeft(Higher1<Option.µ, A> value, B initial, Function2<B, A, B> mapper) {
     return Option.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
@@ -178,8 +166,6 @@ interface OptionFoldable extends Foldable<Option.µ> {
 @Instance
 interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
 
-  OptionTraverse INSTANCE = new OptionTraverse() { };
-
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Option.µ, R>> traverse(
       Applicative<G> applicative, Higher1<Option.µ, T> value,
@@ -192,8 +178,6 @@ interface OptionTraverse extends Traverse<Option.µ>, OptionFoldable {
 
 @Instance
 interface OptionSemigroupal extends Semigroupal<Option.µ> {
-
-  OptionSemigroupal INSTANCE = new OptionSemigroupal() { };
 
   @Override
   default <A, B> Higher1<Option.µ, Tuple2<A, B>> product(Higher1<Option.µ, A> fa, Higher1<Option.µ, B> fb) {

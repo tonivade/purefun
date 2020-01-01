@@ -17,26 +17,24 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public interface TrampolineInstances {
 
   static Functor<Trampoline.µ> functor() {
-    return TrampolineFunctor.INSTANCE;
+    return TrampolineFunctor.instance();
   }
 
   static Applicative<Trampoline.µ> applicative() {
-    return TrampolineApplicative.INSTANCE;
+    return TrampolineApplicative.instance();
   }
 
   static Monad<Trampoline.µ> monad() {
-    return TrampolineMonad.INSTANCE;
+    return TrampolineMonad.instance();
   }
 
   static Defer<Trampoline.µ> defer() {
-    return TrampolineDefer.INSTANCE;
+    return TrampolineDefer.instance();
   }
 }
 
 @Instance
 interface TrampolineFunctor extends Functor<Trampoline.µ> {
-
-  TrampolineFunctor INSTANCE = new TrampolineFunctor() { };
 
   @Override
   default <T, R> Higher1<Trampoline.µ, R> map(Higher1<Trampoline.µ, T> value, Function1<T, R> mapper) {
@@ -55,8 +53,6 @@ interface TrampolinePure extends Applicative<Trampoline.µ> {
 @Instance
 interface TrampolineApplicative extends TrampolinePure {
 
-  TrampolineApplicative INSTANCE = new TrampolineApplicative() { };
-
   @Override
   default <T, R> Higher1<Trampoline.µ, R> ap(Higher1<Trampoline.µ, T> value, Higher1<Trampoline.µ, Function1<T, R>> apply) {
     return Trampoline.narrowK(value).flatMap(t -> Trampoline.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -65,8 +61,6 @@ interface TrampolineApplicative extends TrampolinePure {
 
 @Instance
 interface TrampolineMonad extends TrampolinePure, Monad<Trampoline.µ> {
-
-  TrampolineMonad INSTANCE = new TrampolineMonad() { };
 
   @Override
   default <T, R> Higher1<Trampoline.µ, R> flatMap(Higher1<Trampoline.µ, T> value,
@@ -77,8 +71,6 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline.µ> {
 
 @Instance
 interface TrampolineDefer extends Defer<Trampoline.µ> {
-
-  TrampolineDefer INSTANCE = new TrampolineDefer() { };
 
   @Override
   default <A> Higher1<Trampoline.µ, A> defer(Producer<Higher1<Trampoline.µ, A>> defer) {

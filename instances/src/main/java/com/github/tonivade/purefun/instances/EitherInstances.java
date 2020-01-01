@@ -40,42 +40,40 @@ public interface EitherInstances {
   }
 
   static <L> Functor<Higher1<Either.µ, L>> functor() {
-    return (EitherFunctor<L>) EitherFunctor.INSTANCE;
+    return EitherFunctor.instance();
   }
 
   static Bifunctor<Either.µ> bifunctor() {
-    return EitherBifunctor.INSTANCE;
+    return EitherBifunctor.instance();
   }
 
   static <L> Applicative<Higher1<Either.µ, L>> applicative() {
-    return (EitherApplicative<L>) EitherApplicative.INSTANCE;
+    return EitherApplicative.instance();
   }
 
   static <L> Monad<Higher1<Either.µ, L>> monad() {
-    return (EitherMonad<L>) EitherMonad.INSTANCE;
+    return EitherMonad.instance();
   }
 
   static <L> MonadError<Higher1<Either.µ, L>, L> monadError() {
-    return (EitherMonadError<L>) EitherMonadError.INSTANCE;
+    return EitherMonadError.instance();
   }
 
   static MonadThrow<Higher1<Either.µ, Throwable>> monadThrow() {
-    return EitherMonadThrow.INSTANCE;
+    return EitherMonadThrow.instance();
   }
 
   static <L> Foldable<Higher1<Either.µ, L>> foldable() {
-    return (EitherFoldable<L>) EitherFoldable.INSTANCE;
+    return EitherFoldable.instance();
   }
 
   static <L> Traverse<Higher1<Either.µ, L>> traverse() {
-    return (EitherTraverse<L>) EitherTraverse.INSTANCE;
+    return EitherTraverse.instance();
   }
 }
 
 @Instance
 interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
-
-  EitherFunctor<?> INSTANCE = new EitherFunctor<Object>() { };
 
   @Override
   default <T, R> Higher2<Either.µ, L, R> map(Higher1<Higher1<Either.µ, L>, T> value, Function1<T, R> map) {
@@ -85,8 +83,6 @@ interface EitherFunctor<L> extends Functor<Higher1<Either.µ, L>> {
 
 @Instance
 interface EitherBifunctor extends Bifunctor<Either.µ> {
-
-  EitherBifunctor INSTANCE = new EitherBifunctor() { };
 
   @Override
   default <A, B, C, D> Higher2<Either.µ, C, D> bimap(Higher2<Either.µ, A, B> value,
@@ -106,8 +102,6 @@ interface EitherPure<L> extends Applicative<Higher1<Either.µ, L>> {
 @Instance
 interface EitherApplicative<L> extends EitherPure<L> {
 
-  EitherApplicative<?> INSTANCE = new EitherApplicative<Object>() { };
-
   @Override
   default <T, R> Higher2<Either.µ, L, R> ap(Higher1<Higher1<Either.µ, L>, T> value,
       Higher1<Higher1<Either.µ, L>, Function1<T, R>> apply) {
@@ -118,8 +112,6 @@ interface EitherApplicative<L> extends EitherPure<L> {
 @Instance
 interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
 
-  EitherMonad<?> INSTANCE = new EitherMonad<Object>() { };
-
   @Override
   default <T, R> Higher2<Either.µ, L, R> flatMap(Higher1<Higher1<Either.µ, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Either.µ, L>, R>> map) {
@@ -129,8 +121,6 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either.µ, L>> {
 
 @Instance
 interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.µ, L>, L> {
-
-  EitherMonadError<?> INSTANCE = new EitherMonadError<Object>() { };
 
   @Override
   default <A> Higher2<Either.µ, L, A> raiseError(L error) {
@@ -145,14 +135,10 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either.
 }
 
 @Instance
-interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Higher1<Either.µ, Throwable>> {
-  EitherMonadThrow INSTANCE = new EitherMonadThrow() { };
-}
+interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Higher1<Either.µ, Throwable>> { }
 
 @Instance
 interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
-
-  EitherFoldable<?> INSTANCE = new EitherFoldable<Object>() { };
 
   @Override
   default <A, B> B foldLeft(Higher1<Higher1<Either.µ, L>, A> value, B initial, Function2<B, A, B> mapper) {
@@ -168,8 +154,6 @@ interface EitherFoldable<L> extends Foldable<Higher1<Either.µ, L>> {
 
 @Instance
 interface EitherTraverse<L> extends Traverse<Higher1<Either.µ, L>>, EitherFoldable<L> {
-
-  EitherTraverse<?> INSTANCE = new EitherTraverse<Object>() { };
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either.µ, L>, R>> traverse(

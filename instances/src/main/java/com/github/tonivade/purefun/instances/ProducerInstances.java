@@ -16,26 +16,24 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public interface ProducerInstances {
 
   static Functor<Producer.µ> functor() {
-    return ProducerFunctor.INSTANCE;
+    return ProducerFunctor.instance();
   }
 
   static Applicative<Producer.µ> applicative() {
-    return ProducerApplicative.INSTANCE;
+    return ProducerApplicative.instance();
   }
 
   static Monad<Producer.µ> monad() {
-    return ProducerMonad.INSTANCE;
+    return ProducerMonad.instance();
   }
 
   static Comonad<Producer.µ> comonad() {
-    return ProducerComonad.INSTANCE;
+    return ProducerComonad.instance();
   }
 }
 
 @Instance
 interface ProducerFunctor extends Functor<Producer.µ> {
-
-  ProducerFunctor INSTANCE = new ProducerFunctor() { };
 
   @Override
   default <T, R> Higher1<Producer.µ, R> map(Higher1<Producer.µ, T> value, Function1<T, R> mapper) {
@@ -54,8 +52,6 @@ interface ProducerPure extends Applicative<Producer.µ> {
 @Instance
 interface ProducerApplicative extends ProducerPure {
 
-  ProducerApplicative INSTANCE = new ProducerApplicative() { };
-
   @Override
   default <T, R> Higher1<Producer.µ, R> ap(Higher1<Producer.µ, T> value, Higher1<Producer.µ, Function1<T, R>> apply) {
     return Producer.narrowK(value).flatMap(t -> Producer.narrowK(apply).map(f -> f.apply(t))).kind1();
@@ -65,8 +61,6 @@ interface ProducerApplicative extends ProducerPure {
 @Instance
 interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
 
-  ProducerMonad INSTANCE = new ProducerMonad() { };
-
   @Override
   default <T, R> Higher1<Producer.µ, R> flatMap(Higher1<Producer.µ, T> value, Function1<T, ? extends Higher1<Producer.µ, R>> mapper) {
     return value.fix1(Producer::narrowK).flatMap(mapper.andThen(Producer::narrowK)).kind1();
@@ -75,8 +69,6 @@ interface ProducerMonad extends ProducerPure, Monad<Producer.µ> {
 
 @Instance
 interface ProducerComonad extends ProducerFunctor, Comonad<Producer.µ> {
-
-  ProducerComonad INSTANCE = new ProducerComonad() { };
 
   @Override
   default <A, B> Higher1<Producer.µ, B> coflatMap(Higher1<Producer.µ, A> value, Function1<Higher1<Producer.µ, A>, B> map) {
