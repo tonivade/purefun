@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
+import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.laws.FoldableLaws.verifyLaws;
 import static com.github.tonivade.purefun.type.Eval.now;
@@ -13,6 +14,8 @@ import static com.github.tonivade.purefun.typeclasses.Foldable.compose;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.github.tonivade.purefun.instances.ConstInstances;
+import com.github.tonivade.purefun.type.Const;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -36,9 +39,14 @@ public class FoldableTest {
     assertAll(
         () -> verifyLaws(IdInstances.foldable(), Id.of("hola").kind1()),
         () -> verifyLaws(TryInstances.foldable(), Try.success("hola").kind1()),
+        () -> verifyLaws(TryInstances.foldable(), Try.<String>failure().kind1()),
         () -> verifyLaws(EitherInstances.foldable(), Either.right("hola").kind1()),
+        () -> verifyLaws(EitherInstances.foldable(), Either.<String, String>left("hola").kind1()),
         () -> verifyLaws(OptionInstances.foldable(), Option.some("hola").kind1()),
+        () -> verifyLaws(OptionInstances.foldable(), Option.<String>none().kind1()),
         () -> verifyLaws(SequenceInstances.foldable(), listOf("hola").kind1()),
+        () -> verifyLaws(SequenceInstances.foldable(), ImmutableList.<String>empty().kind1()),
+        () -> verifyLaws(ConstInstances.foldable(), Const.<String, String>of("hola").kind1()),
         () -> verifyLaws(compose(SequenceInstances.foldable(), OptionInstances.foldable()), nest(listOf(Option.some("hola").kind1()).kind1())));
   }
 

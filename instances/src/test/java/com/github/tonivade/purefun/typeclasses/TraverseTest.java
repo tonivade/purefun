@@ -9,6 +9,8 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.github.tonivade.purefun.instances.ConstInstances;
+import com.github.tonivade.purefun.type.Const;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
@@ -70,6 +72,16 @@ public class TraverseTest {
         () -> assertEquals(Option.some(Id.of("HELLO!")),
             instance.traverse(OptionInstances.applicative(), Id.of(Option.some("hello!")).kind1(),
                 t -> t.map(String::toUpperCase).kind1())));
+  }
+
+  @Test
+  public void const_() {
+    Traverse<Higher1<Const.µ, String>> instance = ConstInstances.traverse();
+
+    assertAll(
+        () -> assertEquals(Option.some(Const.of("hello!")),
+            instance.traverse(OptionInstances.applicative(), Const.<String, String>of("hello!").kind1(),
+                t -> Option.some(t).kind1())));
   }
 
   @Test

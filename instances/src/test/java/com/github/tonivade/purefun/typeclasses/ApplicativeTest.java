@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.type.Option;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApplicativeTest {
@@ -24,38 +25,16 @@ public class ApplicativeTest {
   private final Operator5<Integer> sum = (a, b, c, d, e) -> a + b + c + d + e;
 
   @Test
-  public void idApplicative() {
-    verifyLaws(IdInstances.applicative());
-  }
-
-  @Test
-  public void optionApplicative() {
-    verifyLaws(OptionInstances.applicative());
-  }
-
-  @Test
-  public void tryApplicative() {
-    verifyLaws(TryInstances.applicative());
-  }
-
-  @Test
-  public void eitherApplicative() {
-    verifyLaws(EitherInstances.applicative());
-  }
-
-  @Test
-  public void constApplicative() {
-    verifyLaws(ConstInstances.applicative(Monoid.integer()));
-  }
-
-  @Test
-  public void validationApplicative() {
-    verifyLaws(ValidationInstances.applicative(SequenceInstances.semigroup()));
-  }
-
-  @Test
-  public void composedAplicative() {
-    verifyLaws(Applicative.compose(OptionInstances.applicative(), IdInstances.applicative()));
+  public void laws() {
+    assertAll(
+        () -> verifyLaws(IdInstances.applicative()),
+        () -> verifyLaws(OptionInstances.applicative()),
+        () -> verifyLaws(TryInstances.applicative()),
+        () -> verifyLaws(EitherInstances.applicative()),
+        () -> verifyLaws(ConstInstances.applicative(Monoid.integer())),
+        () -> verifyLaws(ValidationInstances.applicative(SequenceInstances.semigroup())),
+        () -> verifyLaws(Applicative.compose(OptionInstances.applicative(), IdInstances.applicative()))
+    );
   }
 
   @Test

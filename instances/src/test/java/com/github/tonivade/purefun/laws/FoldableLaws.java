@@ -19,6 +19,8 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
+import java.util.Objects;
+
 public class FoldableLaws {
 
   public static <F extends Kind> void verifyLaws(Foldable<F> instance, Higher1<F, String> value) {
@@ -34,8 +36,10 @@ public class FoldableLaws {
                                                                     Higher1<F, A> value,
                                                                     Operator2<A> combinator) {
     assertEquals(
-        instance.foldM(OptionInstances.monad(), value, initial, combinator.andThen(Option::some).andThen(Option::kind1)),
-        instance.reduce(value, combinator).kind1(),
+        instance.foldM(
+            OptionInstances.monad(), value, initial,
+            combinator.andThen(Option::some).andThen(Option::kind1)).fix1(Option::narrowK).get(),
+        instance.reduce(value, combinator).getOrElse(initial),
         "reduce consistent law");
   }
 
