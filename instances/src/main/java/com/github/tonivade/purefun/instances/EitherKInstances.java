@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.free.EitherK;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
@@ -18,6 +20,18 @@ import com.github.tonivade.purefun.typeclasses.InjectK;
 import static java.util.Objects.requireNonNull;
 
 public interface EitherKInstances {
+
+  static <F extends Kind, G extends Kind, T> Eq<Higher1<Higher1<Higher1<EitherK.µ, F>, G>, T>> eq(
+      Eq<Higher1<F, T>> leftEq, Eq<Higher1<G, T>> rightEq) {
+    return (a, b) -> Pattern2.<EitherK<F, G, T>, EitherK<F, G, T>, Boolean>build()
+        .when((x, y) -> x.isLeft() && y.isLeft())
+          .then((x, y) -> leftEq.eqv(x.getLeft(), y.getLeft()))
+        .when((x, y) -> x.isRight() && y.isRight())
+          .then((x, y) -> rightEq.eqv(x.getRight(), y.getRight()))
+        .otherwise()
+          .returns(false)
+        .apply(EitherK.narrowK(a), EitherK.narrowK(b));
+  }
 
   static <F extends Kind, G extends Kind> Functor<Higher1<Higher1<EitherK.µ, F>, G>> functor(
       Functor<F> functorF, Functor<G> functorG) {
