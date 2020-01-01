@@ -35,15 +35,15 @@ public interface ConstInstances {
   }
 
   static <T> Foldable<Higher1<Const.µ, T>> foldable() {
-    return (ConstFoldable<T>) ConstFoldable.INSTANCE;
+    return ConstFoldable.instance();
   }
 
   static <T> Traverse<Higher1<Const.µ, T>> traverse() {
-    return (ConstTraverse<T>) ConstTraverse.INSTANCE;
+    return ConstTraverse.instance();
   }
 
   static <T> Contravariant<Higher1<Const.µ, T>> contravariant() {
-    return (ConstContravariant<T>) ConstContravariant.INSTANCE;
+    return ConstContravariant.instance();
   }
 }
 
@@ -91,9 +91,8 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
   }
 }
 
+@Instance
 interface ConstFoldable<T> extends Foldable<Higher1<Const.µ, T>> {
-
-  ConstFoldable<?> INSTANCE = new ConstFoldable<Object>() { };
 
   @Override
   default <A, B> B foldLeft(Higher1<Higher1<Const.µ, T>, A> value, B initial, Function2<B, A, B> mapper) {
@@ -107,9 +106,8 @@ interface ConstFoldable<T> extends Foldable<Higher1<Const.µ, T>> {
   }
 }
 
+@Instance
 interface ConstTraverse<T> extends Traverse<Higher1<Const.µ, T>>, ConstFoldable<T> {
-
-  ConstTraverse<?> INSTANCE = new ConstTraverse<Object>() { };
 
   @Override
   default <G extends Kind, A, B> Higher1<G, Higher1<Higher1<Const.µ, T>, B>> traverse(

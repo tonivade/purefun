@@ -54,7 +54,7 @@ public interface IOInstances {
   }
 
   static Console<IO.µ> console() {
-    return new ConsoleIO();
+    return ConsoleIO.INSTANCE;
   }
 }
 
@@ -118,6 +118,8 @@ interface IOBracket extends Bracket<IO.µ> {
 interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer, IOBracket { }
 
 final class ConsoleIO implements Console<IO.µ> {
+
+  public static final ConsoleIO INSTANCE = new ConsoleIO();
 
   private final SystemConsole console = new SystemConsole();
 
