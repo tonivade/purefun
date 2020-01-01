@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
 package com.github.tonivade.purefun.laws;
@@ -27,13 +27,15 @@ public class ApplicativeLaws {
   }
 
   private static <F extends Kind, A, B> void homomorphismLaw(Applicative<F> applicative, A value, Function1<A, B> f) {
-    assertEquals(applicative.pure(f.apply(value)),
+    assertEquals(
+        applicative.pure(f.apply(value)),
         applicative.ap(applicative.pure(value), applicative.pure(f)),
         "homomorphism law");
   }
 
   private static <F extends Kind, A, B> void interchangeLaw(Applicative<F> applicative, A value, Function1<A, B> f) {
-    assertEquals(applicative.ap(applicative.pure(value), applicative.pure(f)),
+    assertEquals(
+        applicative.ap(applicative.pure(value), applicative.pure(f)),
         applicative.ap(applicative.pure(f), applicative.pure(a -> f.apply(value))),
         "interchange law");
   }

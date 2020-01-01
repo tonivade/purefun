@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
 package com.github.tonivade.purefun.generic;
@@ -105,9 +105,9 @@ public class HListTest {
     HCons<String, HCons<Integer, HNil>> hlist = HList.of("Hola", 42);
 
     HFoldr<Unit, String, HCons<String, HCons<Integer, HNil>>, String> foldString =
-        foldr(combine((a, b) -> a + b), foldr(combine((a, b) -> a + b), foldr()));
+        foldr(combine(String::concat), foldr(combine((a, b) -> a + b), foldr()));
     HFoldr<Unit, Integer, HCons<String, HCons<Integer, HNil>>, Integer> foldInteger =
-        foldr(combine((a, b) -> a.length() + b), foldr(combine((a, b) -> a + b), foldr()));
+        foldr(combine((a, b) -> a.length() + b), foldr(combine(Integer::sum), foldr()));
 
     assertAll(
         () -> assertEquals("Hola42", foldString.foldr(unit(), "", hlist)),

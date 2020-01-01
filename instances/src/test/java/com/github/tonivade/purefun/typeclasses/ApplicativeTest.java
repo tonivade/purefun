@@ -1,23 +1,23 @@
 /*
- * Copyright (c) 2018-2019, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.github.tonivade.purefun.instances.SequenceInstances;
-import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
+import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
+import org.junit.jupiter.api.Test;
+
+import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApplicativeTest {
 
@@ -44,6 +44,11 @@ public class ApplicativeTest {
   }
 
   @Test
+  public void constApplicative() {
+    verifyLaws(ConstInstances.applicative(Monoid.integer()));
+  }
+
+  @Test
   public void validationApplicative() {
     verifyLaws(ValidationInstances.applicative(SequenceInstances.semigroup()));
   }
@@ -56,7 +61,12 @@ public class ApplicativeTest {
   @Test
   public void map5Some() {
     Higher1<Option.µ, Integer> map5 =
-        OptionInstances.applicative().map5(Option.some(1).kind1(), Option.some(2).kind1(), Option.some(3).kind1(), Option.some(4).kind1(), Option.some(5).kind1(), sum);
+        OptionInstances.applicative().map5(
+            Option.some(1).kind1(),
+            Option.some(2).kind1(),
+            Option.some(3).kind1(),
+            Option.some(4).kind1(),
+            Option.some(5).kind1(), sum);
 
     assertEquals(Option.some(15), map5);
   }
@@ -64,7 +74,12 @@ public class ApplicativeTest {
   @Test
   public void map5None() {
     Higher1<Option.µ, Integer> map5 =
-        OptionInstances.applicative().map5(Option.some(1).kind1(), Option.some(2).kind1(), Option.some(3).kind1(), Option.some(4).kind1(), Option.<Integer>none().kind1(), sum);
+        OptionInstances.applicative().map5(
+            Option.some(1).kind1(),
+            Option.some(2).kind1(),
+            Option.some(3).kind1(),
+            Option.some(4).kind1(),
+            Option.<Integer>none().kind1(), sum);
 
     assertEquals(Option.none(), map5);
   }
