@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
+@SuppressWarnings("unchecked")
 public interface ConstInstances {
 
   static <T, A> Eq<Higher1<Higher1<Const.µ, T>, A>> eq(Eq<T> eq) {
@@ -27,7 +28,7 @@ public interface ConstInstances {
   }
 
   static <T> Functor<Higher1<Const.µ, T>> functor() {
-    return ConstFunctor.instance();
+    return (ConstFunctor<T>) ConstFunctor.INSTANCE;
   }
 
   static <T> Applicative<Higher1<Const.µ, T>> applicative(Monoid<T> monoid) {
@@ -35,15 +36,15 @@ public interface ConstInstances {
   }
 
   static <T> Foldable<Higher1<Const.µ, T>> foldable() {
-    return ConstFoldable.instance();
+    return (ConstFoldable<T>) ConstFoldable.INSTANCE;
   }
 
   static <T> Traverse<Higher1<Const.µ, T>> traverse() {
-    return ConstTraverse.instance();
+    return (ConstTraverse<T>) ConstTraverse.INSTANCE;
   }
 
   static <T> Contravariant<Higher1<Const.µ, T>> contravariant() {
-    return ConstContravariant.instance();
+    return (ConstContravariant<T>) ConstContravariant.INSTANCE;
   }
 }
 
@@ -51,11 +52,6 @@ public interface ConstInstances {
 interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
 
   ConstFunctor<?> INSTANCE = new ConstFunctor<Object>() { };
-
-  @SuppressWarnings("unchecked")
-  static <T> ConstFunctor<T> instance() {
-    return (ConstFunctor<T>) INSTANCE;
-  }
 
   @Override
   default <A, B> Higher1<Higher1<Const.µ, T>, B> map(Higher1<Higher1<Const.µ, T>, A> value, Function1<A, B> map) {
@@ -91,11 +87,6 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
 
   ConstContravariant<?> INSTANCE = new ConstContravariant<Object>() { };
 
-  @SuppressWarnings("unchecked")
-  static <T> ConstContravariant<T> instance() {
-    return (ConstContravariant<T>) INSTANCE;
-  }
-
   @Override
   default <A, B> Higher2<Const.µ, T, B> contramap(Higher1<Higher1<Const.µ, T>, A> value, Function1<B, A> map) {
     return value.fix1(Const::narrowK).<B>retag().kind2();
@@ -106,11 +97,6 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
 interface ConstFoldable<T> extends Foldable<Higher1<Const.µ, T>> {
 
   ConstFoldable<?> INSTANCE = new ConstFoldable<Object>() { };
-
-  @SuppressWarnings("unchecked")
-  static <T> ConstFoldable<T> instance() {
-    return (ConstFoldable<T>) INSTANCE;
-  }
 
   @Override
   default <A, B> B foldLeft(Higher1<Higher1<Const.µ, T>, A> value, B initial, Function2<B, A, B> mapper) {
@@ -127,11 +113,6 @@ interface ConstFoldable<T> extends Foldable<Higher1<Const.µ, T>> {
 interface ConstTraverse<T> extends Traverse<Higher1<Const.µ, T>>, ConstFoldable<T> {
 
   ConstTraverse<?> INSTANCE = new ConstTraverse<Object>() { };
-
-  @SuppressWarnings("unchecked")
-  static <T> ConstTraverse<T> instance() {
-    return (ConstTraverse<T>) INSTANCE;
-  }
 
   @Override
   default <G extends Kind, A, B> Higher1<G, Higher1<Higher1<Const.µ, T>, B>> traverse(

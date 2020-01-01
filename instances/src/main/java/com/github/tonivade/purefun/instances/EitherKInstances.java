@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.typeclasses.InjectK;
 
 import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings("unchecked")
 public interface EitherKInstances {
 
   static <F extends Kind, G extends Kind, T> Eq<Higher1<Higher1<Higher1<EitherK.µ, F>, G>, T>> eq(
@@ -49,7 +50,7 @@ public interface EitherKInstances {
   }
 
   static <F extends Kind, G extends Kind> InjectK<F, Higher1<Higher1<EitherK.µ, F>, G>> injectEitherKLeft() {
-    return EitherKInjectKLeft.instance();
+    return (EitherKInjectKLeft<F, G>) EitherKInjectKLeft.INSTANCE;
   }
 
   static <F extends Kind, R extends Kind, G extends Kind>
@@ -155,11 +156,6 @@ interface EitherKInjectKRight<F extends Kind, G extends Kind, R extends Kind>
 interface EitherKInjectKLeft<F extends Kind, G extends Kind> extends InjectK<F, Higher1<Higher1<EitherK.µ, F>, G>> {
 
   EitherKInjectKLeft<?, ?> INSTANCE = new EitherKInjectKLeft<Kind, Kind>() { };
-
-  @SuppressWarnings("unchecked")
-  static <F extends Kind, G extends Kind> EitherKInjectKLeft<F, G> instance() {
-    return (EitherKInjectKLeft<F, G>) INSTANCE;
-  }
 
   @Override
   default  <T> Higher3<EitherK.µ, F, G, T> inject(Higher1<F, T> value) {
