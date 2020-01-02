@@ -4,12 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -26,12 +21,13 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.tree.TreeScanner;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
-public class HigherKindGenerator {
+import java.util.Optional;
+
+public class HigherKindTransformer extends AbstractClassTransformer {
 
   private static final String WITNESS = "µ";
   private static final String NARROWK = "narrowK";
@@ -40,46 +36,41 @@ public class HigherKindGenerator {
   private static final String HIGHER2 = "com.github.tonivade.purefun.Higher2";
   private static final String HIGHER3 = "com.github.tonivade.purefun.Higher3";
 
-  private final JavacElements elements;
-  private final TreeMaker maker;
-
-  public HigherKindGenerator(JavacElements elements, TreeMaker maker) {
-    this.elements = elements;
-    this.maker = maker;
+  public HigherKindTransformer(Context context) {
+    super(context);
   }
 
-  public Optional<JCTree> imports(JCCompilationUnit unit) {
+  @Override
+  public Optional<JCTree.JCCompilationUnit> transform(JCCompilationUnit unit) {
     JCExpression kind = maker.QualIdent(elements.getTypeElement(KIND));
     JCExpression higher1 = maker.QualIdent(elements.getTypeElement(HIGHER1));
     JCExpression higher2 = maker.QualIdent(elements.getTypeElement(HIGHER2));
     JCExpression higher3 = maker.QualIdent(elements.getTypeElement(HIGHER3));
-    List<JCTree> newDefs = unit.defs
+    unit.defs = unit.defs
       .prepend(maker.Import(kind, false))
       .prepend(maker.Import(higher1, false))
       .prepend(maker.Import(higher2, false))
       .prepend(maker.Import(higher3, false));
-    unit.defs = newDefs;
     return Optional.of(unit);
   }
 
-  public Optional<JCTree> generate(JCClassDecl clazz, JCAnnotation annotation) {
-    Name kindName = kindName(annotation);
+  @Override
+  public Optional<JCTree.JCClassDecl> transform(JCClassDecl clazz) {
+    Name kindName = kindName(clazz);
     Name varName = elements.getName("hkt");
-    JCTree tree = null;
+    JCTree.JCClassDecl result = null;
     if (clazz.typarams.length() == 1) {
-      tree = generateHigher1Kind(clazz, kindName, varName);
+      result = generateHigher1Kind(clazz, kindName, varName);
     } else if (clazz.typarams.length() == 2) {
-      tree = generateHigher2Kind(clazz, kindName, varName);
+      result = generateHigher2Kind(clazz, kindName, varName);
     } else if (clazz.typarams.length() == 3) {
-      tree = generateHigher3Kind(clazz, kindName, varName);
-    } else {
-      tree = clazz;
+      result = generateHigher3Kind(clazz, kindName, varName);
     }
-    return Optional.ofNullable(tree);
+    return Optional.ofNullable(result);
   }
 
-  private Name kindName(JCAnnotation annotation) {
-    Optional<String> name = annotation.args.stream()
+  private Name kindName(JCClassDecl clazz) {
+    Optional<String> name = findAnnotation(clazz).args.stream()
       .map(expr -> (JCAssign) expr)
         .filter(assign -> ((JCIdent) assign.lhs).name.contentEquals("name"))
         .findFirst()
@@ -87,6 +78,13 @@ public class HigherKindGenerator {
         .map(literal -> (String) literal.value);
 
     return elements.getName(name.orElse(WITNESS));
+  }
+
+  private JCAnnotation findAnnotation(JCClassDecl clazz) {
+    return clazz.mods.annotations.stream()
+        .filter(annotation -> annotation.annotationType.type.toString().equals(HigherKind.class.getName()))
+        .findFirst()
+        .orElseThrow(IllegalStateException::new);
   }
 
   private JCClassDecl generateHigher1Kind(JCClassDecl clazz, Name kindName, Name varName) {
@@ -98,16 +96,13 @@ public class HigherKindGenerator {
     fixPos(witness, clazz.pos);
     fixPos(narrowKOf1, clazz.pos + witness.pos);
 
-    return maker.ClassDef(
-      clazz.mods,
-      clazz.name,
-      clazz.typarams,
-      clazz.extending,
-      clazz.implementing.append(higher1Kind(clazz.name, kindName, typeParam)),
-      clazz.defs.append(witness).append(narrowKOf1));
+    clazz.implementing = clazz.implementing.append(higher1Kind(clazz.name, kindName, typeParam));
+    clazz.defs = clazz.defs.append(witness).append(narrowKOf1);
+
+    return clazz;
   }
 
-  private JCTree generateHigher2Kind(JCClassDecl clazz, Name kindName, Name varName) {
+  private JCTree.JCClassDecl generateHigher2Kind(JCClassDecl clazz, Name kindName, Name varName) {
     JCTypeParameter typeParam1 = clazz.typarams.head;
     JCTypeParameter typeParam2 = clazz.typarams.tail.head;
 
@@ -120,16 +115,13 @@ public class HigherKindGenerator {
     fixPos(narrowKOf1, clazz.pos + witness.pos);
     fixPos(narrowKOf2, clazz.pos + witness.pos + narrowKOf1.pos);
 
-    return maker.ClassDef(
-      clazz.mods,
-      clazz.name,
-      clazz.typarams,
-      clazz.extending,
-      clazz.implementing.append(higher2Kind(clazz.name, kindName, typeParam1, typeParam2)),
-      clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2));
+    clazz.implementing = clazz.implementing.append(higher2Kind(clazz.name, kindName, typeParam1, typeParam2));
+    clazz.defs = clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2);
+
+    return clazz;
   }
 
-  private JCTree generateHigher3Kind(JCClassDecl clazz, Name kindName, Name varName) {
+  private JCTree.JCClassDecl generateHigher3Kind(JCClassDecl clazz, Name kindName, Name varName) {
     JCTypeParameter typeParam1 = clazz.typarams.head;
     JCTypeParameter typeParam2 = clazz.typarams.tail.head;
     JCTypeParameter typeParam3 = clazz.typarams.tail.tail.head;
@@ -146,13 +138,10 @@ public class HigherKindGenerator {
     fixPos(narrowKOf2, clazz.pos + witness.pos + narrowKOf1.pos);
     fixPos(narrowKOf3, clazz.pos + witness.pos + narrowKOf1.pos + narrowKOf2.pos);
 
-    return maker.ClassDef(
-      clazz.mods,
-      clazz.name,
-      clazz.typarams,
-      clazz.extending,
-      clazz.implementing.append(higher3Kind(clazz.name, kindName, typeParam1, typeParam2, typeParam3)),
-      clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2).append(narrowKOf3));
+    clazz.implementing = clazz.implementing.append(higher3Kind(clazz.name, kindName, typeParam1, typeParam2, typeParam3));
+    clazz.defs = clazz.defs.append(witness).append(narrowKOf1).append(narrowKOf2).append(narrowKOf3);
+
+    return clazz;
   }
 
   private JCClassDecl kindWitness(Name name) {
@@ -318,38 +307,5 @@ public class HigherKindGenerator {
 
   private JCFieldAccess select(Name className, Name kindName) {
     return maker.Select(maker.Ident(className), kindName);
-  }
-
-  private List<JCExpression> params2Ident(JCTypeParameter... typeParams) {
-    return mapParams(this::ident, typeParams);
-  }
-
-  private List<JCTypeParameter> params2Type(JCTypeParameter... typeParams) {
-    return mapParams(this::typeParam, typeParams);
-  }
-
-  private <T extends JCTree> List<T> mapParams(Function<JCTypeParameter, T> mapper, JCTypeParameter... typeParams) {
-    return Stream.of(typeParams).map(mapper)
-        .reduce(List.nil(), List::append, List::appendList);
-  }
-
-  private JCIdent ident(JCTypeParameter typeParam) {
-    return maker.Ident(typeParam.name);
-  }
-
-  private JCTypeParameter typeParam(JCTypeParameter typeParam) {
-    return maker.TypeParameter(typeParam.name, typeParam.bounds, typeParam.annotations);
-  }
-
-  private void fixPos(JCTree newTree, int basePos) {
-    newTree.accept(new TreeScanner() {
-      @Override
-      public void scan(JCTree tree) {
-        if (tree != null) {
-          tree.pos += basePos;
-          super.scan(tree);
-        }
-      }
-    });
   }
 }
