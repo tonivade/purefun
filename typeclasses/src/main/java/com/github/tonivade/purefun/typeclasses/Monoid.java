@@ -16,7 +16,7 @@ public interface Monoid<T> extends Semigroup<T> {
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return new MonoidInvariant() {}.imap(this.kind1(), map, comap).fix1(Monoid::<R>narrowK);
+    return MonoidInvariant.instance().imap(this.kind1(), map, comap).fix1(Monoid::<R>narrowK);
   }
 
   static Monoid<String> string() {
@@ -43,6 +43,7 @@ public interface Monoid<T> extends Semigroup<T> {
   }
 }
 
+@Instance
 interface MonoidInvariant extends Invariant<Monoid.µ> {
 
   @Override

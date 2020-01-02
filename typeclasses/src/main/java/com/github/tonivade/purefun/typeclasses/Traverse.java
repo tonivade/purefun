@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.TypeClass;
@@ -26,7 +27,7 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
 
   @Override
   default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
-    return Id.narrowK(traverse(new IdApplicative(), value, t -> Id.of(map.apply(t)).kind1())).get().kind1();
+    return Id.narrowK(traverse(IdApplicative.instance(), value, t -> Id.of(map.apply(t)).kind1())).get().kind1();
   }
 
   static <F extends Kind, G extends Kind> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
@@ -41,6 +42,7 @@ public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
   }
 }
 
+@Instance
 class IdApplicative implements Applicative<Id.µ> {
 
   @Override
