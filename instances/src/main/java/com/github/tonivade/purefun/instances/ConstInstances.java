@@ -50,8 +50,6 @@ public interface ConstInstances {
 @Instance
 interface ConstFunctor<T> extends Functor<Higher1<Const.µ, T>> {
 
-  ConstFunctor<?> INSTANCE = new ConstFunctor<Object>() { };
-
   @Override
   default <A, B> Higher1<Higher1<Const.µ, T>, B> map(Higher1<Higher1<Const.µ, T>, A> value, Function1<A, B> map) {
     return value.fix1(Const::narrowK).<B>retag().kind2();
@@ -82,8 +80,6 @@ interface ConstApplicative<T> extends Applicative<Higher1<Const.µ, T>> {
 
 @Instance
 interface ConstContravariant<T> extends Contravariant<Higher1<Const.µ, T>> {
-
-  ConstContravariant<?> INSTANCE = new ConstContravariant<Object>() { };
 
   @Override
   default <A, B> Higher2<Const.µ, T, B> contramap(Higher1<Higher1<Const.µ, T>, A> value, Function1<B, A> map) {
