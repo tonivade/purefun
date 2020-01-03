@@ -38,7 +38,7 @@ interface CofreeComonad<F extends Kind> extends Comonad<Higher1<Cofree.µ, F>>, 
 
   @Override
   default <A> A extract(Higher1<Higher1<Cofree.µ, F>, A> value) {
-    return value.fix1(Cofree::narrowK).head();
+    return value.fix1(Cofree::narrowK).extract();
   }
 
   @Override

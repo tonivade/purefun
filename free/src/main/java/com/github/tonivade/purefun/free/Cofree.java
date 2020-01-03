@@ -9,9 +9,11 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 import static java.util.Objects.requireNonNull;
@@ -29,31 +31,58 @@ public final class Cofree<F extends Kind, A> {
     this.tail = requireNonNull(tail);
   }
 
-  public A head() {
+  public A extract() {
     return head;
   }
 
-  public Higher1<F, Cofree<F, A>> tail() {
+  public Higher1<F, Cofree<F, A>> tailForced() {
     return tail.value();
   }
 
+  public Cofree<F, A> runTail() {
+    return of(functor, head, Eval.now(tail.value()));
+  }
+
+  public Cofree<F, A> run() {
+    return of(functor, head, Eval.now(transformTail(Cofree::run).value()));
+  }
+
   public <B> Cofree<F, B> map(Function1<A, B> mapper) {
-    return transform(mapper.compose(Cofree::head), c -> c.map(mapper));
+    return transform(mapper, c -> c.map(mapper));
   }
 
   public <B> Cofree<F, B> coflatMap(Function1<Cofree<F, A>, B> mapper) {
-    return transform(mapper, c -> c.coflatMap(mapper));
+    return of(functor, mapper.apply(this), transformTail(c -> c.coflatMap(mapper)));
   }
 
+  // XXX: remove eval applicative instance parameter, if instances project is added then cyclic dependency problem
   public <B> Eval<B> fold(Applicative<Eval.µ> applicative, Traverse<F> traverse, Function2<A, Higher1<F, B>, Eval<B>> mapper) {
     Eval<Higher1<F, B>> eval =
-        traverse.traverse(applicative, tail(), c -> c.fold(applicative, traverse, mapper).kind1())
+        traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper).kind1())
             .fix1(Eval::narrowK);
-    return eval.flatMap(fb -> mapper.apply(head(), fb));
+    return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 
-  private <B> Cofree<F, B> transform(Function1<Cofree<F, A>, B> headMap, Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
-    return of(functor, headMap.apply(this), tail.map(t -> functor.map(t, tailMap)));
+  public <B> Eval<B> reduce(Applicative<Eval.µ> applicative, Traverse<F> traverse,
+                            Function1<A, B> initial, Operator2<B> combine) {
+    return fold(applicative, traverse,
+        (a, fb) -> Eval.later(() -> traverse.fold(Monoid.of(initial.apply(a), combine), fb)));
+  }
+
+  public Eval<String> reduceToString(Applicative<Eval.µ> applicative, Traverse<F> traverse, Operator2<String> join) {
+    return reduce(applicative, traverse, String::valueOf, join);
+  }
+
+  public <B> Cofree<F, B> transform(Function1<A, B> headMap, Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
+    return of(functor, transformHead(headMap), transformTail(tailMap));
+  }
+
+  private <B> B transformHead(Function1<A, B> headMap) {
+    return headMap.apply(head);
+  }
+
+  private <B> Eval<Higher1<F, Cofree<F, B>>> transformTail(Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
+    return tail.map(t -> functor.map(t, tailMap));
   }
 
   public static <F extends Kind, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Higher1<F, A>> unfold) {
