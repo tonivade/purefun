@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -171,7 +172,7 @@ public interface Future<T> {
   }
 
   static Future<Unit> exec(Executor executor, CheckedRunnable task) {
-    return async(executor, () -> { task.run(); return Unit.unit(); });
+    return async(executor, () -> { task.run(); return unit(); });
   }
 
   static <T> Future<T> delay(Duration timeout, Producer<T> producer) {
@@ -180,6 +181,14 @@ public interface Future<T> {
 
   static <T> Future<T> delay(Executor executor, Duration timeout, Producer<T> producer) {
     return async(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
+  }
+
+  static <T> Future<Unit> sleep(Duration timeout) {
+    return sleep(DEFAULT_EXECUTOR, timeout);
+  }
+
+  static <T> Future<Unit> sleep(Executor executor, Duration timeout) {
+    return delay(executor, timeout, Unit::unit);
   }
 
   static <T> Future<T> defer(Producer<Future<T>> producer) {

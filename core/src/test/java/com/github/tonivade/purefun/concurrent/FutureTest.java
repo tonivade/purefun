@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -37,20 +36,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 @ExtendWith(MockitoExtension.class)
 public class FutureTest {
 
-  @Mock
-  private Consumer1<Try<String>> tryConsumer;
-  @Mock
-  private Consumer1<String> consumerSuccess;
-  @Mock
-  private Consumer1<Throwable> consumerFailure;
-
   @Test
-  public void onCompleteSuccess() {
+  public void onCompleteSuccess(@Mock Consumer1<Try<String>> tryConsumer) {
     Future<String> future = Future.success("Hello World!");
 
     future.onComplete(tryConsumer).await();
@@ -63,7 +54,7 @@ public class FutureTest {
   }
 
   @Test
-  public void onCompleteFailure() {
+  public void onCompleteFailure(@Mock Consumer1<Try<String>> tryConsumer) {
     UnsupportedOperationException error = new UnsupportedOperationException();
     Future<String> future = Future.failure(error);
 
@@ -77,7 +68,7 @@ public class FutureTest {
   }
 
   @Test
-  public void onSuccess() {
+  public void onSuccess(@Mock Consumer1<String> consumerSuccess) {
     Future<String> future = Future.success("Hello World!");
 
     future.onSuccess(consumerSuccess).await();
@@ -90,7 +81,7 @@ public class FutureTest {
   }
 
   @Test
-  public void onSuccessTimeout() {
+  public void onSuccessTimeout(@Mock Consumer1<String> consumerSuccess) {
     Future<String> future = Future.delay(Duration.ofMillis(100), cons("Hello World!"));
 
     future.onSuccess(consumerSuccess).await();
@@ -103,7 +94,7 @@ public class FutureTest {
   }
 
   @Test
-  public void onFailure() {
+  public void onFailure(@Mock Consumer1<Throwable> consumerFailure) {
     UnsupportedOperationException error = new UnsupportedOperationException();
     Future<String> future = Future.failure(error);
 
@@ -117,7 +108,7 @@ public class FutureTest {
   }
 
   @Test
-  public void onFailureTimeout() {
+  public void onFailureTimeout(@Mock Consumer1<Throwable> consumerFailure) {
     Future<String> future = Future.delay(Duration.ofMillis(100), failure(UnsupportedOperationException::new));
 
     future.onFailure(consumerFailure).await();
@@ -201,9 +192,9 @@ public class FutureTest {
 
   @Test
   public void awaitTimeout() {
-    Future<String> future = Future.delay(Duration.ofSeconds(10), cons("Hello world!"));
+    Future<Unit> future = Future.sleep(Duration.ofSeconds(10));
 
-    Try<String> result = future.await(Duration.ofMillis(100));
+    Try<Unit> result = future.await(Duration.ofMillis(100));
 
     assertAll(
         () -> assertTrue(result.isFailure()),
@@ -212,7 +203,7 @@ public class FutureTest {
 
   @Test
   public void cancelled() throws InterruptedException {
-    Future<String> future = Future.delay(Duration.ofSeconds(1), cons("Hello world!"));
+    Future<Unit> future = Future.sleep(Duration.ofSeconds(1));
 
     future.cancel(false);
 
@@ -260,15 +251,10 @@ public class FutureTest {
   }
 
   @Test
-  public void testStackSafety() {
+  public void stackSafety() {
     Future<Integer> sum = sum(100000, 0);
 
     assertEquals(Try.success(705082704), sum.await(), "future is stack safe :)");
-  }
-
-  @BeforeEach
-  public void setUp() {
-    initMocks(this);
   }
 
   private Future<Unit> currentThread(Executor executor, List<String> result) {
@@ -276,7 +262,7 @@ public class FutureTest {
   }
 
   private Future<Integer> sum(Integer n, Integer sum) {
-    if ( n == 0) {
+    if (n == 0) {
       return Future.success(sum);
     }
     return Future.defer(() -> sum( n - 1, sum + n));
