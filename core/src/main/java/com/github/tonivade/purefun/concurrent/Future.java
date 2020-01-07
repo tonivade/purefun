@@ -26,7 +26,6 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * <p>This type is an abstraction of a computation executed in another thread. To run the computation an {@code Executor}
@@ -180,7 +179,7 @@ public interface Future<T> {
   }
 
   static <T> Future<T> delay(Executor executor, Duration timeout, Producer<T> producer) {
-    return async(executor, () -> { MILLISECONDS.sleep(timeout.toMillis()); return producer.get(); });
+    return async(executor, () -> { Thread.sleep(timeout.toMillis()); return producer.get(); });
   }
 
   static <T> Future<Unit> sleep(Duration timeout) {
