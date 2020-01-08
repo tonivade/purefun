@@ -179,7 +179,7 @@ public interface Future<T> {
   }
 
   static <T> Future<T> delay(Executor executor, Duration timeout, Producer<T> producer) {
-    return async(executor, () -> { Thread.sleep(timeout.toMillis()); return producer.get(); });
+    return sleep(executor, timeout).flatMap(x -> async(executor, producer));
   }
 
   static <T> Future<Unit> sleep(Duration timeout) {
@@ -187,7 +187,7 @@ public interface Future<T> {
   }
 
   static <T> Future<Unit> sleep(Executor executor, Duration timeout) {
-    return delay(executor, timeout, Unit::unit);
+    return exec(executor, () -> Thread.sleep(timeout.toMillis()));
   }
 
   static <T> Future<T> defer(Producer<Future<T>> producer) {
@@ -222,12 +222,18 @@ final class FutureImpl<T> implements Future<T> {
   private final Executor executor;
   private final Promise<T> promise;
   private final Cancellable<T> cancellable;
+  private final Consumer1<Boolean> propagate;
 
   private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback) {
+    this(executor, callback, x -> {});
+  }
+
+  private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {
     this.executor = requireNonNull(executor);
     this.promise = Promise.make(executor);
     this.cancellable = Cancellable.from(promise);
-    requireNonNull(callback).accept(promise, cancellable);
+    this.propagate = requireNonNull(propagate);
+    callback.accept(promise, cancellable);
   }
 
   @Override
@@ -310,7 +316,11 @@ final class FutureImpl<T> implements Future<T> {
 
   @Override
   public void cancel(boolean mayInterruptThread) {
-    cancellable.cancel(mayInterruptThread);
+    try {
+      cancellable.cancel(mayInterruptThread);
+    } finally {
+      propagate.accept(mayInterruptThread);
+    }
   }
 
   @Override
@@ -324,23 +334,33 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   protected static <T> Future<T> sync(Executor executor, Producer<Try<T>> producer) {
+    requireNonNull(executor);
+    requireNonNull(producer);
     return new FutureImpl<>(executor, (promise, cancel) -> promise.tryComplete(producer.get()));
   }
 
   protected static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
+    requireNonNull(executor);
+    requireNonNull(current);
+    requireNonNull(mapper);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
           current.onComplete(value -> promise.tryComplete(mapper.apply(value))));
   }
 
   protected static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
+    requireNonNull(executor);
+    requireNonNull(current);
+    requireNonNull(mapper);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
           current.onComplete(
-            value -> mapper.apply(value).onComplete(promise::tryComplete)));
+            value -> mapper.apply(value).onComplete(promise::tryComplete)), current::cancel);
   }
 
   protected static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
+    requireNonNull(executor);
+    requireNonNull(producer);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
           executor.execute(() -> {
@@ -350,10 +370,16 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   protected static <T> Future<T> from(Executor executor, Promise<T> promise) {
+    requireNonNull(executor);
+    requireNonNull(promise);
     return new FutureImpl<>(executor, (current, cancel) -> promise.onComplete(current::tryComplete));
   }
 
   protected static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+    requireNonNull(executor);
+    requireNonNull(acquire);
+    requireNonNull(use);
+    requireNonNull(release);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
             acquire.onComplete(

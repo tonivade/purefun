@@ -139,6 +139,15 @@ public class FutureTest {
   }
 
   @Test
+  public void flatMapFailure() {
+    RuntimeException error = new RuntimeException();
+
+    Future<String> result = Future.<String>failure(error).flatMap(string -> Future.async(string::toUpperCase));
+
+    assertEquals(Try.failure(error), result.await());
+  }
+
+  @Test
   public void filter() {
     Future<String> future = Future.success("Hello world!");
 
@@ -202,7 +211,7 @@ public class FutureTest {
   }
 
   @Test
-  public void cancelled() throws InterruptedException {
+  public void cancelled() {
     Future<Unit> future = Future.sleep(Duration.ofSeconds(1));
 
     future.cancel(false);
@@ -218,12 +227,25 @@ public class FutureTest {
 
     Thread.sleep(50);
     future.cancel(true);
+    System.out.println("cancel");
 
     assertTrue(future.isCancelled());
     assertTrue(future.isCompleted());
     assertTrue(future.await().getCause() instanceof CancellationException);
     Thread.sleep(1500);
     verifyZeroInteractions(producer);
+  }
+
+  @Test
+  public void sleep() throws InterruptedException {
+    Future<Unit> future = Future.sleep(Duration.ofSeconds(1));
+
+    Thread.sleep(50);
+    future.cancel(true);
+
+    assertTrue(future.isCancelled());
+    assertTrue(future.isCompleted());
+    assertTrue(future.await().getCause() instanceof CancellationException);
   }
 
   @Test
