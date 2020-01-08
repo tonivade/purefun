@@ -131,7 +131,7 @@ public interface Future<T> {
   }
 
   static <T> Future<T> success(Executor executor, T value) {
-    return FutureImpl.sync(executor, () -> Try.success(value));
+    return FutureImpl.sync(executor, Try.success(value));
   }
 
   static <T> Future<T> failure(Throwable error) {
@@ -139,7 +139,7 @@ public interface Future<T> {
   }
 
   static <T> Future<T> failure(Executor executor, Throwable error) {
-    return FutureImpl.sync(executor, () -> Try.failure(error));
+    return FutureImpl.sync(executor, Try.failure(error));
   }
 
   static <T> Future<T> from(Callable<T> callable) {
@@ -230,9 +230,9 @@ final class FutureImpl<T> implements Future<T> {
 
   private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {
     this.executor = requireNonNull(executor);
+    this.propagate = requireNonNull(propagate);
     this.promise = Promise.make(executor);
     this.cancellable = Cancellable.from(promise);
-    this.propagate = requireNonNull(propagate);
     callback.accept(promise, cancellable);
   }
 
@@ -333,10 +333,10 @@ final class FutureImpl<T> implements Future<T> {
     throw new UnsupportedOperationException();
   }
 
-  protected static <T> Future<T> sync(Executor executor, Producer<Try<T>> producer) {
+  protected static <T> Future<T> sync(Executor executor, Try<T> result) {
     requireNonNull(executor);
-    requireNonNull(producer);
-    return new FutureImpl<>(executor, (promise, cancel) -> promise.tryComplete(producer.get()));
+    requireNonNull(result);
+    return new FutureImpl<>(executor, (promise, cancel) -> promise.tryComplete(result));
   }
 
   protected static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
@@ -345,7 +345,7 @@ final class FutureImpl<T> implements Future<T> {
     requireNonNull(mapper);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
-          current.onComplete(value -> promise.tryComplete(mapper.apply(value))));
+          current.onComplete(value -> promise.tryComplete(mapper.apply(value))), current::cancel);
   }
 
   protected static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
@@ -354,8 +354,7 @@ final class FutureImpl<T> implements Future<T> {
     requireNonNull(mapper);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
-          current.onComplete(
-            value -> mapper.apply(value).onComplete(promise::tryComplete)), current::cancel);
+          current.onComplete(value -> mapper.apply(value).onComplete(promise::tryComplete)), current::cancel);
   }
 
   protected static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {

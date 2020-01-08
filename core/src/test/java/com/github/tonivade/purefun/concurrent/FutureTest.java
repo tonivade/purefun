@@ -170,8 +170,9 @@ public class FutureTest {
     Future<String> success = Future.success("Hello world!");
     Future<String> failure = Future.failure(new IllegalArgumentException());
 
-    assertAll(() -> assertEquals("Hello world!", success.getOrElse("or else")),
-              () -> assertEquals("or else", failure.getOrElse("or else")));
+    assertAll(
+        () -> assertEquals("Hello world!", success.getOrElse("or else")),
+        () -> assertEquals("or else", failure.getOrElse("or else")));
   }
 
   @Test
@@ -179,8 +180,9 @@ public class FutureTest {
     Future<String> success = Future.success("Hello world!");
     Future<String> failure = Future.failure(new IllegalArgumentException());
 
-    assertAll(() -> assertEquals("Hello world!", success.getOrElseThrow(NoSuchElementException::new)),
-              () -> assertThrows(NoSuchElementException.class, () -> failure.getOrElseThrow(NoSuchElementException::new)));
+    assertAll(
+        () -> assertEquals("Hello world!", success.getOrElseThrow(NoSuchElementException::new)),
+        () -> assertThrows(NoSuchElementException.class, () -> failure.getOrElseThrow(NoSuchElementException::new)));
   }
 
   @Test
@@ -188,8 +190,9 @@ public class FutureTest {
     Future<String> success = Future.success("Hello world!");
     Future<String> failure = Future.failure(new IllegalArgumentException());
 
-    assertAll(() -> assertEquals("Hello world!", success.toCompletableFuture().get()),
-              () -> assertThrows(ExecutionException.class, () -> failure.toCompletableFuture().get()));
+    assertAll(
+        () -> assertEquals("Hello world!", success.toCompletableFuture().get()),
+        () -> assertThrows(ExecutionException.class, () -> failure.toCompletableFuture().get()));
   }
 
   @Test
