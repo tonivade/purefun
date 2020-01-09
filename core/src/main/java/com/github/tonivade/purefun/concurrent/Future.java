@@ -109,7 +109,9 @@ public interface Future<T> {
     return await().getCause();
   }
 
-  Future<T> recover(Function1<Throwable, T> mapper);
+  default Future<T> recover(Function1<Throwable, T> mapper) {
+    return fold(mapper, identity());
+  }
 
   <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper);
 
@@ -297,11 +299,6 @@ final class FutureImpl<T> implements Future<T> {
   @Override
   public Future<T> orElse(Future<T> other) {
     return chain(executor, this, value -> value.fold(cons(other), t -> Future.success(executor, t)));
-  }
-
-  @Override
-  public Future<T> recover(Function1<Throwable, T> mapper) {
-    return transform(executor, this, value -> value.recover(mapper));
   }
 
   @Override
