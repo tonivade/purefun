@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -21,7 +19,7 @@ public final class Tuple1<A> implements Tuple, Serializable {
   private final A value1;
 
   private Tuple1(A value1) {
-    this.value1 = requireNonNull(value1);
+    this.value1 = value1;
   }
 
   public A get1() {
