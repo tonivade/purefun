@@ -3,7 +3,7 @@ apply from: 'gradle/deps.gradle'
 buildscript {
   ext {
     nexusPlugin = '2.3.1'
-    sonarPlugin = '2.6.2'
+    sonarPlugin = '2.8'
   }
 
   repositories {
