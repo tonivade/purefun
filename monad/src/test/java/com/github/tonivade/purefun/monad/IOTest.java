@@ -10,9 +10,11 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -73,21 +75,24 @@ public class IOTest {
 
   @Test
   public void safeRunAsync() {
-    Reference<IO.µ, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
-    IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO::narrowK);
-
-    IO<ImmutableList<String>> program = currentThread
-        .andThen(currentThread
-            .andThen(currentThread
-                .andThen(currentThread
-                    .andThen(currentThread))));
+    IO<ImmutableList<String>> program = currentThreadIO();
 
     Try<ImmutableList<String>> result =
         program.foldMap(FutureInstances.monadDefer())
-          .fix1(Future::narrowK).await();
+            .fix1(Future::narrowK).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
+  }
+
+  @Test
+  public void safeRunPar() {
+    IO<ImmutableList<String>> program = currentThreadIO();
+
+    Par<ImmutableList<String>> result =
+        program.foldMap(ParInstances.monadDefer())
+          .fix1(Par::narrowK);
+
+    assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
   }
 
   @Test
@@ -264,5 +269,17 @@ public class IOTest {
       return IO.pure(sum);
     }
     return IO.suspend(() -> sum( n - 1, sum + n));
+  }
+
+  private IO<ImmutableList<String>> currentThreadIO() {
+    Reference<IO.µ, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
+    IO<ImmutableList<String>> currentThread =
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO::narrowK);
+
+    return currentThread
+        .andThen(currentThread
+            .andThen(currentThread
+                .andThen(currentThread
+                    .andThen(currentThread))));
   }
 }

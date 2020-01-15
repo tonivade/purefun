@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import com.github.tonivade.purefun.CheckedRunnable;
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
@@ -65,8 +66,16 @@ public interface Par<T> {
     return executor -> Future.async(executor, producer);
   }
 
+  static <T> Par<T> defer(Producer<Par<T>> producer) {
+    return executor -> Future.defer(executor, () -> producer.get().apply(executor));
+  }
+
   static Par<Unit> run(CheckedRunnable runnable) {
     return executor -> Future.exec(executor, runnable);
+  }
+
+  static <A, B> Par<B> bracket(Par<A> acquire, Function1<A, Par<B>> use, Consumer1<A> release) {
+    return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
   }
 }
 
