@@ -76,7 +76,7 @@ public interface Stream<F extends Kind, T> {
   }
 
   default Higher1<F, Sequence<T>> asSequence() {
-    return foldLeft(ImmutableList.empty(), (acc, a) -> acc.append(a));
+    return foldLeft(ImmutableList.empty(), Sequence::append);
   }
 
   default Higher1<F, String> asString() {

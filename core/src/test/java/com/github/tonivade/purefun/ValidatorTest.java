@@ -23,11 +23,11 @@ public class ValidatorTest {
 
     assertAll(
         () -> assertEquals(Validation.invalid("require non null"), validator.validate(null)),
-        () -> assertEquals(Validation.invalid("require min value: 10"), validator.validate(0)),
-        () -> assertEquals(Validation.invalid("require max value: 20"), validator.validate(100)),
+        () -> assertEquals(Validation.invalid("require greater than or equal to: 10"), validator.validate(0)),
+        () -> assertEquals(Validation.invalid("require lower than: 20"), validator.validate(100)),
         () -> assertEquals(Validation.valid(10), validator.validate(10)),
         () -> assertEquals(Validation.valid(15), validator.validate(15)),
-        () -> assertEquals(Validation.invalid("require max value: 20"), validator.validate(20))
+        () -> assertEquals(Validation.invalid("require lower than: 20"), validator.validate(20))
     );
   }
 
@@ -50,8 +50,9 @@ public class ValidatorTest {
     Validator<String, Integer> positive = Validator.positive();
 
     assertAll(
-        () -> assertEquals(Validation.valid(0), positive.validate(0)),
-        () -> assertEquals(Validation.invalid("require min value: 0"), positive.validate(-1))
+        () -> assertEquals(Validation.valid(1), positive.validate(1)),
+        () -> assertEquals(Validation.invalid("require greater than: 0"), positive.validate(0)),
+        () -> assertEquals(Validation.invalid("require greater than: 0"), positive.validate(-1))
     );
   }
 
@@ -61,7 +62,7 @@ public class ValidatorTest {
 
     assertAll(
         () -> assertEquals(Validation.valid(-1), negative.validate(-1)),
-        () -> assertEquals(Validation.invalid("require max value: 0"), negative.validate(0))
+        () -> assertEquals(Validation.invalid("require lower than: 0"), negative.validate(0))
     );
   }
 
@@ -216,7 +217,7 @@ public class ValidatorTest {
     assertAll(
         () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
         () -> assertEquals(Validation.invalidOf(
-                "require min value: 0",
+                "require greater than: 0",
                 "require non empty string",
                 "should match expresion: [a-z]+"),
             validator.validate(Tuple.of(-1, "", "")))
@@ -236,10 +237,10 @@ public class ValidatorTest {
     assertAll(
         () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
         () -> assertEquals(Validation.invalidOf(
-                "require min value: 0",
+                "require greater than: 0",
                 "require non empty string",
                 "should match expresion: [a-z]+",
-                "require max value: 0"),
+                "require lower than: 0"),
             validator.validate(Tuple.of(-1, "", "", 1)))
     );
   }
@@ -258,10 +259,10 @@ public class ValidatorTest {
     assertAll(
         () -> assertEquals(Validation.valid(valid), validator.validate(valid)),
         () -> assertEquals(Validation.invalidOf(
-                "require min value: 0",
+                "require greater than: 0",
                 "require non empty string",
                 "should match expresion: [a-z]+",
-                "require max value: 0",
+                "require lower than: 0",
                 "require start with: a and require end with: z"),
             validator.validate(Tuple.of(-1, "", "", 1, "x")))
     );

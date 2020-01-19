@@ -142,7 +142,7 @@ public interface Validator<E, T> {
   }
 
   static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
-                                                  Validator<E, T> v2) {
+                                                Validator<E, T> v2) {
     return combine(v1, v2, identity());
   }
 
@@ -160,8 +160,8 @@ public interface Validator<E, T> {
   }
 
   static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
-                                                  Validator<E, T> v2,
-                                                  Validator<E, T> v3) {
+                                                Validator<E, T> v2,
+                                                Validator<E, T> v3) {
     return combine(v1, v2, v3, identity());
   }
 
@@ -173,9 +173,9 @@ public interface Validator<E, T> {
   }
 
   static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
-                                                  Validator<E, T> v2,
-                                                  Validator<E, T> v3,
-                                                  Validator<E, T> v4) {
+                                                Validator<E, T> v2,
+                                                Validator<E, T> v3,
+                                                Validator<E, T> v4) {
     return combine(v1, v2, v3, v4, identity());
   }
 
@@ -188,10 +188,10 @@ public interface Validator<E, T> {
   }
 
   static <E, T> Validator<Result<E>, T> combine(Validator<E, T> v1,
-                                                  Validator<E, T> v2,
-                                                  Validator<E, T> v3,
-                                                  Validator<E, T> v4,
-                                                  Validator<E, T> v5) {
+                                                Validator<E, T> v2,
+                                                Validator<E, T> v3,
+                                                Validator<E, T> v4,
+                                                Validator<E, T> v5) {
     return combine(v1, v2, v3, v4, v5, identity());
   }
 
@@ -304,7 +304,7 @@ public interface Validator<E, T> {
     if (length < 0) {
       throw new IllegalArgumentException("length should be a positive value");
     }
-    return minValue(length, message).compose(String::length);
+    return greaterThanOrEqual(length, message).compose(String::length);
   }
 
   static Validator<String, String> maxLength(int length) {
@@ -315,51 +315,67 @@ public interface Validator<E, T> {
     if (length < 0) {
       throw new IllegalArgumentException("length should be a positive value");
     }
-    return maxValue(length, message).compose(String::length);
+    return lowerThan(length, message).compose(String::length);
   }
 
   static Validator<String, Integer> positive() {
-    return minValue(0);
+    return greaterThan(0);
   }
 
   static Validator<String, Integer> positive(Producer<String> message) {
-    return minValue(0, message);
+    return greaterThan(0, message);
   }
 
   static Validator<String, Integer> negative() {
-    return maxValue(0);
+    return lowerThan(0);
   }
 
   static Validator<String, Integer> negative(Producer<String> message) {
-    return maxValue(0, message);
+    return lowerThan(0, message);
   }
 
-  static Validator<String, Integer> minValue(int start) {
-    return minValue(start, () -> "require min value: " + start);
+  static Validator<String, Integer> greaterThan(int min) {
+    return greaterThan(min, () -> "require greater than: " + min);
   }
 
-  static Validator<String, Integer> minValue(int start, Producer<String> message) {
-    return from(value -> value >= start, message);
+  static Validator<String, Integer> greaterThan(int min, Producer<String> message) {
+    return from(value -> value > min, message);
   }
 
-  static Validator<String, Integer> maxValue(int end) {
-    return maxValue(end, () -> "require max value: " + end);
+  static Validator<String, Integer> greaterThanOrEqual(int min) {
+    return greaterThanOrEqual(min, () -> "require greater than or equal to: " + min);
   }
 
-  static Validator<String, Integer> maxValue(int end, Producer<String> message) {
-    return from(value -> value < end, message);
+  static Validator<String, Integer> greaterThanOrEqual(int min, Producer<String> message) {
+    return from(value -> value >= min, message);
   }
 
-  static Validator<String, String> length(int start, int end) {
-    return length(start, end, Producer.cons(""));
+  static Validator<String, Integer> lowerThan(int max) {
+    return lowerThan(max, () -> "require lower than: " + max);
   }
 
-  static Validator<String, String> length(int start, int end, Producer<String> message) {
-    if (start >= end) {
-      throw new IllegalArgumentException("start should not be greater than end");
+  static Validator<String, Integer> lowerThan(int max, Producer<String> message) {
+    return from(value -> value < max, message);
+  }
+
+  static Validator<String, Integer> lowerThanOrEqual(int max) {
+    return lowerThanOrEqual(max, () -> "require lower than: " + max);
+  }
+
+  static Validator<String, Integer> lowerThanOrEqual(int max, Producer<String> message) {
+    return from(value -> value <= max, message);
+  }
+
+  static Validator<String, String> length(int min, int max) {
+    return length(min, max, Producer.cons(""));
+  }
+
+  static Validator<String, String> length(int min, int max, Producer<String> message) {
+    if (min >= max) {
+      throw new IllegalArgumentException(min + " should not be greater than " + max);
     }
     return Validator.<String>nonNull()
-        .andThen(combine(minLength(start), maxLength(end), join(message)));
+        .andThen(combine(minLength(min), maxLength(max), join(message)));
   }
 
   static Validator<String, Integer> range(int start, int end) {
@@ -371,7 +387,7 @@ public interface Validator<E, T> {
       throw new IllegalArgumentException("start should not be greater than end");
     }
     return Validator.<Integer>nonNull()
-        .andThen(combine(minValue(start), maxValue(end), join(message)));
+        .andThen(combine(greaterThanOrEqual(start), lowerThan(end), join(message)));
   }
 
   static <E> Function1<Result<E>, String> join() {

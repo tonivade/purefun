@@ -5,6 +5,10 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Validator.lowerThan;
+import static com.github.tonivade.purefun.Validator.lowerThanOrEqual;
+import static com.github.tonivade.purefun.Validator.greaterThan;
+import static com.github.tonivade.purefun.Validator.greaterThanOrEqual;
 import static com.github.tonivade.purefun.Validator.nonEmpty;
 import static com.github.tonivade.purefun.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.Validator.positive;
@@ -209,6 +213,22 @@ public interface Validation<E, T> {
 
   static Validation<String, Integer> requirePositive(Integer value) {
     return nonNullAnd(positive()).validate(value);
+  }
+
+  static Validation<String, Integer> requireGreaterThan(Integer value, int x) {
+    return nonNullAnd(greaterThan(x, () -> "require " + value + " > " + x)).validate(value);
+  }
+
+  static Validation<String, Integer> requireGreaterThanOrEqual(Integer value, int x) {
+    return nonNullAnd(greaterThanOrEqual(x, () -> "require " + value + " >= " + x)).validate(value);
+  }
+
+  static Validation<String, Integer> requireLowerThan(Integer value, int x) {
+    return nonNullAnd(lowerThan(x, () -> "require " + value + " < " + x)).validate(value);
+  }
+
+  static Validation<String, Integer> requireLowerThanOrEqual(Integer value, int x) {
+    return nonNullAnd(lowerThanOrEqual(x, () -> "require " + value + " <= " + x)).validate(value);
   }
 
   final class Valid<E, T> implements Validation<E, T>, Serializable {
