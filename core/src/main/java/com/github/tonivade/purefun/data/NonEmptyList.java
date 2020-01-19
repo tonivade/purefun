@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.data;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Validator;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -127,7 +126,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   public static <E> NonEmptyList<E> of(ImmutableList<E> value) {
-    return nonNullAnd(Validator.greaterThan(0, () -> "non empty list cannot be empty").<ImmutableList<E>>compose(ImmutableList::size))
+    return nonNullAnd(greaterThan(0, () -> "non empty list cannot be empty").<ImmutableList<E>>compose(ImmutableList::size))
         .validate(value).map(NonEmptyList::new).getOrElseThrow();
   }
 }
