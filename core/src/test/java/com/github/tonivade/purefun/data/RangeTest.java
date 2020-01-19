@@ -22,6 +22,8 @@ public class RangeTest {
     assertAll(
         () -> assertThrows(IllegalArgumentException.class, () -> Range.of(1, 1)),
         () -> assertThrows(IllegalArgumentException.class, () -> Range.of(1, 0)),
+        () -> assertEquals(1, range.begin()),
+        () -> assertEquals(10, range.end()),
         () -> assertEquals(9, range.size()),
         () -> assertFalse(range.contains(0)),
         () -> assertFalse(range.contains(10)),

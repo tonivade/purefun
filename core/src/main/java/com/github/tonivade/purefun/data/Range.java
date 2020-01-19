@@ -4,10 +4,12 @@
  */
 package com.github.tonivade.purefun.data;
 
+import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import static com.github.tonivade.purefun.Function1.identity;
@@ -18,12 +20,22 @@ import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
 
 public final class Range implements Iterable<Integer> {
 
+  private static final Equal<Range> EQUAL = Equal.<Range>of().comparing(x -> x.begin).comparing(x -> x.end);
+
   private final int begin;
   private final int end;
 
   private Range(int begin, int end) {
     this.begin = begin;
     this.end = end;
+  }
+
+  public int begin() {
+    return begin;
+  }
+
+  public int end() {
+    return end;
   }
 
   public boolean contains(int value) {
@@ -51,6 +63,21 @@ public final class Range implements Iterable<Integer> {
   @Override
   public Iterator<Integer> iterator() {
     return stream().iterator();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return EQUAL.applyTo(this, obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(begin, end);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("Range(%d..%d)", begin, end);
   }
 
   public static Range of(int begin, int end) {
