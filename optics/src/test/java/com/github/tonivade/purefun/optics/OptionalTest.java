@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
-import static com.github.tonivade.purefun.data.Sequence.zipWithIndex;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,8 +18,8 @@ import com.github.tonivade.purefun.type.Option;
 public class OptionalTest {
 
   private final Optional<ImmutableList<String>, String> optionalHead = Optional.of(
-    (target, value) -> zipWithIndex(target).map(tuple -> tuple.get2() == 0 ? value : tuple.get1()).collect(toImmutableList()),
-    target -> target.head()
+    (target, value) -> target.zipWithIndex().map(tuple -> tuple.get1() == 0 ? value : tuple.get2()).collect(toImmutableList()),
+      ImmutableList::head
   );
 
   private final ImmutableList<String> list12 = ImmutableList.of("1", "2");

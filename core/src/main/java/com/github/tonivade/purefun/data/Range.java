@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Tuple;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.type.Validation.map2;
@@ -53,16 +54,20 @@ public final class Range implements Iterable<Integer> {
   }
 
   public <T> Sequence<T> map(Function1<Integer, T> map) {
-    return ImmutableArray.from(stream().boxed()).map(map);
+    return ImmutableArray.from(intStream().boxed()).map(map);
   }
 
-  public IntStream stream() {
+  public IntStream intStream() {
     return IntStream.range(begin, end);
+  }
+
+  public Stream<Integer> stream() {
+    return intStream().boxed();
   }
 
   @Override
   public Iterator<Integer> iterator() {
-    return stream().iterator();
+    return intStream().iterator();
   }
 
   @Override

@@ -8,7 +8,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Stream.iterate;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -117,7 +116,7 @@ public interface Sequence<E> extends Iterable<E> {
   }
 
   default Stream<Tuple2<Integer, E>> zipWithIndex() {
-    return zip(iterate(0, i -> i + 1), stream());
+    return isEmpty() ? Stream.empty() : zip(Range.of(0, size()).stream(), stream());
   }
 
   default E[] toArray(Function1<Integer, E[]> supplier) {
@@ -161,14 +160,6 @@ public interface Sequence<E> extends Iterable<E> {
     return zip(first.stream(), second.stream());
   }
 
-  static <A> Stream<Tuple2<A, Integer>> zipWithIndex(Stream<A> stream) {
-    return zip(stream, iterate(0, x -> x + 1));
-  }
-
-  static <A> Stream<Tuple2<A, Integer>> zipWithIndex(Sequence<A> sequence) {
-    return zipWithIndex(sequence.stream());
-  }
-
   static <E> Stream<E> asStream(Iterator<E> iterator) {
     return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
   }
@@ -186,12 +177,16 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
 
   @Override
   public boolean hasNext() {
-    return first.hasNext() && second.hasNext();
+    return first.hasNext() || second.hasNext();
   }
 
   @Override
   public Tuple2<A, B> next() {
-    return Tuple.of(first.next(), second.next());
+    return Tuple.of(_next(first), _next(second));
+  }
+
+  private static <Z> Z _next(Iterator<Z> it) {
+    return it.hasNext() ? it.next() : null;
   }
 }
 
