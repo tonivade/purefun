@@ -20,8 +20,8 @@ public class RangeTest {
     Range range = Range.of(1, 10);
 
     assertAll(
-        () -> assertThrows(IllegalArgumentException.class, () -> Range.of(1, 1)),
         () -> assertThrows(IllegalArgumentException.class, () -> Range.of(1, 0)),
+        () -> assertEquals(0, Range.of(1, 1).size()),
         () -> assertEquals(1, range.begin()),
         () -> assertEquals(10, range.end()),
         () -> assertEquals(9, range.size()),

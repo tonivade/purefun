@@ -25,6 +25,22 @@ public class SequenceTest {
   }
 
   @Test
+  public void zipTestWithNulls() {
+    ImmutableList<Tuple2<Integer, String>> zipped =
+        zip(listOf(0, 1, 2), listOf("a", "b")).collect(toImmutableList());
+
+    assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, null)), zipped);
+  }
+
+  @Test
+  public void interleaveTest() {
+    ImmutableList<String> interleaved =
+        Sequence.interleave(listOf("0", "1", "2"), listOf("a", "b", "c")).collect(toImmutableList());
+
+    assertEquals(listOf("0", "a", "1", "b", "2", "c"), interleaved);
+  }
+
+  @Test
   public void zipWithIndexTest() {
     ImmutableList<Tuple2<Integer, String>> zipped =
         listOf("a", "b", "c").zipWithIndex().collect(toImmutableList());

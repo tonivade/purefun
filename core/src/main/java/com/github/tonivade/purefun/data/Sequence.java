@@ -11,6 +11,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
 
@@ -116,7 +117,7 @@ public interface Sequence<E> extends Iterable<E> {
   }
 
   default Stream<Tuple2<Integer, E>> zipWithIndex() {
-    return isEmpty() ? Stream.empty() : zip(Range.of(0, size()).stream(), stream());
+    return zip(Range.of(0, size()).stream(), stream());
   }
 
   default E[] toArray(Function1<Integer, E[]> supplier) {
@@ -158,6 +159,20 @@ public interface Sequence<E> extends Iterable<E> {
 
   static <A, B> Stream<Tuple2<A, B>> zip(Sequence<A> first, Sequence<B> second) {
     return zip(first.stream(), second.stream());
+  }
+
+  static <A> Stream<A> interleave(Iterator<A> first, Iterator<A> second) {
+    return zip(first, second)
+        .flatMap(tuple -> Stream.of(tuple.get1(), tuple.get2()))
+        .filter(Objects::nonNull);
+  }
+
+  static <A> Stream<A> interleave(Stream<A> first, Stream<A> second) {
+    return interleave(first.iterator(), second.iterator());
+  }
+
+  static <A> Stream<A> interleave(Sequence<A> first, Sequence<A> second) {
+    return interleave(first.stream(), second.stream());
   }
 
   static <E> Stream<E> asStream(Iterator<E> iterator) {

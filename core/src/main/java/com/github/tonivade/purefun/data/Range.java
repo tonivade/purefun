@@ -15,9 +15,9 @@ import java.util.stream.Stream;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.type.Validation.map2;
-import static com.github.tonivade.purefun.type.Validation.requireGreaterThan;
 import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEqual;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
+import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqual;
 
 public final class Range implements Iterable<Integer> {
 
@@ -87,7 +87,7 @@ public final class Range implements Iterable<Integer> {
 
   public static Range of(int begin, int end) {
     return map2(
-        requireLowerThan(begin, end),
-        requireGreaterThan(end, begin), Range::new).getOrElseThrow();
+        requireLowerThanOrEqual(begin, end),
+        requireGreaterThanOrEqual(end, begin), Range::new).getOrElseThrow();
   }
 }
