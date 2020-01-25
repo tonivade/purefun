@@ -8,7 +8,6 @@ import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -40,7 +39,7 @@ public interface Kleisli<F extends Kind, Z, A> {
   }
 
   static <F extends Kind, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
-    return Kleisli.of(monad, reader -> monad.pure(reader));
+    return Kleisli.of(monad, monad::<Z>pure);
   }
 
   static <F extends Kind, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {

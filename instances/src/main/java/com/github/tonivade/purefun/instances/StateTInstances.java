@@ -11,7 +11,6 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.transformer.StateT;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadState;
