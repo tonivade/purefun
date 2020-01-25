@@ -19,6 +19,10 @@ public interface KleisliInstances {
   static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
     return KleisliMonad.instance(requireNonNull(monadF));
   }
+
+  static <F extends Kind, Z> MonadReader<Higher1<Higher1<Kleisli.µ, F>, Z>, Z> monadReader(Monad<F> monadF) {
+    return KleisliMonadReader.instance(monadF);
+  }
 }
 
 interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> {
