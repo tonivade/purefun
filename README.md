@@ -410,15 +410,16 @@ With higher kinded types simulation we can implement typeclases.
            |               /       \
          MonoidK   _ Applicative   Traverse -- Foldable
            |      /      |      \
-       Alternative    Selective   ApplicativeError
+       Alternative    Selective  ApplicativeError
                          |        |
-                        Monad    /
-                         |      /
-                      MonadError
-                           \
-                        MonadThrow  Bracket
-                              \      /
-                    Defer -- MonadDefer
+                       Monad      | 
+         ________________|        |
+        /          /      \      / 
+  MonadState  MonadReader  MonadError
+                               \
+                            MonadThrow  Bracket
+                                  \      /
+                        Defer -- MonadDefer
 ```
 
 ### Functor
@@ -579,6 +580,40 @@ public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, M
 ```java
 public interface MonadThrow<F extends Kind> extends MonadError<F, Throwable> {
 
+}
+```
+
+### MonadReader
+
+```java
+public interface MonadReader<F extends Kind, R> extends Monad<F> {
+
+  Higher1<F, R> ask();
+
+  default <A> Higher1<F, A> reader(Function1<R, A> mapper) {
+    return map(ask(), mapper);
+  }
+}
+```
+
+### MonadState
+
+```java
+public interface MonadState<F extends Kind, S> extends Monad<F> {
+  Higher1<F, S> get();
+  Higher1<F, Unit> set(S state);
+
+  default Higher1<F, Unit> modify(Operator1<S> mapper) {
+    return flatMap(get(), s -> set(mapper.apply(s)));
+  }
+
+  default <A> Higher1<F, A> inspect(Function1<S, A> mapper) {
+    return map(get(), mapper);
+  }
+
+  default <A> Higher1<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
+    return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
+  }
 }
 ```
 
