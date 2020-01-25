@@ -25,6 +25,10 @@ public interface Reader<R, A> {
     return flatMap(ignore -> next);
   }
 
+  static <R> Reader<R, R> env() {
+    return reader -> reader;
+  }
+
   static <R, A> Reader<R, A> pure(A value) {
     return reader -> value;
   }

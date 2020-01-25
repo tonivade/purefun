@@ -16,12 +16,16 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadState;
 
-@SuppressWarnings("unchecked")
 public interface StateInstances {
 
   static <S> Monad<Higher1<State.µ, S>> monad() {
     return StateMonad.instance();
+  }
+
+  static <S> MonadState<Higher1<State.µ, S>, S> monadState() {
+    return StateMonadState.instance();
   }
 
   static Console<Higher1<State.µ, ImmutableList<String>>> console() {
@@ -41,6 +45,20 @@ interface StateMonad<S> extends Monad<Higher1<State.µ, S>> {
   default <T, R> Higher2<State.µ, S, R> flatMap(Higher1<Higher1<State.µ, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<State.µ, S>, R>> map) {
     return State.narrowK(value).flatMap(map.andThen(State::narrowK)).kind2();
+  }
+}
+
+@Instance
+interface StateMonadState<S> extends MonadState<Higher1<State.µ, S>, S>, StateMonad<S> {
+
+  @Override
+  default Higher2<State.µ, S, S> get() {
+    return State.<S>get().kind2();
+  }
+
+  @Override
+  default Higher2<State.µ, S, Unit> set(S state) {
+    return State.set(state).kind2();
   }
 }
 
