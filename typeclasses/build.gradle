@@ -6,3 +6,9 @@ dependencies {
   testImplementation project(':instances')
   testImplementation project(':monad')
 }
+
+sonarqube {
+  properties {
+    property "sonar.exclusions", "**/Monoid.java"
+  }
+}
