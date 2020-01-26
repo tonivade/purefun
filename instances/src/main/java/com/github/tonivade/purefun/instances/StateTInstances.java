@@ -11,11 +11,11 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.StateT;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
+import com.github.tonivade.purefun.typeclasses.MonadReader;
 import com.github.tonivade.purefun.typeclasses.MonadState;
 
 public interface StateTInstances {
@@ -24,12 +24,16 @@ public interface StateTInstances {
     return StateTMonad.instance(requireNonNull(monadF));
   }
 
+  static <F extends Kind, S> MonadState<Higher1<Higher1<StateT.µ, F>, S>, S> monadState(Monad<F> monadF) {
+    return StateTMonadState.instance(requireNonNull(monadF));
+  }
+
   static <F extends Kind, S, E> MonadError<Higher1<Higher1<StateT.µ, F>, S>, E> monadError(MonadError<F, E> monadErrorF) {
     return StateTMonadError.instance(requireNonNull(monadErrorF));
   }
 
-  static <F extends Kind, S> MonadState<Higher1<Higher1<StateT.µ, F>, S>, S> monadState(Monad<F> monadF) {
-    return StateTMonadState.instance(requireNonNull(monadF));
+  static <F extends Kind, S, R> MonadReader<Higher1<Higher1<StateT.µ, F>, S>, R> monadReader(MonadReader<F, R> monadReaderF) {
+    return StateTMonadReader.instance(requireNonNull(monadReaderF));
   }
 }
 
@@ -93,5 +97,20 @@ interface StateTMonadState<F extends Kind, S> extends MonadState<Higher1<Higher1
   @Override
   default Higher3<StateT.µ, F, S, Unit> set(S state) {
     return StateT.set(monadF(), state).kind3();
+  }
+}
+
+interface StateTMonadReader<F extends Kind, S, R> extends MonadReader<Higher1<Higher1<StateT.µ, F>, S>, R>, StateTMonad<F, S> {
+
+  static <F extends Kind, S, R> StateTMonadReader<F, S, R> instance(MonadReader<F, R> monadReaderF) {
+    return () -> monadReaderF;
+  }
+
+  @Override
+  MonadReader<F, R> monadF();
+
+  @Override
+  default Higher3<StateT.µ, F, S, R> ask() {
+    return StateT.<F, S, R>state(monadF(), state -> monadF().map(monadF().ask(), reader -> Tuple.of(state, reader))).kind3();
   }
 }
