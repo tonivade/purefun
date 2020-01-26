@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Unit;
 
 @TypeClass
 public interface MonadState<F extends Kind, S> extends Monad<F> {
+
   Higher1<F, S> get();
   Higher1<F, Unit> set(S state);
 
