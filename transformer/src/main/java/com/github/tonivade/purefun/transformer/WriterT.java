@@ -41,6 +41,11 @@ public interface WriterT<F extends Kind, L, A> {
     return bimap(monoidV, mapper, identity());
   }
 
+  default WriterT<F, L, Tuple2<L, A>> listen() {
+    return writer(monoid(), monad(), monad().map(value(),
+        tuple -> Tuple.of(tuple.get1(), Tuple.of(tuple.get1(), tuple.get2()))));
+  }
+
   default WriterT<F, L, A> append(L log2) {
     return mapLog(monoid(), log1 -> monoid().combine(log1, log2));
   }
