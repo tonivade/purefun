@@ -10,14 +10,21 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.transformer.Kleisli;
+import com.github.tonivade.purefun.transformer.StateT;
 import com.github.tonivade.purefun.typeclasses.Monad;
+import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
 
 public interface KleisliInstances {
 
   static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
     return KleisliMonad.instance(requireNonNull(monadF));
+  }
+
+  static <F extends Kind, Z, E> MonadError<Higher1<Higher1<Kleisli.µ, F>, Z>, E> monadReader(MonadError<F, E> monadErrorF) {
+    return KleisliMonadError.instance(monadErrorF);
   }
 
   static <F extends Kind, Z> MonadReader<Higher1<Higher1<Kleisli.µ, F>, Z>, Z> monadReader(Monad<F> monadF) {
@@ -42,6 +49,31 @@ interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli.
   default <T, R> Higher3<Kleisli.µ, F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli.µ, F>, Z>, R>> map) {
     return Kleisli.narrowK(value).flatMap(map.andThen(Kleisli::narrowK)).kind3();
+  }
+}
+
+interface KleisliMonadError<F extends Kind, R, E> extends MonadError<Higher1<Higher1<Kleisli.µ, F>, R>, E>, KleisliMonad<F, R> {
+
+  static <F extends Kind, R, E> KleisliMonadError<F, R, E> instance(MonadError<F, E> monadErrorF) {
+    return () -> monadErrorF;
+  }
+
+  @Override
+  MonadError<F, E> monadF();
+
+  @Override
+  default <A> Higher3<Kleisli.µ, F, R, A> raiseError(E error) {
+    return Kleisli.<F, R, A>of(monadF(), reader -> monadF().raiseError(error)).kind3();
+  }
+
+  @Override
+  default <A> Higher3<Kleisli.µ, F, R, A> handleErrorWith(
+      Higher1<Higher1<Higher1<Kleisli.µ, F>, R>, A> value,
+      Function1<E, ? extends Higher1<Higher1<Higher1<Kleisli.µ, F>, R>, A>> handler) {
+    Kleisli<F, R, A> kleisli = value.fix1(Kleisli::narrowK);
+    return Kleisli.<F, R, A>of(monadF(),
+        reader -> monadF().handleErrorWith(kleisli.run(reader),
+            error -> handler.apply(error).fix1(Kleisli::narrowK).run(reader))).kind3();
   }
 }
 
