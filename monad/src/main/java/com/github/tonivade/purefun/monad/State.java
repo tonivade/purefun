@@ -61,7 +61,7 @@ public interface State<S, A> {
   }
 
   static <S, A> State<S, Sequence<A>> compose(Sequence<State<S, A>> states) {
-    return states.foldLeft(pure(empty()), (sa, sb) -> map2(sa, sb, (acc, a) -> acc.append(a)));
+    return states.foldLeft(pure(empty()), (sa, sb) -> map2(sa, sb, Sequence::append));
   }
 
   static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, Function2<A, B, C> mapper) {

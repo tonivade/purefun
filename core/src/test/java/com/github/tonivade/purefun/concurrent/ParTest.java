@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.concurrent;
 
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.type.Try;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,5 +79,21 @@ public class ParTest {
     Par<String> result = par.filter(string -> string.contains("Hello"));
 
     assertEquals(Try.success("Hello world!"), result.apply(Future.DEFAULT_EXECUTOR).await());
+  }
+
+  @Test
+  public void test() {
+    Par<Unit> run = Par.run(this::currentThread);
+
+    Par<Unit> sequence = Par.sequence(ImmutableList.of(run, run, run));
+
+    sequence.apply(Future.DEFAULT_EXECUTOR).await();
+
+    System.out.println("end");
+  }
+
+  private void currentThread() throws InterruptedException {
+    System.out.println(Thread.currentThread().getName());
+    Thread.sleep(1000);
   }
 }

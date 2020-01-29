@@ -7,14 +7,22 @@ package com.github.tonivade.purefun.concurrent;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 
 import java.util.concurrent.Executor;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
 @HigherKind
 @FunctionalInterface
@@ -32,6 +40,14 @@ public interface Par<T> {
 
   default <R> Par<R> flatMap(Function1<T, Par<R>> mapper) {
     return executor -> apply(executor).flatMap(value -> mapper.apply(value).apply(executor));
+  }
+
+  default <R> Par<R> andThen(Par<R> next) {
+    return executor -> {
+      Future<T> future1 = apply(executor);
+      Future<R> future2 = next.apply(executor);
+      return future1.flatMap(value -> future2);
+    };
   }
 
   default Par<T> filter(Matcher1<T> matcher) {
@@ -76,6 +92,26 @@ public interface Par<T> {
 
   static <A, B> Par<B> bracket(Par<A> acquire, Function1<A, Par<B>> use, Consumer1<A> release) {
     return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
+  }
+
+  static <A, B, C> Par<C> map2(Par<A> parA, Par<B> parB, Function2<A, B, C> mapper) {
+    return parA.flatMap(a -> parB.map(b -> mapper.apply(a, b)));
+  }
+
+  static <A, B> Par<Tuple2<A, B>> tuple(Par<A> parA, Par<B> parB) {
+    return map2(parA, parB, Tuple::of);
+  }
+
+  static <A> Par<Sequence<A>> traverse(Sequence<Par<A>> sequence) {
+    return sequence.foldLeft(success(empty()), (sa, sb) -> map2(sa, sb, Sequence::append));
+  }
+
+  static Par<Unit> sequence(Sequence<Par<?>> sequence) {
+    return sequence.fold(unit(), Par::andThen).andThen(unit());
+  }
+
+  static Par<Unit> unit() {
+    return success(Unit.unit());
   }
 }
 
