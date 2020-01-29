@@ -50,6 +50,6 @@ public final class Ref<A> {
 
   @Override
   public String toString() {
-    return "Ref(" + value.get() + ")";
+    return String.format("Ref(%s)", value.get());
   }
 }

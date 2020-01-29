@@ -12,6 +12,8 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
+import static java.util.Objects.requireNonNull;
+
 @TypeClass
 public interface MonadState<F extends Kind, S> extends Monad<F> {
 
@@ -28,5 +30,40 @@ public interface MonadState<F extends Kind, S> extends Monad<F> {
 
   default <A> Higher1<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
+  }
+
+  static <F extends Kind, S> MonadState<F, S> from(MonadDefer<F> monad, S value) {
+    return new ReferenceMonadState<>(Reference.of(monad, value), monad);
+  }
+}
+
+class ReferenceMonadState<F extends Kind, S> implements MonadState<F, S> {
+
+  private final Reference<F, S> ref;
+  private final Monad<F> monad;
+
+  ReferenceMonadState(Reference<F, S> ref, Monad<F> monad) {
+    this.ref = requireNonNull(ref);
+    this.monad = requireNonNull(monad);
+  }
+
+  @Override
+  public Higher1<F, S> get() {
+    return ref.get();
+  }
+
+  @Override
+  public Higher1<F, Unit> set(S state) {
+    return ref.set(state);
+  }
+
+  @Override
+  public <T> Higher1<F, T> pure(T value) {
+    return monad.pure(value);
+  }
+
+  @Override
+  public <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map) {
+    return monad.flatMap(value, map);
   }
 }

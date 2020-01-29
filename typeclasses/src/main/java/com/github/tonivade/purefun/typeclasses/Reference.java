@@ -70,6 +70,6 @@ final class MonadDeferReference<F extends Kind, A> implements Reference<F, A> {
 
   @Override
   public String toString() {
-    return "Reference(" + value.get() + ")";
+    return String.format("Reference(%s)", value.get());
   }
 }
