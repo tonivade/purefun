@@ -21,11 +21,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
  * <p>This type is an abstraction of a computation executed in another thread. To run the computation an {@code Executor}
@@ -184,12 +187,12 @@ public interface Future<T> {
     return sleep(executor, timeout).flatMap(x -> async(executor, producer));
   }
 
-  static <T> Future<Unit> sleep(Duration timeout) {
-    return sleep(DEFAULT_EXECUTOR, timeout);
+  static Future<Unit> sleep(Duration delay) {
+    return sleep(DEFAULT_EXECUTOR, delay);
   }
 
-  static <T> Future<Unit> sleep(Executor executor, Duration timeout) {
-    return exec(executor, () -> Thread.sleep(timeout.toMillis()));
+  static Future<Unit> sleep(Executor executor, Duration delay) {
+    return SleepFuture.sleep(executor, delay);
   }
 
   static <T> Future<T> defer(Producer<Future<T>> producer) {
@@ -230,7 +233,7 @@ final class FutureImpl<T> implements Future<T> {
     this(executor, callback, x -> {});
   }
 
-  private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {
+  protected FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {
     this.executor = requireNonNull(executor);
     this.propagate = requireNonNull(propagate);
     this.promise = Promise.make(executor);
@@ -382,5 +385,136 @@ final class FutureImpl<T> implements Future<T> {
                 resource -> resource.fold(e -> Future.failure(executor, e), use)
                   .onComplete(promise::tryComplete)
                   .onComplete(result -> resource.onSuccess(release))));
+  }
+}
+
+final class SleepFuture implements Future<Unit> {
+
+  private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+
+  private final Executor executor;
+  private final CompletableFuture<Unit> completableFuture;
+
+  protected SleepFuture(Executor executor, Duration delay) {
+    this.executor = requireNonNull(executor);
+    this.completableFuture = supplyAsync(Unit::unit, delayedExecutor(delay, executor));
+  }
+
+  static Executor delayedExecutor(Duration delay, Executor executor) {
+    return task -> SCHEDULER.schedule(() -> executor.execute(task), delay.toMillis(), TimeUnit.MILLISECONDS);
+  }
+
+  @Override
+  public Try<Unit> await() {
+    return Try.of(completableFuture::get);
+  }
+
+  @Override
+  public Try<Unit> await(Duration timeout) {
+    return Try.of(() -> completableFuture.get(timeout.toMillis(), TimeUnit.MILLISECONDS));
+  }
+
+  @Override
+  public void cancel(boolean mayInterruptThread) {
+    completableFuture.cancel(mayInterruptThread);
+  }
+
+  @Override
+  public boolean isCompleted() {
+    return completableFuture.isDone();
+  }
+
+  @Override
+  public boolean isCancelled() {
+    return completableFuture.isCancelled();
+  }
+
+  @Override
+  public Future<Unit> onSuccess(Consumer1<Unit> callback) {
+    completableFuture.whenCompleteAsync((unit, error) -> {
+      if (unit != null) {
+        callback.accept(unit);
+      }
+    }, executor);
+    return this;
+  }
+
+  @Override
+  public Future<Unit> onFailure(Consumer1<Throwable> callback) {
+    completableFuture.whenCompleteAsync((unit, error) -> {
+      if (unit != null) {
+        callback.accept(error);
+      }
+    }, executor);
+    return this;
+  }
+
+  @Override
+  public Future<Unit> onComplete(Consumer1<Try<Unit>> callback) {
+    completableFuture.whenCompleteAsync((unit, error) -> {
+      if (unit != null) {
+        callback.accept(Try.success(unit));
+      } else {
+        callback.accept(Try.failure(error));
+      }
+    }, executor);
+    return this;
+  }
+
+  @Override
+  public <R> Future<R> map(Function1<Unit, R> mapper) {
+    return FutureImpl.transform(executor, this, value -> value.map(mapper));
+  }
+
+  @Override
+  public <R> Future<R> flatMap(Function1<Unit, Future<R>> mapper) {
+    return FutureImpl.chain(executor, this, value -> value.fold(e -> Future.failure(executor, e), mapper));
+  }
+
+  @Override
+  public <R> Future<R> andThen(Future<R> next) {
+    return flatMap(ignore -> next);
+  }
+
+  @Override
+  public Future<Unit> filter(Matcher1<Unit> matcher) {
+    return FutureImpl.transform(executor, this, value -> value.filter(matcher));
+  }
+
+  @Override
+  public Future<Unit> orElse(Future<Unit> other) {
+    return FutureImpl.chain(executor, this, value -> value.fold(cons(other), t -> Future.success(executor, t)));
+  }
+
+  @Override
+  public <X extends Throwable> Future<Unit> recoverWith(Class<X> type, Function1<X, Unit> mapper) {
+    return FutureImpl.transform(executor, this, value -> value.recoverWith(type, mapper));
+  }
+
+  @Override
+  public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<Unit, U> successMapper) {
+    return FutureImpl.transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
+  }
+
+  @Override
+  public Promise<Unit> toPromise() {
+    Promise<Unit> promise = Promise.make(executor);
+    completableFuture.whenComplete((unit, error) -> {
+      if (unit != null) {
+        promise.complete(Try.success(unit));
+      } else {
+        promise.complete(Try.failure(error));
+      }
+    });
+    return promise;
+  }
+
+  @Override
+  public FutureModule getModule() {
+    throw new UnsupportedOperationException();
+  }
+
+  static Future<Unit> sleep(Executor executor, Duration delay) {
+    return new SleepFuture(executor, delay);
   }
 }

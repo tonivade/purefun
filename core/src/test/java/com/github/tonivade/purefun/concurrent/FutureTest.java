@@ -240,7 +240,7 @@ public class FutureTest {
   }
 
   @Test
-  public void sleep() throws InterruptedException {
+  public void cancel() throws InterruptedException {
     Future<Unit> future = Future.sleep(Duration.ofSeconds(1));
 
     Thread.sleep(50);
@@ -249,6 +249,15 @@ public class FutureTest {
     assertTrue(future.isCancelled());
     assertTrue(future.isCompleted());
     assertTrue(future.await().getCause() instanceof CancellationException);
+  }
+
+  @Test
+  public void sleep() {
+    long start = System.currentTimeMillis();
+
+    Try<String> future = Future.sleep(Duration.ofSeconds(1)).andThen(Future.success("ok")).await();
+
+    System.out.println(System.currentTimeMillis() - start);
   }
 
   @Test
