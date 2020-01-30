@@ -10,17 +10,14 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 import java.util.concurrent.Executor;
 
-import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
@@ -48,6 +45,10 @@ public interface Par<T> {
       Future<R> future2 = next.apply(executor);
       return future1.flatMap(value -> future2);
     };
+  }
+
+  default <R> Par<R> ap(Par<Function1<T, R>> apply) {
+    return apply.flatMap(this::map);
   }
 
   default Par<T> filter(Matcher1<T> matcher) {
@@ -95,7 +96,7 @@ public interface Par<T> {
   }
 
   static <A, B, C> Par<C> map2(Par<A> parA, Par<B> parB, Function2<A, B, C> mapper) {
-    return parA.flatMap(a -> parB.map(b -> mapper.apply(a, b)));
+    return parB.ap(parA.map(mapper.curried()));
   }
 
   static <A, B> Par<Tuple2<A, B>> tuple(Par<A> parA, Par<B> parB) {
