@@ -72,4 +72,12 @@ public interface Function2<A, B, R> extends Recoverable {
   static <A, B, R> Function2<A, B, R> cons(R value) {
     return (a, b) -> value;
   }
+
+  static <A, B> Function2<A, B, A> first() {
+    return (a, b) -> a;
+  }
+
+  static <A, B> Function2<A, B, B> second() {
+    return (a, b) -> b;
+  }
 }

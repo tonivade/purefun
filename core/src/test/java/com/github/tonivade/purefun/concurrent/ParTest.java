@@ -11,8 +11,13 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -21,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,14 +99,17 @@ public class ParTest {
 
     sequence.apply(Future.DEFAULT_EXECUTOR).await();
 
-    verify(consumer).accept("pool-1-thread-1");
-    verify(consumer).accept("pool-1-thread-2");
-    verify(consumer).accept("pool-1-thread-3");
+    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(consumer, times(3)).accept(captor.capture());
+
+    List<String> values = captor.getAllValues();
+    System.out.println(values);
+    assertTrue(values.stream().distinct().count() > 1);
   }
 
   @Test
   public void traverse() {
-    Par<String> run = Par.task(() -> Thread.currentThread().getName());
+    Par<String> run = Par.task(this::currentThread);
 
     Par<Sequence<String>> sequence = Par.traverse(listOf(run, run, run, run, run, run, run));
 
@@ -111,7 +120,7 @@ public class ParTest {
 
   @Test
   public void tuple() {
-    Par<String> run = Par.task(() -> Thread.currentThread().getName());
+    Par<String> run = Par.task(this::currentThread);
 
     Par<Tuple2<String, String>> sequence = Par.tuple(run, run);
 
@@ -120,8 +129,14 @@ public class ParTest {
     assertNotEquals(result.get1(), result.get2());
   }
 
+  private String currentThread() throws InterruptedException {
+    String name = Thread.currentThread().getName();
+    Thread.sleep(100);
+    return name;
+  }
+
   private void currentThread(Consumer1<String> consumer) throws InterruptedException {
     consumer.accept(Thread.currentThread().getName());
-    Thread.sleep(1000);
+    Thread.sleep(100);
   }
 }

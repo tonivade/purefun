@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import java.util.concurrent.Executor;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
 @HigherKind
@@ -40,11 +41,7 @@ public interface Par<T> {
   }
 
   default <R> Par<R> andThen(Par<R> next) {
-    return executor -> {
-      Future<T> future1 = apply(executor);
-      Future<R> future2 = next.apply(executor);
-      return future1.flatMap(value -> future2);
-    };
+    return map2(this, next, second());
   }
 
   default <R> Par<R> ap(Par<Function1<T, R>> apply) {
@@ -104,7 +101,7 @@ public interface Par<T> {
   }
 
   static <A> Par<Sequence<A>> traverse(Sequence<Par<A>> sequence) {
-    return sequence.foldLeft(success(empty()), (sa, sb) -> map2(sa, sb, Sequence::append));
+    return sequence.foldLeft(success(empty()), (parA, parB) -> map2(parA, parB, Sequence::append));
   }
 
   static Par<Unit> sequence(Sequence<Par<?>> sequence) {
