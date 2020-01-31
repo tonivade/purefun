@@ -132,6 +132,6 @@ task jacocoFullReport(type: JacocoReport, group: 'Coverage reports') {
   reports {
     html.enabled = true
     xml.enabled = true
-    xml.destination file("${buildDir}/reports/jacoco/fullReport.xml")
+    xml.destination file("${buildDir}/reports/jacoco/report.xml")
   }
 }
