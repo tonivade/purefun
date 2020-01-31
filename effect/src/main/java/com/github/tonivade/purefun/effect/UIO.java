@@ -159,7 +159,7 @@ public final class UIO<T> implements Recoverable {
   }
 
   public static UIO<Unit> sleep(Duration delay) {
-    return exec(() -> Thread.sleep(delay.toMillis()));
+    return fold(ZIO.sleep(delay));
   }
 
   public static UIO<Unit> exec(CheckedRunnable task) {

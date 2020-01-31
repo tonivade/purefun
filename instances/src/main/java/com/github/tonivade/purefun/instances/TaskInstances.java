@@ -9,6 +9,8 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -19,6 +21,8 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.effect.Task;
+
+import java.time.Duration;
 
 public interface TaskInstances {
 
@@ -138,7 +142,9 @@ interface TaskBracket extends Bracket<Task.µ> {
 
 @Instance
 interface TaskMonadDefer
-    extends MonadDefer<Task.µ>,
-            TaskMonadThrow,
-            TaskDefer,
-            TaskBracket { }
+    extends MonadDefer<Task.µ>, TaskMonadThrow, TaskDefer, TaskBracket {
+  @Override
+  default Higher1<Task.µ, Unit> sleep(Duration duration) {
+    return Task.sleep(duration).kind1();
+  }
+}

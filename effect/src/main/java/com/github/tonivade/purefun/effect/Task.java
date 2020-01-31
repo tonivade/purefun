@@ -160,7 +160,7 @@ public final class Task<T> implements Recoverable {
   }
 
   public static Task<Unit> sleep(Duration delay) {
-    return exec(() -> Thread.sleep(delay.toMillis()));
+    return new Task<>(ZIO.sleep(delay));
   }
 
   public static Task<Unit> exec(CheckedRunnable task) {

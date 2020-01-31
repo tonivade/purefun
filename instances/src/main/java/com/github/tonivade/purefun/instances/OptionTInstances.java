@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.NoSuchElementException;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -183,5 +184,10 @@ interface OptionTMonadDefer<F extends Kind>
 
   static <F extends Kind> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
     return () -> monadDeferF;
+  }
+
+  @Override
+  default Higher2<OptionT.µ, F, Unit> sleep(Duration duration) {
+    return OptionT.<F, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Option::some)).kind2();
   }
 }

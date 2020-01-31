@@ -10,6 +10,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -20,6 +23,8 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.effect.EIO;
+
+import java.time.Duration;
 
 public interface EIOInstances {
 
@@ -139,7 +144,9 @@ interface EIOBracket extends Bracket<Higher1<EIO.µ, Throwable>> {
 
 @Instance
 interface EIOMonadDefer
-    extends MonadDefer<Higher1<EIO.µ, Throwable>>,
-            EIOMonadThrow,
-            EIODefer,
-            EIOBracket { }
+    extends MonadDefer<Higher1<EIO.µ, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket {
+  @Override
+  default Higher2<EIO.µ, Throwable, Unit> sleep(Duration duration) {
+    return UIO.sleep(duration).<Throwable>toEIO().kind2();
+  }
+}

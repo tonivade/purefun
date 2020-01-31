@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.EitherT;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Bracket;
@@ -24,6 +25,8 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
+
+import java.time.Duration;
 
 public interface EitherTInstances {
 
@@ -92,7 +95,7 @@ interface EitherTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<EitherT.
   @Override
   default <T, R> Higher3<EitherT.µ, F, L, R> flatMap(Higher1<Higher1<Higher1<EitherT.µ, F>, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<EitherT.µ, F>, L>, R>> map) {
-    return EitherT.narrowK(value).flatMap(map.andThen(EitherT::<F, L, R>narrowK)).kind3();
+    return EitherT.narrowK(value).flatMap(map.andThen(EitherT::narrowK)).kind3();
   }
 }
 
@@ -212,6 +215,11 @@ interface EitherTMonadDeferFromMonad<F extends Kind>
   default <A> Higher1<F, Either<Throwable, A>> acquireRecover(Throwable error) {
     return monadF().pure(Either.left(error));
   }
+
+  @Override
+  default Higher3<EitherT.µ, F, Throwable, Unit> sleep(Duration duration) {
+    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right)).kind3();
+  }
 }
 
 interface EitherTMonadDeferFromMonadThrow<F extends Kind>
@@ -227,5 +235,10 @@ interface EitherTMonadDeferFromMonadThrow<F extends Kind>
   @Override
   default <A> Higher1<F, Either<Throwable, A>> acquireRecover(Throwable error) {
     return monadF().raiseError(error);
+  }
+
+  @Override
+  default Higher3<EitherT.µ, F, Throwable, Unit> sleep(Duration duration) {
+    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right)).kind3();
   }
 }

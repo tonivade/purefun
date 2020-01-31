@@ -9,7 +9,9 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Par;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -17,6 +19,8 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+
+import java.time.Duration;
 
 import static com.github.tonivade.purefun.Function1.identity;
 
@@ -103,4 +107,10 @@ interface ParBracket extends Bracket<Par.µ> {
 }
 
 @Instance
-interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par.µ> { }
+interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par.µ> {
+
+  @Override
+  default Higher1<Par.µ, Unit> sleep(Duration duration) {
+    return Par.sleep(duration).kind1();
+  }
+}

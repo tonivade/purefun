@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -22,6 +23,8 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.effect.ZIO;
+
+import java.time.Duration;
 
 @SuppressWarnings("unchecked")
 public interface ZIOInstances {
@@ -146,10 +149,12 @@ interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO.µ, R>, Throwable>> 
 
 @Instance
 interface ZIOMonadDefer<R>
-    extends MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>>,
-            ZIOMonadThrow<R>,
-            ZIODefer<R>,
-            ZIOBracket<R> { }
+    extends MonadDefer<Higher1<Higher1<ZIO.µ, R>, Throwable>>, ZIOMonadThrow<R>, ZIODefer<R>, ZIOBracket<R> {
+  @Override
+  default Higher3<ZIO.µ, R, Throwable, Unit> sleep(Duration duration) {
+    return UIO.sleep(duration).<R, Throwable>toZIO().kind3();
+  }
+}
 
 final class ConsoleZIO<R> implements Console<Higher1<Higher1<ZIO.µ, R>, Throwable>> {
 

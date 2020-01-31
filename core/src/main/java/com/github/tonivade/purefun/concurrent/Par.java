@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 import static com.github.tonivade.purefun.Function1.identity;
@@ -86,6 +87,10 @@ public interface Par<T> {
 
   static Par<Unit> run(CheckedRunnable runnable) {
     return executor -> Future.exec(executor, runnable);
+  }
+
+  static Par<Unit> sleep(Duration delay) {
+    return executor -> Future.sleep(executor, delay);
   }
 
   static <A, B> Par<B> bracket(Par<A> acquire, Function1<A, Par<B>> use, Consumer1<A> release) {

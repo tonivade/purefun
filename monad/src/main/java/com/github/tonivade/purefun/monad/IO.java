@@ -167,7 +167,7 @@ public interface IO<T> extends Recoverable {
   }
 
   static IO<Unit> sleep(Duration duration) {
-    return exec(() -> Thread.sleep(duration.toMillis()));
+    return new Sleep(duration);
   }
 
   static IO<Unit> exec(CheckedRunnable task) {
@@ -373,6 +373,40 @@ public interface IO<T> extends Recoverable {
 
     protected IO<T> next() {
       return lazy.get();
+    }
+  }
+
+  final class Sleep implements IO<Unit>, Recoverable {
+
+    private final Duration duration;
+
+    public Sleep(Duration duration) {
+      this.duration = requireNonNull(duration);
+    }
+
+    @Override
+    public Unit unsafeRunSync() {
+      try {
+        Thread.sleep(duration.toMillis());
+        return Unit.unit();
+      } catch (InterruptedException e) {
+        return sneakyThrow(e);
+      }
+    }
+
+    @Override
+    public <F extends Kind> Higher1<F, Unit> foldMap(MonadDefer<F> monad) {
+      return monad.sleep(duration);
+    }
+
+    @Override
+    public IOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Sleep(" + duration + ')';
     }
   }
 

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.time.Duration;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -16,6 +17,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -115,7 +117,13 @@ interface IOBracket extends Bracket<IO.µ> {
 }
 
 @Instance
-interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer, IOBracket { }
+interface IOMonadDefer extends MonadDefer<IO.µ>, IOMonadError, IODefer, IOBracket {
+
+  @Override
+  default Higher1<IO.µ, Unit> sleep(Duration duration) {
+    return IO.sleep(duration).kind1();
+  }
+}
 
 final class ConsoleIO implements Console<IO.µ> {
 

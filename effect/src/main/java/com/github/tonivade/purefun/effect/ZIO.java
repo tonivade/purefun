@@ -187,6 +187,10 @@ public interface ZIO<R, E, A> {
     return new Redeem<>(value);
   }
 
+  static <R> ZIO<R, Throwable, Unit> sleep(Duration delay) {
+    return new Sleep<>(delay);
+  }
+
   static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
                                                                       Function1<A, ZIO<R, Throwable, B>> use) {
     return new Bracket<>(acquire, use, AutoCloseable::close);
@@ -535,6 +539,40 @@ public interface ZIO<R, E, A> {
     @Override
     public String toString() {
       return "FoldM(" + current + ", ?, ?)";
+    }
+  }
+
+  final class Sleep<R> implements ZIO<R, Throwable, Unit> {
+
+    private final Duration duration;
+
+    public Sleep(Duration duration) {
+      this.duration = requireNonNull(duration);
+    }
+
+    @Override
+    public Either<Throwable, Unit> provide(R env) {
+      try {
+        Thread.sleep(duration.toMillis());
+        return Either.right(Unit.unit());
+      } catch (InterruptedException e) {
+        return Either.left(e);
+      }
+    }
+
+    @Override
+    public <F extends Kind> Higher1<F, Either<Throwable, Unit>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.map(monad.sleep(duration), Either::right);
+    }
+
+    @Override
+    public ZIOModule getModule() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+      return "Sleep(" + duration + ')';
     }
   }
 
