@@ -255,9 +255,10 @@ public class FutureTest {
   public void sleep() {
     long start = System.currentTimeMillis();
 
-    Try<String> future = Future.sleep(Duration.ofSeconds(1)).andThen(Future.success("ok")).await();
+    Future.sleep(Duration.ofSeconds(1)).andThen(Future.success("ok")).await();
 
-    System.out.println(System.currentTimeMillis() - start);
+    long elapsedTime = System.currentTimeMillis() - start;
+    assertTrue(1000 - elapsedTime < 100, () -> "it should wait for almost 1 sec, but it was " + elapsedTime);
   }
 
   @Test

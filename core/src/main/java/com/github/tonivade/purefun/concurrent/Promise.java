@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.type.Try;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,6 +58,22 @@ public interface Promise<T> {
 
   static <T> Promise<T> make(Executor executor) {
     return new PromiseImpl<>(executor);
+  }
+
+  static <T> Promise<T> from(CompletableFuture<T> future) {
+    return from(Future.DEFAULT_EXECUTOR, future);
+  }
+
+  static <T> Promise<T> from(Executor executor, CompletableFuture<T> future) {
+    Promise<T> promise = make(executor);
+    future.whenCompleteAsync((unit, error) -> {
+      if (unit != null) {
+        promise.tryComplete(Try.success(unit));
+      } else {
+        promise.tryComplete(Try.failure(error));
+      }
+    }, executor);
+    return promise;
   }
 }
 

@@ -192,7 +192,7 @@ public interface Future<T> {
   }
 
   static Future<Unit> sleep(Executor executor, Duration delay) {
-    return SleepFuture.sleep(executor, delay);
+    return FutureImpl.sleep(executor, delay);
   }
 
   static <T> Future<T> defer(Producer<Future<T>> producer) {
@@ -225,9 +225,9 @@ interface FutureModule { }
 final class FutureImpl<T> implements Future<T> {
 
   private final Executor executor;
+  private final Consumer1<Boolean> propagate;
   private final Promise<T> promise;
   private final Cancellable<T> cancellable;
-  private final Consumer1<Boolean> propagate;
 
   private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback) {
     this(executor, callback, x -> {});
@@ -374,6 +374,12 @@ final class FutureImpl<T> implements Future<T> {
     return new FutureImpl<>(executor, (current, cancel) -> promise.onComplete(current::tryComplete));
   }
 
+  protected static Future<Unit> sleep(Executor executor, Duration delay) {
+    requireNonNull(executor);
+    requireNonNull(delay);
+    return from(executor, Delayed.sleep(executor, delay));
+  }
+
   protected static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
     requireNonNull(executor);
     requireNonNull(acquire);
@@ -388,133 +394,15 @@ final class FutureImpl<T> implements Future<T> {
   }
 }
 
-final class SleepFuture implements Future<Unit> {
+final class Delayed {
 
-  private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+  private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(0);
 
-  private final Executor executor;
-  private final CompletableFuture<Unit> completableFuture;
-
-  protected SleepFuture(Executor executor, Duration delay) {
-    this.executor = requireNonNull(executor);
-    this.completableFuture = supplyAsync(Unit::unit, delayedExecutor(delay, executor));
+  protected static Promise<Unit> sleep(Executor executor, Duration delay) {
+    return Promise.from(executor, supplyAsync(Unit::unit, delayedExecutor(delay, executor)));
   }
 
-  static Executor delayedExecutor(Duration delay, Executor executor) {
+  private static Executor delayedExecutor(Duration delay, Executor executor) {
     return task -> SCHEDULER.schedule(() -> executor.execute(task), delay.toMillis(), TimeUnit.MILLISECONDS);
-  }
-
-  @Override
-  public Try<Unit> await() {
-    return Try.of(completableFuture::get);
-  }
-
-  @Override
-  public Try<Unit> await(Duration timeout) {
-    return Try.of(() -> completableFuture.get(timeout.toMillis(), TimeUnit.MILLISECONDS));
-  }
-
-  @Override
-  public void cancel(boolean mayInterruptThread) {
-    completableFuture.cancel(mayInterruptThread);
-  }
-
-  @Override
-  public boolean isCompleted() {
-    return completableFuture.isDone();
-  }
-
-  @Override
-  public boolean isCancelled() {
-    return completableFuture.isCancelled();
-  }
-
-  @Override
-  public Future<Unit> onSuccess(Consumer1<Unit> callback) {
-    completableFuture.whenCompleteAsync((unit, error) -> {
-      if (unit != null) {
-        callback.accept(unit);
-      }
-    }, executor);
-    return this;
-  }
-
-  @Override
-  public Future<Unit> onFailure(Consumer1<Throwable> callback) {
-    completableFuture.whenCompleteAsync((unit, error) -> {
-      if (unit != null) {
-        callback.accept(error);
-      }
-    }, executor);
-    return this;
-  }
-
-  @Override
-  public Future<Unit> onComplete(Consumer1<Try<Unit>> callback) {
-    completableFuture.whenCompleteAsync((unit, error) -> {
-      if (unit != null) {
-        callback.accept(Try.success(unit));
-      } else {
-        callback.accept(Try.failure(error));
-      }
-    }, executor);
-    return this;
-  }
-
-  @Override
-  public <R> Future<R> map(Function1<Unit, R> mapper) {
-    return FutureImpl.transform(executor, this, value -> value.map(mapper));
-  }
-
-  @Override
-  public <R> Future<R> flatMap(Function1<Unit, Future<R>> mapper) {
-    return FutureImpl.chain(executor, this, value -> value.fold(e -> Future.failure(executor, e), mapper));
-  }
-
-  @Override
-  public <R> Future<R> andThen(Future<R> next) {
-    return flatMap(ignore -> next);
-  }
-
-  @Override
-  public Future<Unit> filter(Matcher1<Unit> matcher) {
-    return FutureImpl.transform(executor, this, value -> value.filter(matcher));
-  }
-
-  @Override
-  public Future<Unit> orElse(Future<Unit> other) {
-    return FutureImpl.chain(executor, this, value -> value.fold(cons(other), t -> Future.success(executor, t)));
-  }
-
-  @Override
-  public <X extends Throwable> Future<Unit> recoverWith(Class<X> type, Function1<X, Unit> mapper) {
-    return FutureImpl.transform(executor, this, value -> value.recoverWith(type, mapper));
-  }
-
-  @Override
-  public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<Unit, U> successMapper) {
-    return FutureImpl.transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
-  }
-
-  @Override
-  public Promise<Unit> toPromise() {
-    Promise<Unit> promise = Promise.make(executor);
-    completableFuture.whenComplete((unit, error) -> {
-      if (unit != null) {
-        promise.complete(Try.success(unit));
-      } else {
-        promise.complete(Try.failure(error));
-      }
-    });
-    return promise;
-  }
-
-  @Override
-  public FutureModule getModule() {
-    throw new UnsupportedOperationException();
-  }
-
-  static Future<Unit> sleep(Executor executor, Duration delay) {
-    return new SleepFuture(executor, delay);
   }
 }
