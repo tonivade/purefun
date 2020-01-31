@@ -188,6 +188,6 @@ interface OptionTMonadDefer<F extends Kind>
 
   @Override
   default Higher2<OptionT.µ, F, Unit> sleep(Duration duration) {
-    return OptionT.<F, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Option::some)).kind2();
+    return OptionT.of(monadF(), monadF().map(monadF().sleep(duration), Option::some)).kind2();
   }
 }
