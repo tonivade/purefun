@@ -562,7 +562,7 @@ public interface ZIO<R, E, A> {
 
     @Override
     public <F extends Kind> Higher1<F, Either<Throwable, Unit>> foldMap(R env, MonadDefer<F> monad) {
-      return monad.map(monad.sleep(duration), Either::right);
+      return monad.attempt(monad.sleep(duration));
     }
 
     @Override
