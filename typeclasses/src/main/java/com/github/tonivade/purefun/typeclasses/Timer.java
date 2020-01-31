@@ -6,14 +6,13 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.TypeClass;
-import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.Unit;
+
+import java.time.Duration;
 
 @TypeClass
-public interface MonadDefer<F extends Kind> extends MonadThrow<F>, Bracket<F>, Defer<F>, Timer<F> {
+public interface Timer<F extends Kind> {
 
-  default <A> Higher1<F, A> later(Producer<A> later) {
-    return defer(() -> Try.of(later::get).fold(this::<A>raiseError, this::<A>pure));
-  }
+  Higher1<F, Unit> sleep(Duration duration);
 }
