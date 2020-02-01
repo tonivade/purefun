@@ -13,6 +13,10 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
+import java.util.Deque;
+import java.util.LinkedList;
+
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 @HigherKind
@@ -34,16 +38,64 @@ public abstract class FreeAp<F extends Kind, A> {
     return foldMap(FunctionK.identity(), applicative);
   }
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public <G extends Kind> Higher1<G, A> foldMap(FunctionK<F, G> transformation, Applicative<G> applicative) {
-    // TODO: https://github.com/arrow-kt/arrow/blob/1506e45c48281dffad19adafeddbaa2cf2418448/modules/free/arrow-free-data/src/main/kotlin/arrow/free/FreeApplicative.kt#L76
-    return null;
+    Deque<FreeAp> argsF = new LinkedList<>(singletonList(this));
+    Deque<CurriedFunction> fns = new LinkedList<>();
+
+    while (true) {
+      FreeAp argF = argsF.pollFirst();
+
+      if (argF instanceof Apply) {
+        int lengthInitial = argsF.size();
+
+        do {
+          Apply ap = (Apply) argF;
+          argsF.addFirst(ap.value);
+          argF = ap.apply;
+        } while (argF instanceof Apply);
+
+        int argc = argsF.size() - lengthInitial;
+        fns.addFirst(new CurriedFunction(foldArg(argF, transformation, applicative), argc));
+      } else {
+        Higher1 argT = foldArg(argF, transformation, applicative);
+
+        if (!fns.isEmpty()) {
+          CurriedFunction function = fns.pollFirst();
+
+          Higher1 res = applicative.ap(argT, function.value);
+
+          if (function.remaining > 1) {
+            fns.addFirst(new CurriedFunction(res, function.remaining - 1));
+          } else {
+            if (fns.size() > 0) {
+              do {
+                function = fns.pollFirst();
+
+                res = applicative.ap(res, function.value);
+
+                if (function.remaining > 1) {
+                  fns.addFirst(new CurriedFunction(res, function.remaining - 1));
+                }
+              } while (function.remaining == 1 && fns.size() > 0);
+            }
+
+            if (fns.size() == 0) {
+              return (Higher1<G, A>) res;
+            }
+          }
+        } else {
+          return (Higher1<G, A>) argT;
+        }
+      }
+    }
   }
 
   public static <F extends Kind, T> FreeAp<F, T> pure(T value) {
     return new FreeAp.Pure<>(value);
   }
 
-  public static <F extends Kind, T> FreeAp<F, T> liftF(Higher1<F, T> value) {
+  public static <F extends Kind, T> FreeAp<F, T> lift(Higher1<F, T> value) {
     return new FreeAp.Lift<>(value);
   }
 
@@ -53,6 +105,17 @@ public abstract class FreeAp<F extends Kind, A> {
 
   public static <F extends Kind> Applicative<Higher1<FreeAp.µ, F>> applicativeF() {
     return FreeApplicative.instance();
+  }
+
+  private static <F extends Kind, G extends Kind, A> Higher1<G, A> foldArg(
+      FreeAp<F, A> argF, FunctionK<F, G> transformation, Applicative<G> applicative) {
+    if (argF instanceof Pure) {
+      return applicative.pure(((Pure<F, A>) argF).value);
+    }
+    if (argF instanceof Lift) {
+      return transformation.apply(((Lift<F, A>) argF).value);
+    }
+    throw new IllegalStateException();
   }
 
   private static final class Pure<F extends Kind, A> extends FreeAp<F, A> {
@@ -111,6 +174,17 @@ public abstract class FreeAp<F extends Kind, A> {
     @Override
     public String toString() {
       return "Apply(" + value + ", ...)";
+    }
+  }
+
+  private static final class CurriedFunction<G extends Kind, A, B> {
+
+    private final Higher1<G, Function1<A, B>> value;
+    private final int remaining;
+
+    CurriedFunction(Higher1<G, Function1<A, B>> value, int remaining) {
+      this.value = requireNonNull(value);
+      this.remaining = remaining;
     }
   }
 }
