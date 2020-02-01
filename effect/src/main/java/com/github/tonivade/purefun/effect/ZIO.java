@@ -556,6 +556,7 @@ public interface ZIO<R, E, A> {
         Thread.sleep(duration.toMillis());
         return Either.right(Unit.unit());
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         return Either.left(e);
       }
     }

@@ -390,6 +390,7 @@ public interface IO<T> extends Recoverable {
         Thread.sleep(duration.toMillis());
         return Unit.unit();
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         return sneakyThrow(e);
       }
     }
