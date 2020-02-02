@@ -200,7 +200,8 @@ interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp.µ,
   @Override
   default <T, R> Higher2<FreeAp.µ, F, R> ap(
       Higher1<Higher1<FreeAp.µ, F>, T> value, Higher1<Higher1<FreeAp.µ, F>, Function1<T, R>> apply) {
-    return FreeAp.<F, T, R>apply(value.fix1(FreeAp::narrowK), apply.fix1(FreeAp::narrowK)).kind2();
+    FreeAp<F, T> freeAp = value.fix1(FreeAp::narrowK);
+    return freeAp.ap(apply.fix1(FreeAp::narrowK)).kind2();
   }
 }
 
