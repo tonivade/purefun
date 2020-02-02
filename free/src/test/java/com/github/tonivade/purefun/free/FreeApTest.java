@@ -35,13 +35,14 @@ public class FreeApTest {
 
   @Test
   public void ap() {
-    FreeAp<DSL.µ, Integer> freeAp = FreeAp.lift(new ReadInt(1).kind1());
-
+    FreeAp<DSL.µ, Integer> freeAp = FreeAp.lift(new ReadInt(123).kind1());
     FreeAp<DSL.µ, Function1<Integer, String>> apply = FreeAp.pure(Object::toString);
 
-    Id<String> foldMap = freeAp.ap(apply).foldMap(idTransform(), IdInstances.applicative()).fix1(Id::narrowK);
+    Id<Integer> foldMap = freeAp.ap(apply)
+        .map(String::length)
+        .foldMap(idTransform(), IdInstances.applicative()).fix1(Id::narrowK);
 
-    assertEquals(Id.of("1"), foldMap);
+    assertEquals(Id.of(3), foldMap);
   }
 
   @Test
