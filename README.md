@@ -259,7 +259,9 @@ return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -
 }
 ```
 
-## Free Monad
+## Free
+
+### Free Monad
 
 Finally, after hours of hard coding, I managed to implement a Free monad. This is a highly
 unstable implementation and I have implemented because it can be implemented. Inspired
@@ -275,6 +277,27 @@ Free<IOProgram.µ, Unit> echo =
 Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(), new IOProgramInterperter());
 
 IO.narrowK(foldMap).unsafeRunSync();
+```
+
+### Free Applicative
+
+Similar to Free monad, but allows static analysis without to run the program.
+
+```java
+FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
+    applicative.map5(
+        DSL.readInt(2),
+        DSL.readBoolean(false),
+        DSL.readDouble(2.1),
+        DSL.readString("hola mundo"),
+        DSL.readUnit(),
+        Tuple::of
+    ).fix1(FreeAp::narrowK);
+
+Higher1<Id.µ, Tuple5<Integer, Boolean, Double, String, Unit>> map =
+    tuple.foldMap(idTransform(), IdInstances.applicative());
+
+assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id::narrowK));
 ```
 
 ## Monad Transformers

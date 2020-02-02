@@ -47,7 +47,7 @@ public class FreeApTest {
 
   @Test
   public void lift() {
-    Higher1<Higher1<FreeAp.µ, DSL.µ>, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
+    FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         applicative.map5(
             DSL.readInt(2),
             DSL.readBoolean(false),
@@ -55,18 +55,16 @@ public class FreeApTest {
             DSL.readString("hola mundo"),
             DSL.readUnit(),
             Tuple::of
-        );
-
-    FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> fix = FreeAp.narrowK(tuple);
+        ).fix1(FreeAp::narrowK);
 
     Higher1<Id.µ, Tuple5<Integer, Boolean, Double, String, Unit>> map =
-        fix.foldMap(idTransform(), IdInstances.applicative());
+        tuple.foldMap(idTransform(), IdInstances.applicative());
 
     assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id::narrowK));
   }
   @Test
   public void pure() {
-    Higher1<Higher1<FreeAp.µ, DSL.µ>, Tuple5<Integer, String, Double, Boolean, Unit>> tuple =
+    FreeAp<DSL.µ, Tuple5<Integer, String, Double, Boolean, Unit>> tuple =
         applicative.map5(
             applicative.pure(1),
             applicative.pure("string"),
@@ -74,12 +72,10 @@ public class FreeApTest {
             applicative.pure(true),
             applicative.pure(unit()),
             Tuple::of
-        );
-
-    FreeAp<DSL.µ, Tuple5<Integer, String, Double, Boolean, Unit>> fix = FreeAp.narrowK(tuple);
+        ).fix1(FreeAp::narrowK);
 
     Higher1<Id.µ, Tuple5<Integer, String, Double, Boolean, Unit>> map =
-        fix.foldMap(idTransform(), IdInstances.applicative());
+        tuple.foldMap(idTransform(), IdInstances.applicative());
 
     assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix1(Id::narrowK));
   }
