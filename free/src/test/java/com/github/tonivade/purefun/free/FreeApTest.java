@@ -11,10 +11,13 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
+import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Monoid;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.Unit.unit;
@@ -80,12 +83,53 @@ public class FreeApTest {
     assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix1(Id::narrowK));
   }
 
+  @Test
+  public void compile() {
+    FreeAp<DSL.µ, Integer> readInt = FreeAp.pure(5);
+
+    FreeAp<Id.µ, Integer> compile = readInt.compile(idTransform());
+    Id<Integer> fold = compile.fold(IdInstances.applicative()).fix1(Id::narrowK);
+
+    assertEquals(5, fold.get());
+  }
+
+  @Test
+  public void analyze() {
+    FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
+        applicative.map5(
+            DSL.readInt(2),
+            DSL.readBoolean(false),
+            DSL.readDouble(2.1),
+            DSL.readString("hola mundo"),
+            DSL.readUnit(),
+            Tuple::of
+        ).fix1(FreeAp::narrowK);
+
+    String analize = tuple.analyze(constTransform(), ConstInstances.applicative(Monoid.string()));
+
+    assertEquals("ReadInt(2)\n" +
+        "ReadBoolean(false)\n" +
+        "ReadDouble(2.1)\n" +
+        "ReadString(hola mundo)\n" +
+        "ReadUnit(Unit)\n", analize);
+  }
+
   private FunctionK<DSL.µ, Id.µ> idTransform() {
     return new FunctionK<DSL.µ, Id.µ>() {
       @Override
       public <T> Higher1<Id.µ, T> apply(Higher1<DSL.µ, T> from) {
         DSL<T> dsl = from.fix1(DSL::narrowK);
         return Id.of(dsl.value()).kind1();
+      }
+    };
+  }
+
+  private FunctionK<DSL.µ, Higher1<Const.µ, String>> constTransform() {
+    return new FunctionK<DSL.µ, Higher1<Const.µ, String>>() {
+      @Override
+      public <T> Higher2<Const.µ, String, T> apply(Higher1<DSL.µ, T> from) {
+        DSL<T> dsl = from.fix1(DSL::narrowK);
+        return Const.<String, T>of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n").kind2();
       }
     };
   }

@@ -10,8 +10,10 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Monoid;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -38,8 +40,21 @@ public abstract class FreeAp<F extends Kind, A> {
     return foldMap(FunctionK.identity(), applicative);
   }
 
+  public <G extends Kind> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
+    return foldMap(functionKF(transformer), applicativeF()).fix1(FreeAp::narrowK);
+  }
+
+  public <G extends Kind> FreeAp<G, A> flatCompile(
+      FunctionK<F, Higher1<FreeAp.µ, G>> functionK, Applicative<Higher1<FreeAp.µ, G>> applicative) {
+    return foldMap(functionK, applicative).fix1(FreeAp::narrowK);
+  }
+
+  public <M> M analyze(FunctionK<F, Higher1<Const.µ, M>> functionK, Applicative<Higher1<Const.µ, M>> applicative) {
+    return foldMap(functionK, applicative).fix1(Const::narrowK).get();
+  }
+
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public <G extends Kind> Higher1<G, A> foldMap(FunctionK<F, G> transformation, Applicative<G> applicative) {
+  public <G extends Kind> Higher1<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
     Deque<FreeAp> argsF = new LinkedList<>(singletonList(this));
     Deque<CurriedFunction> fns = new LinkedList<>();
 
@@ -56,9 +71,9 @@ public abstract class FreeAp<F extends Kind, A> {
         } while (argF instanceof Apply);
 
         int argc = argsF.size() - lengthInitial;
-        fns.addFirst(new CurriedFunction(foldArg(argF, transformation, applicative), argc));
+        fns.addFirst(new CurriedFunction(foldArg(argF, functionK, applicative), argc));
       } else {
-        Higher1 argT = foldArg(argF, transformation, applicative);
+        Higher1 argT = foldArg(argF, functionK, applicative);
 
         if (!fns.isEmpty()) {
           CurriedFunction function = fns.pollFirst();
@@ -101,6 +116,15 @@ public abstract class FreeAp<F extends Kind, A> {
 
   public static <F extends Kind, T, R> FreeAp<F, R> apply(FreeAp<F, T> value, FreeAp<F, Function1<T, R>> mapper) {
     return new FreeAp.Apply<>(value, mapper);
+  }
+
+  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<FreeAp.µ, G>> functionKF(FunctionK<F, G> functionK) {
+    return new FunctionK<F, Higher1<FreeAp.µ, G>>() {
+      @Override
+      public <T> Higher2<FreeAp.µ, G, T> apply(Higher1<F, T> from) {
+        return lift(functionK.apply(from)).kind2();
+      }
+    };
   }
 
   public static <F extends Kind> Applicative<Higher1<FreeAp.µ, F>> applicativeF() {
@@ -201,7 +225,8 @@ interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp.µ,
   default <T, R> Higher2<FreeAp.µ, F, R> ap(
       Higher1<Higher1<FreeAp.µ, F>, T> value, Higher1<Higher1<FreeAp.µ, F>, Function1<T, R>> apply) {
     FreeAp<F, T> freeAp = value.fix1(FreeAp::narrowK);
-    return freeAp.ap(apply.fix1(FreeAp::narrowK)).kind2();
+    FreeAp<F, Function1<T, R>> apply1 = apply.fix1(FreeAp::narrowK);
+    return FreeAp.apply(freeAp, apply1).kind2();
   }
 }
 
