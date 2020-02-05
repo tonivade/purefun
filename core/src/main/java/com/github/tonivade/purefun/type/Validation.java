@@ -399,6 +399,10 @@ public interface Validation<E, T> {
       return "Result(" + errors.toList() + ")";
     }
 
+    public static <E> Result<E> append(Result<E> a, Result<E> b) {
+      return new Result<>(a.errors.appendAll(b.errors));
+    }
+
     public static <E> Function1<Result<Result<E>>, Result<E>> flatten() {
       return result -> new Result<>(result.errors.flatMap(r -> r.errors));
     }

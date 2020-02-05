@@ -61,6 +61,10 @@ public interface ValidationInstances {
   static MonadThrow<Higher1<Validation.µ, Throwable>> monadThrow() {
     return ValidationMonadThrow.instance();
   }
+
+  static <E> Semigroup<Validation.Result<E>> semigroup() {
+    return Validation.Result::append;
+  }
 }
 
 @Instance
@@ -158,3 +162,4 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
 interface ValidationMonadThrow
     extends ValidationMonadError<Throwable>,
             MonadThrow<Higher1<Validation.µ, Throwable>> { }
+
