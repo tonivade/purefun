@@ -399,7 +399,7 @@ public interface Validation<E, T> {
       return "Result(" + errors.toList() + ")";
     }
 
-    public static <E> Result<E> append(Result<E> a, Result<E> b) {
+    public static <E> Result<E> concat(Result<E> a, Result<E> b) {
       return new Result<>(a.errors.appendAll(b.errors));
     }
 
