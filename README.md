@@ -435,8 +435,8 @@ With higher kinded types simulation we can implement typeclases.
            |      /      |      \
        Alternative    Selective  ApplicativeError
                          |        |
-                       Monad      | 
-         ________________|        |
+  MonadWriter          Monad      |
+        \________________|        |
         /          /      \      / 
   MonadState  MonadReader  MonadError
                                \
@@ -636,6 +636,21 @@ public interface MonadState<F extends Kind, S> extends Monad<F> {
 
   default <A> Higher1<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
+  }
+}
+```
+
+### MonadWriter
+
+```java
+public interface MonadWriter<F extends Kind, W> extends Monad<F> {
+
+  <A> Higher1<F, A> writer(Tuple2<W, A> value);
+  <A> Higher1<F, Tuple2<W, A>> listen(Higher1<F, A> value);
+  <A> Higher1<F, A> pass(Higher1<F, Tuple2<Operator1<W>, A>> value);
+
+  default Higher1<F, Unit> tell(W writer) {
+    return writer(Tuple.of(writer, unit()));
   }
 }
 ```
