@@ -53,6 +53,10 @@ public abstract class FreeAp<F extends Kind, A> {
     return foldMap(functionK, applicative).fix1(Const::narrowK).get();
   }
 
+  public Free<F, A> monad() {
+    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix1(Free::narrowK);
+  }
+
   @SuppressWarnings({"rawtypes", "unchecked"})
   public <G extends Kind> Higher1<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
     Deque<FreeAp> argsF = new LinkedList<>(singletonList(this));

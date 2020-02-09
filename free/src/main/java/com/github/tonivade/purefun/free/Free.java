@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -43,8 +44,17 @@ public abstract class Free<F extends Kind, A> {
     return pure.flatMap(ignore -> value.get());
   }
 
-  public static <F extends Kind> Monad<Higher1<Free.µ, F>> monad() {
+  public static <F extends Kind> Monad<Higher1<Free.µ, F>> monadF() {
     return FreeMonad.instance();
+  }
+
+  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<Free.µ, G>> functionKF(FunctionK<F, G> functionK) {
+    return new FunctionK<F, Higher1<Free.µ, G>>() {
+      @Override
+      public <T> Higher2<Free.µ, G, T> apply(Higher1<F, T> from) {
+        return liftF(functionK.apply(from)).kind2();
+      }
+    };
   }
 
   public <R> Free<F, R> map(Function1<A, R> map) {
