@@ -11,6 +11,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
@@ -197,6 +198,9 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
 
   @Override
   public Tuple2<A, B> next() {
+    if (!hasNext()) {
+      throw new NoSuchElementException();
+    }
     return Tuple.of(_next(first), _next(second));
   }
 
