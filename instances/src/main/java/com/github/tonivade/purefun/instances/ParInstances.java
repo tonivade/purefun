@@ -61,7 +61,7 @@ interface ParPure extends Applicative<Par.µ> {
 interface PureApplicative extends ParPure {
   @Override
   default <T, R> Higher1<Par.µ, R> ap(Higher1<Par.µ, T> value, Higher1<Par.µ, Function1<T, R>> apply) {
-    return value.fix1(Par::narrowK).flatMap(x -> apply.fix1(Par::narrowK).map(f -> f.apply(x))).kind1();
+    return value.fix1(Par::narrowK).ap(apply.fix1(Par::narrowK)).kind1();
   }
 }
 
@@ -83,8 +83,7 @@ interface ParMonadThrow extends ParMonad, MonadThrow<Par.µ> {
   @Override
   default <A> Higher1<Par.µ, A> handleErrorWith(Higher1<Par.µ, A> value,
                                                 Function1<Throwable, ? extends Higher1<Par.µ, A>> handler) {
-    return Par.narrowK(value).fold(handler.andThen(Par::narrowK),
-        success -> Par.success(success)).flatMap(identity()).kind1();
+    return Par.narrowK(value).fold(handler.andThen(Par::narrowK), Par::success).flatMap(identity()).kind1();
   }
 }
 
