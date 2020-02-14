@@ -4,12 +4,7 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.PartialFunction1;
-import com.github.tonivade.purefun.Recoverable;
-import com.github.tonivade.purefun.Sealed;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.*;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
@@ -58,42 +53,33 @@ public interface Control<T> {
       this.cps = requireNonNull(cps);
     }
 
-//    private[effekt] final def use[A, Res](c: ContMarker[Res])(f: CPS[A, Res]): Control[A] =
-//        new Control[A] {
-//      def apply[R](k: MetaCont[A, R]): Result[R] = {
-//
-//          val (init, tail) = k splitAt c
-//
-//          val handled: Control[Res] = f { a =>
-//        new Control[Res] {
-//          def apply[R2](k: MetaCont[Res, R2]): Result[R2] =
-//              (init append k).apply(a)
-//        }
-//      }
-//
-//      // continue with tail
-//      Computation(handled, tail)
-//      }
-//    }
     @Override
     public <R1> Result<R1> apply(Cont<A, R1> cont) {
-      Tuple2<Cont<A, R>, Cont<R1, R>> tuple = cont.splitAt(marker);
-      Control<R> handled = cps.apply(a -> new Control<R>() {
+      Tuple2<Cont<A, R>, Cont<R, R1>> tuple = cont.splitAt(marker);
+      Control<R> handled = cps.apply(value -> new Control<R>() {
         @Override
         public <R2> Result<R2> apply(Cont<R, R2> cont) {
-          return tuple.get1().append(cont).apply(a);
+          return tuple.get1().append(cont).apply(value);
         }
       });
-      Cont<R1, R> tuple2 = tuple.get2();
-      // new Result.Computation<>(handled, tuple2);
-      return null;
+      return new Result.Computation<>(handled, tuple.get2());
     }
   }
 
-  final class DelimitCont<R> {
-    // TODO
-    //  type using[+A, -E] = E => Control[A]
-    //  def delimitCont[Res](marker: ContMarker[Res])(f: Res using marker.type): Control[Res] ???
+  final class DelimitCont<R> implements Control<R> {
+
+    private final Marker.Cont<R> marker;
+    private final Function1<? super Marker.Cont<R>, Control<R>> control;
+
+    public DelimitCont(Marker.Cont<R> marker, Function1<? super Marker.Cont<R>, Control<R>> control) {
+      this.marker = requireNonNull(marker);
+      this.control = requireNonNull(control);
+    }
+
+    @Override
+    public <R1> Result<R1> apply(Cont<R, R1> cont) {
+      return new Result.Computation<>(control.apply(marker), new Cont.Handler<>(marker, cont));
+    }
   }
 
   final class DelimitState<R, S> implements Control<R> {
@@ -274,15 +260,15 @@ interface Cont<A, B> {
 
   <C> Cont<A, C> append(Cont<B, C> next);
 
-  <R> Tuple2<Cont<A, R>, Cont<B, R>> splitAt(Marker.Cont<R> cont);
+  <R> Tuple2<Cont<A, R>, Cont<R, B>> splitAt(Marker.Cont<R> cont);
 
   default <R> Cont<R, B> map(Function1<R, A> mapper) {
     return flatMap(x -> new Control.Pure<>(mapper.apply(x)));
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "rawtypes"})
   default <R> Cont<R, B> flatMap(Function1<R, Control<A>> mapper) {
-    Function1<?, Control<?>> x = Function1.class.cast(mapper);
+    Function1<?, Control<?>> x = (Function1) mapper;
     return new Frames<>(NonEmptyList.of(x), this);
   }
 
@@ -301,7 +287,7 @@ interface Cont<A, B> {
     }
 
     @Override
-    public <R> Tuple2<Cont<A, R>, Cont<A, R>> splitAt(Marker.Cont<R> cont) {
+    public <R> Tuple2<Cont<A, R>, Cont<R, A>> splitAt(Marker.Cont<R> cont) {
       throw new UnsupportedOperationException();
     }
 
@@ -327,11 +313,11 @@ interface Cont<A, B> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Result<C> apply(A value) {
       Option<Function1<?, Control<?>>> head = frames.head();
       ImmutableList<Function1<?, Control<?>>> rest = frames.tail();
-      Function1<A, Control<B>> result = Function1.class.cast(head.get());
+      Function1<A, Control<B>> result = (Function1) head.get();
       if (rest.isEmpty()) {
         return new Result.Computation<>(result.apply(value), tail);
       }
@@ -344,17 +330,15 @@ interface Cont<A, B> {
     }
 
     @Override
-    public <R> Tuple2<Cont<A, R>, Cont<C, R>> splitAt(Marker.Cont<R> cont) {
+    public <R> Tuple2<Cont<A, R>, Cont<R, C>> splitAt(Marker.Cont<R> cont) {
       return tail.splitAt(cont).applyTo((head, tail) -> Tuple2.of(new Frames<>(frames, head), tail));
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <R> Cont<R, C> flatMap(Function1<R, Control<A>> mapper) {
-      Function1<?, Control<?>> x = Function1.class.cast(mapper);
-      NonEmptyList<Function1<?, Control<?>>> of = NonEmptyList.of(x);
-      NonEmptyList<Function1<?, Control<?>>> append = of.appendAll(frames);
-      return new Frames<>(append, tail);
+      NonEmptyList<Function1<?, Control<?>>> list = NonEmptyList.of((Function1) mapper);
+      return new Frames<>(list.appendAll(frames), tail);
     }
 
     @Override
@@ -364,7 +348,7 @@ interface Cont<A, B> {
 
     @Override
     public String toString() {
-      return String.format("fs :: %s", tail);
+      return String.format("frames :: %s", tail);
     }
   }
 
@@ -389,14 +373,19 @@ interface Cont<A, B> {
     }
 
     @Override
-    public <R1> Tuple2<Cont<R, R1>, Cont<A, R1>> splitAt(Marker.Cont<R1> cont) {
+    public <R1> Tuple2<Cont<R, R1>, Cont<R1, A>> splitAt(Marker.Cont<R1> cont) {
       // TODO
       //     // Here we deduce type equality from referential equality
       //    case _: marker.type => (HandlerCont(marker)(ReturnCont()), tail)
       //    case _ => tail.splitAt(c) match {
       //      case (head, tail) => (HandlerCont(marker)(head), tail)
       //    }
-      return null;
+      if (cont.getClass().isAssignableFrom(marker.getClass())) {
+        Handler<R, R1> rrHandler = new Handler<>(marker, new Return());
+        Tuple2<Cont<R, R1>, Cont<R1, A>> tuple = Tuple2.of(rrHandler, tail);
+        return null;
+      }
+      return tail.splitAt(cont).applyTo((head, tail) -> Tuple2.of(new Handler<>(marker, head), tail));
     }
 
     @Override
@@ -431,8 +420,8 @@ interface Cont<A, B> {
     }
 
     @Override
-    public <R1> Tuple2<Cont<R, R1>, Cont<A, R1>> splitAt(Marker.Cont<R1> cont) {
-      Tuple2<Cont<R, R1>, Cont<A, R1>> tuple = tail.splitAt(cont);
+    public <R1> Tuple2<Cont<R, R1>, Cont<R1, A>> splitAt(Marker.Cont<R1> cont) {
+      Tuple2<Cont<R, R1>, Cont<R1, A>> tuple = tail.splitAt(cont);
       return tuple.applyTo((head, tail) -> Tuple2.of(new Captured<>(marker, marker.backup(), head), tail));
     }
 
@@ -468,8 +457,8 @@ interface Cont<A, B> {
     }
 
     @Override
-    public <R1> Tuple2<Cont<R, R1>, Cont<A, R1>> splitAt(Marker.Cont<R1> cont) {
-      Tuple2<Cont<R, R1>, Cont<A, R1>> tuple = tail.splitAt(cont);
+    public <R1> Tuple2<Cont<R, R1>, Cont<R1, A>> splitAt(Marker.Cont<R1> cont) {
+      Tuple2<Cont<R, R1>, Cont<R1, A>> tuple = tail.splitAt(cont);
       return tuple.applyTo((head, tail) -> Tuple2.of(new Catch<>(marker, head), tail));
     }
 
@@ -510,7 +499,7 @@ interface Cont<A, B> {
     }
 
     @Override
-    public <R1> Tuple2<Cont<R, R1>, Cont<A, R1>> splitAt(Marker.Cont<R1> cont) {
+    public <R1> Tuple2<Cont<R, R1>, Cont<R1, A>> splitAt(Marker.Cont<R1> cont) {
       throw new UnsupportedOperationException();
     }
 
