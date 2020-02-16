@@ -30,7 +30,7 @@ public interface Control<T> {
   <R> Result<R> apply(Cont<T, R> cont);
 
   default T run() {
-    return Result.trampoline(apply(new Cont.Return<>()));
+    return Result.trampoline(apply(Cont._return()));
   }
 
   default <R> Control<R> map(Function1<T, R> mapper) {
@@ -118,7 +118,7 @@ public interface Control<T> {
 
     @Override
     public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return Result.computation(control.apply(marker), new Cont.Handler<>(marker, cont));
+      return Result.computation(control.apply(marker), Cont.handler(marker, cont));
     }
   }
 
@@ -134,7 +134,7 @@ public interface Control<T> {
 
     @Override
     public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return Result.computation(control, new Cont.State<>(marker, cont));
+      return Result.computation(control, Cont.state(marker, cont));
     }
   }
 
@@ -150,7 +150,7 @@ public interface Control<T> {
 
     @Override
     public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return Result.computation(control, new Cont.Catch<>(marker, cont));
+      return Result.computation(control, Cont._catch(marker, cont));
     }
   }
 
@@ -238,6 +238,7 @@ public interface Control<T> {
   }
 }
 
+@Sealed
 interface Result<T> {
 
   static <T> T trampoline(Result<T> apply) {
@@ -347,6 +348,7 @@ interface Result<T> {
   }
 }
 
+@Sealed
 interface Cont<A, B> {
 
   Result<B> apply(A value);
@@ -367,7 +369,25 @@ interface Cont<A, B> {
 
   Result<B> unwind(Throwable throwable);
 
+  static <A> Cont<A, A> _return() {
+    return new Return<>();
+  }
+
+  static <A, B, S> Cont<A, B> state(Marker.State<S> marker, Cont<A, B> tail) {
+    return new State<>(marker, tail);
+  }
+
+  static <A, B> Cont<A, B> handler(Marker.Cont<A> marker, Cont<A, B> tail) {
+    return new Handler<>(marker, tail);
+  }
+
+  static <A, B> Catch<A, B> _catch(Marker.Catch<A> marker, Cont<A, B> tail) {
+    return new Catch<>(marker, tail);
+  }
+
   final class Return<A> implements Cont<A, A>, Recoverable {
+
+    private Return() {}
 
     @Override
     public Result<A> apply(A value) {
@@ -400,7 +420,7 @@ interface Cont<A, B> {
     private final NonEmptyList<Function1<?, Control<?>>> frames;
     private final Cont<B, C> tail;
 
-    public Frames(NonEmptyList<Function1<?, Control<?>>> frames, Cont<B, C> tail) {
+    private Frames(NonEmptyList<Function1<?, Control<?>>> frames, Cont<B, C> tail) {
       this.frames = requireNonNull(frames);
       this.tail = requireNonNull(tail);
     }
@@ -450,7 +470,7 @@ interface Cont<A, B> {
     private final Marker.Cont<R> marker;
     private final Cont<R, A> tail;
 
-    public Handler(Marker.Cont<R> marker, Cont<R, A> tail) {
+    private Handler(Marker.Cont<R> marker, Cont<R, A> tail) {
       this.marker = requireNonNull(marker);
       this.tail = requireNonNull(tail);
     }
@@ -493,7 +513,7 @@ interface Cont<A, B> {
     private final Marker.State<S> marker;
     private final Cont<R, A> tail;
 
-    public State(Marker.State<S> marker, Cont<R, A> tail) {
+    private State(Marker.State<S> marker, Cont<R, A> tail) {
       this.marker = requireNonNull(marker);
       this.tail = requireNonNull(tail);
     }
@@ -530,7 +550,7 @@ interface Cont<A, B> {
     private final Marker.Catch<R> marker;
     private final Cont<R, A> tail;
 
-    public Catch(Marker.Catch<R> marker, Cont<R, A> tail) {
+    private Catch(Marker.Catch<R> marker, Cont<R, A> tail) {
       this.marker = requireNonNull(marker);
       this.tail = requireNonNull(tail);
     }
@@ -571,7 +591,7 @@ interface Cont<A, B> {
     private final S state;
     private final Cont<R, A> tail;
 
-    public Captured(Marker.State<S> marker, S state, Cont<R, A> tail) {
+    private Captured(Marker.State<S> marker, S state, Cont<R, A> tail) {
       this.marker = requireNonNull(marker);
       this.state = requireNonNull(state);
       this.tail = requireNonNull(tail);
@@ -646,18 +666,18 @@ class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Obj
   final class Field<T> {
 
     @SuppressWarnings("unchecked")
-    Control<T> get() {
+    public Control<T> get() {
       return Control.later(() -> (T) data.get(this).get());
     }
 
-    Control<Unit> set(T value) {
+    public Control<Unit> set(T value) {
       return Control.later(() -> {
         data = data.put(this, value);
         return unit();
       });
     }
 
-    Control<Unit> update(Operator1<T> mapper) {
+    public Control<Unit> update(Operator1<T> mapper) {
       return get().flatMap(x -> set(mapper.apply(x)));
     }
   }

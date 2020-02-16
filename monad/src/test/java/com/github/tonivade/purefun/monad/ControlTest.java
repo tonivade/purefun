@@ -27,43 +27,37 @@ public class ControlTest {
     Control<Unit> set(S state);
   }
 
-  static class SimpleTest {
+  @Test
+  public void simple() {
+    Control<ImmutableList<Integer>> handled = ambList(this::program);
 
-    @Test
-    public void test() {
-      Control<ImmutableList<Integer>> handled = ambList(this::program);
-
-      assertEquals(listOf(2, 3), handled.run());
-    }
-
-    private Control<Integer> program(Amb amb) {
-      return amb.flip().map(x -> x ? 2 : 3);
-    }
+    assertEquals(listOf(2, 3), handled.run());
   }
 
-  static class StatefulTest {
+  @Test
+  public void state1() {
+    Control<ImmutableList<Integer>> handled = ambList(amb -> state(0, state -> program(state, amb)));
 
-    @Test
-    public void test1() {
-      Control<ImmutableList<Integer>> handled = ambList(amb -> state(0, state -> program(state, amb)));
+    assertEquals(listOf(1, 0), handled.run());
+  }
 
-      assertEquals(listOf(1, 0), handled.run());
-    }
+  @Test
+  public void state2() {
+    Control<ImmutableList<Integer>> handled = state(0, state -> ambList(amb -> program(state, amb)));
 
-    @Test
-    public void test2() {
-      Control<ImmutableList<Integer>> handled = state(0, state -> ambList(amb -> program(state, amb)));
+    assertEquals(listOf(1, 1), handled.run());
+  }
 
-      assertEquals(listOf(1, 1), handled.run());
-    }
+  private Control<Integer> program(Amb amb) {
+    return amb.flip().map(x -> x ? 2 : 3);
+  }
 
-    private Control<Integer> program(State<Integer> state, Amb amb) {
-      return For.with(ControlInstances.monad())
-          .and(state.get().kind1())
-          .flatMap(x -> amb.flip().flatMap(b -> b ? state.set(x + 1) : pure(unit())).kind1())
-          .and(state.get().kind1())
-          .fix(Control::narrowK);
-    }
+  private Control<Integer> program(State<Integer> state, Amb amb) {
+    return For.with(ControlInstances.monad())
+        .and(state.get().kind1())
+        .flatMap(x -> amb.flip().flatMap(b -> b ? state.set(x + 1) : pure(unit())).kind1())
+        .and(state.get().kind1())
+        .fix(Control::narrowK);
   }
 
   private static <R> Control<ImmutableList<R>> ambList(Function1<Amb, Control<R>> program) {
@@ -79,12 +73,12 @@ public class ControlTest {
     }
   }
 
-  static <R, S> Control<R> state(S init, Function1<State<S>, Control<R>> program) {
+  private static <R, S> Control<R> state(S init, Function1<State<S>, Control<R>> program) {
     return new StateImpl<R, S>().<StateImpl<R, S>>apply(
         state -> program.apply(state).map(r -> s -> pure(r))).flatMap(f -> f.apply(init));
   }
 
-  static final class StateImpl<R, S> implements Control.Handler<Function1<S, Control<R>>>, State<S> {
+  private static final class StateImpl<R, S> implements Control.Handler<Function1<S, Control<R>>>, State<S> {
 
     @Override
     public Control<S> get() {
