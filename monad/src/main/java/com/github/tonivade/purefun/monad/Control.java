@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
 
+import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -54,12 +55,40 @@ public interface Control<T> {
     return flatMap(ignore -> next);
   }
 
+  static <T> Control<T> pure(T value) {
+    return later(cons(value));
+  }
+
+  static <T> Control<T> later(Producer<T> value) {
+    return new Pure<>(value);
+  }
+
+  static <T> Control<T> failure(Throwable throwable) {
+    return new Failure<>(throwable);
+  }
+
+  static <T, R> Control<T> use(Marker.Cont<R> marker, Function1<Function1<T, Control<R>>, Control<R>> cps) {
+    return new Use<>(marker, cps);
+  }
+
+  static <R> Control<R> delimitCont(Marker.Cont<R> marker, Function1<? super Marker.Cont<R>, Control<R>> control) {
+    return new DelimitCont<>(marker, control);
+  }
+
+  static <R, S> Control<R> delimitState(Marker.State<S> marker, Control<R> control) {
+    return new DelimitState<>(marker, control);
+  }
+
+  static <R> Control<R> delimitCatch(Marker.Catch<R> marker, Control<R> control) {
+    return new DelimitCatch<>(marker, control);
+  }
+
   final class Use<A, R> implements Control<A> {
 
     private final Marker.Cont<R> marker;
     private final Function1<Function1<A, Control<R>>, Control<R>> cps;
 
-    public Use(Marker.Cont<R> marker, Function1<Function1<A, Control<R>>, Control<R>> cps) {
+    private Use(Marker.Cont<R> marker, Function1<Function1<A, Control<R>>, Control<R>> cps) {
       this.marker = requireNonNull(marker);
       this.cps = requireNonNull(cps);
     }
@@ -73,7 +102,7 @@ public interface Control<T> {
           return tuple.get1().append(cont).apply(value);
         }
       });
-      return new Result.Computation<>(handled, tuple.get2());
+      return Result.computation(handled, tuple.get2());
     }
   }
 
@@ -82,14 +111,14 @@ public interface Control<T> {
     private final Marker.Cont<R> marker;
     private final Function1<? super Marker.Cont<R>, Control<R>> control;
 
-    public DelimitCont(Marker.Cont<R> marker, Function1<? super Marker.Cont<R>, Control<R>> control) {
+    private DelimitCont(Marker.Cont<R> marker, Function1<? super Marker.Cont<R>, Control<R>> control) {
       this.marker = requireNonNull(marker);
       this.control = requireNonNull(control);
     }
 
     @Override
     public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return new Result.Computation<>(control.apply(marker), new Cont.Handler<>(marker, cont));
+      return Result.computation(control.apply(marker), new Cont.Handler<>(marker, cont));
     }
   }
 
@@ -98,14 +127,14 @@ public interface Control<T> {
     private final Marker.State<S> marker;
     private final Control<R> control;
 
-    public DelimitState(Marker.State<S> marker, Control<R> control) {
+    private DelimitState(Marker.State<S> marker, Control<R> control) {
       this.marker = requireNonNull(marker);
       this.control = requireNonNull(control);
     }
 
     @Override
     public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return new Result.Computation<>(control, new Cont.State<>(marker, cont));
+      return Result.computation(control, new Cont.State<>(marker, cont));
     }
   }
 
@@ -114,14 +143,14 @@ public interface Control<T> {
     private final Marker.Catch<R> marker;
     private final Control<R> control;
 
-    public DelimitCatch(Marker.Catch<R> marker, Control<R> control) {
+    private DelimitCatch(Marker.Catch<R> marker, Control<R> control) {
       this.marker = requireNonNull(marker);
       this.control = requireNonNull(control);
     }
 
     @Override
     public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return new Result.Computation<>(control, new Cont.Catch<>(marker, cont));
+      return Result.computation(control, new Cont.Catch<>(marker, cont));
     }
   }
 
@@ -129,7 +158,7 @@ public interface Control<T> {
 
     private final Producer<T> value;
 
-    public Pure(Producer<T> value) {
+    private Pure(Producer<T> value) {
       this.value = requireNonNull(value);
     }
 
@@ -154,13 +183,13 @@ public interface Control<T> {
 
     private final Throwable error;
 
-    public Failure(Throwable error) {
+    private Failure(Throwable error) {
       this.error = requireNonNull(error);
     }
 
     @Override
     public <R> Result<R> apply(Cont<T, R> cont) {
-      return new Result.Abort<>(error);
+      return Result.abort(error);
     }
 
     @Override
@@ -171,6 +200,40 @@ public interface Control<T> {
     @Override
     public <R> Control<R> flatMap(Function1<T, Control<R>> mapper) {
       return (Control<R>) this;
+    }
+  }
+
+  interface Handler<R> extends Marker.Cont<R> {
+
+    default <T> Control<T> use(Function1<Function1<T, Control<R>>, Control<R>> body) {
+      return Control.use(this, body);
+    }
+
+    @SuppressWarnings("unchecked")
+    // XXX: don't know if there's a better solution for this
+    default <E extends Handler<R>> Control<R> apply(Function1<E, Control<R>> program) {
+      if (this instanceof StateMarker) {
+        return Control.delimitState((Marker.State<?>) this,
+            Control.delimitCont(this, h -> program.apply((E) this)));
+      }
+      return Control.delimitCont(this, h -> program.apply((E) this));
+    }
+  }
+
+  final class Stateful<R, S> extends StateMarker implements Handler<R> {
+
+    private final Field<S> state;
+
+    public Stateful(S init) {
+      this.state = field(init);
+    }
+
+    public <T> Control<T> useState(Function2<S, Function2<T, S, Control<R>>, Control<R>> body) {
+      return this.use(resume ->
+          state.get().flatMap(x ->
+              body.apply(x, (t, after) -> state.set(after).andThen(resume.apply(t)))
+          )
+      );
     }
   }
 }
@@ -199,11 +262,23 @@ interface Result<T> {
     return false;
   }
 
+  static <T> Result<T> value(T value) {
+    return new Value<>(value);
+  }
+
+  static <T> Result<T> abort(Throwable error) {
+    return new Abort<>(error);
+  }
+
+  static <T, R> Result<T> computation(Control<R> control, Cont<R, T> cont) {
+    return new Computation<>(control, cont);
+  }
+
   final class Value<T> implements Result<T> {
 
     private final T value;
 
-    public Value(T value) {
+    private Value(T value) {
       this.value = requireNonNull(value);
     }
 
@@ -222,7 +297,7 @@ interface Result<T> {
 
     private final Throwable error;
 
-    public Abort(Throwable error) {
+    private Abort(Throwable error) {
       this.error = requireNonNull(error);
     }
 
@@ -242,7 +317,7 @@ interface Result<T> {
     private final Control<R> control;
     private final Cont<R, T> continuation;
 
-    public Computation(Control<R> control, Cont<R, T> continuation) {
+    private Computation(Control<R> control, Cont<R, T> continuation) {
       this.control = requireNonNull(control);
       this.continuation = requireNonNull(continuation);
     }
@@ -281,7 +356,7 @@ interface Cont<A, B> {
   <R> Tuple2<Cont<A, R>, Cont<R, B>> splitAt(Marker.Cont<R> cont);
 
   default <R> Cont<R, B> map(Function1<R, A> mapper) {
-    return flatMap(x -> new Control.Pure<>(() -> mapper.apply(x)));
+    return flatMap(x -> Control.later(() -> mapper.apply(x)));
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -296,7 +371,7 @@ interface Cont<A, B> {
 
     @Override
     public Result<A> apply(A value) {
-      return new Result.Value<>(value);
+      return Result.value(value);
     }
 
     @Override
@@ -337,9 +412,9 @@ interface Cont<A, B> {
       ImmutableList<Function1<?, Control<?>>> rest = frames.tail();
       Function1<A, Control<B>> result = (Function1) head.get();
       if (rest.isEmpty()) {
-        return new Result.Computation<>(result.apply(value), tail);
+        return Result.computation(result.apply(value), tail);
       }
-      return new Result.Computation<>(result.apply(value), new Frames<>(NonEmptyList.of(rest), tail));
+      return Result.computation(result.apply(value), new Frames<>(NonEmptyList.of(rest), tail));
     }
 
     @Override
@@ -564,7 +639,7 @@ class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Obj
 
   public <T> Field<T> field(T value) {
     Field<T> field = new Field<>();
-    data.put(field, value);
+    data = data.put(field, value);
     return field;
   }
 
@@ -572,11 +647,11 @@ class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Obj
 
     @SuppressWarnings("unchecked")
     Control<T> get() {
-      return new Control.Pure<>(() -> (T) data.get(this).get());
+      return Control.later(() -> (T) data.get(this).get());
     }
 
     Control<Unit> set(T value) {
-      return new Control.Pure<>(() -> {
+      return Control.later(() -> {
         data = data.put(this, value);
         return unit();
       });
@@ -584,40 +659,6 @@ class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Obj
 
     Control<Unit> update(Operator1<T> mapper) {
       return get().flatMap(x -> set(mapper.apply(x)));
-    }
-  }
-}
-
-interface Handler<R> extends Marker.Cont<R> {
-
-  default <T> Control<T> use(Function1<Function1<T, Control<R>>, Control<R>> body) {
-    return new Control.Use<>(this, body);
-  }
-
-  @SuppressWarnings("unchecked")
-  // XXX: don't know if there's a better solution for this
-  default <E extends Handler<R>> Control<R> apply(Function1<E, Control<R>> program) {
-    if (this instanceof StateMarker) {
-      return new Control.DelimitState<>((Marker.State<?>) this,
-          new Control.DelimitCont<>(this, h -> program.apply((E) this)));
-    }
-    return new Control.DelimitCont<>(this, h -> program.apply((E) this));
-  }
-
-  final class Stateful<R, S> extends StateMarker implements Handler<R> {
-
-    private final Field<S> state;
-
-    public Stateful(S init) {
-      this.state = field(init);
-    }
-
-    public <T> Control<T> useState(Function2<S, Function2<T, S, Control<R>>, Control<R>> body) {
-      return this.use(resume ->
-          state.get().flatMap(x ->
-              body.apply(x, (t, after) -> state.set(after).andThen(resume.apply(t)))
-          )
-      );
     }
   }
 }
