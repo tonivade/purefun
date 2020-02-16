@@ -4,11 +4,22 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import com.github.tonivade.purefun.*;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.PartialFunction1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Sealed;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
 
+import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 @Sealed
@@ -116,25 +127,25 @@ public interface Control<T> {
 
   final class Pure<T> implements Control<T> {
 
-    private final T value;
+    private final Producer<T> value;
 
-    public Pure(T value) {
+    public Pure(Producer<T> value) {
       this.value = requireNonNull(value);
     }
 
     @Override
     public T run() {
-      return value;
+      return value.get();
     }
 
     @Override
     public <R> Result<R> apply(Cont<T, R> cont) {
-      return cont.apply(value);
+      return cont.apply(value.get());
     }
 
     @Override
     public <R> Control<R> map(Function1<T, R> mapper) {
-      return new Pure<>(mapper.apply(value));
+      return new Pure<>(() -> mapper.apply(value.get()));
     }
   }
 
@@ -166,17 +177,16 @@ public interface Control<T> {
 
 interface Result<T> {
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
   static <T> T trampoline(Result<T> apply) {
     Result<T> result = apply;
 
     while (result.isComputation()) {
-      Computation comp = (Computation) result;
+      Computation<T, ?> current = (Computation<T, ?>) result;
 
       try {
-        result = (Result<T>) comp.control.apply(comp.continuation);
+        result = current.apply();
       } catch (Throwable t) {
-        result = comp.continuation.unwind(t);
+        result = current.unwind(t);
       }
     }
 
@@ -247,6 +257,14 @@ interface Result<T> {
       throw new UnsupportedOperationException();
     }
 
+    public Result<T> apply() {
+      return control.apply(continuation);
+    }
+
+    public Result<T> unwind(Throwable throwable) {
+      return continuation.unwind(throwable);
+    }
+
     @Override
     public String toString() {
       return String.format("Computation(%s, %s)", control, continuation);
@@ -263,7 +281,7 @@ interface Cont<A, B> {
   <R> Tuple2<Cont<A, R>, Cont<R, B>> splitAt(Marker.Cont<R> cont);
 
   default <R> Cont<R, B> map(Function1<R, A> mapper) {
-    return flatMap(x -> new Control.Pure<>(mapper.apply(x)));
+    return flatMap(x -> new Control.Pure<>(() -> mapper.apply(x)));
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -272,7 +290,7 @@ interface Cont<A, B> {
     return new Frames<>(NonEmptyList.of(x), this);
   }
 
-  Result<B> unwind(Throwable effect);
+  Result<B> unwind(Throwable throwable);
 
   final class Return<A> implements Cont<A, A>, Recoverable {
 
@@ -292,8 +310,8 @@ interface Cont<A, B> {
     }
 
     @Override
-    public Result<A> unwind(Throwable effect) {
-      return sneakyThrow(effect);
+    public Result<A> unwind(Throwable throwable) {
+      return sneakyThrow(throwable);
     }
 
     @Override
@@ -342,8 +360,8 @@ interface Cont<A, B> {
     }
 
     @Override
-    public Result<C> unwind(Throwable effect) {
-      return tail.unwind(effect);
+    public Result<C> unwind(Throwable throwable) {
+      return tail.unwind(throwable);
     }
 
     @Override
@@ -373,24 +391,20 @@ interface Cont<A, B> {
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <R1> Tuple2<Cont<R, R1>, Cont<R1, A>> splitAt(Marker.Cont<R1> cont) {
-      // TODO
-      //     // Here we deduce type equality from referential equality
-      //    case _: marker.type => (HandlerCont(marker)(ReturnCont()), tail)
-      //    case _ => tail.splitAt(c) match {
-      //      case (head, tail) => (HandlerCont(marker)(head), tail)
-      //    }
       if (cont.getClass().isAssignableFrom(marker.getClass())) {
-        Handler<R, R1> rrHandler = new Handler<>(marker, new Return());
-        Tuple2<Cont<R, R1>, Cont<R1, A>> tuple = Tuple2.of(rrHandler, tail);
-        return null;
+        Handler<R, R1> handler = new Handler<>(marker, new Return());
+        // XXX: does not match, don't now how it compiles on scala
+        Tuple2<Cont<R, R1>, Cont<R, A>> tuple = Tuple2.of(handler, tail);
+        return (Tuple2) tuple;
       }
       return tail.splitAt(cont).applyTo((head, tail) -> Tuple2.of(new Handler<>(marker, head), tail));
     }
 
     @Override
-    public Result<A> unwind(Throwable effect) {
-      return tail.unwind(effect);
+    public Result<A> unwind(Throwable throwable) {
+      return tail.unwind(throwable);
     }
 
     @Override
@@ -426,8 +440,8 @@ interface Cont<A, B> {
     }
 
     @Override
-    public Result<A> unwind(Throwable effect) {
-      return tail.unwind(effect);
+    public Result<A> unwind(Throwable throwable) {
+      return tail.unwind(throwable);
     }
 
     @Override
@@ -463,11 +477,11 @@ interface Cont<A, B> {
     }
 
     @Override
-    public Result<A> unwind(Throwable effect) {
-      if (marker.handle().isDefinedAt(effect)) {
-        return marker.handle().apply(effect).apply(tail);
+    public Result<A> unwind(Throwable throwable) {
+      if (marker.handle().isDefinedAt(throwable)) {
+        return marker.handle().apply(throwable).apply(tail);
       }
-      return tail.unwind(effect);
+      return tail.unwind(throwable);
     }
 
     @Override
@@ -483,9 +497,9 @@ interface Cont<A, B> {
     private final Cont<R, A> tail;
 
     public Captured(Marker.State<S> marker, S state, Cont<R, A> tail) {
-      this.marker = marker;
-      this.state = state;
-      this.tail = tail;
+      this.marker = requireNonNull(marker);
+      this.state = requireNonNull(state);
+      this.tail = requireNonNull(tail);
     }
 
     @Override
@@ -495,7 +509,7 @@ interface Cont<A, B> {
 
     @Override
     public <C> Cont<R, C> append(Cont<A, C> next) {
-      return new State<>(marker.restore(state), tail.append(next));
+      return new State<>(restore(), tail.append(next));
     }
 
     @Override
@@ -504,8 +518,13 @@ interface Cont<A, B> {
     }
 
     @Override
-    public Result<A> unwind(Throwable effect) {
+    public Result<A> unwind(Throwable throwable) {
       throw new UnsupportedOperationException();
+    }
+
+    private Marker.State<S> restore() {
+      marker.restore(state);
+      return marker;
     }
 
     @Override
@@ -517,14 +536,88 @@ interface Cont<A, B> {
 
 interface Marker {
 
-  interface Cont<T> {}
+  interface Cont<R> {}
 
-  interface State<T> {
-    T backup();
-    State<T> restore(T value);
+  interface State<S> {
+    S backup();
+    void restore(S value);
   }
 
-  interface Catch<T> {
-    PartialFunction1<Throwable, Control<T>> handle();
+  interface Catch<R> {
+    PartialFunction1<Throwable, Control<R>> handle();
+  }
+}
+
+class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Object>> {
+
+  private ImmutableMap<Field<?>, Object> data = ImmutableMap.empty();
+
+  @Override
+  public ImmutableMap<Field<?>, Object> backup() {
+    return data;
+  }
+
+  @Override
+  public void restore(ImmutableMap<Field<?>, Object> value) {
+    this.data = requireNonNull(value);
+  }
+
+  public <T> Field<T> field(T value) {
+    Field<T> field = new Field<>();
+    data.put(field, value);
+    return field;
+  }
+
+  final class Field<T> {
+
+    @SuppressWarnings("unchecked")
+    Control<T> get() {
+      return new Control.Pure<>(() -> (T) data.get(this).get());
+    }
+
+    Control<Unit> set(T value) {
+      return new Control.Pure<>(() -> {
+        data = data.put(this, value);
+        return unit();
+      });
+    }
+
+    Control<Unit> update(Operator1<T> mapper) {
+      return get().flatMap(x -> set(mapper.apply(x)));
+    }
+  }
+}
+
+interface Handler<R> extends Marker.Cont<R> {
+
+  default <T> Control<T> use(Function1<Function1<T, Control<R>>, Control<R>> body) {
+    return new Control.Use<>(this, body);
+  }
+
+  @SuppressWarnings("unchecked")
+  // XXX: don't know if there's a better solution for this
+  default <E extends Handler<R>> Control<R> apply(Function1<E, Control<R>> program) {
+    if (this instanceof StateMarker) {
+      return new Control.DelimitState<>((Marker.State<?>) this,
+          new Control.DelimitCont<>(this, h -> program.apply((E) this)));
+    }
+    return new Control.DelimitCont<>(this, h -> program.apply((E) this));
+  }
+
+  final class Stateful<R, S> extends StateMarker implements Handler<R> {
+
+    private final Field<S> state;
+
+    public Stateful(S init) {
+      this.state = field(init);
+    }
+
+    public <T> Control<T> useState(Function2<S, Function2<T, S, Control<R>>, Control<R>> body) {
+      return this.use(resume ->
+          state.get().flatMap(x ->
+              body.apply(x, (t, after) -> state.set(after).andThen(resume.apply(t)))
+          )
+      );
+    }
   }
 }
