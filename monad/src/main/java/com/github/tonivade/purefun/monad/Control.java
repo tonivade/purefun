@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.monad;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -220,7 +219,7 @@ public interface Control<T> {
     }
   }
 
-  final class Stateful<R, S> extends StateMarker implements Handler<R> {
+  class Stateful<R, S> extends StateMarker implements Handler<R> {
 
     private final Field<S> state;
 
@@ -228,10 +227,10 @@ public interface Control<T> {
       this.state = field(init);
     }
 
-    public <T> Control<T> useState(Function2<S, Function2<T, S, Control<R>>, Control<R>> body) {
+    public <T> Control<T> useState(Function1<S, Function1<Function1<T, Function1<S, Control<R>>>, Control<R>>> body) {
       return this.use(resume ->
-          state.get().flatMap(x ->
-              body.apply(x, (t, after) -> state.set(after).andThen(resume.apply(t)))
+          state.get().flatMap(before ->
+              body.apply(before).apply(value -> after -> state.set(after).andThen(resume.apply(value)))
           )
       );
     }
@@ -363,8 +362,8 @@ interface Cont<A, B> {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   default <R> Cont<R, B> flatMap(Function1<R, Control<A>> mapper) {
-    Function1<?, Control<?>> x = (Function1) mapper;
-    return new Frames<>(NonEmptyList.of(x), this);
+    Function1<?, Control<?>> f = (Function1) mapper;
+    return new Frames<>(NonEmptyList.of(f), this);
   }
 
   Result<B> unwind(Throwable throwable);
