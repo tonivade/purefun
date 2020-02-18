@@ -36,8 +36,9 @@ public class PipingExample {
         .andThen(receive.receive().flatMap(this::println));
   }
 
-  private <R> Control<R> pipe(Function1<Down<R>, Control<R>> down, Function1<Up<R>, Control<R>> up) {
-    return down(new Prod<Control<R>>(unit -> cons -> up(cons.fix1(Cons::narrowK)).apply(up))).apply(down);
+  private <R> Control<R> pipe(Function1<Receive, Control<R>> down, Function1<Send, Control<R>> up) {
+    return down(new Prod<Control<R>>(unit -> cons ->
+        up(cons.fix1(Cons::narrowK)).<Up<R>>apply(up::apply))).<Down<R>>apply(down::apply);
   }
 
   @Test
