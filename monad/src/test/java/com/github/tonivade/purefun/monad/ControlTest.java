@@ -61,10 +61,10 @@ public class ControlTest {
   }
 
   private static <R> Control<ImmutableList<R>> ambList(Function1<Amb, Control<R>> program) {
-    return new AmbList<R>().<AmbList<R>>apply(amb -> program.apply(amb).map(ImmutableList::of));
+    return new AmbList<R>().apply(amb -> program.apply(amb).map(ImmutableList::of));
   }
 
-  private static final class AmbList<R> implements Control.Handler<ImmutableList<R>>, Amb {
+  private static final class AmbList<R> implements Control.Handler<ImmutableList<R>, Amb>, Amb {
 
     @Override
     public Control<Boolean> flip() {
@@ -74,11 +74,11 @@ public class ControlTest {
   }
 
   private static <R, S> Control<R> state(S init, Function1<State<S>, Control<R>> program) {
-    return new StateImpl<R, S>().<StateImpl<R, S>>apply(
+    return new StateImpl<R, S>().apply(
         state -> program.apply(state).map(r -> s -> pure(r))).flatMap(f -> f.apply(init));
   }
 
-  private static final class StateImpl<R, S> implements Control.Handler<Function1<S, Control<R>>>, State<S> {
+  private static final class StateImpl<R, S> implements Control.Handler<Function1<S, Control<R>>, State<S>>, State<S> {
 
     @Override
     public Control<S> get() {

@@ -38,7 +38,7 @@ public class PipingExample {
 
   private <R> Control<R> pipe(Function1<Receive, Control<R>> down, Function1<Send, Control<R>> up) {
     return down(new Prod<Control<R>>(unit -> cons ->
-        up(cons.fix1(Cons::narrowK)).<Up<R>>apply(up::apply))).<Down<R>>apply(down::apply);
+        up(cons.fix1(Cons::narrowK)).apply(up::apply))).apply(down::apply);
   }
 
   @Test
@@ -58,14 +58,14 @@ public class PipingExample {
     return Control.later(() -> { System.out.println(x); return unit(); });
   }
 
-  static class Process<R, P extends Kind> extends Control.Stateful<R, Higher1<P, Control<R>>> {
+  static class Process<R, P extends Kind, E> extends Control.Stateful<R, Higher1<P, Control<R>>, E> {
 
     Process(Higher1<P, Control<R>> init) {
       super(init);
     }
   }
 
-  static final class Down<R> extends Process<R, Prod.µ> implements Receive {
+  static final class Down<R> extends Process<R, Prod.µ, Receive> implements Receive {
 
     Down(Higher1<Prod.µ, Control<R>> init) {
       super(init);
@@ -77,7 +77,7 @@ public class PipingExample {
     }
   }
 
-  static final class Up<R> extends Process<R, Cons.µ> implements Send {
+  static final class Up<R> extends Process<R, Cons.µ, Send> implements Send {
 
     Up(Higher1<Cons.µ, Control<R>> init) {
       super(init);

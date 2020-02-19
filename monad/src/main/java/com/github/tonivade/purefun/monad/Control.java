@@ -202,15 +202,14 @@ public interface Control<T> {
     }
   }
 
-  interface Handler<R> extends Marker.Cont<R> {
+  interface Handler<R, E> extends Marker.Cont<R> {
 
     default <T> Control<T> use(Function1<Function1<T, Control<R>>, Control<R>> body) {
       return Control.use(this, body);
     }
 
     @SuppressWarnings("unchecked")
-    // XXX: don't know if there's a better solution for this
-    default <E extends Handler<R>> Control<R> apply(Function1<E, Control<R>> program) {
+    default Control<R> apply(Function1<E, Control<R>> program) {
       if (this instanceof StateMarker) {
         return Control.delimitState((Marker.State<?>) this,
             Control.delimitCont(this, h -> program.apply((E) this)));
@@ -219,7 +218,7 @@ public interface Control<T> {
     }
   }
 
-  class Stateful<R, S> extends StateMarker implements Handler<R> {
+  class Stateful<R, S, E> extends StateMarker implements Handler<R, E> {
 
     private final Field<S> state;
 
