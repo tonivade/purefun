@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Instance;
-import com.github.tonivade.purefun.monad.Control;
+import com.github.tonivade.purefun.control.Control;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface ControlInstances {

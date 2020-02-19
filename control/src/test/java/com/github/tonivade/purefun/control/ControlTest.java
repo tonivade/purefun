@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.monad;
+package com.github.tonivade.purefun.control;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Unit;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.monad.Control.pure;
+import static com.github.tonivade.purefun.control.Control.pure;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ControlTest {
@@ -64,7 +64,7 @@ public class ControlTest {
     return new AmbList<R>().apply(amb -> program.apply(amb).map(ImmutableList::of));
   }
 
-  private static final class AmbList<R> implements Control.Handler<ImmutableList<R>, Amb>, Amb {
+  private static final class AmbList<R> implements Handler<ImmutableList<R>, Amb>, Amb {
 
     @Override
     public Control<Boolean> flip() {
@@ -78,7 +78,7 @@ public class ControlTest {
         state -> program.apply(state).map(r -> s -> pure(r))).flatMap(f -> f.apply(init));
   }
 
-  private static final class StateImpl<R, S> implements Control.Handler<Function1<S, Control<R>>, State<S>>, State<S> {
+  private static final class StateImpl<R, S> implements Handler<Function1<S, Control<R>>, State<S>>, State<S> {
 
     @Override
     public Control<S> get() {

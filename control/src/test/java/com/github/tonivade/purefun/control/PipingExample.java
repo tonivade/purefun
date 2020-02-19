@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.monad;
+package com.github.tonivade.purefun.control;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -58,7 +58,7 @@ public class PipingExample {
     return Control.later(() -> { System.out.println(x); return unit(); });
   }
 
-  static class Process<R, P extends Kind, E> extends Control.Stateful<R, Higher1<P, Control<R>>, E> {
+  static class Process<R, P extends Kind, E> extends Stateful<R, Higher1<P, Control<R>>, E> {
 
     Process(Higher1<P, Control<R>> init) {
       super(init);
