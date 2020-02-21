@@ -67,6 +67,9 @@ public class ControlTest {
   private static final class AmbList<R> implements Handler<ImmutableList<R>, Amb>, Amb {
 
     @Override
+    public Amb effect() { return this; }
+
+    @Override
     public Control<Boolean> flip() {
       return use(resume ->
           resume.apply(true).flatMap(ts -> resume.apply(false).map(ts::appendAll)));
@@ -79,6 +82,9 @@ public class ControlTest {
   }
 
   private static final class StateImpl<R, S> implements Handler<Function1<S, Control<R>>, State<S>>, State<S> {
+
+    @Override
+    public State<S> effect() { return this; }
 
     @Override
     public Control<S> get() {

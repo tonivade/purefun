@@ -65,7 +65,7 @@ public class PipingExample {
     return Control.later(() -> { System.out.println(x); return unit(); });
   }
 
-  static class Process<R, P extends Kind, E> extends Stateful<R, Higher1<P, Control<R>>, E> {
+  static abstract class Process<R, P extends Kind, E> extends Stateful<R, Higher1<P, Control<R>>, E> {
 
     Process(Higher1<P, Control<R>> init) {
       super(init);
@@ -79,6 +79,9 @@ public class PipingExample {
     }
 
     @Override
+    public Receive effect() { return this; }
+
+    @Override
     public Control<Integer> receive() {
       return useState(state -> resume -> state.fix1(Prod::narrowK).apply(unit()).apply(new Cons<>(resume).kind1()));
     }
@@ -89,6 +92,9 @@ public class PipingExample {
     Up(Higher1<Cons.µ, Control<R>> init) {
       super(init);
     }
+
+    @Override
+    public Send effect() { return this; }
 
     @Override
     public Control<Unit> send(int n) {
