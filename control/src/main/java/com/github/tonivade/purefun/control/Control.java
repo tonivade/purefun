@@ -17,16 +17,16 @@ import static java.util.Objects.requireNonNull;
 @HigherKind
 public interface Control<T> {
 
-  <R> Result<R> apply(Cont<T, R> cont);
+  <R> Result<R> apply(MetaCont<T, R> cont);
 
   default T run() {
-    return Result.trampoline(apply(Cont._return()));
+    return Result.trampoline(apply(MetaCont.returnCont()));
   }
 
   default <R> Control<R> map(Function1<T, R> mapper) {
     return new Control<R>() {
       @Override
-      public <R1> Result<R1> apply(Cont<R, R1> cont) {
+      public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
         return Control.this.apply(cont.map(mapper));
       }
     };
@@ -35,7 +35,7 @@ public interface Control<T> {
   default <R> Control<R> flatMap(Function1<T, Control<R>> mapper) {
     return new Control<R>() {
       @Override
-      public <R1> Result<R1> apply(Cont<R, R1> cont) {
+      public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
         return Control.this.apply(cont.flatMap(mapper));
       }
     };
@@ -84,11 +84,11 @@ public interface Control<T> {
     }
 
     @Override
-    public <R1> Result<R1> apply(Cont<A, R1> cont) {
-      Tuple2<Cont<A, R>, Cont<R, R1>> tuple = cont.splitAt(marker);
+    public <R1> Result<R1> apply(MetaCont<A, R1> cont) {
+      Tuple2<MetaCont<A, R>, MetaCont<R, R1>> tuple = cont.splitAt(marker);
       Control<R> handled = cps.apply(value -> new Control<R>() {
         @Override
-        public <R2> Result<R2> apply(Cont<R, R2> cont) {
+        public <R2> Result<R2> apply(MetaCont<R, R2> cont) {
           return tuple.get1().append(cont).apply(value);
         }
       });
@@ -107,8 +107,8 @@ public interface Control<T> {
     }
 
     @Override
-    public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return Result.computation(control.apply(marker), Cont.handler(marker, cont));
+    public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
+      return Result.computation(control.apply(marker), MetaCont.handlerCont(marker, cont));
     }
   }
 
@@ -123,8 +123,8 @@ public interface Control<T> {
     }
 
     @Override
-    public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return Result.computation(control, Cont.state(marker, cont));
+    public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
+      return Result.computation(control, MetaCont.stateCont(marker, cont));
     }
   }
 
@@ -139,8 +139,8 @@ public interface Control<T> {
     }
 
     @Override
-    public <R1> Result<R1> apply(Cont<R, R1> cont) {
-      return Result.computation(control, Cont._catch(marker, cont));
+    public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
+      return Result.computation(control, MetaCont.catchCont(marker, cont));
     }
   }
 
@@ -158,7 +158,7 @@ public interface Control<T> {
     }
 
     @Override
-    public <R> Result<R> apply(Cont<T, R> cont) {
+    public <R> Result<R> apply(MetaCont<T, R> cont) {
       return cont.apply(value.get());
     }
 
@@ -178,7 +178,7 @@ public interface Control<T> {
     }
 
     @Override
-    public <R> Result<R> apply(Cont<T, R> cont) {
+    public <R> Result<R> apply(MetaCont<T, R> cont) {
       return Result.abort(error);
     }
 

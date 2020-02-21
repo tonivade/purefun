@@ -42,7 +42,7 @@ interface Result<T> {
     return new Abort<>(error);
   }
 
-  static <T, R> Result<T> computation(Control<R> control, Cont<R, T> cont) {
+  static <T, R> Result<T> computation(Control<R> control, MetaCont<R, T> cont) {
     return new Computation<>(control, cont);
   }
 
@@ -87,9 +87,9 @@ interface Result<T> {
   final class Computation<T, R> implements Result<T> {
 
     private final Control<R> control;
-    private final Cont<R, T> continuation;
+    private final MetaCont<R, T> continuation;
 
-    private Computation(Control<R> control, Cont<R, T> continuation) {
+    private Computation(Control<R> control, MetaCont<R, T> continuation) {
       this.control = requireNonNull(control);
       this.continuation = requireNonNull(continuation);
     }
