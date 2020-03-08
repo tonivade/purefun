@@ -7,12 +7,9 @@ package com.github.tonivade.purefun;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
 @SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class HigherKindProcessor extends AbstractJavacProcessor {
 
   @Override

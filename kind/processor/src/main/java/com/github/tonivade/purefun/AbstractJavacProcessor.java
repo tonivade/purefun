@@ -11,6 +11,7 @@ import com.sun.tools.javac.tree.TreeTranslator;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
@@ -21,9 +22,17 @@ import static java.lang.String.format;
 public abstract class AbstractJavacProcessor extends AbstractProcessor {
 
   @Override
+  public SourceVersion getSupportedSourceVersion() {
+    return SourceVersion.latestSupported();
+  }
+
+  @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     return check() && apply(annotations, roundEnv);
   }
+
+  protected abstract TreeTranslator buildVisitor(
+      JavacProcessingEnvironment javacProcessingEnvironment, TypeElement element);
 
   private boolean apply(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     for (TypeElement annotation : annotations) {
@@ -57,7 +66,4 @@ public abstract class AbstractJavacProcessor extends AbstractProcessor {
     JCTree tree = (JCTree) trees.getPath(element).getCompilationUnit();
     tree.accept(buildVisitor((JavacProcessingEnvironment) processingEnv, element));
   }
-
-  protected abstract TreeTranslator buildVisitor(
-      JavacProcessingEnvironment javacProcessingEnvironment, TypeElement element);
 }
