@@ -8,12 +8,9 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.TreeTranslator;
 
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
 @SupportedAnnotationTypes("com.github.tonivade.purefun.Instance")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class InstanceProcessor extends AbstractJavacProcessor {
 
   @Override
