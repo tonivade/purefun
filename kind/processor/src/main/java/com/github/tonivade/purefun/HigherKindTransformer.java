@@ -46,11 +46,13 @@ public class HigherKindTransformer extends AbstractClassTransformer {
     JCExpression higher1 = maker.QualIdent(elements.getTypeElement(HIGHER1));
     JCExpression higher2 = maker.QualIdent(elements.getTypeElement(HIGHER2));
     JCExpression higher3 = maker.QualIdent(elements.getTypeElement(HIGHER3));
-    unit.defs = unit.defs
+    JCTree head = unit.defs.head;
+    unit.defs = unit.defs.tail
       .prepend(maker.Import(kind, false))
       .prepend(maker.Import(higher1, false))
       .prepend(maker.Import(higher2, false))
-      .prepend(maker.Import(higher3, false));
+      .prepend(maker.Import(higher3, false))
+      .prepend(head);
     return Optional.of(unit);
   }
 

@@ -63,7 +63,7 @@ public abstract class AbstractJavacProcessor extends AbstractProcessor {
 
   private void generate(TypeElement element) {
     Trees trees = Trees.instance(processingEnv);
-    JCTree tree = (JCTree) trees.getPath(element).getCompilationUnit();
-    tree.accept(buildVisitor((JavacProcessingEnvironment) processingEnv, element));
+    JCTree unit = (JCTree) trees.getPath(element).getCompilationUnit();
+    unit.accept(buildVisitor((JavacProcessingEnvironment) processingEnv, element));
   }
 }
