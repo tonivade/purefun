@@ -23,7 +23,7 @@ import com.github.tonivade.purefun.Function1;
 
 public class TryTest {
 
-  private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Function1<String, String> toUpperCase = String::toUpperCase;
 
   @Test
   public void mapSuccess() {
@@ -85,7 +85,7 @@ public class TryTest {
   @Test
   public void filterOrElseFilter() {
     Try<String> try1 = Try.success("Hola mundo")
-        .filterOrElse(string -> string.startsWith("Hola"), () -> Try.<String>failure("filtered"));
+        .filterOrElse(string -> string.startsWith("Hola"), () -> Try.failure("filtered"));
 
     assertEquals(Try.success("Hola mundo"), try1);
   }
@@ -93,7 +93,7 @@ public class TryTest {
   @Test
   public void filterOrElseNotFilter() {
     Try<String> try1 = Try.success("Hola mundo")
-        .filterOrElse(string -> string.startsWith("hola"), () -> Try.<String>failure("filtered"));
+        .filterOrElse(string -> string.startsWith("hola"), () -> Try.failure("filtered"));
 
     assertTrue(try1.isFailure());
     assertEquals("filtered", try1.getCause().getMessage());
@@ -102,7 +102,7 @@ public class TryTest {
   @Test
   public void filterOrElseFailure() {
     Try<String> try1 = Try.<String>failure("error")
-        .filterOrElse(string -> string.startsWith("hola"), () -> Try.<String>failure("or else"));
+        .filterOrElse(string -> string.startsWith("hola"), () -> Try.failure("or else"));
 
     assertTrue(try1.isFailure());
     assertEquals("error", try1.getCause().getMessage());
@@ -134,52 +134,56 @@ public class TryTest {
   public void success() {
     Try<String> success = Try.success("Hola mundo");
 
-    assertAll(() -> assertTrue(success.isSuccess()),
-              () -> assertFalse(success.isFailure()),
-              () -> assertEquals("Success(Hola mundo)", success.toString()),
-              () -> assertEquals("Hola mundo", success.get()),
-              () -> assertEquals(Try.success("Hola mundo"), success),
-              () -> assertEquals(Option.some("Hola mundo"), success.toOption()),
-              () -> assertEquals(Validation.valid("Hola mundo"), success.toValidation(t -> t.getMessage())),
-              () -> assertEquals(Either.right("Hola mundo"), success.toEither()),
-              () -> assertEquals(singletonList("Hola mundo"), success.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> success.getCause()),
-              () -> {
-                AtomicReference<String> ref = new AtomicReference<>();
-                success.onSuccess(ref::set);
-                assertEquals("Hola mundo", ref.get());
-              },
-              () -> {
-                AtomicReference<Throwable> ref = new AtomicReference<>();
-                success.onFailure(ref::set);
-                assertNull(ref.get());
-              });
+    assertAll(
+        () -> assertTrue(success.isSuccess()),
+        () -> assertFalse(success.isFailure()),
+        () -> assertEquals("Success(Hola mundo)", success.toString()),
+        () -> assertEquals("Hola mundo", success.get()),
+        () -> assertEquals(Try.success("Hola mundo"), success),
+        () -> assertEquals(Option.some("Hola mundo"), success.toOption()),
+        () -> assertEquals(Validation.valid("Hola mundo"), success.toValidation(Throwable::getMessage)),
+        () -> assertEquals(Either.right("Hola mundo"), success.toEither()),
+        () -> assertEquals(singletonList("Hola mundo"), success.stream().collect(toList())),
+        () -> assertThrows(NoSuchElementException.class, success::getCause),
+        () -> assertEquals("Hola mundo", success.getOrElseNull()),
+        () -> {
+          AtomicReference<String> ref = new AtomicReference<>();
+          success.onSuccess(ref::set);
+          assertEquals("Hola mundo", ref.get());
+        },
+        () -> {
+          AtomicReference<Throwable> ref = new AtomicReference<>();
+          success.onFailure(ref::set);
+          assertNull(ref.get());
+        });
   }
 
   @Test
   public void failure() {
     Try<String> failure = Try.failure("error");
 
-    assertAll(() -> assertFalse(failure.isSuccess()),
-              () -> assertTrue(failure.isFailure()),
-              () -> assertEquals("Failure(java.lang.Exception: error)", failure.toString()),
-              () -> assertEquals(Try.failure("error"), Try.failure("error")),
-              () -> assertEquals(Option.none(), failure.toOption()),
-              () -> assertEquals(Validation.invalid("error"), failure.toValidation(t -> t.getMessage())),
-              () -> assertEquals(Either.left(failure.getCause()), failure.toEither()),
-              () -> assertEquals("error", failure.getCause().getMessage()),
-              () -> assertEquals(emptyList(), failure.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> failure.get()),
-              () -> {
-                AtomicReference<Throwable> ref = new AtomicReference<>();
-                failure.onFailure(ref::set);
-                assertEquals("error", ref.get().getMessage());
-              },
-              () -> {
-                AtomicReference<String> ref = new AtomicReference<>();
-                failure.onSuccess(ref::set);
-                assertNull(ref.get());
-              });
+    assertAll(
+        () -> assertFalse(failure.isSuccess()),
+        () -> assertTrue(failure.isFailure()),
+        () -> assertEquals("Failure(java.lang.Exception: error)", failure.toString()),
+        () -> assertEquals(Try.failure("error"), Try.failure("error")),
+        () -> assertEquals(Option.none(), failure.toOption()),
+        () -> assertEquals(Validation.invalid("error"), failure.toValidation(Throwable::getMessage)),
+        () -> assertEquals(Either.left(failure.getCause()), failure.toEither()),
+        () -> assertEquals("error", failure.getCause().getMessage()),
+        () -> assertEquals(emptyList(), failure.stream().collect(toList())),
+        () -> assertThrows(NoSuchElementException.class, failure::get),
+        () -> assertNull(failure.getOrElseNull()),
+        () -> {
+          AtomicReference<Throwable> ref = new AtomicReference<>();
+          failure.onFailure(ref::set);
+          assertEquals("error", ref.get().getMessage());
+        },
+        () -> {
+          AtomicReference<String> ref = new AtomicReference<>();
+          failure.onSuccess(ref::set);
+          assertNull(ref.get());
+        });
   }
 
   @Test

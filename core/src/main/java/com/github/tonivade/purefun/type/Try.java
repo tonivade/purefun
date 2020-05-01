@@ -155,6 +155,10 @@ public interface Try<T> {
     return getOrElse(Producer.cons(value));
   }
 
+  default T getOrElseNull() {
+    return getOrElse(Producer.cons(null));
+  }
+
   default T getOrElse(Producer<T> producer) {
     return fold(producer.asFunction(), identity());
   }

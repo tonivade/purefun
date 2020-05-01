@@ -66,7 +66,7 @@ public final class Task<T> implements Recoverable {
   }
 
   public <B> Task<B> map(Function1<T, B> map) {
-    return new Task<>(value.map(map));
+    return flatMap(lift(map));
   }
 
   public <B> Task<B> flatMap(Function1<T, Task<B>> map) {

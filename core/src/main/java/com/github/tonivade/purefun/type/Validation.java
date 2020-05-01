@@ -124,6 +124,10 @@ public interface Validation<E, T> {
     return getOrElse(Producer.cons(value));
   }
 
+  default T getOrElseNull() {
+    return getOrElse(Producer.cons(null));
+  }
+
   default T getOrElse(Producer<T> orElse) {
     return fold(orElse.asFunction(), identity());
   }

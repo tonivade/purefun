@@ -124,6 +124,10 @@ public interface Option<T> {
     return getOrElse(cons(value));
   }
 
+  default T getOrElseNull() {
+    return getOrElse(cons(null));
+  }
+
   default T getOrElse(Producer<T> producer) {
     return fold(producer, identity());
   }

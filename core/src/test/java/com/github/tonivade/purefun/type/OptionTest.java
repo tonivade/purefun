@@ -24,7 +24,7 @@ import com.github.tonivade.purefun.Function1;
 
 public class OptionTest {
 
-  private final Function1<String, String> toUpperCase = string -> string.toUpperCase();
+  private final Function1<String, String> toUpperCase = String::toUpperCase;
 
   @Test
   public void mapSome() {
@@ -114,36 +114,40 @@ public class OptionTest {
   public void some() {
     Option<String> some = Option.some("Hola mundo");
 
-    assertAll(() -> assertTrue(some.isPresent()),
-              () -> assertFalse(some.isEmpty()),
-              () -> assertEquals("Hola mundo", some.get()),
-              () -> assertEquals("Some(Hola mundo)", some.toString()),
-              () -> assertEquals(Optional.of("Hola mundo"), some.toOptional()),
-              () -> assertEquals(Option.some("Hola mundo"), some),
-              () -> assertEquals(singletonList("Hola mundo"), some.stream().collect(toList())),
-              () -> {
-                AtomicReference<String> ref = new AtomicReference<>();
-                some.ifPresent(ref::set);
-                assertEquals("Hola mundo", ref.get());
-              });
+    assertAll(
+        () -> assertTrue(some.isPresent()),
+        () -> assertFalse(some.isEmpty()),
+        () -> assertEquals("Hola mundo", some.get()),
+        () -> assertEquals("Some(Hola mundo)", some.toString()),
+        () -> assertEquals(Optional.of("Hola mundo"), some.toOptional()),
+        () -> assertEquals(Option.some("Hola mundo"), some),
+        () -> assertEquals(singletonList("Hola mundo"), some.stream().collect(toList())),
+        () -> assertEquals("Hola mundo", some.getOrElseNull()),
+        () -> {
+          AtomicReference<String> ref = new AtomicReference<>();
+          some.ifPresent(ref::set);
+          assertEquals("Hola mundo", ref.get());
+        });
   }
 
   @Test
   public void failure() {
     Option<String> none = Option.none();
 
-    assertAll(() -> assertFalse(none.isPresent()),
-              () -> assertTrue(none.isEmpty()),
-              () -> assertEquals("None", none.toString()),
-              () -> assertEquals(Option.none(), none),
-              () -> assertEquals(Optional.empty(), none.toOptional()),
-              () -> assertEquals(emptyList(), none.stream().collect(toList())),
-              () -> assertThrows(NoSuchElementException.class, () -> none.get()),
-              () -> {
-                AtomicReference<String> ref = new AtomicReference<>();
-                none.ifPresent(ref::set);
-                assertNull(ref.get());
-              });
+    assertAll(
+        () -> assertFalse(none.isPresent()),
+        () -> assertTrue(none.isEmpty()),
+        () -> assertEquals("None", none.toString()),
+        () -> assertEquals(Option.none(), none),
+        () -> assertEquals(Optional.empty(), none.toOptional()),
+        () -> assertEquals(emptyList(), none.stream().collect(toList())),
+        () -> assertThrows(NoSuchElementException.class, none::get),
+        () -> assertNull(none.getOrElseNull()),
+        () -> {
+          AtomicReference<String> ref = new AtomicReference<>();
+          none.ifPresent(ref::set);
+          assertNull(ref.get());
+        });
   }
 
   @Test

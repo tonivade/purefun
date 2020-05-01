@@ -28,6 +28,7 @@ import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,6 +57,7 @@ public class ValidationTest {
         () -> assertEquals(valid(1), valid.filterOrElse(i -> i > 0, () -> valid(10))),
         () -> assertEquals(valid(10), valid.filterOrElse(i -> i > 1, () -> valid(10))),
         () -> assertEquals(Integer.valueOf(1), valid.getOrElse(10)),
+        () -> assertEquals(Integer.valueOf(1), valid.getOrElseNull()),
         () -> assertEquals(Either.right(1), valid.toEither()),
         () -> assertEquals("Valid(1)", valid.toString())
     );
@@ -78,6 +80,7 @@ public class ValidationTest {
         () -> assertEquals(some(invalid("error")), invalid.filter(i -> i > 1)),
         () -> assertEquals(invalid("error"), invalid.filterOrElse(i -> i > 1, () -> valid(10))),
         () -> assertEquals(Integer.valueOf(10), invalid.getOrElse(10)),
+        () -> assertNull(invalid.getOrElseNull()),
         () -> assertEquals(Either.left("error"), invalid.toEither()),
         () -> assertEquals("Invalid(error)", invalid.toString())
     );

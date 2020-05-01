@@ -149,6 +149,10 @@ public interface Either<L, R> {
     return getOrElse(Producer.cons(value));
   }
 
+  default R getOrElseNull() {
+    return getOrElse(Producer.cons(null));
+  }
+
   default R getOrElse(Producer<R> orElse) {
     return fold(orElse.asFunction(), identity());
   }
