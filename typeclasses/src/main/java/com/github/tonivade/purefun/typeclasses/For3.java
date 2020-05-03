@@ -51,10 +51,10 @@ public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, B, C> {
   }
 
   public <R> For4<F, A, B, C, R> and(R next) {
-    return and(monad.pure(next));
+    return then(monad.pure(next));
   }
 
-  public <R> For4<F, A, B, C, R> and(Higher1<F, R> next) {
+  public <R> For4<F, A, B, C, R> then(Higher1<F, R> next) {
     return andThen(cons(next));
   }
 

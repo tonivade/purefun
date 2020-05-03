@@ -26,7 +26,7 @@ public final class For<F extends Kind> {
     return For.with(monad, monad.pure(next));
   }
 
-  public <T> For1<F, T> and(Higher1<F, T> next) {
+  public <T> For1<F, T> then(Higher1<F, T> next) {
     return For.with(monad, next);
   }
 

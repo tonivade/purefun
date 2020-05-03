@@ -35,7 +35,7 @@ public class CofreeTest {
 
     Id<Tuple4<Cofree<Id.µ, Integer>, Cofree<Id.µ, Integer>, Cofree<Id.µ, Integer>, Cofree<Id.µ, Integer>>> tuple4Id =
         For.with(IdInstances.monad())
-          .and(cofree.tailForced())
+          .then(cofree.tailForced())
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)

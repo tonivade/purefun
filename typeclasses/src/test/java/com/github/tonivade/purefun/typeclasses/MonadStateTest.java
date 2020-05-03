@@ -20,10 +20,10 @@ public class MonadStateTest {
   @Test
   public void program() {
     IO<ImmutableArray<String>> result = For.with(monadState)
-        .and(monadState.modify(list -> list.append("a")))
-        .and(monadState.modify(list -> list.append("b")))
-        .and(monadState.modify(list -> list.append("c")))
-        .and(monadState.get()).fix(IO::narrowK);
+        .then(monadState.modify(list -> list.append("a")))
+        .then(monadState.modify(list -> list.append("b")))
+        .then(monadState.modify(list -> list.append("c")))
+        .then(monadState.get()).fix(IO::narrowK);
 
     assertEquals(arrayOf("a", "b", "c"), result.unsafeRunSync());
   }
