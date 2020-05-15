@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -21,19 +21,19 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 public interface StateTInstances {
 
   static <F extends Kind, S> Monad<Higher1<Higher1<StateT.µ, F>, S>> monad(Monad<F> monadF) {
-    return StateTMonad.instance(requireNonNull(monadF));
+    return StateTMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, S> MonadState<Higher1<Higher1<StateT.µ, F>, S>, S> monadState(Monad<F> monadF) {
-    return StateTMonadState.instance(requireNonNull(monadF));
+    return StateTMonadState.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, S, E> MonadError<Higher1<Higher1<StateT.µ, F>, S>, E> monadError(MonadError<F, E> monadErrorF) {
-    return StateTMonadError.instance(requireNonNull(monadErrorF));
+    return StateTMonadError.instance(checkNonNull(monadErrorF));
   }
 
   static <F extends Kind, S, R> MonadReader<Higher1<Higher1<StateT.µ, F>, S>, R> monadReader(MonadReader<F, R> monadReaderF) {
-    return StateTMonadReader.instance(requireNonNull(monadReaderF));
+    return StateTMonadReader.instance(checkNonNull(monadReaderF));
   }
 }
 

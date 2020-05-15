@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Matcher3.invalid;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public class Pattern3<A, B, C, R> implements PartialFunction3<A, B, C, R> {
 
@@ -16,7 +16,7 @@ public class Pattern3<A, B, C, R> implements PartialFunction3<A, B, C, R> {
   }
 
   private Pattern3(Pattern1<Tuple3<A, B, C>, R> pattern) {
-    this.pattern = requireNonNull(pattern);
+    this.pattern = checkNonNull(pattern);
   }
 
   @Override
@@ -51,13 +51,13 @@ public class Pattern3<A, B, C, R> implements PartialFunction3<A, B, C, R> {
     private final Matcher3<T, V, U> matcher;
 
     private CaseBuilder3(Function2<Matcher3<T, V, U>, Function3<T, V, U, R>, B> finisher) {
-      this.finisher = requireNonNull(finisher);
+      this.finisher = checkNonNull(finisher);
       this.matcher = invalid();
     }
 
     private CaseBuilder3(Function2<Matcher3<T, V, U>, Function3<T, V, U, R>, B> finisher, Matcher3<T, V, U> matcher) {
-      this.finisher = requireNonNull(finisher);
-      this.matcher = requireNonNull(matcher);
+      this.finisher = checkNonNull(finisher);
+      this.matcher = checkNonNull(matcher);
     }
 
     public CaseBuilder3<B, T, V, U, R> when(Matcher3<T, V, U> matcher) {

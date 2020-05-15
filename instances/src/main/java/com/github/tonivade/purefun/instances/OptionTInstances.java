@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.NoSuchElementException;
@@ -35,27 +35,27 @@ public interface OptionTInstances {
   }
 
   static <F extends Kind> Monad<Higher1<OptionT.µ, F>> monad(Monad<F> monadF) {
-    return OptionTMonad.instance(requireNonNull(monadF));
+    return OptionTMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind> MonadError<Higher1<OptionT.µ, F>, Unit> monadError(Monad<F> monadF) {
-    return OptionTMonadErrorFromMonad.instance(requireNonNull(monadF));
+    return OptionTMonadErrorFromMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, E> MonadError<Higher1<OptionT.µ, F>, E> monadError(MonadError<F, E> monadErrorF) {
-    return OptionTMonadErrorFromMonadError.instance(requireNonNull(monadErrorF));
+    return OptionTMonadErrorFromMonadError.instance(checkNonNull(monadErrorF));
   }
 
   static <F extends Kind> MonadThrow<Higher1<OptionT.µ, F>> monadThrow(MonadThrow<F> monadThrowF) {
-    return OptionTMonadThrow.instance(requireNonNull(requireNonNull(monadThrowF)));
+    return OptionTMonadThrow.instance(checkNonNull(checkNonNull(monadThrowF)));
   }
 
   static <F extends Kind> Defer<Higher1<OptionT.µ, F>> defer(MonadDefer<F> monadDeferF) {
-    return OptionTDefer.instance(requireNonNull(monadDeferF));
+    return OptionTDefer.instance(checkNonNull(monadDeferF));
   }
 
   static <F extends Kind> MonadDefer<Higher1<OptionT.µ, F>> monadDefer(MonadDefer<F> monadDeferF) {
-    return OptionTMonadDefer.instance(requireNonNull(monadDeferF));
+    return OptionTMonadDefer.instance(checkNonNull(monadDeferF));
   }
 
   static <F extends Kind, A> Reference<Higher1<OptionT.µ, F>, A> ref(MonadDefer<F> monadF, A value) {

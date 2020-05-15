@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.stream.Stream;
 
@@ -56,7 +56,7 @@ public interface Trampoline<T> {
     private final T value;
 
     private Done(T value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -85,7 +85,7 @@ public interface Trampoline<T> {
     private final Producer<Trampoline<T>> next;
 
     private More(Producer<Trampoline<T>> next) {
-      this.next = requireNonNull(next);
+      this.next = checkNonNull(next);
     }
 
     @Override

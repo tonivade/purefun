@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.type.Option;
 
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @Sealed
 public interface HList<L extends HList<L>> {
@@ -129,8 +129,8 @@ public interface HList<L extends HList<L>> {
     private final T tail;
 
     private HCons(H head, T tail) {
-      this.head = requireNonNull(head);
-      this.tail = requireNonNull(tail);
+      this.head = checkNonNull(head);
+      this.tail = checkNonNull(tail);
     }
 
     public H head() {

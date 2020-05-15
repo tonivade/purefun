@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
 public final class Cofree<F extends Kind, A> {
@@ -26,9 +26,9 @@ public final class Cofree<F extends Kind, A> {
   private final Eval<Higher1<F, Cofree<F, A>>> tail;
 
   private Cofree(Functor<F> functor, A head, Eval<Higher1<F, Cofree<F, A>>> tail) {
-    this.functor = requireNonNull(functor);
-    this.head = requireNonNull(head);
-    this.tail = requireNonNull(tail);
+    this.functor = checkNonNull(functor);
+    this.head = checkNonNull(head);
+    this.tail = checkNonNull(tail);
   }
 
   public A extract() {

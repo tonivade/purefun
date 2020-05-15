@@ -17,9 +17,8 @@ import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-@SuppressWarnings("unchecked")
 public interface EitherKInstances {
 
   static <F extends Kind, G extends Kind, T> Eq<Higher1<Higher1<Higher1<EitherK.µ, F>, G>, T>> eq(
@@ -36,17 +35,17 @@ public interface EitherKInstances {
 
   static <F extends Kind, G extends Kind> Functor<Higher1<Higher1<EitherK.µ, F>, G>> functor(
       Functor<F> functorF, Functor<G> functorG) {
-    return EitherKFunctor.instance(requireNonNull(functorF), requireNonNull(functorG));
+    return EitherKFunctor.instance(checkNonNull(functorF), checkNonNull(functorG));
   }
 
   static <F extends Kind, G extends Kind> Contravariant<Higher1<Higher1<EitherK.µ, F>, G>> contravariant(
       Contravariant<F> contravariantF, Contravariant<G> contravariantG) {
-    return EitherKContravariant.instance(requireNonNull(contravariantF), requireNonNull(contravariantG));
+    return EitherKContravariant.instance(checkNonNull(contravariantF), checkNonNull(contravariantG));
   }
 
   static <F extends Kind, G extends Kind> Comonad<Higher1<Higher1<EitherK.µ, F>, G>> comonad(
       Comonad<F> comonadF, Comonad<G> comonadG) {
-    return EitherKComonad.instance(requireNonNull(comonadF), requireNonNull(comonadG));
+    return EitherKComonad.instance(checkNonNull(comonadF), checkNonNull(comonadG));
   }
 
   static <F extends Kind, G extends Kind> InjectK<F, Higher1<Higher1<EitherK.µ, F>, G>> injectEitherKLeft() {
@@ -55,7 +54,7 @@ public interface EitherKInstances {
 
   static <F extends Kind, R extends Kind, G extends Kind>
       InjectK<F, Higher1<Higher1<EitherK.µ, G>, R>> injectEitherKRight(InjectK<F, R> inject) {
-    return EitherKInjectKRight.instance(requireNonNull(inject));
+    return EitherKInjectKRight.instance(checkNonNull(inject));
   }
 }
 

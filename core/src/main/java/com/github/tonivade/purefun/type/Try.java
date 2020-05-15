@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
@@ -201,7 +201,7 @@ public interface Try<T> {
     private final T value;
 
     private Success(T value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -255,7 +255,7 @@ public interface Try<T> {
     private final Throwable cause;
 
     private Failure(Throwable cause) {
-      this.cause = requireNonNull(cause);
+      this.cause = checkNonNull(cause);
     }
 
     @Override

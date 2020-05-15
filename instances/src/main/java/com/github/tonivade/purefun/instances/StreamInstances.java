@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -49,11 +49,11 @@ public interface StreamInstances {
   }
 
   static <F extends Kind> Applicative<Higher1<Stream.µ, F>> applicative(StreamOf<F> streamOf) {
-    return StreamApplicative.instance(requireNonNull(streamOf));
+    return StreamApplicative.instance(checkNonNull(streamOf));
   }
 
   static <F extends Kind> Monad<Higher1<Stream.µ, F>> monad(StreamOf<F> streamOf) {
-    return StreamMonad.instance(requireNonNull(streamOf));
+    return StreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
@@ -98,6 +98,6 @@ interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, Stre
   @Override
   default <T, R> Higher2<Stream.µ, F, R> flatMap(Higher1<Higher1<Stream.µ, F>, T> value,
       Function1<T, ? extends Higher1<Higher1<Stream.µ, F>, R>> mapper) {
-    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::<F, R>narrowK)).kind2();
+    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::narrowK)).kind2();
   }
 }

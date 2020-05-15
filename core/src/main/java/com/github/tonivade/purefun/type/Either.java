@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
@@ -191,7 +191,7 @@ public interface Either<L, R> {
     private L value;
 
     private Left(L value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -244,7 +244,7 @@ public interface Either<L, R> {
     private R value;
 
     private Right(R value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override

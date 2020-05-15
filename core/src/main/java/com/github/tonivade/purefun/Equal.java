@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 /**
  * This is a utility class to generate more readable {@code equals()} methods. It's based on {@link Eq} instances and it can combine
@@ -25,7 +25,7 @@ public final class Equal<T> {
   private final Eq<T> tester;
 
   private Equal(Eq<T> tester) {
-    this.tester = requireNonNull(tester);
+    this.tester = checkNonNull(tester);
   }
 
   public Equal<T> append(Eq<T> other) {
@@ -42,7 +42,7 @@ public final class Equal<T> {
 
   @SuppressWarnings("unchecked")
   public boolean applyTo(T self, Object obj) {
-    requireNonNull(self);
+    checkNonNull(self);
     if (isNull(obj)) {
       return false;
     }

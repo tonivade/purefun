@@ -14,7 +14,7 @@ import java.util.LinkedList;
 
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 /**
  * <p>This is a monad that allows to control the evaluation of a computation or a value.</p>
@@ -70,7 +70,7 @@ public interface Eval<A> {
     private final Producer<A> producer;
 
     protected Done(Producer<A> producer) {
-      this.producer = requireNonNull(producer);
+      this.producer = checkNonNull(producer);
     }
 
     @Override
@@ -98,7 +98,7 @@ public interface Eval<A> {
     private final Producer<Eval<A>> deferred;
 
     protected Defer(Producer<Eval<A>> deferred) {
-      this.deferred = requireNonNull(deferred);
+      this.deferred = checkNonNull(deferred);
     }
 
     @Override
@@ -132,8 +132,8 @@ public interface Eval<A> {
     private final Function1<A, Eval<B>> run;
 
     protected FlatMapped(Producer<Eval<A>> start, Function1<A, Eval<B>> run) {
-      this.start = requireNonNull(start);
-      this.run = requireNonNull(run);
+      this.start = checkNonNull(start);
+      this.run = checkNonNull(run);
     }
 
     @Override

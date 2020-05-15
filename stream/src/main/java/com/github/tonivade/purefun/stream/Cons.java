@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 final class Cons<F extends Kind, T> implements Stream<F, T> {
 
@@ -25,9 +25,9 @@ final class Cons<F extends Kind, T> implements Stream<F, T> {
   private final Stream<F, T> tail;
 
   Cons(MonadDefer<F> monad, Higher1<F, T> head, Stream<F, T> tail) {
-    this.monad = requireNonNull(monad);
-    this.head = requireNonNull(head);
-    this.tail = requireNonNull(tail);
+    this.monad = checkNonNull(monad);
+    this.head = checkNonNull(head);
+    this.tail = checkNonNull(tail);
   }
 
   @Override

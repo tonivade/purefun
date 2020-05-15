@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,8 +39,8 @@ final class MonadDeferReference<F extends Kind, A> implements Reference<F, A> {
   private final AtomicReference<A> value;
 
   MonadDeferReference(MonadDefer<F> monadF, AtomicReference<A> value) {
-    this.monadF = requireNonNull(monadF);
-    this.value = requireNonNull(value);
+    this.monadF = checkNonNull(monadF);
+    this.value = checkNonNull(value);
   }
 
   @Override

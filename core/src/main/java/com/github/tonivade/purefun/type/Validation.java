@@ -29,6 +29,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Validator;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 
 /**
@@ -67,6 +68,7 @@ public interface Validation<E, T> {
    * @throws NoSuchElementException if value is not available
    */
   T get();
+
   /**
    * Returns the invalid value if available. If not, it throws {@code NoSuchElementException}
    * @return the invalid value
@@ -388,6 +390,10 @@ public interface Validation<E, T> {
       return new Result<>(NonEmptyList.of(error, errors));
     }
 
+    public static <E> Result<E> from(Iterable<E> errors) {
+      return new Result<>(NonEmptyList.of(ImmutableList.from(errors)));
+    }
+
     @Override
     public int hashCode() {
       return Objects.hash(errors);
@@ -413,4 +419,4 @@ public interface Validation<E, T> {
   }
 }
 
-interface ValidationModule {}
+interface ValidationModule { }

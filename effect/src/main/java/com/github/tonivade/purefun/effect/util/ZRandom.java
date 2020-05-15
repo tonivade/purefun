@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.effect.ZIO;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.joining;
 
 public interface ZRandom {
@@ -67,7 +67,7 @@ class ZRandomImpl implements ZRandom {
   private Random random;
 
   ZRandomImpl(Random random) {
-    this.random = requireNonNull(random);
+    this.random = checkNonNull(random);
   }
 
   @Override

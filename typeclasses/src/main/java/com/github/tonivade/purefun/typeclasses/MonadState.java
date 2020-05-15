@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @TypeClass
 public interface MonadState<F extends Kind, S> extends Monad<F> {
@@ -43,8 +43,8 @@ class ReferenceMonadState<F extends Kind, S> implements MonadState<F, S> {
   private final Monad<F> monad;
 
   ReferenceMonadState(Reference<F, S> ref, Monad<F> monad) {
-    this.ref = requireNonNull(ref);
-    this.monad = requireNonNull(monad);
+    this.ref = checkNonNull(ref);
+    this.monad = checkNonNull(monad);
   }
 
   @Override

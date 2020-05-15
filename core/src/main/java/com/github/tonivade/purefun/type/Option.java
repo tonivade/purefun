@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
@@ -173,7 +173,7 @@ public interface Option<T> {
     private final T value;
 
     private Some(T value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override

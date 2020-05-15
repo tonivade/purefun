@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.type.Either;
@@ -18,8 +18,8 @@ public final class PPrism<S, T, A, B> {
   private final Function1<B, T> reverseGet;
 
   protected PPrism(Function1<S, Either<T, A>> getOrModify, Function1<B, T> reverseGet) {
-    this.getOrModify = requireNonNull(getOrModify);
-    this.reverseGet = requireNonNull(reverseGet);
+    this.getOrModify = checkNonNull(getOrModify);
+    this.reverseGet = checkNonNull(reverseGet);
   }
 
   public static <S, T, A, B> PPrism<S, T, A, B> of(Function1<S, Either<T, A>> getOrModify, Function1<B, T> reverseGet) {

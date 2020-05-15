@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Function1.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -17,8 +17,8 @@ public final class PLens<S, T, A, B> {
   private final Function1<S, Function1<B, T>> setter;
 
   protected PLens(Function1<S, A> getter, Function1<S, Function1<B, T>> setter) {
-    this.getter = requireNonNull(getter);
-    this.setter = requireNonNull(setter);
+    this.getter = checkNonNull(getter);
+    this.setter = checkNonNull(setter);
   }
 
   public static <S, T, A, B> PLens<S, T, A, B> of(Function1<S, A> getter, Function2<S, B, T> setter) {

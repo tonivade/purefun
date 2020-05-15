@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -17,7 +17,7 @@ public final class Ref<A> {
   private final AtomicReference<A> value;
 
   private Ref(AtomicReference<A> value) {
-    this.value = requireNonNull(value);
+    this.value = checkNonNull(value);
   }
 
   public UIO<A> get() {

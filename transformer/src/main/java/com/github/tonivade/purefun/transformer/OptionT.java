@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -69,8 +69,8 @@ public interface OptionT<F extends Kind, T> {
   }
 
   static <F extends Kind, T> OptionT<F, T> of(Monad<F> monad, Higher1<F, Option<T>> value) {
-    requireNonNull(monad);
-    requireNonNull(value);
+    checkNonNull(monad);
+    checkNonNull(value);
     return new OptionT<F, T>() {
 
       @Override

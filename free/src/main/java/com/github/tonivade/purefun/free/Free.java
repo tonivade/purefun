@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
 public abstract class Free<F extends Kind, A> {
@@ -81,7 +81,7 @@ public abstract class Free<F extends Kind, A> {
     private final A value;
 
     private Pure(A value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -110,7 +110,7 @@ public abstract class Free<F extends Kind, A> {
     private final Higher1<F, A> value;
 
     private Suspend(Higher1<F, A> value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -140,8 +140,8 @@ public abstract class Free<F extends Kind, A> {
     private final Function1<A, Free<F, B>> next;
 
     private FlatMapped(Free<F, A> value, Function1<A, Free<F, B>> next) {
-      this.value = requireNonNull(value);
-      this.next = requireNonNull(next);
+      this.value = checkNonNull(value);
+      this.next = checkNonNull(next);
     }
 
     @Override

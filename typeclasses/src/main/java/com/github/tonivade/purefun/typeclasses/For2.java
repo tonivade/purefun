@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -22,7 +22,7 @@ public final class For2<F extends Kind, A, B> extends AbstractFor<F, A, B> {
                  Producer<? extends Higher1<F, A>> value1,
                  Function1<A, ? extends Higher1<F, B>> value2) {
     super(monad, value2);
-    this.value1 = requireNonNull(value1);
+    this.value1 = checkNonNull(value1);
   }
 
   public Higher1<F, Tuple2<A, B>> tuple() {

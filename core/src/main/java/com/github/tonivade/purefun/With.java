@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.Objects;
 
@@ -15,7 +15,7 @@ public final class With<A> {
   private final A value;
 
   private With(A value) {
-    this.value = requireNonNull(value);
+    this.value = checkNonNull(value);
   }
 
   public A get() {

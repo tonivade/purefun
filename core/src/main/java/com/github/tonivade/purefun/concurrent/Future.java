@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
@@ -234,8 +234,8 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   protected FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {
-    this.executor = requireNonNull(executor);
-    this.propagate = requireNonNull(propagate);
+    this.executor = checkNonNull(executor);
+    this.propagate = checkNonNull(propagate);
     this.promise = Promise.make(executor);
     this.cancellable = Cancellable.from(promise);
     callback.accept(promise, cancellable);
@@ -334,32 +334,32 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   protected static <T> Future<T> sync(Executor executor, Try<T> result) {
-    requireNonNull(executor);
-    requireNonNull(result);
+    checkNonNull(executor);
+    checkNonNull(result);
     return new FutureImpl<>(executor, (promise, cancel) -> promise.tryComplete(result));
   }
 
   protected static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
-    requireNonNull(executor);
-    requireNonNull(current);
-    requireNonNull(mapper);
+    checkNonNull(executor);
+    checkNonNull(current);
+    checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
           current.onComplete(value -> promise.tryComplete(mapper.apply(value))), current::cancel);
   }
 
   protected static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
-    requireNonNull(executor);
-    requireNonNull(current);
-    requireNonNull(mapper);
+    checkNonNull(executor);
+    checkNonNull(current);
+    checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
           current.onComplete(value -> mapper.apply(value).onComplete(promise::tryComplete)), current::cancel);
   }
 
   protected static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
-    requireNonNull(executor);
-    requireNonNull(producer);
+    checkNonNull(executor);
+    checkNonNull(producer);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
           executor.execute(() -> {
@@ -369,22 +369,22 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   protected static <T> Future<T> from(Executor executor, Promise<T> promise) {
-    requireNonNull(executor);
-    requireNonNull(promise);
+    checkNonNull(executor);
+    checkNonNull(promise);
     return new FutureImpl<>(executor, (current, cancel) -> promise.onComplete(current::tryComplete));
   }
 
   protected static Future<Unit> sleep(Executor executor, Duration delay) {
-    requireNonNull(executor);
-    requireNonNull(delay);
+    checkNonNull(executor);
+    checkNonNull(delay);
     return from(executor, Delayed.sleep(executor, delay));
   }
 
   protected static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
-    requireNonNull(executor);
-    requireNonNull(acquire);
-    requireNonNull(use);
-    requireNonNull(release);
+    checkNonNull(executor);
+    checkNonNull(acquire);
+    checkNonNull(use);
+    checkNonNull(release);
     return new FutureImpl<>(executor,
         (promise, cancellable) ->
             acquire.onComplete(

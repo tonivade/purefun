@@ -17,7 +17,7 @@ import static com.github.tonivade.purefun.type.Validation.map3;
 import static com.github.tonivade.purefun.type.Validation.map4;
 import static com.github.tonivade.purefun.type.Validation.map5;
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @FunctionalInterface
 public interface Validator<E, T> {
@@ -25,23 +25,23 @@ public interface Validator<E, T> {
   Validation<E, T> validate(T value);
 
   default <F> Validator<F, T> mapError(Function1<E, F> mapper) {
-    requireNonNull(mapper);
+    checkNonNull(mapper);
     return value -> validate(value).mapError(mapper);
   }
 
   default <R> Validator<E, R> compose(Function1<R, T> getter) {
-    requireNonNull(getter);
+    checkNonNull(getter);
     return value -> validate(getter.apply(value)).map(Function1.cons(value));
   }
 
   default Validator<E, T> andThen(Validator<E, T> then) {
-    requireNonNull(then);
+    checkNonNull(then);
     return value -> validate(value).flatMap(then::validate);
   }
 
   static <E, T> Validator<E, T> from(Matcher1<T> matcher, Producer<E> error) {
-    requireNonNull(matcher);
-    requireNonNull(error);
+    checkNonNull(matcher);
+    checkNonNull(error);
     return value -> matcher.match(value) ? Validation.valid(value) : Validation.invalid(error.get());
   }
 
@@ -53,9 +53,9 @@ public interface Validator<E, T> {
   static <E, F, A, B> Validator<F, Tuple2<A, B>> product(Validator<E, A> v1,
                                                          Validator<E, B> v2,
                                                          Function1<Result<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(reduce);
+    checkNonNull(v1);
+    checkNonNull(v2);
+    checkNonNull(reduce);
     return value -> map2(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
@@ -73,10 +73,10 @@ public interface Validator<E, T> {
                                                                Validator<E, B> v2,
                                                                Validator<E, C> v3,
                                                                Function1<Result<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(v3);
-    requireNonNull(reduce);
+    checkNonNull(v1);
+    checkNonNull(v2);
+    checkNonNull(v3);
+    checkNonNull(reduce);
     return value -> map3(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
@@ -97,11 +97,11 @@ public interface Validator<E, T> {
                                                                      Validator<E, C> v3,
                                                                      Validator<E, D> v4,
                                                                      Function1<Result<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(v3);
-    requireNonNull(v4);
-    requireNonNull(reduce);
+    checkNonNull(v1);
+    checkNonNull(v2);
+    checkNonNull(v3);
+    checkNonNull(v4);
+    checkNonNull(reduce);
     return value -> map4(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
@@ -125,12 +125,12 @@ public interface Validator<E, T> {
                                                                            Validator<F, D> v4,
                                                                            Validator<F, E> v5,
                                                                            Function1<Result<F>, G> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(v3);
-    requireNonNull(v4);
-    requireNonNull(v5);
-    requireNonNull(reduce);
+    checkNonNull(v1);
+    checkNonNull(v2);
+    checkNonNull(v3);
+    checkNonNull(v4);
+    checkNonNull(v5);
+    checkNonNull(reduce);
     return value -> map5(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
@@ -149,9 +149,9 @@ public interface Validator<E, T> {
   static <E, F, T> Validator<F, T> combine(Validator<E, T> v1,
                                            Validator<E, T> v2,
                                            Function1<Result<E>, F> reduce) {
-    requireNonNull(v1);
-    requireNonNull(v2);
-    requireNonNull(reduce);
+    checkNonNull(v1);
+    checkNonNull(v2);
+    checkNonNull(reduce);
     return value -> map2(
         v1.validate(value),
         v2.validate(value),

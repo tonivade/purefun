@@ -17,7 +17,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public interface Promise<T> {
 
@@ -86,7 +86,7 @@ final class PromiseImpl<T> implements Promise<T> {
   private final Executor executor;
 
   PromiseImpl(Executor executor) {
-    this.executor = requireNonNull(executor);
+    this.executor = checkNonNull(executor);
   }
 
   @Override
@@ -118,7 +118,7 @@ final class PromiseImpl<T> implements Promise<T> {
         }
       }
     }
-    return requireNonNull(reference.get());
+    return checkNonNull(reference.get());
   }
 
   @Override

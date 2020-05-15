@@ -31,6 +31,10 @@ public interface Producer<T> extends Recoverable {
     return value -> run();
   }
 
+  default <R> Producer<R> andThen(Function1<T, R> after) {
+    return map(after);
+  }
+
   default <R> Producer<R> map(Function1<T, R> after) {
     return () -> after.apply(get());
   }

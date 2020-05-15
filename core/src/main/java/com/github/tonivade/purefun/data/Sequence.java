@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -187,8 +187,8 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
   private final Iterator<B> second;
 
   PairIterator(Iterator<A> first, Iterator<B> second) {
-    this.first = requireNonNull(first);
-    this.second = requireNonNull(second);
+    this.first = checkNonNull(first);
+    this.second = checkNonNull(second);
   }
 
   @Override
@@ -214,7 +214,7 @@ final class SequenceCollection<E> implements Collection<E> {
   private final Sequence<E> sequence;
 
   SequenceCollection(Sequence<E> sequence) {
-    this.sequence = requireNonNull(sequence);
+    this.sequence = checkNonNull(sequence);
   }
 
   @Override
@@ -228,6 +228,7 @@ final class SequenceCollection<E> implements Collection<E> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean contains(Object o) {
     return sequence.contains((E) o);
   }
@@ -263,6 +264,7 @@ final class SequenceCollection<E> implements Collection<E> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean containsAll(Collection<?> c) {
     Sequence<?> from = ImmutableList.from(c);
     return sequence.containsAll((Sequence<E>) from);

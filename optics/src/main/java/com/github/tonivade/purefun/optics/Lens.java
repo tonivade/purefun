@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -15,7 +15,7 @@ public final class Lens<S, A> {
   private final PLens<S, S, A, A> delegate;
 
   protected Lens(PLens<S, S, A, A> delegate) {
-    this.delegate = requireNonNull(delegate);
+    this.delegate = checkNonNull(delegate);
   }
 
   public static <S, A> Lens<S, A> of(Function1<S, A> getter, Function2<S, A, S> setter) {

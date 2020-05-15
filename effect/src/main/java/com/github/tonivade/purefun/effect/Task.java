@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
@@ -33,7 +33,7 @@ public final class Task<T> implements Recoverable {
   private final ZIO<Nothing, Throwable, T> value;
 
   Task(ZIO<Nothing, Throwable, T> value) {
-    this.value = requireNonNull(value);
+    this.value = checkNonNull(value);
   }
 
   @SuppressWarnings("unchecked")

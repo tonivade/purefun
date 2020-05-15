@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -22,16 +22,16 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 public interface WriterTInstances {
 
   static <F extends Kind, L> Monad<Higher1<Higher1<WriterT.µ, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
-    return WriterTMonad.instance(requireNonNull(monoid), requireNonNull(monadF));
+    return WriterTMonad.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
   static <F extends Kind, L> MonadWriter<Higher1<Higher1<WriterT.µ, F>, L>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
-    return WriterTMonadWriter.instance(requireNonNull(monoid), requireNonNull(monadF));
+    return WriterTMonadWriter.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
   static <F extends Kind, L, E> MonadError<Higher1<Higher1<WriterT.µ, F>, L>, E> monadError(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
-    return WriterTMonadError.instance(requireNonNull(monoid), requireNonNull(monadErrorF));
+    return WriterTMonadError.instance(checkNonNull(monoid), checkNonNull(monadErrorF));
   }
 }
 

@@ -14,14 +14,14 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 final class Nil<F extends Kind, T> implements Stream<F, T> {
 
   private final MonadDefer<F> monad;
 
   Nil(MonadDefer<F> monad) {
-    this.monad = requireNonNull(monad);
+    this.monad = checkNonNull(monad);
   }
 
   @Override

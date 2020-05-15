@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.type.Either;
@@ -15,8 +15,8 @@ public final class PIso<S, T, A, B> {
   private final Function1<B, T> reverseGet;
 
   protected PIso(Function1<S, A> get, Function1<B, T> reverseGet) {
-    this.get = requireNonNull(get);
-    this.reverseGet = requireNonNull(reverseGet);
+    this.get = checkNonNull(get);
+    this.reverseGet = checkNonNull(reverseGet);
   }
 
   public static <S, T, A, B> PIso<S, T, A, B> of(Function1<S, A> get, Function1<B, T> reverseGet) {

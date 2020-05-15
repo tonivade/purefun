@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -19,8 +19,8 @@ public final class Coyoneda<F extends Kind, A, B> {
   private final Function1<A, B> map;
   
   private Coyoneda(Higher1<F, A> value, Function1<A, B> map) {
-    this.value = requireNonNull(value);
-    this.map = requireNonNull(map);
+    this.value = checkNonNull(value);
+    this.map = checkNonNull(map);
   }
 
   public Higher1<F, B> run(Functor<F> functor) {

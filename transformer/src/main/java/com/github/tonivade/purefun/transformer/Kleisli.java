@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.transformer;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -47,8 +47,8 @@ public interface Kleisli<F extends Kind, Z, A> {
   }
 
   static <F extends Kind, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {
-    requireNonNull(monad);
-    requireNonNull(run);
+    checkNonNull(monad);
+    checkNonNull(run);
     return new Kleisli<F, A, B>() {
 
       @Override

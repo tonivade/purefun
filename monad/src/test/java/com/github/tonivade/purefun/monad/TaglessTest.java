@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -54,8 +54,8 @@ class Program<F extends Kind> {
   private final Console<F> console;
 
   Program(Monad<F> monad, Console<F> console) {
-    this.monad = requireNonNull(monad);
-    this.console = requireNonNull(console);
+    this.monad = checkNonNull(monad);
+    this.console = checkNonNull(console);
   }
 
   public Higher1<F, Unit> echo() {

@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.Deque;
@@ -212,7 +212,7 @@ public interface ZIO<R, E, A> {
     private final A value;
 
     protected Pure(A value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -241,7 +241,7 @@ public interface ZIO<R, E, A> {
     private E error;
 
     protected Failure(E error) {
-      this.error = requireNonNull(error);
+      this.error = checkNonNull(error);
     }
 
     @Override
@@ -274,9 +274,9 @@ public interface ZIO<R, E, A> {
     protected FlatMapped(Producer<ZIO<R, E, A>> current,
                          Function1<E, ZIO<R, F, B>> nextError,
                          Function1<A, ZIO<R, F, B>> next) {
-      this.current = requireNonNull(current);
-      this.nextError = requireNonNull(nextError);
-      this.next = requireNonNull(next);
+      this.current = checkNonNull(current);
+      this.nextError = checkNonNull(nextError);
+      this.next = checkNonNull(next);
     }
 
     @Override
@@ -328,7 +328,7 @@ public interface ZIO<R, E, A> {
     private final Producer<Either<E, A>> task;
 
     protected Task(Producer<Either<E, A>> task) {
-      this.task = requireNonNull(task);
+      this.task = checkNonNull(task);
     }
 
     @Override
@@ -357,7 +357,7 @@ public interface ZIO<R, E, A> {
     private final Producer<ZIO<R, E, A>> lazy;
 
     protected Suspend(Producer<ZIO<R, E, A>> lazy) {
-      this.lazy = requireNonNull(lazy);
+      this.lazy = checkNonNull(lazy);
     }
 
     @Override
@@ -395,7 +395,7 @@ public interface ZIO<R, E, A> {
     private final ZIO<R, E, A> current;
 
     protected Swap(ZIO<R, E, A> current) {
-      this.current = requireNonNull(current);
+      this.current = checkNonNull(current);
     }
 
     @Override
@@ -424,7 +424,7 @@ public interface ZIO<R, E, A> {
     private final Producer<A> current;
 
     protected Attempt(Producer<A> current) {
-      this.current = requireNonNull(current);
+      this.current = checkNonNull(current);
     }
 
     @Override
@@ -453,7 +453,7 @@ public interface ZIO<R, E, A> {
     private final ZIO<R, Nothing, A> current;
 
     protected Redeem(ZIO<R, Nothing, A> current) {
-      this.current = requireNonNull(current);
+      this.current = checkNonNull(current);
     }
 
     @Override
@@ -482,7 +482,7 @@ public interface ZIO<R, E, A> {
     private final Function1<R, ZIO<R, E, A>> function;
 
     protected AccessM(Function1<R, ZIO<R, E, A>> function) {
-      this.function = requireNonNull(function);
+      this.function = checkNonNull(function);
     }
 
     @Override
@@ -514,9 +514,9 @@ public interface ZIO<R, E, A> {
     private final Function1<A, ZIO<R, F, B>> next;
 
     protected FoldM(ZIO<R, E, A> current, Function1<E, ZIO<R, F, B>> nextError, Function1<A, ZIO<R, F, B>> next) {
-      this.current = requireNonNull(current);
-      this.nextError = requireNonNull(nextError);
-      this.next = requireNonNull(next);
+      this.current = checkNonNull(current);
+      this.nextError = checkNonNull(nextError);
+      this.next = checkNonNull(next);
     }
 
     @Override
@@ -547,7 +547,7 @@ public interface ZIO<R, E, A> {
     private final Duration duration;
 
     public Sleep(Duration duration) {
-      this.duration = requireNonNull(duration);
+      this.duration = checkNonNull(duration);
     }
 
     @Override
@@ -586,9 +586,9 @@ public interface ZIO<R, E, A> {
     protected Bracket(ZIO<R, Throwable, A> acquire,
                     Function1<A, ZIO<R, Throwable, B>> use,
                     Consumer1<A> release) {
-      this.acquire = requireNonNull(acquire);
-      this.use = requireNonNull(use);
-      this.release = requireNonNull(release);
+      this.acquire = checkNonNull(acquire);
+      this.use = checkNonNull(use);
+      this.release = checkNonNull(release);
     }
 
     @Override
@@ -666,7 +666,7 @@ interface ZIOModule {
           if (times > 0)
             return delay.<R, E>toZIO().andThen(repeat(self, delay, times - 1));
           else
-            return ZIO.<R, E, A>pure(value);
+            return ZIO.pure(value);
         });
   }
 
@@ -687,8 +687,8 @@ final class ZIOResource<A> implements AutoCloseable {
   private final Consumer1<A> release;
 
   ZIOResource(Either<Throwable, A> resource, Consumer1<A> release) {
-    this.resource = requireNonNull(resource);
-    this.release = requireNonNull(release);
+    this.resource = checkNonNull(resource);
+    this.release = checkNonNull(release);
   }
 
   public <R, B> ZIO<R, Throwable, B> apply(Function1<A, ZIO<R, Throwable, B>> use) {

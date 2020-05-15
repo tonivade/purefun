@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 import static com.github.tonivade.purefun.Matcher1.instanceOf;
 import static com.github.tonivade.purefun.free.Free.liftF;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
 public interface IOProgram<T> {
@@ -46,7 +46,7 @@ public interface IOProgram<T> {
     private final String value;
 
     private Write(String value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     public String value() {
@@ -68,6 +68,7 @@ public interface IOProgram<T> {
   }
 }
 
+@SuppressWarnings("unchecked")
 class IOProgramToState implements FunctionK<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
 
   private final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
@@ -83,6 +84,7 @@ class IOProgramToState implements FunctionK<IOProgram.µ, Higher1<State.µ, Immu
   }
 }
 
+@SuppressWarnings("unchecked")
 class IOProgramToIO implements FunctionK<IOProgram.µ, IO.µ> {
 
   private final Console<IO.µ> console = IOInstances.console();

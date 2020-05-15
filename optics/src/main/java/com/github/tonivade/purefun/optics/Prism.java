@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
@@ -17,11 +17,11 @@ public final class Prism<S, A> {
   private final PPrism<S, S, A, A> delegate;
 
   protected Prism(PPrism<S, S, A, A> delegate) {
-    this.delegate = requireNonNull(delegate);
+    this.delegate = checkNonNull(delegate);
   }
 
   public static <S, A> Prism<S, A> of(Function1<S, Option<A>> getOption, Function1<A, S> reverseGet) {
-    return new Prism<>(PPrism.of(target -> getOption.apply(target).fold(cons(Either.<S, A>left(target)), Either::right), reverseGet));
+    return new Prism<>(PPrism.of(target -> getOption.apply(target).fold(cons(Either.left(target)), Either::right), reverseGet));
   }
 
   public Option<A> getOption(S target) {

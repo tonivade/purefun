@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -95,8 +95,8 @@ public interface EitherT<F extends Kind, L, R> {
   }
 
   static <F extends Kind, L, R> EitherT<F, L, R> of(Monad<F> monad, Higher1<F, Either<L, R>> value) {
-    requireNonNull(monad);
-    requireNonNull(value);
+    checkNonNull(monad);
+    checkNonNull(value);
     return new EitherT<F, L, R>() {
 
       @Override

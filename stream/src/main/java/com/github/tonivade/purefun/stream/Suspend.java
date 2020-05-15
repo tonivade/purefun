@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 final class Suspend<F extends Kind, T> implements Stream<F, T> {
 
@@ -23,8 +23,8 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   private final Higher1<F, Stream<F, T>> evalStream;
 
   Suspend(MonadDefer<F> monad, Higher1<F, Stream<F, T>> stream) {
-    this.monad = requireNonNull(monad);
-    this.evalStream = requireNonNull(stream);
+    this.monad = checkNonNull(monad);
+    this.evalStream = checkNonNull(stream);
   }
 
   @Override

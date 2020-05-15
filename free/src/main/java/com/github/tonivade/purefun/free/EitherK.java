@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
 public final class EitherK<F extends Kind, G extends Kind, T> implements Serializable {
@@ -31,7 +31,7 @@ public final class EitherK<F extends Kind, G extends Kind, T> implements Seriali
   private final Either<Higher1<F, T>, Higher1<G, T>> either;
 
   private EitherK(Either<Higher1<F, T>, Higher1<G, T>> either) {
-    this.either = requireNonNull(either);
+    this.either = checkNonNull(either);
   }
 
   public <R> EitherK<F, G, R> map(Functor<F> functorF, Functor<G> functorG, Function1<T, R> mapper) {

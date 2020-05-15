@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 public interface KleisliInstances {
 
   static <F extends Kind, Z> Monad<Higher1<Higher1<Kleisli.µ, F>, Z>> monad(Monad<F> monadF) {
-    return KleisliMonad.instance(requireNonNull(monadF));
+    return KleisliMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, Z, E> MonadError<Higher1<Higher1<Kleisli.µ, F>, Z>, E> monadError(MonadError<F, E> monadErrorF) {

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 public interface WriterInstances {
 
   static <L> Monad<Higher1<Writer.µ, L>> monad(Monoid<L> monoid) {
-    return WriterMonad.instance(requireNonNull(monoid));
+    return WriterMonad.instance(checkNonNull(monoid));
   }
 }
 

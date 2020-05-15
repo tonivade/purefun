@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Eq;
@@ -35,35 +35,35 @@ public interface EitherTInstances {
   }
 
   static <F extends Kind, L> Monad<Higher1<Higher1<EitherT.µ, F>, L>> monad(Monad<F> monadF) {
-    return EitherTMonad.instance(requireNonNull(monadF));
+    return EitherTMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, L> MonadError<Higher1<Higher1<EitherT.µ, F>, L>, L> monadError(Monad<F> monadF) {
-    return EitherTMonadErrorFromMonad.instance(requireNonNull(monadF));
+    return EitherTMonadErrorFromMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, L> MonadError<Higher1<Higher1<EitherT.µ, F>, L>, L> monadError(MonadError<F, L> monadErrorF) {
-    return EitherTMonadErrorFromMonadError.instance(requireNonNull(monadErrorF));
+    return EitherTMonadErrorFromMonadError.instance(checkNonNull(monadErrorF));
   }
 
   static <F extends Kind> MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadThrow(Monad<F> monadF) {
-    return EitherTMonadThrowFromMonad.instance(requireNonNull(monadF));
+    return EitherTMonadThrowFromMonad.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind> MonadThrow<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadThrow(MonadThrow<F> monadF) {
-    return EitherTMonadThrowFromMonadThrow.instance(requireNonNull(monadF));
+    return EitherTMonadThrowFromMonadThrow.instance(checkNonNull(monadF));
   }
 
   static <F extends Kind, L> Defer<Higher1<Higher1<EitherT.µ, F>, L>> defer(MonadDefer<F> monadDeferF) {
-    return EitherTDefer.instance(requireNonNull(monadDeferF));
+    return EitherTDefer.instance(checkNonNull(monadDeferF));
   }
 
   static <F extends Kind> MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadDeferFromMonad(MonadDefer<F> monadDeferF) {
-    return EitherTMonadDeferFromMonad.instance(requireNonNull(monadDeferF));
+    return EitherTMonadDeferFromMonad.instance(checkNonNull(monadDeferF));
   }
 
   static <F extends Kind> MonadDefer<Higher1<Higher1<EitherT.µ, F>, Throwable>> monadDeferFromMonadThrow(MonadDefer<F> monadDeferF) {
-    return EitherTMonadDeferFromMonadThrow.instance(requireNonNull(monadDeferF));
+    return EitherTMonadDeferFromMonadThrow.instance(checkNonNull(monadDeferF));
   }
 
   static <F extends Kind, A>

@@ -3,7 +3,7 @@ package com.github.tonivade.purefun.free;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Unit;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
 public interface EmailAlg<T> {
@@ -12,8 +12,8 @@ public interface EmailAlg<T> {
     private final String content;
 
     public SendEmail(String to, String content) {
-      this.to = requireNonNull(to);
-      this.content = requireNonNull(content);
+      this.to = checkNonNull(to);
+      this.content = checkNonNull(content);
     }
 
     public String getTo() { return to; }

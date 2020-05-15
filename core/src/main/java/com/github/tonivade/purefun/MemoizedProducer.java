@@ -6,7 +6,7 @@ package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Collections.synchronizedMap;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +17,7 @@ final class MemoizedProducer<T> implements Producer<T> {
   private final Function1<Unit, T> function;
 
   MemoizedProducer(Producer<T> producer) {
-    this.function = requireNonNull(producer).asFunction();
+    this.function = checkNonNull(producer).asFunction();
   }
 
   @Override

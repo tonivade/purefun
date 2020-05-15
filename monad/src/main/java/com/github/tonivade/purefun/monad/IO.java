@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.Deque;
@@ -199,7 +199,7 @@ public interface IO<T> extends Recoverable {
     private final T value;
 
     protected Pure(T value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -229,8 +229,8 @@ public interface IO<T> extends Recoverable {
     private final Function1<T, IO<R>> next;
 
     protected FlatMapped(Producer<IO<T>> current, Function1<T, IO<R>> next) {
-      this.current = requireNonNull(current);
-      this.next = requireNonNull(next);
+      this.current = checkNonNull(current);
+      this.next = checkNonNull(next);
     }
 
     @Override
@@ -273,7 +273,7 @@ public interface IO<T> extends Recoverable {
     private final Throwable error;
 
     protected Failure(Throwable error) {
-      this.error = requireNonNull(error);
+      this.error = checkNonNull(error);
     }
 
     @Override
@@ -314,7 +314,7 @@ public interface IO<T> extends Recoverable {
     private final Producer<T> task;
 
     protected Task(Producer<T> task) {
-      this.task = requireNonNull(task);
+      this.task = checkNonNull(task);
     }
 
     @Override
@@ -343,7 +343,7 @@ public interface IO<T> extends Recoverable {
     private final Producer<IO<T>> lazy;
 
     protected Suspend(Producer<IO<T>> lazy) {
-      this.lazy = requireNonNull(lazy);
+      this.lazy = checkNonNull(lazy);
     }
 
     @Override
@@ -381,7 +381,7 @@ public interface IO<T> extends Recoverable {
     private final Duration duration;
 
     public Sleep(Duration duration) {
-      this.duration = requireNonNull(duration);
+      this.duration = checkNonNull(duration);
     }
 
     @Override
@@ -418,9 +418,9 @@ public interface IO<T> extends Recoverable {
     private final Consumer1<T> release;
 
     protected Bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
-      this.acquire = requireNonNull(acquire);
-      this.use = requireNonNull(use);
-      this.release = requireNonNull(release);
+      this.acquire = checkNonNull(acquire);
+      this.use = checkNonNull(use);
+      this.release = checkNonNull(release);
     }
 
     @Override
@@ -451,7 +451,7 @@ public interface IO<T> extends Recoverable {
     private final IO<T> current;
 
     protected Attempt(IO<T> current) {
-      this.current = requireNonNull(current);
+      this.current = checkNonNull(current);
     }
 
     @Override
@@ -542,8 +542,8 @@ final class IOResource<T> implements AutoCloseable {
   private final Consumer1<T> release;
 
   IOResource(T resource, Consumer1<T> release) {
-    this.resource = requireNonNull(resource);
-    this.release = requireNonNull(release);
+    this.resource = checkNonNull(resource);
+    this.release = checkNonNull(release);
   }
 
   public <R> IO<R> apply(Function1<T, IO<R>> use) {

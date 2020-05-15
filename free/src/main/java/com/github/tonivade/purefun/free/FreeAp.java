@@ -13,13 +13,12 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
-import com.github.tonivade.purefun.typeclasses.Monoid;
 
 import java.util.Deque;
 import java.util.LinkedList;
 
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
 public abstract class FreeAp<F extends Kind, A> {
@@ -151,7 +150,7 @@ public abstract class FreeAp<F extends Kind, A> {
     private final A value;
 
     private Pure(A value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -170,7 +169,7 @@ public abstract class FreeAp<F extends Kind, A> {
     private final Higher1<F, A> value;
 
     private Lift(Higher1<F, A> value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -190,8 +189,8 @@ public abstract class FreeAp<F extends Kind, A> {
     private final FreeAp<F, Function1<A, B>> apply;
 
     private Apply(FreeAp<F, A> value, FreeAp<F, Function1<A, B>> apply) {
-      this.value = requireNonNull(value);
-      this.apply = requireNonNull(apply);
+      this.value = checkNonNull(value);
+      this.apply = checkNonNull(apply);
     }
 
     @Override
@@ -211,7 +210,7 @@ public abstract class FreeAp<F extends Kind, A> {
     private final int remaining;
 
     CurriedFunction(Higher1<G, Function1<A, B>> value, int remaining) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
       this.remaining = remaining;
     }
   }

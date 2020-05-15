@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -22,7 +22,7 @@ public final class Const<T, A> implements Serializable {
   private final T value;
 
   private Const(T value) {
-    this.value = requireNonNull(value);
+    this.value = checkNonNull(value);
   }
 
   public T get() {

@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -18,8 +18,8 @@ public final class POptional<S, T, A, B> {
   private final Function1<S, Either<T, A>> getOrModify;
 
   protected POptional(Function1<S, Function1<B, T>> set, Function1<S, Either<T, A>> getOrModify) {
-    this.set = requireNonNull(set);
-    this.getOrModify = requireNonNull(getOrModify);
+    this.set = checkNonNull(set);
+    this.getOrModify = checkNonNull(getOrModify);
   }
 
   public static <S, T, A, B> POptional<S, T, A, B> of(Function2<S, B, T> set, Function1<S, Either<T, A>> getOrModify) {

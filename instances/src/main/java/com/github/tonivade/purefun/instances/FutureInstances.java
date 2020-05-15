@@ -24,7 +24,7 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public interface FutureInstances {
 
@@ -37,7 +37,7 @@ public interface FutureInstances {
   }
 
   static Applicative<Future.µ> applicative(Executor executor) {
-    return FutureApplicative.instance(requireNonNull(executor));
+    return FutureApplicative.instance(checkNonNull(executor));
   }
 
   static Monad<Future.µ> monad() {
@@ -45,7 +45,7 @@ public interface FutureInstances {
   }
 
   static Monad<Future.µ> monad(Executor executor) {
-    return FutureMonad.instance(requireNonNull(executor));
+    return FutureMonad.instance(checkNonNull(executor));
   }
 
   static MonadError<Future.µ, Throwable> monadError() {
@@ -53,7 +53,7 @@ public interface FutureInstances {
   }
 
   static MonadError<Future.µ, Throwable> monadError(Executor executor) {
-    return FutureMonadThrow.instance(requireNonNull(executor));
+    return FutureMonadThrow.instance(checkNonNull(executor));
   }
 
   static MonadDefer<Future.µ> monadDefer() {
@@ -61,7 +61,7 @@ public interface FutureInstances {
   }
 
   static MonadDefer<Future.µ> monadDefer(Executor executor) {
-    return FutureMonadDefer.instance(requireNonNull(executor));
+    return FutureMonadDefer.instance(checkNonNull(executor));
   }
 }
 

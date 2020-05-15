@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.optics;
 
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -18,11 +18,11 @@ public final class Optional<S, A> {
   private final POptional<S, S, A, A> delegate;
 
   protected Optional(POptional<S, S, A, A> delegate) {
-    this.delegate = requireNonNull(delegate);
+    this.delegate = checkNonNull(delegate);
   }
 
   public static <S, A> Optional<S, A> of(Function2<S, A, S> set, Function1<S, Option<A>> getOption) {
-    return new Optional<>(POptional.of(set, target -> getOption.apply(target).fold(cons(Either.<S, A>left(target)), Either::right)));
+    return new Optional<>(POptional.of(set, target -> getOption.apply(target).fold(cons(Either.left(target)), Either::right)));
   }
 
   public Function1<A, S> set(S target) {

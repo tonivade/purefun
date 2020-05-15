@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.concurrent.CancellationException;
 
@@ -30,7 +30,7 @@ final class CancellableImpl<T> implements Cancellable<T> {
   private final Promise<T> promise;
   
   public CancellableImpl(Promise<T> promise) {
-    this.promise = requireNonNull(promise);
+    this.promise = checkNonNull(promise);
   }
 
   @Override

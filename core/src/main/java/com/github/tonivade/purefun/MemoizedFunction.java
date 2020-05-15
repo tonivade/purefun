@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 import static java.util.Collections.synchronizedMap;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ final class MemoizedFunction<T, R> implements Function1<T, R> {
   private final Function1<T, R> function;
 
   MemoizedFunction(Function1<T, R> function) {
-    this.function = requireNonNull(function);
+    this.function = checkNonNull(function);
   }
 
   @Override

@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
@@ -78,9 +78,9 @@ public interface WriterT<F extends Kind, L, A> {
   }
 
   static <F extends Kind, L, A> WriterT<F, L, A> writer(Monoid<L> monoid, Monad<F> monad, Higher1<F, Tuple2<L, A>> value) {
-    requireNonNull(monoid);
-    requireNonNull(monad);
-    requireNonNull(value);
+    checkNonNull(monoid);
+    checkNonNull(monad);
+    checkNonNull(value);
     return new WriterT<F, L, A>() {
 
       @Override

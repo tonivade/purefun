@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.type.Validation.Result;
 import java.util.Objects;
 
 import static com.github.tonivade.purefun.Validator.join;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -275,8 +275,8 @@ final class Person {
   private final String name;
 
   Person(Integer age, String name) {
-    this.age = requireNonNull(age);
-    this.name = requireNonNull(name);
+    this.age = checkNonNull(age);
+    this.name = checkNonNull(name);
   }
 
   public Integer getAge() {

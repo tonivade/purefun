@@ -8,14 +8,14 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.fail;
 import static com.github.tonivade.purefun.Matcher1.invalid;
 import static com.github.tonivade.purefun.Matcher1.never;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public final class Pattern1<A, R> implements PartialFunction1<A, R> {
 
   private final PartialFunction1<A, R> function;
 
   private Pattern1(PartialFunction1<A, R> function) {
-    this.function = requireNonNull(function);
+    this.function = checkNonNull(function);
   }
 
   public static <A, R> Pattern1<A, R> build() {
@@ -50,13 +50,13 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
     private final Matcher1<T> matcher;
 
     private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
-      this.finisher = requireNonNull(finisher);
+      this.finisher = checkNonNull(finisher);
       this.matcher = invalid();
     }
 
     private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
-      this.finisher = requireNonNull(finisher);
-      this.matcher = requireNonNull(matcher);
+      this.finisher = checkNonNull(finisher);
+      this.matcher = checkNonNull(matcher);
     }
 
     public CaseBuilder1<B, T, R> when(Matcher1<T> matcher) {

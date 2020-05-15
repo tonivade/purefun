@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
@@ -14,7 +14,7 @@ public final class Iso<S, A> {
   private final PIso<S, S, A, A> delegate;
 
   protected Iso(PIso<S, S, A, A> delegate) {
-    this.delegate = requireNonNull(delegate);
+    this.delegate = checkNonNull(delegate);
   }
 
   public static <S, A> Iso<S, A> of(Function1<S, A> get, Function1<A, S> reverseGet) {
