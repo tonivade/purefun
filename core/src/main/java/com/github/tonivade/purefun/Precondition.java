@@ -102,7 +102,7 @@ public interface Precondition {
   }
 
   static int checkRange(int value, int min, int max, String message) {
-    check(range(value, min, max));
+    check(range(value, min, max), () -> message);
     return value;
   }
 
