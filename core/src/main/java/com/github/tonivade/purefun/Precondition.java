@@ -62,26 +62,46 @@ public interface Precondition {
   }
 
   static <T> T checkNonNull(T value) {
-    check(nonNull(value));
+    return checkNonNull(value, "non null value required");
+  }
+
+  static <T> T checkNonNull(T value, String message) {
+    check(nonNull(value), () -> message);
     return value;
   }
 
   static String checkNonEmpty(String value) {
-    check(nonNull(value).and(nonEmpty(value)));
+    return checkNonEmpty(value, "non empty string required");
+  }
+
+  static String checkNonEmpty(String value, String message) {
+    check(nonNull(value).and(nonEmpty(value)), () -> message);
     return value;
   }
 
   static int checkPositive(int value) {
-    check(positive(value));
+    return checkPositive(value, "positive value required");
+  }
+
+  static int checkPositive(int value, String message) {
+    check(positive(value), () -> message);
     return value;
   }
 
   static int checkNegative(int value) {
-    check(negative(value));
+    return checkNegative(value, "negative value required");
+  }
+
+  static int checkNegative(int value, String message) {
+    check(negative(value), () -> message);
     return value;
   }
 
   static int checkRange(int value, int min, int max) {
+    return checkRange(value, min, max, "value not in range: " + min + "-" + max);
+  }
+
+  static int checkRange(int value, int min, int max, String message) {
     check(range(value, min, max));
     return value;
   }
