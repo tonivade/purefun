@@ -35,6 +35,8 @@ allprojects {
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
 
+  sourceSets.main.java.srcDirs += "$buildDir/generated/sources/annotationProcessor/java"
+
   repositories {
     mavenLocal()
     mavenCentral()
