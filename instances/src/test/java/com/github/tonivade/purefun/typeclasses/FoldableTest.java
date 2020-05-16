@@ -21,15 +21,20 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.Try_;
 
 public class FoldableTest {
 
@@ -51,7 +56,7 @@ public class FoldableTest {
 
   @Test
   public void composed() {
-    Foldable<Nested<Sequence.µ, Option.µ>> instance = compose(SequenceInstances.foldable(), OptionInstances.foldable());
+    Foldable<Nested<Sequence_, Option_>> instance = compose(SequenceInstances.foldable(), OptionInstances.foldable());
 
     assertEquals(Integer.valueOf(3), instance.fold(Monoid.integer(),
       nest(listOf(Option.some(1).kind1(), Option.<Integer>none().kind1(), Option.some(2).kind1()).kind1())));
@@ -59,7 +64,7 @@ public class FoldableTest {
 
   @Test
   public void sequence() {
-    Foldable<Sequence.µ> instance = SequenceInstances.foldable();
+    Foldable<Sequence_> instance = SequenceInstances.foldable();
 
     assertAll(
         () -> assertEquals("abc", instance.foldLeft(listOf("a", "b", "c").kind1(), "", String::concat)),
@@ -72,7 +77,7 @@ public class FoldableTest {
 
   @Test
   public void either() {
-    Foldable<Higher1<Either.µ, Throwable>> instance = EitherInstances.foldable();
+    Foldable<Higher1<Either_, Throwable>> instance = EitherInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Either.<Throwable, String>left(new Error()).kind1(), empty(), ImmutableList::append)),
@@ -91,7 +96,7 @@ public class FoldableTest {
 
   @Test
   public void option() {
-    Foldable<Option.µ> instance = OptionInstances.foldable();
+    Foldable<Option_> instance = OptionInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Option.<String>none().kind1(), empty(), ImmutableList::append)),
@@ -110,7 +115,7 @@ public class FoldableTest {
 
   @Test
   public void try_() {
-    Foldable<Try.µ> instance = TryInstances.foldable();
+    Foldable<Try_> instance = TryInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Try.<String>failure().kind1(), empty(), ImmutableList::append)),

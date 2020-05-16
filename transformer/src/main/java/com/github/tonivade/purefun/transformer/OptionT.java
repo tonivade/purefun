@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -19,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public interface OptionT<F extends Kind, T> {
+public interface OptionT<F extends Kind, T> extends Higher2<OptionT_, F, T> {
 
   Monad<F> monad();
   Higher1<F, Option<T>> value();

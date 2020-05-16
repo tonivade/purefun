@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 
 public class MonadTest {
 
@@ -49,7 +50,7 @@ public class MonadTest {
 
   @Test
   public void option() {
-    Monad<Option.µ> monad = OptionInstances.monad();
+    Monad<Option_> monad = OptionInstances.monad();
 
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();

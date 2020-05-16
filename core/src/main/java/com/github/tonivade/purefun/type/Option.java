@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -37,7 +38,7 @@ import com.github.tonivade.purefun.data.Sequence;
  */
 @Sealed
 @HigherKind
-public interface Option<T> {
+public interface Option<T> extends Higher1<Option_, T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);

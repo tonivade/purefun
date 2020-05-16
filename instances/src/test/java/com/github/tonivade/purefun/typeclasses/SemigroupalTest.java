@@ -8,12 +8,13 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 
 public class SemigroupalTest {
 
   @Test
   public void semigroupal() {
-    Semigroupal<Option.µ> instance = OptionInstances.semigroupal();
+    Semigroupal<Option_> instance = OptionInstances.semigroupal();
 
     assertAll(
         () -> assertEquals(Option.none(), instance.product(Option.none().kind1(), Option.none().kind1())),

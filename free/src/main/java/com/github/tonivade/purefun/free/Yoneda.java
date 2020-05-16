@@ -8,13 +8,14 @@ import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
 @FunctionalInterface
-public interface Yoneda<F extends Kind, A> {
+public interface Yoneda<F extends Kind, A> extends Higher2<Yoneda_, F, A> {
 
   <B> Higher1<F, B> apply(Function1<A, B> map);
   

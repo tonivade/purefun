@@ -10,10 +10,12 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
-public final class Const<T, A> implements Serializable {
+public final class Const<T, A> implements Higher2<Const_, T, A>, Serializable {
 
   private static final long serialVersionUID = 7431389527943145565L;
 

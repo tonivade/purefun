@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -31,7 +32,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @Sealed
 @HigherKind
-public interface ZIO<R, E, A> {
+public interface ZIO<R, E, A> extends Higher3<ZIO_, R, E, A> {
 
   Either<E, A> provide(R env);
 

@@ -9,41 +9,42 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.Reader;
+import com.github.tonivade.purefun.monad.Reader_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
 
 @SuppressWarnings("unchecked")
 public interface ReaderInstances {
 
-  static <R> Monad<Higher1<Reader.µ, R>> monad() {
+  static <R> Monad<Higher1<Reader_, R>> monad() {
     return ReaderMonad.instance();
   }
 
-  static <R> MonadReader<Higher1<Reader.µ, R>, R> monadReader() {
+  static <R> MonadReader<Higher1<Reader_, R>, R> monadReader() {
     return ReaderMonadReader.instance();
   }
 }
 
 @Instance
-interface ReaderMonad<R> extends Monad<Higher1<Reader.µ, R>> {
+interface ReaderMonad<R> extends Monad<Higher1<Reader_, R>> {
 
   @Override
-  default <T> Higher2<Reader.µ, R, T> pure(T value) {
+  default <T> Higher2<Reader_, R, T> pure(T value) {
     return Reader.<R, T>pure(value).kind2();
   }
 
   @Override
-  default <T, V> Higher2<Reader.µ, R, V> flatMap(Higher1<Higher1<Reader.µ, R>, T> value,
-      Function1<T, ? extends Higher1<Higher1<Reader.µ, R>, V>> map) {
-    return Reader.narrowK(value).flatMap(map.andThen(Reader::narrowK)).kind2();
+  default <T, V> Higher2<Reader_, R, V> flatMap(Higher1<Higher1<Reader_, R>, T> value,
+      Function1<T, ? extends Higher1<Higher1<Reader_, R>, V>> map) {
+    return Reader_.narrowK(value).flatMap(map.andThen(Reader_::narrowK)).kind2();
   }
 }
 
 @Instance
-interface ReaderMonadReader<R> extends MonadReader<Higher1<Reader.µ, R>, R>, ReaderMonad<R> {
+interface ReaderMonadReader<R> extends MonadReader<Higher1<Reader_, R>, R>, ReaderMonad<R> {
 
   @Override
-  default Higher1<Higher1<Reader.µ, R>, R> ask() {
+  default Higher1<Higher1<Reader_, R>, R> ask() {
     return Reader.<R>env().kind1();
   }
 }

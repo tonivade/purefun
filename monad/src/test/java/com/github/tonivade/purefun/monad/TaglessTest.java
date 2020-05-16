@@ -24,14 +24,14 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class TaglessTest {
 
-  private final Program<Higher1<State.µ, ImmutableList<String>>> stateProgram =
+  private final Program<Higher1<State_, ImmutableList<String>>> stateProgram =
       new Program<>(StateInstances.monad(), StateInstances.console());
-  private final Program<IO.µ> ioProgram =
+  private final Program<IO_> ioProgram =
       new Program<>(IOInstances.monad(), IOInstances.console());
 
   @Test
   public void stateInterpreter() {
-    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix1(State::narrowK);
+    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix1(State_::narrowK);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(listOf("Toni"));
 
@@ -42,7 +42,7 @@ public class TaglessTest {
   public void ioInterpreter() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(ioProgram.echo().fix1(IO::narrowK));
+    executor.run(ioProgram.echo().fix1(IO_::narrowK));
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }

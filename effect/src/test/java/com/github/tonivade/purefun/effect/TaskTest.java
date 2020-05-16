@@ -9,6 +9,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -136,20 +137,20 @@ public class TaskTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<Future.µ> monadDefer = FutureInstances.monadDefer();
+    MonadDefer<Future_> monadDefer = FutureInstances.monadDefer();
 
-    Higher1<Future.µ, Integer> future = parseInt("0").foldMap(monadDefer);
+    Higher1<Future_, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Try.success(0), future.fix1(Future::narrowK).await());
+    assertEquals(Try.success(0), future.fix1(Future_::narrowK).await());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<Future.µ> monadDefer = FutureInstances.monadDefer();
+    MonadDefer<Future_> monadDefer = FutureInstances.monadDefer();
 
-    Higher1<Future.µ, Integer> future = parseInt("jdjd").foldMap(monadDefer);
+    Higher1<Future_, Integer> future = parseInt("jdjd").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(Future::narrowK).await().getCause().getClass());
+    assertEquals(NumberFormatException.class, future.fix1(Future_::narrowK).await().getCause().getClass());
   }
 
   @Test

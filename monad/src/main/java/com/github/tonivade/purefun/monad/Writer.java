@@ -8,13 +8,14 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind
-public interface Writer<L, A> {
+public interface Writer<L, A> extends Higher2<Writer_, L, A> {
 
   Monoid<L> monoid();
   Tuple2<L, A> value();

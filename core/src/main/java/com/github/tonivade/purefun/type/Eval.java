@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.type;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -27,7 +28,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
  * @param <A> result of the computation
  */
 @HigherKind
-public interface Eval<A> {
+public interface Eval<A> extends Higher1<Eval_, A> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
@@ -169,6 +170,7 @@ public interface Eval<A> {
 
 interface EvalModule {
 
+  @SuppressWarnings("unchecked")
   static <A, X> Eval<A> collapse(Eval<A> self) {
     Eval<A> current = self;
     while (true) {

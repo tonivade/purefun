@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 
 public class CoyonedaTest {
   
@@ -19,9 +20,9 @@ public class CoyonedaTest {
 
   @Test
   public void coyoneda() {
-    Coyoneda<Option.µ, String, String> coyoneda = Coyoneda.of(Option.some("string").kind1(), identity());
+    Coyoneda<Option_, String, String> coyoneda = Coyoneda.of(Option.some("string").kind1(), identity());
 
-    Coyoneda<Option.µ, String, String> result = coyoneda.map(concat).map(concat);
+    Coyoneda<Option_, String, String> result = coyoneda.map(concat).map(concat);
 
     assertEquals(Option.some("stringstringstringstring"), result.run(functor()));
   }

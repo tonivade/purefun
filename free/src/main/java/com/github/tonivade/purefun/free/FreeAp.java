@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Const;
+import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
@@ -21,7 +22,7 @@ import static java.util.Collections.singletonList;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
-public abstract class FreeAp<F extends Kind, A> {
+public abstract class FreeAp<F extends Kind, A> implements Higher2<FreeAp_, F, A> {
 
   private FreeAp() {}
 
@@ -40,20 +41,20 @@ public abstract class FreeAp<F extends Kind, A> {
   }
 
   public <G extends Kind> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
-    return foldMap(functionKF(transformer), applicativeF()).fix1(FreeAp::narrowK);
+    return foldMap(functionKF(transformer), applicativeF()).fix1(FreeAp_::narrowK);
   }
 
   public <G extends Kind> FreeAp<G, A> flatCompile(
-      FunctionK<F, Higher1<FreeAp.µ, G>> functionK, Applicative<Higher1<FreeAp.µ, G>> applicative) {
-    return foldMap(functionK, applicative).fix1(FreeAp::narrowK);
+      FunctionK<F, Higher1<FreeAp_, G>> functionK, Applicative<Higher1<FreeAp_, G>> applicative) {
+    return foldMap(functionK, applicative).fix1(FreeAp_::narrowK);
   }
 
-  public <M> M analyze(FunctionK<F, Higher1<Const.µ, M>> functionK, Applicative<Higher1<Const.µ, M>> applicative) {
-    return foldMap(functionK, applicative).fix1(Const::narrowK).get();
+  public <M> M analyze(FunctionK<F, Higher1<Const_, M>> functionK, Applicative<Higher1<Const_, M>> applicative) {
+    return foldMap(functionK, applicative).fix1(Const_::narrowK).get();
   }
 
   public Free<F, A> monad() {
-    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix1(Free::narrowK);
+    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix1(Free_::narrowK);
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -121,16 +122,16 @@ public abstract class FreeAp<F extends Kind, A> {
     return new FreeAp.Apply<>(value, mapper);
   }
 
-  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<FreeAp.µ, G>> functionKF(FunctionK<F, G> functionK) {
-    return new FunctionK<F, Higher1<FreeAp.µ, G>>() {
+  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
+    return new FunctionK<F, Higher1<FreeAp_, G>>() {
       @Override
-      public <T> Higher2<FreeAp.µ, G, T> apply(Higher1<F, T> from) {
+      public <T> Higher2<FreeAp_, G, T> apply(Higher1<F, T> from) {
         return lift(functionK.apply(from)).kind2();
       }
     };
   }
 
-  public static <F extends Kind> Applicative<Higher1<FreeAp.µ, F>> applicativeF() {
+  public static <F extends Kind> Applicative<Higher1<FreeAp_, F>> applicativeF() {
     return FreeApplicative.instance();
   }
 
@@ -217,18 +218,18 @@ public abstract class FreeAp<F extends Kind, A> {
 }
 
 @Instance
-interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp.µ, F>> {
+interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp_, F>> {
 
   @Override
-  default <T> Higher2<FreeAp.µ, F, T> pure(T value) {
+  default <T> Higher2<FreeAp_, F, T> pure(T value) {
     return FreeAp.<F, T>pure(value).kind2();
   }
 
   @Override
-  default <T, R> Higher2<FreeAp.µ, F, R> ap(
-      Higher1<Higher1<FreeAp.µ, F>, T> value, Higher1<Higher1<FreeAp.µ, F>, Function1<T, R>> apply) {
-    FreeAp<F, T> freeAp = value.fix1(FreeAp::narrowK);
-    FreeAp<F, Function1<T, R>> apply1 = apply.fix1(FreeAp::narrowK);
+  default <T, R> Higher2<FreeAp_, F, R> ap(
+      Higher1<Higher1<FreeAp_, F>, T> value, Higher1<Higher1<FreeAp_, F>, Function1<T, R>> apply) {
+    FreeAp<F, T> freeAp = value.fix1(FreeAp_::narrowK);
+    FreeAp<F, Function1<T, R>> apply1 = apply.fix1(FreeAp_::narrowK);
     return FreeAp.apply(freeAp, apply1).kind2();
   }
 }

@@ -11,20 +11,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.type.Const;
+import com.github.tonivade.purefun.type.Const_;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.Try_;
 
 public class TraverseTest {
 
@@ -32,9 +38,9 @@ public class TraverseTest {
   public void seuence() {
     Sequence<Option<String>> seq = listOf(Option.some("a"), Option.some("b"), Option.some("c"));
 
-    Traverse<Sequence.µ> instance = SequenceInstances.traverse();
+    Traverse<Sequence_> instance = SequenceInstances.traverse();
 
-    Higher1<Option.µ, Higher1<Sequence.µ, String>> result =
+    Higher1<Option_, Higher1<Sequence_, String>> result =
         instance.traverse(OptionInstances.applicative(), seq.kind1(), x -> x.map(String::toUpperCase).kind1());
 
     assertEquals(Option.some(listOf("A", "B", "C")), result);
@@ -42,7 +48,7 @@ public class TraverseTest {
 
   @Test
   public void either() {
-    Traverse<Higher1<Either.µ, Throwable>> instance = EitherInstances.traverse();
+    Traverse<Higher1<Either_, Throwable>> instance = EitherInstances.traverse();
 
     Exception error = new Exception("error");
 
@@ -57,7 +63,7 @@ public class TraverseTest {
 
   @Test
   public void composed() {
-    Traverse<Nested<Option.µ, Id.µ>> composed = Traverse.compose(OptionInstances.traverse(), IdInstances.traverse());
+    Traverse<Nested<Option_, Id_>> composed = Traverse.compose(OptionInstances.traverse(), IdInstances.traverse());
 
     assertEquals(Try.success(Option.some(Id.of("HOLA!"))),
         composed.traverse(TryInstances.applicative(), nest(Option.some(Id.of(Try.success("hola!")).kind1()).kind1()),
@@ -66,7 +72,7 @@ public class TraverseTest {
 
   @Test
   public void id() {
-    Traverse<Id.µ> instance = IdInstances.traverse();
+    Traverse<Id_> instance = IdInstances.traverse();
 
     assertAll(
         () -> assertEquals(Option.some(Id.of("HELLO!")),
@@ -76,7 +82,7 @@ public class TraverseTest {
 
   @Test
   public void testConst() {
-    Traverse<Higher1<Const.µ, String>> instance = ConstInstances.traverse();
+    Traverse<Higher1<Const_, String>> instance = ConstInstances.traverse();
 
     assertAll(
         () -> assertEquals(Option.some(Const.of("hello!")),
@@ -86,7 +92,7 @@ public class TraverseTest {
 
   @Test
   public void option() {
-    Traverse<Option.µ> instance = OptionInstances.traverse();
+    Traverse<Option_> instance = OptionInstances.traverse();
 
     assertAll(
         () -> assertEquals(Try.success(Option.some("HELLO!")),
@@ -99,7 +105,7 @@ public class TraverseTest {
 
   @Test
   public void testTry() {
-    Traverse<Try.µ> instance = TryInstances.traverse();
+    Traverse<Try_> instance = TryInstances.traverse();
 
     Exception error = new Exception("error");
 

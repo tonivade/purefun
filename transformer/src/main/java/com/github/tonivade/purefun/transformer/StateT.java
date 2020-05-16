@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
@@ -20,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public interface StateT<F extends Kind, S, A> {
+public interface StateT<F extends Kind, S, A> extends Higher3<StateT_, F, S, A> {
 
   Monad<F> monad();
   Higher1<F, Tuple2<S, A>> run(S state);

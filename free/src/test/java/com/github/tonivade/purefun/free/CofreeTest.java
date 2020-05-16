@@ -12,7 +12,9 @@ import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.typeclasses.For;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,27 +33,27 @@ public class CofreeTest {
 
   @Test
   public void testMap() {
-    Cofree<Id.µ, Integer> cofree = Cofree.unfold(IdInstances.functor(), 0, a -> Id.of(a + 1).kind1()).map(x -> x * 2);
+    Cofree<Id_, Integer> cofree = Cofree.unfold(IdInstances.functor(), 0, a -> Id.of(a + 1).kind1()).map(x -> x * 2);
 
-    Id<Tuple4<Cofree<Id.µ, Integer>, Cofree<Id.µ, Integer>, Cofree<Id.µ, Integer>, Cofree<Id.µ, Integer>>> tuple4Id =
+    Id<Tuple4<Cofree<Id_, Integer>, Cofree<Id_, Integer>, Cofree<Id_, Integer>, Cofree<Id_, Integer>>> tuple4Id =
         For.with(IdInstances.monad())
           .then(cofree.tailForced())
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
-          .tuple().fix1(Id::narrowK);
+          .tuple().fix1(Id_::narrowK);
 
     assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.get().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
   }
 
   @Test
   public void testFold() {
-    Cofree<Option.µ, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
+    Cofree<Option_, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
         a -> (a > 100) ? Option.<Integer>none().kind1() : Option.some(a + 1).kind1());
 
     assertEquals(5151,
         cofree.<Integer>fold(EvalInstances.applicative(), OptionInstances.traverse(),
-            (a, fb) -> Eval.later(() -> fb.fix1(Option::narrowK).fold(() -> a, x -> x + a))).value());
+            (a, fb) -> Eval.later(() -> fb.fix1(Option_::narrowK).fold(() -> a, x -> x + a))).value());
   }
 
   @Test
@@ -59,7 +61,7 @@ public class CofreeTest {
     when(plus1.apply(anyInt()))
         .thenReturn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
-    Cofree<Option.µ, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
+    Cofree<Option_, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
         a -> (a < 10) ? Option.some(plus1.apply(a)).kind1() : Option.<Integer>none().kind1());
 
     verify(plus1, never()).apply(anyInt()); // nothing executed

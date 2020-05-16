@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
@@ -39,7 +40,7 @@ public class ApplicativeTest {
 
   @Test
   public void map5Some() {
-    Higher1<Option.µ, Integer> map5 =
+    Higher1<Option_, Integer> map5 =
         OptionInstances.applicative().map5(
             Option.some(1).kind1(),
             Option.some(2).kind1(),
@@ -52,7 +53,7 @@ public class ApplicativeTest {
 
   @Test
   public void map5None() {
-    Higher1<Option.µ, Integer> map5 =
+    Higher1<Option_, Integer> map5 =
         OptionInstances.applicative().map5(
             Option.some(1).kind1(),
             Option.some(2).kind1(),

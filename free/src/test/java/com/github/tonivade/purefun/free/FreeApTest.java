@@ -14,7 +14,9 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Const;
+import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -25,32 +27,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FreeApTest {
 
-  private final Applicative<Higher1<FreeAp.µ, DSL.µ>> applicative = FreeAp.applicativeF();
+  private final Applicative<Higher1<FreeAp_, DSL_>> applicative = FreeAp.applicativeF();
 
   @Test
   public void map() {
-    FreeAp<DSL.µ, Integer> map = applicative.map(DSL.readInt(4), i -> i + 1).fix1(FreeAp::narrowK);
+    FreeAp<DSL_, Integer> map = applicative.map(DSL.readInt(4), i -> i + 1).fix1(FreeAp_::narrowK);
 
-    Id<Integer> foldMap = map.foldMap(idTransform(), IdInstances.applicative()).fix1(Id::narrowK);
+    Id<Integer> foldMap = map.foldMap(idTransform(), IdInstances.applicative()).fix1(Id_::narrowK);
 
     assertEquals(Id.of(5), foldMap);
   }
 
   @Test
   public void ap() {
-    FreeAp<DSL.µ, Integer> freeAp = FreeAp.lift(new ReadInt(123).kind1());
-    FreeAp<DSL.µ, Function1<Integer, String>> apply = FreeAp.pure(Object::toString);
+    FreeAp<DSL_, Integer> freeAp = FreeAp.lift(new ReadInt(123).kind1());
+    FreeAp<DSL_, Function1<Integer, String>> apply = FreeAp.pure(Object::toString);
 
     Id<Integer> foldMap = freeAp.ap(apply)
         .map(String::length)
-        .foldMap(idTransform(), IdInstances.applicative()).fix1(Id::narrowK);
+        .foldMap(idTransform(), IdInstances.applicative()).fix1(Id_::narrowK);
 
     assertEquals(Id.of(3), foldMap);
   }
 
   @Test
   public void lift() {
-    FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
+    FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         applicative.map5(
             DSL.readInt(2),
             DSL.readBoolean(false),
@@ -58,16 +60,16 @@ public class FreeApTest {
             DSL.readString("hola mundo"),
             DSL.readUnit(),
             Tuple::of
-        ).fix1(FreeAp::narrowK);
+        ).fix1(FreeAp_::narrowK);
 
-    Higher1<Id.µ, Tuple5<Integer, Boolean, Double, String, Unit>> map =
+    Higher1<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
         tuple.foldMap(idTransform(), IdInstances.applicative());
 
-    assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id::narrowK));
+    assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id_::narrowK));
   }
   @Test
   public void pure() {
-    FreeAp<DSL.µ, Tuple5<Integer, String, Double, Boolean, Unit>> tuple =
+    FreeAp<DSL_, Tuple5<Integer, String, Double, Boolean, Unit>> tuple =
         applicative.map5(
             applicative.pure(1),
             applicative.pure("string"),
@@ -75,27 +77,27 @@ public class FreeApTest {
             applicative.pure(true),
             applicative.pure(unit()),
             Tuple::of
-        ).fix1(FreeAp::narrowK);
+        ).fix1(FreeAp_::narrowK);
 
-    Higher1<Id.µ, Tuple5<Integer, String, Double, Boolean, Unit>> map =
+    Higher1<Id_, Tuple5<Integer, String, Double, Boolean, Unit>> map =
         tuple.foldMap(idTransform(), IdInstances.applicative());
 
-    assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix1(Id::narrowK));
+    assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix1(Id_::narrowK));
   }
 
   @Test
   public void compile() {
-    FreeAp<DSL.µ, Integer> readInt = FreeAp.pure(5);
+    FreeAp<DSL_, Integer> readInt = FreeAp.pure(5);
 
-    FreeAp<Id.µ, Integer> compile = readInt.compile(idTransform());
-    Id<Integer> fold = compile.fold(IdInstances.applicative()).fix1(Id::narrowK);
+    FreeAp<Id_, Integer> compile = readInt.compile(idTransform());
+    Id<Integer> fold = compile.fold(IdInstances.applicative()).fix1(Id_::narrowK);
 
     assertEquals(5, fold.get());
   }
 
   @Test
   public void analyze() {
-    FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
+    FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         applicative.map5(
             DSL.readInt(2),
             DSL.readBoolean(false),
@@ -103,7 +105,7 @@ public class FreeApTest {
             DSL.readString("hola mundo"),
             DSL.readUnit(),
             Tuple::of
-        ).fix1(FreeAp::narrowK);
+        ).fix1(FreeAp_::narrowK);
 
     String analize = tuple.analyze(constTransform(), ConstInstances.applicative(Monoid.string()));
 
@@ -114,21 +116,21 @@ public class FreeApTest {
         "ReadUnit(Unit)\n", analize);
   }
 
-  private FunctionK<DSL.µ, Id.µ> idTransform() {
-    return new FunctionK<DSL.µ, Id.µ>() {
+  private FunctionK<DSL_, Id_> idTransform() {
+    return new FunctionK<DSL_, Id_>() {
       @Override
-      public <T> Higher1<Id.µ, T> apply(Higher1<DSL.µ, T> from) {
-        DSL<T> dsl = from.fix1(DSL::narrowK);
+      public <T> Higher1<Id_, T> apply(Higher1<DSL_, T> from) {
+        DSL<T> dsl = from.fix1(DSL_::narrowK);
         return Id.of(dsl.value()).kind1();
       }
     };
   }
 
-  private FunctionK<DSL.µ, Higher1<Const.µ, String>> constTransform() {
-    return new FunctionK<DSL.µ, Higher1<Const.µ, String>>() {
+  private FunctionK<DSL_, Higher1<Const_, String>> constTransform() {
+    return new FunctionK<DSL_, Higher1<Const_, String>>() {
       @Override
-      public <T> Higher2<Const.µ, String, T> apply(Higher1<DSL.µ, T> from) {
-        DSL<T> dsl = from.fix1(DSL::narrowK);
+      public <T> Higher2<Const_, String, T> apply(Higher1<DSL_, T> from) {
+        DSL<T> dsl = from.fix1(DSL_::narrowK);
         return Const.<String, T>of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n").kind2();
       }
     };
@@ -136,27 +138,27 @@ public class FreeApTest {
 }
 
 @HigherKind
-interface DSL<A> {
+interface DSL<A> extends Higher1<DSL_, A> {
 
   A value();
 
-  static Higher2<FreeAp.µ, DSL.µ, Integer> readInt(int value) {
+  static Higher2<FreeAp_, DSL_, Integer> readInt(int value) {
     return FreeAp.lift(new ReadInt(value).kind1()).kind2();
   }
 
-  static Higher2<FreeAp.µ, DSL.µ, String> readString(String value) {
+  static Higher2<FreeAp_, DSL_, String> readString(String value) {
     return FreeAp.lift(new ReadString(value).kind1()).kind2();
   }
 
-  static Higher2<FreeAp.µ, DSL.µ, Boolean> readBoolean(boolean value) {
+  static Higher2<FreeAp_, DSL_, Boolean> readBoolean(boolean value) {
     return FreeAp.lift(new ReadBoolean(value).kind1()).kind2();
   }
 
-  static Higher2<FreeAp.µ, DSL.µ, Double> readDouble(double value) {
+  static Higher2<FreeAp_, DSL_, Double> readDouble(double value) {
     return FreeAp.lift(new ReadDouble(value).kind1()).kind2();
   }
 
-  static Higher2<FreeAp.µ, DSL.µ, Unit> readUnit() {
+  static Higher2<FreeAp_, DSL_, Unit> readUnit() {
     return FreeAp.lift(new ReadUnit().kind1()).kind2();
   }
 }

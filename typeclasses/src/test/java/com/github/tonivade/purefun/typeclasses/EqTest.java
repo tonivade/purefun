@@ -15,15 +15,17 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Either_;
 
 public class EqTest {
 
   @Test
   public void sequence() {
-    Eq<Higher1<Sequence.µ, Integer>> instance = SequenceInstances.eq(Eq.any());
+    Eq<Higher1<Sequence_, Integer>> instance = SequenceInstances.eq(Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(listOf(1, 2, 3).kind1(), listOf(1, 2, 3).kind1())),
@@ -38,7 +40,7 @@ public class EqTest {
     Either<Integer, String> right1 = Either.right("hola");
     Either<Integer, String> right2 = Either.right("hola");
 
-    Eq<Higher2<Either.µ, Integer, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
+    Eq<Higher2<Either_, Integer, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(left1.kind2(), left2.kind2())),

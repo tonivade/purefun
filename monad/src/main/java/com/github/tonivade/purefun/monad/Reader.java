@@ -5,11 +5,12 @@
 package com.github.tonivade.purefun.monad;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
 @FunctionalInterface
-public interface Reader<R, A> {
+public interface Reader<R, A> extends Higher2<Reader_, R, A> {
 
   A eval(R reader);
 

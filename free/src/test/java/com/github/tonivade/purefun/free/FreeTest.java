@@ -11,7 +11,9 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
+import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FreeTest {
 
-  private final Free<IOProgram.µ, Unit> echo =
+  private final Free<IOProgram_, Unit> echo =
       IOProgram.write("what's your name?")
         .andThen(IOProgram.read())
         .flatMap(text -> IOProgram.write("Hello " + text))
@@ -27,10 +29,10 @@ public class FreeTest {
 
   @Test
   public void interpretState() {
-    Higher1<Higher1<State.µ, ImmutableList<String>>, Unit> foldMap =
+    Higher1<Higher1<State_, ImmutableList<String>>, Unit> foldMap =
         echo.foldMap(StateInstances.monad(), new IOProgramToState());
 
-    State<ImmutableList<String>, Unit> state = State.narrowK(foldMap);
+    State<ImmutableList<String>, Unit> state = State_.narrowK(foldMap);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(ImmutableList.of("Toni"));
 
@@ -39,10 +41,10 @@ public class FreeTest {
 
   @Test
   public void interpretIO() {
-    Higher1<IO.µ, Unit> foldMap =
+    Higher1<IO_, Unit> foldMap =
         echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
-    IO<Unit> echoIO = IO.narrowK(foldMap);
+    IO<Unit> echoIO = IO_.narrowK(foldMap);
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 

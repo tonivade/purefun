@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.free;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Either;
@@ -21,7 +22,7 @@ import java.util.Objects;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
-public final class EitherK<F extends Kind, G extends Kind, T> implements Serializable {
+public final class EitherK<F extends Kind, G extends Kind, T> implements Higher3<EitherK_, F, G, T>, Serializable {
 
   private static final long serialVersionUID = -2305737717835278018L;
 

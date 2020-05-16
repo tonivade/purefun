@@ -8,12 +8,13 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class Coyoneda<F extends Kind, A, B> {
+public final class Coyoneda<F extends Kind, A, B> implements Higher3<Coyoneda_, F, A, B> {
   
   private final Higher1<F, A> value;
   private final Function1<A, B> map;

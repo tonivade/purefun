@@ -14,22 +14,23 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 
 public class AlternativeTest {
 
-  private final Alternative<Sequence.µ> instance = SequenceInstances.alternative();
+  private final Alternative<Sequence_> instance = SequenceInstances.alternative();
 
   private final Function1<Integer, Integer> twoTimes = a -> a * 2;
   private final Function1<Integer, Integer> plusFive = a -> a + 5;
 
   @Test
   public void combineAndAp() {
-    Higher1<Sequence.µ, Integer> seven = instance.pure(7);
-    Higher1<Sequence.µ, Integer> eight = instance.pure(8);
+    Higher1<Sequence_, Integer> seven = instance.pure(7);
+    Higher1<Sequence_, Integer> eight = instance.pure(8);
 
-    Higher1<Sequence.µ, Integer> result =
+    Higher1<Sequence_, Integer> result =
         instance.ap(instance.combineK(seven, eight),
                     instance.combineK(instance.pure(twoTimes), instance.pure(plusFive)));
 

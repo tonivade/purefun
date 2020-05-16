@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @Sealed
 @HigherKind
-public interface IO<T> extends Recoverable {
+public interface IO<T> extends Higher1<IO_, T>, Recoverable {
 
   T unsafeRunSync();
 
@@ -480,6 +480,7 @@ interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
 
+  @SuppressWarnings("unchecked")
   static <A, X> IO<A> collapse(IO<A> self) {
     IO<A> current = self;
     while (true) {

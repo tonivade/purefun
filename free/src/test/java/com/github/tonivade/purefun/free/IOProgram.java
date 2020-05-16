@@ -12,7 +12,9 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
+import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
@@ -21,13 +23,13 @@ import static com.github.tonivade.purefun.free.Free.liftF;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
-public interface IOProgram<T> {
+public interface IOProgram<T> extends Higher1<IOProgram_, T> {
 
-  static Free<IOProgram.µ, String> read() {
+  static Free<IOProgram_, String> read() {
     return liftF(new IOProgram.Read().kind1());
   }
 
-  static Free<IOProgram.µ, Unit> write(String value) {
+  static Free<IOProgram_, Unit> write(String value) {
     return liftF(new IOProgram.Write(value).kind1());
   }
 
@@ -69,33 +71,33 @@ public interface IOProgram<T> {
 }
 
 @SuppressWarnings("unchecked")
-class IOProgramToState implements FunctionK<IOProgram.µ, Higher1<State.µ, ImmutableList<String>>> {
+class IOProgramToState implements FunctionK<IOProgram_, Higher1<State_, ImmutableList<String>>> {
 
-  private final Console<Higher1<State.µ, ImmutableList<String>>> console = StateInstances.console();
+  private final Console<Higher1<State_, ImmutableList<String>>> console = StateInstances.console();
 
   @Override
-  public <X> Higher1<Higher1<State.µ, ImmutableList<String>>, X> apply(Higher1<IOProgram.µ, X> from) {
+  public <X> Higher1<Higher1<State_, ImmutableList<String>>, X> apply(Higher1<IOProgram_, X> from) {
     return Pattern1.<IOProgram<X>, State<ImmutableList<String>, X>>build()
       .when(instanceOf(IOProgram.Read.class))
-        .then(program -> (State<ImmutableList<String>, X>) State.narrowK(console.readln()))
+        .then(program -> (State<ImmutableList<String>, X>) State_.narrowK(console.readln()))
       .when(instanceOf(IOProgram.Write.class))
-        .then(program -> (State<ImmutableList<String>, X>) State.narrowK(console.println(program.asWrite().value())))
-      .apply(IOProgram.narrowK(from)).kind1();
+        .then(program -> (State<ImmutableList<String>, X>) State_.narrowK(console.println(program.asWrite().value())))
+      .apply(IOProgram_.narrowK(from)).kind1();
   }
 }
 
 @SuppressWarnings("unchecked")
-class IOProgramToIO implements FunctionK<IOProgram.µ, IO.µ> {
+class IOProgramToIO implements FunctionK<IOProgram_, IO_> {
 
-  private final Console<IO.µ> console = IOInstances.console();
+  private final Console<IO_> console = IOInstances.console();
 
   @Override
-  public <X> Higher1<IO.µ, X> apply(Higher1<IOProgram.µ, X> from) {
+  public <X> Higher1<IO_, X> apply(Higher1<IOProgram_, X> from) {
     return Pattern1.<IOProgram<X>, IO<X>>build()
       .when(instanceOf(IOProgram.Read.class))
-        .then(program -> (IO<X>) console.readln().fix1(IO::narrowK))
+        .then(program -> (IO<X>) console.readln().fix1(IO_::narrowK))
       .when(instanceOf(IOProgram.Write.class))
-        .then(program -> (IO<X>) IO.narrowK(console.println(program.asWrite().value())))
-      .apply(IOProgram.narrowK(from)).kind1();
+        .then(program -> (IO<X>) IO_.narrowK(console.println(program.asWrite().value())))
+      .apply(IOProgram_.narrowK(from)).kind1();
   }
 }

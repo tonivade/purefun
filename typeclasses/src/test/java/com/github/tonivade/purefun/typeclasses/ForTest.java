@@ -12,7 +12,9 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.Unit.unit;
@@ -30,7 +32,7 @@ public class ForTest {
     Id<String> result = For.with(IdInstances.monad())
         .andThen(() -> Id.of("value").kind1())
         .map(String::toUpperCase)
-        .fix(Id::narrowK);
+        .fix(Id_::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -41,7 +43,7 @@ public class ForTest {
     when(mapper.apply(anyString())).thenReturn("called");
     when(mapper.andThen(any())).thenCallRealMethod();
 
-    Higher1<Id.µ, Unit> result = For.with(IdInstances.monad())
+    Higher1<Id_, Unit> result = For.with(IdInstances.monad())
         .and("hola mundo!")
         .map(mapper)
         .returns(unit());
@@ -52,11 +54,11 @@ public class ForTest {
 
   @Test
   public void flatMap() {
-    Monad<Id.µ> monad = IdInstances.monad();
+    Monad<Id_> monad = IdInstances.monad();
     Id<String> result = For.with(monad)
         .andThen(() -> monad.pure("value"))
         .flatMap(string -> monad.pure(string.toUpperCase()))
-        .fix(Id::narrowK);
+        .fix(Id_::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -71,14 +73,14 @@ public class ForTest {
           .and("d")
           .and("e")
           .tuple()
-          .fix1(Id::narrowK);
+          .fix1(Id_::narrowK);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
   }
 
   @Test
   public void applyVsYield() {
-    For5<IO.µ, Integer, Integer, Integer, Integer, Integer> program =
+    For5<IO_, Integer, Integer, Integer, Integer, Integer> program =
       For.with(IOInstances.monad())
         .and(1)
         .map(a -> 1 + a)
@@ -88,11 +90,11 @@ public class ForTest {
 
     IO<Integer> yield =
       program
-        .yield((a, b, c, d, e) -> a + b + c + d + e).fix1(IO::narrowK);
+        .yield((a, b, c, d, e) -> a + b + c + d + e).fix1(IO_::narrowK);
 
     IO<Integer> apply =
       program
-        .apply((a, b, c, d, e) -> a + b + c + d + e).fix1(IO::narrowK);
+        .apply((a, b, c, d, e) -> a + b + c + d + e).fix1(IO_::narrowK);
 
     assertEquals(15, yield.unsafeRunSync());
     assertEquals(15, apply.unsafeRunSync());

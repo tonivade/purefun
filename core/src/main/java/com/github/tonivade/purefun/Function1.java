@@ -25,7 +25,7 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public interface Function1<A, R> extends Recoverable {
+public interface Function1<A, R> extends Higher2<Function1_, A, R>, Recoverable {
 
   default R apply(A value) {
     try {

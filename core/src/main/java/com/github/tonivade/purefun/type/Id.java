@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 
 /**
@@ -20,7 +21,7 @@ import com.github.tonivade.purefun.HigherKind;
  * @param <T> the wrapped value
  */
 @HigherKind
-public final class Id<T> implements Serializable {
+public final class Id<T> implements Higher1<Id_, T>, Serializable {
 
   private static final long serialVersionUID = -6295106408421985189L;
 

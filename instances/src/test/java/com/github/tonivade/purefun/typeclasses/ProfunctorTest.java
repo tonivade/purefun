@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function1_;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.instances.Function1Instances;
 
@@ -20,10 +21,10 @@ public class ProfunctorTest {
 
   @Test
   public void dimap() {
-    Profunctor<Function1.µ> profunctor = Function1Instances.profunctor();
+    Profunctor<Function1_> profunctor = Function1Instances.profunctor();
     
-    Higher2<Function1.µ, Integer, Double> result = profunctor.dimap(parseInt.kind2(), toString, toDouble);
+    Higher2<Function1_, Integer, Double> result = profunctor.dimap(parseInt.kind2(), toString, toDouble);
     
-    assertEquals(2.0, result.fix2(Function1::<Integer, Double>narrowK).apply(2));
+    assertEquals(2.0, result.fix2(Function1_::<Integer, Double>narrowK).apply(2));
   }
 }

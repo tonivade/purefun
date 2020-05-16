@@ -17,54 +17,58 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 public class OptionTTest {
 
-  private final Monad<Id.µ> monad = IdInstances.monad();
+  private final Monad<Id_> monad = IdInstances.monad();
 
   @Test
   public void map() {
-    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id_, String> some = OptionT.some(monad, "abc");
 
-    OptionT<Id.µ, String> map = some.map(String::toUpperCase);
+    OptionT<Id_, String> map = some.map(String::toUpperCase);
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void flatMap() {
-    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id_, String> some = OptionT.some(monad, "abc");
 
-    OptionT<Id.µ, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
+    OptionT<Id_, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void filter() {
-    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id_, String> some = OptionT.some(monad, "abc");
 
-    OptionT<Id.µ, String> filter = some.filter(String::isEmpty);
-    OptionT<Id.µ, String> orElse = OptionT.some(monad, "not empty");
+    OptionT<Id_, String> filter = some.filter(String::isEmpty);
+    OptionT<Id_, String> orElse = OptionT.some(monad, "not empty");
 
     assertEquals(orElse.get(), filter.getOrElse("not empty"));
   }
 
   @Test
   public void none() {
-    OptionT<Id.µ, String> none = OptionT.none(monad);
+    OptionT<Id_, String> none = OptionT.none(monad);
 
     assertAll(
         () -> assertEquals(Id.of(true), none.isEmpty()),
@@ -73,7 +77,7 @@ public class OptionTTest {
 
   @Test
   public void some() {
-    OptionT<Id.µ, String> some = OptionT.some(monad, "abc");
+    OptionT<Id_, String> some = OptionT.some(monad, "abc");
 
     assertAll(
         () -> assertEquals(Id.of(false), some.isEmpty()),
@@ -82,21 +86,21 @@ public class OptionTTest {
 
   @Test
   public void mapK() {
-    OptionT<IO.µ, String> someIo = OptionT.some(IOInstances.monad(), "abc");
+    OptionT<IO_, String> someIo = OptionT.some(IOInstances.monad(), "abc");
 
-    OptionT<Try.µ, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    OptionT<Try_, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success("abc"), Try.narrowK(someTry.get()));
+    assertEquals(Try.success("abc"), Try_.narrowK(someTry.get()));
   }
 
   @Test
   public void eq() {
-    OptionT<Id.µ, String> some1 = OptionT.some(monad, "abc");
-    OptionT<Id.µ, String> some2 = OptionT.some(monad, "abc");
-    OptionT<Id.µ, String> none1 = OptionT.none(monad);
-    OptionT<Id.µ, String> none2 = OptionT.none(monad);
+    OptionT<Id_, String> some1 = OptionT.some(monad, "abc");
+    OptionT<Id_, String> some2 = OptionT.some(monad, "abc");
+    OptionT<Id_, String> none1 = OptionT.none(monad);
+    OptionT<Id_, String> none2 = OptionT.none(monad);
 
-    Eq<Higher2<OptionT.µ, Id.µ, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
+    Eq<Higher2<OptionT_, Id_, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1.kind2(), some2.kind2())),
@@ -108,50 +112,50 @@ public class OptionTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<OptionT.µ, Future.µ>, Throwable> monadError =
+    MonadError<Higher1<OptionT_, Future_>, Throwable> monadError =
         OptionTInstances.monadError(FutureInstances.monadError());
 
-    Higher1<Higher1<OptionT.µ, Future.µ>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<OptionT.µ, Future.µ>, String> raiseError = monadError.raiseError(error);
-    Higher1<Higher1<OptionT.µ, Future.µ>, String> handleError =
+    Higher1<Higher1<OptionT_, Future_>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<OptionT_, Future_>, String> raiseError = monadError.raiseError(error);
+    Higher1<Higher1<OptionT_, Future_>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<OptionT.µ, Future.µ>, String> ensureOk =
+    Higher1<Higher1<OptionT_, Future_>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Higher1<OptionT.µ, Future.µ>, String> ensureError =
+    Higher1<Higher1<OptionT_, Future_>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), Future.narrowK(OptionT.narrowK(raiseError).value()).await()),
-        () -> assertEquals(Try.success(Option.some("not an error")), Future.narrowK(OptionT.narrowK(handleError).value()).await()),
-        () -> assertEquals(Try.failure(error), Future.narrowK(OptionT.narrowK(ensureError).value()).await()),
-        () -> assertEquals(Try.success(Option.some("is not ok")), Future.narrowK(OptionT.narrowK(ensureOk).value()).await()));
+        () -> assertEquals(Try.failure(error), Future_.narrowK(OptionT_.narrowK(raiseError).value()).await()),
+        () -> assertEquals(Try.success(Option.some("not an error")), Future_.narrowK(OptionT_.narrowK(handleError).value()).await()),
+        () -> assertEquals(Try.failure(error), Future_.narrowK(OptionT_.narrowK(ensureError).value()).await()),
+        () -> assertEquals(Try.success(Option.some("is not ok")), Future_.narrowK(OptionT_.narrowK(ensureOk).value()).await()));
   }
 
   @Test
   public void monadErrorIO() {
-    MonadError<Higher1<OptionT.µ, Id.µ>, Unit> monadError = OptionTInstances.monadError(monad);
+    MonadError<Higher1<OptionT_, Id_>, Unit> monadError = OptionTInstances.monadError(monad);
 
-    Higher1<Higher1<OptionT.µ, Id.µ>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<OptionT.µ, Id.µ>, String> raiseError = monadError.raiseError(unit());
-    Higher1<Higher1<OptionT.µ, Id.µ>, String> handleError =
+    Higher1<Higher1<OptionT_, Id_>, String> pure = monadError.pure("is not ok");
+    Higher1<Higher1<OptionT_, Id_>, String> raiseError = monadError.raiseError(unit());
+    Higher1<Higher1<OptionT_, Id_>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<OptionT.µ, Id.µ>, String> ensureOk =
+    Higher1<Higher1<OptionT_, Id_>, String> ensureOk =
         monadError.ensure(pure, Unit::unit, "is not ok"::equals);
-    Higher1<Higher1<OptionT.µ, Id.µ>, String> ensureError =
+    Higher1<Higher1<OptionT_, Id_>, String> ensureError =
         monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Id.of(Option.none()), OptionT.narrowK(raiseError).value()),
-        () -> assertEquals(Id.of(Option.some("not an error")), OptionT.narrowK(handleError).value()),
-        () -> assertEquals(Id.of(Option.none()), OptionT.narrowK(ensureError).value()),
-        () -> assertEquals(Id.of(Option.some("is not ok")), OptionT.narrowK(ensureOk).value()));
+        () -> assertEquals(Id.of(Option.none()), OptionT_.narrowK(raiseError).value()),
+        () -> assertEquals(Id.of(Option.some("not an error")), OptionT_.narrowK(handleError).value()),
+        () -> assertEquals(Id.of(Option.none()), OptionT_.narrowK(ensureError).value()),
+        () -> assertEquals(Id.of(Option.some("is not ok")), OptionT_.narrowK(ensureOk).value()));
   }
 }
 
-class IOToTryFunctionK implements FunctionK<IO.µ, Try.µ> {
+class IOToTryFunctionK implements FunctionK<IO_, Try_> {
 
   @Override
-  public <T> Higher1<Try.µ, T> apply(Higher1<IO.µ, T> from) {
-    return Try.of(IO.narrowK(from)::unsafeRunSync).kind1();
+  public <T> Higher1<Try_, T> apply(Higher1<IO_, T> from) {
+    return Try.of(IO_.narrowK(from)::unsafeRunSync).kind1();
   }
 }

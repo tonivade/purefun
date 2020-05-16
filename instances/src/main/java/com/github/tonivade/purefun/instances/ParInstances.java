@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Par;
+import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -25,34 +26,34 @@ import static com.github.tonivade.purefun.Function1.identity;
 
 public interface ParInstances {
 
-  static Functor<Par.µ> functor() {
+  static Functor<Par_> functor() {
     return ParFunctor.instance();
   }
 
-  static Applicative<Par.µ> applicative() {
+  static Applicative<Par_> applicative() {
     return PureApplicative.instance();
   }
 
-  static Monad<Par.µ> monad() {
+  static Monad<Par_> monad() {
     return ParMonad.instance();
   }
 
-  static MonadDefer<Par.µ> monadDefer() {
+  static MonadDefer<Par_> monadDefer() {
     return ParMonadDefer.instance();
   }
 }
 
 @Instance
-interface ParFunctor extends Functor<Par.µ> {
+interface ParFunctor extends Functor<Par_> {
   @Override
-  default <T, R> Higher1<Par.µ, R> map(Higher1<Par.µ, T> value, Function1<T, R> mapper) {
-    return value.fix1(Par::narrowK).map(mapper).kind1();
+  default <T, R> Higher1<Par_, R> map(Higher1<Par_, T> value, Function1<T, R> mapper) {
+    return value.fix1(Par_::narrowK).map(mapper).kind1();
   }
 }
 
-interface ParPure extends Applicative<Par.µ> {
+interface ParPure extends Applicative<Par_> {
   @Override
-  default <T> Higher1<Par.µ, T> pure(T value) {
+  default <T> Higher1<Par_, T> pure(T value) {
     return Par.success(value).kind1();
   }
 }
@@ -60,55 +61,55 @@ interface ParPure extends Applicative<Par.µ> {
 @Instance
 interface PureApplicative extends ParPure {
   @Override
-  default <T, R> Higher1<Par.µ, R> ap(Higher1<Par.µ, T> value, Higher1<Par.µ, Function1<T, R>> apply) {
-    return value.fix1(Par::narrowK).ap(apply.fix1(Par::narrowK)).kind1();
+  default <T, R> Higher1<Par_, R> ap(Higher1<Par_, T> value, Higher1<Par_, Function1<T, R>> apply) {
+    return value.fix1(Par_::narrowK).ap(apply.fix1(Par_::narrowK)).kind1();
   }
 }
 
 @Instance
-interface ParMonad extends ParPure, Monad<Par.µ> {
+interface ParMonad extends ParPure, Monad<Par_> {
   @Override
-  default <T, R> Higher1<Par.µ, R> flatMap(Higher1<Par.µ, T> value, Function1<T, ? extends Higher1<Par.µ, R>> map) {
-    return value.fix1(Par::narrowK).flatMap(x -> map.apply(x).fix1(Par::narrowK)).kind1();
+  default <T, R> Higher1<Par_, R> flatMap(Higher1<Par_, T> value, Function1<T, ? extends Higher1<Par_, R>> map) {
+    return value.fix1(Par_::narrowK).flatMap(x -> map.apply(x).fix1(Par_::narrowK)).kind1();
   }
 }
 
-interface ParMonadThrow extends ParMonad, MonadThrow<Par.µ> {
+interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
 
   @Override
-  default <A> Higher1<Par.µ, A> raiseError(Throwable error) {
+  default <A> Higher1<Par_, A> raiseError(Throwable error) {
     return Par.<A>failure(error).kind1();
   }
 
   @Override
-  default <A> Higher1<Par.µ, A> handleErrorWith(Higher1<Par.µ, A> value,
-                                                Function1<Throwable, ? extends Higher1<Par.µ, A>> handler) {
-    return Par.narrowK(value).fold(handler.andThen(Par::narrowK), Par::success).flatMap(identity()).kind1();
+  default <A> Higher1<Par_, A> handleErrorWith(Higher1<Par_, A> value,
+                                                Function1<Throwable, ? extends Higher1<Par_, A>> handler) {
+    return Par_.narrowK(value).fold(handler.andThen(Par_::narrowK), Par::success).flatMap(identity()).kind1();
   }
 }
 
-interface ParDefer extends Defer<Par.µ> {
+interface ParDefer extends Defer<Par_> {
 
   @Override
-  default <A> Higher1<Par.µ, A> defer(Producer<Higher1<Par.µ, A>> defer) {
-    return Par.defer(defer.map(Par::narrowK)::get).kind1();
+  default <A> Higher1<Par_, A> defer(Producer<Higher1<Par_, A>> defer) {
+    return Par.defer(defer.map(Par_::narrowK)::get).kind1();
   }
 }
 
-interface ParBracket extends Bracket<Par.µ> {
+interface ParBracket extends Bracket<Par_> {
 
   @Override
-  default <A, B> Higher1<Par.µ, B> bracket(
-      Higher1<Par.µ, A> acquire, Function1<A, ? extends Higher1<Par.µ, B>> use, Consumer1<A> release) {
-    return Par.bracket(Par.narrowK(acquire), use.andThen(Par::narrowK), release).kind1();
+  default <A, B> Higher1<Par_, B> bracket(
+      Higher1<Par_, A> acquire, Function1<A, ? extends Higher1<Par_, B>> use, Consumer1<A> release) {
+    return Par.bracket(Par_.narrowK(acquire), use.andThen(Par_::narrowK), release).kind1();
   }
 }
 
 @Instance
-interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par.µ> {
+interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par_> {
 
   @Override
-  default Higher1<Par.µ, Unit> sleep(Duration duration) {
+  default Higher1<Par_, Unit> sleep(Duration duration) {
     return Par.sleep(duration).kind1();
   }
 }
