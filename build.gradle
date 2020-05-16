@@ -122,10 +122,8 @@ subprojects {
 
 def publishedProjects = subprojects.findAll()
 
-task jacocoFullReport(type: JacocoReport, group: 'Coverage reports') {
+task jacocoFullReport(type: JacocoReport, group: 'Coverage reports', dependsOn: jacocoTestReport) {
   description = 'Generates an aggregate report from all subprojects'
-
-  dependsOn(publishedProjects.test)
 
   additionalSourceDirs.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
   sourceDirectories.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
