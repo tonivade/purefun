@@ -17,7 +17,8 @@ cache:
 
 before_install:
   - wget -O ~/codacy-coverage-reporter-assembly-latest.jar https://github.com/codacy/codacy-coverage-reporter/releases/download/6.0.6/codacy-coverage-reporter-6.0.6-assembly.jar
-script: ./gradlew clean build jacocoFullReport
+install: ./gradlew clean install
+script: ./gradlew check jacocoTestReport jacocoFullReport
 after_success:
   - java -jar ~/codacy-coverage-reporter-assembly-latest.jar report -l Java -r build/reports/jacoco/report.xml
 
