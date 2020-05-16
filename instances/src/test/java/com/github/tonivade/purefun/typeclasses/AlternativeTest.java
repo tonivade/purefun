@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;

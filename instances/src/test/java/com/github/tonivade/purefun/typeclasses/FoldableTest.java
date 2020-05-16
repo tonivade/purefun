@@ -30,7 +30,6 @@ import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;

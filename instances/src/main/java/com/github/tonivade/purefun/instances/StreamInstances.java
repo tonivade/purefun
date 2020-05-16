@@ -11,13 +11,9 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.EIO_;
-import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.Task_;
-import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIO_;
-import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.Stream;
 import com.github.tonivade.purefun.stream.Stream_;
@@ -25,7 +21,6 @@ import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIO_;
 
 public interface StreamInstances {

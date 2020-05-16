@@ -9,7 +9,6 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.free.Cofree;
 import com.github.tonivade.purefun.free.Cofree_;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Functor;

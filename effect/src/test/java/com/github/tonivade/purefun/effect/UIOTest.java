@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;

@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 

@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.free;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Console;

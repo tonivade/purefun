@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
