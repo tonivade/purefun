@@ -48,13 +48,13 @@ interface StateTMonad<F extends Kind, S> extends Monad<Higher1<Higher1<StateT_, 
 
   @Override
   default <T> Higher3<StateT_, F, S, T> pure(T value) {
-    return StateT.<F, S, T>pure(monadF(), value).kind3();
+    return StateT.<F, S, T>pure(monadF(), value);
   }
 
   @Override
   default <T, R> Higher3<StateT_, F, S, R> flatMap(Higher1<Higher1<Higher1<StateT_, F>, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<StateT_, F>, S>, R>> map) {
-    return StateT_.narrowK(value).flatMap(map.andThen(StateT_::narrowK)).kind3();
+    return StateT_.narrowK(value).flatMap(map.andThen(StateT_::narrowK));
   }
 }
 
@@ -70,7 +70,7 @@ interface StateTMonadError<F extends Kind, S, E> extends MonadError<Higher1<High
   @Override
   default <A> Higher3<StateT_, F, S, A> raiseError(E error) {
     Higher1<F, A> raiseError = monadF().raiseError(error);
-    return StateT.<F, S, A>state(monadF(), state -> monadF().map(raiseError, value -> Tuple.of(state, value))).kind3();
+    return StateT.<F, S, A>state(monadF(), state -> monadF().map(raiseError, value -> Tuple.of(state, value)));
   }
 
   @Override
@@ -80,7 +80,7 @@ interface StateTMonadError<F extends Kind, S, E> extends MonadError<Higher1<High
     StateT<F, S, A> stateT = value.fix1(StateT_::narrowK);
     return StateT.<F, S, A>state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
-            error -> handler.apply(error).fix1(StateT_::narrowK).run(state))).kind3();
+            error -> handler.apply(error).fix1(StateT_::narrowK).run(state)));
   }
 }
 
@@ -92,12 +92,12 @@ interface StateTMonadState<F extends Kind, S> extends MonadState<Higher1<Higher1
 
   @Override
   default Higher3<StateT_, F, S, S> get() {
-    return StateT.<F, S>get(monadF()).kind3();
+    return StateT.<F, S>get(monadF());
   }
 
   @Override
   default Higher3<StateT_, F, S, Unit> set(S state) {
-    return StateT.set(monadF(), state).kind3();
+    return StateT.set(monadF(), state);
   }
 }
 
@@ -112,6 +112,6 @@ interface StateTMonadReader<F extends Kind, S, R> extends MonadReader<Higher1<Hi
 
   @Override
   default Higher3<StateT_, F, S, R> ask() {
-    return StateT.<F, S, R>state(monadF(), state -> monadF().map(monadF().ask(), reader -> Tuple.of(state, reader))).kind3();
+    return StateT.<F, S, R>state(monadF(), state -> monadF().map(monadF().ask(), reader -> Tuple.of(state, reader)));
   }
 }

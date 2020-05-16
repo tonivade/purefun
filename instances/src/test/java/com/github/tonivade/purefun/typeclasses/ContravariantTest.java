@@ -30,7 +30,7 @@ public class ContravariantTest {
   public void constInstance() {
     Contravariant<Higher1<Const_, String>> instance = ConstInstances.contravariant();
 
-    verifyLaws(instance, Const.<String, String>of("string").kind2());
+    verifyLaws(instance, Const.<String, String>of("string"));
   }
 
   @Test
@@ -40,7 +40,7 @@ public class ContravariantTest {
     Function1<Integer, Double> int2double = Integer::doubleValue;
     Function1<String, Integer> string2Int = String::length;
 
-    Higher1<Conested<Function1_, Double>, Integer> conest = conest(int2double.kind2());
+    Higher1<Conested<Function1_, Double>, Integer> conest = conest(int2double);
     Higher1<Conested<Function1_, Double>, String> contramap = instance.contramap(conest, string2Int);
     Function1<String, Double> result = counnest(contramap).fix1(Function1_::<String, Double>narrowK);
 
@@ -53,6 +53,6 @@ public class ContravariantTest {
     Contravariant<Higher1<Const_, String>> contravariant = ConstInstances.contravariant();
     Contravariant<Nested<Id_, Higher1<Const_, String>>> instance = Contravariant.compose(functor, contravariant);
 
-    verifyLaws(instance, nest(Id.of(Const.<String, String>of("string").kind1()).kind1()));
+    verifyLaws(instance, nest(Id.of(Const.<String, String>of("string"))));
   }
 }

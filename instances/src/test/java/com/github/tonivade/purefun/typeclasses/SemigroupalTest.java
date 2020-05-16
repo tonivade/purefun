@@ -17,9 +17,9 @@ public class SemigroupalTest {
     Semigroupal<Option_> instance = OptionInstances.semigroupal();
 
     assertAll(
-        () -> assertEquals(Option.none(), instance.product(Option.none().kind1(), Option.none().kind1())),
-        () -> assertEquals(Option.none(), instance.product(Option.some(1).kind1(), Option.none().kind1())),
-        () -> assertEquals(Option.none(), instance.product(Option.none().kind1(), Option.some("a").kind1())),
-        () -> assertEquals(Option.some(Tuple.of(1, "a")), instance.product(Option.some(1).kind1(), Option.some("a").kind1())));
+        () -> assertEquals(Option.none(), instance.product(Option.none(), Option.none())),
+        () -> assertEquals(Option.none(), instance.product(Option.some(1), Option.none())),
+        () -> assertEquals(Option.none(), instance.product(Option.none(), Option.some("a"))),
+        () -> assertEquals(Option.some(Tuple.of(1, "a")), instance.product(Option.some(1), Option.some("a"))));
   }
 }

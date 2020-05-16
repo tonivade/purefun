@@ -50,14 +50,14 @@ public class MonadErrorTest {
   @Test
   public void recover() {
     Higher1<Try_, String> recover =
-        monadError.recover(Try.<String>failure("error").kind1(), PartialFunction1.of(always(), Throwable::toString));
+        monadError.recover(Try.<String>failure("error"), PartialFunction1.of(always(), Throwable::toString));
 
     assertEquals(Try.success("java.lang.Exception: error"), recover);
   }
 
   @Test
   public void attempRight() {
-    Higher1<Try_, Either<Throwable, String>> attempt = monadError.attempt(Try.success("hola mundo!").kind1());
+    Higher1<Try_, Either<Throwable, String>> attempt = monadError.attempt(Try.success("hola mundo!"));
 
     assertEquals(Try.success(Either.right("hola mundo!")), attempt);
   }
@@ -66,7 +66,7 @@ public class MonadErrorTest {
   public void attempLeft() {
     Exception error = new Exception("error");
 
-    Higher1<Try_, Either<Throwable, String>> attempt = monadError.attempt(Try.<String>failure(error).kind1());
+    Higher1<Try_, Either<Throwable, String>> attempt = monadError.attempt(Try.<String>failure(error));
 
     assertEquals(Try.success(Either.left(error)), attempt);
   }
@@ -76,7 +76,7 @@ public class MonadErrorTest {
     Exception error = new Exception("error");
 
     Higher1<Try_, String> ensure =
-        monadError.ensure(Try.success("not ok").kind1(), cons(error), is("ok"));
+        monadError.ensure(Try.success("not ok"), cons(error), is("ok"));
 
     assertEquals(Try.failure(error), ensure);
   }
@@ -86,7 +86,7 @@ public class MonadErrorTest {
     Exception error = new Exception("error");
 
     Higher1<Try_, String> ensure =
-        monadError.ensure(Try.success("ok").kind1(), cons(error), is("ok"));
+        monadError.ensure(Try.success("ok"), cons(error), is("ok"));
 
     assertEquals(Try.success("ok"), ensure);
   }

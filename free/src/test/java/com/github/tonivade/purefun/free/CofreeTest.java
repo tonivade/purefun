@@ -33,7 +33,7 @@ public class CofreeTest {
 
   @Test
   public void testMap() {
-    Cofree<Id_, Integer> cofree = Cofree.unfold(IdInstances.functor(), 0, a -> Id.of(a + 1).kind1()).map(x -> x * 2);
+    Cofree<Id_, Integer> cofree = Cofree.unfold(IdInstances.functor(), 0, a -> Id.of(a + 1)).map(x -> x * 2);
 
     Id<Tuple4<Cofree<Id_, Integer>, Cofree<Id_, Integer>, Cofree<Id_, Integer>, Cofree<Id_, Integer>>> tuple4Id =
         For.with(IdInstances.monad())
@@ -49,7 +49,7 @@ public class CofreeTest {
   @Test
   public void testFold() {
     Cofree<Option_, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
-        a -> (a > 100) ? Option.<Integer>none().kind1() : Option.some(a + 1).kind1());
+        a -> (a > 100) ? Option.<Integer>none() : Option.some(a + 1));
 
     assertEquals(5151,
         cofree.<Integer>fold(EvalInstances.applicative(), OptionInstances.traverse(),
@@ -62,7 +62,7 @@ public class CofreeTest {
         .thenReturn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
     Cofree<Option_, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
-        a -> (a < 10) ? Option.some(plus1.apply(a)).kind1() : Option.<Integer>none().kind1());
+        a -> (a < 10) ? Option.some(plus1.apply(a)) : Option.<Integer>none());
 
     verify(plus1, never()).apply(anyInt()); // nothing executed
 

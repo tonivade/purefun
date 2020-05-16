@@ -125,7 +125,7 @@ public abstract class FreeAp<F extends Kind, A> implements Higher2<FreeAp_, F, A
     return new FunctionK<F, Higher1<FreeAp_, G>>() {
       @Override
       public <T> Higher2<FreeAp_, G, T> apply(Higher1<F, T> from) {
-        return lift(functionK.apply(from)).kind2();
+        return lift(functionK.apply(from));
       }
     };
   }
@@ -221,7 +221,7 @@ interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp_, F
 
   @Override
   default <T> Higher2<FreeAp_, F, T> pure(T value) {
-    return FreeAp.<F, T>pure(value).kind2();
+    return FreeAp.<F, T>pure(value);
   }
 
   @Override
@@ -229,7 +229,7 @@ interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp_, F
       Higher1<Higher1<FreeAp_, F>, T> value, Higher1<Higher1<FreeAp_, F>, Function1<T, R>> apply) {
     FreeAp<F, T> freeAp = value.fix1(FreeAp_::narrowK);
     FreeAp<F, Function1<T, R>> apply1 = apply.fix1(FreeAp_::narrowK);
-    return FreeAp.apply(freeAp, apply1).kind2();
+    return FreeAp.apply(freeAp, apply1);
   }
 }
 

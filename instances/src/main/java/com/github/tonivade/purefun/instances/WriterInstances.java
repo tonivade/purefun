@@ -31,12 +31,12 @@ interface WriterMonad<L> extends Monad<Higher1<Writer_, L>> {
 
   @Override
   default <T> Higher2<Writer_, L, T> pure(T value) {
-    return Writer.pure(monoid(), value).kind2();
+    return Writer.pure(monoid(), value);
   }
 
   @Override
   default <T, R> Higher2<Writer_, L, R> flatMap(Higher1<Higher1<Writer_, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Writer_, L>, R>> map) {
-    return Writer_.narrowK(value).flatMap(map.andThen(Writer_::narrowK)).kind2();
+    return Writer_.narrowK(value).flatMap(map.andThen(Writer_::narrowK));
   }
 }

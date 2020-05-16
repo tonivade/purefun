@@ -21,15 +21,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class FreeAlgTest {
 
   private static Free<Higher1<Higher1<EitherK_, ConsoleAlg_>, EmailAlg_>, String> read() {
-    return Free.inject(injectEitherKLeft(), new ConsoleAlg.ReadLine().kind1());
+    return Free.inject(injectEitherKLeft(), new ConsoleAlg.ReadLine());
   }
 
   private static Free<Higher1<Higher1<EitherK_, ConsoleAlg_>, EmailAlg_>, Unit> write(String value) {
-    return Free.inject(injectEitherKLeft(), new ConsoleAlg.WriteLine(value).kind1());
+    return Free.inject(injectEitherKLeft(), new ConsoleAlg.WriteLine(value));
   }
 
   private static Free<Higher1<Higher1<EitherK_, ConsoleAlg_>, EmailAlg_>, Unit> send(String to, String content) {
-    return Free.inject(injectEitherKRight(injectReflexive()), new EmailAlg.SendEmail(to, content).kind1());
+    return Free.inject(injectEitherKRight(injectReflexive()), new EmailAlg.SendEmail(to, content));
   }
 
   @Test

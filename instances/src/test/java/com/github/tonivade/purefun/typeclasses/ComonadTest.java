@@ -15,6 +15,6 @@ public class ComonadTest {
 
   @Test
   public void idTest() {
-    verifyLaws(IdInstances.comonad(), Id.of("hola mundo").kind1());
+    verifyLaws(IdInstances.comonad(), Id.of("hola mundo"));
   }
 }

@@ -65,7 +65,7 @@ interface IOFunctor extends Functor<IO_> {
 
   @Override
   default <T, R> Higher1<IO_, R> map(Higher1<IO_, T> value, Function1<T, R> map) {
-    return IO_.narrowK(value).map(map).kind1();
+    return IO_.narrowK(value).map(map);
   }
 }
 
@@ -74,12 +74,12 @@ interface IOMonad extends Monad<IO_> {
 
   @Override
   default <T> Higher1<IO_, T> pure(T value) {
-    return IO.pure(value).kind1();
+    return IO.pure(value);
   }
 
   @Override
   default <T, R> Higher1<IO_, R> flatMap(Higher1<IO_, T> value, Function1<T, ? extends Higher1<IO_, R>> map) {
-    return IO_.narrowK(value).flatMap(map.andThen(IO_::narrowK)).kind1();
+    return IO_.narrowK(value).flatMap(map.andThen(IO_::narrowK));
   }
 }
 
@@ -88,12 +88,12 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
 
   @Override
   default <A> Higher1<IO_, A> raiseError(Throwable error) {
-    return IO.<A>raiseError(error).kind1();
+    return IO.<A>raiseError(error);
   }
 
   @Override
   default <A> Higher1<IO_, A> handleErrorWith(Higher1<IO_, A> value, Function1<Throwable, ? extends Higher1<IO_, A>> handler) {
-    return IO_.narrowK(value).redeemWith(handler.andThen(IO_::narrowK), IO::pure).kind1();
+    return IO_.narrowK(value).redeemWith(handler.andThen(IO_::narrowK), IO::pure);
   }
 }
 
@@ -104,7 +104,7 @@ interface IODefer extends Defer<IO_> {
 
   @Override
   default <A> Higher1<IO_, A> defer(Producer<Higher1<IO_, A>> defer) {
-    return IO.suspend(defer.map(IO_::narrowK)).kind1();
+    return IO.suspend(defer.map(IO_::narrowK));
   }
 }
 
@@ -112,7 +112,7 @@ interface IOBracket extends Bracket<IO_> {
 
   @Override
   default <A, B> Higher1<IO_, B> bracket(Higher1<IO_, A> acquire, Function1<A, ? extends Higher1<IO_, B>> use, Consumer1<A> release) {
-    return IO.bracket(IO_.narrowK(acquire), use.andThen(IO_::narrowK), release::accept).kind1();
+    return IO.bracket(IO_.narrowK(acquire), use.andThen(IO_::narrowK), release::accept);
   }
 }
 
@@ -121,7 +121,7 @@ interface IOMonadDefer extends MonadDefer<IO_>, IOMonadError, IODefer, IOBracket
 
   @Override
   default Higher1<IO_, Unit> sleep(Duration duration) {
-    return IO.sleep(duration).kind1();
+    return IO.sleep(duration);
   }
 }
 
@@ -133,12 +133,12 @@ final class ConsoleIO implements Console<IO_> {
 
   @Override
   public Higher1<IO_, String> readln() {
-    return IO.task(console::readln).kind1();
+    return IO.task(console::readln);
   }
 
   @Override
   public Higher1<IO_, Unit> println(String text) {
-    return IO.exec(() -> console.println(text)).kind1();
+    return IO.exec(() -> console.println(text));
   }
 }
 

@@ -53,7 +53,7 @@ public class IsoTest {
     verifyLaws(tupleToPoint, tuple, point);
     verifyLaws(pointToPoint, point, point);
     verifyLaws(identity, point, point);
-    verifyLaws(optionToKind, Option.some("hola"), Option.some("hola").kind1());
+    verifyLaws(optionToKind, Option.some("hola"), Option.some("hola"));
   }
 
   private <S, A> void verifyLaws(Iso<S, A> iso, S target, A value) {

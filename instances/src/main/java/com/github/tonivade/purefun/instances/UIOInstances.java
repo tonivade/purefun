@@ -60,7 +60,7 @@ interface UIOFunctor extends Functor<UIO_> {
 
   @Override
   default <A, B> Higher1<UIO_, B> map(Higher1<UIO_, A> value, Function1<A, B> map) {
-    return UIO_.narrowK(value).map(map).kind1();
+    return UIO_.narrowK(value).map(map);
   }
 }
 
@@ -68,7 +68,7 @@ interface UIOPure extends Applicative<UIO_> {
 
   @Override
   default <A> Higher1<UIO_, A> pure(A value) {
-    return UIO.pure(value).kind1();
+    return UIO.pure(value);
   }
 }
 
@@ -77,7 +77,7 @@ interface UIOApplicative extends UIOPure {
 
   @Override
   default <A, B> Higher1<UIO_, B> ap(Higher1<UIO_, A> value, Higher1<UIO_, Function1<A, B>> apply) {
-    return UIO_.narrowK(apply).flatMap(map -> UIO_.narrowK(value).map(map)).kind1();
+    return UIO_.narrowK(apply).flatMap(map -> UIO_.narrowK(value).map(map));
   }
 }
 
@@ -86,7 +86,7 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
 
   @Override
   default <A, B> Higher1<UIO_, B> flatMap(Higher1<UIO_, A> value, Function1<A, ? extends Higher1<UIO_, B>> map) {
-    return UIO_.narrowK(value).flatMap(map.andThen(UIO_::narrowK)).kind1();
+    return UIO_.narrowK(value).flatMap(map.andThen(UIO_::narrowK));
   }
 }
 
@@ -95,7 +95,7 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
 
   @Override
   default <A> Higher1<UIO_, A> raiseError(Throwable error) {
-    return UIO.<A>raiseError(error).kind1();
+    return UIO.<A>raiseError(error);
   }
 
   @Override
@@ -105,7 +105,7 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
     Function1<Throwable, UIO<A>> mapError = handler.andThen(UIO_::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIO_.narrowK(value);
-    return uio.redeemWith(mapError, map).kind1();
+    return uio.redeemWith(mapError, map);
   }
 }
 
@@ -119,7 +119,7 @@ interface UIODefer extends Defer<UIO_> {
   @Override
   default <A> Higher1<UIO_, A>
           defer(Producer<Higher1<UIO_, A>> defer) {
-    return UIO.defer(() -> defer.map(UIO_::narrowK).get()).kind1();
+    return UIO.defer(() -> defer.map(UIO_::narrowK).get());
   }
 }
 
@@ -130,7 +130,7 @@ interface UIOBracket extends Bracket<UIO_> {
           bracket(Higher1<UIO_, A> acquire,
                   Function1<A, ? extends Higher1<UIO_, B>> use,
                   Consumer1<A> release) {
-    return UIO.bracket(acquire.fix1(UIO_::narrowK), use.andThen(UIO_::narrowK), release).kind1();
+    return UIO.bracket(acquire.fix1(UIO_::narrowK), use.andThen(UIO_::narrowK), release);
   }
 }
 
@@ -139,6 +139,6 @@ interface UIOMonadDefer
     extends MonadDefer<UIO_>, UIOMonadThrow, UIODefer, UIOBracket {
   @Override
   default Higher1<UIO_, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).kind1();
+    return UIO.sleep(duration);
   }
 }

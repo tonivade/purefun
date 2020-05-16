@@ -40,7 +40,7 @@ public class FreeApTest {
 
   @Test
   public void ap() {
-    FreeAp<DSL_, Integer> freeAp = FreeAp.lift(new ReadInt(123).kind1());
+    FreeAp<DSL_, Integer> freeAp = FreeAp.lift(new ReadInt(123));
     FreeAp<DSL_, Function1<Integer, String>> apply = FreeAp.pure(Object::toString);
 
     Id<Integer> foldMap = freeAp.ap(apply)
@@ -121,7 +121,7 @@ public class FreeApTest {
       @Override
       public <T> Higher1<Id_, T> apply(Higher1<DSL_, T> from) {
         DSL<T> dsl = from.fix1(DSL_::narrowK);
-        return Id.of(dsl.value()).kind1();
+        return Id.of(dsl.value());
       }
     };
   }
@@ -131,7 +131,7 @@ public class FreeApTest {
       @Override
       public <T> Higher2<Const_, String, T> apply(Higher1<DSL_, T> from) {
         DSL<T> dsl = from.fix1(DSL_::narrowK);
-        return Const.<String, T>of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n").kind2();
+        return Const.<String, T>of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n");
       }
     };
   }
@@ -143,23 +143,23 @@ interface DSL<A> extends Higher1<DSL_, A> {
   A value();
 
   static Higher2<FreeAp_, DSL_, Integer> readInt(int value) {
-    return FreeAp.lift(new ReadInt(value).kind1()).kind2();
+    return FreeAp.lift(new ReadInt(value));
   }
 
   static Higher2<FreeAp_, DSL_, String> readString(String value) {
-    return FreeAp.lift(new ReadString(value).kind1()).kind2();
+    return FreeAp.lift(new ReadString(value));
   }
 
   static Higher2<FreeAp_, DSL_, Boolean> readBoolean(boolean value) {
-    return FreeAp.lift(new ReadBoolean(value).kind1()).kind2();
+    return FreeAp.lift(new ReadBoolean(value));
   }
 
   static Higher2<FreeAp_, DSL_, Double> readDouble(double value) {
-    return FreeAp.lift(new ReadDouble(value).kind1()).kind2();
+    return FreeAp.lift(new ReadDouble(value));
   }
 
   static Higher2<FreeAp_, DSL_, Unit> readUnit() {
-    return FreeAp.lift(new ReadUnit().kind1()).kind2();
+    return FreeAp.lift(new ReadUnit());
   }
 }
 

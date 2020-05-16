@@ -101,10 +101,10 @@ public class OptionTTest {
     Eq<Higher2<OptionT_, Id_, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
-        () -> assertTrue(instance.eqv(some1.kind2(), some2.kind2())),
-        () -> assertTrue(instance.eqv(none1.kind2(), none2.kind2())),
-        () -> assertFalse(instance.eqv(some1.kind2(), none1.kind2())),
-        () -> assertFalse(instance.eqv(none2.kind2(), some2.kind2())));
+        () -> assertTrue(instance.eqv(some1, some2)),
+        () -> assertTrue(instance.eqv(none1, none2)),
+        () -> assertFalse(instance.eqv(some1, none1)),
+        () -> assertFalse(instance.eqv(none2, some2)));
   }
 
   @Test
@@ -154,6 +154,6 @@ class IOToTryFunctionK implements FunctionK<IO_, Try_> {
 
   @Override
   public <T> Higher1<Try_, T> apply(Higher1<IO_, T> from) {
-    return Try.of(IO_.narrowK(from)::unsafeRunSync).kind1();
+    return Try.of(IO_.narrowK(from)::unsafeRunSync);
   }
 }

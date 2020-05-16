@@ -54,13 +54,13 @@ interface WriterTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<WriterT_
 
   @Override
   default <T> Higher3<WriterT_, F, L, T> pure(T value) {
-    return WriterT.pure(monoid(), monadF(), value).kind3();
+    return WriterT.pure(monoid(), monadF(), value);
   }
 
   @Override
   default <T, R> Higher3<WriterT_, F, L, R> flatMap(Higher1<Higher1<Higher1<WriterT_, F>, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<WriterT_, F>, L>, R>> map) {
-    return WriterT_.narrowK(value).flatMap(map.andThen(WriterT_::narrowK)).kind3();
+    return WriterT_.narrowK(value).flatMap(map.andThen(WriterT_::narrowK));
   }
 }
 
@@ -80,12 +80,12 @@ interface WriterTMonadWriter<F extends Kind, L>
 
   @Override
   default <A> Higher3<WriterT_, F, L, A> writer(Tuple2<L, A> value) {
-    return WriterT.lift(monoid(), monadF(), value).kind3();
+    return WriterT.lift(monoid(), monadF(), value);
   }
 
   @Override
   default <A> Higher3<WriterT_, F, L, Tuple2<L, A>> listen(Higher1<Higher1<Higher1<WriterT_, F>, L>, A> value) {
-    return value.fix1(WriterT_::narrowK).listen().kind3();
+    return value.fix1(WriterT_::narrowK).listen();
   }
 
   @Override
@@ -96,7 +96,7 @@ interface WriterTMonadWriter<F extends Kind, L>
         Operator1<L> operator = tuple.get2().get1();
         A value2 = tuple.get2().get2();
       return writer(Tuple.of(operator.apply(tuple.get1()), value2)).fix1(WriterT_::narrowK);
-      }).kind3();
+      });
   }
 }
 
@@ -121,7 +121,7 @@ interface WriterTMonadError<F extends Kind, L, E>
   @Override
   default <A> Higher3<WriterT_, F, L, A> raiseError(E error) {
     return WriterT.writer(monoid(), monadF(),
-        monadF().map(monadF().<A>raiseError(error), a -> Tuple.of(monoid().zero(), a))).kind3();
+        monadF().map(monadF().<A>raiseError(error), a -> Tuple.of(monoid().zero(), a)));
   }
 
   @Override
@@ -130,6 +130,6 @@ interface WriterTMonadError<F extends Kind, L, E>
       Function1<E, ? extends Higher1<Higher1<Higher1<WriterT_, F>, L>, A>> handler) {
     return WriterT.writer(monoid(), monadF(),
         monadF().handleErrorWith(value.fix1(WriterT_::narrowK).value(),
-            error -> handler.apply(error).fix1(WriterT_::narrowK).value())).kind3();
+            error -> handler.apply(error).fix1(WriterT_::narrowK).value()));
   }
 }

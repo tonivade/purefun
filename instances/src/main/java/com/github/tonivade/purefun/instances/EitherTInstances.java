@@ -90,13 +90,13 @@ interface EitherTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<EitherT_
 
   @Override
   default <T> Higher3<EitherT_, F, L, T> pure(T value) {
-    return EitherT.<F, L, T>right(monadF(), value).kind3();
+    return EitherT.<F, L, T>right(monadF(), value);
   }
 
   @Override
   default <T, R> Higher3<EitherT_, F, L, R> flatMap(Higher1<Higher1<Higher1<EitherT_, F>, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<EitherT_, F>, L>, R>> map) {
-    return EitherT_.narrowK(value).flatMap(map.andThen(EitherT_::narrowK)).kind3();
+    return EitherT_.narrowK(value).flatMap(map.andThen(EitherT_::narrowK));
   }
 }
 
@@ -109,7 +109,7 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E>
 
   @Override
   default <A> Higher3<EitherT_, F, E, A> raiseError(E error) {
-    return EitherT.<F, E, A>left(monadF(), error).kind3();
+    return EitherT.<F, E, A>left(monadF(), error);
   }
 
   @Override
@@ -119,7 +119,7 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E>
         monadF().flatMap(EitherT_.narrowK(value).value(),
             either -> either.fold(
                 e -> handler.andThen(EitherT_::narrowK).apply(e).value(),
-                a -> monadF().pure(Either.<E, A>right(a))).kind1())).kind3();
+                a -> monadF().pure(Either.<E, A>right(a)))));
   }
 }
 
@@ -136,7 +136,7 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E>
 
   @Override
   default <A> Higher3<EitherT_, F, E, A> raiseError(E error) {
-    return EitherT.<F, E, A>of(monadF(), monadF().raiseError(error)).kind3();
+    return EitherT.<F, E, A>of(monadF(), monadF().raiseError(error));
   }
 
   @Override
@@ -144,7 +144,7 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E>
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT_, F>, E>, A>> handler) {
     return EitherT.of(monadF(),
                       monadF().handleErrorWith(EitherT_.narrowK(value).value(),
-                                               error -> handler.andThen(EitherT_::narrowK).apply(error).value())).kind3();
+                                               error -> handler.andThen(EitherT_::narrowK).apply(error).value()));
   }
 }
 
@@ -176,7 +176,7 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT_
 
   @Override
   default <A> Higher3<EitherT_, F, E, A> defer(Producer<Higher1<Higher1<Higher1<EitherT_, F>, E>, A>> defer) {
-    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherT_::narrowK).get().value())).kind3();
+    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherT_::narrowK).get().value()));
   }
 }
 
@@ -198,7 +198,7 @@ interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT
                 this::acquireRecover,
                 value -> use.andThen(EitherT_::narrowK).apply(value).value()),
             either -> either.fold(cons(unit()), release.asFunction()));
-    return EitherT.of(monadF(), bracket).kind3();
+    return EitherT.of(monadF(), bracket);
   }
 }
 
@@ -219,7 +219,7 @@ interface EitherTMonadDeferFromMonad<F extends Kind>
 
   @Override
   default Higher3<EitherT_, F, Throwable, Unit> sleep(Duration duration) {
-    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right)).kind3();
+    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right));
   }
 }
 
@@ -240,6 +240,6 @@ interface EitherTMonadDeferFromMonadThrow<F extends Kind>
 
   @Override
   default Higher3<EitherT_, F, Throwable, Unit> sleep(Duration duration) {
-    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right)).kind3();
+    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right));
   }
 }

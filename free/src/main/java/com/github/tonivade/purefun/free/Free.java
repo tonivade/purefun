@@ -51,7 +51,7 @@ public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
     return new FunctionK<F, Higher1<Free_, G>>() {
       @Override
       public <T> Higher2<Free_, G, T> apply(Higher1<F, T> from) {
-        return liftF(functionK.apply(from)).kind2();
+        return liftF(functionK.apply(from));
       }
     };
   }
@@ -188,13 +188,13 @@ interface FreeMonad<F extends Kind> extends Monad<Higher1<Free_, F>> {
 
   @Override
   default <T> Higher2<Free_, F, T> pure(T value) {
-    return Free.<F, T>pure(value).kind2();
+    return Free.<F, T>pure(value);
   }
 
   @Override
   default <T, R> Higher2<Free_, F, R> flatMap(
       Higher1<Higher1<Free_, F>, T> value, Function1<T, ? extends Higher1<Higher1<Free_, F>, R>> map) {
     Free<F, T> free = value.fix1(Free_::narrowK);
-    return free.flatMap(map.andThen(Free_::narrowK)).kind2();
+    return free.flatMap(map.andThen(Free_::narrowK));
   }
 }

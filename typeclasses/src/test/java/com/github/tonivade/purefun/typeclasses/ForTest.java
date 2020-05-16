@@ -30,7 +30,7 @@ public class ForTest {
   @Test
   public void map() {
     Id<String> result = For.with(IdInstances.monad())
-        .andThen(() -> Id.of("value").kind1())
+        .andThen(() -> Id.of("value"))
         .map(String::toUpperCase)
         .fix(Id_::narrowK);
 

@@ -39,13 +39,13 @@ public class SelectiveTest {
         ValidationInstances.selective(SequenceInstances.semigroup());
 
     Higher1<Higher1<Validation_, Sequence<String>>, Integer> validValue =
-        Validation.<Sequence<String>, Integer>valid(1).kind1();
+        Validation.<Sequence<String>, Integer>valid(1);
     Higher1<Higher1<Validation_, Sequence<String>>, Integer> invalidValue =
-        Validation.<Sequence<String>, Integer>invalid(listOf("error 1")).kind1();
+        Validation.<Sequence<String>, Integer>invalid(listOf("error 1"));
     Higher1<Higher1<Validation_, Sequence<String>>, Function1<Integer, String>> apply =
-        Validation.<Sequence<String>, Function1<Integer, String>>valid(Function1.of(String::valueOf)).kind1();
+        Validation.<Sequence<String>, Function1<Integer, String>>valid(Function1.of(String::valueOf));
     Higher1<Higher1<Validation_, Sequence<String>>, Function1<Integer, String>> invalidApply =
-        Validation.<Sequence<String>, Function1<Integer, String>>invalid(listOf("error 2")).kind1();
+        Validation.<Sequence<String>, Function1<Integer, String>>invalid(listOf("error 2"));
 
     assertEquals(Validation.valid("1"), selective.ap(validValue, apply).fix1(Validation_::narrowK));
     assertEquals(Validation.invalid(listOf("error 1", "error 2")), selective.ap(invalidValue, invalidApply).fix1(Validation_::narrowK));
@@ -90,8 +90,8 @@ public class SelectiveTest {
     IO<Unit> io1 = IO.task(left);
     IO<Unit> io2 = IO.task(right);
 
-    monad.whenS(monad.pure(true), io1.kind1()).fix1(IO_::narrowK).unsafeRunSync();
-    monad.whenS(monad.pure(false), io2.kind1()).fix1(IO_::narrowK).unsafeRunSync();
+    monad.whenS(monad.pure(true), io1).fix1(IO_::narrowK).unsafeRunSync();
+    monad.whenS(monad.pure(false), io2).fix1(IO_::narrowK).unsafeRunSync();
 
     verify(left).get();
     verify(right, never()).get();
@@ -142,10 +142,10 @@ public class SelectiveTest {
   public void allS() {
     Eval<Higher1<IO_, Boolean>> match =
         monad.allS(SequenceInstances.foldable(),
-            listOf("a", "b", "c").kind1(), a -> monad.pure(a.length() == 1));
+            listOf("a", "b", "c"), a -> monad.pure(a.length() == 1));
     Eval<Higher1<IO_, Boolean>> notMatch =
         monad.allS(SequenceInstances.foldable(),
-            listOf("a", "b", "cd").kind1(), a -> monad.pure(a.length() == 1));
+            listOf("a", "b", "cd"), a -> monad.pure(a.length() == 1));
 
     assertAll(
         () -> assertEquals(true, match.value().fix1(IO_::narrowK).unsafeRunSync()),
@@ -157,10 +157,10 @@ public class SelectiveTest {
   public void anyS() {
     Eval<Higher1<IO_, Boolean>> match =
         monad.anyS(SequenceInstances.foldable(),
-            listOf("a", "b", "cd").kind1(), a -> monad.pure(a.length() > 1));
+            listOf("a", "b", "cd"), a -> monad.pure(a.length() > 1));
     Eval<Higher1<IO_, Boolean>> notMatch =
         monad.anyS(SequenceInstances.foldable(),
-            listOf("a", "b", "c").kind1(), a -> monad.pure(a.length() > 1));
+            listOf("a", "b", "c"), a -> monad.pure(a.length() > 1));
 
     assertAll(
         () -> assertEquals(true, match.value().fix1(IO_::narrowK).unsafeRunSync()),

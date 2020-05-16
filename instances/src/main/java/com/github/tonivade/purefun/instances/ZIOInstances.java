@@ -69,7 +69,7 @@ interface ZIOFunctor<R, E> extends Functor<Higher1<Higher1<ZIO_, R>, E>> {
   @Override
   default <A, B> Higher3<ZIO_, R, E, B>
           map(Higher1<Higher1<Higher1<ZIO_, R>, E>, A> value, Function1<A, B> map) {
-    return ZIO_.narrowK(value).map(map).kind3();
+    return ZIO_.narrowK(value).map(map);
   }
 }
 
@@ -77,7 +77,7 @@ interface ZIOPure<R, E> extends Applicative<Higher1<Higher1<ZIO_, R>, E>> {
 
   @Override
   default <A> Higher3<ZIO_, R, E, A> pure(A value) {
-    return ZIO.<R, E, A>pure(value).kind3();
+    return ZIO.<R, E, A>pure(value);
   }
 }
 
@@ -88,7 +88,7 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
   default <A, B> Higher3<ZIO_, R, E, B>
           ap(Higher1<Higher1<Higher1<ZIO_, R>, E>, A> value,
              Higher1<Higher1<Higher1<ZIO_, R>, E>, Function1<A, B>> apply) {
-    return ZIO_.narrowK(apply).flatMap(map -> ZIO_.narrowK(value).map(map)).kind3();
+    return ZIO_.narrowK(apply).flatMap(map -> ZIO_.narrowK(value).map(map));
   }
 }
 
@@ -99,7 +99,7 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Higher1<Higher1<ZIO_, R>, 
   default <A, B> Higher3<ZIO_, R, E, B>
           flatMap(Higher1<Higher1<Higher1<ZIO_, R>, E>, A> value,
                   Function1<A, ? extends Higher1<Higher1<Higher1<ZIO_, R>, E>, B>> map) {
-    return ZIO_.narrowK(value).flatMap(map.andThen(ZIO_::narrowK)).kind3();
+    return ZIO_.narrowK(value).flatMap(map.andThen(ZIO_::narrowK));
   }
 }
 
@@ -108,7 +108,7 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
 
   @Override
   default <A> Higher3<ZIO_, R, E, A> raiseError(E error) {
-    return ZIO.<R, E, A>raiseError(error).kind3();
+    return ZIO.<R, E, A>raiseError(error);
   }
 
   @Override
@@ -119,7 +119,7 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Higher1<Higher1
     Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIO_::narrowK);
     Function1<A, ZIO<R, E, A>> map = ZIO::pure;
     ZIO<R, E, A> zio = ZIO_.narrowK(value);
-    return zio.foldM(mapError, map).kind3();
+    return zio.foldM(mapError, map);
   }
 }
 
@@ -133,7 +133,7 @@ interface ZIODefer<R> extends Defer<Higher1<Higher1<ZIO_, R>, Throwable>> {
   @Override
   default <A> Higher3<ZIO_, R, Throwable, A>
           defer(Producer<Higher1<Higher1<Higher1<ZIO_, R>, Throwable>, A>> defer) {
-    return ZIO.defer(() -> defer.map(ZIO_::narrowK).get()).kind3();
+    return ZIO.defer(() -> defer.map(ZIO_::narrowK).get());
   }
 }
 
@@ -144,7 +144,7 @@ interface ZIOBracket<R> extends Bracket<Higher1<Higher1<ZIO_, R>, Throwable>> {
           bracket(Higher1<Higher1<Higher1<ZIO_, R>, Throwable>, A> acquire,
                   Function1<A, ? extends Higher1<Higher1<Higher1<ZIO_, R>, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return ZIO.bracket(acquire.fix1(ZIO_::narrowK), use.andThen(ZIO_::narrowK), release).kind3();
+    return ZIO.bracket(acquire.fix1(ZIO_::narrowK), use.andThen(ZIO_::narrowK), release);
   }
 }
 
@@ -153,7 +153,7 @@ interface ZIOMonadDefer<R>
     extends MonadDefer<Higher1<Higher1<ZIO_, R>, Throwable>>, ZIOMonadThrow<R>, ZIODefer<R>, ZIOBracket<R> {
   @Override
   default Higher3<ZIO_, R, Throwable, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).<R, Throwable>toZIO().kind3();
+    return UIO.sleep(duration).<R, Throwable>toZIO();
   }
 }
 
@@ -165,11 +165,11 @@ final class ConsoleZIO<R> implements Console<Higher1<Higher1<ZIO_, R>, Throwable
 
   @Override
   public Higher1<Higher1<Higher1<ZIO_, R>, Throwable>, String> readln() {
-    return ZIO.<R, String>task(console::readln).kind1();
+    return ZIO.<R, String>task(console::readln);
   }
 
   @Override
   public Higher1<Higher1<Higher1<ZIO_, R>, Throwable>, Unit> println(String text) {
-    return ZIO.<R>exec(() -> console.println(text)).kind1();
+    return ZIO.<R>exec(() -> console.println(text));
   }
 }

@@ -53,7 +53,7 @@ interface ConstFunctor<T> extends Functor<Higher1<Const_, T>> {
 
   @Override
   default <A, B> Higher1<Higher1<Const_, T>, B> map(Higher1<Higher1<Const_, T>, A> value, Function1<A, B> map) {
-    return value.fix1(Const_::narrowK).<B>retag().kind2();
+    return value.fix1(Const_::narrowK).<B>retag();
   }
 }
 
@@ -67,7 +67,7 @@ interface ConstApplicative<T> extends Applicative<Higher1<Const_, T>> {
 
   @Override
   default <A> Higher2<Const_, T, A> pure(A value) {
-    return Const.<T, A>of(monoid().zero()).kind2();
+    return Const.<T, A>of(monoid().zero());
   }
 
   @Override
@@ -75,7 +75,7 @@ interface ConstApplicative<T> extends Applicative<Higher1<Const_, T>> {
       Higher1<Higher1<Const_, T>, A> value, Higher1<Higher1<Const_, T>, Function1<A, B>> apply) {
     return Const.<T, B>of(monoid().combine(
             apply.fix1(Const_::narrowK).<B>retag().get(),
-            value.fix1(Const_::narrowK).<B>retag().get())).kind2();
+            value.fix1(Const_::narrowK).<B>retag().get()));
   }
 }
 
@@ -84,7 +84,7 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const_, T>> {
 
   @Override
   default <A, B> Higher2<Const_, T, B> contramap(Higher1<Higher1<Const_, T>, A> value, Function1<B, A> map) {
-    return value.fix1(Const_::narrowK).<B>retag().kind2();
+    return value.fix1(Const_::narrowK).<B>retag();
   }
 }
 
@@ -109,6 +109,6 @@ interface ConstTraverse<T> extends Traverse<Higher1<Const_, T>>, ConstFoldable<T
   @Override
   default <G extends Kind, A, B> Higher1<G, Higher1<Higher1<Const_, T>, B>> traverse(
       Applicative<G> applicative, Higher1<Higher1<Const_, T>, A> value, Function1<A, ? extends Higher1<G, B>> mapper) {
-    return applicative.pure(value.fix1(Const_::narrowK).<B>retag().kind1()).kind1();
+    return applicative.pure(value.fix1(Const_::narrowK).<B>retag());
   }
 }

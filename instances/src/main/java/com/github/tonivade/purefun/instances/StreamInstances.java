@@ -63,7 +63,7 @@ interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream_, F>> {
 
   @Override
   default <T, R> Higher2<Stream_, F, R> map(Higher1<Higher1<Stream_, F>, T> value, Function1<T, R> mapper) {
-    return Stream_.narrowK(value).map(mapper).kind2();
+    return Stream_.narrowK(value).map(mapper);
   }
 }
 
@@ -73,7 +73,7 @@ interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream_, F>> {
 
   @Override
   default <T> Higher2<Stream_, F, T> pure(T value) {
-    return streamOf().pure(value).kind2();
+    return streamOf().pure(value);
   }
 }
 
@@ -86,7 +86,7 @@ interface StreamApplicative<F extends Kind> extends StreamPure<F> {
   @Override
   default <T, R> Higher2<Stream_, F, R> ap(Higher1<Higher1<Stream_, F>, T> value,
       Higher1<Higher1<Stream_, F>, Function1<T, R>> apply) {
-    return Stream_.narrowK(value).flatMap(t -> Stream_.narrowK(apply).map(f -> f.apply(t))).kind2();
+    return Stream_.narrowK(value).flatMap(t -> Stream_.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -99,6 +99,6 @@ interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream_, F>>, Stream
   @Override
   default <T, R> Higher2<Stream_, F, R> flatMap(Higher1<Higher1<Stream_, F>, T> value,
       Function1<T, ? extends Higher1<Higher1<Stream_, F>, R>> mapper) {
-    return Stream_.narrowK(value).flatMap(mapper.andThen(Stream_::narrowK)).kind2();
+    return Stream_.narrowK(value).flatMap(mapper.andThen(Stream_::narrowK));
   }
 }

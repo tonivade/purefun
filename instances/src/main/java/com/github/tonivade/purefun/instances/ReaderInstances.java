@@ -30,13 +30,13 @@ interface ReaderMonad<R> extends Monad<Higher1<Reader_, R>> {
 
   @Override
   default <T> Higher2<Reader_, R, T> pure(T value) {
-    return Reader.<R, T>pure(value).kind2();
+    return Reader.<R, T>pure(value);
   }
 
   @Override
   default <T, V> Higher2<Reader_, R, V> flatMap(Higher1<Higher1<Reader_, R>, T> value,
       Function1<T, ? extends Higher1<Higher1<Reader_, R>, V>> map) {
-    return Reader_.narrowK(value).flatMap(map.andThen(Reader_::narrowK)).kind2();
+    return Reader_.narrowK(value).flatMap(map.andThen(Reader_::narrowK));
   }
 }
 
@@ -45,6 +45,6 @@ interface ReaderMonadReader<R> extends MonadReader<Higher1<Reader_, R>, R>, Read
 
   @Override
   default Higher1<Higher1<Reader_, R>, R> ask() {
-    return Reader.<R>env().kind1();
+    return Reader.<R>env();
   }
 }

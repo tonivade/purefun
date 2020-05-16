@@ -56,7 +56,7 @@ interface IdFunctor extends Functor<Id_> {
 
   @Override
   default <T, R> Higher1<Id_, R> map(Higher1<Id_, T> value, Function1<T, R> map) {
-    return Id_.narrowK(value).map(map).kind1();
+    return Id_.narrowK(value).map(map);
   }
 }
 
@@ -64,7 +64,7 @@ interface IdPure extends Applicative<Id_> {
 
   @Override
   default <T> Higher1<Id_, T> pure(T value) {
-    return Id.of(value).kind1();
+    return Id.of(value);
   }
 }
 
@@ -73,7 +73,7 @@ interface IdApplicative extends IdPure {
 
   @Override
   default <T, R> Higher1<Id_, R> ap(Higher1<Id_, T> value, Higher1<Id_, Function1<T, R>> apply) {
-    return Id_.narrowK(value).flatMap(t -> Id_.narrowK(apply).map(f -> f.apply(t))).kind1();
+    return Id_.narrowK(value).flatMap(t -> Id_.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -82,7 +82,7 @@ interface IdMonad extends IdPure, Monad<Id_> {
 
   @Override
   default <T, R> Higher1<Id_, R> flatMap(Higher1<Id_, T> value, Function1<T, ? extends Higher1<Id_, R>> map) {
-    return Id_.narrowK(value).flatMap(map.andThen(Id_::narrowK)).kind1();
+    return Id_.narrowK(value).flatMap(map.andThen(Id_::narrowK));
   }
 }
 
@@ -91,7 +91,7 @@ interface IdComonad extends IdFunctor, Comonad<Id_> {
 
   @Override
   default <A, B> Higher1<Id_, B> coflatMap(Higher1<Id_, A> value, Function1<Higher1<Id_, A>, B> map) {
-    return Id.of(map.apply(value)).kind1();
+    return Id.of(map.apply(value));
   }
 
   @Override
@@ -121,6 +121,6 @@ interface IdTraverse extends Traverse<Id_>, IdFoldable {
   default <G extends Kind, T, R> Higher1<G, Higher1<Id_, R>> traverse(
       Applicative<G> applicative, Higher1<Id_, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
-    return applicative.map(mapper.apply(Id_.narrowK(value).get()), a -> Id.of(a).kind1());
+    return applicative.map(mapper.apply(Id_.narrowK(value).get()), a -> Id.of(a));
   }
 }

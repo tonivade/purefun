@@ -55,7 +55,7 @@ interface EvalFunctor extends Functor<Eval_> {
 
   @Override
   default <T, R> Higher1<Eval_, R> map(Higher1<Eval_, T> value, Function1<T, R> mapper) {
-    return Eval_.narrowK(value).map(mapper).kind1();
+    return Eval_.narrowK(value).map(mapper);
   }
 }
 
@@ -63,7 +63,7 @@ interface EvalPure extends Applicative<Eval_> {
 
   @Override
   default <T> Higher1<Eval_, T> pure(T value) {
-    return Eval.now(value).kind1();
+    return Eval.now(value);
   }
 }
 
@@ -72,7 +72,7 @@ interface EvalApplicative extends EvalPure {
 
   @Override
   default <T, R> Higher1<Eval_, R> ap(Higher1<Eval_, T> value, Higher1<Eval_, Function1<T, R>> apply) {
-    return Eval_.narrowK(value).flatMap(t -> Eval_.narrowK(apply).map(f -> f.apply(t))).kind1();
+    return Eval_.narrowK(value).flatMap(t -> Eval_.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -81,7 +81,7 @@ interface EvalMonad extends EvalPure, Monad<Eval_> {
 
   @Override
   default <T, R> Higher1<Eval_, R> flatMap(Higher1<Eval_, T> value, Function1<T, ? extends Higher1<Eval_, R>> map) {
-    return Eval_.narrowK(value).flatMap(map.andThen(Eval_::<R>narrowK)).kind1();
+    return Eval_.narrowK(value).flatMap(map.andThen(Eval_::<R>narrowK));
   }
 }
 
@@ -90,14 +90,14 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval_, Throwable> {
 
   @Override
   default <A> Higher1<Eval_, A> raiseError(Throwable error) {
-    return Eval.<A>raiseError(error).kind1();
+    return Eval.<A>raiseError(error);
   }
 
   @Override
   default <A> Higher1<Eval_, A> handleErrorWith(
       Higher1<Eval_, A> value, Function1<Throwable, ? extends Higher1<Eval_, A>> handler) {
     Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix1(Eval_::narrowK)::value));
-    return attempt.flatMap(try_ -> try_.fold(handler.andThen(Eval_::narrowK), Eval::now)).kind1();
+    return attempt.flatMap(try_ -> try_.fold(handler.andThen(Eval_::narrowK), Eval::now));
   }
 }
 
@@ -109,7 +109,7 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval_> {
 
   @Override
   default <A, B> Higher1<Eval_, B> coflatMap(Higher1<Eval_, A> value, Function1<Higher1<Eval_, A>, B> map) {
-    return Eval.later(() -> map.apply(value)).kind1();
+    return Eval.later(() -> map.apply(value));
   }
 
   @Override
@@ -123,6 +123,6 @@ interface EvalDefer extends Defer<Eval_> {
 
   @Override
   default <A> Higher1<Eval_, A> defer(Producer<Higher1<Eval_, A>> defer) {
-    return Eval.defer(defer.map(Eval_::narrowK)).kind1();
+    return Eval.defer(defer.map(Eval_::narrowK));
   }
 }

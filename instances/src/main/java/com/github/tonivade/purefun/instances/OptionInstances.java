@@ -82,7 +82,7 @@ interface OptionFunctor extends Functor<Option_> {
 
   @Override
   default <T, R> Higher1<Option_, R> map(Higher1<Option_, T> value, Function1<T, R> mapper) {
-    return Option_.narrowK(value).map(mapper).kind1();
+    return Option_.narrowK(value).map(mapper);
   }
 }
 
@@ -90,7 +90,7 @@ interface OptionPure extends Applicative<Option_> {
 
   @Override
   default <T> Higher1<Option_, T> pure(T value) {
-    return Option.some(value).kind1();
+    return Option.some(value);
   }
 }
 
@@ -99,7 +99,7 @@ interface OptionApplicative extends OptionPure {
 
   @Override
   default <T, R> Higher1<Option_, R> ap(Higher1<Option_, T> value, Higher1<Option_, Function1<T, R>> apply) {
-    return Option_.narrowK(value).flatMap(t -> Option_.narrowK(apply).map(f -> f.apply(t))).kind1();
+    return Option_.narrowK(value).flatMap(t -> Option_.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -109,7 +109,7 @@ interface OptionMonad extends OptionPure, Monad<Option_> {
   @Override
   default <T, R> Higher1<Option_, R> flatMap(Higher1<Option_, T> value,
       Function1<T, ? extends Higher1<Option_, R>> map) {
-    return Option_.narrowK(value).flatMap(map.andThen(Option_::narrowK)).kind1();
+    return Option_.narrowK(value).flatMap(map.andThen(Option_::narrowK));
   }
 }
 
@@ -118,7 +118,7 @@ interface OptionSemigroupK extends SemigroupK<Option_> {
 
   @Override
   default <T> Higher1<Option_, T> combineK(Higher1<Option_, T> t1, Higher1<Option_, T> t2) {
-    return Option_.narrowK(t1).fold(cons(Option_.narrowK(t2)), Option::some).kind1();
+    return Option_.narrowK(t1).fold(cons(Option_.narrowK(t2)), Option::some);
   }
 }
 
@@ -127,7 +127,7 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option_> {
 
   @Override
   default <T> Higher1<Option_, T> zero() {
-    return Option.<T>none().kind1();
+    return Option.<T>none();
   }
 }
 
@@ -139,13 +139,13 @@ interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
 
   @Override
   default <A> Higher1<Option_, A> raiseError(Unit error) {
-    return Option.<A>none().kind1();
+    return Option.<A>none();
   }
 
   @Override
   default <A> Higher1<Option_, A> handleErrorWith(Higher1<Option_, A> value,
       Function1<Unit, ? extends Higher1<Option_, A>> handler) {
-    return Option_.narrowK(value).fold(() -> Option_.narrowK(handler.apply(unit())).kind1(), this::pure);
+    return Option_.narrowK(value).fold(() -> Option_.narrowK(handler.apply(unit())), this::pure);
   }
 }
 
@@ -172,8 +172,8 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
       Applicative<G> applicative, Higher1<Option_, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
     return Option_.narrowK(value).fold(
-        () -> applicative.pure(Option.<R>none().kind1()),
-        t -> applicative.map(mapper.apply(t), x -> Option.some(x).kind1()));
+        () -> applicative.pure(Option.<R>none()),
+        t -> applicative.map(mapper.apply(t), x -> Option.some(x)));
   }
 }
 
@@ -182,6 +182,6 @@ interface OptionSemigroupal extends Semigroupal<Option_> {
 
   @Override
   default <A, B> Higher1<Option_, Tuple2<A, B>> product(Higher1<Option_, A> fa, Higher1<Option_, B> fb) {
-    return Option_.narrowK(fa).flatMap(a -> Option_.narrowK(fb).map(b -> Tuple.of(a, b))).kind1();
+    return Option_.narrowK(fa).flatMap(a -> Option_.narrowK(fb).map(b -> Tuple.of(a, b)));
   }
 }

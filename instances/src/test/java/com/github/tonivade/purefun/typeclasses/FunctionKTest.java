@@ -18,21 +18,21 @@ public class FunctionKTest {
 
   @Test
   public void apply() {
-    Higher1<Try_, String> success = new OptionToTry().apply(Option.some("hello world!").kind1());
+    Higher1<Try_, String> success = new OptionToTry().apply(Option.some("hello world!"));
 
     assertEquals(Try.success("hello world!"), success);
   }
 
   @Test
   public void andThen() {
-    Higher1<Option_, String> some = new OptionToTry().andThen(new TryToOption()).apply(Option.some("hello world!").kind1());
+    Higher1<Option_, String> some = new OptionToTry().andThen(new TryToOption()).apply(Option.some("hello world!"));
 
     assertEquals(Option.some("hello world!"), some);
   }
 
   @Test
   public void compose() {
-    Higher1<Try_, String> some = new OptionToTry().compose(new TryToOption()).apply(Try.success("hello world!").kind1());
+    Higher1<Try_, String> some = new OptionToTry().compose(new TryToOption()).apply(Try.success("hello world!"));
 
     assertEquals(Try.success("hello world!"), some);
   }
@@ -41,13 +41,13 @@ public class FunctionKTest {
 class OptionToTry implements FunctionK<Option_, Try_> {
   @Override
   public <X> Higher1<Try_, X> apply(Higher1<Option_, X> from) {
-    return Option_.narrowK(from).map(Try::success).getOrElse(Try::failure).kind1();
+    return Option_.narrowK(from).map(Try::success).getOrElse(Try::failure);
   }
 }
 
 class TryToOption implements FunctionK<Try_, Option_> {
   @Override
   public <X> Higher1<Option_, X> apply(Higher1<Try_, X> from) {
-    return Try_.narrowK(from).toOption().kind1();
+    return Try_.narrowK(from).toOption();
   }
 }

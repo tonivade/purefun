@@ -59,7 +59,7 @@ public class StreamTest {
 
     Stream<IO_, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    IO<String> foldRight = result.foldRight(IO.pure("").kind1(), (a, b) -> b.fix1(IO_::narrowK).map(x -> x + a).kind1())
+    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix1(IO_::narrowK).map(x -> x + a))
         .fix1(IO_::narrowK);
 
     assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
@@ -81,7 +81,7 @@ public class StreamTest {
   public void mapEval() {
     Stream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO_, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2).kind1());
+    Stream<IO_, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2));
 
     assertEquals(Integer.valueOf(12), run(result.foldLeft(0, Integer::sum)));
   }
@@ -90,7 +90,7 @@ public class StreamTest {
   public void append() {
     Stream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO_, Integer> result = stream.append(IO.pure(4).kind1());
+    Stream<IO_, Integer> result = stream.append(IO.pure(4));
 
     assertEquals(listOf(1, 2, 3, 4), run(result.asSequence()));
   }
@@ -99,7 +99,7 @@ public class StreamTest {
   public void prepend() {
     Stream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
 
-    Stream<IO_, Integer> result = stream.prepend(IO.pure(0).kind1());
+    Stream<IO_, Integer> result = stream.prepend(IO.pure(0));
 
     assertEquals(listOf(0, 1, 2, 3), run(result.asSequence()));
   }
@@ -180,7 +180,7 @@ public class StreamTest {
   public void intersperse() {
     Stream<IO_, Integer> stream = streamOfIO.of(1, 2);
 
-    Stream<IO_, Integer> result = stream.intersperse(IO.pure(0).kind1());
+    Stream<IO_, Integer> result = stream.intersperse(IO.pure(0));
 
     assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
   }
@@ -230,7 +230,7 @@ public class StreamTest {
   public void foldLeftLazyness() {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
-    IO<String> result = streamOfIO.eval(fail.kind1()).asString().fix1(IO_::narrowK);
+    IO<String> result = streamOfIO.eval(fail).asString().fix1(IO_::narrowK);
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
@@ -239,8 +239,8 @@ public class StreamTest {
   public void foldRightLazyness() {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
-    IO<String> result = streamOfIO.eval(fail.kind1())
-      .foldRight(IO.pure("").kind1(), (a, b) -> b.fix1(IO_::narrowK).map(x -> a + x).kind1())
+    IO<String> result = streamOfIO.eval(fail)
+      .foldRight(IO.pure(""), (a, b) -> b.fix1(IO_::narrowK).map(x -> a + x))
       .fix1(IO_::narrowK);
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
@@ -301,7 +301,7 @@ public class StreamTest {
   }
 
   private IO<String> pureReadFileIO(String file) {
-    return streamOfIO.eval(IO.task(() -> reader(file)).kind1())
+    return streamOfIO.eval(IO.task(() -> reader(file)))
         .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
         .map(Option::get)
@@ -311,7 +311,7 @@ public class StreamTest {
   }
 
   private UIO<String> pureReadFileUIO(String file) {
-    return streamOfUIO.eval(UIO.task(() -> reader(file)).kind1())
+    return streamOfUIO.eval(UIO.task(() -> reader(file)))
         .flatMap(reader -> streamOfUIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
         .map(Option::get)
@@ -321,7 +321,7 @@ public class StreamTest {
   }
 
   private UIO<String> pureReadFileTask(String file) {
-    return streamOfTask.eval(Task.task(() -> reader(file)).kind1())
+    return streamOfTask.eval(Task.task(() -> reader(file)))
         .flatMap(reader -> streamOfTask.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
         .map(Option::get)
@@ -331,7 +331,7 @@ public class StreamTest {
   }
 
   private UIO<String> pureReadFileEIO(String file) {
-    return streamOfEIO.eval(EIO.task(() -> reader(file)).kind1())
+    return streamOfEIO.eval(EIO.task(() -> reader(file)))
         .flatMap(reader -> streamOfEIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
         .map(Option::get)
@@ -341,7 +341,7 @@ public class StreamTest {
   }
 
   private ZIO<Nothing, Nothing, String> pureReadFileZIO(String file) {
-    return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>task(() -> reader(file)).kind1())
+    return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>task(() -> reader(file)))
       .flatMap(reader -> streamOfZIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)

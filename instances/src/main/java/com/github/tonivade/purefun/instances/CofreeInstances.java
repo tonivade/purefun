@@ -29,7 +29,7 @@ interface CofreeFunctor<F extends Kind> extends Functor<Higher1<Cofree_, F>> {
 
   @Override
   default <T, R> Higher2<Cofree_, F, R> map(Higher1<Higher1<Cofree_, F>, T> value, Function1<T, R> map) {
-    return value.fix1(Cofree_::narrowK).map(map).kind2();
+    return value.fix1(Cofree_::narrowK).map(map);
   }
 }
 
@@ -44,6 +44,6 @@ interface CofreeComonad<F extends Kind> extends Comonad<Higher1<Cofree_, F>>, Co
   @Override
   default <A, B> Higher2<Cofree_, F, B> coflatMap(
       Higher1<Higher1<Cofree_, F>, A> value, Function1<Higher1<Higher1<Cofree_, F>, A>, B> map) {
-    return value.fix1(Cofree_::narrowK).coflatMap(c -> map.apply(c.kind1())).kind2();
+    return value.fix1(Cofree_::narrowK).coflatMap(c -> map.apply(c));
   }
 }

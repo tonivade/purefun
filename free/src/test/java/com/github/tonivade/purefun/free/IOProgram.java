@@ -26,11 +26,11 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 public interface IOProgram<T> extends Higher1<IOProgram_, T> {
 
   static Free<IOProgram_, String> read() {
-    return liftF(new IOProgram.Read().kind1());
+    return liftF(new IOProgram.Read());
   }
 
   static Free<IOProgram_, Unit> write(String value) {
-    return liftF(new IOProgram.Write(value).kind1());
+    return liftF(new IOProgram.Write(value));
   }
 
   final class Read implements IOProgram<String> {
@@ -82,7 +82,7 @@ class IOProgramToState implements FunctionK<IOProgram_, Higher1<State_, Immutabl
         .then(program -> (State<ImmutableList<String>, X>) State_.narrowK(console.readln()))
       .when(instanceOf(IOProgram.Write.class))
         .then(program -> (State<ImmutableList<String>, X>) State_.narrowK(console.println(program.asWrite().value())))
-      .apply(IOProgram_.narrowK(from)).kind1();
+      .apply(IOProgram_.narrowK(from));
   }
 }
 
@@ -98,6 +98,6 @@ class IOProgramToIO implements FunctionK<IOProgram_, IO_> {
         .then(program -> (IO<X>) console.readln().fix1(IO_::narrowK))
       .when(instanceOf(IOProgram.Write.class))
         .then(program -> (IO<X>) IO_.narrowK(console.println(program.asWrite().value())))
-      .apply(IOProgram_.narrowK(from)).kind1();
+      .apply(IOProgram_.narrowK(from));
   }
 }

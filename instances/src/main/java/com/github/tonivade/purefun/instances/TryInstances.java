@@ -70,7 +70,7 @@ interface TryFunctor extends Functor<Try_> {
 
   @Override
   default <T, R> Higher1<Try_, R> map(Higher1<Try_, T> value, Function1<T, R> mapper) {
-    return Try_.narrowK(value).map(mapper).kind1();
+    return Try_.narrowK(value).map(mapper);
   }
 }
 
@@ -78,7 +78,7 @@ interface TryPure extends Applicative<Try_> {
 
   @Override
   default <T> Higher1<Try_, T> pure(T value) {
-    return Try.success(value).kind1();
+    return Try.success(value);
   }
 }
 
@@ -87,7 +87,7 @@ interface TryApplicative extends TryPure {
 
   @Override
   default <T, R> Higher1<Try_, R> ap(Higher1<Try_, T> value, Higher1<Try_, Function1<T, R>> apply) {
-    return Try_.narrowK(value).flatMap(t -> Try_.narrowK(apply).map(f -> f.apply(t))).kind1();
+    return Try_.narrowK(value).flatMap(t -> Try_.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -97,7 +97,7 @@ interface TryMonad extends TryPure, Monad<Try_> {
   @Override
   default <T, R> Higher1<Try_, R> flatMap(Higher1<Try_, T> value,
       Function1<T, ? extends Higher1<Try_, R>> map) {
-    return Try_.narrowK(value).flatMap(map.andThen(Try_::narrowK)).kind1();
+    return Try_.narrowK(value).flatMap(map.andThen(Try_::narrowK));
   }
 }
 
@@ -106,13 +106,13 @@ interface TryMonadError extends TryMonad, MonadError<Try_, Throwable> {
 
   @Override
   default <A> Higher1<Try_, A> raiseError(Throwable error) {
-    return Try.<A>failure(error).kind1();
+    return Try.<A>failure(error);
   }
 
   @Override
   default <A> Higher1<Try_, A> handleErrorWith(Higher1<Try_, A> value,
       Function1<Throwable, ? extends Higher1<Try_, A>> handler) {
-    return Try_.narrowK(value).fold(handler.andThen(Try_::narrowK), Try::success).kind1();
+    return Try_.narrowK(value).fold(handler.andThen(Try_::narrowK), Try::success);
   }
 }
 
@@ -142,7 +142,7 @@ interface TryTraverse extends Traverse<Try_>, TryFoldable {
       Applicative<G> applicative, Higher1<Try_, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
     return Try_.narrowK(value).fold(
-        t -> applicative.pure(Try.<R>failure(t).kind1()),
-        t -> applicative.map(mapper.apply(t), x -> Try.success(x).kind1()));
+        t -> applicative.pure(Try.<R>failure(t)),
+        t -> applicative.map(mapper.apply(t), x -> Try.success(x)));
   }
 }

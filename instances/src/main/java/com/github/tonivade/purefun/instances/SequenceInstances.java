@@ -103,7 +103,7 @@ interface SequenceSemigroupK extends SemigroupK<Sequence_> {
 
   @Override
   default <T> Higher1<Sequence_, T> combineK(Higher1<Sequence_, T> t1, Higher1<Sequence_, T> t2) {
-    return Sequence_.narrowK(t1).appendAll(Sequence_.narrowK(t2)).kind1();
+    return Sequence_.narrowK(t1).appendAll(Sequence_.narrowK(t2));
   }
 }
 
@@ -112,7 +112,7 @@ interface SequenceMonoidK extends MonoidK<Sequence_>, SequenceSemigroupK {
 
   @Override
   default <T> Higher1<Sequence_, T> zero() {
-    return ImmutableList.<T>empty().kind1();
+    return ImmutableList.<T>empty();
   }
 }
 
@@ -121,7 +121,7 @@ interface SequenceFunctor extends Functor<Sequence_> {
 
   @Override
   default <T, R> Higher1<Sequence_, R> map(Higher1<Sequence_, T> value, Function1<T, R> map) {
-    return Sequence_.narrowK(value).map(map).kind1();
+    return Sequence_.narrowK(value).map(map);
   }
 }
 
@@ -129,7 +129,7 @@ interface SequencePure extends Applicative<Sequence_> {
 
   @Override
   default <T> Higher1<Sequence_, T> pure(T value) {
-    return ImmutableList.of(value).kind1();
+    return ImmutableList.of(value);
   }
 }
 
@@ -138,7 +138,7 @@ interface SequenceApplicative extends SequencePure, Applicative<Sequence_> {
 
   @Override
   default <T, R> Higher1<Sequence_, R> ap(Higher1<Sequence_, T> value, Higher1<Sequence_, Function1<T, R>> apply) {
-    return Sequence_.narrowK(apply).flatMap(map -> Sequence_.narrowK(value).map(map)).kind1();
+    return Sequence_.narrowK(apply).flatMap(map -> Sequence_.narrowK(value).map(map));
   }
 }
 
@@ -147,7 +147,7 @@ interface SequenceMonad extends SequencePure, Monad<Sequence_> {
 
   @Override
   default <T, R> Higher1<Sequence_, R> flatMap(Higher1<Sequence_, T> value, Function1<T, ? extends Higher1<Sequence_, R>> map) {
-    return Sequence_.narrowK(value).flatMap(map.andThen(Sequence_::narrowK)).kind1();
+    return Sequence_.narrowK(value).flatMap(map.andThen(Sequence_::narrowK));
   }
 }
 
@@ -177,8 +177,8 @@ interface SequenceTraverse extends Traverse<Sequence_>, SequenceFoldable {
       Applicative<G> applicative, Higher1<Sequence_, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
     return Sequence_.narrowK(value).foldRight(
-      applicative.pure(ImmutableList.<R>empty().kind1()),
+      applicative.pure(ImmutableList.<R>empty()),
       (a, acc) -> applicative.map2(mapper.apply(a), acc,
-        (e, seq) -> Sequence.listOf(e).appendAll(Sequence_.narrowK(seq)).kind1()));
+        (e, seq) -> Sequence.listOf(e).appendAll(Sequence_.narrowK(seq))));
   }
 }

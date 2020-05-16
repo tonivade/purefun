@@ -20,7 +20,7 @@ public class CoyonedaTest {
 
   @Test
   public void coyoneda() {
-    Coyoneda<Option_, String, String> coyoneda = Coyoneda.of(Option.some("string").kind1(), identity());
+    Coyoneda<Option_, String, String> coyoneda = Coyoneda.of(Option.some("string"), identity());
 
     Coyoneda<Option_, String, String> result = coyoneda.map(concat).map(concat);
 

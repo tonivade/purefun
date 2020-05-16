@@ -61,7 +61,7 @@ interface TaskFunctor extends Functor<Task_> {
   @Override
   default <A, B> Higher1<Task_, B>
           map(Higher1<Task_, A> value, Function1<A, B> map) {
-    return Task_.narrowK(value).map(map).kind1();
+    return Task_.narrowK(value).map(map);
   }
 }
 
@@ -69,7 +69,7 @@ interface TaskPure extends Applicative<Task_> {
 
   @Override
   default <A> Higher1<Task_, A> pure(A value) {
-    return Task.pure(value).kind1();
+    return Task.pure(value);
   }
 }
 
@@ -80,7 +80,7 @@ interface TaskApplicative extends TaskPure {
   default <A, B> Higher1<Task_, B>
           ap(Higher1<Task_, A> value,
              Higher1<Task_, Function1<A, B>> apply) {
-    return Task_.narrowK(apply).flatMap(map -> Task_.narrowK(value).map(map)).kind1();
+    return Task_.narrowK(apply).flatMap(map -> Task_.narrowK(value).map(map));
   }
 }
 
@@ -91,7 +91,7 @@ interface TaskMonad extends TaskPure, Monad<Task_> {
   default <A, B> Higher1<Task_, B>
           flatMap(Higher1<Task_, A> value,
                   Function1<A, ? extends Higher1<Task_, B>> map) {
-    return Task_.narrowK(value).flatMap(map.andThen(Task_::narrowK)).kind1();
+    return Task_.narrowK(value).flatMap(map.andThen(Task_::narrowK));
   }
 }
 
@@ -100,7 +100,7 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
 
   @Override
   default <A> Higher1<Task_, A> raiseError(Throwable error) {
-    return Task.<A>raiseError(error).kind1();
+    return Task.<A>raiseError(error);
   }
 
   @Override
@@ -111,7 +111,7 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
     Function1<Throwable, Task<A>> mapError = handler.andThen(Task_::narrowK);
     Function1<A, Task<A>> map = Task::pure;
     Task<A> task = Task_.narrowK(value);
-    return task.foldM(mapError, map).kind1();
+    return task.foldM(mapError, map);
   }
 }
 
@@ -125,7 +125,7 @@ interface TaskDefer extends Defer<Task_> {
   @Override
   default <A> Higher1<Task_, A>
           defer(Producer<Higher1<Task_, A>> defer) {
-    return Task.defer(() -> defer.map(Task_::narrowK).get()).kind1();
+    return Task.defer(() -> defer.map(Task_::narrowK).get());
   }
 }
 
@@ -136,7 +136,7 @@ interface TaskBracket extends Bracket<Task_> {
           bracket(Higher1<Task_, A> acquire,
                   Function1<A, ? extends Higher1<Task_, B>> use,
                   Consumer1<A> release) {
-    return Task.bracket(acquire.fix1(Task_::narrowK), use.andThen(Task_::narrowK), release).kind1();
+    return Task.bracket(acquire.fix1(Task_::narrowK), use.andThen(Task_::narrowK), release);
   }
 }
 
@@ -145,6 +145,6 @@ interface TaskMonadDefer
     extends MonadDefer<Task_>, TaskMonadThrow, TaskDefer, TaskBracket {
   @Override
   default Higher1<Task_, Unit> sleep(Duration duration) {
-    return Task.sleep(duration).kind1();
+    return Task.sleep(duration);
   }
 }

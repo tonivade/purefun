@@ -60,7 +60,7 @@ public final class Cofree<F extends Kind, A> implements Higher2<Cofree_, F, A> {
   // XXX: remove eval applicative instance parameter, if instances project is added then cyclic dependency problem
   public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Higher1<F, B>, Eval<B>> mapper) {
     Eval<Higher1<F, B>> eval =
-        traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper).kind1())
+        traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper))
             .fix1(Eval_::narrowK);
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }

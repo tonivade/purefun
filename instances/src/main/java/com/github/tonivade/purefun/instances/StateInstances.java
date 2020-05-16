@@ -39,13 +39,13 @@ interface StateMonad<S> extends Monad<Higher1<State_, S>> {
 
   @Override
   default <T> Higher2<State_, S, T> pure(T value) {
-    return State.<S, T>pure(value).kind2();
+    return State.<S, T>pure(value);
   }
 
   @Override
   default <T, R> Higher2<State_, S, R> flatMap(Higher1<Higher1<State_, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<State_, S>, R>> map) {
-    return State_.narrowK(value).flatMap(map.andThen(State_::narrowK)).kind2();
+    return State_.narrowK(value).flatMap(map.andThen(State_::narrowK));
   }
 }
 
@@ -54,12 +54,12 @@ interface StateMonadState<S> extends MonadState<Higher1<State_, S>, S>, StateMon
 
   @Override
   default Higher2<State_, S, S> get() {
-    return State.<S>get().kind2();
+    return State.<S>get();
   }
 
   @Override
   default Higher2<State_, S, Unit> set(S state) {
-    return State.set(state).kind2();
+    return State.set(state);
   }
 }
 
@@ -69,11 +69,11 @@ final class ConsoleState implements Console<Higher1<State_, ImmutableList<String
 
   @Override
   public Higher2<State_, ImmutableList<String>, String> readln() {
-    return State.<ImmutableList<String>, String>state(list -> Tuple.of(list.tail(), list.head().get())).kind2();
+    return State.<ImmutableList<String>, String>state(list -> Tuple.of(list.tail(), list.head().get()));
   }
 
   @Override
   public Higher2<State_, ImmutableList<String>, Unit> println(String text) {
-    return State.<ImmutableList<String>, Unit>state(list -> Tuple.of(list.append(text), unit())).kind2();
+    return State.<ImmutableList<String>, Unit>state(list -> Tuple.of(list.append(text), unit()));
   }
 }

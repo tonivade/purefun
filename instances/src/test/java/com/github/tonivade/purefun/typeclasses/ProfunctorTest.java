@@ -23,7 +23,7 @@ public class ProfunctorTest {
   public void dimap() {
     Profunctor<Function1_> profunctor = Function1Instances.profunctor();
     
-    Higher2<Function1_, Integer, Double> result = profunctor.dimap(parseInt.kind2(), toString, toDouble);
+    Higher2<Function1_, Integer, Double> result = profunctor.dimap(parseInt, toString, toDouble);
     
     assertEquals(2.0, result.fix2(Function1_::<Integer, Double>narrowK).apply(2));
   }

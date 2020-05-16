@@ -48,7 +48,7 @@ public class FoldableLaws {
                                                         Operator2<A> combinator) {
     assertEquals(
         instance.foldM(IdInstances.monad(), value, initial, combinator.andThen(Id::of).andThen(Id::kind1)),
-        Id.of(instance.foldLeft(value, initial, combinator)).kind1(),
+        Id.of(instance.foldLeft(value, initial, combinator)),
         "foldM identity");
   }
 

@@ -47,13 +47,13 @@ interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli_
 
   @Override
   default <T> Higher3<Kleisli_, F, Z, T> pure(T value) {
-    return Kleisli.<F, Z, T>pure(monadF(), value).kind3();
+    return Kleisli.<F, Z, T>pure(monadF(), value);
   }
 
   @Override
   default <T, R> Higher3<Kleisli_, F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli_, F>, Z>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli_, F>, Z>, R>> map) {
-    return Kleisli_.narrowK(value).flatMap(map.andThen(Kleisli_::narrowK)).kind3();
+    return Kleisli_.narrowK(value).flatMap(map.andThen(Kleisli_::narrowK));
   }
 }
 
@@ -68,7 +68,7 @@ interface KleisliMonadError<F extends Kind, R, E> extends MonadError<Higher1<Hig
 
   @Override
   default <A> Higher3<Kleisli_, F, R, A> raiseError(E error) {
-    return Kleisli.<F, R, A>of(monadF(), reader -> monadF().raiseError(error)).kind3();
+    return Kleisli.<F, R, A>of(monadF(), reader -> monadF().raiseError(error));
   }
 
   @Override
@@ -78,7 +78,7 @@ interface KleisliMonadError<F extends Kind, R, E> extends MonadError<Higher1<Hig
     Kleisli<F, R, A> kleisli = value.fix1(Kleisli_::narrowK);
     return Kleisli.<F, R, A>of(monadF(),
         reader -> monadF().handleErrorWith(kleisli.run(reader),
-            error -> handler.apply(error).fix1(Kleisli_::narrowK).run(reader))).kind3();
+            error -> handler.apply(error).fix1(Kleisli_::narrowK).run(reader)));
   }
 }
 
@@ -90,7 +90,7 @@ interface KleisliMonadReader<F extends Kind, R> extends MonadReader<Higher1<High
 
   @Override
   default Higher3<Kleisli_, F, R, R> ask() {
-    return Kleisli.<F, R>env(monadF()).kind3();
+    return Kleisli.<F, R>env(monadF());
   }
 }
 
@@ -105,11 +105,11 @@ interface KleisliMonadState<F extends Kind, R, S> extends MonadState<Higher1<Hig
 
   @Override
   default Higher3<Kleisli_, F, R, Unit> set(S state) {
-    return Kleisli.<F, R, Unit>of(monadF(), reader -> monadF().set(state)).kind3();
+    return Kleisli.<F, R, Unit>of(monadF(), reader -> monadF().set(state));
   }
 
   @Override
   default Higher3<Kleisli_, F, R, S> get() {
-    return Kleisli.<F, R, S>of(monadF(), reader -> monadF().get()).kind3();
+    return Kleisli.<F, R, S>of(monadF(), reader -> monadF().get());
   }
 }
