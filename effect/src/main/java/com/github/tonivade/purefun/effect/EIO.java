@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -26,7 +27,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class EIO<E, T> {
+public final class EIO<E, T> implements Higher2<EIO_, E, T> {
 
   private final ZIO<Nothing, E, T> value;
 

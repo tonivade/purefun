@@ -11,12 +11,12 @@ import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Operator2;
 
 @HigherKind
-public interface Monoid<T> extends Semigroup<T> {
+public interface Monoid<T> extends Higher1<Monoid_, T>, Semigroup<T> {
 
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return MonoidInvariant.instance().imap(this.kind1(), map, comap).fix1(Monoid::<R>narrowK);
+    return MonoidInvariant.instance().imap(this, map, comap).fix1(Monoid_::<R>narrowK);
   }
 
   static Monoid<String> string() {
@@ -44,23 +44,23 @@ public interface Monoid<T> extends Semigroup<T> {
 }
 
 @Instance
-interface MonoidInvariant extends Invariant<Monoid.µ> {
+interface MonoidInvariant extends Invariant<Monoid_> {
 
   @Override
-  default <A, B> Higher1<Monoid.µ, B> imap(Higher1<Monoid.µ, A> value,
+  default <A, B> Higher1<Monoid_, B> imap(Higher1<Monoid_, A> value,
                                            Function1<A, B> map,
                                            Function1<B, A> comap) {
     return new Monoid<B>() {
 
       @Override
       public B zero() {
-        return map.apply(value.fix1(Monoid::narrowK).zero());
+        return map.apply(value.fix1(Monoid_::narrowK).zero());
       }
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix1(Monoid::narrowK).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.fix1(Monoid_::narrowK).combine(comap.apply(t1), comap.apply(t2)));
       }
-    }.kind1();
+    };
   }
 }

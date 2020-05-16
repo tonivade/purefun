@@ -20,54 +20,55 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.UIO_;
 
 import java.time.Duration;
 
 public interface UIOInstances {
 
-  static Functor<UIO.µ> functor() {
+  static Functor<UIO_> functor() {
     return UIOFunctor.instance();
   }
 
-  static Applicative<UIO.µ> applicative() {
+  static Applicative<UIO_> applicative() {
     return UIOApplicative.instance();
   }
 
-  static Monad<UIO.µ> monad() {
+  static Monad<UIO_> monad() {
     return UIOMonad.instance();
   }
 
-  static MonadError<UIO.µ, Throwable> monadError() {
+  static MonadError<UIO_, Throwable> monadError() {
     return UIOMonadError.instance();
   }
 
-  static MonadThrow<UIO.µ> monadThrow() {
+  static MonadThrow<UIO_> monadThrow() {
     return UIOMonadThrow.instance();
   }
 
-  static MonadDefer<UIO.µ> monadDefer() {
+  static MonadDefer<UIO_> monadDefer() {
     return UIOMonadDefer.instance();
   }
 
-  static <A> Reference<UIO.µ, A> ref(A value) {
+  static <A> Reference<UIO_, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
 }
 
 @Instance
-interface UIOFunctor extends Functor<UIO.µ> {
+interface UIOFunctor extends Functor<UIO_> {
 
   @Override
-  default <A, B> Higher1<UIO.µ, B> map(Higher1<UIO.µ, A> value, Function1<A, B> map) {
-    return UIO.narrowK(value).map(map).kind1();
+  default <A, B> Higher1<UIO_, B> map(Higher1<UIO_, A> value, Function1<A, B> map) {
+    return UIO_.narrowK(value).map(map);
   }
 }
 
-interface UIOPure extends Applicative<UIO.µ> {
+interface UIOPure extends Applicative<UIO_> {
 
   @Override
-  default <A> Higher1<UIO.µ, A> pure(A value) {
-    return UIO.pure(value).kind1();
+  default <A> Higher1<UIO_, A> pure(A value) {
+    return UIO.pure(value);
   }
 }
 
@@ -75,69 +76,69 @@ interface UIOPure extends Applicative<UIO.µ> {
 interface UIOApplicative extends UIOPure {
 
   @Override
-  default <A, B> Higher1<UIO.µ, B> ap(Higher1<UIO.µ, A> value, Higher1<UIO.µ, Function1<A, B>> apply) {
-    return UIO.narrowK(apply).flatMap(map -> UIO.narrowK(value).map(map)).kind1();
+  default <A, B> Higher1<UIO_, B> ap(Higher1<UIO_, A> value, Higher1<UIO_, Function1<A, B>> apply) {
+    return UIO_.narrowK(apply).flatMap(map -> UIO_.narrowK(value).map(map));
   }
 }
 
 @Instance
-interface UIOMonad extends UIOPure, Monad<UIO.µ> {
+interface UIOMonad extends UIOPure, Monad<UIO_> {
 
   @Override
-  default <A, B> Higher1<UIO.µ, B> flatMap(Higher1<UIO.µ, A> value, Function1<A, ? extends Higher1<UIO.µ, B>> map) {
-    return UIO.narrowK(value).flatMap(map.andThen(UIO::narrowK)).kind1();
+  default <A, B> Higher1<UIO_, B> flatMap(Higher1<UIO_, A> value, Function1<A, ? extends Higher1<UIO_, B>> map) {
+    return UIO_.narrowK(value).flatMap(map.andThen(UIO_::narrowK));
   }
 }
 
 @Instance
-interface UIOMonadError extends UIOMonad, MonadError<UIO.µ, Throwable> {
+interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
 
   @Override
-  default <A> Higher1<UIO.µ, A> raiseError(Throwable error) {
-    return UIO.<A>raiseError(error).kind1();
+  default <A> Higher1<UIO_, A> raiseError(Throwable error) {
+    return UIO.<A>raiseError(error);
   }
 
   @Override
-  default <A> Higher1<UIO.µ, A>
-          handleErrorWith(Higher1<UIO.µ, A> value,
-                          Function1<Throwable, ? extends Higher1<UIO.µ, A>> handler) {
-    Function1<Throwable, UIO<A>> mapError = handler.andThen(UIO::narrowK);
+  default <A> Higher1<UIO_, A>
+          handleErrorWith(Higher1<UIO_, A> value,
+                          Function1<Throwable, ? extends Higher1<UIO_, A>> handler) {
+    Function1<Throwable, UIO<A>> mapError = handler.andThen(UIO_::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
-    UIO<A> uio = UIO.narrowK(value);
-    return uio.redeemWith(mapError, map).kind1();
+    UIO<A> uio = UIO_.narrowK(value);
+    return uio.redeemWith(mapError, map);
   }
 }
 
 @Instance
 interface UIOMonadThrow
     extends UIOMonadError,
-            MonadThrow<UIO.µ> { }
+            MonadThrow<UIO_> { }
 
-interface UIODefer extends Defer<UIO.µ> {
+interface UIODefer extends Defer<UIO_> {
 
   @Override
-  default <A> Higher1<UIO.µ, A>
-          defer(Producer<Higher1<UIO.µ, A>> defer) {
-    return UIO.defer(() -> defer.map(UIO::narrowK).get()).kind1();
+  default <A> Higher1<UIO_, A>
+          defer(Producer<Higher1<UIO_, A>> defer) {
+    return UIO.defer(() -> defer.map(UIO_::narrowK).get());
   }
 }
 
-interface UIOBracket extends Bracket<UIO.µ> {
+interface UIOBracket extends Bracket<UIO_> {
 
   @Override
-  default <A, B> Higher1<UIO.µ, B>
-          bracket(Higher1<UIO.µ, A> acquire,
-                  Function1<A, ? extends Higher1<UIO.µ, B>> use,
+  default <A, B> Higher1<UIO_, B>
+          bracket(Higher1<UIO_, A> acquire,
+                  Function1<A, ? extends Higher1<UIO_, B>> use,
                   Consumer1<A> release) {
-    return UIO.bracket(acquire.fix1(UIO::narrowK), use.andThen(UIO::narrowK), release).kind1();
+    return UIO.bracket(acquire.fix1(UIO_::narrowK), use.andThen(UIO_::narrowK), release);
   }
 }
 
 @Instance
 interface UIOMonadDefer
-    extends MonadDefer<UIO.µ>, UIOMonadThrow, UIODefer, UIOBracket {
+    extends MonadDefer<UIO_>, UIOMonadThrow, UIODefer, UIOBracket {
   @Override
-  default Higher1<UIO.µ, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).kind1();
+  default Higher1<UIO_, Unit> sleep(Duration duration) {
+    return UIO.sleep(duration);
   }
 }

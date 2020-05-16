@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -21,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public interface EitherT<F extends Kind, L, R> {
+public interface EitherT<F extends Kind, L, R> extends Higher3<EitherT_, F, L, R> {
 
   Monad<F> monad();
   Higher1<F, Either<L, R>> value();

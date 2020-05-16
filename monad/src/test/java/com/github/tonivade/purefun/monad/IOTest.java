@@ -10,7 +10,9 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Par;
+import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
@@ -29,7 +31,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 
-import static com.github.tonivade.purefun.monad.IO.narrowK;
+import static com.github.tonivade.purefun.monad.IO_.narrowK;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -45,7 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class IOTest {
 
-  private final Console<IO.µ> console = IOInstances.console();
+  private final Console<IO_> console = IOInstances.console();
 
   @Test
   public void pure() {
@@ -79,7 +81,7 @@ public class IOTest {
 
     Try<ImmutableList<String>> result =
         program.foldMap(FutureInstances.monadDefer())
-            .fix1(Future::narrowK).await();
+            .fix1(Future_::narrowK).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
   }
@@ -90,7 +92,7 @@ public class IOTest {
 
     Par<ImmutableList<String>> result =
         program.foldMap(ParInstances.monadDefer())
-          .fix1(Par::narrowK);
+          .fix1(Par_::narrowK);
 
     assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
   }
@@ -112,7 +114,7 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(Future_::narrowK);
 
     assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
@@ -236,7 +238,7 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future_::narrowK);
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
@@ -272,9 +274,9 @@ public class IOTest {
   }
 
   private IO<ImmutableList<String>> currentThreadIO() {
-    Reference<IO.µ, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
+    Reference<IO_, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO::narrowK);
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO_::narrowK);
 
     return currentThread
         .andThen(currentThread

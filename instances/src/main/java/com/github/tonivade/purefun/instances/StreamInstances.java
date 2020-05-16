@@ -11,68 +11,69 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.Task;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.effect.EIO_;
+import com.github.tonivade.purefun.effect.Task_;
+import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.Stream;
+import com.github.tonivade.purefun.stream.Stream_;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.effect.ZIO;
+import com.github.tonivade.purefun.effect.ZIO_;
 
 public interface StreamInstances {
 
-  static StreamOf<IO.µ> ofIO() {
+  static StreamOf<IO_> ofIO() {
     return Stream.of(IOInstances.monadDefer());
   }
 
-  static <R> StreamOf<Higher1<Higher1<ZIO.µ, R>, Throwable>> ofZIO() {
+  static <R> StreamOf<Higher1<Higher1<ZIO_, R>, Throwable>> ofZIO() {
     return Stream.of(ZIOInstances.monadDefer());
   }
 
-  static Stream.StreamOf<UIO.µ> ofUIO() {
+  static Stream.StreamOf<UIO_> ofUIO() {
     return Stream.of(UIOInstances.monadDefer());
   }
 
-  static Stream.StreamOf<Higher1<EIO.µ, Throwable>> ofEIO() {
+  static Stream.StreamOf<Higher1<EIO_, Throwable>> ofEIO() {
     return Stream.of(EIOInstances.monadDefer());
   }
 
-  static Stream.StreamOf<Task.µ> ofTask() {
+  static Stream.StreamOf<Task_> ofTask() {
     return Stream.of(TaskInstances.monadDefer());
   }
 
-  static <F extends Kind> Functor<Higher1<Stream.µ, F>> functor() {
+  static <F extends Kind> Functor<Higher1<Stream_, F>> functor() {
     return StreamFunctor.instance();
   }
 
-  static <F extends Kind> Applicative<Higher1<Stream.µ, F>> applicative(StreamOf<F> streamOf) {
+  static <F extends Kind> Applicative<Higher1<Stream_, F>> applicative(StreamOf<F> streamOf) {
     return StreamApplicative.instance(checkNonNull(streamOf));
   }
 
-  static <F extends Kind> Monad<Higher1<Stream.µ, F>> monad(StreamOf<F> streamOf) {
+  static <F extends Kind> Monad<Higher1<Stream_, F>> monad(StreamOf<F> streamOf) {
     return StreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
 @Instance
-interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream.µ, F>> {
+interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream_, F>> {
 
   @Override
-  default <T, R> Higher2<Stream.µ, F, R> map(Higher1<Higher1<Stream.µ, F>, T> value, Function1<T, R> mapper) {
-    return Stream.narrowK(value).map(mapper).kind2();
+  default <T, R> Higher2<Stream_, F, R> map(Higher1<Higher1<Stream_, F>, T> value, Function1<T, R> mapper) {
+    return Stream_.narrowK(value).map(mapper);
   }
 }
 
-interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream.µ, F>> {
+interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream_, F>> {
 
   StreamOf<F> streamOf();
 
   @Override
-  default <T> Higher2<Stream.µ, F, T> pure(T value) {
-    return streamOf().pure(value).kind2();
+  default <T> Higher2<Stream_, F, T> pure(T value) {
+    return streamOf().pure(value);
   }
 }
 
@@ -83,21 +84,21 @@ interface StreamApplicative<F extends Kind> extends StreamPure<F> {
   }
 
   @Override
-  default <T, R> Higher2<Stream.µ, F, R> ap(Higher1<Higher1<Stream.µ, F>, T> value,
-      Higher1<Higher1<Stream.µ, F>, Function1<T, R>> apply) {
-    return Stream.narrowK(value).flatMap(t -> Stream.narrowK(apply).map(f -> f.apply(t))).kind2();
+  default <T, R> Higher2<Stream_, F, R> ap(Higher1<Higher1<Stream_, F>, T> value,
+      Higher1<Higher1<Stream_, F>, Function1<T, R>> apply) {
+    return Stream_.narrowK(value).flatMap(t -> Stream_.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
-interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream.µ, F>>, StreamPure<F> {
+interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream_, F>>, StreamPure<F> {
 
   static <F extends Kind> StreamMonad<F> instance(StreamOf<F> streamOf) {
     return () -> streamOf;
   }
 
   @Override
-  default <T, R> Higher2<Stream.µ, F, R> flatMap(Higher1<Higher1<Stream.µ, F>, T> value,
-      Function1<T, ? extends Higher1<Higher1<Stream.µ, F>, R>> mapper) {
-    return Stream.narrowK(value).flatMap(mapper.andThen(Stream::narrowK)).kind2();
+  default <T, R> Higher2<Stream_, F, R> flatMap(Higher1<Higher1<Stream_, F>, T> value,
+      Function1<T, ? extends Higher1<Higher1<Stream_, F>, R>> mapper) {
+    return Stream_.narrowK(value).flatMap(mapper.andThen(Stream_::narrowK));
   }
 }

@@ -6,13 +6,16 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Conested;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function1_;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.Function1Instances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Const;
+import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.Conested.conest;
@@ -25,31 +28,31 @@ public class ContravariantTest {
 
   @Test
   public void constInstance() {
-    Contravariant<Higher1<Const.µ, String>> instance = ConstInstances.contravariant();
+    Contravariant<Higher1<Const_, String>> instance = ConstInstances.contravariant();
 
-    verifyLaws(instance, Const.<String, String>of("string").kind2());
+    verifyLaws(instance, Const.<String, String>of("string"));
   }
 
   @Test
   public void function1Instance() {
-    Contravariant<Conested<Function1.µ, Double>> instance = Function1Instances.<Double>contravariant();
+    Contravariant<Conested<Function1_, Double>> instance = Function1Instances.<Double>contravariant();
 
     Function1<Integer, Double> int2double = Integer::doubleValue;
     Function1<String, Integer> string2Int = String::length;
 
-    Higher1<Conested<Function1.µ, Double>, Integer> conest = conest(int2double.kind2());
-    Higher1<Conested<Function1.µ, Double>, String> contramap = instance.contramap(conest, string2Int);
-    Function1<String, Double> result = counnest(contramap).fix1(Function1::<String, Double>narrowK);
+    Higher1<Conested<Function1_, Double>, Integer> conest = conest(int2double);
+    Higher1<Conested<Function1_, Double>, String> contramap = instance.contramap(conest, string2Int);
+    Function1<String, Double> result = counnest(contramap).fix1(Function1_::<String, Double>narrowK);
 
     assertEquals(4.0, result.apply("hola"));
   }
 
   @Test
   public void composedCovariantContravariant() {
-    Functor<Id.µ> functor = IdInstances.functor();
-    Contravariant<Higher1<Const.µ, String>> contravariant = ConstInstances.contravariant();
-    Contravariant<Nested<Id.µ, Higher1<Const.µ, String>>> instance = Contravariant.compose(functor, contravariant);
+    Functor<Id_> functor = IdInstances.functor();
+    Contravariant<Higher1<Const_, String>> contravariant = ConstInstances.contravariant();
+    Contravariant<Nested<Id_, Higher1<Const_, String>>> instance = Contravariant.compose(functor, contravariant);
 
-    verifyLaws(instance, nest(Id.of(Const.<String, String>of("string").kind1()).kind1()));
+    verifyLaws(instance, nest(Id.of(Const.<String, String>of("string"))));
   }
 }

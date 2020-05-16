@@ -7,10 +7,12 @@ package com.github.tonivade.purefun.free;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.Eval_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -19,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
-public final class Cofree<F extends Kind, A> {
+public final class Cofree<F extends Kind, A> implements Higher2<Cofree_, F, A> {
 
   private final Functor<F> functor;
   private final A head;
@@ -56,20 +58,20 @@ public final class Cofree<F extends Kind, A> {
   }
 
   // XXX: remove eval applicative instance parameter, if instances project is added then cyclic dependency problem
-  public <B> Eval<B> fold(Applicative<Eval.µ> applicative, Traverse<F> traverse, Function2<A, Higher1<F, B>, Eval<B>> mapper) {
+  public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Higher1<F, B>, Eval<B>> mapper) {
     Eval<Higher1<F, B>> eval =
-        traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper).kind1())
-            .fix1(Eval::narrowK);
+        traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper))
+            .fix1(Eval_::narrowK);
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 
-  public <B> Eval<B> reduce(Applicative<Eval.µ> applicative, Traverse<F> traverse,
+  public <B> Eval<B> reduce(Applicative<Eval_> applicative, Traverse<F> traverse,
                             Function1<A, B> initial, Operator2<B> combine) {
     return fold(applicative, traverse,
         (a, fb) -> Eval.later(() -> traverse.fold(Monoid.of(initial.apply(a), combine), fb)));
   }
 
-  public Eval<String> reduceToString(Applicative<Eval.µ> applicative, Traverse<F> traverse, Operator2<String> join) {
+  public Eval<String> reduceToString(Applicative<Eval_> applicative, Traverse<F> traverse, Operator2<String> join) {
     return reduce(applicative, traverse, String::valueOf, join);
   }
 

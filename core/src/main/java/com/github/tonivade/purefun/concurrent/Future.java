@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -62,7 +63,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
  */
 @Sealed
 @HigherKind
-public interface Future<T> {
+public interface Future<T> extends Higher1<Future_, T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 

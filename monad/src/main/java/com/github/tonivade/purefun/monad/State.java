@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
@@ -17,7 +18,7 @@ import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
 @FunctionalInterface
-public interface State<S, A> {
+public interface State<S, A> extends Higher2<State_, S, A> {
 
   Tuple2<S, A> run(S state);
 

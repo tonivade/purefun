@@ -22,7 +22,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
-public abstract class Free<F extends Kind, A> {
+public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
 
   private Free() {}
 
@@ -43,15 +43,15 @@ public abstract class Free<F extends Kind, A> {
     return pure.flatMap(ignore -> value.get());
   }
 
-  public static <F extends Kind> Monad<Higher1<Free.µ, F>> monadF() {
+  public static <F extends Kind> Monad<Higher1<Free_, F>> monadF() {
     return FreeMonad.instance();
   }
 
-  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<Free.µ, G>> functionKF(FunctionK<F, G> functionK) {
-    return new FunctionK<F, Higher1<Free.µ, G>>() {
+  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<Free_, G>> functionKF(FunctionK<F, G> functionK) {
+    return new FunctionK<F, Higher1<Free_, G>>() {
       @Override
-      public <T> Higher2<Free.µ, G, T> apply(Higher1<F, T> from) {
-        return liftF(functionK.apply(from)).kind2();
+      public <T> Higher2<Free_, G, T> apply(Higher1<F, T> from) {
+        return liftF(functionK.apply(from));
       }
     };
   }
@@ -184,17 +184,17 @@ public abstract class Free<F extends Kind, A> {
 }
 
 @Instance
-interface FreeMonad<F extends Kind> extends Monad<Higher1<Free.µ, F>> {
+interface FreeMonad<F extends Kind> extends Monad<Higher1<Free_, F>> {
 
   @Override
-  default <T> Higher2<Free.µ, F, T> pure(T value) {
-    return Free.<F, T>pure(value).kind2();
+  default <T> Higher2<Free_, F, T> pure(T value) {
+    return Free.<F, T>pure(value);
   }
 
   @Override
-  default <T, R> Higher2<Free.µ, F, R> flatMap(
-      Higher1<Higher1<Free.µ, F>, T> value, Function1<T, ? extends Higher1<Higher1<Free.µ, F>, R>> map) {
-    Free<F, T> free = value.fix1(Free::narrowK);
-    return free.flatMap(map.andThen(Free::narrowK)).kind2();
+  default <T, R> Higher2<Free_, F, R> flatMap(
+      Higher1<Higher1<Free_, F>, T> value, Function1<T, ? extends Higher1<Higher1<Free_, F>, R>> map) {
+    Free<F, T> free = value.fix1(Free_::narrowK);
+    return free.flatMap(map.andThen(Free_::narrowK));
   }
 }

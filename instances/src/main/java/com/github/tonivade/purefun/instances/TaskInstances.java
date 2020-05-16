@@ -20,55 +20,56 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.Task_;
 
 import java.time.Duration;
 
 public interface TaskInstances {
 
-  static Functor<Task.µ> functor() {
+  static Functor<Task_> functor() {
     return TaskFunctor.instance();
   }
 
-  static Applicative<Task.µ> applicative() {
+  static Applicative<Task_> applicative() {
     return TaskApplicative.instance();
   }
 
-  static Monad<Task.µ> monad() {
+  static Monad<Task_> monad() {
     return TaskMonad.instance();
   }
 
-  static MonadError<Task.µ, Throwable> monadError() {
+  static MonadError<Task_, Throwable> monadError() {
     return TaskMonadError.instance();
   }
 
-  static MonadThrow<Task.µ> monadThrow() {
+  static MonadThrow<Task_> monadThrow() {
     return TaskMonadThrow.instance();
   }
 
-  static MonadDefer<Task.µ> monadDefer() {
+  static MonadDefer<Task_> monadDefer() {
     return TaskMonadDefer.instance();
   }
 
-  static <A> Reference<Task.µ, A> ref(A value) {
+  static <A> Reference<Task_, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
 }
 
 @Instance
-interface TaskFunctor extends Functor<Task.µ> {
+interface TaskFunctor extends Functor<Task_> {
 
   @Override
-  default <A, B> Higher1<Task.µ, B>
-          map(Higher1<Task.µ, A> value, Function1<A, B> map) {
-    return Task.narrowK(value).map(map).kind1();
+  default <A, B> Higher1<Task_, B>
+          map(Higher1<Task_, A> value, Function1<A, B> map) {
+    return Task_.narrowK(value).map(map);
   }
 }
 
-interface TaskPure extends Applicative<Task.µ> {
+interface TaskPure extends Applicative<Task_> {
 
   @Override
-  default <A> Higher1<Task.µ, A> pure(A value) {
-    return Task.pure(value).kind1();
+  default <A> Higher1<Task_, A> pure(A value) {
+    return Task.pure(value);
   }
 }
 
@@ -76,74 +77,74 @@ interface TaskPure extends Applicative<Task.µ> {
 interface TaskApplicative extends TaskPure {
 
   @Override
-  default <A, B> Higher1<Task.µ, B>
-          ap(Higher1<Task.µ, A> value,
-             Higher1<Task.µ, Function1<A, B>> apply) {
-    return Task.narrowK(apply).flatMap(map -> Task.narrowK(value).map(map)).kind1();
+  default <A, B> Higher1<Task_, B>
+          ap(Higher1<Task_, A> value,
+             Higher1<Task_, Function1<A, B>> apply) {
+    return Task_.narrowK(apply).flatMap(map -> Task_.narrowK(value).map(map));
   }
 }
 
 @Instance
-interface TaskMonad extends TaskPure, Monad<Task.µ> {
+interface TaskMonad extends TaskPure, Monad<Task_> {
 
   @Override
-  default <A, B> Higher1<Task.µ, B>
-          flatMap(Higher1<Task.µ, A> value,
-                  Function1<A, ? extends Higher1<Task.µ, B>> map) {
-    return Task.narrowK(value).flatMap(map.andThen(Task::narrowK)).kind1();
+  default <A, B> Higher1<Task_, B>
+          flatMap(Higher1<Task_, A> value,
+                  Function1<A, ? extends Higher1<Task_, B>> map) {
+    return Task_.narrowK(value).flatMap(map.andThen(Task_::narrowK));
   }
 }
 
 @Instance
-interface TaskMonadError extends TaskMonad, MonadError<Task.µ, Throwable> {
+interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
 
   @Override
-  default <A> Higher1<Task.µ, A> raiseError(Throwable error) {
-    return Task.<A>raiseError(error).kind1();
+  default <A> Higher1<Task_, A> raiseError(Throwable error) {
+    return Task.<A>raiseError(error);
   }
 
   @Override
-  default <A> Higher1<Task.µ, A>
-          handleErrorWith(Higher1<Task.µ, A> value,
-                          Function1<Throwable, ? extends Higher1<Task.µ, A>> handler) {
+  default <A> Higher1<Task_, A>
+          handleErrorWith(Higher1<Task_, A> value,
+                          Function1<Throwable, ? extends Higher1<Task_, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<Throwable, Task<A>> mapError = handler.andThen(Task::narrowK);
+    Function1<Throwable, Task<A>> mapError = handler.andThen(Task_::narrowK);
     Function1<A, Task<A>> map = Task::pure;
-    Task<A> task = Task.narrowK(value);
-    return task.foldM(mapError, map).kind1();
+    Task<A> task = Task_.narrowK(value);
+    return task.foldM(mapError, map);
   }
 }
 
 @Instance
 interface TaskMonadThrow
     extends TaskMonadError,
-            MonadThrow<Task.µ> { }
+            MonadThrow<Task_> { }
 
-interface TaskDefer extends Defer<Task.µ> {
+interface TaskDefer extends Defer<Task_> {
 
   @Override
-  default <A> Higher1<Task.µ, A>
-          defer(Producer<Higher1<Task.µ, A>> defer) {
-    return Task.defer(() -> defer.map(Task::narrowK).get()).kind1();
+  default <A> Higher1<Task_, A>
+          defer(Producer<Higher1<Task_, A>> defer) {
+    return Task.defer(() -> defer.map(Task_::narrowK).get());
   }
 }
 
-interface TaskBracket extends Bracket<Task.µ> {
+interface TaskBracket extends Bracket<Task_> {
 
   @Override
-  default <A, B> Higher1<Task.µ, B>
-          bracket(Higher1<Task.µ, A> acquire,
-                  Function1<A, ? extends Higher1<Task.µ, B>> use,
+  default <A, B> Higher1<Task_, B>
+          bracket(Higher1<Task_, A> acquire,
+                  Function1<A, ? extends Higher1<Task_, B>> use,
                   Consumer1<A> release) {
-    return Task.bracket(acquire.fix1(Task::narrowK), use.andThen(Task::narrowK), release).kind1();
+    return Task.bracket(acquire.fix1(Task_::narrowK), use.andThen(Task_::narrowK), release);
   }
 }
 
 @Instance
 interface TaskMonadDefer
-    extends MonadDefer<Task.µ>, TaskMonadThrow, TaskDefer, TaskBracket {
+    extends MonadDefer<Task_>, TaskMonadThrow, TaskDefer, TaskBracket {
   @Override
-  default Higher1<Task.µ, Unit> sleep(Duration duration) {
-    return Task.sleep(duration).kind1();
+  default Higher1<Task_, Unit> sleep(Duration duration) {
+    return Task.sleep(duration);
   }
 }

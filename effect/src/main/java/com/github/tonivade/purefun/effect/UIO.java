@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class UIO<T> implements Recoverable {
+public final class UIO<T> implements Higher1<UIO_, T>, Recoverable {
 
   private final ZIO<Nothing, Nothing, T> value;
 

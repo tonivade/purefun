@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -25,7 +26,7 @@ import static com.github.tonivade.purefun.data.ImmutableList.empty;
 
 @HigherKind
 @FunctionalInterface
-public interface Par<T> {
+public interface Par<T> extends Higher1<Par_, T> {
 
   Future<T> apply(Executor executor);
 

@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 
 public class MonadTest {
 
@@ -49,16 +50,16 @@ public class MonadTest {
 
   @Test
   public void option() {
-    Monad<Option.µ> monad = OptionInstances.monad();
+    Monad<Option_> monad = OptionInstances.monad();
 
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();
 
-    assertAll(() -> assertEquals(some.map(toUpperCase), monad.map(some.kind1(), toUpperCase)),
-              () -> assertEquals(some.map(toUpperCase), monad.flatMap(some.kind1(), toUpperCase.liftOption().andThen(Option::kind1))),
+    assertAll(() -> assertEquals(some.map(toUpperCase), monad.map(some, toUpperCase)),
+              () -> assertEquals(some.map(toUpperCase), monad.flatMap(some, toUpperCase.liftOption().andThen(Option::kind1))),
               () -> assertEquals(some, monad.pure("asdf")),
-              () -> assertEquals(none, monad.map(none.kind1(), toUpperCase)),
-              () -> assertEquals(none, monad.flatMap(none.kind1(), toUpperCase.liftOption().andThen(Option::kind1))),
-              () -> assertEquals(some.map(toUpperCase), monad.ap(some.kind1(), Option.some(toUpperCase).kind1())));
+              () -> assertEquals(none, monad.map(none, toUpperCase)),
+              () -> assertEquals(none, monad.flatMap(none, toUpperCase.liftOption().andThen(Option::kind1))),
+              () -> assertEquals(some.map(toUpperCase), monad.ap(some, Option.some(toUpperCase))));
   }
 }

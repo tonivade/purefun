@@ -9,14 +9,14 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.laws.SelectiveLaws;
-import com.github.tonivade.purefun.type.Validation;
+import com.github.tonivade.purefun.type.Validation_;
 import org.junit.jupiter.api.Test;
 
 public class SelectiveTest {
 
   @Test
   public void laws() {
-    Selective<Higher1<Validation.µ, Sequence<String>>> selective =
+    Selective<Higher1<Validation_, Sequence<String>>> selective =
         ValidationInstances.selective(SequenceInstances.semigroup());
 
     SelectiveLaws.verifyLaws(selective);

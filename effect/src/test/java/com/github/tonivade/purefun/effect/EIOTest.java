@@ -9,7 +9,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -166,20 +166,20 @@ public class EIOTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
+    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Either.right(0), future.fix1(IO::narrowK).unsafeRunSync());
+    assertEquals(Either.right(0), future.fix1(IO_::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
+    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(IO::narrowK).unsafeRunSync().getLeft().getClass());
+    assertEquals(NumberFormatException.class, future.fix1(IO_::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   @Test

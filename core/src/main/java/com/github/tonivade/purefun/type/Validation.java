@@ -25,6 +25,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -44,7 +45,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <T> type of the value when valid
  */
 @HigherKind
-public interface Validation<E, T> {
+public interface Validation<E, T> extends Higher2<Validation_, E, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);

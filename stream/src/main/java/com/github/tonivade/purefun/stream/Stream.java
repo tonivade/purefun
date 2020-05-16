@@ -12,6 +12,7 @@ import java.util.Arrays;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -29,7 +30,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @Sealed
 @HigherKind
-public interface Stream<F extends Kind, T> {
+public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
 
   default Stream<F, T> head() {
     return take(1);

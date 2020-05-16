@@ -1,16 +1,12 @@
-/*
- * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
- * Distributed under the terms of the MIT License
- */
 package com.github.tonivade.purefun;
+
+import org.junit.jupiter.api.Test;
+
+import javax.tools.JavaFileObject;
 
 import static com.google.common.truth.Truth.assert_;
 import static com.google.testing.compile.JavaFileObjects.forSourceLines;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-
-import javax.tools.JavaFileObject;
-
-import org.junit.jupiter.api.Test;
 
 public class HigherKindProcessorTest {
 
@@ -21,29 +17,77 @@ public class HigherKindProcessorTest {
 
         "import com.github.tonivade.purefun.HigherKind;",
 
-        "@HigherKind(name = \"x\")",
+        "@HigherKind",
         "public class Foo<T> {",
         "}");
 
+    JavaFileObject generated = forSourceLines("test.Foo_",
+        "package test;",
+
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import javax.annotation.Generated;",
+
+        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "public final class Foo_ implements Kind {",
+
+        "public static <A> Foo<A> narrowK(Higher1<Foo_, A> hkt) {",
+        "return (Foo<A>) hkt;",
+        "}",
+
+        "}");
+
     assert_().about(javaSource()).that(file)
-      .processedWith(new HigherKindProcessor())
-      .compilesWithoutError();
+        .processedWith(new HigherKindProcessor())
+        .compilesWithoutError().and().generatesSources(generated);
   }
 
   @Test
-  public void compilesKind1WithBounds() {
+  public void compilesKind1Bounds() {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
 
         "@HigherKind",
-        "public class Foo<T extends Kind> {",
+        "public class Foo<T extends String> {",
+        "}");
+
+    JavaFileObject generated = forSourceLines("test.Foo_",
+        "package test;",
+
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import javax.annotation.Generated;",
+
+        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "public final class Foo_ implements Kind {",
+
+        "public static <A extends java.lang.String> Foo<A> narrowK(Higher1<Foo_, A> hkt) {",
+        "return (Foo<A>) hkt;",
+        "}",
+
         "}");
 
     assert_().about(javaSource()).that(file)
-      .processedWith(new HigherKindProcessor())
-      .compilesWithoutError();
+        .processedWith(new HigherKindProcessor())
+        .compilesWithoutError().and().generatesSources(generated);
+  }
+
+  @Test
+  public void compilesError() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "package test;",
+
+        "import com.github.tonivade.purefun.HigherKind;",
+
+        "@HigherKind",
+        "public class Foo {",
+        "}");
+
+    assert_().about(javaSource()).that(file)
+        .processedWith(new HigherKindProcessor())
+        .failsToCompile();
   }
 
   @Test
@@ -54,28 +98,33 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.HigherKind;",
 
         "@HigherKind",
-        "public class Foo<T, V> {",
+        "public class Foo<A, B> {",
         "}");
 
-    assert_().about(javaSource()).that(file)
-      .processedWith(new HigherKindProcessor())
-      .compilesWithoutError();
-  }
-
-  @Test
-  public void compilesKind2WithBounds() {
-    JavaFileObject file = forSourceLines("test.Foo",
+    JavaFileObject generated = forSourceLines("test.Foo_",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Higher2;",
+        "import javax.annotation.Generated;",
 
-        "@HigherKind",
-        "public class Foo<T extends Kind, V> {",
+        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "public final class Foo_ implements Kind {",
+
+        "public static <A, B> Foo<A, B> narrowK(Higher1<Higher1<Foo_, A>, B> hkt) {",
+        "return (Foo<A, B>) hkt;",
+        "}",
+
+        "public static <A, B> Foo<A, B> narrowK(Higher2<Foo_, A, B> hkt) {",
+        "return (Foo<A, B>) hkt;",
+        "}",
+
         "}");
 
     assert_().about(javaSource()).that(file)
-      .processedWith(new HigherKindProcessor())
-      .compilesWithoutError();
+        .processedWith(new HigherKindProcessor())
+        .compilesWithoutError().and().generatesSources(generated);
   }
 
   @Test
@@ -86,27 +135,37 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.HigherKind;",
 
         "@HigherKind",
-        "public class Foo<T, V, U> {",
+        "public class Foo<A, B, C> {",
         "}");
 
-    assert_().about(javaSource()).that(file)
-      .processedWith(new HigherKindProcessor())
-      .compilesWithoutError();
-  }
-
-  @Test
-  public void compilesKind3WithBounds() {
-    JavaFileObject file = forSourceLines("test.Foo",
+    JavaFileObject generated = forSourceLines("test.Foo_",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Higher2;",
+        "import com.github.tonivade.purefun.Higher3;",
+        "import javax.annotation.Generated;",
 
-        "@HigherKind",
-        "public class Foo<T extends Kind, V, U> {",
+        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "public final class Foo_ implements Kind {",
+
+        "public static <A, B, C> Foo<A, B, C> narrowK(Higher1<Higher1<Higher1<Foo_, A>, B>, C> hkt) {",
+        "return (Foo<A, B, C>) hkt;",
+        "}",
+
+        "public static <A, B, C> Foo<A, B, C> narrowK(Higher2<Higher1<Foo_, A>, B, C> hkt) {",
+        "return (Foo<A, B, C>) hkt;",
+        "}",
+
+        "public static <A, B, C> Foo<A, B, C> narrowK(Higher3<Foo_, A, B, C> hkt) {",
+        "return (Foo<A, B, C>) hkt;",
+        "}",
+
         "}");
 
     assert_().about(javaSource()).that(file)
-      .processedWith(new HigherKindProcessor())
-      .compilesWithoutError();
+        .processedWith(new HigherKindProcessor())
+        .compilesWithoutError().and().generatesSources(generated);
   }
 }

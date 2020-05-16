@@ -19,7 +19,7 @@ import java.time.Duration;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import org.junit.jupiter.api.Test;
@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
@@ -157,7 +158,7 @@ public class ZIOTest {
 
     ImmutableList<String> result =
         program.foldMap(FutureInstances.monadDefer())
-            .fix1(Future::narrowK)
+            .fix1(Future_::narrowK)
             .await().get();
 
     assertEquals(5, result.size());
@@ -175,20 +176,20 @@ public class ZIOTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("0").foldMap(nothing(), monadDefer);
+    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(nothing(), monadDefer);
 
-    assertEquals(Either.right(0), future.fix1(IO::narrowK).unsafeRunSync());
+    assertEquals(Either.right(0), future.fix1(IO_::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<IO.µ> monadDefer = IOInstances.monadDefer();
+    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO.µ, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
+    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(IO::narrowK).unsafeRunSync().getLeft().getClass());
+    assertEquals(NumberFormatException.class, future.fix1(IO_::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   @Test
@@ -254,7 +255,7 @@ public class ZIOTest {
   public void stackSafety() {
     UIO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future::narrowK);
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future_::narrowK);
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());

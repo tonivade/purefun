@@ -11,34 +11,35 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IO_;
 
 public class ReferenceTest {
 
   @Test
   public void get() {
-    Reference<IO.µ, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
+    Reference<IO_, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
 
-    IO<String> result = ref.get().fix1(IO::narrowK);
+    IO<String> result = ref.get().fix1(IO_::narrowK);
 
     assertEquals("Hello World!", result.unsafeRunSync());
   }
 
   @Test
   public void set() {
-    Reference<IO.µ, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
+    Reference<IO_, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
 
-    IO<Unit> set = ref.set("Something else").fix1(IO::narrowK);
-    IO<String> result = set.andThen(ref.get().fix1(IO::narrowK));
+    IO<Unit> set = ref.set("Something else").fix1(IO_::narrowK);
+    IO<String> result = set.andThen(ref.get().fix1(IO_::narrowK));
 
     assertEquals("Something else", result.unsafeRunSync());
   }
 
   @Test
   public void getAndSet() {
-    Reference<IO.µ, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
+    Reference<IO_, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
 
-    IO<String> result = ref.getAndSet("Something else").fix1(IO::narrowK);
-    IO<String> afterUpdate = result.andThen(ref.get().fix1(IO::narrowK));
+    IO<String> result = ref.getAndSet("Something else").fix1(IO_::narrowK);
+    IO<String> afterUpdate = result.andThen(ref.get().fix1(IO_::narrowK));
 
     assertEquals("Hello World!", result.unsafeRunSync());
     assertEquals("Something else", afterUpdate.unsafeRunSync());
@@ -46,10 +47,10 @@ public class ReferenceTest {
 
   @Test
   public void getAndUpdate() {
-    Reference<IO.µ, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
+    Reference<IO_, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
 
-    IO<String> result = ref.getAndUpdate(String::toUpperCase).fix1(IO::narrowK);
-    IO<String> afterUpdate = result.andThen(ref.get().fix1(IO::narrowK));
+    IO<String> result = ref.getAndUpdate(String::toUpperCase).fix1(IO_::narrowK);
+    IO<String> afterUpdate = result.andThen(ref.get().fix1(IO_::narrowK));
 
     assertEquals("Hello World!", result.unsafeRunSync());
     assertEquals("HELLO WORLD!", afterUpdate.unsafeRunSync());
@@ -57,9 +58,9 @@ public class ReferenceTest {
 
   @Test
   public void updateAndGet() {
-    Reference<IO.µ, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
+    Reference<IO_, String> ref = Reference.of(IOInstances.monadDefer(), "Hello World!");
 
-    IO<String> result = ref.updateAndGet(String::toUpperCase).fix1(IO::narrowK);
+    IO<String> result = ref.updateAndGet(String::toUpperCase).fix1(IO_::narrowK);
 
     assertEquals("HELLO WORLD!", result.unsafeRunSync());
   }

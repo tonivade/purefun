@@ -6,13 +6,17 @@ package com.github.tonivade.purefun.free;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Producer_;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.ProducerInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +32,7 @@ class EitherKTest {
 
   @Test
   public void left() {
-    EitherK<Option.µ, Try.µ, String> left = EitherK.left(Option.some("hello").kind1());
+    EitherK<Option_, Try_, String> left = EitherK.left(Option.some("hello"));
 
     assertAll(
         () -> assertTrue(left.isLeft()),
@@ -40,7 +44,7 @@ class EitherKTest {
 
   @Test
   public void right() {
-    EitherK<Option.µ, Try.µ, String> right = EitherK.right(Try.success("hello").kind1());
+    EitherK<Option_, Try_, String> right = EitherK.right(Try.success("hello"));
 
     assertAll(
         () -> assertFalse(right.isLeft()),
@@ -52,8 +56,8 @@ class EitherKTest {
 
   @Test
   public void extract() {
-    EitherK<Id.µ, Producer.µ, String> left = EitherK.left(Id.of("hola").kind1());
-    EitherK<Id.µ, Producer.µ, String> right = EitherK.right(Producer.cons("hola").kind1());
+    EitherK<Id_, Producer_, String> left = EitherK.left(Id.of("hola"));
+    EitherK<Id_, Producer_, String> right = EitherK.right(Producer.cons("hola"));
 
     assertAll(
         () -> assertEquals("hola", left.extract(IdInstances.comonad(), ProducerInstances.comonad())),
@@ -63,44 +67,44 @@ class EitherKTest {
 
   @Test
   public void coflatMap() {
-    EitherK<Id.µ, Producer.µ, String> left = EitherK.left(Id.of("hola").kind1());
+    EitherK<Id_, Producer_, String> left = EitherK.left(Id.of("hola"));
 
     assertAll(
         () -> assertEquals(
-                EitherK.left(Id.of("left").kind1()),
+                EitherK.left(Id.of("left")),
                 left.coflatMap(IdInstances.comonad(), ProducerInstances.comonad(), eitherK -> "left")),
         () -> assertEquals(
-                EitherK.right(Id.of("right").kind1()),
+                EitherK.right(Id.of("right")),
                 left.swap().coflatMap(ProducerInstances.comonad(), IdInstances.comonad(), eitherK -> "right"))
     );
   }
 
   @Test
   public void mapLeft() {
-    EitherK<Option.µ, Try.µ, String> eitherK = EitherK.left(Option.some("hello").kind1());
+    EitherK<Option_, Try_, String> eitherK = EitherK.left(Option.some("hello"));
 
-    EitherK<Option.µ, Try.µ, Integer> result = eitherK.map(OptionInstances.functor(), TryInstances.functor(), String::length);
+    EitherK<Option_, Try_, Integer> result = eitherK.map(OptionInstances.functor(), TryInstances.functor(), String::length);
 
     assertEquals(Option.some(5), result.getLeft());
   }
 
   @Test
   public void mapRight() {
-    EitherK<Option.µ, Try.µ, String> eitherK = EitherK.right(Try.success("hello").kind1());
+    EitherK<Option_, Try_, String> eitherK = EitherK.right(Try.success("hello"));
 
-    EitherK<Option.µ, Try.µ, Integer> result = eitherK.map(OptionInstances.functor(), TryInstances.functor(), String::length);
+    EitherK<Option_, Try_, Integer> result = eitherK.map(OptionInstances.functor(), TryInstances.functor(), String::length);
 
     assertEquals(Try.success(5), result.getRight());
   }
 
   @Test
   public void mapK() {
-    EitherK<Option.µ, Try.µ, String> eitherK = EitherK.right(Try.success("hello").kind1());
+    EitherK<Option_, Try_, String> eitherK = EitherK.right(Try.success("hello"));
 
-    EitherK<Option.µ, Option.µ, String> result = eitherK.mapK(new FunctionK<Try.µ, Option.µ>() {
+    EitherK<Option_, Option_, String> result = eitherK.mapK(new FunctionK<Try_, Option_>() {
       @Override
-      public <T> Higher1<Option.µ, T> apply(Higher1<Try.µ, T> from) {
-        return from.fix1(Try::narrowK).toOption().kind1();
+      public <T> Higher1<Option_, T> apply(Higher1<Try_, T> from) {
+        return from.fix1(Try_::narrowK).toOption();
       }
     });
 
@@ -109,12 +113,12 @@ class EitherKTest {
 
   @Test
   public void mapLeftK() {
-    EitherK<Option.µ, Try.µ, String> eitherK = EitherK.left(Option.some("hello").kind1());
+    EitherK<Option_, Try_, String> eitherK = EitherK.left(Option.some("hello"));
 
-    EitherK<Try.µ, Try.µ, String> result = eitherK.mapLeftK(new FunctionK<Option.µ, Try.µ>() {
+    EitherK<Try_, Try_, String> result = eitherK.mapLeftK(new FunctionK<Option_, Try_>() {
       @Override
-      public <T> Higher1<Try.µ, T> apply(Higher1<Option.µ, T> from) {
-        return from.fix1(Option::narrowK).fold(Try::<T>failure, Try::success).kind1();
+      public <T> Higher1<Try_, T> apply(Higher1<Option_, T> from) {
+        return from.fix1(Option_::narrowK).fold(Try::<T>failure, Try::success);
       }
     });
 
@@ -123,8 +127,8 @@ class EitherKTest {
 
   @Test
   public void swap() {
-    EitherK<Option.µ, Try.µ, String> original = EitherK.left(Option.some("hello").kind1());
-    EitherK<Try.µ, Option.µ, String> expected = EitherK.right(Option.some("hello").kind1());
+    EitherK<Option_, Try_, String> original = EitherK.left(Option.some("hello"));
+    EitherK<Try_, Option_, String> expected = EitherK.right(Option.some("hello"));
 
     assertAll(
         () -> assertEquals(expected, original.swap()),

@@ -8,12 +8,13 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public interface Kleisli<F extends Kind, Z, A> {
+public interface Kleisli<F extends Kind, Z, A> extends Higher3<Kleisli_, F, Z, A> {
 
   Monad<F> monad();
   Higher1<F, A> run(Z value);
