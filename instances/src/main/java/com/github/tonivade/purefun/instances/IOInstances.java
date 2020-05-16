@@ -88,7 +88,7 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
 
   @Override
   default <A> Higher1<IO_, A> raiseError(Throwable error) {
-    return IO.<A>raiseError(error);
+    return IO.raiseError(error);
   }
 
   @Override

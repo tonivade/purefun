@@ -67,75 +67,75 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void generate1(String packageName, String className, String kindName, PrintWriter writer,
       TypeParameterElement type1) {
     writer.println("package " + packageName + ";");
-
+    writer.println();
     writer.println("import com.github.tonivade.purefun.Kind;");
     writer.println("import com.github.tonivade.purefun.Higher1;");
     writer.println("import javax.annotation.Generated;");
-
+    writer.println();
     writer.println("@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")");
     writer.println("public final class " + kindName + " implements Kind {");
-
+    writer.println();
     String aType = type("A", type1);
     writer.println("public static <" + aType + "> " + className + "<A> narrowK(Higher1<" + kindName + ", A> hkt) {");
     writer.println("return (" + className + "<A>) hkt;");
     writer.println("}");
-
+    writer.println();
     writer.println("}");
   }
 
   private void generate2(String packageName, String className, String kindName, PrintWriter writer, 
       TypeParameterElement type1, TypeParameterElement type2) {
     writer.println("package " + packageName + ";");
-
+    writer.println();
     writer.println("import com.github.tonivade.purefun.Kind;");
     writer.println("import com.github.tonivade.purefun.Higher1;");
     writer.println("import com.github.tonivade.purefun.Higher2;");
     writer.println("import javax.annotation.Generated;");
-
+    writer.println();
     writer.println("@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")");
     writer.println("public final class " + kindName + " implements Kind {");
-
+    writer.println();
     String aType = type("A", type1);
     String bType = type("B", type2);
     writer.println("public static <" + aType + ", " + bType + "> " + className + "<A, B> narrowK(Higher1<Higher1<" + kindName + ", A>, B> hkt) {");
     writer.println("return (" + className + "<A, B>) hkt;");
     writer.println("}");
-
+    writer.println();
     writer.println("public static <" + aType + ", " + bType + "> " + className + "<A, B> narrowK(Higher2<" + kindName + ", A, B> hkt) {");
     writer.println("return (" + className + "<A, B>) hkt;");
     writer.println("}");
-
+    writer.println();
     writer.println("}");
   }
 
   private void generate3(String packageName, String className, String kindName, PrintWriter writer, 
       TypeParameterElement type1, TypeParameterElement type2, TypeParameterElement type3) {
     writer.println("package " + packageName + ";");
-
+    writer.println();
     writer.println("import com.github.tonivade.purefun.Kind;");
     writer.println("import com.github.tonivade.purefun.Higher1;");
     writer.println("import com.github.tonivade.purefun.Higher2;");
     writer.println("import com.github.tonivade.purefun.Higher3;");
     writer.println("import javax.annotation.Generated;");
-
+    writer.println();
     writer.println("@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")");
     writer.println("public final class " + kindName + " implements Kind {");
-
+    writer.println();
     String aType = type("A", type1);
     String bType = type("B", type2);
     String cType = type("C", type3);
     writer.println("public static <" + aType + ", " + bType + ", " + cType + "> " + className + "<A, B, C> narrowK(Higher1<Higher1<Higher1<" + kindName + ", A>, B>, C> hkt) {");
     writer.println("return (" + className + "<A, B, C>) hkt;");
     writer.println("}");
-
+    writer.println();
     writer.println("public static <" + aType + ", " + bType + ", " + cType + "> " + className + "<A, B, C> narrowK(Higher2<Higher1<" + kindName + ", A>, B, C> hkt) {");
     writer.println("return (" + className + "<A, B, C>) hkt;");
     writer.println("}");
-
+    writer.println();
     writer.println("public static <" + aType + ", " + bType + ", " + cType + "> " + className + "<A, B, C> narrowK(Higher3<" + kindName + ", A, B, C> hkt) {");
     writer.println("return (" + className + "<A, B, C>) hkt;");
     writer.println("}");
-
+    writer.println();
     writer.println("}");
   }
 
