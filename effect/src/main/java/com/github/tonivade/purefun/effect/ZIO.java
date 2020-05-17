@@ -621,6 +621,7 @@ public interface ZIO<R, E, A> extends Higher3<ZIO_, R, E, A> {
 interface ZIOModule {
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
 
+  @SuppressWarnings("unchecked")
   static <R, E, A, F, B> ZIO<R, E, A> collapse(ZIO<R, E, A> self) {
     ZIO<R, E, A> current = self;
     while (true) {

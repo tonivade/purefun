@@ -4,6 +4,7 @@ buildscript {
   ext {
     nexusPlugin = '2.3.1'
     sonarPlugin = '2.8'
+    aptPlugin = '3.22.0'
   }
 
   repositories {
@@ -17,6 +18,7 @@ buildscript {
   dependencies {
     classpath "com.bmuschko:gradle-nexus-plugin:${nexusPlugin}"
     classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${sonarPlugin}"
+    classpath "com.diffplug.gradle:goomph:${aptPlugin}"
   }
 }
 
@@ -25,9 +27,9 @@ apply plugin: 'org.sonarqube'
 allprojects {
   apply plugin: 'java'
   apply plugin: 'java-library'
-  apply plugin: 'eclipse'
   apply plugin: 'jacoco'
   apply plugin: 'com.bmuschko.nexus'
+  apply plugin: 'com.diffplug.eclipse.apt'
 
   group = 'com.github.tonivade'
   version = '1.9-SNAPSHOT'
@@ -35,8 +37,8 @@ allprojects {
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
 
-  sourceSets.main.java.srcDirs += "$buildDir/generated/sources/annotationProcessor/java/main"
-  sourceSets.test.java.srcDirs += "$buildDir/generated/sources/annotationProcessor/java/test"
+//  sourceSets.main.java.srcDirs += "$buildDir/generated/sources/annotationProcessor/java/main"
+//  sourceSets.test.java.srcDirs += "$buildDir/generated/sources/annotationProcessor/java/test"
 
   repositories {
     mavenLocal()

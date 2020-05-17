@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
+@Deprecated
 public @interface Instance {
 
 }
