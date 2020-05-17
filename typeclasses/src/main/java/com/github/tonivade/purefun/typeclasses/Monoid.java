@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Operator2;
 
 @HigherKind
@@ -16,7 +15,7 @@ public interface Monoid<T> extends Higher1<Monoid_, T>, Semigroup<T> {
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return MonoidInvariant.instance().imap(this, map, comap).fix1(Monoid_::<R>narrowK);
+    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix1(Monoid_::<R>narrowK);
   }
 
   static Monoid<String> string() {
@@ -43,8 +42,9 @@ public interface Monoid<T> extends Higher1<Monoid_, T>, Semigroup<T> {
   }
 }
 
-@Instance
 interface MonoidInvariant extends Invariant<Monoid_> {
+  
+  MonoidInvariant INSTANCE = new MonoidInvariant() { };
 
   @Override
   default <A, B> Higher1<Monoid_, B> imap(Higher1<Monoid_, A> value,

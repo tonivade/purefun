@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -43,8 +42,9 @@ public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
     return pure.flatMap(ignore -> value.get());
   }
 
+  @SuppressWarnings("unchecked")
   public static <F extends Kind> Monad<Higher1<Free_, F>> monadF() {
-    return FreeMonad.instance();
+    return FreeMonad.INSTANCE;
   }
 
   public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<Free_, G>> functionKF(FunctionK<F, G> functionK) {
@@ -149,6 +149,7 @@ public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
       return new FlatMapped<>(value, free -> new FlatMapped<>(next.apply(free), map));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Either<Higher1<F, Free<F, B>>, B> resume(Functor<F> functor) {
       if (value instanceof Free.Suspend) {
@@ -163,6 +164,7 @@ public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
       return flatMapped.value.flatMap(x -> flatMapped.next.apply(x).flatMap(next)).resume(functor);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Free<F, B> step() {
       if (value instanceof FlatMapped) {
@@ -183,8 +185,10 @@ public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
   }
 }
 
-@Instance
 interface FreeMonad<F extends Kind> extends Monad<Higher1<Free_, F>> {
+  
+  @SuppressWarnings("rawtypes")
+  FreeMonad INSTANCE = new FreeMonad() {};
 
   @Override
   default <T> Higher2<Free_, F, T> pure(T value) {

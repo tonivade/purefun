@@ -107,7 +107,8 @@ public interface Par<T> extends Higher1<Par_, T> {
   }
 
   static <A> Par<Sequence<A>> traverse(Sequence<Par<A>> sequence) {
-    return sequence.foldLeft(success(empty()), (parA, parB) -> map2(parA, parB, Sequence::append));
+    return sequence.foldLeft(success(empty()), 
+        (Par<Sequence<A>> parA, Par<A> parB) -> map2(parA, parB, Sequence::append));
   }
 
   static Par<Unit> sequence(Sequence<Par<?>> sequence) {

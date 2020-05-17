@@ -62,7 +62,8 @@ public interface State<S, A> extends Higher2<State_, S, A> {
   }
 
   static <S, A> State<S, Sequence<A>> compose(Sequence<State<S, A>> states) {
-    return states.foldLeft(pure(empty()), (sa, sb) -> map2(sa, sb, Sequence::append));
+    return states.foldLeft(pure(empty()), 
+        (State<S, Sequence<A>>sa, State<S, A> sb) -> map2(sa, sb, Sequence::append));
   }
 
   static <S, A, B, C> State<S, C> map2(State<S, A> sa, State<S, B> sb, Function2<A, B, C> mapper) {

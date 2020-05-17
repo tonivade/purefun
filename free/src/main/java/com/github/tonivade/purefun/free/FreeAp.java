@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -130,8 +129,9 @@ public abstract class FreeAp<F extends Kind, A> implements Higher2<FreeAp_, F, A
     };
   }
 
+  @SuppressWarnings("unchecked")
   public static <F extends Kind> Applicative<Higher1<FreeAp_, F>> applicativeF() {
-    return FreeApplicative.instance();
+    return FreeApplicative.INSTANCE;
   }
 
   private static <F extends Kind, G extends Kind, A> Higher1<G, A> foldArg(
@@ -216,8 +216,10 @@ public abstract class FreeAp<F extends Kind, A> implements Higher2<FreeAp_, F, A
   }
 }
 
-@Instance
 interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp_, F>> {
+  
+  @SuppressWarnings("rawtypes")
+  FreeApplicative INSTANCE = new FreeApplicative() {};
 
   @Override
   default <T> Higher2<FreeAp_, F, T> pure(T value) {
