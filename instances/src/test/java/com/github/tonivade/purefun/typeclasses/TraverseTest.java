@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,7 +15,6 @@ import com.github.tonivade.purefun.type.Const_;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.EitherInstances;

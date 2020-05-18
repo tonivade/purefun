@@ -4,14 +4,15 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Conested.conest;
-import static com.github.tonivade.purefun.Conested.counnest;
-import com.github.tonivade.purefun.Conested;
+import static com.github.tonivade.purefun.typeclasses.Conested.conest;
+import static com.github.tonivade.purefun.typeclasses.Conested.counnest;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function1_;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Conested;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;

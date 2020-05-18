@@ -11,11 +11,8 @@ import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface Applicative<F extends Kind> extends Functor<F> {
 
   <T> Higher1<F, T> pure(T value);

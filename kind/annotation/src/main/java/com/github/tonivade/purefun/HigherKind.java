@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface HigherKind {
 
-  String name() default "µ";
+  String value() default "_";
 }

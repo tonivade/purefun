@@ -9,9 +9,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface Comonad<F extends Kind> extends Functor<F> {
 
   <A, B> Higher1<F, B> coflatMap(Higher1<F, A> value, Function1<Higher1<F, A>, B> map);

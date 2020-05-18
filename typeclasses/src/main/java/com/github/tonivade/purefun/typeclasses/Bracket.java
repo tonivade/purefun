@@ -8,9 +8,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface Bracket<F extends Kind> {
 
   <A, B> Higher1<F, B> bracket(Higher1<F, A> acquire, Function1<A, ? extends Higher1<F, B>> use, Consumer1<A> release);

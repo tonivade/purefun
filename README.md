@@ -38,23 +38,24 @@ like this `Monad<F extends Kind>`. `Kind` is a simple mark interface. Then we ca
 codification like this:
 
 ```java
-interface SomeType<T> extends Higher1<SomeType.µ, T> {
+interface SomeType<T> extends Higher1<SomeType_, T> { }
 
-  interface µ extends Kind {}
+// Boilerplate
+final class SomeType_ implements Kind {
 
-  default Higher1<SomeType.µ, T> kind1() {
-    return this;
+  static Higher1<SomeType_, T> kind(SomeType<T> value) {
+    return value;
   }
 
   // this is a safe cast
-  static SomeType<T> narrowK(Higher1<SomeType.µ, T> hkt) {
+  static SomeType<T> narrowK(Higher1<SomeType_, T> hkt) {
     return (SomeType<T>) hkt;
   }
 }
 ```
 
-It can be triky but, but in the end is easy to work with. By the way, I tried to hide this details to the user of the library.
-Except with type classes because is the only way to implement them in Java.
+It can be triky but, in the end is easy to work with. By the way, I tried to hide this details to the user of the library.
+Except with type classes because is the only way to implement them correctly.
 
 So, there are interfaces to encode kinds of 1, 2 and 3 types. It can be defined types for 4, 5 or more types, but it wasn't
 necessary to implement the library.
@@ -66,17 +67,10 @@ all this boilerplate code:
 
 ```java
 @HigherKind
-interface SomeType<T> {
-}
+interface SomeType<T> implements Higher1<SomeType_, T> { }
 ```
 
 With this annotation, all the above code, is generated automatically.
-
-## Intellij plugin
-
-After the inclusion of annotation processing inside the project, part of the code didn't compile in any IDE, so
-I had to find a solution for that, so I implemented a plugin for Intellij. Mainly, this plugin is only useful for the
-development of the library. To use purefun as dependency is not necessary the annotation processing and the plugin.
 
 ## Data types
 
@@ -268,13 +262,13 @@ unstable implementation and I have implemented because it can be implemented. In
 in this [work](https://github.com/xuwei-k/free-monad-java).
 
 ```java
-Free<IOProgram.µ, Unit> echo =
+Free<IOProgram_, Unit> echo =
   IOProgram.write("what's your name?")
     .andThen(IOProgram.read())
     .flatMap(text -> IOProgram.write("Hello " + text))
     .andThen(IOProgram.write("end"));
 
-Higher<IO.µ, Unit> foldMap = echo.foldMap(new IOMonad(), new IOProgramInterperter());
+Higher<IO_, Unit> foldMap = echo.foldMap(new IOMonad(), new IOProgramInterperter());
 
 IO.narrowK(foldMap).unsafeRunSync();
 ```
@@ -284,7 +278,7 @@ IO.narrowK(foldMap).unsafeRunSync();
 Similar to Free monad, but allows static analysis without to run the program.
 
 ```java
-FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
+FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
     applicative.map5(
         DSL.readInt(2),
         DSL.readBoolean(false),
@@ -294,7 +288,7 @@ FreeAp<DSL.µ, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         Tuple::of
     ).fix1(FreeAp::narrowK);
 
-Higher1<Id.µ, Tuple5<Integer, Boolean, Double, String, Unit>> map =
+Higher1<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
     tuple.foldMap(idTransform(), IdInstances.applicative());
 
 assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id::narrowK));
@@ -307,9 +301,9 @@ assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id::
 Monad Transformer for `Option` type
 
 ```java
-OptionT<IO.µ, String> some = OptionT.some(IO.monad(), "abc");
+OptionT<IO_, String> some = OptionT.some(IO.monad(), "abc");
 
-OptionT<IO.µ, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
+OptionT<IO_, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
 
 assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
 ```
@@ -319,9 +313,9 @@ assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
 Monad Transformer for `Either` type
 
 ```java
-EitherT<IO.µ, Nothing, String> right = EitherT.right(IO.monad(), "abc");
+EitherT<IO_, Nothing, String> right = EitherT.right(IO.monad(), "abc");
 
-EitherT<IO.µ, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
+EitherT<IO_, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
 
 assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
 ```
@@ -331,7 +325,7 @@ assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
 Monad Transformer for `State` type
 
 ```java
-StateT<IO.µ, ImmutableList<String>, Unit> state =
+StateT<IO_, ImmutableList<String>, Unit> state =
   pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
 IO<Tuple2<ImmutableList<String>, Unit>> result = IO.narrowK(state.run(ImmutableList.empty()));
@@ -344,8 +338,8 @@ assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
 Monad Transformer for `Writer` type
 
 ```java
-WriterT<Id.µ, Sequence<String>, Integer> writer =
-    WriterT.<Id.µ, Sequence<String>, Integer>pure(monoid, monad, 5)
+WriterT<Id_, Sequence<String>, Integer> writer =
+    WriterT.<Id_, Sequence<String>, Integer>pure(monoid, monad, 5)
     .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("add 5"), value + 5)))
     .flatMap(value -> lift(monoid, monad, Tuple.of(listOf("plus 2"), value * 2)));
 
@@ -358,10 +352,10 @@ assertAll(() -> assertEquals(Id.of(Integer.valueOf(20)), writer.getValue()),
 Also I implemented the Kleisli composition for functions that returns monadic values like `Option`, `Try` or `Either`.
 
 ```java
-Kleisli<Try.µ, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
-Kleisli<Try.µ, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
+Kleisli<Try_, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
+Kleisli<Try_, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
 
-Higher1<Try.µ, Double> result = toInt.compose(half).run("123");
+Higher1<Try_, Double> result = toInt.compose(half).run("123");
 
 assertEquals(Try.success(61.5), result);
 ```
@@ -371,7 +365,7 @@ assertEquals(Try.success(61.5), result);
 An experimental version of a `Stream` like scala fs2 project.
 
 ```java
-StreamOf<IO.µ> streamOfIO = Stream.ofIO();
+StreamOf<IO_> streamOfIO = Stream.ofIO();
 
 IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
   .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))

@@ -4,16 +4,14 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Function1.identity;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.type.Either;
 
-import static com.github.tonivade.purefun.Function1.identity;
-
-@TypeClass
 public interface Monad<F extends Kind> extends Selective<F> {
 
   <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);

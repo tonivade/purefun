@@ -10,13 +10,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.Operator2;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 
-@TypeClass
 public interface Foldable<F extends Kind> {
 
   <A, B> B foldLeft(Higher1<F, A> value, B initial, Function2<B, A, B> mapper);

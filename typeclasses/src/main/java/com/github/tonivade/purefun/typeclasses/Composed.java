@@ -4,14 +4,13 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Nested.nest;
-import static com.github.tonivade.purefun.Nested.unnest;
+import static com.github.tonivade.purefun.typeclasses.Nested.nest;
+import static com.github.tonivade.purefun.typeclasses.Nested.unnest;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.type.Eval;
 
 interface ComposedFunctor<F extends Kind, G extends Kind> extends Functor<Nested<F, G>> {

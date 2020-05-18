@@ -4,18 +4,16 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Unit.unit;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
-import static com.github.tonivade.purefun.Unit.unit;
-
-@TypeClass
 public interface MonadWriter<F extends Kind, W> extends Monad<F> {
 
   <A> Higher1<F, A> writer(Tuple2<W, A> value);

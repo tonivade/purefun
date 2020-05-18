@@ -4,11 +4,9 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Conested;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function1_;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Nested;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.Function1Instances;
 import com.github.tonivade.purefun.instances.IdInstances;
@@ -18,10 +16,10 @@ import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Id_;
 import org.junit.jupiter.api.Test;
 
-import static com.github.tonivade.purefun.Conested.conest;
-import static com.github.tonivade.purefun.Conested.counnest;
-import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.laws.ContravariatLaws.verifyLaws;
+import static com.github.tonivade.purefun.typeclasses.Conested.conest;
+import static com.github.tonivade.purefun.typeclasses.Conested.counnest;
+import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ContravariantTest {

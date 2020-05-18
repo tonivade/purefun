@@ -7,10 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nested;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface Contravariant<F extends Kind> extends Invariant<F> {
 
   <A, B> Higher1<F, B> contramap(Higher1<F, A> value, Function1<B, A> map);

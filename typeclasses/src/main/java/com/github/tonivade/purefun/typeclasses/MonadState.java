@@ -4,17 +4,15 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
-@TypeClass
 public interface MonadState<F extends Kind, S> extends Monad<F> {
 
   Higher1<F, S> get();

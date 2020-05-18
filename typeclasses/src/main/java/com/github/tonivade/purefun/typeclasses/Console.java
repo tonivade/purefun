@@ -6,10 +6,8 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
-@TypeClass
 public interface Console<F extends Kind> {
 
   Higher1<F, String> readln();

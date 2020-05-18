@@ -9,9 +9,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface Profunctor<F extends Kind> {
 
   <A, B, C, D> Higher2<F, C, D> dimap(Higher2<F, A, B> value, Function1<C, A> contramap, Function1<B, D> map);

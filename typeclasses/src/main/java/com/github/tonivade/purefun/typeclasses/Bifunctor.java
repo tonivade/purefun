@@ -9,9 +9,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface Bifunctor<F extends Kind> {
 
   <A, B, C, D> Higher2<F, C, D> bimap(Higher2<F, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);

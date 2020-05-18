@@ -7,9 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface MonadReader<F extends Kind, R> extends Monad<F> {
 
   Higher1<F, R> ask();

@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Nested.nest;
 import static com.github.tonivade.purefun.laws.FunctorLaws.verifyLaws;
+import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 
 import org.junit.jupiter.api.Test;
 

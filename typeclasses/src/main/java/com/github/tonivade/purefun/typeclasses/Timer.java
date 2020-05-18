@@ -4,14 +4,12 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
-import com.github.tonivade.purefun.Unit;
-
 import java.time.Duration;
 
-@TypeClass
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Unit;
+
 public interface Timer<F extends Kind> {
 
   Higher1<F, Unit> sleep(Duration duration);

@@ -6,9 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.TypeClass;
 
-@TypeClass
 public interface FunctionK<F extends Kind, G extends Kind> {
 
   <T> Higher1<G, T> apply(Higher1<F, T> from);

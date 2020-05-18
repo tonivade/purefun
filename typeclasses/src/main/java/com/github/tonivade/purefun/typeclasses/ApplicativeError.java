@@ -8,10 +8,8 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.PartialFunction1;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.type.Either;
 
-@TypeClass
 public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
 
   <A> Higher1<F, A> raiseError(E error);

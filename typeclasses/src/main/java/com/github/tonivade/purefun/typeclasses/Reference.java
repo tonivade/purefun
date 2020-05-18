@@ -4,18 +4,16 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Unit.unit;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
-import com.github.tonivade.purefun.TypeClass;
 import com.github.tonivade.purefun.Unit;
 
-@TypeClass
 public interface Reference<F extends Kind, A> {
 
   Higher1<F, A> get();
