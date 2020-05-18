@@ -270,7 +270,7 @@ Free<IOProgram_, Unit> echo =
 
 Higher<IO_, Unit> foldMap = echo.foldMap(new IOMonad(), new IOProgramInterperter());
 
-IO.narrowK(foldMap).unsafeRunSync();
+IO_.narrowK(foldMap).unsafeRunSync();
 ```
 
 ### Free Applicative
@@ -286,12 +286,12 @@ FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         DSL.readString("hola mundo"),
         DSL.readUnit(),
         Tuple::of
-    ).fix1(FreeAp::narrowK);
+    ).fix1(FreeAp_::narrowK);
 
 Higher1<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
     tuple.foldMap(idTransform(), IdInstances.applicative());
 
-assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id::narrowK));
+assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id_::narrowK));
 ```
 
 ## Monad Transformers
@@ -305,7 +305,7 @@ OptionT<IO_, String> some = OptionT.some(IO.monad(), "abc");
 
 OptionT<IO_, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
 
-assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", IO_.narrowK(map.get()).unsafeRunSync());
 ```
 
 ### EitherT
@@ -317,7 +317,7 @@ EitherT<IO_, Nothing, String> right = EitherT.right(IO.monad(), "abc");
 
 EitherT<IO_, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
 
-assertEquals("ABC", IO.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", IO_.narrowK(map.get()).unsafeRunSync());
 ```
 
 ### StateT
@@ -328,7 +328,7 @@ Monad Transformer for `State` type
 StateT<IO_, ImmutableList<String>, Unit> state =
   pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-IO<Tuple2<ImmutableList<String>, Unit>> result = IO.narrowK(state.run(ImmutableList.empty()));
+IO<Tuple2<ImmutableList<String>, Unit>> result = IO_.narrowK(state.run(ImmutableList.empty()));
 
 assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
 ```
@@ -372,7 +372,7 @@ IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
   .takeWhile(Option::isPresent)
   .map(Option::get)
   .foldLeft("", (a, b) -> a + "\n" + b)
-  .fix1(IO::narrowK)
+  .fix1(IO_::narrowK)
   .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
 
 String content = readFile.unsafeRunSync();
