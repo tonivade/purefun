@@ -45,6 +45,7 @@ public class FreeAlgTest {
     assertEquals("hello toni\nemail to toni@home with content hello\n", executor.getOutput());
   }
 
+  @SuppressWarnings("unchecked")
   private static FunctionK<Higher1<Higher1<EitherK_, ConsoleAlg_>, EmailAlg_>, IO_> interpreter() {
     final Console<IO_> console = IOInstances.console();
     return new FunctionK<Higher1<Higher1<EitherK_, ConsoleAlg_>, EmailAlg_>, IO_>() {

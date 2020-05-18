@@ -12,14 +12,13 @@ import com.github.tonivade.purefun.free.Cofree_;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
+@SuppressWarnings("unchecked")
 public interface CofreeInstances {
 
-  @SuppressWarnings("unchecked")
   static <F extends Kind> Functor<Higher1<Cofree_, F>> functor() {
     return CofreeFunctor.INSTANCE;
   }
 
-  @SuppressWarnings("unchecked")
   static <F extends Kind> Comonad<Higher1<Cofree_, F>> comonad() {
     return CofreeComonad.INSTANCE;
   }

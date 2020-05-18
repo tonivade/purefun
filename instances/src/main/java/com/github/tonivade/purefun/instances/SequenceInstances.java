@@ -37,11 +37,11 @@ public interface SequenceInstances {
   }
 
   static <T> Semigroup<Sequence<T>> semigroup() {
-    return SequenceSemigroup.INSTANCE;
+    return (SequenceSemigroup<T>) SequenceSemigroup.INSTANCE;
   }
 
   static <T> Monoid<Sequence<T>> monoid() {
-    return SequenceMonoid.INSTANCE;
+    return (SequenceMonoid<T>) SequenceMonoid.INSTANCE;
   }
 
   static SemigroupK<Sequence_> semigroupK() {
@@ -79,8 +79,7 @@ public interface SequenceInstances {
 
 interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 
-  @SuppressWarnings("rawtypes")
-  SequenceSemigroup INSTANCE = new SequenceSemigroup() { };
+  SequenceSemigroup<?> INSTANCE = new SequenceSemigroup<Object>() {};
 
   @Override
   default Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
@@ -90,8 +89,7 @@ interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 
 interface SequenceMonoid<T> extends SequenceSemigroup<T>, Monoid<Sequence<T>> {
 
-  @SuppressWarnings("rawtypes")
-  SequenceMonoid INSTANCE = new SequenceMonoid() {};
+  SequenceMonoid<?> INSTANCE = new SequenceMonoid<Object>() {};
 
   @Override
   default Sequence<T> zero() {

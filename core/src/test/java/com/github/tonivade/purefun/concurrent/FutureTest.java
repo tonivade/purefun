@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class FutureTest {
@@ -236,7 +236,7 @@ public class FutureTest {
     assertTrue(future.isCompleted());
     assertTrue(future.await().getCause() instanceof CancellationException);
     Thread.sleep(1500);
-    verifyZeroInteractions(producer);
+    verifyNoMoreInteractions(producer);
   }
 
   @Test

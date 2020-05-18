@@ -6,11 +6,14 @@ package com.github.tonivade.purefun;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class Tuple1Test {
   
   @Test
@@ -26,9 +29,8 @@ public class Tuple1Test {
   }
 
   @Test
-  public void forEach() {
+  public void forEach(@Mock Consumer1<Object> callback) {
     Tuple1<String> tuple = Tuple.of("value");
-    Consumer1<Object> callback = mock(Consumer1.class);
 
     tuple.forEach(callback);
 
