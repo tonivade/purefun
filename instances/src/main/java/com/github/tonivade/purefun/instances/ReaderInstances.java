@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.monad.Reader;
 import com.github.tonivade.purefun.monad.Reader_;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -17,16 +16,18 @@ import com.github.tonivade.purefun.typeclasses.MonadReader;
 public interface ReaderInstances {
 
   static <R> Monad<Higher1<Reader_, R>> monad() {
-    return ReaderMonad.instance();
+    return ReaderMonad.INSTANCE;
   }
 
   static <R> MonadReader<Higher1<Reader_, R>, R> monadReader() {
-    return ReaderMonadReader.instance();
+    return ReaderMonadReader.INSTANCE;
   }
 }
 
-@Instance
 interface ReaderMonad<R> extends Monad<Higher1<Reader_, R>> {
+
+  @SuppressWarnings("rawtypes")
+  ReaderMonad INSTANCE = new ReaderMonad() {};
 
   @Override
   default <T> Higher2<Reader_, R, T> pure(T value) {
@@ -40,8 +41,10 @@ interface ReaderMonad<R> extends Monad<Higher1<Reader_, R>> {
   }
 }
 
-@Instance
 interface ReaderMonadReader<R> extends MonadReader<Higher1<Reader_, R>, R>, ReaderMonad<R> {
+
+  @SuppressWarnings("rawtypes")
+  ReaderMonadReader INSTANCE = new ReaderMonadReader() {};
 
   @Override
   default Higher1<Higher1<Reader_, R>, R> ask() {

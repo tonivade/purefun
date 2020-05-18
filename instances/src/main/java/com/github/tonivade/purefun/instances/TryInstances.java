@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Eval;
@@ -37,36 +36,37 @@ public interface TryInstances {
   }
 
   static Functor<Try_> functor() {
-    return TryFunctor.instance();
+    return TryFunctor.INSTANCE;
   }
 
   static Applicative<Try_> applicative() {
-    return TryApplicative.instance();
+    return TryApplicative.INSTANCE;
   }
 
   static Monad<Try_> monad() {
-    return TryMonad.instance();
+    return TryMonad.INSTANCE;
   }
 
   static MonadError<Try_, Throwable> monadError() {
-    return TryMonadError.instance();
+    return TryMonadError.INSTANCE;
   }
 
   static MonadThrow<Try_> monadThrow() {
-    return TryMonadThrow.instance();
+    return TryMonadThrow.INSTANCE;
   }
 
   static Foldable<Try_> foldable() {
-    return TryFoldable.instance();
+    return TryFoldable.INSTANCE;
   }
 
   static Traverse<Try_> traverse() {
-    return TryTraverse.instance();
+    return TryTraverse.INSTANCE;
   }
 }
 
-@Instance
 interface TryFunctor extends Functor<Try_> {
+
+  TryFunctor INSTANCE = new TryFunctor() {};
 
   @Override
   default <T, R> Higher1<Try_, R> map(Higher1<Try_, T> value, Function1<T, R> mapper) {
@@ -82,8 +82,9 @@ interface TryPure extends Applicative<Try_> {
   }
 }
 
-@Instance
 interface TryApplicative extends TryPure {
+
+  TryApplicative INSTANCE = new TryApplicative() {};
 
   @Override
   default <T, R> Higher1<Try_, R> ap(Higher1<Try_, T> value, Higher1<Try_, Function1<T, R>> apply) {
@@ -91,8 +92,9 @@ interface TryApplicative extends TryPure {
   }
 }
 
-@Instance
 interface TryMonad extends TryPure, Monad<Try_> {
+
+  TryMonad INSTANCE = new TryMonad() {};
 
   @Override
   default <T, R> Higher1<Try_, R> flatMap(Higher1<Try_, T> value,
@@ -101,8 +103,9 @@ interface TryMonad extends TryPure, Monad<Try_> {
   }
 }
 
-@Instance
 interface TryMonadError extends TryMonad, MonadError<Try_, Throwable> {
+
+  TryMonadError INSTANCE = new TryMonadError() {};
 
   @Override
   default <A> Higher1<Try_, A> raiseError(Throwable error) {
@@ -116,11 +119,14 @@ interface TryMonadError extends TryMonad, MonadError<Try_, Throwable> {
   }
 }
 
-@Instance
-interface TryMonadThrow extends TryMonadError, MonadThrow<Try_> { }
+interface TryMonadThrow extends TryMonadError, MonadThrow<Try_> {
 
-@Instance
+  TryMonadThrow INSTANCE = new TryMonadThrow() {};
+}
+
 interface TryFoldable extends Foldable<Try_> {
+
+  TryFoldable INSTANCE = new TryFoldable() {};
 
   @Override
   default <A, B> B foldLeft(Higher1<Try_, A> value, B initial, Function2<B, A, B> mapper) {
@@ -134,8 +140,9 @@ interface TryFoldable extends Foldable<Try_> {
   }
 }
 
-@Instance
 interface TryTraverse extends Traverse<Try_>, TryFoldable {
+
+  TryTraverse INSTANCE = new TryTraverse() {};
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Try_, R>> traverse(

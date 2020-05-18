@@ -4,10 +4,11 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Par;
@@ -20,31 +21,29 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
-import java.time.Duration;
-
-import static com.github.tonivade.purefun.Function1.identity;
-
 public interface ParInstances {
 
   static Functor<Par_> functor() {
-    return ParFunctor.instance();
+    return ParFunctor.INSTANCE;
   }
 
   static Applicative<Par_> applicative() {
-    return PureApplicative.instance();
+    return PureApplicative.INSTANCE;
   }
 
   static Monad<Par_> monad() {
-    return ParMonad.instance();
+    return ParMonad.INSTANCE;
   }
 
   static MonadDefer<Par_> monadDefer() {
-    return ParMonadDefer.instance();
+    return ParMonadDefer.INSTANCE;
   }
 }
 
-@Instance
 interface ParFunctor extends Functor<Par_> {
+
+  ParFunctor INSTANCE = new ParFunctor() {};
+
   @Override
   default <T, R> Higher1<Par_, R> map(Higher1<Par_, T> value, Function1<T, R> mapper) {
     return value.fix1(Par_::narrowK).map(mapper);
@@ -58,16 +57,20 @@ interface ParPure extends Applicative<Par_> {
   }
 }
 
-@Instance
 interface PureApplicative extends ParPure {
+
+  PureApplicative INSTANCE = new PureApplicative() {};
+
   @Override
   default <T, R> Higher1<Par_, R> ap(Higher1<Par_, T> value, Higher1<Par_, Function1<T, R>> apply) {
     return value.fix1(Par_::narrowK).ap(apply.fix1(Par_::narrowK));
   }
 }
 
-@Instance
 interface ParMonad extends ParPure, Monad<Par_> {
+
+  ParMonad INSTANCE = new ParMonad() {};
+
   @Override
   default <T, R> Higher1<Par_, R> flatMap(Higher1<Par_, T> value, Function1<T, ? extends Higher1<Par_, R>> map) {
     return value.fix1(Par_::narrowK).flatMap(x -> map.apply(x).fix1(Par_::narrowK));
@@ -75,6 +78,8 @@ interface ParMonad extends ParPure, Monad<Par_> {
 }
 
 interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
+
+  ParMonadThrow INSTANCE = new ParMonadThrow() {};
 
   @Override
   default <A> Higher1<Par_, A> raiseError(Throwable error) {
@@ -105,8 +110,9 @@ interface ParBracket extends Bracket<Par_> {
   }
 }
 
-@Instance
 interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par_> {
+
+  ParMonadDefer INSTANCE = new ParMonadDefer() {};
 
   @Override
   default Higher1<Par_, Unit> sleep(Duration duration) {

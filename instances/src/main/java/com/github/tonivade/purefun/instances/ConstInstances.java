@@ -9,7 +9,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Const_;
@@ -27,29 +26,35 @@ public interface ConstInstances {
     return (a, b) -> eq.eqv(a.fix1(Const_::narrowK).get(), a.fix1(Const_::narrowK).get());
   }
 
+  @SuppressWarnings("unchecked")
   static <T> Functor<Higher1<Const_, T>> functor() {
-    return ConstFunctor.instance();
+    return ConstFunctor.INSTANCE;
   }
 
   static <T> Applicative<Higher1<Const_, T>> applicative(Monoid<T> monoid) {
     return ConstApplicative.instance(monoid);
   }
 
+  @SuppressWarnings("unchecked")
   static <T> Foldable<Higher1<Const_, T>> foldable() {
-    return ConstFoldable.instance();
+    return ConstFoldable.INSTANCE;
   }
 
+  @SuppressWarnings("unchecked")
   static <T> Traverse<Higher1<Const_, T>> traverse() {
-    return ConstTraverse.instance();
+    return ConstTraverse.INSTANCE;
   }
 
+  @SuppressWarnings("unchecked")
   static <T> Contravariant<Higher1<Const_, T>> contravariant() {
-    return ConstContravariant.instance();
+    return ConstContravariant.INSTANCE;
   }
 }
 
-@Instance
 interface ConstFunctor<T> extends Functor<Higher1<Const_, T>> {
+
+  @SuppressWarnings("rawtypes")
+  ConstFunctor INSTANCE = new ConstFunctor() {};
 
   @Override
   default <A, B> Higher1<Higher1<Const_, T>, B> map(Higher1<Higher1<Const_, T>, A> value, Function1<A, B> map) {
@@ -79,8 +84,10 @@ interface ConstApplicative<T> extends Applicative<Higher1<Const_, T>> {
   }
 }
 
-@Instance
 interface ConstContravariant<T> extends Contravariant<Higher1<Const_, T>> {
+
+  @SuppressWarnings("rawtypes")
+  ConstContravariant INSTANCE = new ConstContravariant() {};
 
   @Override
   default <A, B> Higher2<Const_, T, B> contramap(Higher1<Higher1<Const_, T>, A> value, Function1<B, A> map) {
@@ -88,8 +95,10 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const_, T>> {
   }
 }
 
-@Instance
 interface ConstFoldable<T> extends Foldable<Higher1<Const_, T>> {
+
+  @SuppressWarnings("rawtypes")
+  ConstFoldable INSTANCE = new ConstFoldable() {};
 
   @Override
   default <A, B> B foldLeft(Higher1<Higher1<Const_, T>, A> value, B initial, Function2<B, A, B> mapper) {
@@ -103,8 +112,10 @@ interface ConstFoldable<T> extends Foldable<Higher1<Const_, T>> {
   }
 }
 
-@Instance
 interface ConstTraverse<T> extends Traverse<Higher1<Const_, T>>, ConstFoldable<T> {
+
+  @SuppressWarnings("rawtypes")
+  ConstTraverse INSTANCE = new ConstTraverse() {};
 
   @Override
   default <G extends Kind, A, B> Higher1<G, Higher1<Higher1<Const_, T>, B>> traverse(

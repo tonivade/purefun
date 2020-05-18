@@ -4,12 +4,14 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -19,35 +21,31 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.effect.Task;
-import com.github.tonivade.purefun.effect.Task_;
-
-import java.time.Duration;
 
 public interface TaskInstances {
 
   static Functor<Task_> functor() {
-    return TaskFunctor.instance();
+    return TaskFunctor.INSTANCE;
   }
 
   static Applicative<Task_> applicative() {
-    return TaskApplicative.instance();
+    return TaskApplicative.INSTANCE;
   }
 
   static Monad<Task_> monad() {
-    return TaskMonad.instance();
+    return TaskMonad.INSTANCE;
   }
 
   static MonadError<Task_, Throwable> monadError() {
-    return TaskMonadError.instance();
+    return TaskMonadError.INSTANCE;
   }
 
   static MonadThrow<Task_> monadThrow() {
-    return TaskMonadThrow.instance();
+    return TaskMonadThrow.INSTANCE;
   }
 
   static MonadDefer<Task_> monadDefer() {
-    return TaskMonadDefer.instance();
+    return TaskMonadDefer.INSTANCE;
   }
 
   static <A> Reference<Task_, A> ref(A value) {
@@ -55,8 +53,9 @@ public interface TaskInstances {
   }
 }
 
-@Instance
 interface TaskFunctor extends Functor<Task_> {
+
+  TaskFunctor INSTANCE = new TaskFunctor() {};
 
   @Override
   default <A, B> Higher1<Task_, B>
@@ -73,8 +72,9 @@ interface TaskPure extends Applicative<Task_> {
   }
 }
 
-@Instance
 interface TaskApplicative extends TaskPure {
+
+  TaskApplicative INSTANCE = new TaskApplicative() {};
 
   @Override
   default <A, B> Higher1<Task_, B>
@@ -84,8 +84,9 @@ interface TaskApplicative extends TaskPure {
   }
 }
 
-@Instance
 interface TaskMonad extends TaskPure, Monad<Task_> {
+
+  TaskMonad INSTANCE = new TaskMonad() {};
 
   @Override
   default <A, B> Higher1<Task_, B>
@@ -95,8 +96,9 @@ interface TaskMonad extends TaskPure, Monad<Task_> {
   }
 }
 
-@Instance
 interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
+
+  TaskMonadError INSTANCE = new TaskMonadError() {};
 
   @Override
   default <A> Higher1<Task_, A> raiseError(Throwable error) {
@@ -115,10 +117,10 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
   }
 }
 
-@Instance
-interface TaskMonadThrow
-    extends TaskMonadError,
-            MonadThrow<Task_> { }
+interface TaskMonadThrow extends TaskMonadError, MonadThrow<Task_> {
+
+  TaskMonadThrow INSTANCE = new TaskMonadThrow() {};
+}
 
 interface TaskDefer extends Defer<Task_> {
 
@@ -140,9 +142,11 @@ interface TaskBracket extends Bracket<Task_> {
   }
 }
 
-@Instance
 interface TaskMonadDefer
     extends MonadDefer<Task_>, TaskMonadThrow, TaskDefer, TaskBracket {
+
+  TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
+
   @Override
   default Higher1<Task_, Unit> sleep(Duration duration) {
     return Task.sleep(duration);

@@ -4,13 +4,15 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.EIO;
+import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
@@ -21,35 +23,32 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.EIO_;
 
-import java.time.Duration;
-
+  @SuppressWarnings("unchecked")
 public interface EIOInstances {
 
   static <E> Functor<Higher1<EIO_, E>> functor() {
-    return EIOFunctor.instance();
+    return EIOFunctor.INSTANCE;
   }
 
   static <E> Applicative<Higher1<EIO_, E>> applicative() {
-    return EIOApplicative.instance();
+    return EIOApplicative.INSTANCE;
   }
 
   static <E> Monad<Higher1<EIO_, E>> monad() {
-    return EIOMonad.instance();
+    return EIOMonad.INSTANCE;
   }
 
   static <E> MonadError<Higher1<EIO_, E>, E> monadError() {
-    return EIOMonadError.instance();
+    return EIOMonadError.INSTANCE;
   }
 
   static MonadThrow<Higher1<EIO_, Throwable>> monadThrow() {
-    return EIOMonadThrow.instance();
+    return EIOMonadThrow.INSTANCE;
   }
 
   static MonadDefer<Higher1<EIO_, Throwable>> monadDefer() {
-    return EIOMonadDefer.instance();
+    return EIOMonadDefer.INSTANCE;
   }
 
   static <A> Reference<Higher1<EIO_, Throwable>, A> ref(A value) {
@@ -57,8 +56,10 @@ public interface EIOInstances {
   }
 }
 
-@Instance
 interface EIOFunctor<E> extends Functor<Higher1<EIO_, E>> {
+
+  @SuppressWarnings("rawtypes")
+  EIOFunctor INSTANCE = new EIOFunctor() {};
 
   @Override
   default <A, B> Higher2<EIO_, E, B>
@@ -75,8 +76,10 @@ interface EIOPure<E> extends Applicative<Higher1<EIO_, E>> {
   }
 }
 
-@Instance
 interface EIOApplicative<E> extends EIOPure<E> {
+
+  @SuppressWarnings("rawtypes")
+  EIOApplicative INSTANCE = new EIOApplicative() {};
 
   @Override
   default <A, B> Higher2<EIO_, E, B>
@@ -86,8 +89,10 @@ interface EIOApplicative<E> extends EIOPure<E> {
   }
 }
 
-@Instance
 interface EIOMonad<E> extends EIOPure<E>, Monad<Higher1<EIO_, E>> {
+
+  @SuppressWarnings("rawtypes")
+  EIOMonad INSTANCE = new EIOMonad() {};
 
   @Override
   default <A, B> Higher2<EIO_, E, B>
@@ -97,8 +102,10 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<Higher1<EIO_, E>> {
   }
 }
 
-@Instance
 interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO_, E>, E> {
+
+  @SuppressWarnings("rawtypes")
+  EIOMonadError INSTANCE = new EIOMonadError() {};
 
   @Override
   default <A> Higher2<EIO_, E, A> raiseError(E error) {
@@ -117,10 +124,12 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO_, E>, E> 
   }
 }
 
-@Instance
 interface EIOMonadThrow
     extends EIOMonadError<Throwable>,
-            MonadThrow<Higher1<EIO_, Throwable>> { }
+            MonadThrow<Higher1<EIO_, Throwable>> {
+
+  EIOMonadThrow INSTANCE = new EIOMonadThrow() {};
+}
 
 interface EIODefer extends Defer<Higher1<EIO_, Throwable>> {
 
@@ -142,9 +151,11 @@ interface EIOBracket extends Bracket<Higher1<EIO_, Throwable>> {
   }
 }
 
-@Instance
 interface EIOMonadDefer
     extends MonadDefer<Higher1<EIO_, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket {
+
+  EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
+
   @Override
   default Higher2<EIO_, Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<Throwable>toEIO();

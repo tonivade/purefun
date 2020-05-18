@@ -5,11 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Unit.unit;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -19,14 +17,15 @@ import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadState;
 
+@SuppressWarnings("unchecked")
 public interface StateInstances {
 
   static <S> Monad<Higher1<State_, S>> monad() {
-    return StateMonad.instance();
+    return StateMonad.INSTANCE;
   }
 
   static <S> MonadState<Higher1<State_, S>, S> monadState() {
-    return StateMonadState.instance();
+    return StateMonadState.INSTANCE;
   }
 
   static Console<Higher1<State_, ImmutableList<String>>> console() {
@@ -34,8 +33,10 @@ public interface StateInstances {
   }
 }
 
-@Instance
 interface StateMonad<S> extends Monad<Higher1<State_, S>> {
+
+  @SuppressWarnings("rawtypes")
+  StateMonad INSTANCE = new StateMonad() {};
 
   @Override
   default <T> Higher2<State_, S, T> pure(T value) {
@@ -49,8 +50,10 @@ interface StateMonad<S> extends Monad<Higher1<State_, S>> {
   }
 }
 
-@Instance
 interface StateMonadState<S> extends MonadState<Higher1<State_, S>, S>, StateMonad<S> {
+
+  @SuppressWarnings("rawtypes")
+  StateMonadState INSTANCE = new StateMonadState() {};
 
   @Override
   default Higher2<State_, S, S> get() {

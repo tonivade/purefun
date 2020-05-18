@@ -10,11 +10,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.time.Duration;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
@@ -32,23 +30,23 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 public interface IOInstances {
 
   static Functor<IO_> functor() {
-    return IOFunctor.instance();
+    return IOFunctor.INSTANCE;
   }
 
   static Monad<IO_> monad() {
-    return IOMonad.instance();
+    return IOMonad.INSTANCE;
   }
 
   static MonadError<IO_, Throwable> monadError() {
-    return IOMonadError.instance();
+    return IOMonadError.INSTANCE;
   }
 
   static MonadThrow<IO_> monadThrow() {
-    return IOMonadThrow.instance();
+    return IOMonadThrow.INSTANCE;
   }
 
   static MonadDefer<IO_> monadDefer() {
-    return IOMonadDefer.instance();
+    return IOMonadDefer.INSTANCE;
   }
 
   static <A> Reference<IO_, A> ref(A value) {
@@ -60,8 +58,9 @@ public interface IOInstances {
   }
 }
 
-@Instance
 interface IOFunctor extends Functor<IO_> {
+
+  IOFunctor INSTANCE = new IOFunctor() {};
 
   @Override
   default <T, R> Higher1<IO_, R> map(Higher1<IO_, T> value, Function1<T, R> map) {
@@ -69,8 +68,9 @@ interface IOFunctor extends Functor<IO_> {
   }
 }
 
-@Instance
 interface IOMonad extends Monad<IO_> {
+
+  IOMonad INSTANCE = new IOMonad() {};
 
   @Override
   default <T> Higher1<IO_, T> pure(T value) {
@@ -83,8 +83,9 @@ interface IOMonad extends Monad<IO_> {
   }
 }
 
-@Instance
 interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
+
+  IOMonadError INSTANCE = new IOMonadError() {};
 
   @Override
   default <A> Higher1<IO_, A> raiseError(Throwable error) {
@@ -97,8 +98,10 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
   }
 }
 
-@Instance
-interface IOMonadThrow extends MonadThrow<IO_>, IOMonadError { }
+interface IOMonadThrow extends MonadThrow<IO_>, IOMonadError {
+
+  IOMonadThrow INSTANCE = new IOMonadThrow() {};
+}
 
 interface IODefer extends Defer<IO_> {
 
@@ -116,8 +119,9 @@ interface IOBracket extends Bracket<IO_> {
   }
 }
 
-@Instance
 interface IOMonadDefer extends MonadDefer<IO_>, IOMonadError, IODefer, IOBracket {
+
+  IOMonadDefer INSTANCE = new IOMonadDefer() {};
 
   @Override
   default Higher1<IO_, Unit> sleep(Duration duration) {

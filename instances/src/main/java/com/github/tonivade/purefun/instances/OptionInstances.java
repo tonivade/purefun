@@ -4,11 +4,12 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Unit.unit;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Tuple;
@@ -28,9 +29,6 @@ import com.github.tonivade.purefun.typeclasses.SemigroupK;
 import com.github.tonivade.purefun.typeclasses.Semigroupal;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Unit.unit;
-
 public interface OptionInstances {
 
   static <T> Eq<Higher1<Option_, T>> eq(Eq<T> eqSome) {
@@ -45,40 +43,41 @@ public interface OptionInstances {
   }
 
   static Functor<Option_> functor() {
-    return OptionFunctor.instance();
+    return OptionFunctor.INSTANCE;
   }
 
   static Applicative<Option_> applicative() {
-    return OptionApplicative.instance();
+    return OptionApplicative.INSTANCE;
   }
 
   static Alternative<Option_> alternative() {
-    return OptionAlternative.instance();
+    return OptionAlternative.INSTANCE;
   }
 
   static Monad<Option_> monad() {
-    return OptionMonad.instance();
+    return OptionMonad.INSTANCE;
   }
 
   static MonadError<Option_, Unit> monadError() {
-    return OptionMonadError.instance();
+    return OptionMonadError.INSTANCE;
   }
 
   static Traverse<Option_> traverse() {
-    return OptionTraverse.instance();
+    return OptionTraverse.INSTANCE;
   }
 
   static Semigroupal<Option_> semigroupal() {
-    return OptionSemigroupal.instance();
+    return OptionSemigroupal.INSTANCE;
   }
 
   static Foldable<Option_> foldable() {
-    return OptionFoldable.instance();
+    return OptionFoldable.INSTANCE;
   }
 }
 
-@Instance
 interface OptionFunctor extends Functor<Option_> {
+
+  OptionFunctor INSTANCE = new OptionFunctor() {};
 
   @Override
   default <T, R> Higher1<Option_, R> map(Higher1<Option_, T> value, Function1<T, R> mapper) {
@@ -94,8 +93,9 @@ interface OptionPure extends Applicative<Option_> {
   }
 }
 
-@Instance
 interface OptionApplicative extends OptionPure {
+
+  OptionApplicative INSTANCE = new OptionApplicative() {};
 
   @Override
   default <T, R> Higher1<Option_, R> ap(Higher1<Option_, T> value, Higher1<Option_, Function1<T, R>> apply) {
@@ -103,8 +103,9 @@ interface OptionApplicative extends OptionPure {
   }
 }
 
-@Instance
 interface OptionMonad extends OptionPure, Monad<Option_> {
+
+  OptionMonad INSTANCE = new OptionMonad() {};
 
   @Override
   default <T, R> Higher1<Option_, R> flatMap(Higher1<Option_, T> value,
@@ -113,8 +114,9 @@ interface OptionMonad extends OptionPure, Monad<Option_> {
   }
 }
 
-@Instance
 interface OptionSemigroupK extends SemigroupK<Option_> {
+
+  OptionSemigroupK INSTANCE = new OptionSemigroupK() {};
 
   @Override
   default <T> Higher1<Option_, T> combineK(Higher1<Option_, T> t1, Higher1<Option_, T> t2) {
@@ -122,8 +124,9 @@ interface OptionSemigroupK extends SemigroupK<Option_> {
   }
 }
 
-@Instance
 interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option_> {
+
+  OptionMonoidK INSTANCE = new OptionMonoidK() {};
 
   @Override
   default <T> Higher1<Option_, T> zero() {
@@ -131,11 +134,14 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option_> {
   }
 }
 
-@Instance
-interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option_> { }
+interface OptionAlternative extends OptionMonoidK, OptionApplicative, Alternative<Option_> {
 
-@Instance
+  OptionAlternative INSTANCE = new OptionAlternative() {};
+}
+
 interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
+
+  OptionMonadError INSTANCE = new OptionMonadError() {};
 
   @Override
   default <A> Higher1<Option_, A> raiseError(Unit error) {
@@ -149,8 +155,9 @@ interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
   }
 }
 
-@Instance
 interface OptionFoldable extends Foldable<Option_> {
+
+  OptionFoldable INSTANCE = new OptionFoldable() {};
 
   @Override
   default <A, B> B foldLeft(Higher1<Option_, A> value, B initial, Function2<B, A, B> mapper) {
@@ -164,8 +171,9 @@ interface OptionFoldable extends Foldable<Option_> {
   }
 }
 
-@Instance
 interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
+
+  OptionTraverse INSTANCE = new OptionTraverse() {};
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Option_, R>> traverse(
@@ -177,8 +185,9 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   }
 }
 
-@Instance
 interface OptionSemigroupal extends Semigroupal<Option_> {
+
+  OptionSemigroupal INSTANCE = new OptionSemigroupal() {};
 
   @Override
   default <A, B> Higher1<Option_, Tuple2<A, B>> product(Higher1<Option_, A> fa, Higher1<Option_, B> fb) {

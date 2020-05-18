@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Eval_;
@@ -22,36 +21,37 @@ import com.github.tonivade.purefun.typeclasses.MonadThrow;
 public interface EvalInstances {
 
   static Functor<Eval_> functor() {
-    return EvalFunctor.instance();
+    return EvalFunctor.INSTANCE;
   }
 
   static Applicative<Eval_> applicative() {
-    return EvalApplicative.instance();
+    return EvalApplicative.INSTANCE;
   }
 
   static Monad<Eval_> monad() {
-    return EvalMonad.instance();
+    return EvalMonad.INSTANCE;
   }
 
   static MonadError<Eval_, Throwable> monadError() {
-    return EvalMonadError.instance();
+    return EvalMonadError.INSTANCE;
   }
 
   static MonadThrow<Eval_> monadThrow() {
-    return EvalMonadThrow.instance();
+    return EvalMonadThrow.INSTANCE;
   }
 
   static Comonad<Eval_> comonad() {
-    return EvalComonad.instance();
+    return EvalComonad.INSTANCE;
   }
 
   static Defer<Eval_> defer() {
-    return EvalDefer.instance();
+    return EvalDefer.INSTANCE;
   }
 }
 
-@Instance
 interface EvalFunctor extends Functor<Eval_> {
+
+  EvalFunctor INSTANCE = new EvalFunctor() {};
 
   @Override
   default <T, R> Higher1<Eval_, R> map(Higher1<Eval_, T> value, Function1<T, R> mapper) {
@@ -67,8 +67,9 @@ interface EvalPure extends Applicative<Eval_> {
   }
 }
 
-@Instance
 interface EvalApplicative extends EvalPure {
+
+  EvalApplicative INSTANCE = new EvalApplicative() {};
 
   @Override
   default <T, R> Higher1<Eval_, R> ap(Higher1<Eval_, T> value, Higher1<Eval_, Function1<T, R>> apply) {
@@ -76,8 +77,9 @@ interface EvalApplicative extends EvalPure {
   }
 }
 
-@Instance
 interface EvalMonad extends EvalPure, Monad<Eval_> {
+
+  EvalMonad INSTANCE = new EvalMonad() {};
 
   @Override
   default <T, R> Higher1<Eval_, R> flatMap(Higher1<Eval_, T> value, Function1<T, ? extends Higher1<Eval_, R>> map) {
@@ -85,8 +87,9 @@ interface EvalMonad extends EvalPure, Monad<Eval_> {
   }
 }
 
-@Instance
 interface EvalMonadError extends EvalMonad, MonadError<Eval_, Throwable> {
+
+  EvalMonadError INSTANCE = new EvalMonadError() {};
 
   @Override
   default <A> Higher1<Eval_, A> raiseError(Throwable error) {
@@ -101,11 +104,14 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval_, Throwable> {
   }
 }
 
-@Instance
-interface EvalMonadThrow extends EvalMonadError, MonadThrow<Eval_> { }
+interface EvalMonadThrow extends EvalMonadError, MonadThrow<Eval_> {
 
-@Instance
+  EvalMonadThrow INSTANCE = new EvalMonadThrow() {};
+}
+
 interface EvalComonad extends EvalFunctor, Comonad<Eval_> {
+
+  EvalComonad INSTANCE = new EvalComonad() {};
 
   @Override
   default <A, B> Higher1<Eval_, B> coflatMap(Higher1<Eval_, A> value, Function1<Higher1<Eval_, A>, B> map) {
@@ -118,8 +124,9 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval_> {
   }
 }
 
-@Instance
 interface EvalDefer extends Defer<Eval_> {
+
+  EvalDefer INSTANCE = new EvalDefer() {};
 
   @Override
   default <A> Higher1<Eval_, A> defer(Producer<Higher1<Eval_, A>> defer) {

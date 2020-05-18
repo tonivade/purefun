@@ -4,10 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import java.time.Duration;
+import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -21,16 +24,10 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
-import java.time.Duration;
-import java.util.concurrent.Executor;
-
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 public interface FutureInstances {
 
   static Functor<Future_> functor() {
-    return FutureFunctor.instance();
+    return FutureFunctor.INSTANCE;
   }
 
   static Applicative<Future_> applicative() {
@@ -66,8 +63,9 @@ public interface FutureInstances {
   }
 }
 
-@Instance
 interface FutureFunctor extends Functor<Future_> {
+
+  FutureFunctor INSTANCE = new FutureFunctor() {};
 
   @Override
   default <T, R> Higher1<Future_, R> map(Higher1<Future_, T> value, Function1<T, R> mapper) {

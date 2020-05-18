@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
@@ -22,6 +21,7 @@ import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Selective;
 import com.github.tonivade.purefun.typeclasses.Semigroup;
 
+@SuppressWarnings("unchecked")
 public interface ValidationInstances {
 
   static <E, T> Eq<Higher2<Validation_, E, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
@@ -36,11 +36,11 @@ public interface ValidationInstances {
   }
 
   static <E> Functor<Higher1<Validation_, E>> functor() {
-    return ValidationFunctor.instance();
+    return ValidationFunctor.INSTANCE;
   }
 
   static Bifunctor<Validation_> bifunctor() {
-    return ValidationBifunctor.instance();
+    return ValidationBifunctor.INSTANCE;
   }
 
   static <E> Applicative<Higher1<Validation_, E>> applicative(Semigroup<E> semigroup) {
@@ -52,20 +52,22 @@ public interface ValidationInstances {
   }
 
   static <E> Monad<Higher1<Validation_, E>> monad() {
-    return ValidationMonad.instance();
+    return ValidationMonad.INSTANCE;
   }
 
   static <E> MonadError<Higher1<Validation_, E>, E> monadError() {
-    return ValidationMonadError.instance();
+    return ValidationMonadError.INSTANCE;
   }
 
   static MonadThrow<Higher1<Validation_, Throwable>> monadThrow() {
-    return ValidationMonadThrow.instance();
+    return ValidationMonadThrow.INSTANCE;
   }
 }
 
-@Instance
 interface ValidationFunctor<E> extends Functor<Higher1<Validation_, E>> {
+
+  @SuppressWarnings("rawtypes")
+  ValidationFunctor INSTANCE = new ValidationFunctor() {};
 
   @Override
   default <T, R> Higher2<Validation_, E, R> map(Higher1<Higher1<Validation_, E>, T> value, Function1<T, R> map) {
@@ -73,8 +75,9 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation_, E>> {
   }
 }
 
-@Instance
 interface ValidationBifunctor extends Bifunctor<Validation_> {
+
+  ValidationBifunctor INSTANCE = new ValidationBifunctor() {};
 
   @Override
   default <A, B, C, D> Higher2<Validation_, C, D> bimap(Higher2<Validation_, A, B> value,
@@ -130,8 +133,10 @@ interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Hig
   }
 }
 
-@Instance
 interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation_, E>> {
+
+  @SuppressWarnings("rawtypes")
+  ValidationMonad INSTANCE = new ValidationMonad() {};
 
   @Override
   default <T, R> Higher2<Validation_, E, R> flatMap(Higher1<Higher1<Validation_, E>, T> value,
@@ -140,8 +145,10 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
   }
 }
 
-@Instance
 interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation_, E>, E> {
+
+  @SuppressWarnings("rawtypes")
+  ValidationMonadError INSTANCE = new ValidationMonadError() {};
 
   @Override
   default <A> Higher2<Validation_, E, A> raiseError(E error) {
@@ -155,8 +162,10 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
   }
 }
 
-@Instance
 interface ValidationMonadThrow
     extends ValidationMonadError<Throwable>,
-            MonadThrow<Higher1<Validation_, Throwable>> { }
+            MonadThrow<Higher1<Validation_, Throwable>> {
+
+  ValidationMonadThrow INSTANCE = new ValidationMonadThrow() {};
+}
 

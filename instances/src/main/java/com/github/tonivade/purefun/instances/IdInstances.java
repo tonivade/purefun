@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
@@ -27,32 +26,33 @@ public interface IdInstances {
   }
 
   static Functor<Id_> functor() {
-    return IdFunctor.instance();
+    return IdFunctor.INSTANCE;
   }
 
   static Applicative<Id_> applicative() {
-    return IdApplicative.instance();
+    return IdApplicative.INSTANCE;
   }
 
   static Monad<Id_> monad() {
-    return IdMonad.instance();
+    return IdMonad.INSTANCE;
   }
 
   static Comonad<Id_> comonad() {
-    return IdComonad.instance();
+    return IdComonad.INSTANCE;
   }
 
   static Foldable<Id_> foldable() {
-    return IdFoldable.instance();
+    return IdFoldable.INSTANCE;
   }
 
   static Traverse<Id_> traverse() {
-    return IdTraverse.instance();
+    return IdTraverse.INSTANCE;
   }
 }
 
-@Instance
 interface IdFunctor extends Functor<Id_> {
+
+  IdFunctor INSTANCE = new IdFunctor() {};
 
   @Override
   default <T, R> Higher1<Id_, R> map(Higher1<Id_, T> value, Function1<T, R> map) {
@@ -68,8 +68,9 @@ interface IdPure extends Applicative<Id_> {
   }
 }
 
-@Instance
 interface IdApplicative extends IdPure {
+
+  IdApplicative INSTANCE = new IdApplicative() {};
 
   @Override
   default <T, R> Higher1<Id_, R> ap(Higher1<Id_, T> value, Higher1<Id_, Function1<T, R>> apply) {
@@ -77,8 +78,9 @@ interface IdApplicative extends IdPure {
   }
 }
 
-@Instance
 interface IdMonad extends IdPure, Monad<Id_> {
+
+  IdMonad INSTANCE = new IdMonad() {};
 
   @Override
   default <T, R> Higher1<Id_, R> flatMap(Higher1<Id_, T> value, Function1<T, ? extends Higher1<Id_, R>> map) {
@@ -86,8 +88,9 @@ interface IdMonad extends IdPure, Monad<Id_> {
   }
 }
 
-@Instance
 interface IdComonad extends IdFunctor, Comonad<Id_> {
+
+  IdComonad INSTANCE = new IdComonad() {};
 
   @Override
   default <A, B> Higher1<Id_, B> coflatMap(Higher1<Id_, A> value, Function1<Higher1<Id_, A>, B> map) {
@@ -100,8 +103,9 @@ interface IdComonad extends IdFunctor, Comonad<Id_> {
   }
 }
 
-@Instance
 interface IdFoldable extends Foldable<Id_> {
+
+  IdFoldable INSTANCE = new IdFoldable() {};
 
   @Override
   default <A, B> B foldLeft(Higher1<Id_, A> value, B initial, Function2<B, A, B> mapper) {
@@ -114,8 +118,9 @@ interface IdFoldable extends Foldable<Id_> {
   }
 }
 
-@Instance
 interface IdTraverse extends Traverse<Id_>, IdFoldable {
+
+  IdTraverse INSTANCE = new IdTraverse() {};
 
   @Override
   default <G extends Kind, T, R> Higher1<G, Higher1<Id_, R>> traverse(

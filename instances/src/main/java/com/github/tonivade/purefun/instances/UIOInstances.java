@@ -4,12 +4,14 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -19,35 +21,31 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.UIO_;
-
-import java.time.Duration;
 
 public interface UIOInstances {
 
   static Functor<UIO_> functor() {
-    return UIOFunctor.instance();
+    return UIOFunctor.INSTANCE;
   }
 
   static Applicative<UIO_> applicative() {
-    return UIOApplicative.instance();
+    return UIOApplicative.INSTANCE;
   }
 
   static Monad<UIO_> monad() {
-    return UIOMonad.instance();
+    return UIOMonad.INSTANCE;
   }
 
   static MonadError<UIO_, Throwable> monadError() {
-    return UIOMonadError.instance();
+    return UIOMonadError.INSTANCE;
   }
 
   static MonadThrow<UIO_> monadThrow() {
-    return UIOMonadThrow.instance();
+    return UIOMonadThrow.INSTANCE;
   }
 
   static MonadDefer<UIO_> monadDefer() {
-    return UIOMonadDefer.instance();
+    return UIOMonadDefer.INSTANCE;
   }
 
   static <A> Reference<UIO_, A> ref(A value) {
@@ -55,8 +53,9 @@ public interface UIOInstances {
   }
 }
 
-@Instance
 interface UIOFunctor extends Functor<UIO_> {
+
+  UIOFunctor INSTANCE = new UIOFunctor() {};
 
   @Override
   default <A, B> Higher1<UIO_, B> map(Higher1<UIO_, A> value, Function1<A, B> map) {
@@ -72,8 +71,9 @@ interface UIOPure extends Applicative<UIO_> {
   }
 }
 
-@Instance
 interface UIOApplicative extends UIOPure {
+
+  UIOApplicative INSTANCE = new UIOApplicative() {};
 
   @Override
   default <A, B> Higher1<UIO_, B> ap(Higher1<UIO_, A> value, Higher1<UIO_, Function1<A, B>> apply) {
@@ -81,8 +81,9 @@ interface UIOApplicative extends UIOPure {
   }
 }
 
-@Instance
 interface UIOMonad extends UIOPure, Monad<UIO_> {
+
+  UIOMonad INSTANCE = new UIOMonad() {};
 
   @Override
   default <A, B> Higher1<UIO_, B> flatMap(Higher1<UIO_, A> value, Function1<A, ? extends Higher1<UIO_, B>> map) {
@@ -90,8 +91,9 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
   }
 }
 
-@Instance
 interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
+
+  UIOMonadError INSTANCE = new UIOMonadError() {};
 
   @Override
   default <A> Higher1<UIO_, A> raiseError(Throwable error) {
@@ -109,10 +111,10 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   }
 }
 
-@Instance
-interface UIOMonadThrow
-    extends UIOMonadError,
-            MonadThrow<UIO_> { }
+interface UIOMonadThrow extends UIOMonadError, MonadThrow<UIO_> {
+
+  UIOMonadThrow INSTANCE = new UIOMonadThrow() {};
+}
 
 interface UIODefer extends Defer<UIO_> {
 
@@ -134,9 +136,11 @@ interface UIOBracket extends Bracket<UIO_> {
   }
 }
 
-@Instance
 interface UIOMonadDefer
     extends MonadDefer<UIO_>, UIOMonadThrow, UIODefer, UIOBracket {
+
+  UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
+
   @Override
   default Higher1<UIO_, Unit> sleep(Duration duration) {
     return UIO.sleep(duration);

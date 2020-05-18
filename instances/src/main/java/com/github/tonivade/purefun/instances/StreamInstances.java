@@ -5,23 +5,21 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.ZIO_;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.Stream;
-import com.github.tonivade.purefun.stream.Stream_;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
+import com.github.tonivade.purefun.stream.Stream_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.effect.ZIO_;
 
 public interface StreamInstances {
 
@@ -45,8 +43,9 @@ public interface StreamInstances {
     return Stream.of(TaskInstances.monadDefer());
   }
 
+  @SuppressWarnings("unchecked")
   static <F extends Kind> Functor<Higher1<Stream_, F>> functor() {
-    return StreamFunctor.instance();
+    return StreamFunctor.INSTANCE;
   }
 
   static <F extends Kind> Applicative<Higher1<Stream_, F>> applicative(StreamOf<F> streamOf) {
@@ -58,8 +57,10 @@ public interface StreamInstances {
   }
 }
 
-@Instance
 interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream_, F>> {
+
+  @SuppressWarnings("rawtypes")
+  StreamFunctor INSTANCE = new StreamFunctor() {};
 
   @Override
   default <T, R> Higher2<Stream_, F, R> map(Higher1<Higher1<Stream_, F>, T> value, Function1<T, R> mapper) {

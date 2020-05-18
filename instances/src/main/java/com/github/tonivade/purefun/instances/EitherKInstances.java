@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.free.EitherK;
@@ -17,8 +17,6 @@ import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
-
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public interface EitherKInstances {
 
@@ -49,8 +47,9 @@ public interface EitherKInstances {
     return EitherKComonad.instance(checkNonNull(comonadF), checkNonNull(comonadG));
   }
 
+  @SuppressWarnings("unchecked")
   static <F extends Kind, G extends Kind> InjectK<F, Higher1<Higher1<EitherK_, F>, G>> injectEitherKLeft() {
-    return EitherKInjectKLeft.instance();
+    return EitherKInjectKLeft.INSTANCE;
   }
 
   static <F extends Kind, R extends Kind, G extends Kind>
@@ -148,8 +147,10 @@ interface EitherKInjectKRight<F extends Kind, G extends Kind, R extends Kind>
   }
 }
 
-@Instance
 interface EitherKInjectKLeft<F extends Kind, G extends Kind> extends InjectK<F, Higher1<Higher1<EitherK_, F>, G>> {
+
+  @SuppressWarnings("rawtypes")
+  EitherKInjectKLeft INSTANCE = new EitherKInjectKLeft() {};
 
   @Override
   default  <T> Higher3<EitherK_, F, G, T> inject(Higher1<F, T> value) {

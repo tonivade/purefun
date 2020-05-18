@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.free.Trampoline_;
@@ -18,24 +17,25 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public interface TrampolineInstances {
 
   static Functor<Trampoline_> functor() {
-    return TrampolineFunctor.instance();
+    return TrampolineFunctor.INSTANCE;
   }
 
   static Applicative<Trampoline_> applicative() {
-    return TrampolineApplicative.instance();
+    return TrampolineApplicative.INSTANCE;
   }
 
   static Monad<Trampoline_> monad() {
-    return TrampolineMonad.instance();
+    return TrampolineMonad.INSTANCE;
   }
 
   static Defer<Trampoline_> defer() {
-    return TrampolineDefer.instance();
+    return TrampolineDefer.INSTANCE;
   }
 }
 
-@Instance
 interface TrampolineFunctor extends Functor<Trampoline_> {
+
+  TrampolineFunctor INSTANCE = new TrampolineFunctor() {};
 
   @Override
   default <T, R> Higher1<Trampoline_, R> map(Higher1<Trampoline_, T> value, Function1<T, R> mapper) {
@@ -51,8 +51,9 @@ interface TrampolinePure extends Applicative<Trampoline_> {
   }
 }
 
-@Instance
 interface TrampolineApplicative extends TrampolinePure {
+
+  TrampolineApplicative INSTANCE = new TrampolineApplicative() {};
 
   @Override
   default <T, R> Higher1<Trampoline_, R> ap(Higher1<Trampoline_, T> value, Higher1<Trampoline_, Function1<T, R>> apply) {
@@ -60,8 +61,9 @@ interface TrampolineApplicative extends TrampolinePure {
   }
 }
 
-@Instance
 interface TrampolineMonad extends TrampolinePure, Monad<Trampoline_> {
+
+  TrampolineMonad INSTANCE = new TrampolineMonad() {};
 
   @Override
   default <T, R> Higher1<Trampoline_, R> flatMap(Higher1<Trampoline_, T> value,
@@ -70,8 +72,9 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline_> {
   }
 }
 
-@Instance
 interface TrampolineDefer extends Defer<Trampoline_> {
+
+  TrampolineDefer INSTANCE = new TrampolineDefer() {};
 
   @Override
   default <A> Higher1<Trampoline_, A> defer(Producer<Higher1<Trampoline_, A>> defer) {
