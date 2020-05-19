@@ -5,12 +5,10 @@
 package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
+import static com.github.tonivade.purefun.Producer.cons;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -18,11 +16,11 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public interface EitherT<F extends Kind, L, R> extends Higher3<EitherT_, F, L, R> {
+public interface EitherT<F extends Kind, L, R> extends EitherTOf<F, L, R> {
 
   Monad<F> monad();
   Higher1<F, Either<L, R>> value();

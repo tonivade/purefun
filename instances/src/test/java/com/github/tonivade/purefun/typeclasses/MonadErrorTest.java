@@ -12,32 +12,37 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.instances.EIOInstances;
-import com.github.tonivade.purefun.instances.EvalInstances;
-import com.github.tonivade.purefun.instances.TaskInstances;
-import com.github.tonivade.purefun.instances.UIOInstances;
-import com.github.tonivade.purefun.instances.ZIOInstances;
-import com.github.tonivade.purefun.effect.EIO_;
-import com.github.tonivade.purefun.effect.Task_;
-import com.github.tonivade.purefun.effect.UIO_;
-import com.github.tonivade.purefun.effect.ZIO_;
-import com.github.tonivade.purefun.type.Eval_;
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.PartialFunction1;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.effect.EIOOf;
+import com.github.tonivade.purefun.effect.EIO_;
+import com.github.tonivade.purefun.effect.TaskOf;
+import com.github.tonivade.purefun.effect.Task_;
+import com.github.tonivade.purefun.effect.UIOOf;
+import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.ZIOOf;
+import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
+import com.github.tonivade.purefun.instances.EvalInstances;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
+import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
+import com.github.tonivade.purefun.instances.UIOInstances;
+import com.github.tonivade.purefun.instances.ZIOInstances;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Either_;
+import com.github.tonivade.purefun.type.EvalOf;
+import com.github.tonivade.purefun.type.Eval_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
@@ -159,10 +164,10 @@ public class MonadErrorTest {
     Higher1<Future_, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Try.failure(error), Future_.narrowK(raiseError).await()),
-        () -> assertEquals(Try.success("not an error"), Future_.narrowK(handleError).await()),
-        () -> assertEquals(Try.failure(error), Future_.narrowK(ensureError).await()),
-        () -> assertEquals(Try.success("is not ok"), Future_.narrowK(ensureOk).await()));
+        () -> assertEquals(Try.failure(error), FutureOf.narrowK(raiseError).await()),
+        () -> assertEquals(Try.success("not an error"), FutureOf.narrowK(handleError).await()),
+        () -> assertEquals(Try.failure(error), FutureOf.narrowK(ensureError).await()),
+        () -> assertEquals(Try.success("is not ok"), FutureOf.narrowK(ensureOk).await()));
   }
 
   @Test
@@ -177,10 +182,10 @@ public class MonadErrorTest {
     Higher1<Eval_, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertThrows(RuntimeException.class, () -> Eval_.narrowK(raiseError).value()),
-        () -> assertEquals("not an error", Eval_.narrowK(handleError).value()),
-        () -> assertThrows(RuntimeException.class, () -> Eval_.narrowK(ensureError).value()),
-        () -> assertEquals("is not ok", Eval_.narrowK(ensureOk).value()));
+        () -> assertThrows(RuntimeException.class, () -> EvalOf.narrowK(raiseError).value()),
+        () -> assertEquals("not an error", EvalOf.narrowK(handleError).value()),
+        () -> assertThrows(RuntimeException.class, () -> EvalOf.narrowK(ensureError).value()),
+        () -> assertEquals("is not ok", EvalOf.narrowK(ensureOk).value()));
   }
 
   @Test
@@ -195,10 +200,10 @@ public class MonadErrorTest {
     Higher1<IO_, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertThrows(RuntimeException.class, () -> IO_.narrowK(raiseError).unsafeRunSync()),
-        () -> assertEquals("not an error", IO_.narrowK(handleError).unsafeRunSync()),
-        () -> assertThrows(RuntimeException.class, () -> IO_.narrowK(ensureError).unsafeRunSync()),
-        () -> assertEquals("is not ok", IO_.narrowK(ensureOk).unsafeRunSync()));
+        () -> assertThrows(RuntimeException.class, () -> IOOf.narrowK(raiseError).unsafeRunSync()),
+        () -> assertEquals("not an error", IOOf.narrowK(handleError).unsafeRunSync()),
+        () -> assertThrows(RuntimeException.class, () -> IOOf.narrowK(ensureError).unsafeRunSync()),
+        () -> assertEquals("is not ok", IOOf.narrowK(ensureOk).unsafeRunSync()));
   }
 
   @Test
@@ -213,10 +218,10 @@ public class MonadErrorTest {
     Higher1<UIO_, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertThrows(RuntimeException.class, () -> UIO_.narrowK(raiseError).unsafeRunSync()),
-        () -> assertEquals("not an error", UIO_.narrowK(handleError).unsafeRunSync()),
-        () -> assertThrows(RuntimeException.class, () -> UIO_.narrowK(ensureError).unsafeRunSync()),
-        () -> assertEquals("is not ok", UIO_.narrowK(ensureOk).unsafeRunSync()));
+        () -> assertThrows(RuntimeException.class, () -> UIOOf.narrowK(raiseError).unsafeRunSync()),
+        () -> assertEquals("not an error", UIOOf.narrowK(handleError).unsafeRunSync()),
+        () -> assertThrows(RuntimeException.class, () -> UIOOf.narrowK(ensureError).unsafeRunSync()),
+        () -> assertEquals("is not ok", UIOOf.narrowK(ensureOk).unsafeRunSync()));
   }
 
   @Test
@@ -231,10 +236,10 @@ public class MonadErrorTest {
     Higher1<Higher1<EIO_, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Either.<Throwable, String>left(error), EIO_.narrowK(raiseError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>right("not an error"), EIO_.narrowK(handleError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>left(error), EIO_.narrowK(ensureError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>right("is not ok"), EIO_.narrowK(ensureOk).safeRunSync()));
+        () -> assertEquals(Either.<Throwable, String>left(error), EIOOf.narrowK(raiseError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>right("not an error"), EIOOf.narrowK(handleError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>left(error), EIOOf.narrowK(ensureError).safeRunSync()),
+        () -> assertEquals(Either.<Throwable, String>right("is not ok"), EIOOf.narrowK(ensureOk).safeRunSync()));
   }
 
   @Test
@@ -249,10 +254,10 @@ public class MonadErrorTest {
     Higher1<Task_, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Try.<String>failure(error), Task_.narrowK(raiseError).safeRunSync()),
-        () -> assertEquals(Try.success("not an error"), Task_.narrowK(handleError).safeRunSync()),
-        () -> assertEquals(Try.<String>failure(error), Task_.narrowK(ensureError).safeRunSync()),
-        () -> assertEquals(Try.success("is not ok"), Task_.narrowK(ensureOk).safeRunSync()));
+        () -> assertEquals(Try.<String>failure(error), TaskOf.narrowK(raiseError).safeRunSync()),
+        () -> assertEquals(Try.success("not an error"), TaskOf.narrowK(handleError).safeRunSync()),
+        () -> assertEquals(Try.<String>failure(error), TaskOf.narrowK(ensureError).safeRunSync()),
+        () -> assertEquals(Try.success("is not ok"), TaskOf.narrowK(ensureOk).safeRunSync()));
   }
 
   @Test
@@ -267,9 +272,9 @@ public class MonadErrorTest {
     Higher1<Higher1<Higher1<ZIO_, Nothing>, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Either.<Throwable, String>left(error), ZIO_.narrowK(raiseError).provide(nothing())),
-        () -> assertEquals(Either.<Throwable, String>right("not an error"), ZIO_.narrowK(handleError).provide(nothing())),
-        () -> assertEquals(Either.<Throwable, String>left(error), ZIO_.narrowK(ensureError).provide(nothing())),
-        () -> assertEquals(Either.<Throwable, String>right("is not ok"), ZIO_.narrowK(ensureOk).provide(nothing())));
+        () -> assertEquals(Either.<Throwable, String>left(error), ZIOOf.narrowK(raiseError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>right("not an error"), ZIOOf.narrowK(handleError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>left(error), ZIOOf.narrowK(ensureError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>right("is not ok"), ZIOOf.narrowK(ensureOk).provide(nothing())));
   }
 }

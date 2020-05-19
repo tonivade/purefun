@@ -4,25 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.Future_;
-import com.github.tonivade.purefun.instances.FutureInstances;
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import static com.github.tonivade.purefun.effect.Task.pure;
 import static com.github.tonivade.purefun.effect.Task.task;
 import static com.github.tonivade.purefun.effect.Task.unit;
@@ -34,6 +15,24 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.concurrent.FutureOf;
+import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.instances.FutureInstances;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskTest {
@@ -140,7 +139,7 @@ public class TaskTest {
 
     Higher1<Future_, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Try.success(0), future.fix1(Future_::narrowK).await());
+    assertEquals(Try.success(0), future.fix1(FutureOf::narrowK).await());
   }
 
   @Test
@@ -149,7 +148,7 @@ public class TaskTest {
 
     Higher1<Future_, Integer> future = parseInt("jdjd").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(Future_::narrowK).await().getCause().getClass());
+    assertEquals(NumberFormatException.class, future.fix1(FutureOf::narrowK).await().getCause().getClass());
   }
 
   @Test

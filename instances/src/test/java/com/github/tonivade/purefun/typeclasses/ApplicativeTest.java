@@ -4,6 +4,10 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Operator5;
 import com.github.tonivade.purefun.instances.ConstInstances;
@@ -15,11 +19,6 @@ import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Option_;
-import org.junit.jupiter.api.Test;
-
-import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApplicativeTest {
 

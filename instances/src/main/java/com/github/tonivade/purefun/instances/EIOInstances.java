@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.EIO;
+import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -64,7 +65,7 @@ interface EIOFunctor<E> extends Functor<Higher1<EIO_, E>> {
   @Override
   default <A, B> Higher2<EIO_, E, B>
           map(Higher1<Higher1<EIO_, E>, A> value, Function1<A, B> map) {
-    return EIO_.narrowK(value).map(map);
+    return EIOOf.narrowK(value).map(map);
   }
 }
 
@@ -85,7 +86,7 @@ interface EIOApplicative<E> extends EIOPure<E> {
   default <A, B> Higher2<EIO_, E, B>
           ap(Higher1<Higher1<EIO_, E>, A> value,
              Higher1<Higher1<EIO_, E>, Function1<A, B>> apply) {
-    return EIO_.narrowK(apply).flatMap(map -> EIO_.narrowK(value).map(map));
+    return EIOOf.narrowK(apply).flatMap(map -> EIOOf.narrowK(value).map(map));
   }
 }
 
@@ -98,7 +99,7 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<Higher1<EIO_, E>> {
   default <A, B> Higher2<EIO_, E, B>
           flatMap(Higher1<Higher1<EIO_, E>, A> value,
                   Function1<A, ? extends Higher1<Higher1<EIO_, E>, B>> map) {
-    return EIO_.narrowK(value).flatMap(map.andThen(EIO_::narrowK));
+    return EIOOf.narrowK(value).flatMap(map.andThen(EIOOf::narrowK));
   }
 }
 
@@ -117,9 +118,9 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO_, E>, E> 
           handleErrorWith(Higher1<Higher1<EIO_,  E>, A> value,
                           Function1<E, ? extends Higher1<Higher1<EIO_, E>, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<E, EIO<E, A>> mapError = handler.andThen(EIO_::narrowK);
+    Function1<E, EIO<E, A>> mapError = handler.andThen(EIOOf::narrowK);
     Function1<A, EIO<E, A>> map = EIO::pure;
-    EIO<E, A> eio = EIO_.narrowK(value);
+    EIO<E, A> eio = EIOOf.narrowK(value);
     return eio.foldM(mapError, map);
   }
 }
@@ -136,7 +137,7 @@ interface EIODefer extends Defer<Higher1<EIO_, Throwable>> {
   @Override
   default <A> Higher2<EIO_, Throwable, A>
           defer(Producer<Higher1<Higher1<EIO_, Throwable>, A>> defer) {
-    return EIO.defer(() -> defer.map(EIO_::narrowK).get());
+    return EIO.defer(() -> defer.map(EIOOf::narrowK).get());
   }
 }
 
@@ -147,7 +148,7 @@ interface EIOBracket extends Bracket<Higher1<EIO_, Throwable>> {
           bracket(Higher1<Higher1<EIO_, Throwable>, A> acquire,
                   Function1<A, ? extends Higher1<Higher1<EIO_, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return EIO.bracket(acquire.fix1(EIO_::narrowK), use.andThen(EIO_::narrowK), release);
+    return EIO.bracket(acquire.fix1(EIOOf::narrowK), use.andThen(EIOOf::narrowK), release);
   }
 }
 

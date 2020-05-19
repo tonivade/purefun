@@ -14,32 +14,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.EIO_;
-import com.github.tonivade.purefun.effect.Task;
-import com.github.tonivade.purefun.effect.Task_;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.UIO_;
-import com.github.tonivade.purefun.effect.ZIO;
-import com.github.tonivade.purefun.effect.ZIO_;
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.effect.EIO;
+import com.github.tonivade.purefun.effect.EIOOf;
+import com.github.tonivade.purefun.effect.EIO_;
+import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.TaskOf;
+import com.github.tonivade.purefun.effect.Task_;
+import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.UIOOf;
+import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.ZIO;
+import com.github.tonivade.purefun.effect.ZIOOf;
+import com.github.tonivade.purefun.effect.ZIO_;
 import com.github.tonivade.purefun.instances.StreamInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.Stream.StreamOf;
 import com.github.tonivade.purefun.type.Option;
@@ -59,8 +61,8 @@ public class StreamTest {
 
     Stream<IO_, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix1(IO_::narrowK).map(x -> x + a))
-        .fix1(IO_::narrowK);
+    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix1(IOOf::narrowK).map(x -> x + a))
+        .fix1(IOOf::narrowK);
 
     assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
   }
@@ -72,7 +74,7 @@ public class StreamTest {
 
     Stream<IO_, String> result = pure1.concat(pure2).flatMap(string -> streamOfIO.pure(string.toUpperCase()));
 
-    IO<String> foldLeft = result.asString().fix1(IO_::narrowK);
+    IO<String> foldLeft = result.asString().fix1(IOOf::narrowK);
 
     assertEquals("HOLA MUNDO", foldLeft.unsafeRunSync());
   }
@@ -189,7 +191,7 @@ public class StreamTest {
   public void zip() {
     Stream<IO_, String> stream = streamOfIO.from(listOf("a", "b", "c"));
 
-    IO<Sequence<Tuple2<String, Integer>>> zip = streamOfIO.zipWithIndex(stream).asSequence().fix1(IO_::narrowK);
+    IO<Sequence<Tuple2<String, Integer>>> zip = streamOfIO.zipWithIndex(stream).asSequence().fix1(IOOf::narrowK);
 
     assertEquals(listOf(Tuple2.of("a", 0), Tuple2.of("b", 1), Tuple2.of("c", 2)), zip.unsafeRunSync());
   }
@@ -230,7 +232,7 @@ public class StreamTest {
   public void foldLeftLazyness() {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
-    IO<String> result = streamOfIO.eval(fail).asString().fix1(IO_::narrowK);
+    IO<String> result = streamOfIO.eval(fail).asString().fix1(IOOf::narrowK);
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
@@ -240,8 +242,8 @@ public class StreamTest {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
     IO<String> result = streamOfIO.eval(fail)
-      .foldRight(IO.pure(""), (a, b) -> b.fix1(IO_::narrowK).map(x -> a + x))
-      .fix1(IO_::narrowK);
+      .foldRight(IO.pure(""), (a, b) -> b.fix1(IOOf::narrowK).map(x -> a + x))
+      .fix1(IOOf::narrowK);
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
@@ -293,8 +295,8 @@ public class StreamTest {
 
   @Test
   public void readFileAsync() {
-    Future<String> license = pureReadFileIO("../LICENSE").foldMap(monadDefer()).fix1(Future_::narrowK);
-    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(monadDefer()).fix1(Future_::narrowK);
+    Future<String> license = pureReadFileIO("../LICENSE").foldMap(monadDefer()).fix1(FutureOf::narrowK);
+    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(monadDefer()).fix1(FutureOf::narrowK);
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
         () -> assertEquals("--- file not found ---", notFound.await().get()));
@@ -306,7 +308,7 @@ public class StreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::get)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix1(IO_::narrowK)
+        .fix1(IOOf::narrowK)
         .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
   }
 
@@ -316,7 +318,7 @@ public class StreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::get)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix1(UIO_::narrowK)
+        .fix1(UIOOf::narrowK)
         .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
   }
 
@@ -326,7 +328,7 @@ public class StreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::get)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix1(Task_::narrowK)
+        .fix1(TaskOf::narrowK)
         .recover(cons("--- file not found ---"));
   }
 
@@ -336,7 +338,7 @@ public class StreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::get)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix1(EIO_::narrowK)
+        .fix1(EIOOf::narrowK)
         .recover(cons("--- file not found ---"));
   }
 
@@ -346,7 +348,7 @@ public class StreamTest {
       .takeWhile(Option::isPresent)
       .map(Option::get)
       .foldLeft("", (a, b) -> a + '\n' + b)
-      .fix1(ZIO_::narrowK)
+      .fix1(ZIOOf::narrowK)
       .recover(cons("--- file not found ---"));
   }
 
@@ -357,7 +359,9 @@ public class StreamTest {
         String line = readLine(reader);
         if (nonNull(line)) {
           content = content + "\n" + line;
-        } else break;
+        } else {
+          break;
+        }
       }
     } catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -382,6 +386,6 @@ public class StreamTest {
   }
 
   private static <T> T run(Higher1<IO_, T> effect) {
-    return effect.fix1(IO_::narrowK).unsafeRunSync();
+    return effect.fix1(IOOf::narrowK).unsafeRunSync();
   }
 }

@@ -5,20 +5,17 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.nonNull;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -38,7 +35,7 @@ import com.github.tonivade.purefun.data.Sequence;
  */
 @Sealed
 @HigherKind
-public interface Option<T> extends Higher1<Option_, T> {
+public interface Option<T> extends OptionOf<T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);

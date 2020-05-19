@@ -5,27 +5,24 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Validator.lowerThan;
-import static com.github.tonivade.purefun.Validator.lowerThanOrEqual;
 import static com.github.tonivade.purefun.Validator.greaterThan;
 import static com.github.tonivade.purefun.Validator.greaterThanOrEqual;
+import static com.github.tonivade.purefun.Validator.lowerThan;
+import static com.github.tonivade.purefun.Validator.lowerThanOrEqual;
 import static com.github.tonivade.purefun.Validator.nonEmpty;
 import static com.github.tonivade.purefun.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.Validator.positive;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -45,7 +42,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <T> type of the value when valid
  */
 @HigherKind
-public interface Validation<E, T> extends Higher2<Validation_, E, T> {
+public interface Validation<E, T> extends ValidationOf<E, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);

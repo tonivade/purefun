@@ -8,19 +8,15 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
-
 import java.util.stream.StreamSupport;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
@@ -30,7 +26,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
 @HigherKind
-public interface Sequence<E> extends Higher1<Sequence_, E>, Iterable<E> {
+public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
 
   int size();
 
@@ -38,7 +34,9 @@ public interface Sequence<E> extends Higher1<Sequence_, E>, Iterable<E> {
 
   default boolean containsAll(Sequence<E> elements) {
     for (E e : elements) {
-      if (!contains(e)) return false;
+      if (!contains(e)) {
+        return false;
+      }
     }
     return true;
   }

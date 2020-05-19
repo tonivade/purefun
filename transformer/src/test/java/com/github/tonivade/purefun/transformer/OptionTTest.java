@@ -9,28 +9,29 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
-import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 public class OptionTTest {
 
@@ -88,7 +89,7 @@ public class OptionTTest {
 
     OptionT<Try_, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success("abc"), Try_.narrowK(someTry.get()));
+    assertEquals(Try.success("abc"), TryOf.narrowK(someTry.get()));
   }
 
   @Test
@@ -123,10 +124,10 @@ public class OptionTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), Future_.narrowK(OptionT_.narrowK(raiseError).value()).await()),
-        () -> assertEquals(Try.success(Option.some("not an error")), Future_.narrowK(OptionT_.narrowK(handleError).value()).await()),
-        () -> assertEquals(Try.failure(error), Future_.narrowK(OptionT_.narrowK(ensureError).value()).await()),
-        () -> assertEquals(Try.success(Option.some("is not ok")), Future_.narrowK(OptionT_.narrowK(ensureOk).value()).await()));
+        () -> assertEquals(Try.failure(error), FutureOf.narrowK(OptionTOf.narrowK(raiseError).value()).await()),
+        () -> assertEquals(Try.success(Option.some("not an error")), FutureOf.narrowK(OptionTOf.narrowK(handleError).value()).await()),
+        () -> assertEquals(Try.failure(error), FutureOf.narrowK(OptionTOf.narrowK(ensureError).value()).await()),
+        () -> assertEquals(Try.success(Option.some("is not ok")), FutureOf.narrowK(OptionTOf.narrowK(ensureOk).value()).await()));
   }
 
   @Test
@@ -143,10 +144,10 @@ public class OptionTTest {
         monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Id.of(Option.none()), OptionT_.narrowK(raiseError).value()),
-        () -> assertEquals(Id.of(Option.some("not an error")), OptionT_.narrowK(handleError).value()),
-        () -> assertEquals(Id.of(Option.none()), OptionT_.narrowK(ensureError).value()),
-        () -> assertEquals(Id.of(Option.some("is not ok")), OptionT_.narrowK(ensureOk).value()));
+        () -> assertEquals(Id.of(Option.none()), OptionTOf.narrowK(raiseError).value()),
+        () -> assertEquals(Id.of(Option.some("not an error")), OptionTOf.narrowK(handleError).value()),
+        () -> assertEquals(Id.of(Option.none()), OptionTOf.narrowK(ensureError).value()),
+        () -> assertEquals(Id.of(Option.some("is not ok")), OptionTOf.narrowK(ensureOk).value()));
   }
 }
 
@@ -154,6 +155,6 @@ class IOToTryFunctionK implements FunctionK<IO_, Try_> {
 
   @Override
   public <T> Higher1<Try_, T> apply(Higher1<IO_, T> from) {
-    return Try.of(IO_.narrowK(from)::unsafeRunSync);
+    return Try.of(IOOf.narrowK(from)::unsafeRunSync);
   }
 }

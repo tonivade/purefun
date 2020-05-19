@@ -6,9 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.laws.FunctorLaws.verifyLaws;
 import static com.github.tonivade.purefun.typeclasses.Nested.nest;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.ConstInstances;

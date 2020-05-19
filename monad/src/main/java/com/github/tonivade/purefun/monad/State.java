@@ -6,10 +6,8 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
@@ -18,7 +16,7 @@ import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
 @FunctionalInterface
-public interface State<S, A> extends Higher2<State_, S, A> {
+public interface State<S, A> extends StateOf<S, A> {
 
   Tuple2<S, A> run(S state);
 
@@ -62,7 +60,7 @@ public interface State<S, A> extends Higher2<State_, S, A> {
   }
 
   static <S, A> State<S, Sequence<A>> compose(Sequence<State<S, A>> states) {
-    return states.foldLeft(pure(empty()), 
+    return states.foldLeft(pure(empty()),
         (State<S, Sequence<A>>sa, State<S, A> sb) -> map2(sa, sb, Sequence::append));
   }
 

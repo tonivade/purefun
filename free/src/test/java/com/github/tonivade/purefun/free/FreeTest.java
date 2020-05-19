@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.free;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
@@ -11,13 +13,12 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
+import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FreeTest {
 
@@ -32,7 +33,7 @@ public class FreeTest {
     Higher1<Higher1<State_, ImmutableList<String>>, Unit> foldMap =
         echo.foldMap(StateInstances.monad(), new IOProgramToState());
 
-    State<ImmutableList<String>, Unit> state = State_.narrowK(foldMap);
+    State<ImmutableList<String>, Unit> state = StateOf.narrowK(foldMap);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(ImmutableList.of("Toni"));
 
@@ -44,7 +45,7 @@ public class FreeTest {
     Higher1<IO_, Unit> foldMap =
         echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
-    IO<Unit> echoIO = IO_.narrowK(foldMap);
+    IO<Unit> echoIO = IOOf.narrowK(foldMap);
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 

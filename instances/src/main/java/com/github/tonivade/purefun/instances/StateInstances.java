@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.State;
+import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -46,7 +47,7 @@ interface StateMonad<S> extends Monad<Higher1<State_, S>> {
   @Override
   default <T, R> Higher2<State_, S, R> flatMap(Higher1<Higher1<State_, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<State_, S>, R>> map) {
-    return State_.narrowK(value).flatMap(map.andThen(State_::narrowK));
+    return StateOf.narrowK(value).flatMap(map.andThen(StateOf::narrowK));
   }
 }
 

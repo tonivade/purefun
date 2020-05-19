@@ -4,6 +4,13 @@
  */
 package com.github.tonivade.purefun.free;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.NoSuchElementException;
+import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Producer_;
@@ -14,19 +21,12 @@ import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
-import org.junit.jupiter.api.Test;
-
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EitherKTest {
 
@@ -104,7 +104,7 @@ class EitherKTest {
     EitherK<Option_, Option_, String> result = eitherK.mapK(new FunctionK<Try_, Option_>() {
       @Override
       public <T> Higher1<Option_, T> apply(Higher1<Try_, T> from) {
-        return from.fix1(Try_::narrowK).toOption();
+        return from.fix1(TryOf::narrowK).toOption();
       }
     });
 
@@ -118,7 +118,7 @@ class EitherKTest {
     EitherK<Try_, Try_, String> result = eitherK.mapLeftK(new FunctionK<Option_, Try_>() {
       @Override
       public <T> Higher1<Try_, T> apply(Higher1<Option_, T> from) {
-        return from.fix1(Option_::narrowK).fold(Try::<T>failure, Try::success);
+        return from.fix1(OptionOf::narrowK).fold(Try::<T>failure, Try::success);
       }
     });
 

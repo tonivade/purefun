@@ -5,22 +5,20 @@
 package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
+import static com.github.tonivade.purefun.Producer.cons;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public interface OptionT<F extends Kind, T> extends Higher2<OptionT_, F, T> {
+public interface OptionT<F extends Kind, T> extends OptionTOf<F, T> {
 
   Monad<F> monad();
   Higher1<F, Option<T>> value();

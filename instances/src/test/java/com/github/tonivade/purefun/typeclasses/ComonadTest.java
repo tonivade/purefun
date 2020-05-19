@@ -5,9 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.laws.ComonadLaws.verifyLaws;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Id;
 

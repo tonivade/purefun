@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -35,7 +36,7 @@ public interface EitherInstances {
         .then((x, y) -> rightEq.eqv(x.getRight(), y.getRight()))
       .otherwise()
         .returns(false)
-      .apply(Either_.narrowK(a), Either_.narrowK(b));
+      .apply(EitherOf.narrowK(a), EitherOf.narrowK(b));
   }
 
   static <L> Functor<Higher1<Either_, L>> functor() {
@@ -78,7 +79,7 @@ interface EitherFunctor<L> extends Functor<Higher1<Either_, L>> {
 
   @Override
   default <T, R> Higher2<Either_, L, R> map(Higher1<Higher1<Either_, L>, T> value, Function1<T, R> map) {
-    return Either_.narrowK(value).map(map);
+    return EitherOf.narrowK(value).map(map);
   }
 }
 
@@ -89,7 +90,7 @@ interface EitherBifunctor extends Bifunctor<Either_> {
   @Override
   default <A, B, C, D> Higher2<Either_, C, D> bimap(Higher2<Either_, A, B> value,
       Function1<A, C> leftMap, Function1<B, D> rightMap) {
-    return Either_.narrowK(value).mapLeft(leftMap).map(rightMap);
+    return EitherOf.narrowK(value).mapLeft(leftMap).map(rightMap);
   }
 }
 
@@ -109,7 +110,7 @@ interface EitherApplicative<L> extends EitherPure<L> {
   @Override
   default <T, R> Higher2<Either_, L, R> ap(Higher1<Higher1<Either_, L>, T> value,
       Higher1<Higher1<Either_, L>, Function1<T, R>> apply) {
-    return Either_.narrowK(value).flatMap(t -> Either_.narrowK(apply).map(f -> f.apply(t)));
+    return EitherOf.narrowK(value).flatMap(t -> EitherOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -121,7 +122,7 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Higher1<Either_, L>> {
   @Override
   default <T, R> Higher2<Either_, L, R> flatMap(Higher1<Higher1<Either_, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Either_, L>, R>> map) {
-    return Either_.narrowK(value).flatMap(map.andThen(Either_::narrowK));
+    return EitherOf.narrowK(value).flatMap(map.andThen(EitherOf::narrowK));
   }
 }
 
@@ -138,7 +139,7 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Higher1<Either_
   @Override
   default <A> Higher2<Either_, L, A> handleErrorWith(Higher1<Higher1<Either_, L>, A> value,
       Function1<L, ? extends Higher1<Higher1<Either_, L>, A>> handler) {
-    return Either_.narrowK(value).fold(handler.andThen(Either_::narrowK), Either::<L, A>right);
+    return EitherOf.narrowK(value).fold(handler.andThen(EitherOf::narrowK), Either::<L, A>right);
   }
 }
 
@@ -154,13 +155,13 @@ interface EitherFoldable<L> extends Foldable<Higher1<Either_, L>> {
 
   @Override
   default <A, B> B foldLeft(Higher1<Higher1<Either_, L>, A> value, B initial, Function2<B, A, B> mapper) {
-    return Either_.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
+    return EitherOf.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Higher1<Higher1<Either_, L>, A> value, Eval<B> initial,
       Function2<A, Eval<B>, Eval<B>> mapper) {
-    return Either_.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
+    return EitherOf.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
   }
 }
 
@@ -173,7 +174,7 @@ interface EitherTraverse<L> extends Traverse<Higher1<Either_, L>>, EitherFoldabl
   default <G extends Kind, T, R> Higher1<G, Higher1<Higher1<Either_, L>, R>> traverse(
       Applicative<G> applicative, Higher1<Higher1<Either_, L>, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
-    return Either_.narrowK(value).fold(
+    return EitherOf.narrowK(value).fold(
       l -> applicative.pure(Either.<L, R>left(l)),
       t -> applicative.map(mapper.apply(t), r -> Either.<L, R>right(r)));
   }

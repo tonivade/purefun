@@ -7,9 +7,7 @@ package com.github.tonivade.purefun.transformer;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
@@ -20,9 +18,11 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -33,25 +33,25 @@ public class StateTTest {
   @Test
   public void get() {
     Higher1<IO_, Tuple2<Object, Object>> run = StateT.get(monad).run("abc");
-    assertEquals(Tuple.of("abc", "abc"), IO_.narrowK(run).unsafeRunSync());
+    assertEquals(Tuple.of("abc", "abc"), IOOf.narrowK(run).unsafeRunSync());
   }
 
   @Test
   public void set() {
     Higher1<IO_, Tuple2<String, Unit>> run = StateT.set(monad, "abc").run("zzz");
-    assertEquals(Tuple.of("abc", unit()), IO_.narrowK(run).unsafeRunSync());
+    assertEquals(Tuple.of("abc", unit()), IOOf.narrowK(run).unsafeRunSync());
   }
 
   @Test
   public void gets() {
     Higher1<IO_, String> eval = StateT.<IO_, String, String>inspect(monad, String::toUpperCase).eval("abc");
-    assertEquals("ABC", IO_.narrowK(eval).unsafeRunSync());
+    assertEquals("ABC", IOOf.narrowK(eval).unsafeRunSync());
   }
 
   @Test
   public void modify() {
     Higher1<IO_, Tuple2<String, Unit>> run = StateT.<IO_, String>modify(monad, String::toUpperCase).run("abc");
-    assertEquals(Tuple.of("ABC", unit()), IO_.narrowK(run).unsafeRunSync());
+    assertEquals(Tuple.of("ABC", unit()), IOOf.narrowK(run).unsafeRunSync());
   }
 
   @Test
@@ -59,7 +59,7 @@ public class StateTTest {
     StateT<IO_, ImmutableList<String>, Unit> state =
         pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-    IO<Tuple2<ImmutableList<String>, Unit>> result = IO_.narrowK(state.run(ImmutableList.empty()));
+    IO<Tuple2<ImmutableList<String>, Unit>> result = IOOf.narrowK(state.run(ImmutableList.empty()));
 
     assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
   }
@@ -72,7 +72,7 @@ public class StateTTest {
 
     Higher1<IO_, Tuple2<Unit, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(unit());
 
-    assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), IO_.narrowK(result).unsafeRunSync());
+    assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), IOOf.narrowK(result).unsafeRunSync());
   }
 
   @Test
@@ -80,7 +80,7 @@ public class StateTTest {
     StateT<IO_, ImmutableList<String>, Option<String>> read =
         StateT.lift(monad, state -> Tuple.of(state.tail(), state.head()));
 
-    IO<Tuple2<ImmutableList<String>, Option<String>>> result = IO_.narrowK(read.run(listOf("a", "b", "c")));
+    IO<Tuple2<ImmutableList<String>, Option<String>>> result = IOOf.narrowK(read.run(listOf("a", "b", "c")));
 
     assertEquals(Tuple.of(listOf("b", "c"), Option.some("a")), result.unsafeRunSync());
   }
@@ -91,7 +91,7 @@ public class StateTTest {
 
     StateT<Try_, Unit, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success(Tuple2.of(unit(), "abc")), Try_.narrowK(stateTry.run(unit())));
+    assertEquals(Try.success(Tuple2.of(unit(), "abc")), TryOf.narrowK(stateTry.run(unit())));
   }
 
   private StateT<IO_, ImmutableList<String>, String> pure(String value) {

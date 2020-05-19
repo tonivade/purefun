@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -64,7 +65,7 @@ interface IOFunctor extends Functor<IO_> {
 
   @Override
   default <T, R> Higher1<IO_, R> map(Higher1<IO_, T> value, Function1<T, R> map) {
-    return IO_.narrowK(value).map(map);
+    return IOOf.narrowK(value).map(map);
   }
 }
 
@@ -79,7 +80,7 @@ interface IOMonad extends Monad<IO_> {
 
   @Override
   default <T, R> Higher1<IO_, R> flatMap(Higher1<IO_, T> value, Function1<T, ? extends Higher1<IO_, R>> map) {
-    return IO_.narrowK(value).flatMap(map.andThen(IO_::narrowK));
+    return IOOf.narrowK(value).flatMap(map.andThen(IOOf::narrowK));
   }
 }
 
@@ -94,7 +95,7 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
 
   @Override
   default <A> Higher1<IO_, A> handleErrorWith(Higher1<IO_, A> value, Function1<Throwable, ? extends Higher1<IO_, A>> handler) {
-    return IO_.narrowK(value).redeemWith(handler.andThen(IO_::narrowK), IO::pure);
+    return IOOf.narrowK(value).redeemWith(handler.andThen(IOOf::narrowK), IO::pure);
   }
 }
 
@@ -107,7 +108,7 @@ interface IODefer extends Defer<IO_> {
 
   @Override
   default <A> Higher1<IO_, A> defer(Producer<Higher1<IO_, A>> defer) {
-    return IO.suspend(defer.map(IO_::narrowK));
+    return IO.suspend(defer.map(IOOf::narrowK));
   }
 }
 
@@ -115,7 +116,7 @@ interface IOBracket extends Bracket<IO_> {
 
   @Override
   default <A, B> Higher1<IO_, B> bracket(Higher1<IO_, A> acquire, Function1<A, ? extends Higher1<IO_, B>> use, Consumer1<A> release) {
-    return IO.bracket(IO_.narrowK(acquire), use.andThen(IO_::narrowK), release::accept);
+    return IO.bracket(IOOf.narrowK(acquire), use.andThen(IOOf::narrowK), release::accept);
   }
 }
 

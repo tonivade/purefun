@@ -5,17 +5,14 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public interface Trampoline<T> extends Higher1<Trampoline_, T> {
+public interface Trampoline<T> extends TrampolineOf<T> {
 
   Trampoline<T> apply();
 

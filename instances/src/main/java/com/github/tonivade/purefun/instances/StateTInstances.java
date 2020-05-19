@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
@@ -13,6 +12,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.StateT;
+import com.github.tonivade.purefun.transformer.StateTOf;
 import com.github.tonivade.purefun.transformer.StateT_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -54,7 +54,7 @@ interface StateTMonad<F extends Kind, S> extends Monad<Higher1<Higher1<StateT_, 
   @Override
   default <T, R> Higher3<StateT_, F, S, R> flatMap(Higher1<Higher1<Higher1<StateT_, F>, S>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<StateT_, F>, S>, R>> map) {
-    return StateT_.narrowK(value).flatMap(map.andThen(StateT_::narrowK));
+    return StateTOf.narrowK(value).flatMap(map.andThen(StateTOf::narrowK));
   }
 }
 
@@ -77,10 +77,10 @@ interface StateTMonadError<F extends Kind, S, E> extends MonadError<Higher1<High
   default <A> Higher3<StateT_, F, S, A> handleErrorWith(
       Higher1<Higher1<Higher1<StateT_, F>, S>, A> value,
       Function1<E, ? extends Higher1<Higher1<Higher1<StateT_, F>, S>, A>> handler) {
-    StateT<F, S, A> stateT = value.fix1(StateT_::narrowK);
+    StateT<F, S, A> stateT = value.fix1(StateTOf::narrowK);
     return StateT.<F, S, A>state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
-            error -> handler.apply(error).fix1(StateT_::narrowK).run(state)));
+            error -> handler.apply(error).fix1(StateTOf::narrowK).run(state)));
   }
 }
 

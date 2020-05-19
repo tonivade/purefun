@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
+import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.EitherT;
+import com.github.tonivade.purefun.transformer.EitherTOf;
 import com.github.tonivade.purefun.transformer.EitherT_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Bracket;
@@ -27,12 +28,10 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
-import java.time.Duration;
-
 public interface EitherTInstances {
 
   static <F extends Kind, L, R> Eq<Higher3<EitherT_, F, L, R>> eq(Eq<Higher1<F, Either<L, R>>> eq) {
-    return (a, b) -> eq.eqv(EitherT_.narrowK(a).value(), EitherT_.narrowK(b).value());
+    return (a, b) -> eq.eqv(EitherTOf.narrowK(a).value(), EitherTOf.narrowK(b).value());
   }
 
   static <F extends Kind, L> Monad<Higher1<Higher1<EitherT_, F>, L>> monad(Monad<F> monadF) {
@@ -96,7 +95,7 @@ interface EitherTMonad<F extends Kind, L> extends Monad<Higher1<Higher1<EitherT_
   @Override
   default <T, R> Higher3<EitherT_, F, L, R> flatMap(Higher1<Higher1<Higher1<EitherT_, F>, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<EitherT_, F>, L>, R>> map) {
-    return EitherT_.narrowK(value).flatMap(map.andThen(EitherT_::narrowK));
+    return EitherTOf.narrowK(value).flatMap(map.andThen(EitherTOf::narrowK));
   }
 }
 
@@ -116,9 +115,9 @@ interface EitherTMonadErrorFromMonad<F extends Kind, E>
   default <A> Higher3<EitherT_, F, E, A> handleErrorWith(Higher1<Higher1<Higher1<EitherT_, F>, E>, A> value,
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT_, F>, E>, A>> handler) {
     return EitherT.of(monadF(),
-        monadF().flatMap(EitherT_.narrowK(value).value(),
+        monadF().flatMap(EitherTOf.narrowK(value).value(),
             either -> either.fold(
-                e -> handler.andThen(EitherT_::narrowK).apply(e).value(),
+                e -> handler.andThen(EitherTOf::narrowK).apply(e).value(),
                 a -> monadF().pure(Either.<E, A>right(a)))));
   }
 }
@@ -143,8 +142,8 @@ interface EitherTMonadErrorFromMonadError<F extends Kind, E>
   default <A> Higher3<EitherT_, F, E, A> handleErrorWith(Higher1<Higher1<Higher1<EitherT_, F>, E>, A> value,
       Function1<E, ? extends Higher1<Higher1<Higher1<EitherT_, F>, E>, A>> handler) {
     return EitherT.of(monadF(),
-                      monadF().handleErrorWith(EitherT_.narrowK(value).value(),
-                                               error -> handler.andThen(EitherT_::narrowK).apply(error).value()));
+                      monadF().handleErrorWith(EitherTOf.narrowK(value).value(),
+                                               error -> handler.andThen(EitherTOf::narrowK).apply(error).value()));
   }
 }
 
@@ -176,7 +175,7 @@ interface EitherTDefer<F extends Kind, E> extends Defer<Higher1<Higher1<EitherT_
 
   @Override
   default <A> Higher3<EitherT_, F, E, A> defer(Producer<Higher1<Higher1<Higher1<EitherT_, F>, E>, A>> defer) {
-    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherT_::narrowK).get().value()));
+    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherTOf::narrowK).get().value()));
   }
 }
 
@@ -193,10 +192,10 @@ interface EitherTBracket<F extends Kind> extends Bracket<Higher1<Higher1<EitherT
                   Consumer1<A> release) {
     Higher1<F, Either<Throwable, B>> bracket =
         monadF().bracket(
-            acquire.fix1(EitherT_::narrowK).value(),
+            acquire.fix1(EitherTOf::narrowK).value(),
             either -> either.fold(
                 this::acquireRecover,
-                value -> use.andThen(EitherT_::narrowK).apply(value).value()),
+                value -> use.andThen(EitherTOf::narrowK).apply(value).value()),
             either -> either.fold(cons(unit()), release.asFunction()));
     return EitherT.of(monadF(), bracket);
   }

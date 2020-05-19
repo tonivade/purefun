@@ -6,11 +6,10 @@ package com.github.tonivade.purefun;
 
 import java.io.Serializable;
 import java.util.Objects;
-
 import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
-public final class Tuple2<A, B> implements Tuple, Higher2<Tuple2_, A, B>, Serializable {
+public final class Tuple2<A, B> implements Tuple, Tuple2Of<A, B>, Serializable {
 
   private static final long serialVersionUID = 5034828839532504174L;
 

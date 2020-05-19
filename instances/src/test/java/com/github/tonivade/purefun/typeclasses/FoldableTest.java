@@ -12,20 +12,18 @@ import static com.github.tonivade.purefun.typeclasses.Foldable.compose;
 import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.github.tonivade.purefun.instances.ConstInstances;
-import com.github.tonivade.purefun.type.Const;
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.data.Sequence_;
+import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
+import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Id;

@@ -4,6 +4,16 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Unit.unit;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
@@ -12,19 +22,13 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Id_;
-import org.junit.jupiter.api.Test;
 
-import static com.github.tonivade.purefun.Unit.unit;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+@ExtendWith(MockitoExtension.class)
 public class ForTest {
 
   @Test
@@ -32,14 +36,13 @@ public class ForTest {
     Id<String> result = For.with(IdInstances.monad())
         .andThen(() -> Id.of("value"))
         .map(String::toUpperCase)
-        .fix(Id_::narrowK);
+        .fix(IdOf::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
 
   @Test
-  public void returns() {
-    Function1<String, String> mapper = mock(Function1.class);
+  public void returns(@Mock Function1<String, String> mapper) {
     when(mapper.apply(anyString())).thenReturn("called");
     when(mapper.andThen(any())).thenCallRealMethod();
 
@@ -58,7 +61,7 @@ public class ForTest {
     Id<String> result = For.with(monad)
         .andThen(() -> monad.pure("value"))
         .flatMap(string -> monad.pure(string.toUpperCase()))
-        .fix(Id_::narrowK);
+        .fix(IdOf::narrowK);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -73,7 +76,7 @@ public class ForTest {
           .and("d")
           .and("e")
           .tuple()
-          .fix1(Id_::narrowK);
+          .fix1(IdOf::narrowK);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
   }
@@ -90,11 +93,11 @@ public class ForTest {
 
     IO<Integer> yield =
       program
-        .yield((a, b, c, d, e) -> a + b + c + d + e).fix1(IO_::narrowK);
+        .yield((a, b, c, d, e) -> a + b + c + d + e).fix1(IOOf::narrowK);
 
     IO<Integer> apply =
       program
-        .apply((a, b, c, d, e) -> a + b + c + d + e).fix1(IO_::narrowK);
+        .apply((a, b, c, d, e) -> a + b + c + d + e).fix1(IOOf::narrowK);
 
     assertEquals(15, yield.unsafeRunSync());
     assertEquals(15, apply.unsafeRunSync());

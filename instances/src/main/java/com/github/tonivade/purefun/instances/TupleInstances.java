@@ -7,7 +7,9 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Tuple1Of;
 import com.github.tonivade.purefun.Tuple1_;
+import com.github.tonivade.purefun.Tuple2Of;
 import com.github.tonivade.purefun.Tuple2_;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -29,7 +31,7 @@ interface Tuple1Functor extends Functor<Tuple1_> {
 
   @Override
   default <T, R> Higher1<Tuple1_, R> map(Higher1<Tuple1_, T> value, Function1<T, R> map) {
-    return value.fix1(Tuple1_::narrowK).map(map);
+    return value.fix1(Tuple1Of::narrowK).map(map);
   }
 }
 
@@ -41,6 +43,6 @@ interface Tuple2Bifunctor extends Bifunctor<Tuple2_> {
   default <A, B, C, D> Higher2<Tuple2_, C, D> bimap(Higher2<Tuple2_, A, B> value,
                                           Function1<A, C> leftMap,
                                           Function1<B, D> rightMap) {
-    return value.fix2(Tuple2_::narrowK).map(leftMap, rightMap);
+    return value.fix2(Tuple2Of::narrowK).map(leftMap, rightMap);
   }
 }

@@ -4,18 +4,11 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import com.github.tonivade.purefun.CheckedRunnable;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Consumer2;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Sealed;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.type.Try;
-
+import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Unit.unit;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
@@ -24,12 +17,16 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import com.github.tonivade.purefun.CheckedRunnable;
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Consumer2;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Sealed;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.type.Try;
 
 /**
  * <p>This type is an abstraction of a computation executed in another thread. To run the computation an {@code Executor}
@@ -63,7 +60,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
  */
 @Sealed
 @HigherKind
-public interface Future<T> extends Higher1<Future_, T> {
+public interface Future<T> extends FutureOf<T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 

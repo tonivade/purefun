@@ -7,16 +7,13 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -36,7 +33,7 @@ import com.github.tonivade.purefun.data.Sequence;
  */
 @Sealed
 @HigherKind
-public interface Try<T> extends Higher1<Try_, T> {
+public interface Try<T> extends TryOf<T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);

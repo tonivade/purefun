@@ -4,25 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO_;
-import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import static com.github.tonivade.purefun.effect.EIO.pure;
 import static com.github.tonivade.purefun.effect.EIO.raiseError;
 import static com.github.tonivade.purefun.effect.EIO.task;
@@ -34,6 +15,24 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.monad.IOOf;
+import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @ExtendWith(MockitoExtension.class)
 public class EIOTest {
@@ -170,7 +169,7 @@ public class EIOTest {
 
     Higher1<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Either.right(0), future.fix1(IO_::narrowK).unsafeRunSync());
+    assertEquals(Either.right(0), future.fix1(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test
@@ -179,7 +178,7 @@ public class EIOTest {
 
     Higher1<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(IO_::narrowK).unsafeRunSync().getLeft().getClass());
+    assertEquals(NumberFormatException.class, future.fix1(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   @Test

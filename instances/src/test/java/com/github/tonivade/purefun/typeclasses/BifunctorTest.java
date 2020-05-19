@@ -6,9 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.laws.BifunctorLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.TupleInstances;

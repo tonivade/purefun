@@ -4,18 +4,15 @@
  */
 package com.github.tonivade.purefun.type;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Unit.unit;
+import java.util.Deque;
+import java.util.LinkedList;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
-
-import java.util.Deque;
-import java.util.LinkedList;
-
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 /**
  * <p>This is a monad that allows to control the evaluation of a computation or a value.</p>
@@ -28,7 +25,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
  * @param <A> result of the computation
  */
 @HigherKind
-public interface Eval<A> extends Higher1<Eval_, A> {
+public interface Eval<A> extends EvalOf<A> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
@@ -79,6 +76,7 @@ public interface Eval<A> extends Higher1<Eval_, A> {
       return producer.get();
     }
 
+    @Override
     public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
       return new FlatMapped<>(cons(this), map::apply);
     }
@@ -180,7 +178,9 @@ interface EvalModule {
       } else if (current instanceof Eval.FlatMapped) {
         Eval.FlatMapped<X, A> flatMapped = (Eval.FlatMapped<X, A>) current;
         return new Eval.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
-      } else break;
+      } else {
+        break;
+      }
     }
     return current;
   }
@@ -199,11 +199,13 @@ interface EvalModule {
           stack.push(currentFlatMapped::run);
           stack.push(nextFlatMapped::run);
         } else {
-          current = (Eval<A>) currentFlatMapped.run(next.value());
+          current = currentFlatMapped.run(next.value());
         }
       } else if (!stack.isEmpty()) {
-        current = (Eval<A>) stack.pop().apply(current.value());
-      } else break;
+        current = stack.pop().apply(current.value());
+      } else {
+        break;
+      }
     }
     return current.value();
   }

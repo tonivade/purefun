@@ -10,12 +10,12 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator2;
 
 @HigherKind
-public interface Monoid<T> extends Higher1<Monoid_, T>, Semigroup<T> {
+public interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
 
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix1(Monoid_::<R>narrowK);
+    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix1(MonoidOf::<R>narrowK);
   }
 
   static Monoid<String> string() {
@@ -43,7 +43,7 @@ public interface Monoid<T> extends Higher1<Monoid_, T>, Semigroup<T> {
 }
 
 interface MonoidInvariant extends Invariant<Monoid_> {
-  
+
   MonoidInvariant INSTANCE = new MonoidInvariant() { };
 
   @Override
@@ -54,12 +54,12 @@ interface MonoidInvariant extends Invariant<Monoid_> {
 
       @Override
       public B zero() {
-        return map.apply(value.fix1(Monoid_::narrowK).zero());
+        return map.apply(value.fix1(MonoidOf::narrowK).zero());
       }
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix1(Monoid_::narrowK).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.fix1(MonoidOf::narrowK).combine(comap.apply(t1), comap.apply(t2)));
       }
     };
   }

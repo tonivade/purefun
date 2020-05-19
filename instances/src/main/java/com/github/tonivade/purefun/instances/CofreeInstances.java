@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.free.CofreeOf;
 import com.github.tonivade.purefun.free.Cofree_;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -31,7 +32,7 @@ interface CofreeFunctor<F extends Kind> extends Functor<Higher1<Cofree_, F>> {
 
   @Override
   default <T, R> Higher2<Cofree_, F, R> map(Higher1<Higher1<Cofree_, F>, T> value, Function1<T, R> map) {
-    return value.fix1(Cofree_::narrowK).map(map);
+    return value.fix1(CofreeOf::narrowK).map(map);
   }
 }
 
@@ -42,12 +43,12 @@ interface CofreeComonad<F extends Kind> extends Comonad<Higher1<Cofree_, F>>, Co
 
   @Override
   default <A> A extract(Higher1<Higher1<Cofree_, F>, A> value) {
-    return value.fix1(Cofree_::narrowK).extract();
+    return value.fix1(CofreeOf::narrowK).extract();
   }
 
   @Override
   default <A, B> Higher2<Cofree_, F, B> coflatMap(
       Higher1<Higher1<Cofree_, F>, A> value, Function1<Higher1<Higher1<Cofree_, F>, A>, B> map) {
-    return value.fix1(Cofree_::narrowK).coflatMap(map::apply);
+    return value.fix1(CofreeOf::narrowK).coflatMap(map::apply);
   }
 }

@@ -4,6 +4,16 @@
  */
 package com.github.tonivade.purefun.free;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple4;
@@ -12,21 +22,12 @@ import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.typeclasses.For;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CofreeTest {
@@ -41,7 +42,7 @@ public class CofreeTest {
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
-          .tuple().fix1(Id_::narrowK);
+          .tuple().fix1(IdOf::narrowK);
 
     assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.get().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
   }
@@ -53,7 +54,7 @@ public class CofreeTest {
 
     assertEquals(5151,
         cofree.<Integer>fold(EvalInstances.applicative(), OptionInstances.traverse(),
-            (a, fb) -> Eval.later(() -> fb.fix1(Option_::narrowK).fold(() -> a, x -> x + a))).value());
+            (a, fb) -> Eval.later(() -> fb.fix1(OptionOf::narrowK).fold(() -> a, x -> x + a))).value());
   }
 
   @Test

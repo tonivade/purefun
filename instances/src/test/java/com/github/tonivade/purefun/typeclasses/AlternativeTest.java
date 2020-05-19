@@ -8,9 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.laws.AlternativeLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.data.Sequence_;

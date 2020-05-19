@@ -5,12 +5,10 @@
 package com.github.tonivade.purefun.runtimes;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-
 import com.github.tonivade.purefun.monad.IO;
 
 public final class ConsoleExecutor {

@@ -7,9 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.laws.MonadLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;

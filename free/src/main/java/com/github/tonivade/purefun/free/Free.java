@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.free;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Unit.unit;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
@@ -12,16 +14,13 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.FunctionK;
-
-import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind
-public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
+public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
 
   private Free() {}
 
@@ -186,7 +185,7 @@ public abstract class Free<F extends Kind, A> implements Higher2<Free_, F, A> {
 }
 
 interface FreeMonad<F extends Kind> extends Monad<Higher1<Free_, F>> {
-  
+
   @SuppressWarnings("rawtypes")
   FreeMonad INSTANCE = new FreeMonad() {};
 
@@ -198,7 +197,7 @@ interface FreeMonad<F extends Kind> extends Monad<Higher1<Free_, F>> {
   @Override
   default <T, R> Higher2<Free_, F, R> flatMap(
       Higher1<Higher1<Free_, F>, T> value, Function1<T, ? extends Higher1<Higher1<Free_, F>, R>> map) {
-    Free<F, T> free = value.fix1(Free_::narrowK);
-    return free.flatMap(map.andThen(Free_::narrowK));
+    Free<F, T> free = value.fix1(FreeOf::narrowK);
+    return free.flatMap(map.andThen(FreeOf::narrowK));
   }
 }

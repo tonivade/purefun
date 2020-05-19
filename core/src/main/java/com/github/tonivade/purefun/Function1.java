@@ -5,10 +5,8 @@
 package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
@@ -25,7 +23,7 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public interface Function1<A, R> extends Higher2<Function1_, A, R>, Recoverable {
+public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
 
   default R apply(A value) {
     try {

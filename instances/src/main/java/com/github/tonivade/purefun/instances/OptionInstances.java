@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -39,7 +40,7 @@ public interface OptionInstances {
         .returns(true)
       .otherwise()
         .returns(false)
-      .apply(Option_.narrowK(a), Option_.narrowK(b));
+      .apply(OptionOf.narrowK(a), OptionOf.narrowK(b));
   }
 
   static Functor<Option_> functor() {
@@ -81,7 +82,7 @@ interface OptionFunctor extends Functor<Option_> {
 
   @Override
   default <T, R> Higher1<Option_, R> map(Higher1<Option_, T> value, Function1<T, R> mapper) {
-    return Option_.narrowK(value).map(mapper);
+    return OptionOf.narrowK(value).map(mapper);
   }
 }
 
@@ -99,7 +100,7 @@ interface OptionApplicative extends OptionPure {
 
   @Override
   default <T, R> Higher1<Option_, R> ap(Higher1<Option_, T> value, Higher1<Option_, Function1<T, R>> apply) {
-    return Option_.narrowK(value).flatMap(t -> Option_.narrowK(apply).map(f -> f.apply(t)));
+    return OptionOf.narrowK(value).flatMap(t -> OptionOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -110,7 +111,7 @@ interface OptionMonad extends OptionPure, Monad<Option_> {
   @Override
   default <T, R> Higher1<Option_, R> flatMap(Higher1<Option_, T> value,
       Function1<T, ? extends Higher1<Option_, R>> map) {
-    return Option_.narrowK(value).flatMap(map.andThen(Option_::narrowK));
+    return OptionOf.narrowK(value).flatMap(map.andThen(OptionOf::narrowK));
   }
 }
 
@@ -120,7 +121,7 @@ interface OptionSemigroupK extends SemigroupK<Option_> {
 
   @Override
   default <T> Higher1<Option_, T> combineK(Higher1<Option_, T> t1, Higher1<Option_, T> t2) {
-    return Option_.narrowK(t1).fold(cons(Option_.narrowK(t2)), Option::some);
+    return OptionOf.narrowK(t1).fold(cons(OptionOf.narrowK(t2)), Option::some);
   }
 }
 
@@ -151,7 +152,7 @@ interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
   @Override
   default <A> Higher1<Option_, A> handleErrorWith(Higher1<Option_, A> value,
       Function1<Unit, ? extends Higher1<Option_, A>> handler) {
-    return Option_.narrowK(value).fold(() -> Option_.narrowK(handler.apply(unit())), this::pure);
+    return OptionOf.narrowK(value).fold(() -> OptionOf.narrowK(handler.apply(unit())), this::pure);
   }
 }
 
@@ -161,13 +162,13 @@ interface OptionFoldable extends Foldable<Option_> {
 
   @Override
   default <A, B> B foldLeft(Higher1<Option_, A> value, B initial, Function2<B, A, B> mapper) {
-    return Option_.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
+    return OptionOf.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Higher1<Option_, A> value, Eval<B> initial,
       Function2<A, Eval<B>, Eval<B>> mapper) {
-    return Option_.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
+    return OptionOf.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
   }
 }
 
@@ -179,7 +180,7 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   default <G extends Kind, T, R> Higher1<G, Higher1<Option_, R>> traverse(
       Applicative<G> applicative, Higher1<Option_, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
-    return Option_.narrowK(value).fold(
+    return OptionOf.narrowK(value).fold(
         () -> applicative.pure(Option.<R>none()),
         t -> applicative.map(mapper.apply(t), x -> Option.some(x)));
   }
@@ -191,6 +192,6 @@ interface OptionSemigroupal extends Semigroupal<Option_> {
 
   @Override
   default <A, B> Higher1<Option_, Tuple2<A, B>> product(Higher1<Option_, A> fa, Higher1<Option_, B> fb) {
-    return Option_.narrowK(fa).flatMap(a -> Option_.narrowK(fb).map(b -> Tuple.of(a, b)));
+    return OptionOf.narrowK(fa).flatMap(a -> OptionOf.narrowK(fb).map(b -> Tuple.of(a, b)));
   }
 }

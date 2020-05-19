@@ -4,11 +4,15 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.second;
+import static com.github.tonivade.purefun.data.ImmutableList.empty;
+import java.time.Duration;
+import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -17,16 +21,9 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 
-import java.time.Duration;
-import java.util.concurrent.Executor;
-
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Function2.second;
-import static com.github.tonivade.purefun.data.ImmutableList.empty;
-
 @HigherKind
 @FunctionalInterface
-public interface Par<T> extends Higher1<Par_, T> {
+public interface Par<T> extends ParOf<T> {
 
   Future<T> apply(Executor executor);
 
@@ -107,7 +104,7 @@ public interface Par<T> extends Higher1<Par_, T> {
   }
 
   static <A> Par<Sequence<A>> traverse(Sequence<Par<A>> sequence) {
-    return sequence.foldLeft(success(empty()), 
+    return sequence.foldLeft(success(empty()),
         (Par<Sequence<A>> parA, Par<A> parB) -> map2(parA, parB, Sequence::append));
   }
 

@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.laws;
 import static com.github.tonivade.purefun.type.Eval.now;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
@@ -16,7 +15,7 @@ import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Option_;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
@@ -37,7 +36,7 @@ public class FoldableLaws {
     assertEquals(
         instance.foldM(
             OptionInstances.monad(), value, initial,
-            combinator.andThen(Option::some).andThen(Option::kind1)).fix1(Option_::narrowK).get(),
+            combinator.andThen(Option::some).andThen(Option::kind1)).fix1(OptionOf::narrowK).get(),
         instance.reduce(value, combinator).getOrElse(initial),
         "reduce consistent law");
   }

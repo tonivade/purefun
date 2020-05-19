@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.free.EitherK;
+import com.github.tonivade.purefun.free.EitherKOf;
 import com.github.tonivade.purefun.free.EitherK_;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
@@ -29,7 +30,7 @@ public interface EitherKInstances {
           .then((x, y) -> rightEq.eqv(x.getRight(), y.getRight()))
         .otherwise()
           .returns(false)
-        .apply(EitherK_.narrowK(a), EitherK_.narrowK(b));
+        .apply(EitherKOf.narrowK(a), EitherKOf.narrowK(b));
   }
 
   static <F extends Kind, G extends Kind> Functor<Higher1<Higher1<EitherK_, F>, G>> functor(
@@ -75,7 +76,7 @@ interface EitherKFunctor<F extends Kind, G extends Kind> extends Functor<Higher1
   @Override
   default <T, R> Higher3<EitherK_, F, G, R> map(
       Higher1<Higher1<Higher1<EitherK_, F>, G>, T> value, Function1<T, R> map) {
-    return value.fix1(EitherK_::narrowK).map(f(), g(), map);
+    return value.fix1(EitherKOf::narrowK).map(f(), g(), map);
   }
 }
 
@@ -98,7 +99,7 @@ interface EitherKContravariant<F extends Kind, G extends Kind>
   @Override
   default <A, B> Higher3<EitherK_, F, G, B> contramap(
       Higher1<Higher1<Higher1<EitherK_, F>, G>, A> value, Function1<B, A> map) {
-    return value.fix1(EitherK_::narrowK).contramap(f(), g(), map);
+    return value.fix1(EitherKOf::narrowK).contramap(f(), g(), map);
   }
 }
 
@@ -123,12 +124,12 @@ interface EitherKComonad<F extends Kind, G extends Kind>
   default <A, B> Higher3<EitherK_, F, G, B> coflatMap(
       Higher1<Higher1<Higher1<EitherK_, F>, G>, A> value,
       Function1<Higher1<Higher1<Higher1<EitherK_, F>, G>, A>, B> map) {
-    return value.fix1(EitherK_::narrowK).coflatMap(f(), g(), eitherK -> map.apply(eitherK));
+    return value.fix1(EitherKOf::narrowK).coflatMap(f(), g(), eitherK -> map.apply(eitherK));
   }
 
   @Override
   default <A> A extract(Higher1<Higher1<Higher1<EitherK_, F>, G>, A> value) {
-    return value.fix1(EitherK_::narrowK).extract(f(), g());
+    return value.fix1(EitherKOf::narrowK).extract(f(), g());
   }
 }
 

@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
@@ -60,7 +61,7 @@ interface TaskFunctor extends Functor<Task_> {
   @Override
   default <A, B> Higher1<Task_, B>
           map(Higher1<Task_, A> value, Function1<A, B> map) {
-    return Task_.narrowK(value).map(map);
+    return TaskOf.narrowK(value).map(map);
   }
 }
 
@@ -80,7 +81,7 @@ interface TaskApplicative extends TaskPure {
   default <A, B> Higher1<Task_, B>
           ap(Higher1<Task_, A> value,
              Higher1<Task_, Function1<A, B>> apply) {
-    return Task_.narrowK(apply).flatMap(map -> Task_.narrowK(value).map(map));
+    return TaskOf.narrowK(apply).flatMap(map -> TaskOf.narrowK(value).map(map));
   }
 }
 
@@ -92,7 +93,7 @@ interface TaskMonad extends TaskPure, Monad<Task_> {
   default <A, B> Higher1<Task_, B>
           flatMap(Higher1<Task_, A> value,
                   Function1<A, ? extends Higher1<Task_, B>> map) {
-    return Task_.narrowK(value).flatMap(map.andThen(Task_::narrowK));
+    return TaskOf.narrowK(value).flatMap(map.andThen(TaskOf::narrowK));
   }
 }
 
@@ -110,9 +111,9 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
           handleErrorWith(Higher1<Task_, A> value,
                           Function1<Throwable, ? extends Higher1<Task_, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<Throwable, Task<A>> mapError = handler.andThen(Task_::narrowK);
+    Function1<Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
     Function1<A, Task<A>> map = Task::pure;
-    Task<A> task = Task_.narrowK(value);
+    Task<A> task = TaskOf.narrowK(value);
     return task.foldM(mapError, map);
   }
 }
@@ -127,7 +128,7 @@ interface TaskDefer extends Defer<Task_> {
   @Override
   default <A> Higher1<Task_, A>
           defer(Producer<Higher1<Task_, A>> defer) {
-    return Task.defer(() -> defer.map(Task_::narrowK).get());
+    return Task.defer(() -> defer.map(TaskOf::narrowK).get());
   }
 }
 
@@ -138,7 +139,7 @@ interface TaskBracket extends Bracket<Task_> {
           bracket(Higher1<Task_, A> acquire,
                   Function1<A, ? extends Higher1<Task_, B>> use,
                   Consumer1<A> release) {
-    return Task.bracket(acquire.fix1(Task_::narrowK), use.andThen(Task_::narrowK), release);
+    return Task.bracket(acquire.fix1(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release);
   }
 }
 

@@ -4,6 +4,9 @@
  */
 package com.github.tonivade.purefun.laws;
 
+import static com.github.tonivade.purefun.Function1.identity;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
@@ -12,10 +15,6 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Selective;
-
-import static com.github.tonivade.purefun.Function1.identity;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SelectiveLaws {
 

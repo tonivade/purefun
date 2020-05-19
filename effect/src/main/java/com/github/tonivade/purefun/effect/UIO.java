@@ -7,10 +7,8 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -28,7 +26,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class UIO<T> implements Higher1<UIO_, T>, Recoverable {
+public final class UIO<T> implements UIOOf<T>, Recoverable {
 
   private final ZIO<Nothing, Nothing, T> value;
 
@@ -138,19 +136,21 @@ public final class UIO<T> implements Higher1<UIO_, T>, Recoverable {
 
   private UIO<T> repeat(UIO<Unit> pause, int times) {
     return redeemWith(UIO::raiseError, value -> {
-      if (times > 0)
+      if (times > 0) {
         return pause.andThen(repeat(pause, times - 1));
-      else
+      } else {
         return pure(value);
+      }
     });
   }
 
   private UIO<T> retry(UIO<Unit> pause, int maxRetries) {
     return redeemWith(error -> {
-      if (maxRetries > 0)
+      if (maxRetries > 0) {
         return pause.andThen(retry(pause.repeat(), maxRetries - 1));
-      else
+      } else {
         return raiseError(error);
+      }
     }, UIO::pure);
   }
 

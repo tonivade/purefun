@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.free.Trampoline;
+import com.github.tonivade.purefun.free.TrampolineOf;
 import com.github.tonivade.purefun.free.Trampoline_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -39,7 +40,7 @@ interface TrampolineFunctor extends Functor<Trampoline_> {
 
   @Override
   default <T, R> Higher1<Trampoline_, R> map(Higher1<Trampoline_, T> value, Function1<T, R> mapper) {
-    return Trampoline_.narrowK(value).map(mapper);
+    return TrampolineOf.narrowK(value).map(mapper);
   }
 }
 
@@ -57,7 +58,7 @@ interface TrampolineApplicative extends TrampolinePure {
 
   @Override
   default <T, R> Higher1<Trampoline_, R> ap(Higher1<Trampoline_, T> value, Higher1<Trampoline_, Function1<T, R>> apply) {
-    return Trampoline_.narrowK(value).flatMap(t -> Trampoline_.narrowK(apply).map(f -> f.apply(t)));
+    return TrampolineOf.narrowK(value).flatMap(t -> TrampolineOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -68,7 +69,7 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline_> {
   @Override
   default <T, R> Higher1<Trampoline_, R> flatMap(Higher1<Trampoline_, T> value,
       Function1<T, ? extends Higher1<Trampoline_, R>> map) {
-    return Trampoline_.narrowK(value).flatMap(map.andThen(Trampoline_::narrowK));
+    return TrampolineOf.narrowK(value).flatMap(map.andThen(TrampolineOf::narrowK));
   }
 }
 
@@ -78,6 +79,6 @@ interface TrampolineDefer extends Defer<Trampoline_> {
 
   @Override
   default <A> Higher1<Trampoline_, A> defer(Producer<Higher1<Trampoline_, A>> defer) {
-    return Trampoline.more(() -> defer.get().fix1(Trampoline_::narrowK));
+    return Trampoline.more(() -> defer.get().fix1(TrampolineOf::narrowK));
   }
 }

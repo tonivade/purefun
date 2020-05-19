@@ -5,13 +5,13 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.transformer.Kleisli;
+import com.github.tonivade.purefun.transformer.KleisliOf;
 import com.github.tonivade.purefun.transformer.Kleisli_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -53,7 +53,7 @@ interface KleisliMonad<F extends Kind, Z> extends Monad<Higher1<Higher1<Kleisli_
   @Override
   default <T, R> Higher3<Kleisli_, F, Z, R> flatMap(Higher1<Higher1<Higher1<Kleisli_, F>, Z>, T> value,
       Function1<T, ? extends Higher1<Higher1<Higher1<Kleisli_, F>, Z>, R>> map) {
-    return Kleisli_.narrowK(value).flatMap(map.andThen(Kleisli_::narrowK));
+    return KleisliOf.narrowK(value).flatMap(map.andThen(KleisliOf::narrowK));
   }
 }
 
@@ -75,10 +75,10 @@ interface KleisliMonadError<F extends Kind, R, E> extends MonadError<Higher1<Hig
   default <A> Higher3<Kleisli_, F, R, A> handleErrorWith(
       Higher1<Higher1<Higher1<Kleisli_, F>, R>, A> value,
       Function1<E, ? extends Higher1<Higher1<Higher1<Kleisli_, F>, R>, A>> handler) {
-    Kleisli<F, R, A> kleisli = value.fix1(Kleisli_::narrowK);
+    Kleisli<F, R, A> kleisli = value.fix1(KleisliOf::narrowK);
     return Kleisli.<F, R, A>of(monadF(),
         reader -> monadF().handleErrorWith(kleisli.run(reader),
-            error -> handler.apply(error).fix1(Kleisli_::narrowK).run(reader)));
+            error -> handler.apply(error).fix1(KleisliOf::narrowK).run(reader)));
   }
 }
 

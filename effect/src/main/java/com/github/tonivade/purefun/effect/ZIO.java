@@ -5,20 +5,17 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
+import static com.github.tonivade.purefun.Producer.cons;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -32,7 +29,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @Sealed
 @HigherKind
-public interface ZIO<R, E, A> extends Higher3<ZIO_, R, E, A> {
+public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   Either<E, A> provide(R env);
 
@@ -634,7 +631,9 @@ interface ZIOModule {
             flatMapped::start,
             e -> collapse(flatMapped.run(Either.left(e))),
             a -> collapse(flatMapped.run(Either.right(a))));
-      } else break;
+      } else {
+        break;
+      }
     }
     return current;
   }
@@ -653,11 +652,13 @@ interface ZIOModule {
           stack.push(currentFlatMapped::run);
           stack.push(nextFlatMapped::run);
         } else {
-          current = (ZIO<R, E, A>) currentFlatMapped.run(next.provide(env));
+          current = currentFlatMapped.run(next.provide(env));
         }
       } else if (!stack.isEmpty()) {
-        current = (ZIO<R, E, A>) stack.pop().apply(current.provide(env));
-      } else break;
+        current = stack.pop().apply(current.provide(env));
+      } else {
+        break;
+      }
     }
     return current.provide(env);
   }
@@ -665,20 +666,22 @@ interface ZIOModule {
   static <R, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> self, UIO<Unit> delay, int times) {
     return self.foldM(
         ZIO::<R, E, A>raiseError, value -> {
-          if (times > 0)
+          if (times > 0) {
             return delay.<R, E>toZIO().andThen(repeat(self, delay, times - 1));
-          else
+          } else {
             return ZIO.pure(value);
+          }
         });
   }
 
   static <R, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> self, UIO<Unit> delay, int maxRetries) {
     return self.foldM(
         error -> {
-          if (maxRetries > 0)
+          if (maxRetries > 0) {
             return delay.<R, E>toZIO().andThen(retry(self, delay.repeat(), maxRetries - 1));
-          else
+          } else {
             return ZIO.raiseError(error);
+          }
         }, ZIO::<R, E, A>pure);
   }
 }

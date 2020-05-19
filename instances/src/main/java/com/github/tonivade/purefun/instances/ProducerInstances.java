@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.ProducerOf;
 import com.github.tonivade.purefun.Producer_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
@@ -38,7 +39,7 @@ interface ProducerFunctor extends Functor<Producer_> {
 
   @Override
   default <T, R> Higher1<Producer_, R> map(Higher1<Producer_, T> value, Function1<T, R> mapper) {
-    return value.fix1(Producer_::<T>narrowK).map(mapper);
+    return value.fix1(ProducerOf::<T>narrowK).map(mapper);
   }
 }
 
@@ -56,7 +57,7 @@ interface ProducerApplicative extends ProducerPure {
 
   @Override
   default <T, R> Higher1<Producer_, R> ap(Higher1<Producer_, T> value, Higher1<Producer_, Function1<T, R>> apply) {
-    return Producer_.narrowK(value).flatMap(t -> Producer_.narrowK(apply).map(f -> f.apply(t)));
+    return ProducerOf.narrowK(value).flatMap(t -> ProducerOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -66,7 +67,7 @@ interface ProducerMonad extends ProducerPure, Monad<Producer_> {
 
   @Override
   default <T, R> Higher1<Producer_, R> flatMap(Higher1<Producer_, T> value, Function1<T, ? extends Higher1<Producer_, R>> mapper) {
-    return value.fix1(Producer_::narrowK).flatMap(mapper.andThen(Producer_::narrowK));
+    return value.fix1(ProducerOf::narrowK).flatMap(mapper.andThen(ProducerOf::narrowK));
   }
 }
 
@@ -81,6 +82,6 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer_> {
 
   @Override
   default <A> A extract(Higher1<Producer_, A> value) {
-    return value.fix1(Producer_::narrowK).get();
+    return value.fix1(ProducerOf::narrowK).get();
   }
 }

@@ -4,24 +4,23 @@
  */
 package com.github.tonivade.purefun.free;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Eval_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 @HigherKind
-public final class Cofree<F extends Kind, A> implements Higher2<Cofree_, F, A> {
+public final class Cofree<F extends Kind, A> implements CofreeOf<F, A> {
 
   private final Functor<F> functor;
   private final A head;
@@ -61,7 +60,7 @@ public final class Cofree<F extends Kind, A> implements Higher2<Cofree_, F, A> {
   public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Higher1<F, B>, Eval<B>> mapper) {
     Eval<Higher1<F, B>> eval =
         traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper))
-            .fix1(Eval_::narrowK);
+            .fix1(EvalOf::narrowK);
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 

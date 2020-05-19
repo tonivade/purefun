@@ -5,14 +5,11 @@
 package com.github.tonivade.purefun.transformer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.transformer.Kleisli;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.Try_;
 

@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
+import com.github.tonivade.purefun.type.ValidationOf;
 import com.github.tonivade.purefun.type.Validation_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
@@ -32,7 +33,7 @@ public interface ValidationInstances {
         .then((x, y) -> validEq.eqv(x.get(), y.get()))
       .otherwise()
         .returns(false)
-      .apply(Validation_.narrowK(a), Validation_.narrowK(b));
+      .apply(ValidationOf.narrowK(a), ValidationOf.narrowK(b));
   }
 
   static <E> Functor<Higher1<Validation_, E>> functor() {
@@ -71,7 +72,7 @@ interface ValidationFunctor<E> extends Functor<Higher1<Validation_, E>> {
 
   @Override
   default <T, R> Higher2<Validation_, E, R> map(Higher1<Higher1<Validation_, E>, T> value, Function1<T, R> map) {
-    return Validation_.narrowK(value).map(map);
+    return ValidationOf.narrowK(value).map(map);
   }
 }
 
@@ -82,7 +83,7 @@ interface ValidationBifunctor extends Bifunctor<Validation_> {
   @Override
   default <A, B, C, D> Higher2<Validation_, C, D> bimap(Higher2<Validation_, A, B> value,
       Function1<A, C> leftMap, Function1<B, D> rightMap) {
-    return Validation_.narrowK(value).mapError(leftMap).map(rightMap);
+    return ValidationOf.narrowK(value).mapError(leftMap).map(rightMap);
   }
 }
 
@@ -105,8 +106,8 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Higher
   @Override
   default <T, R> Higher2<Validation_, E, R> ap(Higher1<Higher1<Validation_, E>, T> value,
                                                 Higher1<Higher1<Validation_, E>, Function1<T, R>> apply) {
-    Validation<E, T> validation = value.fix1(Validation_::narrowK);
-    Validation<E, Function1<T, R>> validationF = apply.fix1(Validation_::narrowK);
+    Validation<E, T> validation = value.fix1(ValidationOf::narrowK);
+    Validation<E, Function1<T, R>> validationF = apply.fix1(ValidationOf::narrowK);
 
     if (validation.isValid() && validationF.isValid()) {
       return Validation.<E, R>valid(validationF.get().apply(validation.get()));
@@ -129,7 +130,7 @@ interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Hig
   @Override
   default <A, B> Higher2<Validation_, E, B> select(Higher1<Higher1<Validation_, E>, Either<A, B>> value,
                                                     Higher1<Higher1<Validation_, E>, Function1<A, B>> apply) {
-    return Validation.select(value.fix1(Validation_::narrowK), apply.fix1(Validation_::narrowK));
+    return Validation.select(value.fix1(ValidationOf::narrowK), apply.fix1(ValidationOf::narrowK));
   }
 }
 
@@ -141,7 +142,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation
   @Override
   default <T, R> Higher2<Validation_, E, R> flatMap(Higher1<Higher1<Validation_, E>, T> value,
       Function1<T, ? extends Higher1<Higher1<Validation_, E>, R>> map) {
-    return Validation_.narrowK(value).flatMap(map.andThen(Validation_::narrowK));
+    return ValidationOf.narrowK(value).flatMap(map.andThen(ValidationOf::narrowK));
   }
 }
 
@@ -158,7 +159,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1
   @Override
   default <A> Higher2<Validation_, E, A> handleErrorWith(Higher1<Higher1<Validation_, E>, A> value,
       Function1<E, ? extends Higher1<Higher1<Validation_, E>, A>> handler) {
-    return Validation_.narrowK(value).fold(handler.andThen(Validation_::narrowK), Validation::<E, A>valid);
+    return ValidationOf.narrowK(value).fold(handler.andThen(ValidationOf::narrowK), Validation::<E, A>valid);
   }
 }
 

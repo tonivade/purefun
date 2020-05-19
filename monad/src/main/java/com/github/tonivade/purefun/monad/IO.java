@@ -6,12 +6,10 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -32,7 +30,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @Sealed
 @HigherKind
-public interface IO<T> extends Higher1<IO_, T>, Recoverable {
+public interface IO<T> extends IOOf<T>, Recoverable {
 
   T unsafeRunSync();
 
@@ -490,7 +488,9 @@ interface IOModule {
       } else if (current instanceof IO.FlatMapped) {
         IO.FlatMapped<X, A> flatMapped = (IO.FlatMapped<X, A>) current;
         return new IO.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
-      } else break;
+      } else {
+        break;
+      }
     }
     return current;
   }
@@ -509,30 +509,34 @@ interface IOModule {
           stack.push(currentFlatMapped::run);
           stack.push(nextFlatMapped::run);
         } else {
-          current = (IO<A>) currentFlatMapped.run(next.unsafeRunSync());
+          current = currentFlatMapped.run(next.unsafeRunSync());
         }
       } else if (!stack.isEmpty()) {
-        current = (IO<A>) stack.pop().apply(current.unsafeRunSync());
-      } else break;
+        current = stack.pop().apply(current.unsafeRunSync());
+      } else {
+        break;
+      }
     }
     return current.unsafeRunSync();
   }
 
   static <T> IO<T> repeat(IO<T> self, IO<Unit> pause, int times) {
     return self.redeemWith(IO::raiseError, value -> {
-      if (times > 0)
+      if (times > 0) {
         return pause.andThen(repeat(self, pause, times - 1));
-      else
+      } else {
         return IO.pure(value);
+      }
     });
   }
 
   static <T> IO<T> retry(IO<T> self, IO<Unit> pause, int maxRetries) {
     return self.redeemWith(error -> {
-      if (maxRetries > 0)
+      if (maxRetries > 0) {
         return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
-      else
+      } else {
         return IO.raiseError(error);
+      }
     }, IO::pure);
   }
 }

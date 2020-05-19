@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Const;
+import com.github.tonivade.purefun.type.ConstOf;
 import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -23,7 +24,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 public interface ConstInstances {
 
   static <T, A> Eq<Higher1<Higher1<Const_, T>, A>> eq(Eq<T> eq) {
-    return (a, b) -> eq.eqv(a.fix1(Const_::narrowK).get(), a.fix1(Const_::narrowK).get());
+    return (a, b) -> eq.eqv(a.fix1(ConstOf::narrowK).get(), a.fix1(ConstOf::narrowK).get());
   }
 
   @SuppressWarnings("unchecked")
@@ -58,7 +59,7 @@ interface ConstFunctor<T> extends Functor<Higher1<Const_, T>> {
 
   @Override
   default <A, B> Higher1<Higher1<Const_, T>, B> map(Higher1<Higher1<Const_, T>, A> value, Function1<A, B> map) {
-    return value.fix1(Const_::narrowK).<B>retag();
+    return value.fix1(ConstOf::narrowK).<B>retag();
   }
 }
 
@@ -79,8 +80,8 @@ interface ConstApplicative<T> extends Applicative<Higher1<Const_, T>> {
   default <A, B> Higher2<Const_, T, B> ap(
       Higher1<Higher1<Const_, T>, A> value, Higher1<Higher1<Const_, T>, Function1<A, B>> apply) {
     return Const.<T, B>of(monoid().combine(
-            apply.fix1(Const_::narrowK).<B>retag().get(),
-            value.fix1(Const_::narrowK).<B>retag().get()));
+            apply.fix1(ConstOf::narrowK).<B>retag().get(),
+            value.fix1(ConstOf::narrowK).<B>retag().get()));
   }
 }
 
@@ -91,7 +92,7 @@ interface ConstContravariant<T> extends Contravariant<Higher1<Const_, T>> {
 
   @Override
   default <A, B> Higher2<Const_, T, B> contramap(Higher1<Higher1<Const_, T>, A> value, Function1<B, A> map) {
-    return value.fix1(Const_::narrowK).<B>retag();
+    return value.fix1(ConstOf::narrowK).<B>retag();
   }
 }
 
@@ -120,6 +121,6 @@ interface ConstTraverse<T> extends Traverse<Higher1<Const_, T>>, ConstFoldable<T
   @Override
   default <G extends Kind, A, B> Higher1<G, Higher1<Higher1<Const_, T>, B>> traverse(
       Applicative<G> applicative, Higher1<Higher1<Const_, T>, A> value, Function1<A, ? extends Higher1<G, B>> mapper) {
-    return applicative.pure(value.fix1(Const_::narrowK).<B>retag());
+    return applicative.pure(value.fix1(ConstOf::narrowK).<B>retag());
   }
 }

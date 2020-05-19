@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
@@ -59,7 +60,7 @@ interface UIOFunctor extends Functor<UIO_> {
 
   @Override
   default <A, B> Higher1<UIO_, B> map(Higher1<UIO_, A> value, Function1<A, B> map) {
-    return UIO_.narrowK(value).map(map);
+    return UIOOf.narrowK(value).map(map);
   }
 }
 
@@ -77,7 +78,7 @@ interface UIOApplicative extends UIOPure {
 
   @Override
   default <A, B> Higher1<UIO_, B> ap(Higher1<UIO_, A> value, Higher1<UIO_, Function1<A, B>> apply) {
-    return UIO_.narrowK(apply).flatMap(map -> UIO_.narrowK(value).map(map));
+    return UIOOf.narrowK(apply).flatMap(map -> UIOOf.narrowK(value).map(map));
   }
 }
 
@@ -87,7 +88,7 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
 
   @Override
   default <A, B> Higher1<UIO_, B> flatMap(Higher1<UIO_, A> value, Function1<A, ? extends Higher1<UIO_, B>> map) {
-    return UIO_.narrowK(value).flatMap(map.andThen(UIO_::narrowK));
+    return UIOOf.narrowK(value).flatMap(map.andThen(UIOOf::narrowK));
   }
 }
 
@@ -104,9 +105,9 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   default <A> Higher1<UIO_, A>
           handleErrorWith(Higher1<UIO_, A> value,
                           Function1<Throwable, ? extends Higher1<UIO_, A>> handler) {
-    Function1<Throwable, UIO<A>> mapError = handler.andThen(UIO_::narrowK);
+    Function1<Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
-    UIO<A> uio = UIO_.narrowK(value);
+    UIO<A> uio = UIOOf.narrowK(value);
     return uio.redeemWith(mapError, map);
   }
 }
@@ -121,7 +122,7 @@ interface UIODefer extends Defer<UIO_> {
   @Override
   default <A> Higher1<UIO_, A>
           defer(Producer<Higher1<UIO_, A>> defer) {
-    return UIO.defer(() -> defer.map(UIO_::narrowK).get());
+    return UIO.defer(() -> defer.map(UIOOf::narrowK).get());
   }
 }
 
@@ -132,7 +133,7 @@ interface UIOBracket extends Bracket<UIO_> {
           bracket(Higher1<UIO_, A> acquire,
                   Function1<A, ? extends Higher1<UIO_, B>> use,
                   Consumer1<A> release) {
-    return UIO.bracket(acquire.fix1(UIO_::narrowK), use.andThen(UIO_::narrowK), release);
+    return UIO.bracket(acquire.fix1(UIOOf::narrowK), use.andThen(UIOOf::narrowK), release);
   }
 }
 

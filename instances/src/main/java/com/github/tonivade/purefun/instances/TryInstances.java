@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -32,7 +33,7 @@ public interface TryInstances {
         .then((x, y) -> eqSuccess.eqv(x.get(), y.get()))
       .otherwise()
         .returns(false)
-      .apply(Try_.narrowK(a), Try_.narrowK(b));
+      .apply(TryOf.narrowK(a), TryOf.narrowK(b));
   }
 
   static Functor<Try_> functor() {
@@ -70,7 +71,7 @@ interface TryFunctor extends Functor<Try_> {
 
   @Override
   default <T, R> Higher1<Try_, R> map(Higher1<Try_, T> value, Function1<T, R> mapper) {
-    return Try_.narrowK(value).map(mapper);
+    return TryOf.narrowK(value).map(mapper);
   }
 }
 
@@ -88,7 +89,7 @@ interface TryApplicative extends TryPure {
 
   @Override
   default <T, R> Higher1<Try_, R> ap(Higher1<Try_, T> value, Higher1<Try_, Function1<T, R>> apply) {
-    return Try_.narrowK(value).flatMap(t -> Try_.narrowK(apply).map(f -> f.apply(t)));
+    return TryOf.narrowK(value).flatMap(t -> TryOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -99,7 +100,7 @@ interface TryMonad extends TryPure, Monad<Try_> {
   @Override
   default <T, R> Higher1<Try_, R> flatMap(Higher1<Try_, T> value,
       Function1<T, ? extends Higher1<Try_, R>> map) {
-    return Try_.narrowK(value).flatMap(map.andThen(Try_::narrowK));
+    return TryOf.narrowK(value).flatMap(map.andThen(TryOf::narrowK));
   }
 }
 
@@ -115,7 +116,7 @@ interface TryMonadError extends TryMonad, MonadError<Try_, Throwable> {
   @Override
   default <A> Higher1<Try_, A> handleErrorWith(Higher1<Try_, A> value,
       Function1<Throwable, ? extends Higher1<Try_, A>> handler) {
-    return Try_.narrowK(value).fold(handler.andThen(Try_::narrowK), Try::success);
+    return TryOf.narrowK(value).fold(handler.andThen(TryOf::narrowK), Try::success);
   }
 }
 
@@ -130,13 +131,13 @@ interface TryFoldable extends Foldable<Try_> {
 
   @Override
   default <A, B> B foldLeft(Higher1<Try_, A> value, B initial, Function2<B, A, B> mapper) {
-    return Try_.narrowK(value).fold(t -> initial, a -> mapper.apply(initial, a));
+    return TryOf.narrowK(value).fold(t -> initial, a -> mapper.apply(initial, a));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Higher1<Try_, A> value, Eval<B> initial,
       Function2<A, Eval<B>, Eval<B>> mapper) {
-    return Try_.narrowK(value).fold(t -> initial, a -> mapper.apply(a, initial));
+    return TryOf.narrowK(value).fold(t -> initial, a -> mapper.apply(a, initial));
   }
 }
 
@@ -148,7 +149,7 @@ interface TryTraverse extends Traverse<Try_>, TryFoldable {
   default <G extends Kind, T, R> Higher1<G, Higher1<Try_, R>> traverse(
       Applicative<G> applicative, Higher1<Try_, T> value,
       Function1<T, ? extends Higher1<G, R>> mapper) {
-    return Try_.narrowK(value).fold(
+    return TryOf.narrowK(value).fold(
         t -> applicative.pure(Try.<R>failure(t)),
         t -> applicative.map(mapper.apply(t), x -> Try.success(x)));
   }

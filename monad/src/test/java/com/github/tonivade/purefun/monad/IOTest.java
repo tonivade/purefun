@@ -4,35 +4,8 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Future_;
-import com.github.tonivade.purefun.concurrent.Par;
-import com.github.tonivade.purefun.concurrent.Par_;
-import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.instances.FutureInstances;
-import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.instances.ParInstances;
-import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Console;
-import com.github.tonivade.purefun.typeclasses.Reference;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.Duration;
-import java.util.NoSuchElementException;
-
-import static com.github.tonivade.purefun.monad.IO_.narrowK;
 import static com.github.tonivade.purefun.monad.IO.unit;
+import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,6 +16,31 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.FutureOf;
+import com.github.tonivade.purefun.concurrent.Par;
+import com.github.tonivade.purefun.concurrent.ParOf;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.instances.FutureInstances;
+import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.instances.ParInstances;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.Reference;
 
 @ExtendWith(MockitoExtension.class)
 public class IOTest {
@@ -81,7 +79,7 @@ public class IOTest {
 
     Try<ImmutableList<String>> result =
         program.foldMap(FutureInstances.monadDefer())
-            .fix1(Future_::narrowK).await();
+            .fix1(FutureOf::narrowK).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
   }
@@ -92,7 +90,7 @@ public class IOTest {
 
     Par<ImmutableList<String>> result =
         program.foldMap(ParInstances.monadDefer())
-          .fix1(Par_::narrowK);
+          .fix1(ParOf::narrowK);
 
     assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
   }
@@ -114,7 +112,7 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(Future_::narrowK);
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(FutureOf::narrowK);
 
     assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
@@ -238,7 +236,7 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(Future_::narrowK);
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(FutureOf::narrowK);
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
@@ -276,7 +274,7 @@ public class IOTest {
   private IO<ImmutableList<String>> currentThreadIO() {
     Reference<IO_, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IO_::narrowK);
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IOOf::narrowK);
 
     return currentThread
         .andThen(currentThread

@@ -6,16 +6,13 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -27,7 +24,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class EIO<E, T> implements Higher2<EIO_, E, T> {
+public final class EIO<E, T> implements EIOOf<E, T> {
 
   private final ZIO<Nothing, E, T> value;
 
@@ -138,19 +135,21 @@ public final class EIO<E, T> implements Higher2<EIO_, E, T> {
 
   private EIO<E, T> repeat(UIO<Unit> pause, int times) {
     return foldM(EIO::raiseError, value -> {
-      if (times > 0)
+      if (times > 0) {
         return pause.<E>toEIO().andThen(repeat(pause, times - 1));
-      else
+      } else {
         return pure(value);
+      }
     });
   }
 
   private EIO<E, T> retry(UIO<Unit> pause, int maxRetries) {
     return foldM(error -> {
-      if (maxRetries > 0)
+      if (maxRetries > 0) {
         return pause.<E>toEIO().andThen(retry(pause.repeat(), maxRetries - 1));
-      else
+      } else {
         return raiseError(error);
+      }
     }, EIO::pure);
   }
 

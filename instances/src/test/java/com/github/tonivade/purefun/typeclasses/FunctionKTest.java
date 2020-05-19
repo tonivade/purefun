@@ -5,13 +5,13 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
 
 public class FunctionKTest {
@@ -41,13 +41,13 @@ public class FunctionKTest {
 class OptionToTry implements FunctionK<Option_, Try_> {
   @Override
   public <X> Higher1<Try_, X> apply(Higher1<Option_, X> from) {
-    return Option_.narrowK(from).map(Try::success).getOrElse(Try::failure);
+    return OptionOf.narrowK(from).map(Try::success).getOrElse(Try::failure);
   }
 }
 
 class TryToOption implements FunctionK<Try_, Option_> {
   @Override
   public <X> Higher1<Option_, X> apply(Higher1<Try_, X> from) {
-    return Try_.narrowK(from).toOption();
+    return TryOf.narrowK(from).toOption();
   }
 }

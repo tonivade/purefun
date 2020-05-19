@@ -7,20 +7,18 @@ package com.github.tonivade.purefun.transformer;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher3;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
-import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public interface WriterT<F extends Kind, L, A> extends Higher3<WriterT_, F, L, A> {
+public interface WriterT<F extends Kind, L, A> extends WriterTOf<F, L, A> {
 
   Monoid<L> monoid();
   Monad<F> monad();

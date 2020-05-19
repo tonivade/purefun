@@ -5,11 +5,11 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.monad.Writer;
+import com.github.tonivade.purefun.monad.WriterOf;
 import com.github.tonivade.purefun.monad.Writer_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -37,6 +37,6 @@ interface WriterMonad<L> extends Monad<Higher1<Writer_, L>> {
   @Override
   default <T, R> Higher2<Writer_, L, R> flatMap(Higher1<Higher1<Writer_, L>, T> value,
       Function1<T, ? extends Higher1<Higher1<Writer_, L>, R>> map) {
-    return Writer_.narrowK(value).flatMap(map.andThen(Writer_::narrowK));
+    return WriterOf.narrowK(value).flatMap(map.andThen(WriterOf::narrowK));
   }
 }

@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.laws;
 import static com.github.tonivade.purefun.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;

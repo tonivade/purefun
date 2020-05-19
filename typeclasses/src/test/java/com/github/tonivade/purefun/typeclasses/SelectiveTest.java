@@ -4,6 +4,17 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Producer;
@@ -13,22 +24,15 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Validation;
+import com.github.tonivade.purefun.type.ValidationOf;
 import com.github.tonivade.purefun.type.Validation_;
-import org.junit.jupiter.api.Test;
 
-import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+@ExtendWith(MockitoExtension.class)
 public class SelectiveTest {
 
   private final Selective<IO_> monad = IOInstances.monad();
@@ -47,10 +51,10 @@ public class SelectiveTest {
     Higher1<Higher1<Validation_, Sequence<String>>, Function1<Integer, String>> invalidApply =
         Validation.<Sequence<String>, Function1<Integer, String>>invalid(listOf("error 2"));
 
-    assertEquals(Validation.valid("1"), selective.ap(validValue, apply).fix1(Validation_::narrowK));
-    assertEquals(Validation.invalid(listOf("error 1", "error 2")), selective.ap(invalidValue, invalidApply).fix1(Validation_::narrowK));
-    assertEquals(Validation.invalid(listOf("error 1")), selective.ap(invalidValue, apply).fix1(Validation_::narrowK));
-    assertEquals(Validation.invalid(listOf("error 2")), selective.ap(validValue, invalidApply).fix1(Validation_::narrowK));
+    assertEquals(Validation.valid("1"), selective.ap(validValue, apply).fix1(ValidationOf::narrowK));
+    assertEquals(Validation.invalid(listOf("error 1", "error 2")), selective.ap(invalidValue, invalidApply).fix1(ValidationOf::narrowK));
+    assertEquals(Validation.invalid(listOf("error 1")), selective.ap(invalidValue, apply).fix1(ValidationOf::narrowK));
+    assertEquals(Validation.invalid(listOf("error 2")), selective.ap(validValue, invalidApply).fix1(ValidationOf::narrowK));
   }
 
   @Test
@@ -61,8 +65,8 @@ public class SelectiveTest {
     Higher1<IO_, Integer> right = monad.select(monad.pure(Either.right(-1)), monad.pure(parseInt));
 
     assertAll(
-        () -> assertEquals(1, left.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(-1, right.fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals(1, left.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(-1, right.fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 
@@ -75,23 +79,20 @@ public class SelectiveTest {
     Higher1<IO_, Integer> right = monad.branch(monad.pure(Either.right("asdfg")), monad.pure(parseInt), monad.pure(countLetters));
 
     assertAll(
-        () -> assertEquals(1, left.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(5, right.fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals(1, left.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(5, right.fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 
   @Test
-  public void whenS() {
-    Producer<Unit> left = mock(Producer.class);
-    Producer<Unit> right = mock(Producer.class);
+  public void whenS(@Mock Producer<Unit> left, @Mock Producer<Unit> right) {
     when(left.get()).thenReturn(unit());
-    when(right.get()).thenReturn(unit());
 
     IO<Unit> io1 = IO.task(left);
     IO<Unit> io2 = IO.task(right);
 
-    monad.whenS(monad.pure(true), io1).fix1(IO_::narrowK).unsafeRunSync();
-    monad.whenS(monad.pure(false), io2).fix1(IO_::narrowK).unsafeRunSync();
+    monad.whenS(monad.pure(true), io1).fix1(IOOf::narrowK).unsafeRunSync();
+    monad.whenS(monad.pure(false), io2).fix1(IOOf::narrowK).unsafeRunSync();
 
     verify(left).get();
     verify(right, never()).get();
@@ -103,8 +104,8 @@ public class SelectiveTest {
     Higher1<IO_, String> right = monad.ifS(monad.pure(false), monad.pure("left"), monad.pure("right"));
 
     assertAll(
-        () -> assertEquals("left", left.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals("right", right.fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals("left", left.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals("right", right.fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 
@@ -116,10 +117,10 @@ public class SelectiveTest {
     Higher1<IO_, Boolean> and11 = monad.andS(monad.pure(true), monad.pure(true));
 
     assertAll(
-        () -> assertEquals(false, and00.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(false, and01.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(false, and10.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(true, and11.fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals(false, and00.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(false, and01.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(false, and10.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(true, and11.fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 
@@ -131,10 +132,10 @@ public class SelectiveTest {
     Higher1<IO_, Boolean> or11 = monad.orS(monad.pure(true), monad.pure(true));
 
     assertAll(
-        () -> assertEquals(false, or00.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(true, or01.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(true, or10.fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(true, or11.fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals(false, or00.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(true, or01.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(true, or10.fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(true, or11.fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 
@@ -148,8 +149,8 @@ public class SelectiveTest {
             listOf("a", "b", "cd"), a -> monad.pure(a.length() == 1));
 
     assertAll(
-        () -> assertEquals(true, match.value().fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(false, notMatch.value().fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals(true, match.value().fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(false, notMatch.value().fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 
@@ -163,8 +164,8 @@ public class SelectiveTest {
             listOf("a", "b", "c"), a -> monad.pure(a.length() > 1));
 
     assertAll(
-        () -> assertEquals(true, match.value().fix1(IO_::narrowK).unsafeRunSync()),
-        () -> assertEquals(false, notMatch.value().fix1(IO_::narrowK).unsafeRunSync())
+        () -> assertEquals(true, match.value().fix1(IOOf::narrowK).unsafeRunSync()),
+        () -> assertEquals(false, notMatch.value().fix1(IOOf::narrowK).unsafeRunSync())
     );
   }
 }
