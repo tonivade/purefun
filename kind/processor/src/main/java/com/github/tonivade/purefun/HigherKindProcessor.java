@@ -30,6 +30,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   private static final String IMPORT_HIGHER1 = "import com.github.tonivade.purefun.Higher1;";
   private static final String IMPORT_HIGHER2 = "import com.github.tonivade.purefun.Higher2;";
   private static final String IMPORT_HIGHER3 = "import com.github.tonivade.purefun.Higher3;";
+  private static final String END = "}";
 
   @Override
   public SourceVersion getSupportedSourceVersion() {
@@ -93,37 +94,36 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println();
     writer.println(GENERATED);
     writer.println(witnessClass(witnessName));
+    writer.println();
     writer.println(privateConstructor(witnessName));
     writer.println();
-    writer.println("}");
+    writer.println(END);
   }
 
-  private String privateConstructor(String witnessName) {
-    return " private " + witnessName + "() {}";
-  }
-
-  private void generate1(PrintWriter writer, String packageName, String className, String typeOfName, String kindName,
-      List<? extends TypeParameterElement> list) {
+  private void generate1(PrintWriter writer, String packageName, String className, 
+      String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Higher1<" + kindName + ", A>";
     String aType = type("A", list.get(0));
+    String typeOfNameWithParams = typeOfName + "<" + aType + ">";
     writer.println(packageName(packageName));
     writer.println();
     writer.println(IMPORT_HIGHER1);
     writer.println(generatedImport());
     writer.println();
     writer.println(GENERATED);
-    writer.println(typeOfClass(typeOfName + "<" + aType + ">", higher1));
+    writer.println(typeOfClass(typeOfNameWithParams, higher1));
     writer.println();
     narrowK1(writer, className, aType, higher1);
-    writer.println("}");
+    writer.println(END);
   }
 
-  private void generate2(PrintWriter writer, String packageName, String className, String typeOfName, String kindName,
-      List<? extends TypeParameterElement> list) {
+  private void generate2(PrintWriter writer, String packageName, String className, 
+      String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Higher1<Higher1<" + kindName + ", A>, B>";
     String higher2 = "Higher2<" + kindName + ", A, B>";
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
+    String typeOfNameWithParams = typeOfName + "<" + aType + ", " + bType + ">";
     writer.println(packageName(packageName));
     writer.println();
     writer.println(IMPORT_HIGHER1);
@@ -131,23 +131,22 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(generatedImport());
     writer.println();
     writer.println(GENERATED);
-    writer.println(typeOfClass(typeOfName + "<" + aType + ", " + bType + ">", higher2));
+    writer.println(typeOfClass(typeOfNameWithParams, higher2));
     writer.println();
     narrowK2(writer, className, aType, bType, higher1);
     narrowK2(writer, className, aType, bType, higher2);
-    writer.println("}");
+    writer.println(END);
   }
 
-  private void generate3(PrintWriter writer, String packageName, String className, String typeOfName, String kindName,
-      List<? extends TypeParameterElement> list) {
+  private void generate3(PrintWriter writer, String packageName, String className, 
+      String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher3 = "Higher3<" + kindName + ", A, B, C>";
     String higher1 = "Higher1<Higher1<Higher1<" + kindName + ", A>, B>, C>";
     String higher2 = "Higher2<Higher1<" + kindName + ", A>, B, C>";
-
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
     String cType = type("C", list.get(2));
-
+    String typeOfNameWithParams = typeOfName + "<" + aType + ", " + bType + ", " + cType + ">";
     writer.println(packageName(packageName));
     writer.println();
     writer.println(IMPORT_HIGHER1);
@@ -156,12 +155,16 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(generatedImport());
     writer.println();
     writer.println(GENERATED);
-    writer.println(typeOfClass(typeOfName + "<" + aType + ", " + bType + ", " + cType + ">", higher3));
+    writer.println(typeOfClass(typeOfNameWithParams, higher3));
     writer.println();
     narrowK3(writer, className, aType, bType, cType, higher1);
     narrowK3(writer, className, aType, bType, cType, higher2);
     narrowK3(writer, className, aType, bType, cType, higher3);
-    writer.println("}");
+    writer.println(END);
+  }
+
+  private String privateConstructor(String witnessName) {
+    return "  private " + witnessName + "() {}";
   }
 
   private void narrowK1(PrintWriter writer, String className, String aType, String hkt) {
