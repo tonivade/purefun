@@ -38,19 +38,23 @@ like this `Monad<F extends Kind>`. `Kind` is a simple mark interface. Then we ca
 codification like this:
 
 ```java
-interface SomeType<T> extends Higher1<SomeType_, T> { }
+interface SomeType<T> extends SomeTypeOf<T> { }
 
 // Boilerplate
-final class SomeType_ implements Kind {
+interface SomeTypeOf<T> implements Higher1<SomeType_, T> {
 
-  static Higher1<SomeType_, T> kind(SomeType<T> value) {
-    return value;
+  default Higher1<SomeType_, T> kind() {
+    return this;
   }
 
   // this is a safe cast
   static SomeType<T> narrowK(Higher1<SomeType_, T> hkt) {
     return (SomeType<T>) hkt;
   }
+}
+
+final class SomeType_ extends Kind {
+  private SomeType_() {}
 }
 ```
 
@@ -67,7 +71,7 @@ all this boilerplate code:
 
 ```java
 @HigherKind
-interface SomeType<T> implements Higher1<SomeType_, T> { }
+interface SomeType<T> extends SomeTypeOf<T> { }
 ```
 
 With this annotation, all the above code, is generated automatically.
@@ -268,9 +272,9 @@ Free<IOProgram_, Unit> echo =
     .flatMap(text -> IOProgram.write("Hello " + text))
     .andThen(IOProgram.write("end"));
 
-Higher<IO_, Unit> foldMap = echo.foldMap(new IOMonad(), new IOProgramInterperter());
+Higher1<IO_, Unit> foldMap = echo.foldMap(IOInstances.monad(), new IOProgramInterperter());
 
-IO_.narrowK(foldMap).unsafeRunSync();
+IOOf.narrowK(foldMap).unsafeRunSync();
 ```
 
 ### Free Applicative
@@ -286,12 +290,12 @@ FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         DSL.readString("hola mundo"),
         DSL.readUnit(),
         Tuple::of
-    ).fix1(FreeAp_::narrowK);
+    ).fix1(FreeApOf::narrowK);
 
 Higher1<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
     tuple.foldMap(idTransform(), IdInstances.applicative());
 
-assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(Id_::narrowK));
+assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(IdOf::narrowK));
 ```
 
 ## Monad Transformers
@@ -303,9 +307,9 @@ Monad Transformer for `Option` type
 ```java
 OptionT<IO_, String> some = OptionT.some(IO.monad(), "abc");
 
-OptionT<IO_, String> map = some.flatMap(value -> OptionT.some(IO.monad(), value.toUpperCase()));
+OptionT<IO_, String> map = some.flatMap(value -> OptionT.some(IOInstances.monad(), value.toUpperCase()));
 
-assertEquals("ABC", IO_.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", IOOf.narrowK(map.get()).unsafeRunSync());
 ```
 
 ### EitherT
@@ -315,9 +319,9 @@ Monad Transformer for `Either` type
 ```java
 EitherT<IO_, Nothing, String> right = EitherT.right(IO.monad(), "abc");
 
-EitherT<IO_, Nothing, String> map = right.flatMap(value -> EitherT.right(IO.monad(), value.toUpperCase()));
+EitherT<IO_, Nothing, String> map = right.flatMap(value -> EitherT.right(IOInstances.monad(), value.toUpperCase()));
 
-assertEquals("ABC", IO_.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", IOOf.narrowK(map.get()).unsafeRunSync());
 ```
 
 ### StateT
@@ -328,7 +332,7 @@ Monad Transformer for `State` type
 StateT<IO_, ImmutableList<String>, Unit> state =
   pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-IO<Tuple2<ImmutableList<String>, Unit>> result = IO_.narrowK(state.run(ImmutableList.empty()));
+IO<Tuple2<ImmutableList<String>, Unit>> result = IOOf.narrowK(state.run(ImmutableList.empty()));
 
 assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
 ```
@@ -372,7 +376,7 @@ IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
   .takeWhile(Option::isPresent)
   .map(Option::get)
   .foldLeft("", (a, b) -> a + "\n" + b)
-  .fix1(IO_::narrowK)
+  .fix1(IOOf::narrowK)
   .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
 
 String content = readFile.unsafeRunSync();
