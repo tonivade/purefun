@@ -6,11 +6,11 @@ package com.github.tonivade.purefun.typeclasses;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Unit;
 
-public interface Timer<F extends Kind> {
+public interface Timer<F extends Witness> {
 
-  Higher1<F, Unit> sleep(Duration duration);
+  Kind<F, Unit> sleep(Duration duration);
 }

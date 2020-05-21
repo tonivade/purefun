@@ -6,8 +6,7 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
@@ -25,7 +24,7 @@ import com.github.tonivade.purefun.typeclasses.Semigroup;
 @SuppressWarnings("unchecked")
 public interface ValidationInstances {
 
-  static <E, T> Eq<Higher2<Validation_, E, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
+  static <E, T> Eq<Kind<Kind<Validation_, E>, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
     return (a, b) -> Pattern2.<Validation<E, T>, Validation<E, T>, Boolean>build()
       .when((x, y) -> x.isInvalid() && y.isInvalid())
         .then((x, y) -> errorEq.eqv(x.getError(), y.getError()))
@@ -36,7 +35,7 @@ public interface ValidationInstances {
       .apply(ValidationOf.narrowK(a), ValidationOf.narrowK(b));
   }
 
-  static <E> Functor<Higher1<Validation_, E>> functor() {
+  static <E> Functor<Kind<Validation_, E>> functor() {
     return ValidationFunctor.INSTANCE;
   }
 
@@ -44,34 +43,34 @@ public interface ValidationInstances {
     return ValidationBifunctor.INSTANCE;
   }
 
-  static <E> Applicative<Higher1<Validation_, E>> applicative(Semigroup<E> semigroup) {
+  static <E> Applicative<Kind<Validation_, E>> applicative(Semigroup<E> semigroup) {
     return ValidationApplicative.instance(semigroup);
   }
 
-  static <E> Selective<Higher1<Validation_, E>> selective(Semigroup<E> semigroup) {
+  static <E> Selective<Kind<Validation_, E>> selective(Semigroup<E> semigroup) {
     return ValidationSelective.instance(semigroup);
   }
 
-  static <E> Monad<Higher1<Validation_, E>> monad() {
+  static <E> Monad<Kind<Validation_, E>> monad() {
     return ValidationMonad.INSTANCE;
   }
 
-  static <E> MonadError<Higher1<Validation_, E>, E> monadError() {
+  static <E> MonadError<Kind<Validation_, E>, E> monadError() {
     return ValidationMonadError.INSTANCE;
   }
 
-  static MonadThrow<Higher1<Validation_, Throwable>> monadThrow() {
+  static MonadThrow<Kind<Validation_, Throwable>> monadThrow() {
     return ValidationMonadThrow.INSTANCE;
   }
 }
 
-interface ValidationFunctor<E> extends Functor<Higher1<Validation_, E>> {
+interface ValidationFunctor<E> extends Functor<Kind<Validation_, E>> {
 
   @SuppressWarnings("rawtypes")
   ValidationFunctor INSTANCE = new ValidationFunctor() {};
 
   @Override
-  default <T, R> Higher2<Validation_, E, R> map(Higher1<Higher1<Validation_, E>, T> value, Function1<T, R> map) {
+  default <T, R> Validation<E, R> map(Kind<Kind<Validation_, E>, T> value, Function1<T, R> map) {
     return ValidationOf.narrowK(value).map(map);
   }
 }
@@ -81,21 +80,21 @@ interface ValidationBifunctor extends Bifunctor<Validation_> {
   ValidationBifunctor INSTANCE = new ValidationBifunctor() {};
 
   @Override
-  default <A, B, C, D> Higher2<Validation_, C, D> bimap(Higher2<Validation_, A, B> value,
+  default <A, B, C, D> Validation<C, D> bimap(Kind<Kind<Validation_, A>, B> value,
       Function1<A, C> leftMap, Function1<B, D> rightMap) {
     return ValidationOf.narrowK(value).mapError(leftMap).map(rightMap);
   }
 }
 
-interface ValidationPure<E> extends Applicative<Higher1<Validation_, E>> {
+interface ValidationPure<E> extends Applicative<Kind<Validation_, E>> {
 
   @Override
-  default <T> Higher2<Validation_, E, T> pure(T value) {
+  default <T> Validation<E, T> pure(T value) {
     return Validation.<E, T>valid(value);
   }
 }
 
-interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Higher1<Validation_, E>> {
+interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Kind<Validation_, E>> {
 
   static <E> ValidationApplicative<E> instance(Semigroup<E> semigroup) {
     return () -> semigroup;
@@ -104,10 +103,10 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Higher
   Semigroup<E> semigroup();
 
   @Override
-  default <T, R> Higher2<Validation_, E, R> ap(Higher1<Higher1<Validation_, E>, T> value,
-                                                Higher1<Higher1<Validation_, E>, Function1<T, R>> apply) {
-    Validation<E, T> validation = value.fix1(ValidationOf::narrowK);
-    Validation<E, Function1<T, R>> validationF = apply.fix1(ValidationOf::narrowK);
+  default <T, R> Validation<E, R> ap(Kind<Kind<Validation_, E>, T> value,
+                                                Kind<Kind<Validation_, E>, Function1<T, R>> apply) {
+    Validation<E, T> validation = value.fix(ValidationOf::narrowK);
+    Validation<E, Function1<T, R>> validationF = apply.fix(ValidationOf::narrowK);
 
     if (validation.isValid() && validationF.isValid()) {
       return Validation.<E, R>valid(validationF.get().apply(validation.get()));
@@ -121,51 +120,51 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Higher
   }
 }
 
-interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Higher1<Validation_, E>> {
+interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Kind<Validation_, E>> {
 
   static <E> ValidationSelective<E> instance(Semigroup<E> semigroup) {
     return () -> semigroup;
   }
 
   @Override
-  default <A, B> Higher2<Validation_, E, B> select(Higher1<Higher1<Validation_, E>, Either<A, B>> value,
-                                                    Higher1<Higher1<Validation_, E>, Function1<A, B>> apply) {
-    return Validation.select(value.fix1(ValidationOf::narrowK), apply.fix1(ValidationOf::narrowK));
+  default <A, B> Validation<E, B> select(Kind<Kind<Validation_, E>, Either<A, B>> value,
+                                                    Kind<Kind<Validation_, E>, Function1<A, B>> apply) {
+    return Validation.select(value.fix(ValidationOf::narrowK), apply.fix(ValidationOf::narrowK));
   }
 }
 
-interface ValidationMonad<E> extends ValidationPure<E>, Monad<Higher1<Validation_, E>> {
+interface ValidationMonad<E> extends ValidationPure<E>, Monad<Kind<Validation_, E>> {
 
   @SuppressWarnings("rawtypes")
   ValidationMonad INSTANCE = new ValidationMonad() {};
 
   @Override
-  default <T, R> Higher2<Validation_, E, R> flatMap(Higher1<Higher1<Validation_, E>, T> value,
-      Function1<T, ? extends Higher1<Higher1<Validation_, E>, R>> map) {
+  default <T, R> Validation<E, R> flatMap(Kind<Kind<Validation_, E>, T> value,
+      Function1<T, ? extends Kind<Kind<Validation_, E>, R>> map) {
     return ValidationOf.narrowK(value).flatMap(map.andThen(ValidationOf::narrowK));
   }
 }
 
-interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Higher1<Validation_, E>, E> {
+interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Kind<Validation_, E>, E> {
 
   @SuppressWarnings("rawtypes")
   ValidationMonadError INSTANCE = new ValidationMonadError() {};
 
   @Override
-  default <A> Higher2<Validation_, E, A> raiseError(E error) {
+  default <A> Validation<E, A> raiseError(E error) {
     return Validation.<E, A>invalid(error);
   }
 
   @Override
-  default <A> Higher2<Validation_, E, A> handleErrorWith(Higher1<Higher1<Validation_, E>, A> value,
-      Function1<E, ? extends Higher1<Higher1<Validation_, E>, A>> handler) {
+  default <A> Validation<E, A> handleErrorWith(Kind<Kind<Validation_, E>, A> value,
+      Function1<E, ? extends Kind<Kind<Validation_, E>, A>> handler) {
     return ValidationOf.narrowK(value).fold(handler.andThen(ValidationOf::narrowK), Validation::<E, A>valid);
   }
 }
 
 interface ValidationMonadThrow
     extends ValidationMonadError<Throwable>,
-            MonadThrow<Higher1<Validation_, Throwable>> {
+            MonadThrow<Kind<Validation_, Throwable>> {
 
   ValidationMonadThrow INSTANCE = new ValidationMonadThrow() {};
 }

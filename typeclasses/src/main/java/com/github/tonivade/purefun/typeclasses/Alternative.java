@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Alternative<F extends Kind> extends Applicative<F>, MonoidK<F> {
+public interface Alternative<F extends Witness> extends Applicative<F>, MonoidK<F> {
 
-  static <F extends Kind, G extends Kind> Alternative<Nested<F, G>> compose(Alternative<F> f, Alternative<G> g) {
+  static <F extends Witness, G extends Witness> Alternative<Nested<F, G>> compose(Alternative<F> f, Alternative<G> g) {
     return new ComposedAlternative<F, G>() {
 
       @Override

@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
@@ -137,18 +137,18 @@ public class TaskTest {
   public void foldMapRight() {
     MonadDefer<Future_> monadDefer = FutureInstances.monadDefer();
 
-    Higher1<Future_, Integer> future = parseInt("0").foldMap(monadDefer);
+    Kind<Future_, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Try.success(0), future.fix1(FutureOf::narrowK).await());
+    assertEquals(Try.success(0), future.fix(FutureOf::narrowK).await());
   }
 
   @Test
   public void foldMapLeft() {
     MonadDefer<Future_> monadDefer = FutureInstances.monadDefer();
 
-    Higher1<Future_, Integer> future = parseInt("jdjd").foldMap(monadDefer);
+    Kind<Future_, Integer> future = parseInt("jdjd").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(FutureOf::narrowK).await().getCause().getClass());
+    assertEquals(NumberFormatException.class, future.fix(FutureOf::narrowK).await().getCause().getClass());
   }
 
   @Test

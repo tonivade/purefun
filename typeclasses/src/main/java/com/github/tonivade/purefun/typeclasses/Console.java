@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Unit;
 
-public interface Console<F extends Kind> {
+public interface Console<F extends Witness> {
 
-  Higher1<F, String> readln();
+  Kind<F, String> readln();
 
-  Higher1<F, Unit> println(String text);
+  Kind<F, Unit> println(String text);
 }

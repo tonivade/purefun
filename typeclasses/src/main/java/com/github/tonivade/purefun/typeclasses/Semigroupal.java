@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Tuple2;
 
-public interface Semigroupal<F extends Kind> {
+public interface Semigroupal<F extends Witness> {
 
-  <A, B> Higher1<F, Tuple2<A, B>> product(Higher1<F, A> fa, Higher1<F, B> fb);
+  <A, B> Kind<F, Tuple2<A, B>> product(Kind<F, A> fa, Kind<F, B> fb);
 }

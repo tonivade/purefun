@@ -5,14 +5,14 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface MonadReader<F extends Kind, R> extends Monad<F> {
+public interface MonadReader<F extends Witness, R> extends Monad<F> {
 
-  Higher1<F, R> ask();
+  Kind<F, R> ask();
 
-  default <A> Higher1<F, A> reader(Function1<R, A> mapper) {
+  default <A> Kind<F, A> reader(Function1<R, A> mapper) {
     return map(ask(), mapper);
   }
 }

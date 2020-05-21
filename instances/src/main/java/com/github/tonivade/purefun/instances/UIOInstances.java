@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.UIO;
@@ -59,7 +59,7 @@ interface UIOFunctor extends Functor<UIO_> {
   UIOFunctor INSTANCE = new UIOFunctor() {};
 
   @Override
-  default <A, B> Higher1<UIO_, B> map(Higher1<UIO_, A> value, Function1<A, B> map) {
+  default <A, B> Kind<UIO_, B> map(Kind<UIO_, A> value, Function1<A, B> map) {
     return UIOOf.narrowK(value).map(map);
   }
 }
@@ -67,7 +67,7 @@ interface UIOFunctor extends Functor<UIO_> {
 interface UIOPure extends Applicative<UIO_> {
 
   @Override
-  default <A> Higher1<UIO_, A> pure(A value) {
+  default <A> Kind<UIO_, A> pure(A value) {
     return UIO.pure(value);
   }
 }
@@ -77,7 +77,7 @@ interface UIOApplicative extends UIOPure {
   UIOApplicative INSTANCE = new UIOApplicative() {};
 
   @Override
-  default <A, B> Higher1<UIO_, B> ap(Higher1<UIO_, A> value, Higher1<UIO_, Function1<A, B>> apply) {
+  default <A, B> Kind<UIO_, B> ap(Kind<UIO_, A> value, Kind<UIO_, Function1<A, B>> apply) {
     return UIOOf.narrowK(apply).flatMap(map -> UIOOf.narrowK(value).map(map));
   }
 }
@@ -87,7 +87,7 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
   UIOMonad INSTANCE = new UIOMonad() {};
 
   @Override
-  default <A, B> Higher1<UIO_, B> flatMap(Higher1<UIO_, A> value, Function1<A, ? extends Higher1<UIO_, B>> map) {
+  default <A, B> Kind<UIO_, B> flatMap(Kind<UIO_, A> value, Function1<A, ? extends Kind<UIO_, B>> map) {
     return UIOOf.narrowK(value).flatMap(map.andThen(UIOOf::narrowK));
   }
 }
@@ -97,14 +97,14 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   UIOMonadError INSTANCE = new UIOMonadError() {};
 
   @Override
-  default <A> Higher1<UIO_, A> raiseError(Throwable error) {
+  default <A> Kind<UIO_, A> raiseError(Throwable error) {
     return UIO.<A>raiseError(error);
   }
 
   @Override
-  default <A> Higher1<UIO_, A>
-          handleErrorWith(Higher1<UIO_, A> value,
-                          Function1<Throwable, ? extends Higher1<UIO_, A>> handler) {
+  default <A> Kind<UIO_, A>
+          handleErrorWith(Kind<UIO_, A> value,
+                          Function1<Throwable, ? extends Kind<UIO_, A>> handler) {
     Function1<Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIOOf.narrowK(value);
@@ -120,8 +120,8 @@ interface UIOMonadThrow extends UIOMonadError, MonadThrow<UIO_> {
 interface UIODefer extends Defer<UIO_> {
 
   @Override
-  default <A> Higher1<UIO_, A>
-          defer(Producer<Higher1<UIO_, A>> defer) {
+  default <A> Kind<UIO_, A>
+          defer(Producer<Kind<UIO_, A>> defer) {
     return UIO.defer(() -> defer.map(UIOOf::narrowK).get());
   }
 }
@@ -129,11 +129,11 @@ interface UIODefer extends Defer<UIO_> {
 interface UIOBracket extends Bracket<UIO_> {
 
   @Override
-  default <A, B> Higher1<UIO_, B>
-          bracket(Higher1<UIO_, A> acquire,
-                  Function1<A, ? extends Higher1<UIO_, B>> use,
+  default <A, B> Kind<UIO_, B>
+          bracket(Kind<UIO_, A> acquire,
+                  Function1<A, ? extends Kind<UIO_, B>> use,
                   Consumer1<A> release) {
-    return UIO.bracket(acquire.fix1(UIOOf::narrowK), use.andThen(UIOOf::narrowK), release);
+    return UIO.bracket(acquire.fix(UIOOf::narrowK), use.andThen(UIOOf::narrowK), release);
   }
 }
 
@@ -143,7 +143,7 @@ interface UIOMonadDefer
   UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
 
   @Override
-  default Higher1<UIO_, Unit> sleep(Duration duration) {
+  default Kind<UIO_, Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
   }
 }

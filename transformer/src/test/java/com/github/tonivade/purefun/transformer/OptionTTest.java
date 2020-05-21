@@ -11,8 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
@@ -99,7 +98,7 @@ public class OptionTTest {
     OptionT<Id_, String> none1 = OptionT.none(monad);
     OptionT<Id_, String> none2 = OptionT.none(monad);
 
-    Eq<Higher2<OptionT_, Id_, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
+    Eq<Kind<Kind<OptionT_, Id_>, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),
@@ -111,16 +110,16 @@ public class OptionTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<OptionT_, Future_>, Throwable> monadError =
+    MonadError<Kind<OptionT_, Future_>, Throwable> monadError =
         OptionTInstances.monadError(FutureInstances.monadError());
 
-    Higher1<Higher1<OptionT_, Future_>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<OptionT_, Future_>, String> raiseError = monadError.raiseError(error);
-    Higher1<Higher1<OptionT_, Future_>, String> handleError =
+    Kind<Kind<OptionT_, Future_>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<OptionT_, Future_>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<OptionT_, Future_>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<OptionT_, Future_>, String> ensureOk =
+    Kind<Kind<OptionT_, Future_>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Higher1<OptionT_, Future_>, String> ensureError =
+    Kind<Kind<OptionT_, Future_>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
@@ -132,15 +131,15 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<Higher1<OptionT_, Id_>, Unit> monadError = OptionTInstances.monadError(monad);
+    MonadError<Kind<OptionT_, Id_>, Unit> monadError = OptionTInstances.monadError(monad);
 
-    Higher1<Higher1<OptionT_, Id_>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<OptionT_, Id_>, String> raiseError = monadError.raiseError(unit());
-    Higher1<Higher1<OptionT_, Id_>, String> handleError =
+    Kind<Kind<OptionT_, Id_>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<OptionT_, Id_>, String> raiseError = monadError.raiseError(unit());
+    Kind<Kind<OptionT_, Id_>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<OptionT_, Id_>, String> ensureOk =
+    Kind<Kind<OptionT_, Id_>, String> ensureOk =
         monadError.ensure(pure, Unit::unit, "is not ok"::equals);
-    Higher1<Higher1<OptionT_, Id_>, String> ensureError =
+    Kind<Kind<OptionT_, Id_>, String> ensureError =
         monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(
@@ -154,7 +153,7 @@ public class OptionTTest {
 class IOToTryFunctionK implements FunctionK<IO_, Try_> {
 
   @Override
-  public <T> Higher1<Try_, T> apply(Higher1<IO_, T> from) {
+  public <T> Kind<Try_, T> apply(Kind<IO_, T> from) {
     return Try.of(IOOf.narrowK(from)::unsafeRunSync);
   }
 }

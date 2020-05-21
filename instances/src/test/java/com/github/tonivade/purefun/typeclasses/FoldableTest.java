@@ -13,7 +13,7 @@ import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.data.Sequence_;
@@ -73,7 +73,7 @@ public class FoldableTest {
 
   @Test
   public void either() {
-    Foldable<Higher1<Either_, Throwable>> instance = EitherInstances.foldable();
+    Foldable<Kind<Either_, Throwable>> instance = EitherInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Either.<Throwable, String>left(new Error()), empty(), ImmutableList::append)),

@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.free;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -30,7 +30,7 @@ public class FreeTest {
 
   @Test
   public void interpretState() {
-    Higher1<Higher1<State_, ImmutableList<String>>, Unit> foldMap =
+    Kind<Kind<State_, ImmutableList<String>>, Unit> foldMap =
         echo.foldMap(StateInstances.monad(), new IOProgramToState());
 
     State<ImmutableList<String>, Unit> state = StateOf.narrowK(foldMap);
@@ -42,7 +42,7 @@ public class FreeTest {
 
   @Test
   public void interpretIO() {
-    Higher1<IO_, Unit> foldMap =
+    Kind<IO_, Unit> foldMap =
         echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
     IO<Unit> echoIO = IOOf.narrowK(foldMap);

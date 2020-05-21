@@ -7,12 +7,11 @@ package com.github.tonivade.purefun.free;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -20,36 +19,36 @@ import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
+public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
 
   private Free() {}
 
-  public static <F extends Kind, T> Free<F, T> pure(T value) {
+  public static <F extends Witness, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
   }
 
-  public static <F extends Kind, T> Free<F, T> liftF(Higher1<F, T> value) {
+  public static <F extends Witness, T> Free<F, T> liftF(Kind<F, T> value) {
     return new Suspend<>(value);
   }
 
-  public static <F extends Kind, G extends Kind, T> Free<G, T> inject(InjectK<F, G> inject, Higher1<F, T> value) {
+  public static <F extends Witness, G extends Witness, T> Free<G, T> inject(InjectK<F, G> inject, Kind<F, T> value) {
     return liftF(inject.inject(value));
   }
 
-  public static <F extends Kind, T> Free<F, T> defer(Producer<Free<F, T>> value) {
+  public static <F extends Witness, T> Free<F, T> defer(Producer<Free<F, T>> value) {
     Free<F, Unit> pure = pure(unit());
     return pure.flatMap(ignore -> value.get());
   }
 
   @SuppressWarnings("unchecked")
-  public static <F extends Kind> Monad<Higher1<Free_, F>> monadF() {
+  public static <F extends Witness> Monad<Kind<Free_, F>> monadF() {
     return FreeMonad.INSTANCE;
   }
 
-  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<Free_, G>> functionKF(FunctionK<F, G> functionK) {
-    return new FunctionK<F, Higher1<Free_, G>>() {
+  public static <F extends Witness, G extends Witness> FunctionK<F, Kind<Free_, G>> functionKF(FunctionK<F, G> functionK) {
+    return new FunctionK<F, Kind<Free_, G>>() {
       @Override
-      public <T> Higher2<Free_, G, T> apply(Higher1<F, T> from) {
+      public <T> Free<G, T> apply(Kind<F, T> from) {
         return liftF(functionK.apply(from));
       }
     };
@@ -61,7 +60,7 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
 
   public abstract <R> Free<F, R> flatMap(Function1<A, Free<F, R>> map);
 
-  public abstract Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor);
+  public abstract Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor);
 
   public abstract Free<F, A> step();
 
@@ -69,13 +68,13 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
     return flatMap(ignore -> next);
   }
 
-  public <G extends Kind> Higher1<G, A> foldMap(Monad<G> monad, FunctionK<F, G> interpreter) {
+  public <G extends Witness> Kind<G, A> foldMap(Monad<G> monad, FunctionK<F, G> interpreter) {
     return monad.tailRecM(this, value -> value.step().foldStep(monad, interpreter));
   }
 
-  protected abstract <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter);
+  protected abstract <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter);
 
-  public static final class Pure<F extends Kind, A> extends Free<F, A> {
+  public static final class Pure<F extends Witness, A> extends Free<F, A> {
 
     private final A value;
 
@@ -89,7 +88,7 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
     }
 
     @Override
-    public Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor) {
+    public Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor) {
       return Either.right(value);
     }
 
@@ -99,16 +98,16 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
     }
 
     @Override
-    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
+    protected <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       return monad.pure(Either.right(value));
     }
   }
 
-  public static final class Suspend<F extends Kind, A> extends Free<F, A> {
+  public static final class Suspend<F extends Witness, A> extends Free<F, A> {
 
-    private final Higher1<F, A> value;
+    private final Kind<F, A> value;
 
-    private Suspend(Higher1<F, A> value) {
+    private Suspend(Kind<F, A> value) {
       this.value = checkNonNull(value);
     }
 
@@ -118,7 +117,7 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
     }
 
     @Override
-    public Either<Higher1<F, Free<F, A>>, A> resume(Functor<F> functor) {
+    public Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor) {
       return Either.left(functor.map(value, Free::pure));
     }
 
@@ -128,12 +127,12 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
     }
 
     @Override
-    protected <G extends Kind> Higher1<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
+    protected <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       return monad.map(interpreter.apply(value), Either::right);
     }
   }
 
-  public static final class FlatMapped<F extends Kind, X, A, B> extends Free<F, B> {
+  public static final class FlatMapped<F extends Witness, X, A, B> extends Free<F, B> {
 
     private final Free<F, A> value;
     private final Function1<A, Free<F, B>> next;
@@ -150,7 +149,7 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Either<Higher1<F, Free<F, B>>, B> resume(Functor<F> functor) {
+    public Either<Kind<F, Free<F, B>>, B> resume(Functor<F> functor) {
       if (value instanceof Free.Suspend) {
         Free.Suspend<F, A> suspend = (Free.Suspend<F, A>) value;
         return Either.left(functor.map(suspend.value, next));
@@ -178,26 +177,26 @@ public abstract class Free<F extends Kind, A> implements FreeOf<F, A> {
     }
 
     @Override
-    protected <G extends Kind> Higher1<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
+    protected <G extends Witness> Kind<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       return monad.map(value.foldMap(monad, interpreter), next.andThen(Either::left));
     }
   }
 }
 
-interface FreeMonad<F extends Kind> extends Monad<Higher1<Free_, F>> {
+interface FreeMonad<F extends Witness> extends Monad<Kind<Free_, F>> {
 
   @SuppressWarnings("rawtypes")
   FreeMonad INSTANCE = new FreeMonad() {};
 
   @Override
-  default <T> Higher2<Free_, F, T> pure(T value) {
+  default <T> Free<F, T> pure(T value) {
     return Free.<F, T>pure(value);
   }
 
   @Override
-  default <T, R> Higher2<Free_, F, R> flatMap(
-      Higher1<Higher1<Free_, F>, T> value, Function1<T, ? extends Higher1<Higher1<Free_, F>, R>> map) {
-    Free<F, T> free = value.fix1(FreeOf::narrowK);
+  default <T, R> Free<F, R> flatMap(
+      Kind<Kind<Free_, F>, T> value, Function1<T, ? extends Kind<Kind<Free_, F>, R>> map) {
+    Free<F, T> free = value.fix(FreeOf::narrowK);
     return free.flatMap(map.andThen(FreeOf::narrowK));
   }
 }

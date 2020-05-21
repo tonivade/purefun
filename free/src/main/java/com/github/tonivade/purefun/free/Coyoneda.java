@@ -6,23 +6,23 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class Coyoneda<F extends Kind, A, B> implements CoyonedaOf<F, A, B> {
+public final class Coyoneda<F extends Witness, A, B> implements CoyonedaOf<F, A, B> {
 
-  private final Higher1<F, A> value;
+  private final Kind<F, A> value;
   private final Function1<A, B> map;
 
-  private Coyoneda(Higher1<F, A> value, Function1<A, B> map) {
+  private Coyoneda(Kind<F, A> value, Function1<A, B> map) {
     this.value = checkNonNull(value);
     this.map = checkNonNull(map);
   }
 
-  public Higher1<F, B> run(Functor<F> functor) {
+  public Kind<F, B> run(Functor<F> functor) {
     return functor.map(value, map);
   }
 
@@ -30,7 +30,7 @@ public final class Coyoneda<F extends Kind, A, B> implements CoyonedaOf<F, A, B>
     return new Coyoneda<>(value, map.andThen(next));
   }
 
-  public static <F extends Kind, A, B> Coyoneda<F, A, B> of(Higher1<F, A> value, Function1<A, B> map) {
+  public static <F extends Witness, A, B> Coyoneda<F, A, B> of(Kind<F, A> value, Function1<A, B> map) {
     return new Coyoneda<>(value, map);
   }
 }

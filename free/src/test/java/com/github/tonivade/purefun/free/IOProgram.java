@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.free;
 import static com.github.tonivade.purefun.Matcher1.instanceOf;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.free.Free.liftF;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Pattern1;
 import com.github.tonivade.purefun.Unit;
@@ -72,12 +72,12 @@ public interface IOProgram<T> extends IOProgramOf<T> {
 }
 
 @SuppressWarnings("unchecked")
-class IOProgramToState implements FunctionK<IOProgram_, Higher1<State_, ImmutableList<String>>> {
+class IOProgramToState implements FunctionK<IOProgram_, Kind<State_, ImmutableList<String>>> {
 
-  private final Console<Higher1<State_, ImmutableList<String>>> console = StateInstances.console();
+  private final Console<Kind<State_, ImmutableList<String>>> console = StateInstances.console();
 
   @Override
-  public <X> Higher1<Higher1<State_, ImmutableList<String>>, X> apply(Higher1<IOProgram_, X> from) {
+  public <X> Kind<Kind<State_, ImmutableList<String>>, X> apply(Kind<IOProgram_, X> from) {
     return Pattern1.<IOProgram<X>, State<ImmutableList<String>, X>>build()
       .when(instanceOf(IOProgram.Read.class))
         .then(program -> (State<ImmutableList<String>, X>) StateOf.narrowK(console.readln()))
@@ -93,10 +93,10 @@ class IOProgramToIO implements FunctionK<IOProgram_, IO_> {
   private final Console<IO_> console = IOInstances.console();
 
   @Override
-  public <X> Higher1<IO_, X> apply(Higher1<IOProgram_, X> from) {
+  public <X> Kind<IO_, X> apply(Kind<IOProgram_, X> from) {
     return Pattern1.<IOProgram<X>, IO<X>>build()
       .when(instanceOf(IOProgram.Read.class))
-        .then(program -> (IO<X>) console.readln().fix1(IOOf::narrowK))
+        .then(program -> (IO<X>) console.readln().fix(IOOf::narrowK))
       .when(instanceOf(IOProgram.Write.class))
         .then(program -> (IO<X>) IOOf.narrowK(console.println(program.asWrite().value())))
       .apply(IOProgramOf.narrowK(from));

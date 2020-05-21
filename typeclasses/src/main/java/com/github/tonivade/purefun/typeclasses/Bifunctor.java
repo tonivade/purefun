@@ -5,20 +5,19 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Function1.identity;
-
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Bifunctor<F extends Kind> {
+public interface Bifunctor<F extends Witness> {
 
-  <A, B, C, D> Higher2<F, C, D> bimap(Higher2<F, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
+  <A, B, C, D> Kind<Kind<F, C>, D> bimap(Kind<Kind<F, A>, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
 
-  default <A, B, C> Higher2<F, A, C> map(Higher2<F, A, B> value, Function1<B, C> map) {
+  default <A, B, C> Kind<Kind<F, A>, C> map(Kind<Kind<F, A>, B> value, Function1<B, C> map) {
     return bimap(value, identity(), map);
   }
 
-  default <A, B, C> Higher2<F, C, B> leftMap(Higher2<F, A, B> value, Function1<A, C> map) {
+  default <A, B, C> Kind<Kind<F, C>, B> leftMap(Kind<Kind<F, A>, B> value, Function1<A, C> map) {
     return bimap(value, map, identity());
   }
 }

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.Unit;
@@ -46,7 +46,7 @@ public class ForTest {
     when(mapper.apply(anyString())).thenReturn("called");
     when(mapper.andThen(any())).thenCallRealMethod();
 
-    Higher1<Id_, Unit> result = For.with(IdInstances.monad())
+    Kind<Id_, Unit> result = For.with(IdInstances.monad())
         .and("hola mundo!")
         .map(mapper)
         .returns(unit());
@@ -76,7 +76,7 @@ public class ForTest {
           .and("d")
           .and("e")
           .tuple()
-          .fix1(IdOf::narrowK);
+          .fix(IdOf::narrowK);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
   }
@@ -93,11 +93,11 @@ public class ForTest {
 
     IO<Integer> yield =
       program
-        .yield((a, b, c, d, e) -> a + b + c + d + e).fix1(IOOf::narrowK);
+        .yield((a, b, c, d, e) -> a + b + c + d + e).fix(IOOf::narrowK);
 
     IO<Integer> apply =
       program
-        .apply((a, b, c, d, e) -> a + b + c + d + e).fix1(IOOf::narrowK);
+        .apply((a, b, c, d, e) -> a + b + c + d + e).fix(IOOf::narrowK);
 
     assertEquals(15, yield.unsafeRunSync());
     assertEquals(15, apply.unsafeRunSync());

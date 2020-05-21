@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.ProducerOf;
 import com.github.tonivade.purefun.Producer_;
@@ -38,15 +38,15 @@ interface ProducerFunctor extends Functor<Producer_> {
   ProducerFunctor INSTANCE = new ProducerFunctor() {};
 
   @Override
-  default <T, R> Higher1<Producer_, R> map(Higher1<Producer_, T> value, Function1<T, R> mapper) {
-    return value.fix1(ProducerOf::<T>narrowK).map(mapper);
+  default <T, R> Kind<Producer_, R> map(Kind<Producer_, T> value, Function1<T, R> mapper) {
+    return value.fix(ProducerOf::<T>narrowK).map(mapper);
   }
 }
 
 interface ProducerPure extends Applicative<Producer_> {
 
   @Override
-  default <T> Higher1<Producer_, T> pure(T value) {
+  default <T> Kind<Producer_, T> pure(T value) {
     return Producer.cons(value);
   }
 }
@@ -56,7 +56,7 @@ interface ProducerApplicative extends ProducerPure {
   ProducerApplicative INSTANCE = new ProducerApplicative() {};
 
   @Override
-  default <T, R> Higher1<Producer_, R> ap(Higher1<Producer_, T> value, Higher1<Producer_, Function1<T, R>> apply) {
+  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, T> value, Kind<Producer_, Function1<T, R>> apply) {
     return ProducerOf.narrowK(value).flatMap(t -> ProducerOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -66,8 +66,8 @@ interface ProducerMonad extends ProducerPure, Monad<Producer_> {
   ProducerMonad INSTANCE = new ProducerMonad() {};
 
   @Override
-  default <T, R> Higher1<Producer_, R> flatMap(Higher1<Producer_, T> value, Function1<T, ? extends Higher1<Producer_, R>> mapper) {
-    return value.fix1(ProducerOf::narrowK).flatMap(mapper.andThen(ProducerOf::narrowK));
+  default <T, R> Kind<Producer_, R> flatMap(Kind<Producer_, T> value, Function1<T, ? extends Kind<Producer_, R>> mapper) {
+    return value.fix(ProducerOf::narrowK).flatMap(mapper.andThen(ProducerOf::narrowK));
   }
 }
 
@@ -76,12 +76,12 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer_> {
   ProducerComonad INSTANCE = new ProducerComonad() {};
 
   @Override
-  default <A, B> Higher1<Producer_, B> coflatMap(Higher1<Producer_, A> value, Function1<Higher1<Producer_, A>, B> map) {
+  default <A, B> Kind<Producer_, B> coflatMap(Kind<Producer_, A> value, Function1<Kind<Producer_, A>, B> map) {
     return Producer.cons(map.apply(value));
   }
 
   @Override
-  default <A> A extract(Higher1<Producer_, A> value) {
-    return value.fix1(ProducerOf::narrowK).get();
+  default <A> A extract(Kind<Producer_, A> value) {
+    return value.fix(ProducerOf::narrowK).get();
   }
 }

@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -69,7 +69,7 @@ interface FutureFunctor extends Functor<Future_> {
   FutureFunctor INSTANCE = new FutureFunctor() {};
 
   @Override
-  default <T, R> Higher1<Future_, R> map(Higher1<Future_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Future_, R> map(Kind<Future_, T> value, Function1<T, R> mapper) {
     return FutureOf.narrowK(value).map(mapper);
   }
 }
@@ -81,7 +81,7 @@ interface ExecutorHolder {
 interface FuturePure extends Applicative<Future_>, ExecutorHolder {
 
   @Override
-  default <T> Higher1<Future_, T> pure(T value) {
+  default <T> Kind<Future_, T> pure(T value) {
     return Future.success(executor(), value);
   }
 }
@@ -93,7 +93,7 @@ interface FutureApplicative extends FuturePure {
   }
 
   @Override
-  default <T, R> Higher1<Future_, R> ap(Higher1<Future_, T> value, Higher1<Future_, Function1<T, R>> apply) {
+  default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<T, R>> apply) {
     return FutureOf.narrowK(value).flatMap(t -> FutureOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -105,8 +105,8 @@ interface FutureMonad extends FuturePure, Monad<Future_> {
   }
 
   @Override
-  default <T, R> Higher1<Future_, R> flatMap(Higher1<Future_, T> value,
-      Function1<T, ? extends Higher1<Future_, R>> map) {
+  default <T, R> Kind<Future_, R> flatMap(Kind<Future_, T> value,
+      Function1<T, ? extends Kind<Future_, R>> map) {
     return FutureOf.narrowK(value).flatMap(map.andThen(FutureOf::narrowK));
   }
 }
@@ -118,13 +118,13 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {
   }
 
   @Override
-  default <A> Higher1<Future_, A> raiseError(Throwable error) {
+  default <A> Kind<Future_, A> raiseError(Throwable error) {
     return Future.<A>failure(executor(), error);
   }
 
   @Override
-  default <A> Higher1<Future_, A> handleErrorWith(Higher1<Future_, A> value,
-      Function1<Throwable, ? extends Higher1<Future_, A>> handler) {
+  default <A> Kind<Future_, A> handleErrorWith(Kind<Future_, A> value,
+      Function1<Throwable, ? extends Kind<Future_, A>> handler) {
     return FutureOf.narrowK(value).fold(handler.andThen(FutureOf::narrowK),
                                       success -> Future.success(executor(), success)).flatMap(identity());
   }
@@ -133,7 +133,7 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {
 interface FutureDefer extends Defer<Future_>, ExecutorHolder {
 
   @Override
-  default <A> Higher1<Future_, A> defer(Producer<Higher1<Future_, A>> defer) {
+  default <A> Kind<Future_, A> defer(Producer<Kind<Future_, A>> defer) {
     return Future.defer(executor(), defer.map(FutureOf::narrowK)::get);
   }
 }
@@ -141,7 +141,7 @@ interface FutureDefer extends Defer<Future_>, ExecutorHolder {
 interface FutureBracket extends Bracket<Future_>, ExecutorHolder {
 
   @Override
-  default <A, B> Higher1<Future_, B> bracket(Higher1<Future_, A> acquire, Function1<A, ? extends Higher1<Future_, B>> use, Consumer1<A> release) {
+  default <A, B> Kind<Future_, B> bracket(Kind<Future_, A> acquire, Function1<A, ? extends Kind<Future_, B>> use, Consumer1<A> release) {
     return Future.bracket(executor(), FutureOf.narrowK(acquire), use.andThen(FutureOf::narrowK), release);
   }
 }
@@ -153,7 +153,7 @@ interface FutureMonadDefer extends MonadDefer<Future_>, FutureMonadThrow, Future
   }
 
   @Override
-  default Higher1<Future_, Unit> sleep(Duration duration) {
+  default Kind<Future_, Unit> sleep(Duration duration) {
     return Future.sleep(executor(), duration);
   }
 }

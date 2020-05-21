@@ -7,9 +7,9 @@ package com.github.tonivade.purefun.free;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
@@ -20,13 +20,13 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 @HigherKind
-public final class Cofree<F extends Kind, A> implements CofreeOf<F, A> {
+public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
 
   private final Functor<F> functor;
   private final A head;
-  private final Eval<Higher1<F, Cofree<F, A>>> tail;
+  private final Eval<Kind<F, Cofree<F, A>>> tail;
 
-  private Cofree(Functor<F> functor, A head, Eval<Higher1<F, Cofree<F, A>>> tail) {
+  private Cofree(Functor<F> functor, A head, Eval<Kind<F, Cofree<F, A>>> tail) {
     this.functor = checkNonNull(functor);
     this.head = checkNonNull(head);
     this.tail = checkNonNull(tail);
@@ -36,7 +36,7 @@ public final class Cofree<F extends Kind, A> implements CofreeOf<F, A> {
     return head;
   }
 
-  public Higher1<F, Cofree<F, A>> tailForced() {
+  public Kind<F, Cofree<F, A>> tailForced() {
     return tail.value();
   }
 
@@ -57,10 +57,10 @@ public final class Cofree<F extends Kind, A> implements CofreeOf<F, A> {
   }
 
   // XXX: remove eval applicative instance parameter, if instances project is added then cyclic dependency problem
-  public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Higher1<F, B>, Eval<B>> mapper) {
-    Eval<Higher1<F, B>> eval =
+  public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
+    Eval<Kind<F, B>> eval =
         traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper))
-            .fix1(EvalOf::narrowK);
+            .fix(EvalOf::narrowK);
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 
@@ -82,15 +82,15 @@ public final class Cofree<F extends Kind, A> implements CofreeOf<F, A> {
     return headMap.apply(head);
   }
 
-  private <B> Eval<Higher1<F, Cofree<F, B>>> transformTail(Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
+  private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
     return tail.map(t -> functor.map(t, tailMap));
   }
 
-  public static <F extends Kind, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Higher1<F, A>> unfold) {
+  public static <F extends Witness, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Kind<F, A>> unfold) {
     return of(functor, head, Eval.later(() -> functor.map(unfold.apply(head), a -> unfold(functor, a, unfold))));
   }
 
-  public static <F extends Kind, A> Cofree<F, A> of(Functor<F> functor, A head, Eval<Higher1<F, Cofree<F, A>>> tail) {
+  public static <F extends Witness, A> Cofree<F, A> of(Functor<F> functor, A head, Eval<Kind<F, Cofree<F, A>>> tail) {
     return new Cofree<>(functor, head, tail);
   }
 }

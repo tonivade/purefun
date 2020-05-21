@@ -8,7 +8,7 @@ import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator5;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
@@ -39,7 +39,7 @@ public class ApplicativeTest {
 
   @Test
   public void map5Some() {
-    Higher1<Option_, Integer> map5 =
+    Kind<Option_, Integer> map5 =
         OptionInstances.applicative().map5(
             Option.some(1),
             Option.some(2),
@@ -52,7 +52,7 @@ public class ApplicativeTest {
 
   @Test
   public void map5None() {
-    Higher1<Option_, Integer> map5 =
+    Kind<Option_, Integer> map5 =
         OptionInstances.applicative().map5(
             Option.some(1),
             Option.some(2),

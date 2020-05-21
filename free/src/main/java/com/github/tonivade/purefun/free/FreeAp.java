@@ -9,17 +9,16 @@ import static java.util.Collections.singletonList;
 import java.util.Deque;
 import java.util.LinkedList;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.ConstOf;
 import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
+public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
 
   private FreeAp() {}
 
@@ -33,29 +32,29 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
     return apply(this, apply);
   }
 
-  public Higher1<F, A> fold(Applicative<F> applicative) {
+  public Kind<F, A> fold(Applicative<F> applicative) {
     return foldMap(FunctionK.identity(), applicative);
   }
 
-  public <G extends Kind> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
-    return foldMap(functionKF(transformer), applicativeF()).fix1(FreeApOf::narrowK);
+  public <G extends Witness> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
+    return foldMap(functionKF(transformer), applicativeF()).fix(FreeApOf::narrowK);
   }
 
-  public <G extends Kind> FreeAp<G, A> flatCompile(
-      FunctionK<F, Higher1<FreeAp_, G>> functionK, Applicative<Higher1<FreeAp_, G>> applicative) {
-    return foldMap(functionK, applicative).fix1(FreeApOf::narrowK);
+  public <G extends Witness> FreeAp<G, A> flatCompile(
+      FunctionK<F, Kind<FreeAp_, G>> functionK, Applicative<Kind<FreeAp_, G>> applicative) {
+    return foldMap(functionK, applicative).fix(FreeApOf::narrowK);
   }
 
-  public <M> M analyze(FunctionK<F, Higher1<Const_, M>> functionK, Applicative<Higher1<Const_, M>> applicative) {
-    return foldMap(functionK, applicative).fix1(ConstOf::narrowK).get();
+  public <M> M analyze(FunctionK<F, Kind<Const_, M>> functionK, Applicative<Kind<Const_, M>> applicative) {
+    return foldMap(functionK, applicative).fix(ConstOf::narrowK).get();
   }
 
   public Free<F, A> monad() {
-    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix1(FreeOf::narrowK);
+    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(FreeOf::narrowK);
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public <G extends Kind> Higher1<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
+  public <G extends Witness> Kind<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
     Deque<FreeAp> argsF = new LinkedList<>(singletonList(this));
     Deque<CurriedFunction> fns = new LinkedList<>();
 
@@ -74,12 +73,12 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
         int argc = argsF.size() - lengthInitial;
         fns.addFirst(new CurriedFunction(foldArg(argF, functionK, applicative), argc));
       } else {
-        Higher1 argT = foldArg(argF, functionK, applicative);
+        Kind argT = foldArg(argF, functionK, applicative);
 
         if (!fns.isEmpty()) {
           CurriedFunction function = fns.pollFirst();
 
-          Higher1 res = applicative.ap(argT, function.value);
+          Kind res = applicative.ap(argT, function.value);
 
           if (function.remaining > 1) {
             fns.addFirst(new CurriedFunction(res, function.remaining - 1));
@@ -107,33 +106,33 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
     }
   }
 
-  public static <F extends Kind, T> FreeAp<F, T> pure(T value) {
+  public static <F extends Witness, T> FreeAp<F, T> pure(T value) {
     return new FreeAp.Pure<>(value);
   }
 
-  public static <F extends Kind, T> FreeAp<F, T> lift(Higher1<F, T> value) {
+  public static <F extends Witness, T> FreeAp<F, T> lift(Kind<F, T> value) {
     return new FreeAp.Lift<>(value);
   }
 
-  public static <F extends Kind, T, R> FreeAp<F, R> apply(FreeAp<F, T> value, FreeAp<F, Function1<T, R>> mapper) {
+  public static <F extends Witness, T, R> FreeAp<F, R> apply(FreeAp<F, T> value, FreeAp<F, Function1<T, R>> mapper) {
     return new FreeAp.Apply<>(value, mapper);
   }
 
-  public static <F extends Kind, G extends Kind> FunctionK<F, Higher1<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
-    return new FunctionK<F, Higher1<FreeAp_, G>>() {
+  public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
+    return new FunctionK<F, Kind<FreeAp_, G>>() {
       @Override
-      public <T> Higher2<FreeAp_, G, T> apply(Higher1<F, T> from) {
+      public <T> FreeAp<G, T> apply(Kind<F, T> from) {
         return lift(functionK.apply(from));
       }
     };
   }
 
   @SuppressWarnings("unchecked")
-  public static <F extends Kind> Applicative<Higher1<FreeAp_, F>> applicativeF() {
+  public static <F extends Witness> Applicative<Kind<FreeAp_, F>> applicativeF() {
     return FreeApplicative.INSTANCE;
   }
 
-  private static <F extends Kind, G extends Kind, A> Higher1<G, A> foldArg(
+  private static <F extends Witness, G extends Witness, A> Kind<G, A> foldArg(
       FreeAp<F, A> argF, FunctionK<F, G> transformation, Applicative<G> applicative) {
     if (argF instanceof Pure) {
       return applicative.pure(((Pure<F, A>) argF).value);
@@ -144,7 +143,7 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
     throw new IllegalStateException();
   }
 
-  private static final class Pure<F extends Kind, A> extends FreeAp<F, A> {
+  private static final class Pure<F extends Witness, A> extends FreeAp<F, A> {
 
     private final A value;
 
@@ -163,11 +162,11 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
     }
   }
 
-  private static final class Lift<F extends Kind, A> extends FreeAp<F, A> {
+  private static final class Lift<F extends Witness, A> extends FreeAp<F, A> {
 
-    private final Higher1<F, A> value;
+    private final Kind<F, A> value;
 
-    private Lift(Higher1<F, A> value) {
+    private Lift(Kind<F, A> value) {
       this.value = checkNonNull(value);
     }
 
@@ -182,7 +181,7 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
     }
   }
 
-  private static final class Apply<F extends Kind, A, B> extends FreeAp<F, B> {
+  private static final class Apply<F extends Witness, A, B> extends FreeAp<F, B> {
 
     private final FreeAp<F, A> value;
     private final FreeAp<F, Function1<A, B>> apply;
@@ -203,33 +202,33 @@ public abstract class FreeAp<F extends Kind, A> implements FreeApOf<F, A> {
     }
   }
 
-  private static final class CurriedFunction<G extends Kind, A, B> {
+  private static final class CurriedFunction<G extends Witness, A, B> {
 
-    private final Higher1<G, Function1<A, B>> value;
+    private final Kind<G, Function1<A, B>> value;
     private final int remaining;
 
-    CurriedFunction(Higher1<G, Function1<A, B>> value, int remaining) {
+    CurriedFunction(Kind<G, Function1<A, B>> value, int remaining) {
       this.value = checkNonNull(value);
       this.remaining = remaining;
     }
   }
 }
 
-interface FreeApplicative<F extends Kind> extends Applicative<Higher1<FreeAp_, F>> {
+interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F>> {
 
   @SuppressWarnings("rawtypes")
   FreeApplicative INSTANCE = new FreeApplicative() {};
 
   @Override
-  default <T> Higher2<FreeAp_, F, T> pure(T value) {
+  default <T> FreeAp<F, T> pure(T value) {
     return FreeAp.<F, T>pure(value);
   }
 
   @Override
-  default <T, R> Higher2<FreeAp_, F, R> ap(
-      Higher1<Higher1<FreeAp_, F>, T> value, Higher1<Higher1<FreeAp_, F>, Function1<T, R>> apply) {
-    FreeAp<F, T> freeAp = value.fix1(FreeApOf::narrowK);
-    FreeAp<F, Function1<T, R>> apply1 = apply.fix1(FreeApOf::narrowK);
+  default <T, R> FreeAp<F, R> ap(
+      Kind<Kind<FreeAp_, F>, T> value, Kind<Kind<FreeAp_, F>, Function1<T, R>> apply) {
+    FreeAp<F, T> freeAp = value.fix(FreeApOf::narrowK);
+    FreeAp<F, Function1<T, R>> apply1 = apply.fix(FreeApOf::narrowK);
     return FreeAp.apply(freeAp, apply1);
   }
 }

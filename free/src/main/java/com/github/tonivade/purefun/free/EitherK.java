@@ -9,9 +9,9 @@ import java.io.Serializable;
 import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
@@ -19,16 +19,16 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class EitherK<F extends Kind, G extends Kind, T> implements EitherKOf<F, G, T>, Serializable {
+public final class EitherK<F extends Witness, G extends Witness, T> implements EitherKOf<F, G, T>, Serializable {
 
   private static final long serialVersionUID = -2305737717835278018L;
 
   private static final Equal<EitherK<?, ?, ?>> EQUAL =
       Equal.<EitherK<?, ?, ?>>of().comparing(eitherK -> eitherK.either);
 
-  private final Either<Higher1<F, T>, Higher1<G, T>> either;
+  private final Either<Kind<F, T>, Kind<G, T>> either;
 
-  private EitherK(Either<Higher1<F, T>, Higher1<G, T>> either) {
+  private EitherK(Either<Kind<F, T>, Kind<G, T>> either) {
     this.either = checkNonNull(either);
   }
 
@@ -36,15 +36,15 @@ public final class EitherK<F extends Kind, G extends Kind, T> implements EitherK
     return new EitherK<>(either.bimap(functorF.lift(mapper), functorG.lift(mapper)));
   }
 
-  public <X extends Kind> EitherK<F, X, T> mapK(FunctionK<G, X> mapper) {
+  public <X extends Witness> EitherK<F, X, T> mapK(FunctionK<G, X> mapper) {
     return new EitherK<>(either.map(mapper::apply));
   }
 
-  public <X extends Kind> EitherK<X, G, T> mapLeftK(FunctionK<F, X> mapper) {
+  public <X extends Witness> EitherK<X, G, T> mapLeftK(FunctionK<F, X> mapper) {
     return new EitherK<>(either.mapLeft(mapper::apply));
   }
 
-  public <R extends Kind> Higher1<R, T> foldK(FunctionK<F, R> left, FunctionK<G, R> right) {
+  public <R extends Witness> Kind<R, T> foldK(FunctionK<F, R> left, FunctionK<G, R> right) {
     return either.fold(left::apply, right::apply);
   }
 
@@ -79,19 +79,19 @@ public final class EitherK<F extends Kind, G extends Kind, T> implements EitherK
     return either.isRight();
   }
 
-  public Higher1<F, T> getLeft() {
+  public Kind<F, T> getLeft() {
     return either.getLeft();
   }
 
-  public Higher1<G, T> getRight() {
+  public Kind<G, T> getRight() {
     return either.getRight();
   }
 
-  public static <F extends Kind, G extends Kind, T> EitherK<F, G, T> left(Higher1<F, T> left) {
+  public static <F extends Witness, G extends Witness, T> EitherK<F, G, T> left(Kind<F, T> left) {
     return new EitherK<>(Either.left(left));
   }
 
-  public static <F extends Kind, G extends Kind, T> EitherK<F, G, T> right(Higher1<G, T> right) {
+  public static <F extends Witness, G extends Witness, T> EitherK<F, G, T> right(Kind<G, T> right) {
     return new EitherK<>(Either.right(right));
   }
 

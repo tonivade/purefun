@@ -5,10 +5,10 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple1Of;
 import com.github.tonivade.purefun.Tuple1_;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple2Of;
 import com.github.tonivade.purefun.Tuple2_;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
@@ -30,8 +30,8 @@ interface Tuple1Functor extends Functor<Tuple1_> {
   Tuple1Functor INSTANCE = new Tuple1Functor() {};
 
   @Override
-  default <T, R> Higher1<Tuple1_, R> map(Higher1<Tuple1_, T> value, Function1<T, R> map) {
-    return value.fix1(Tuple1Of::narrowK).map(map);
+  default <T, R> Kind<Tuple1_, R> map(Kind<Tuple1_, T> value, Function1<T, R> map) {
+    return value.fix(Tuple1Of::narrowK).map(map);
   }
 }
 
@@ -40,9 +40,9 @@ interface Tuple2Bifunctor extends Bifunctor<Tuple2_> {
   Tuple2Bifunctor INSTANCE = new Tuple2Bifunctor() {};
 
   @Override
-  default <A, B, C, D> Higher2<Tuple2_, C, D> bimap(Higher2<Tuple2_, A, B> value,
+  default <A, B, C, D> Tuple2<C, D> bimap(Kind<Kind<Tuple2_, A>, B> value,
                                           Function1<A, C> leftMap,
                                           Function1<B, D> rightMap) {
-    return value.fix2(Tuple2Of::narrowK).map(leftMap, rightMap);
+    return value.fix(Tuple2Of::narrowK).map(leftMap, rightMap);
   }
 }

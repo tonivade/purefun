@@ -8,12 +8,9 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
@@ -24,7 +21,7 @@ public class EqTest {
 
   @Test
   public void sequence() {
-    Eq<Higher1<Sequence_, Integer>> instance = SequenceInstances.eq(Eq.any());
+    Eq<Kind<Sequence_, Integer>> instance = SequenceInstances.eq(Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(listOf(1, 2, 3), listOf(1, 2, 3))),
@@ -39,7 +36,7 @@ public class EqTest {
     Either<Integer, String> right1 = Either.right("hola");
     Either<Integer, String> right2 = Either.right("hola");
 
-    Eq<Higher2<Either_, Integer, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
+    Eq<Kind<Kind<Either_, Integer>, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(left1, left2)),

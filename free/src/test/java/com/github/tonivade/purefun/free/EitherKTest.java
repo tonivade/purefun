@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Producer_;
 import com.github.tonivade.purefun.instances.IdInstances;
@@ -103,8 +103,8 @@ class EitherKTest {
 
     EitherK<Option_, Option_, String> result = eitherK.mapK(new FunctionK<Try_, Option_>() {
       @Override
-      public <T> Higher1<Option_, T> apply(Higher1<Try_, T> from) {
-        return from.fix1(TryOf::narrowK).toOption();
+      public <T> Kind<Option_, T> apply(Kind<Try_, T> from) {
+        return from.fix(TryOf::narrowK).toOption();
       }
     });
 
@@ -117,8 +117,8 @@ class EitherKTest {
 
     EitherK<Try_, Try_, String> result = eitherK.mapLeftK(new FunctionK<Option_, Try_>() {
       @Override
-      public <T> Higher1<Try_, T> apply(Higher1<Option_, T> from) {
-        return from.fix1(OptionOf::narrowK).fold(Try::<T>failure, Try::success);
+      public <T> Kind<Try_, T> apply(Kind<Option_, T> from) {
+        return from.fix(OptionOf::narrowK).fold(Try::<T>failure, Try::success);
       }
     });
 

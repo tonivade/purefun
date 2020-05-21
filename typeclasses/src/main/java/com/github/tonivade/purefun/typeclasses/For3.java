@@ -9,37 +9,37 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function3;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple3;
 
-public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, B, C> {
+public final class For3<F extends Witness, A, B, C> extends AbstractFor<F, B, C> {
 
-  private final Producer<? extends Higher1<F, A>> value1;
-  private final Function1<A, ? extends Higher1<F, B>> value2;
+  private final Producer<? extends Kind<F, A>> value1;
+  private final Function1<A, ? extends Kind<F, B>> value2;
 
   protected For3(Monad<F> monad,
-                 Producer<? extends Higher1<F, A>> value1,
-                 Function1<A, ? extends Higher1<F, B>> value2,
-                 Function1<B, ? extends Higher1<F, C>> value3) {
+                 Producer<? extends Kind<F, A>> value1,
+                 Function1<A, ? extends Kind<F, B>> value2,
+                 Function1<B, ? extends Kind<F, C>> value3) {
     super(monad, value3);
     this.value1 = checkNonNull(value1);
     this.value2 = checkNonNull(value2);
   }
 
-  public Higher1<F, Tuple3<A, B, C>> tuple() {
+  public Kind<F, Tuple3<A, B, C>> tuple() {
     return apply(Tuple3::of);
   }
 
-  public <R> Higher1<F, R> apply(Function3<A, B, C, R> combine) {
-    Higher1<F, A> fa = value1.get();
-    Higher1<F, B> fb = monad.flatMap(fa, value2);
-    Higher1<F, C> fc = monad.flatMap(fb, value);
+  public <R> Kind<F, R> apply(Function3<A, B, C, R> combine) {
+    Kind<F, A> fa = value1.get();
+    Kind<F, B> fb = monad.flatMap(fa, value2);
+    Kind<F, C> fc = monad.flatMap(fb, value);
     return monad.map3(fa, fb, fc, combine);
   }
 
-  public <R> Higher1<F, R> yield(Function3<A, B, C, R> combine) {
+  public <R> Kind<F, R> yield(Function3<A, B, C, R> combine) {
     return monad.flatMap(value1.get(),
         a -> monad.flatMap(value2.apply(a),
             b -> monad.map(value.apply(b),
@@ -54,20 +54,20 @@ public final class For3<F extends Kind, A, B, C> extends AbstractFor<F, B, C> {
     return then(monad.pure(next));
   }
 
-  public <R> For4<F, A, B, C, R> then(Higher1<F, R> next) {
+  public <R> For4<F, A, B, C, R> then(Kind<F, R> next) {
     return andThen(cons(next));
   }
 
-  public <R> For4<F, A, B, C, R> andThen(Producer<? extends Higher1<F, R>> producer) {
+  public <R> For4<F, A, B, C, R> andThen(Producer<? extends Kind<F, R>> producer) {
     return flatMap(producer.asFunction());
   }
 
-  public <R> For4<F, A, B, C, R> flatMap(Function1<C, ? extends Higher1<F, R>> mapper) {
+  public <R> For4<F, A, B, C, R> flatMap(Function1<C, ? extends Kind<F, R>> mapper) {
     return new For4<>(monad, value1, value2, value, mapper);
   }
 
   @Override
-  public Higher1<F, C> run() {
+  public Kind<F, C> run() {
     return yield((a, b, c) -> c);
   }
 }

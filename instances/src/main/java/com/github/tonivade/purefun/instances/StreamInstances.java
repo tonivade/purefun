@@ -6,9 +6,8 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO_;
@@ -27,7 +26,7 @@ public interface StreamInstances {
     return Stream.of(IOInstances.monadDefer());
   }
 
-  static <R> Stream.StreamOf<Higher1<Higher1<ZIO_, R>, Throwable>> ofZIO() {
+  static <R> Stream.StreamOf<Kind<Kind<ZIO_, R>, Throwable>> ofZIO() {
     return Stream.of(ZIOInstances.monadDefer());
   }
 
@@ -35,7 +34,7 @@ public interface StreamInstances {
     return Stream.of(UIOInstances.monadDefer());
   }
 
-  static Stream.StreamOf<Higher1<EIO_, Throwable>> ofEIO() {
+  static Stream.StreamOf<Kind<EIO_, Throwable>> ofEIO() {
     return Stream.of(EIOInstances.monadDefer());
   }
 
@@ -44,62 +43,62 @@ public interface StreamInstances {
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Kind> Functor<Higher1<Stream_, F>> functor() {
+  static <F extends Witness> Functor<Kind<Stream_, F>> functor() {
     return StreamFunctor.INSTANCE;
   }
 
-  static <F extends Kind> Applicative<Higher1<Stream_, F>> applicative(Stream.StreamOf<F> streamOf) {
+  static <F extends Witness> Applicative<Kind<Stream_, F>> applicative(Stream.StreamOf<F> streamOf) {
     return StreamApplicative.instance(checkNonNull(streamOf));
   }
 
-  static <F extends Kind> Monad<Higher1<Stream_, F>> monad(Stream.StreamOf<F> streamOf) {
+  static <F extends Witness> Monad<Kind<Stream_, F>> monad(Stream.StreamOf<F> streamOf) {
     return StreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
-interface StreamFunctor<F extends Kind> extends Functor<Higher1<Stream_, F>> {
+interface StreamFunctor<F extends Witness> extends Functor<Kind<Stream_, F>> {
 
   @SuppressWarnings("rawtypes")
   StreamFunctor INSTANCE = new StreamFunctor() {};
 
   @Override
-  default <T, R> Higher2<Stream_, F, R> map(Higher1<Higher1<Stream_, F>, T> value, Function1<T, R> mapper) {
+  default <T, R> Stream<F, R> map(Kind<Kind<Stream_, F>, T> value, Function1<T, R> mapper) {
     return StreamOf.narrowK(value).map(mapper);
   }
 }
 
-interface StreamPure<F extends Kind> extends Applicative<Higher1<Stream_, F>> {
+interface StreamPure<F extends Witness> extends Applicative<Kind<Stream_, F>> {
 
   Stream.StreamOf<F> streamOf();
 
   @Override
-  default <T> Higher2<Stream_, F, T> pure(T value) {
+  default <T> Stream<F, T> pure(T value) {
     return streamOf().pure(value);
   }
 }
 
-interface StreamApplicative<F extends Kind> extends StreamPure<F> {
+interface StreamApplicative<F extends Witness> extends StreamPure<F> {
 
-  static <F extends Kind> StreamApplicative<F> instance(Stream.StreamOf<F> streamOf) {
+  static <F extends Witness> StreamApplicative<F> instance(Stream.StreamOf<F> streamOf) {
     return () -> streamOf;
   }
 
   @Override
-  default <T, R> Higher2<Stream_, F, R> ap(Higher1<Higher1<Stream_, F>, T> value,
-      Higher1<Higher1<Stream_, F>, Function1<T, R>> apply) {
+  default <T, R> Stream<F, R> ap(Kind<Kind<Stream_, F>, T> value,
+      Kind<Kind<Stream_, F>, Function1<T, R>> apply) {
     return StreamOf.narrowK(value).flatMap(t -> StreamOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 
-interface StreamMonad<F extends Kind> extends Monad<Higher1<Stream_, F>>, StreamPure<F> {
+interface StreamMonad<F extends Witness> extends Monad<Kind<Stream_, F>>, StreamPure<F> {
 
-  static <F extends Kind> StreamMonad<F> instance(Stream.StreamOf<F> streamOf) {
+  static <F extends Witness> StreamMonad<F> instance(Stream.StreamOf<F> streamOf) {
     return () -> streamOf;
   }
 
   @Override
-  default <T, R> Higher2<Stream_, F, R> flatMap(Higher1<Higher1<Stream_, F>, T> value,
-      Function1<T, ? extends Higher1<Higher1<Stream_, F>, R>> mapper) {
+  default <T, R> Stream<F, R> flatMap(Kind<Kind<Stream_, F>, T> value,
+      Function1<T, ? extends Kind<Kind<Stream_, F>, R>> mapper) {
     return StreamOf.narrowK(value).flatMap(mapper.andThen(StreamOf::narrowK));
   }
 }

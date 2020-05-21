@@ -5,8 +5,8 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple1;
@@ -16,17 +16,17 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
 
-public final class For1<F extends Kind, A> extends AbstractFor<F, Unit, A> {
+public final class For1<F extends Witness, A> extends AbstractFor<F, Unit, A> {
 
-  protected For1(Monad<F> monad, Producer<Higher1<F, A>> value) {
+  protected For1(Monad<F> monad, Producer<Kind<F, A>> value) {
     super(monad, value.asFunction());
   }
 
-  public Higher1<F, Tuple1<A>> tuple() {
+  public Kind<F, Tuple1<A>> tuple() {
     return apply(Tuple::of);
   }
 
-  public <R> Higher1<F, R> apply(Function1<A, R> combinator) {
+  public <R> Kind<F, R> apply(Function1<A, R> combinator) {
     return monad.map(value.apply(unit()), combinator);
   }
 
@@ -38,20 +38,20 @@ public final class For1<F extends Kind, A> extends AbstractFor<F, Unit, A> {
     return then(monad.pure(next));
   }
 
-  public <R> For2<F, A, R> then(Higher1<F, R> next) {
+  public <R> For2<F, A, R> then(Kind<F, R> next) {
     return andThen(cons(next));
   }
 
-  public <R> For2<F, A, R> andThen(Producer<? extends Higher1<F, R>> producer) {
+  public <R> For2<F, A, R> andThen(Producer<? extends Kind<F, R>> producer) {
     return flatMap(producer.asFunction());
   }
 
-  public <R> For2<F, A, R> flatMap(Function1<A, ? extends Higher1<F, R>> mapper) {
+  public <R> For2<F, A, R> flatMap(Function1<A, ? extends Kind<F, R>> mapper) {
     return new For2<>(monad, () -> value.apply(unit()), mapper);
   }
 
   @Override
-  public Higher1<F, A> run() {
+  public Kind<F, A> run() {
     return apply(identity());
   }
 }

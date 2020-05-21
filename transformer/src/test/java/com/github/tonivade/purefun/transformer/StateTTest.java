@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
@@ -32,25 +32,25 @@ public class StateTTest {
 
   @Test
   public void get() {
-    Higher1<IO_, Tuple2<Object, Object>> run = StateT.get(monad).run("abc");
+    Kind<IO_, Tuple2<Object, Object>> run = StateT.get(monad).run("abc");
     assertEquals(Tuple.of("abc", "abc"), IOOf.narrowK(run).unsafeRunSync());
   }
 
   @Test
   public void set() {
-    Higher1<IO_, Tuple2<String, Unit>> run = StateT.set(monad, "abc").run("zzz");
+    Kind<IO_, Tuple2<String, Unit>> run = StateT.set(monad, "abc").run("zzz");
     assertEquals(Tuple.of("abc", unit()), IOOf.narrowK(run).unsafeRunSync());
   }
 
   @Test
   public void gets() {
-    Higher1<IO_, String> eval = StateT.<IO_, String, String>inspect(monad, String::toUpperCase).eval("abc");
+    Kind<IO_, String> eval = StateT.<IO_, String, String>inspect(monad, String::toUpperCase).eval("abc");
     assertEquals("ABC", IOOf.narrowK(eval).unsafeRunSync());
   }
 
   @Test
   public void modify() {
-    Higher1<IO_, Tuple2<String, Unit>> run = StateT.<IO_, String>modify(monad, String::toUpperCase).run("abc");
+    Kind<IO_, Tuple2<String, Unit>> run = StateT.<IO_, String>modify(monad, String::toUpperCase).run("abc");
     assertEquals(Tuple.of("ABC", unit()), IOOf.narrowK(run).unsafeRunSync());
   }
 
@@ -70,7 +70,7 @@ public class StateTTest {
     StateT<IO_, Unit, String> sb = StateT.pure(monad, "b");
     StateT<IO_, Unit, String> sc = StateT.pure(monad, "c");
 
-    Higher1<IO_, Tuple2<Unit, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(unit());
+    Kind<IO_, Tuple2<Unit, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(unit());
 
     assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), IOOf.narrowK(result).unsafeRunSync());
   }

@@ -6,8 +6,8 @@ package com.github.tonivade.purefun.stream;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
@@ -17,23 +17,23 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-final class Suspend<F extends Kind, T> implements Stream<F, T> {
+final class Suspend<F extends Witness, T> implements Stream<F, T> {
 
   private final MonadDefer<F> monad;
-  private final Higher1<F, Stream<F, T>> evalStream;
+  private final Kind<F, Stream<F, T>> evalStream;
 
-  Suspend(MonadDefer<F> monad, Higher1<F, Stream<F, T>> stream) {
+  Suspend(MonadDefer<F> monad, Kind<F, Stream<F, T>> stream) {
     this.monad = checkNonNull(monad);
     this.evalStream = checkNonNull(stream);
   }
 
   @Override
-  public Higher1<F, Option<T>> headOption() {
+  public Kind<F, Option<T>> headOption() {
      return monad.flatMap(evalStream, Stream::headOption);
   }
 
   @Override
-  public Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> split() {
+  public Kind<F, Option<Tuple2<Kind<F, T>, Stream<F, T>>>> split() {
     return monad.flatMap(evalStream, Stream::split);
   }
 
@@ -43,12 +43,12 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Stream<F, T> append(Higher1<F, T> other) {
+  public Stream<F, T> append(Kind<F, T> other) {
     return lazyMap(s -> s.append(other));
   }
 
   @Override
-  public Stream<F, T> prepend(Higher1<F, T> other) {
+  public Stream<F, T> prepend(Kind<F, T> other) {
     return lazyMap(s -> s.prepend(other));
   }
 
@@ -83,22 +83,22 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
+  public <R> Kind<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
     return monad.flatMap(evalStream, s -> s.foldLeft(begin, combinator));
   }
 
   @Override
-  public <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator) {
+  public <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator) {
     return monad.flatMap(evalStream, s -> s.foldRight(begin, combinator));
   }
 
   @Override
-  public Higher1<F, Boolean> exists(Matcher1<T> matcher) {
+  public Kind<F, Boolean> exists(Matcher1<T> matcher) {
     return monad.flatMap(evalStream, s -> s.exists(matcher));
   }
 
   @Override
-  public Higher1<F, Boolean> forall(Matcher1<T> matcher) {
+  public Kind<F, Boolean> forall(Matcher1<T> matcher) {
     return monad.flatMap(evalStream, s -> s.forall(matcher));
   }
 
@@ -108,7 +108,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper) {
+  public <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper) {
     return suspend(() -> monad.map(evalStream, s -> s.mapEval(mapper)));
   }
 
@@ -123,7 +123,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
   }
 
   @Override
-  public Stream<F, T> intersperse(Higher1<F, T> value) {
+  public Stream<F, T> intersperse(Kind<F, T> value) {
     return lazyMap(s -> s.intersperse(value));
   }
 
@@ -134,7 +134,7 @@ final class Suspend<F extends Kind, T> implements Stream<F, T> {
     return suspend(() -> monad.map(evalStream, mapper));
   }
 
-  private <R> Stream<F, R> suspend(Producer<Higher1<F, Stream<F, R>>> stream) {
+  private <R> Stream<F, R> suspend(Producer<Kind<F, Stream<F, R>>> stream) {
     return new Suspend<>(monad, monad.defer(stream));
   }
 }

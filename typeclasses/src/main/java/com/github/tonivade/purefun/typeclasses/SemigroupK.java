@@ -4,10 +4,10 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface SemigroupK<F extends Kind> {
+public interface SemigroupK<F extends Witness> {
 
-  <T> Higher1<F, T> combineK(Higher1<F, T> t1, Higher1<F, T> t2);
+  <T> Kind<F, T> combineK(Kind<F, T> t1, Kind<F, T> t2);
 }

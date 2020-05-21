@@ -12,9 +12,9 @@ import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -53,7 +53,7 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     async(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Kind> Higher1<F, Either<E, T>> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, Either<E, T>> foldMap(MonadDefer<F> monad) {
     return value.foldMap(nothing(), monad);
   }
 

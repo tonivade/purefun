@@ -9,12 +9,12 @@ import static com.github.tonivade.purefun.Unit.unit;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionOf;
@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface OptionInstances {
 
-  static <T> Eq<Higher1<Option_, T>> eq(Eq<T> eqSome) {
+  static <T> Eq<Kind<Option_, T>> eq(Eq<T> eqSome) {
     return (a, b) -> Pattern2.<Option<T>, Option<T>, Boolean>build()
       .when((x, y) -> x.isPresent() && y.isPresent())
         .then((x, y) -> eqSome.eqv(x.get(), y.get()))
@@ -81,7 +81,7 @@ interface OptionFunctor extends Functor<Option_> {
   OptionFunctor INSTANCE = new OptionFunctor() {};
 
   @Override
-  default <T, R> Higher1<Option_, R> map(Higher1<Option_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Option_, R> map(Kind<Option_, T> value, Function1<T, R> mapper) {
     return OptionOf.narrowK(value).map(mapper);
   }
 }
@@ -89,7 +89,7 @@ interface OptionFunctor extends Functor<Option_> {
 interface OptionPure extends Applicative<Option_> {
 
   @Override
-  default <T> Higher1<Option_, T> pure(T value) {
+  default <T> Kind<Option_, T> pure(T value) {
     return Option.some(value);
   }
 }
@@ -99,7 +99,7 @@ interface OptionApplicative extends OptionPure {
   OptionApplicative INSTANCE = new OptionApplicative() {};
 
   @Override
-  default <T, R> Higher1<Option_, R> ap(Higher1<Option_, T> value, Higher1<Option_, Function1<T, R>> apply) {
+  default <T, R> Kind<Option_, R> ap(Kind<Option_, T> value, Kind<Option_, Function1<T, R>> apply) {
     return OptionOf.narrowK(value).flatMap(t -> OptionOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -109,8 +109,8 @@ interface OptionMonad extends OptionPure, Monad<Option_> {
   OptionMonad INSTANCE = new OptionMonad() {};
 
   @Override
-  default <T, R> Higher1<Option_, R> flatMap(Higher1<Option_, T> value,
-      Function1<T, ? extends Higher1<Option_, R>> map) {
+  default <T, R> Kind<Option_, R> flatMap(Kind<Option_, T> value,
+      Function1<T, ? extends Kind<Option_, R>> map) {
     return OptionOf.narrowK(value).flatMap(map.andThen(OptionOf::narrowK));
   }
 }
@@ -120,7 +120,7 @@ interface OptionSemigroupK extends SemigroupK<Option_> {
   OptionSemigroupK INSTANCE = new OptionSemigroupK() {};
 
   @Override
-  default <T> Higher1<Option_, T> combineK(Higher1<Option_, T> t1, Higher1<Option_, T> t2) {
+  default <T> Kind<Option_, T> combineK(Kind<Option_, T> t1, Kind<Option_, T> t2) {
     return OptionOf.narrowK(t1).fold(cons(OptionOf.narrowK(t2)), Option::some);
   }
 }
@@ -130,7 +130,7 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option_> {
   OptionMonoidK INSTANCE = new OptionMonoidK() {};
 
   @Override
-  default <T> Higher1<Option_, T> zero() {
+  default <T> Kind<Option_, T> zero() {
     return Option.<T>none();
   }
 }
@@ -145,13 +145,13 @@ interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
   OptionMonadError INSTANCE = new OptionMonadError() {};
 
   @Override
-  default <A> Higher1<Option_, A> raiseError(Unit error) {
+  default <A> Kind<Option_, A> raiseError(Unit error) {
     return Option.<A>none();
   }
 
   @Override
-  default <A> Higher1<Option_, A> handleErrorWith(Higher1<Option_, A> value,
-      Function1<Unit, ? extends Higher1<Option_, A>> handler) {
+  default <A> Kind<Option_, A> handleErrorWith(Kind<Option_, A> value,
+      Function1<Unit, ? extends Kind<Option_, A>> handler) {
     return OptionOf.narrowK(value).fold(() -> OptionOf.narrowK(handler.apply(unit())), this::pure);
   }
 }
@@ -161,12 +161,12 @@ interface OptionFoldable extends Foldable<Option_> {
   OptionFoldable INSTANCE = new OptionFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Higher1<Option_, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Option_, A> value, B initial, Function2<B, A, B> mapper) {
     return OptionOf.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Higher1<Option_, A> value, Eval<B> initial,
+  default <A, B> Eval<B> foldRight(Kind<Option_, A> value, Eval<B> initial,
       Function2<A, Eval<B>, Eval<B>> mapper) {
     return OptionOf.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
   }
@@ -177,9 +177,9 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   OptionTraverse INSTANCE = new OptionTraverse() {};
 
   @Override
-  default <G extends Kind, T, R> Higher1<G, Higher1<Option_, R>> traverse(
-      Applicative<G> applicative, Higher1<Option_, T> value,
-      Function1<T, ? extends Higher1<G, R>> mapper) {
+  default <G extends Witness, T, R> Kind<G, Kind<Option_, R>> traverse(
+      Applicative<G> applicative, Kind<Option_, T> value,
+      Function1<T, ? extends Kind<G, R>> mapper) {
     return OptionOf.narrowK(value).fold(
         () -> applicative.pure(Option.<R>none()),
         t -> applicative.map(mapper.apply(t), x -> Option.some(x)));
@@ -191,7 +191,7 @@ interface OptionSemigroupal extends Semigroupal<Option_> {
   OptionSemigroupal INSTANCE = new OptionSemigroupal() {};
 
   @Override
-  default <A, B> Higher1<Option_, Tuple2<A, B>> product(Higher1<Option_, A> fa, Higher1<Option_, B> fb) {
+  default <A, B> Kind<Option_, Tuple2<A, B>> product(Kind<Option_, A> fa, Kind<Option_, B> fb) {
     return OptionOf.narrowK(fa).flatMap(a -> OptionOf.narrowK(fb).map(b -> Tuple.of(a, b)));
   }
 }

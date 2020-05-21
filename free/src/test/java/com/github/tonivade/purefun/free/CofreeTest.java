@@ -42,7 +42,7 @@ public class CofreeTest {
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
-          .tuple().fix1(IdOf::narrowK);
+          .tuple().fix(IdOf::narrowK);
 
     assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.get().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
   }
@@ -54,7 +54,7 @@ public class CofreeTest {
 
     assertEquals(5151,
         cofree.<Integer>fold(EvalInstances.applicative(), OptionInstances.traverse(),
-            (a, fb) -> Eval.later(() -> fb.fix1(OptionOf::narrowK).fold(() -> a, x -> x + a))).value());
+            (a, fb) -> Eval.later(() -> fb.fix(OptionOf::narrowK).fold(() -> a, x -> x + a))).value());
   }
 
   @Test

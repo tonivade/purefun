@@ -5,19 +5,19 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Contravariant<F extends Kind> extends Invariant<F> {
+public interface Contravariant<F extends Witness> extends Invariant<F> {
 
-  <A, B> Higher1<F, B> contramap(Higher1<F, A> value, Function1<B, A> map);
+  <A, B> Kind<F, B> contramap(Kind<F, A> value, Function1<B, A> map);
 
   @Override
-  default <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
+  default <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
     return contramap(value, comap);
   }
 
-  static <F extends Kind, G extends Kind> Contravariant<Nested<F, G>> compose(Functor<F> f, Contravariant<G> g) {
+  static <F extends Witness, G extends Witness> Contravariant<Nested<F, G>> compose(Functor<F> f, Contravariant<G> g) {
     return new ComposedCovariantContravariant<F, G>() {
       @Override
       public Functor<F> f() { return f; }
@@ -27,7 +27,7 @@ public interface Contravariant<F extends Kind> extends Invariant<F> {
     };
   }
 
-  static <F extends Kind, G extends Kind> Contravariant<Nested<F, G>> compose(Contravariant<F> f, Functor<G> g) {
+  static <F extends Witness, G extends Witness> Contravariant<Nested<F, G>> compose(Contravariant<F> f, Functor<G> g) {
     return new ComposedContravariantCovariant<F, G>() {
       @Override
       public Contravariant<F> f() { return f; }

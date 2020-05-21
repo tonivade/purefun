@@ -5,20 +5,19 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Function1.identity;
-
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Profunctor<F extends Kind> {
+public interface Profunctor<F extends Witness> {
 
-  <A, B, C, D> Higher2<F, C, D> dimap(Higher2<F, A, B> value, Function1<C, A> contramap, Function1<B, D> map);
-  
-  default <A, B, C> Higher2<F, C, B> lmap(Higher2<F, A, B> value, Function1<C, A> contramap) {
+  <A, B, C, D> Kind<Kind<F, C>, D> dimap(Kind<Kind<F, A>, B> value, Function1<C, A> contramap, Function1<B, D> map);
+
+  default <A, B, C> Kind<Kind<F, C>, B> lmap(Kind<Kind<F, A>, B> value, Function1<C, A> contramap) {
     return dimap(value, contramap, identity());
   }
-  
-  default <A, B, D> Higher2<F, A, D> rmap(Higher2<F, A, B> value, Function1<B, D> map) {
+
+  default <A, B, D> Kind<Kind<F, A>, D> rmap(Kind<Kind<F, A>, B> value, Function1<B, D> map) {
     return dimap(value, identity(), map);
   }
 }

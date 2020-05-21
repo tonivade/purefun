@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IOOf;
@@ -167,18 +167,18 @@ public class EIOTest {
   public void foldMapRight() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
+    Kind<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Either.right(0), future.fix1(IOOf::narrowK).unsafeRunSync());
+    assertEquals(Either.right(0), future.fix(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
+    Kind<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
+    assertEquals(NumberFormatException.class, future.fix(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   @Test

@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.free.TrampolineOf;
@@ -39,7 +39,7 @@ interface TrampolineFunctor extends Functor<Trampoline_> {
   TrampolineFunctor INSTANCE = new TrampolineFunctor() {};
 
   @Override
-  default <T, R> Higher1<Trampoline_, R> map(Higher1<Trampoline_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Trampoline_, R> map(Kind<Trampoline_, T> value, Function1<T, R> mapper) {
     return TrampolineOf.narrowK(value).map(mapper);
   }
 }
@@ -47,7 +47,7 @@ interface TrampolineFunctor extends Functor<Trampoline_> {
 interface TrampolinePure extends Applicative<Trampoline_> {
 
   @Override
-  default <T> Higher1<Trampoline_, T> pure(T value) {
+  default <T> Kind<Trampoline_, T> pure(T value) {
     return Trampoline.done(value);
   }
 }
@@ -57,7 +57,7 @@ interface TrampolineApplicative extends TrampolinePure {
   TrampolineApplicative INSTANCE = new TrampolineApplicative() {};
 
   @Override
-  default <T, R> Higher1<Trampoline_, R> ap(Higher1<Trampoline_, T> value, Higher1<Trampoline_, Function1<T, R>> apply) {
+  default <T, R> Kind<Trampoline_, R> ap(Kind<Trampoline_, T> value, Kind<Trampoline_, Function1<T, R>> apply) {
     return TrampolineOf.narrowK(value).flatMap(t -> TrampolineOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -67,8 +67,8 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline_> {
   TrampolineMonad INSTANCE = new TrampolineMonad() {};
 
   @Override
-  default <T, R> Higher1<Trampoline_, R> flatMap(Higher1<Trampoline_, T> value,
-      Function1<T, ? extends Higher1<Trampoline_, R>> map) {
+  default <T, R> Kind<Trampoline_, R> flatMap(Kind<Trampoline_, T> value,
+      Function1<T, ? extends Kind<Trampoline_, R>> map) {
     return TrampolineOf.narrowK(value).flatMap(map.andThen(TrampolineOf::narrowK));
   }
 }
@@ -78,7 +78,7 @@ interface TrampolineDefer extends Defer<Trampoline_> {
   TrampolineDefer INSTANCE = new TrampolineDefer() {};
 
   @Override
-  default <A> Higher1<Trampoline_, A> defer(Producer<Higher1<Trampoline_, A>> defer) {
-    return Trampoline.more(() -> defer.get().fix1(TrampolineOf::narrowK));
+  default <A> Kind<Trampoline_, A> defer(Producer<Kind<Trampoline_, A>> defer) {
+    return Trampoline.more(() -> defer.get().fix(TrampolineOf::narrowK));
   }
 }

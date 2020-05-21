@@ -6,16 +6,16 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Bracket<F extends Kind> {
+public interface Bracket<F extends Witness> {
 
-  <A, B> Higher1<F, B> bracket(Higher1<F, A> acquire, Function1<A, ? extends Higher1<F, B>> use, Consumer1<A> release);
+  <A, B> Kind<F, B> bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use, Consumer1<A> release);
 
-  default <A extends AutoCloseable, B> Higher1<F, B>
-      bracket(Higher1<F, A> acquire,
-              Function1<A, ? extends Higher1<F, B>> use) {
+  default <A extends AutoCloseable, B> Kind<F, B>
+      bracket(Kind<F, A> acquire,
+              Function1<A, ? extends Kind<F, B>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 }

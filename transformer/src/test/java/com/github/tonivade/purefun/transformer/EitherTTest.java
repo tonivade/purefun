@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.FutureOf;
@@ -93,44 +93,44 @@ public class EitherTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<Higher1<EitherT_, Future_>, Throwable>, Throwable> monadError =
+    MonadError<Kind<Kind<EitherT_, Future_>, Throwable>, Throwable> monadError =
         EitherTInstances.monadError(FutureInstances.monadError());
 
-    Higher1<Higher1<Higher1<EitherT_, Future_>, Throwable>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<Higher1<EitherT_, Future_>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Higher1<Higher1<Higher1<EitherT_, Future_>, Throwable>, String> handleError =
+    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<Higher1<EitherT_, Future_>, Throwable>, String> ensureOk =
+    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Higher1<Higher1<Higher1<EitherT_, Future_>, Throwable>, String> ensureError =
+    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), raiseError.fix1(EitherTOf::<Future_, Throwable, String>narrowK).value().fix1(FutureOf::narrowK).await()),
-        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix1(EitherTOf::<Future_, Throwable, String>narrowK).value().fix1(FutureOf::narrowK).await()),
-        () -> assertEquals(Try.failure(error), ensureError.fix1(EitherTOf::<Future_, Throwable, String>narrowK).value().fix1(FutureOf::narrowK).await()),
-        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix1(EitherTOf::<Future_, Throwable, String>narrowK).value().fix1(FutureOf::narrowK).await()));
+        () -> assertEquals(Try.failure(error), raiseError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()),
+        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()),
+        () -> assertEquals(Try.failure(error), ensureError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()),
+        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()));
   }
 
   @Test
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Higher1<Higher1<EitherT_, Id_>, Throwable>, Throwable> monadError =
+    MonadError<Kind<Kind<EitherT_, Id_>, Throwable>, Throwable> monadError =
         EitherTInstances.monadError(monad);
 
-    Higher1<Higher1<Higher1<EitherT_, Id_>, Throwable>, String> pure = monadError.pure("is not ok");
-    Higher1<Higher1<Higher1<EitherT_, Id_>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Higher1<Higher1<Higher1<EitherT_, Id_>, Throwable>, String> handleError =
+    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Higher1<Higher1<Higher1<EitherT_, Id_>, Throwable>, String> ensureOk =
+    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> ensureOk =
         monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Higher1<Higher1<Higher1<EitherT_, Id_>, Throwable>, String> ensureError =
+    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> ensureError =
         monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Id.of(Either.left(error)), raiseError.fix1(EitherTOf::narrowK).value()),
-        () -> assertEquals(Id.of(Either.right("not an error")), handleError.fix1(EitherTOf::narrowK).value()),
-        () -> assertEquals(Id.of(Either.left(error)), ensureError.fix1(EitherTOf::narrowK).value()),
-        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.fix1(EitherTOf::narrowK).value()));
+        () -> assertEquals(Id.of(Either.left(error)), raiseError.fix(EitherTOf::narrowK).value()),
+        () -> assertEquals(Id.of(Either.right("not an error")), handleError.fix(EitherTOf::narrowK).value()),
+        () -> assertEquals(Id.of(Either.left(error)), ensureError.fix(EitherTOf::narrowK).value()),
+        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.fix(EitherTOf::narrowK).value()));
   }
 }

@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator2;
 
@@ -15,7 +15,7 @@ public interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix1(MonoidOf::<R>narrowK);
+    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix(MonoidOf::<R>narrowK);
   }
 
   static Monoid<String> string() {
@@ -47,19 +47,19 @@ interface MonoidInvariant extends Invariant<Monoid_> {
   MonoidInvariant INSTANCE = new MonoidInvariant() { };
 
   @Override
-  default <A, B> Higher1<Monoid_, B> imap(Higher1<Monoid_, A> value,
+  default <A, B> Kind<Monoid_, B> imap(Kind<Monoid_, A> value,
                                            Function1<A, B> map,
                                            Function1<B, A> comap) {
     return new Monoid<B>() {
 
       @Override
       public B zero() {
-        return map.apply(value.fix1(MonoidOf::narrowK).zero());
+        return map.apply(value.fix(MonoidOf::narrowK).zero());
       }
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix1(MonoidOf::narrowK).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.fix(MonoidOf::narrowK).combine(comap.apply(t1), comap.apply(t2)));
       }
     };
   }

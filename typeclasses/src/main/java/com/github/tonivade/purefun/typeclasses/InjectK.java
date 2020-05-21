@@ -4,17 +4,17 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface InjectK<F extends Kind, G extends Kind> {
+public interface InjectK<F extends Witness, G extends Witness> {
 
-  <T> Higher1<G, T> inject(Higher1<F, T> value);
+  <T> Kind<G, T> inject(Kind<F, T> value);
 
-  static <F extends Kind> InjectK<F, F> injectReflexive() {
+  static <F extends Witness> InjectK<F, F> injectReflexive() {
     return new InjectK<F, F>() {
       @Override
-      public <T> Higher1<F, T> inject(Higher1<F, T> value) {
+      public <T> Kind<F, T> inject(Kind<F, T> value) {
         return value;
       }
     };

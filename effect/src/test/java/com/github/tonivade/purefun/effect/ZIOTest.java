@@ -19,7 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -156,7 +156,7 @@ public class ZIOTest {
 
     ImmutableList<String> result =
         program.foldMap(FutureInstances.monadDefer())
-            .fix1(FutureOf::narrowK)
+            .fix(FutureOf::narrowK)
             .await().get();
 
     assertEquals(5, result.size());
@@ -176,18 +176,18 @@ public class ZIOTest {
   public void foldMapRight() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(nothing(), monadDefer);
+    Kind<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(nothing(), monadDefer);
 
-    assertEquals(Either.right(0), future.fix1(IOOf::narrowK).unsafeRunSync());
+    assertEquals(Either.right(0), future.fix(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Higher1<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
+    Kind<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix1(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
+    assertEquals(NumberFormatException.class, future.fix(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
   }
 
   @Test
@@ -253,7 +253,7 @@ public class ZIOTest {
   public void stackSafety() {
     UIO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(FutureOf::narrowK);
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix(FutureOf::narrowK);
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());

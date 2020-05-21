@@ -7,8 +7,8 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.IdOf;
@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 
 public interface IdInstances {
 
-  static <T> Eq<Higher1<Id_, T>> eq(Eq<T> idEq) {
+  static <T> Eq<Kind<Id_, T>> eq(Eq<T> idEq) {
     return (a, b) -> idEq.eqv(IdOf.narrowK(a).get(), IdOf.narrowK(b).get());
   }
 
@@ -56,7 +56,7 @@ interface IdFunctor extends Functor<Id_> {
   IdFunctor INSTANCE = new IdFunctor() {};
 
   @Override
-  default <T, R> Higher1<Id_, R> map(Higher1<Id_, T> value, Function1<T, R> map) {
+  default <T, R> Kind<Id_, R> map(Kind<Id_, T> value, Function1<T, R> map) {
     return IdOf.narrowK(value).map(map);
   }
 }
@@ -64,7 +64,7 @@ interface IdFunctor extends Functor<Id_> {
 interface IdPure extends Applicative<Id_> {
 
   @Override
-  default <T> Higher1<Id_, T> pure(T value) {
+  default <T> Kind<Id_, T> pure(T value) {
     return Id.of(value);
   }
 }
@@ -74,7 +74,7 @@ interface IdApplicative extends IdPure {
   IdApplicative INSTANCE = new IdApplicative() {};
 
   @Override
-  default <T, R> Higher1<Id_, R> ap(Higher1<Id_, T> value, Higher1<Id_, Function1<T, R>> apply) {
+  default <T, R> Kind<Id_, R> ap(Kind<Id_, T> value, Kind<Id_, Function1<T, R>> apply) {
     return IdOf.narrowK(value).flatMap(t -> IdOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -84,7 +84,7 @@ interface IdMonad extends IdPure, Monad<Id_> {
   IdMonad INSTANCE = new IdMonad() {};
 
   @Override
-  default <T, R> Higher1<Id_, R> flatMap(Higher1<Id_, T> value, Function1<T, ? extends Higher1<Id_, R>> map) {
+  default <T, R> Kind<Id_, R> flatMap(Kind<Id_, T> value, Function1<T, ? extends Kind<Id_, R>> map) {
     return IdOf.narrowK(value).flatMap(map.andThen(IdOf::narrowK));
   }
 }
@@ -94,12 +94,12 @@ interface IdComonad extends IdFunctor, Comonad<Id_> {
   IdComonad INSTANCE = new IdComonad() {};
 
   @Override
-  default <A, B> Higher1<Id_, B> coflatMap(Higher1<Id_, A> value, Function1<Higher1<Id_, A>, B> map) {
+  default <A, B> Kind<Id_, B> coflatMap(Kind<Id_, A> value, Function1<Kind<Id_, A>, B> map) {
     return Id.of(map.apply(value));
   }
 
   @Override
-  default <A> A extract(Higher1<Id_, A> value) {
+  default <A> A extract(Kind<Id_, A> value) {
     return IdOf.narrowK(value).get();
   }
 }
@@ -109,12 +109,12 @@ interface IdFoldable extends Foldable<Id_> {
   IdFoldable INSTANCE = new IdFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Higher1<Id_, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Id_, A> value, B initial, Function2<B, A, B> mapper) {
     return mapper.apply(initial, IdOf.narrowK(value).get());
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Higher1<Id_, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
+  default <A, B> Eval<B> foldRight(Kind<Id_, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
     return mapper.apply(IdOf.narrowK(value).get(), initial);
   }
 }
@@ -124,9 +124,9 @@ interface IdTraverse extends Traverse<Id_>, IdFoldable {
   IdTraverse INSTANCE = new IdTraverse() {};
 
   @Override
-  default <G extends Kind, T, R> Higher1<G, Higher1<Id_, R>> traverse(
-      Applicative<G> applicative, Higher1<Id_, T> value,
-      Function1<T, ? extends Higher1<G, R>> mapper) {
+  default <G extends Witness, T, R> Kind<G, Kind<Id_, R>> traverse(
+      Applicative<G> applicative, Kind<Id_, T> value,
+      Function1<T, ? extends Kind<G, R>> mapper) {
     return applicative.map(mapper.apply(IdOf.narrowK(value).get()), a -> Id.of(a));
   }
 }

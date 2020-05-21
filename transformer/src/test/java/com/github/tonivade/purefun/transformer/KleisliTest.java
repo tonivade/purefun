@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.transformer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.instances.TryInstances;
@@ -20,7 +20,7 @@ public class KleisliTest {
     Kleisli<Try_, String, Integer> toInt = Kleisli.lift(TryInstances.monad(), Integer::parseInt);
     Kleisli<Try_, Integer, Double> half = Kleisli.lift(TryInstances.monad(), i -> i / 2.);
 
-    Higher1<Try_, Double> result = toInt.compose(half).run("123");
+    Kind<Try_, Double> result = toInt.compose(half).run("123");
 
     assertEquals(Try.success(61.5), result);
   }

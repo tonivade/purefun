@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.ConstInstances;
@@ -37,7 +37,7 @@ public class TraverseTest {
 
     Traverse<Sequence_> instance = SequenceInstances.traverse();
 
-    Higher1<Option_, Higher1<Sequence_, String>> result =
+    Kind<Option_, Kind<Sequence_, String>> result =
         instance.traverse(OptionInstances.applicative(), seq, x -> x.map(String::toUpperCase));
 
     assertEquals(Option.some(listOf("A", "B", "C")), result);
@@ -45,7 +45,7 @@ public class TraverseTest {
 
   @Test
   public void either() {
-    Traverse<Higher1<Either_, Throwable>> instance = EitherInstances.traverse();
+    Traverse<Kind<Either_, Throwable>> instance = EitherInstances.traverse();
 
     Exception error = new Exception("error");
 
@@ -79,7 +79,7 @@ public class TraverseTest {
 
   @Test
   public void testConst() {
-    Traverse<Higher1<Const_, String>> instance = ConstInstances.traverse();
+    Traverse<Kind<Const_, String>> instance = ConstInstances.traverse();
 
     assertAll(
         () -> assertEquals(Option.some(Const.of("hello!")),

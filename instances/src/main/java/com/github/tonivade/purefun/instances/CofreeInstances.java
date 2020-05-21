@@ -5,9 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.free.Cofree;
 import com.github.tonivade.purefun.free.CofreeOf;
 import com.github.tonivade.purefun.free.Cofree_;
 import com.github.tonivade.purefun.typeclasses.Comonad;
@@ -16,39 +16,39 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 @SuppressWarnings("unchecked")
 public interface CofreeInstances {
 
-  static <F extends Kind> Functor<Higher1<Cofree_, F>> functor() {
+  static <F extends Witness> Functor<Kind<Cofree_, F>> functor() {
     return CofreeFunctor.INSTANCE;
   }
 
-  static <F extends Kind> Comonad<Higher1<Cofree_, F>> comonad() {
+  static <F extends Witness> Comonad<Kind<Cofree_, F>> comonad() {
     return CofreeComonad.INSTANCE;
   }
 }
 
-interface CofreeFunctor<F extends Kind> extends Functor<Higher1<Cofree_, F>> {
+interface CofreeFunctor<F extends Witness> extends Functor<Kind<Cofree_, F>> {
 
   @SuppressWarnings("rawtypes")
   CofreeFunctor INSTANCE = new CofreeFunctor() {};
 
   @Override
-  default <T, R> Higher2<Cofree_, F, R> map(Higher1<Higher1<Cofree_, F>, T> value, Function1<T, R> map) {
-    return value.fix1(CofreeOf::narrowK).map(map);
+  default <T, R> Cofree<F, R> map(Kind<Kind<Cofree_, F>, T> value, Function1<T, R> map) {
+    return value.fix(CofreeOf::narrowK).map(map);
   }
 }
 
-interface CofreeComonad<F extends Kind> extends Comonad<Higher1<Cofree_, F>>, CofreeFunctor<F> {
+interface CofreeComonad<F extends Witness> extends Comonad<Kind<Cofree_, F>>, CofreeFunctor<F> {
 
   @SuppressWarnings("rawtypes")
   CofreeComonad INSTANCE = new CofreeComonad() { };
 
   @Override
-  default <A> A extract(Higher1<Higher1<Cofree_, F>, A> value) {
-    return value.fix1(CofreeOf::narrowK).extract();
+  default <A> A extract(Kind<Kind<Cofree_, F>, A> value) {
+    return value.fix(CofreeOf::narrowK).extract();
   }
 
   @Override
-  default <A, B> Higher2<Cofree_, F, B> coflatMap(
-      Higher1<Higher1<Cofree_, F>, A> value, Function1<Higher1<Higher1<Cofree_, F>, A>, B> map) {
-    return value.fix1(CofreeOf::narrowK).coflatMap(map::apply);
+  default <A, B> Cofree<F, B> coflatMap(
+      Kind<Kind<Cofree_, F>, A> value, Function1<Kind<Kind<Cofree_, F>, A>, B> map) {
+    return value.fix(CofreeOf::narrowK).coflatMap(map::apply);
   }
 }

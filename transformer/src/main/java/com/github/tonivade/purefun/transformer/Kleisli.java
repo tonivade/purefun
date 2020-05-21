@@ -6,16 +6,16 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public interface Kleisli<F extends Kind, Z, A> extends KleisliOf<F, Z, A> {
+public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
 
   Monad<F> monad();
-  Higher1<F, A> run(Z value);
+  Kind<F, A> run(Z value);
 
   default <R> Kleisli<F, Z, R> map(Function1<A, R> map) {
     return Kleisli.of(monad(), value -> monad().map(run(value), map));
@@ -33,19 +33,19 @@ public interface Kleisli<F extends Kind, Z, A> extends KleisliOf<F, Z, A> {
     return Kleisli.of(monad(), map.andThen(this::run)::apply);
   }
 
-  static <F extends Kind, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
+  static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
     return Kleisli.of(monad, map.andThen(monad::<B>pure)::apply);
   }
 
-  static <F extends Kind, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
+  static <F extends Witness, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
     return Kleisli.of(monad, monad::<Z>pure);
   }
 
-  static <F extends Kind, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {
+  static <F extends Witness, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {
     return Kleisli.of(monad, a -> monad.pure(value));
   }
 
-  static <F extends Kind, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Higher1<F, B>> run) {
+  static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Kind<F, B>> run) {
     checkNonNull(monad);
     checkNonNull(run);
     return new Kleisli<F, A, B>() {
@@ -54,7 +54,7 @@ public interface Kleisli<F extends Kind, Z, A> extends KleisliOf<F, Z, A> {
       public Monad<F> monad() { return monad; }
 
       @Override
-      public Higher1<F, B> run(A value) { return run.apply(value); }
+      public Kind<F, B> run(A value) { return run.apply(value); }
     };
   }
 }

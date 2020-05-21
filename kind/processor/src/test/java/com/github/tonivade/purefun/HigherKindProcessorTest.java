@@ -11,11 +11,11 @@ public class HigherKindProcessorTest {
   private final JavaFileObject witness = forSourceLines("test.Foo_",
         "package test;",
 
-        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Witness;",
         "import javax.annotation.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
-        "public final class Foo_ implements Kind {",
+        "public final class Foo_ implements Witness {",
         "private Foo_() {}",
         "}");
 
@@ -33,13 +33,13 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Kind;",
         "import javax.annotation.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
-        "public interface FooOf<A> extends Higher1<Foo_, A> {",
+        "public interface FooOf<A> extends Kind<Foo_, A> {",
 
-        "static <A> Foo<A> narrowK(Higher1<Foo_, A> hkt) {",
+        "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
@@ -64,13 +64,13 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Higher1;",
+        "import com.github.tonivade.purefun.Kind;",
         "import javax.annotation.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
-        "public interface FooOf<A extends java.lang.String> extends Higher1<Foo_, A> {",
+        "public interface FooOf<A extends java.lang.String> extends Kind<Foo_, A> {",
 
-        "static <A extends java.lang.String> Foo<A> narrowK(Higher1<Foo_, A> hkt) {",
+        "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
@@ -111,18 +111,13 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Higher1;",
-        "import com.github.tonivade.purefun.Higher2;",
+        "import com.github.tonivade.purefun.Kind;",
         "import javax.annotation.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
-        "public interface FooOf<A, B> extends Higher2<Foo_, A, B> {",
+        "public interface FooOf<A, B> extends Kind<Kind<Foo_, A>, B> {",
 
-        "static <A, B> Foo<A, B> narrowK(Higher1<Higher1<Foo_, A>, B> hkt) {",
-        "return (Foo<A, B>) hkt;",
-        "}",
-
-        "static <A, B> Foo<A, B> narrowK(Higher2<Foo_, A, B> hkt) {",
+        "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo_, A>, B> hkt) {",
         "return (Foo<A, B>) hkt;",
         "}",
 
@@ -147,23 +142,13 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Higher1;",
-        "import com.github.tonivade.purefun.Higher2;",
-        "import com.github.tonivade.purefun.Higher3;",
+        "import com.github.tonivade.purefun.Kind;",
         "import javax.annotation.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
-        "public interface FooOf<A, B, C> extends Higher3<Foo_, A, B, C> {",
+        "public interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo_, A>, B>, C> {",
 
-        "static <A, B, C> Foo<A, B, C> narrowK(Higher1<Higher1<Higher1<Foo_, A>, B>, C> hkt) {",
-        "return (Foo<A, B, C>) hkt;",
-        "}",
-
-        "static <A, B, C> Foo<A, B, C> narrowK(Higher2<Higher1<Foo_, A>, B, C> hkt) {",
-        "return (Foo<A, B, C>) hkt;",
-        "}",
-
-        "static <A, B, C> Foo<A, B, C> narrowK(Higher3<Foo_, A, B, C> hkt) {",
+        "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo_, A>, B>, C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
         "}",
 

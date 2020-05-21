@@ -4,4 +4,15 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Kind { }
+import java.util.function.Function;
+
+public interface Kind<F extends Witness, A> extends Witness {
+
+  default <R> R fix(Function<? super Kind<F, A>, ? extends R> function) {
+    return function.apply(this);
+  }
+
+  default Kind<F, A> kind() {
+    return this;
+  }
+}

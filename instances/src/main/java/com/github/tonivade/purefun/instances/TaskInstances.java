@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.Task;
@@ -59,8 +59,8 @@ interface TaskFunctor extends Functor<Task_> {
   TaskFunctor INSTANCE = new TaskFunctor() {};
 
   @Override
-  default <A, B> Higher1<Task_, B>
-          map(Higher1<Task_, A> value, Function1<A, B> map) {
+  default <A, B> Kind<Task_, B>
+          map(Kind<Task_, A> value, Function1<A, B> map) {
     return TaskOf.narrowK(value).map(map);
   }
 }
@@ -68,7 +68,7 @@ interface TaskFunctor extends Functor<Task_> {
 interface TaskPure extends Applicative<Task_> {
 
   @Override
-  default <A> Higher1<Task_, A> pure(A value) {
+  default <A> Kind<Task_, A> pure(A value) {
     return Task.pure(value);
   }
 }
@@ -78,9 +78,9 @@ interface TaskApplicative extends TaskPure {
   TaskApplicative INSTANCE = new TaskApplicative() {};
 
   @Override
-  default <A, B> Higher1<Task_, B>
-          ap(Higher1<Task_, A> value,
-             Higher1<Task_, Function1<A, B>> apply) {
+  default <A, B> Kind<Task_, B>
+          ap(Kind<Task_, A> value,
+             Kind<Task_, Function1<A, B>> apply) {
     return TaskOf.narrowK(apply).flatMap(map -> TaskOf.narrowK(value).map(map));
   }
 }
@@ -90,9 +90,9 @@ interface TaskMonad extends TaskPure, Monad<Task_> {
   TaskMonad INSTANCE = new TaskMonad() {};
 
   @Override
-  default <A, B> Higher1<Task_, B>
-          flatMap(Higher1<Task_, A> value,
-                  Function1<A, ? extends Higher1<Task_, B>> map) {
+  default <A, B> Kind<Task_, B>
+          flatMap(Kind<Task_, A> value,
+                  Function1<A, ? extends Kind<Task_, B>> map) {
     return TaskOf.narrowK(value).flatMap(map.andThen(TaskOf::narrowK));
   }
 }
@@ -102,14 +102,14 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
   TaskMonadError INSTANCE = new TaskMonadError() {};
 
   @Override
-  default <A> Higher1<Task_, A> raiseError(Throwable error) {
+  default <A> Kind<Task_, A> raiseError(Throwable error) {
     return Task.<A>raiseError(error);
   }
 
   @Override
-  default <A> Higher1<Task_, A>
-          handleErrorWith(Higher1<Task_, A> value,
-                          Function1<Throwable, ? extends Higher1<Task_, A>> handler) {
+  default <A> Kind<Task_, A>
+          handleErrorWith(Kind<Task_, A> value,
+                          Function1<Throwable, ? extends Kind<Task_, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
     Function1<A, Task<A>> map = Task::pure;
@@ -126,8 +126,8 @@ interface TaskMonadThrow extends TaskMonadError, MonadThrow<Task_> {
 interface TaskDefer extends Defer<Task_> {
 
   @Override
-  default <A> Higher1<Task_, A>
-          defer(Producer<Higher1<Task_, A>> defer) {
+  default <A> Kind<Task_, A>
+          defer(Producer<Kind<Task_, A>> defer) {
     return Task.defer(() -> defer.map(TaskOf::narrowK).get());
   }
 }
@@ -135,11 +135,11 @@ interface TaskDefer extends Defer<Task_> {
 interface TaskBracket extends Bracket<Task_> {
 
   @Override
-  default <A, B> Higher1<Task_, B>
-          bracket(Higher1<Task_, A> acquire,
-                  Function1<A, ? extends Higher1<Task_, B>> use,
+  default <A, B> Kind<Task_, B>
+          bracket(Kind<Task_, A> acquire,
+                  Function1<A, ? extends Kind<Task_, B>> use,
                   Consumer1<A> release) {
-    return Task.bracket(acquire.fix1(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release);
+    return Task.bracket(acquire.fix(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release);
   }
 }
 
@@ -149,7 +149,7 @@ interface TaskMonadDefer
   TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
 
   @Override
-  default Higher1<Task_, Unit> sleep(Duration duration) {
+  default Kind<Task_, Unit> sleep(Duration duration) {
     return Task.sleep(duration);
   }
 }

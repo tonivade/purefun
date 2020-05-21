@@ -13,9 +13,9 @@ import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Sealed;
@@ -54,7 +54,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     toFuture(executor).onComplete(callback);
   }
 
-  <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad);
+  <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad);
 
   default <R> IO<R> map(Function1<T, R> map) {
     return flatMap(map.andThen(IO::pure));
@@ -206,7 +206,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
       return monad.pure(value);
     }
 
@@ -237,7 +237,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, R> foldMap(MonadDefer<F> monad) {
       return monad.flatMap(current.get().foldMap(monad), next.andThen(io -> io.foldMap(monad)));
     }
 
@@ -280,7 +280,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
       return monad.raiseError(error);
     }
 
@@ -321,7 +321,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
       return monad.later(task);
     }
 
@@ -355,7 +355,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
       return monad.defer(() -> lazy.get().foldMap(monad));
     }
 
@@ -394,7 +394,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, Unit> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, Unit> foldMap(MonadDefer<F> monad) {
       return monad.sleep(duration);
     }
 
@@ -429,7 +429,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, R> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, R> foldMap(MonadDefer<F> monad) {
       return monad.bracket(acquire.foldMap(monad), use.andThen(io -> io.foldMap(monad)), release);
     }
 
@@ -458,7 +458,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <F extends Kind> Higher1<F, Try<T>> foldMap(MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, Try<T>> foldMap(MonadDefer<F> monad) {
       return monad.map(monad.attempt(current.foldMap(monad)), Try::fromEither);
     }
 

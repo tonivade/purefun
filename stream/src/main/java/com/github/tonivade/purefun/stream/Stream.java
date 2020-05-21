@@ -6,13 +6,9 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.asStream;
-
 import java.util.Arrays;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
@@ -23,6 +19,7 @@ import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
@@ -30,7 +27,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @Sealed
 @HigherKind
-public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
+public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
 
   default Stream<F, T> head() {
     return take(1);
@@ -40,12 +37,12 @@ public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
     return drop(1);
   }
 
-  Higher1<F, Option<T>> headOption();
-  Higher1<F, Option<Tuple2<Higher1<F, T>, Stream<F, T>>>> split();
+  Kind<F, Option<T>> headOption();
+  Kind<F, Option<Tuple2<Kind<F, T>, Stream<F, T>>>> split();
 
   Stream<F, T> concat(Stream<F, T> other);
-  Stream<F, T> append(Higher1<F, T> other);
-  Stream<F, T> prepend(Higher1<F, T> other);
+  Stream<F, T> append(Kind<F, T> other);
+  Stream<F, T> prepend(Kind<F, T> other);
 
   Stream<F, T> take(int n);
   Stream<F, T> drop(int n);
@@ -59,46 +56,46 @@ public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
   }
 
   <R> Stream<F, R> collect(PartialFunction1<T, R> partial);
-  <R> Higher1<F, R> foldLeft(R begin, Function2<R, T, R> combinator);
-  <R> Higher1<F, R> foldRight(Higher1<F, R> begin, Function2<T, Higher1<F, R>, Higher1<F, R>> combinator);
+  <R> Kind<F, R> foldLeft(R begin, Function2<R, T, R> combinator);
+  <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator);
 
   <R> Stream<F, R> map(Function1<T, R> map);
   <R> Stream<F, R> flatMap(Function1<T, Stream<F, R>> map);
-  <R> Stream<F, R> mapEval(Function1<T, Higher1<F, R>> mapper);
+  <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper);
 
   Stream<F, T> repeat();
-  Stream<F, T> intersperse(Higher1<F, T> value);
+  Stream<F, T> intersperse(Kind<F, T> value);
 
-  Higher1<F, Boolean> exists(Matcher1<T> matcher);
-  Higher1<F, Boolean> forall(Matcher1<T> matcher);
+  Kind<F, Boolean> exists(Matcher1<T> matcher);
+  Kind<F, Boolean> forall(Matcher1<T> matcher);
 
-  default <G extends Kind, R> Stream<G, R> through(Function1<Stream<F, T>, Stream<G, R>> function) {
+  default <G extends Witness, R> Stream<G, R> through(Function1<Stream<F, T>, Stream<G, R>> function) {
     return function.apply(this);
   }
 
-  default Higher1<F, Sequence<T>> asSequence() {
+  default Kind<F, Sequence<T>> asSequence() {
     return foldLeft(ImmutableList.empty(), Sequence::append);
   }
 
-  default Higher1<F, String> asString() {
+  default Kind<F, String> asString() {
     return foldLeft("", (acc, a) -> acc + a);
   }
 
-  default Higher1<F, Unit> drain() {
+  default Kind<F, Unit> drain() {
     return foldLeft(unit(), (acc, a) -> acc);
   }
 
-  default <R> Stream<F, R> andThen(Higher1<F, R> next) {
+  default <R> Stream<F, R> andThen(Kind<F, R> next) {
     return mapEval(ignore -> next);
   }
 
   StreamModule getModule();
 
-  static <F extends Kind> StreamOf<F> of(MonadDefer<F> monad) {
+  static <F extends Witness> StreamOf<F> of(MonadDefer<F> monad) {
     return () -> monad;
   }
 
-  interface StreamOf<F extends Kind> {
+  interface StreamOf<F extends Witness> {
 
     MonadDefer<F> monadDefer();
 
@@ -123,7 +120,7 @@ public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
       return new Suspend<>(monadDefer(), monadDefer().defer(lazy.map(monadDefer()::<Stream<F, T>>pure)));
     }
 
-    default <T> Stream<F, T> eval(Higher1<F, T> value) {
+    default <T> Stream<F, T> eval(Kind<F, T> value) {
       return new Cons<>(monadDefer(), value, empty());
     }
 
@@ -157,7 +154,7 @@ public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
           (op1, op2) -> {
             Option<Stream<F, R>> result = StreamModule.map2(op1, op2,
               (t1, t2) -> {
-                Higher1<F, R> head = monadDefer().map2(t1.get1(), t2.get1(), combinator);
+                Kind<F, R> head = monadDefer().map2(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
                 return new Cons<>(monadDefer(), head, tail);
               });
@@ -180,7 +177,7 @@ public interface Stream<F extends Kind, T> extends Higher2<Stream_, F, T> {
           (opt1, opt2) -> {
             Option<Stream<F, A>> result = StreamModule.map2(opt1, opt2,
               (t1, t2) -> {
-                Higher1<F, A> head = t1.get1();
+                Kind<F, A> head = t1.get1();
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));
                 return new Cons<>(monadDefer(), head, tail);
               });
@@ -197,7 +194,7 @@ interface StreamModule {
     return fa.flatMap(a -> fb.map(b -> combiner.apply(a, b)));
   }
 
-  static <F extends Kind, T, S> Stream<F, T> unfold(Stream.StreamOf<F> streamOf, S seed,
+  static <F extends Witness, T, S> Stream<F, T> unfold(Stream.StreamOf<F> streamOf, S seed,
                                                     Function1<S, Option<Tuple2<T, S>>> function) {
     return function.apply(seed)
       .map(tuple -> streamOf.cons(tuple.get1(), streamOf.suspend(() -> unfold(streamOf, tuple.get2(), function))))

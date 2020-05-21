@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Try;
 
-public interface MonadDefer<F extends Kind> extends MonadThrow<F>, Bracket<F>, Defer<F>, Timer<F> {
+public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>, Defer<F>, Timer<F> {
 
-  default <A> Higher1<F, A> later(Producer<A> later) {
+  default <A> Kind<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::<A>raiseError, this::<A>pure));
   }
 }

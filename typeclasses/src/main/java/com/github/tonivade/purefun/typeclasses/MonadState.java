@@ -7,35 +7,35 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 
-public interface MonadState<F extends Kind, S> extends Monad<F> {
+public interface MonadState<F extends Witness, S> extends Monad<F> {
 
-  Higher1<F, S> get();
-  Higher1<F, Unit> set(S state);
+  Kind<F, S> get();
+  Kind<F, Unit> set(S state);
 
-  default Higher1<F, Unit> modify(Operator1<S> mapper) {
+  default Kind<F, Unit> modify(Operator1<S> mapper) {
     return flatMap(get(), s -> set(mapper.apply(s)));
   }
 
-  default <A> Higher1<F, A> inspect(Function1<S, A> mapper) {
+  default <A> Kind<F, A> inspect(Function1<S, A> mapper) {
     return map(get(), mapper);
   }
 
-  default <A> Higher1<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
+  default <A> Kind<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
   }
 
-  static <F extends Kind, S> MonadState<F, S> from(MonadDefer<F> monad, S value) {
+  static <F extends Witness, S> MonadState<F, S> from(MonadDefer<F> monad, S value) {
     return new ReferenceMonadState<>(Reference.of(monad, value), monad);
   }
 }
 
-class ReferenceMonadState<F extends Kind, S> implements MonadState<F, S> {
+class ReferenceMonadState<F extends Witness, S> implements MonadState<F, S> {
 
   private final Reference<F, S> ref;
   private final Monad<F> monad;
@@ -46,22 +46,22 @@ class ReferenceMonadState<F extends Kind, S> implements MonadState<F, S> {
   }
 
   @Override
-  public Higher1<F, S> get() {
+  public Kind<F, S> get() {
     return ref.get();
   }
 
   @Override
-  public Higher1<F, Unit> set(S state) {
+  public Kind<F, Unit> set(S state) {
     return ref.set(state);
   }
 
   @Override
-  public <T> Higher1<F, T> pure(T value) {
+  public <T> Kind<F, T> pure(T value) {
     return monad.pure(value);
   }
 
   @Override
-  public <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map) {
+  public <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<T, ? extends Kind<F, R>> map) {
     return monad.flatMap(value, map);
   }
 }

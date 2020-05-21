@@ -13,9 +13,9 @@ import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
@@ -59,7 +59,7 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     async(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Kind> Higher1<F, T> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
     return monad.flatMap(value.foldMap(nothing(), monad), monad::<T>fromEither);
   }
 

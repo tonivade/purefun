@@ -79,7 +79,7 @@ public class IOTest {
 
     Try<ImmutableList<String>> result =
         program.foldMap(FutureInstances.monadDefer())
-            .fix1(FutureOf::narrowK).await();
+            .fix(FutureOf::narrowK).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
   }
@@ -90,7 +90,7 @@ public class IOTest {
 
     Par<ImmutableList<String>> result =
         program.foldMap(ParInstances.monadDefer())
-          .fix1(ParOf::narrowK);
+          .fix(ParOf::narrowK);
 
     assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
   }
@@ -112,7 +112,7 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix1(FutureOf::narrowK);
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix(FutureOf::narrowK);
 
     assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
@@ -236,7 +236,7 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix1(FutureOf::narrowK);
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix(FutureOf::narrowK);
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
@@ -274,7 +274,7 @@ public class IOTest {
   private IO<ImmutableList<String>> currentThreadIO() {
     Reference<IO_, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix1(IOOf::narrowK);
+        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix(IOOf::narrowK);
 
     return currentThread
         .andThen(currentThread

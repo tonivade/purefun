@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
@@ -55,7 +55,7 @@ interface EvalFunctor extends Functor<Eval_> {
   EvalFunctor INSTANCE = new EvalFunctor() {};
 
   @Override
-  default <T, R> Higher1<Eval_, R> map(Higher1<Eval_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Eval_, R> map(Kind<Eval_, T> value, Function1<T, R> mapper) {
     return EvalOf.narrowK(value).map(mapper);
   }
 }
@@ -63,7 +63,7 @@ interface EvalFunctor extends Functor<Eval_> {
 interface EvalPure extends Applicative<Eval_> {
 
   @Override
-  default <T> Higher1<Eval_, T> pure(T value) {
+  default <T> Kind<Eval_, T> pure(T value) {
     return Eval.now(value);
   }
 }
@@ -73,7 +73,7 @@ interface EvalApplicative extends EvalPure {
   EvalApplicative INSTANCE = new EvalApplicative() {};
 
   @Override
-  default <T, R> Higher1<Eval_, R> ap(Higher1<Eval_, T> value, Higher1<Eval_, Function1<T, R>> apply) {
+  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, T> value, Kind<Eval_, Function1<T, R>> apply) {
     return EvalOf.narrowK(value).flatMap(t -> EvalOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -83,7 +83,7 @@ interface EvalMonad extends EvalPure, Monad<Eval_> {
   EvalMonad INSTANCE = new EvalMonad() {};
 
   @Override
-  default <T, R> Higher1<Eval_, R> flatMap(Higher1<Eval_, T> value, Function1<T, ? extends Higher1<Eval_, R>> map) {
+  default <T, R> Kind<Eval_, R> flatMap(Kind<Eval_, T> value, Function1<T, ? extends Kind<Eval_, R>> map) {
     return EvalOf.narrowK(value).flatMap(map.andThen(EvalOf::<R>narrowK));
   }
 }
@@ -93,14 +93,14 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval_, Throwable> {
   EvalMonadError INSTANCE = new EvalMonadError() {};
 
   @Override
-  default <A> Higher1<Eval_, A> raiseError(Throwable error) {
+  default <A> Kind<Eval_, A> raiseError(Throwable error) {
     return Eval.<A>raiseError(error);
   }
 
   @Override
-  default <A> Higher1<Eval_, A> handleErrorWith(
-      Higher1<Eval_, A> value, Function1<Throwable, ? extends Higher1<Eval_, A>> handler) {
-    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix1(EvalOf::narrowK)::value));
+  default <A> Kind<Eval_, A> handleErrorWith(
+      Kind<Eval_, A> value, Function1<Throwable, ? extends Kind<Eval_, A>> handler) {
+    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix(EvalOf::narrowK)::value));
     return attempt.flatMap(try_ -> try_.fold(handler.andThen(EvalOf::narrowK), Eval::now));
   }
 }
@@ -115,12 +115,12 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval_> {
   EvalComonad INSTANCE = new EvalComonad() {};
 
   @Override
-  default <A, B> Higher1<Eval_, B> coflatMap(Higher1<Eval_, A> value, Function1<Higher1<Eval_, A>, B> map) {
+  default <A, B> Kind<Eval_, B> coflatMap(Kind<Eval_, A> value, Function1<Kind<Eval_, A>, B> map) {
     return Eval.later(() -> map.apply(value));
   }
 
   @Override
-  default <A> A extract(Higher1<Eval_, A> value) {
+  default <A> A extract(Kind<Eval_, A> value) {
     return EvalOf.narrowK(value).value();
   }
 }
@@ -130,7 +130,7 @@ interface EvalDefer extends Defer<Eval_> {
   EvalDefer INSTANCE = new EvalDefer() {};
 
   @Override
-  default <A> Higher1<Eval_, A> defer(Producer<Higher1<Eval_, A>> defer) {
+  default <A> Kind<Eval_, A> defer(Producer<Kind<Eval_, A>> defer) {
     return Eval.defer(defer.map(EvalOf::narrowK));
   }
 }

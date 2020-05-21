@@ -7,8 +7,7 @@ package com.github.tonivade.purefun.instances;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Higher2;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.EIO;
@@ -28,51 +27,51 @@ import com.github.tonivade.purefun.typeclasses.Reference;
   @SuppressWarnings("unchecked")
 public interface EIOInstances {
 
-  static <E> Functor<Higher1<EIO_, E>> functor() {
+  static <E> Functor<Kind<EIO_, E>> functor() {
     return EIOFunctor.INSTANCE;
   }
 
-  static <E> Applicative<Higher1<EIO_, E>> applicative() {
+  static <E> Applicative<Kind<EIO_, E>> applicative() {
     return EIOApplicative.INSTANCE;
   }
 
-  static <E> Monad<Higher1<EIO_, E>> monad() {
+  static <E> Monad<Kind<EIO_, E>> monad() {
     return EIOMonad.INSTANCE;
   }
 
-  static <E> MonadError<Higher1<EIO_, E>, E> monadError() {
+  static <E> MonadError<Kind<EIO_, E>, E> monadError() {
     return EIOMonadError.INSTANCE;
   }
 
-  static MonadThrow<Higher1<EIO_, Throwable>> monadThrow() {
+  static MonadThrow<Kind<EIO_, Throwable>> monadThrow() {
     return EIOMonadThrow.INSTANCE;
   }
 
-  static MonadDefer<Higher1<EIO_, Throwable>> monadDefer() {
+  static MonadDefer<Kind<EIO_, Throwable>> monadDefer() {
     return EIOMonadDefer.INSTANCE;
   }
 
-  static <A> Reference<Higher1<EIO_, Throwable>, A> ref(A value) {
+  static <A> Reference<Kind<EIO_, Throwable>, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
 }
 
-interface EIOFunctor<E> extends Functor<Higher1<EIO_, E>> {
+interface EIOFunctor<E> extends Functor<Kind<EIO_, E>> {
 
   @SuppressWarnings("rawtypes")
   EIOFunctor INSTANCE = new EIOFunctor() {};
 
   @Override
-  default <A, B> Higher2<EIO_, E, B>
-          map(Higher1<Higher1<EIO_, E>, A> value, Function1<A, B> map) {
+  default <A, B> EIO<E, B>
+          map(Kind<Kind<EIO_, E>, A> value, Function1<A, B> map) {
     return EIOOf.narrowK(value).map(map);
   }
 }
 
-interface EIOPure<E> extends Applicative<Higher1<EIO_, E>> {
+interface EIOPure<E> extends Applicative<Kind<EIO_, E>> {
 
   @Override
-  default <A> Higher2<EIO_, E, A> pure(A value) {
+  default <A> EIO<E, A> pure(A value) {
     return EIO.<E, A>pure(value);
   }
 }
@@ -83,40 +82,40 @@ interface EIOApplicative<E> extends EIOPure<E> {
   EIOApplicative INSTANCE = new EIOApplicative() {};
 
   @Override
-  default <A, B> Higher2<EIO_, E, B>
-          ap(Higher1<Higher1<EIO_, E>, A> value,
-             Higher1<Higher1<EIO_, E>, Function1<A, B>> apply) {
+  default <A, B> EIO<E, B>
+          ap(Kind<Kind<EIO_, E>, A> value,
+             Kind<Kind<EIO_, E>, Function1<A, B>> apply) {
     return EIOOf.narrowK(apply).flatMap(map -> EIOOf.narrowK(value).map(map));
   }
 }
 
-interface EIOMonad<E> extends EIOPure<E>, Monad<Higher1<EIO_, E>> {
+interface EIOMonad<E> extends EIOPure<E>, Monad<Kind<EIO_, E>> {
 
   @SuppressWarnings("rawtypes")
   EIOMonad INSTANCE = new EIOMonad() {};
 
   @Override
-  default <A, B> Higher2<EIO_, E, B>
-          flatMap(Higher1<Higher1<EIO_, E>, A> value,
-                  Function1<A, ? extends Higher1<Higher1<EIO_, E>, B>> map) {
+  default <A, B> EIO<E, B>
+          flatMap(Kind<Kind<EIO_, E>, A> value,
+                  Function1<A, ? extends Kind<Kind<EIO_, E>, B>> map) {
     return EIOOf.narrowK(value).flatMap(map.andThen(EIOOf::narrowK));
   }
 }
 
-interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO_, E>, E> {
+interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Kind<EIO_, E>, E> {
 
   @SuppressWarnings("rawtypes")
   EIOMonadError INSTANCE = new EIOMonadError() {};
 
   @Override
-  default <A> Higher2<EIO_, E, A> raiseError(E error) {
+  default <A> EIO<E, A> raiseError(E error) {
     return EIO.<E, A>raiseError(error);
   }
 
   @Override
-  default <A> Higher2<EIO_, E, A>
-          handleErrorWith(Higher1<Higher1<EIO_,  E>, A> value,
-                          Function1<E, ? extends Higher1<Higher1<EIO_, E>, A>> handler) {
+  default <A> EIO<E, A>
+          handleErrorWith(Kind<Kind<EIO_,  E>, A> value,
+                          Function1<E, ? extends Kind<Kind<EIO_, E>, A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<E, EIO<E, A>> mapError = handler.andThen(EIOOf::narrowK);
     Function1<A, EIO<E, A>> map = EIO::pure;
@@ -127,38 +126,38 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Higher1<EIO_, E>, E> 
 
 interface EIOMonadThrow
     extends EIOMonadError<Throwable>,
-            MonadThrow<Higher1<EIO_, Throwable>> {
+            MonadThrow<Kind<EIO_, Throwable>> {
 
   EIOMonadThrow INSTANCE = new EIOMonadThrow() {};
 }
 
-interface EIODefer extends Defer<Higher1<EIO_, Throwable>> {
+interface EIODefer extends Defer<Kind<EIO_, Throwable>> {
 
   @Override
-  default <A> Higher2<EIO_, Throwable, A>
-          defer(Producer<Higher1<Higher1<EIO_, Throwable>, A>> defer) {
+  default <A> EIO<Throwable, A>
+          defer(Producer<Kind<Kind<EIO_, Throwable>, A>> defer) {
     return EIO.defer(() -> defer.map(EIOOf::narrowK).get());
   }
 }
 
-interface EIOBracket extends Bracket<Higher1<EIO_, Throwable>> {
+interface EIOBracket extends Bracket<Kind<EIO_, Throwable>> {
 
   @Override
-  default <A, B> Higher2<EIO_, Throwable, B>
-          bracket(Higher1<Higher1<EIO_, Throwable>, A> acquire,
-                  Function1<A, ? extends Higher1<Higher1<EIO_, Throwable>, B>> use,
+  default <A, B> EIO<Throwable, B>
+          bracket(Kind<Kind<EIO_, Throwable>, A> acquire,
+                  Function1<A, ? extends Kind<Kind<EIO_, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return EIO.bracket(acquire.fix1(EIOOf::narrowK), use.andThen(EIOOf::narrowK), release);
+    return EIO.bracket(acquire.fix(EIOOf::narrowK), use.andThen(EIOOf::narrowK), release);
   }
 }
 
 interface EIOMonadDefer
-    extends MonadDefer<Higher1<EIO_, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket {
+    extends MonadDefer<Kind<EIO_, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket {
 
   EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
 
   @Override
-  default Higher2<EIO_, Throwable, Unit> sleep(Duration duration) {
+  default EIO<Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<Throwable>toEIO();
   }
 }

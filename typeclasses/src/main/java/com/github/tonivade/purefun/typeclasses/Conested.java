@@ -4,18 +4,18 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Conested<F extends Kind, A> extends Kind {
+public interface Conested<F extends Witness, A> extends Witness {
 
   @SuppressWarnings("unchecked")
-  static <F extends Kind, A, B> Higher1<Conested<F, B>, A> conest(Higher1<Higher1<F, A>, B> counnested) {
-    return (Higher1<Conested<F, B>, A>) Higher1.class.cast(counnested);
+  static <F extends Witness, A, B> Kind<Conested<F, B>, A> conest(Kind<Kind<F, A>, B> counnested) {
+    return (Kind<Conested<F, B>, A>) Kind.class.cast(counnested);
   }
   
   @SuppressWarnings("unchecked")
-  static <F extends Kind, A, B> Higher1<Higher1<F, A>, B> counnest(Higher1<Conested<F, B>, A> conested) {
-    return (Higher1<Higher1<F, A>, B>) Higher1.class.cast(conested);
+  static <F extends Witness, A, B> Kind<Kind<F, A>, B> counnest(Kind<Conested<F, B>, A> conested) {
+    return (Kind<Kind<F, A>, B>) Kind.class.cast(conested);
   }
 }

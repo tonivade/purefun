@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Try;
 
-public interface MonadThrow<F extends Kind> extends MonadError<F, Throwable> {
+public interface MonadThrow<F extends Witness> extends MonadError<F, Throwable> {
 
-  default <A> Higher1<F, A> fromTry(Try<A> value) {
+  default <A> Kind<F, A> fromTry(Try<A> value) {
     return fromEither(value.toEither());
   }
 }

@@ -7,16 +7,16 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Comonad<F extends Kind> extends Functor<F> {
+public interface Comonad<F extends Witness> extends Functor<F> {
 
-  <A, B> Higher1<F, B> coflatMap(Higher1<F, A> value, Function1<Higher1<F, A>, B> map);
+  <A, B> Kind<F, B> coflatMap(Kind<F, A> value, Function1<Kind<F, A>, B> map);
 
-  <A> A extract(Higher1<F, A> value);
+  <A> A extract(Kind<F, A> value);
 
-  default <A> Higher1<F, Higher1<F, A>> coflatten(Higher1<F, A> value) {
+  default <A> Kind<F, Kind<F, A>> coflatten(Kind<F, A> value) {
     return coflatMap(value, identity());
   }
 }

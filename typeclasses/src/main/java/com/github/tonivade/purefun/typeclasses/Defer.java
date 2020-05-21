@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 
-public interface Defer<F extends Kind> {
+public interface Defer<F extends Witness> {
 
-  <A> Higher1<F, A> defer(Producer<Higher1<F, A>> defer);
+  <A> Kind<F, A> defer(Producer<Kind<F, A>> defer);
 }

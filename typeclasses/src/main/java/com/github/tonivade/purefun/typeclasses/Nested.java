@@ -4,18 +4,18 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Higher1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Witness;
 
-public interface Nested<F extends Kind, G extends Kind> extends Kind {
+public interface Nested<F extends Witness, G extends Witness> extends Witness {
 
   @SuppressWarnings("unchecked")
-  static <F extends Kind, G extends Kind, A> Higher1<Nested<F, G>, A> nest(Higher1<F, Higher1<G, A>> unnested) {
-    return (Higher1<Nested<F, G>, A>) unnested;
+  static <F extends Witness, G extends Witness, A> Kind<Nested<F, G>, A> nest(Kind<F, Kind<G, A>> unnested) {
+    return (Kind<Nested<F, G>, A>) unnested;
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Kind, G extends Kind, A> Higher1<F, Higher1<G, A>> unnest(Higher1<Nested<F, G>, A> nested) {
-    return (Higher1<F, Higher1<G, A>>) nested;
+  static <F extends Witness, G extends Witness, A> Kind<F, Kind<G, A>> unnest(Kind<Nested<F, G>, A> nested) {
+    return (Kind<F, Kind<G, A>>) nested;
   }
 }
