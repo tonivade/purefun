@@ -34,26 +34,26 @@ In this project I have implemented some patterns of functional programming that 
 there are not such thing, but it can be simulated using a especial codification of types.
 
 In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified
-like this `Monad<F extends Kind>`. `Kind` is a simple mark interface. Then we can define a type using a special
+like this `Monad<F extends Witness>`. `Witness` is a simple mark interface. Then we can define a type using a special
 codification like this:
 
 ```java
 interface SomeType<T> extends SomeTypeOf<T> { }
 
 // Boilerplate
-interface SomeTypeOf<T> implements Higher1<SomeType_, T> {
+interface SomeTypeOf<T> implements Kind<SomeType_, T> {
 
-  default Higher1<SomeType_, T> kind() {
+  default Kind<SomeType_, T> kind() {
     return this;
   }
 
   // this is a safe cast
-  static SomeType<T> narrowK(Higher1<SomeType_, T> hkt) {
+  static SomeType<T> narrowK(Kind<SomeType_, T> hkt) {
     return (SomeType<T>) hkt;
   }
 }
 
-final class SomeType_ extends Kind {
+final class SomeType_ extends Witness {
   private SomeType_() {}
 }
 ```
@@ -272,7 +272,7 @@ Free<IOProgram_, Unit> echo =
     .flatMap(text -> IOProgram.write("Hello " + text))
     .andThen(IOProgram.write("end"));
 
-Higher1<IO_, Unit> foldMap = echo.foldMap(IOInstances.monad(), new IOProgramInterperter());
+Kind<IO_, Unit> foldMap = echo.foldMap(IOInstances.monad(), new IOProgramInterperter());
 
 IOOf.narrowK(foldMap).unsafeRunSync();
 ```
@@ -292,7 +292,7 @@ FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         Tuple::of
     ).fix1(FreeApOf::narrowK);
 
-Higher1<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
+Kind<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
     tuple.foldMap(idTransform(), IdInstances.applicative());
 
 assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(IdOf::narrowK));
@@ -359,7 +359,7 @@ Also I implemented the Kleisli composition for functions that returns monadic va
 Kleisli<Try_, String, Integer> toInt = Kleisli.lift(Try.monad(), Integer::parseInt);
 Kleisli<Try_, Integer, Double> half = Kleisli.lift(Try.monad(), i -> i / 2.);
 
-Higher1<Try_, Double> result = toInt.compose(half).run("123");
+Kind<Try_, Double> result = toInt.compose(half).run("123");
 
 assertEquals(Try.success(61.5), result);
 ```
@@ -446,23 +446,23 @@ With higher kinded types simulation we can implement typeclases.
 ### Functor
 
 ```java
-public interface Functor<F extends Kind> extends Invariant<F> {
+public interface Functor<F extends Witness> extends Invariant<F> {
 
-  <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map);
+  <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map);
 }
 ```
 
 ### Applicative
 
 ```java
-public interface Applicative<F extends Kind> extends Functor<F> {
+public interface Applicative<F extends Witness> extends Functor<F> {
 
-  <T> Higher1<F, T> pure(T value);
+  <T> Kind<F, T> pure(T value);
 
-  <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply);
+  <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<T, R>> apply);
 
   @Override
-  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
+  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map) {
     return ap(value, pure(map));
   }
 }
@@ -471,15 +471,15 @@ public interface Applicative<F extends Kind> extends Functor<F> {
 ### Selective
 
 ```java
-public interface Selective<F extends Kind> extends Applicative<F> {
+public interface Selective<F extends Witness> extends Applicative<F> {
 
-  <A, B> Higher1<F, B> select(Higher1<F, Either<A, B>> value, Higher1<F, Function1<A, B>> apply);
+  <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<A, B>> apply);
 
-  default <A, B, C> Higher1<F, C> branch(Higher1<F, Either<A, B>> value,
-                                         Higher1<F, Function1<A, C>> applyA,
-                                         Higher1<F, Function1<B, C>> applyB) {
-    Higher1<F, Either<A, Either<B, C>>> abc = map(value, either -> either.map(Either::left));
-    Higher1<F, Function1<A, Either<B, C>>> fabc = map(applyA, fb -> fb.andThen(Either::right));
+  default <A, B, C> Kind<F, C> branch(Kind<F, Either<A, B>> value,
+                                      Kind<F, Function1<A, C>> applyA,
+                                      Kind<F, Function1<B, C>> applyB) {
+    Kind<F, Either<A, Either<B, C>>> abc = map(value, either -> either.map(Either::left));
+    Kind<F, Function1<A, Either<B, C>>> fabc = map(applyA, fb -> fb.andThen(Either::right));
     return select(select(abc, fabc), applyB);
   }
 }
@@ -488,22 +488,22 @@ public interface Selective<F extends Kind> extends Applicative<F> {
 ### Monad
 
 ```java
-public interface Monad<F extends Kind> extends Selective<F> {
+public interface Monad<F extends Witness> extends Selective<F> {
 
-  <T, R> Higher1<F, R> flatMap(Higher1<F, T> value, Function1<T, ? extends Higher1<F, R>> map);
+  <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<T, ? extends Kind<F, R>> map);
 
   @Override
-  default <T, R> Higher1<F, R> map(Higher1<F, T> value, Function1<T, R> map) {
+  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map) {
     return flatMap(value, map.andThen(this::pure));
   }
 
   @Override
-  default <T, R> Higher1<F, R> ap(Higher1<F, T> value, Higher1<F, Function1<T, R>> apply) {
+  default <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<T, R>> apply) {
     return flatMap(apply, map -> map(value, map));
   }
 
   @Override
-  default <A, B> Higher1<F, B> select(Higher1<F, Either<A, B>> value, Higher1<F, Function1<A, B>> apply) {
+  default <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<A, B>> apply) {
     return flatMap(value, either -> either.fold(a -> map(apply, map -> map.apply(a)), this::<B>pure));
   }
 }
@@ -545,52 +545,52 @@ The same like `SemigroupK` but for a `Monoid`.
 ### Invariant
 
 ```java
-public interface Invariant<F extends Kind> {
-  <A, B> Higher1<F, B> imap(Higher1<F, A> value, Function1<A, B> map, Function1<B, A> comap);
+public interface Invariant<F extends Witness> {
+  <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<A, B> map, Function1<B, A> comap);
 }
 ```
 
 ### Contravariant
 
 ```java
-public interface Contravariant<F extends Kind> extends Invariant<F> {
-  <A, B> Higher1<F, B> contramap(Higher1<F, A> value, Function1<B, A> map);
+public interface Contravariant<F extends Witness> extends Invariant<F> {
+  <A, B> Kind<F, B> contramap(Kind<F, A> value, Function1<B, A> map);
 }
 ```
 
 ### Bifunctor
 
 ```java
-public interface Bifunctor<F extends Kind> {
-  <A, B, C, D> Higher2<F, C, D> bimap(Higher2<F, A, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
+public interface Bifunctor<F extends Witness> {
+  <A, B, C, D> Kind<Kind<F, C>, D> bimap(Kind<Kind<F, A>, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
 }
 ```
 
 ### Profunctor
 
 ```java
-public interface Profunctor<F extends Kind> {
-  <A, B, C, D> Higher2<F, C, D> dimap(Higher2<F, A, B> value, Function1<C, A> contramap, Function1<B, D> map);
+public interface Profunctor<F extends Witness> {
+  <A, B, C, D> Kind<Kind<F, C>, D> dimap(Kind<Kind<F, A>, B> value, Function1<C, A> contramap, Function1<B, D> map);
 }
 ```
 
 ### Applicative Error
 
 ```java
-public interface ApplicativeError<F extends Kind, E> extends Applicative<F> {
+public interface ApplicativeError<F extends Witness, E> extends Applicative<F> {
 
-  <A> Higher1<F, A> raiseError(E error);
+  <A> Kind<F, A> raiseError(E error);
 
-  <A> Higher1<F, A> handleErrorWith(Higher1<F, A> value, Function1<E, ? extends Higher1<F, A>> handler);
+  <A> Kind<F, A> handleErrorWith(Kind<F, A> value, Function1<E, ? extends Kind<F, A>> handler);
 }
 ```
 
 ### Monad Error
 
 ```java
-public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, Monad<F> {
+public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>, Monad<F> {
 
-  default <A> Higher1<F, A> ensure(Higher1<F, A> value, Producer<E> error, Matcher1<A> matcher) {
+  default <A> Kind<F, A> ensure(Kind<F, A> value, Producer<E> error, Matcher1<A> matcher) {
     return flatMap(value, a -> matcher.match(a) ? pure(a) : raiseError(error.get()));
   }
 }
@@ -599,7 +599,7 @@ public interface MonadError<F extends Kind, E> extends ApplicativeError<F, E>, M
 ### Monad Throw
 
 ```java
-public interface MonadThrow<F extends Kind> extends MonadError<F, Throwable> {
+public interface MonadThrow<F extends Witness> extends MonadError<F, Throwable> {
 
 }
 ```
@@ -607,11 +607,11 @@ public interface MonadThrow<F extends Kind> extends MonadError<F, Throwable> {
 ### MonadReader
 
 ```java
-public interface MonadReader<F extends Kind, R> extends Monad<F> {
+public interface MonadReader<F extends Witness, R> extends Monad<F> {
 
-  Higher1<F, R> ask();
+  Kind<F, R> ask();
 
-  default <A> Higher1<F, A> reader(Function1<R, A> mapper) {
+  default <A> Kind<F, A> reader(Function1<R, A> mapper) {
     return map(ask(), mapper);
   }
 }
@@ -620,19 +620,19 @@ public interface MonadReader<F extends Kind, R> extends Monad<F> {
 ### MonadState
 
 ```java
-public interface MonadState<F extends Kind, S> extends Monad<F> {
-  Higher1<F, S> get();
-  Higher1<F, Unit> set(S state);
+public interface MonadState<F extends Witness, S> extends Monad<F> {
+  Kind<F, S> get();
+  Kind<F, Unit> set(S state);
 
-  default Higher1<F, Unit> modify(Operator1<S> mapper) {
+  default Kind<F, Unit> modify(Operator1<S> mapper) {
     return flatMap(get(), s -> set(mapper.apply(s)));
   }
 
-  default <A> Higher1<F, A> inspect(Function1<S, A> mapper) {
+  default <A> Kind<F, A> inspect(Function1<S, A> mapper) {
     return map(get(), mapper);
   }
 
-  default <A> Higher1<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
+  default <A> Kind<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
   }
 }
@@ -641,13 +641,13 @@ public interface MonadState<F extends Kind, S> extends Monad<F> {
 ### MonadWriter
 
 ```java
-public interface MonadWriter<F extends Kind, W> extends Monad<F> {
+public interface MonadWriter<F extends Witness, W> extends Monad<F> {
 
-  <A> Higher1<F, A> writer(Tuple2<W, A> value);
-  <A> Higher1<F, Tuple2<W, A>> listen(Higher1<F, A> value);
-  <A> Higher1<F, A> pass(Higher1<F, Tuple2<Operator1<W>, A>> value);
+  <A> Kind<F, A> writer(Tuple2<W, A> value);
+  <A> Kind<F, Tuple2<W, A>> listen(Kind<F, A> value);
+  <A> Kind<F, A> pass(Kind<F, Tuple2<Operator1<W>, A>> value);
 
-  default Higher1<F, Unit> tell(W writer) {
+  default Kind<F, Unit> tell(W writer) {
     return writer(Tuple.of(writer, unit()));
   }
 }
@@ -656,13 +656,13 @@ public interface MonadWriter<F extends Kind, W> extends Monad<F> {
 ### Comonad
 
 ```java
-public interface Comonad<F extends Kind> extends Functor<F> {
+public interface Comonad<F extends Witness> extends Functor<F> {
 
-  <A, B> Higher1<F, B> coflatMap(Higher1<F, A> value, Function1<Higher1<F, A>, B> map);
+  <A, B> Kind<F, B> coflatMap(Kind<F, A> value, Function1<Kind<F, A>, B> map);
 
-  <A> A extract(Higher1<F, A> value);
+  <A> A extract(Kind<F, A> value);
 
-  default <A> Higher1<F, Higher1<F, A>> coflatten(Higher1<F, A> value) {
+  default <A> Kind<F, Kind<F, A>> coflatten(Kind<F, A> value) {
     return coflatMap(value, identity());
   }
 }
@@ -671,57 +671,57 @@ public interface Comonad<F extends Kind> extends Functor<F> {
 ### Foldable
 
 ```java
-public interface Foldable<F extends Kind> {
+public interface Foldable<F extends Witness> {
 
-  <A, B> B foldLeft(Higher1<F, A> value, B initial, Function2<B, A, B> mapper);
+  <A, B> B foldLeft(Kind<F, A> value, B initial, Function2<B, A, B> mapper);
 
-  <A, B> Eval<B> foldRight(Higher1<F, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper);
+  <A, B> Eval<B> foldRight(Kind<F, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper);
 }
 ```
 
 ### Traverse
 
 ```java
-public interface Traverse<F extends Kind> extends Functor<F>, Foldable<F> {
+public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
 
-  <G extends Kind, T, R> Higher1<G, Higher1<F, R>> traverse(Applicative<G> applicative, Higher1<F, T> value,
-      Function1<T, ? extends Higher1<G, R>> mapper);
+  <G extends Witness, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
+      Function1<T, ? extends Kind<G, R>> mapper);
 }
 ```
 
 ### Semigroupal
 
 ```java
-public interface Semigroupal<F extends Kind> {
+public interface Semigroupal<F extends Witness> {
 
-  <A, B> Higher1<F, Tuple2<A, B>> product(Higher1<F, A> fa, Higher1<F, B> fb);
+  <A, B> Kind<F, Tuple2<A, B>> product(Kind<F, A> fa, Kind<F, B> fb);
 }
 ```
 
 ### Defer
 
 ```java
-public interface Defer<F extends Kind> {
+public interface Defer<F extends Witness> {
 
-  <A> Higher1<F, A> defer(Producer<Higher1<F, A>> defer);
+  <A> Kind<F, A> defer(Producer<Kind<F, A>> defer);
 }
 ```
 
 ### Bracket
 
 ```java
-public interface Bracket<F extends Kind> {
+public interface Bracket<F extends Witness> {
 
-  <A, B> Higher1<F, B> bracket(Higher1<F, A> acquire, Function1<A, ? extends Higher1<F, B>> use, Consumer1<A> release);
+  <A, B> Kind<F, B> bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use, Consumer1<A> release);
 }
 ```
 
 ### MonadDefer
 
 ```java
-public interface MonadDefer<F extends Kind> extends MonadThrow<F>, Bracket<F>, Defer<F> {
+public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>, Defer<F> {
 
-  default <A> Higher1<F, A> later(Producer<A> later) {
+  default <A> Kind<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
   }
 }
@@ -732,8 +732,8 @@ public interface MonadDefer<F extends Kind> extends MonadThrow<F>, Bracket<F>, D
 It represents a natural transformation between two different kinds.
 
 ```java
-public interface Transformer<F extends Kind, G extends Kind> {
-  <X> Higher1<G, T> apply(Higher<F, T> from);
+public interface Transformer<F extends Witness, G extends Witness> {
+  <X> Kind<G, T> apply(Kind<F, T> from);
 }
 ```
 
