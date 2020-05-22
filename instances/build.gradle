@@ -9,4 +9,5 @@ dependencies {
   implementation project(':transformer')
   implementation project(':stream')
   implementation project(':effect')
+  implementation project(':control')
 }
