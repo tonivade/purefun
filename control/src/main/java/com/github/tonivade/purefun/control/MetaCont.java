@@ -5,15 +5,14 @@
 package com.github.tonivade.purefun.control;
 
 import static java.util.Objects.requireNonNull;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Recoverable;
-import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
 
-@Sealed
 interface MetaCont<A, B> {
 
   Result<B> apply(A value);

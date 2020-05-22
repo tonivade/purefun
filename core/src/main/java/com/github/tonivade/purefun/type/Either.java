@@ -7,16 +7,17 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
+
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -34,7 +35,6 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <L> type of the left value, negative case
  * @param <R> type of the right value, positive case
  */
-@Sealed
 @HigherKind
 public interface Either<L, R> extends EitherOf<L, R> {
 

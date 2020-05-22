@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
@@ -17,6 +18,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer2;
@@ -24,7 +26,6 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
@@ -58,7 +59,6 @@ import com.github.tonivade.purefun.type.Try;
  * @see Try
  * @see Promise
  */
-@Sealed
 @HigherKind
 public interface Future<T> extends FutureOf<T> {
 

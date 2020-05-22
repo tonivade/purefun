@@ -5,10 +5,9 @@
 package com.github.tonivade.purefun.control;
 
 import static java.util.Objects.requireNonNull;
-import com.github.tonivade.purefun.Recoverable;
-import com.github.tonivade.purefun.Sealed;
 
-@Sealed
+import com.github.tonivade.purefun.Recoverable;
+
 interface Result<T> {
 
   @SuppressWarnings("unchecked")

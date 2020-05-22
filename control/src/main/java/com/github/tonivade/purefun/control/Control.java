@@ -6,13 +6,12 @@ package com.github.tonivade.purefun.control;
 
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.requireNonNull;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Tuple2;
 
-@Sealed
 @HigherKind
 public interface Control<T> extends ControlOf<T> {
 

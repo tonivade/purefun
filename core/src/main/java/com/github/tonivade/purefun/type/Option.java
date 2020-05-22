@@ -8,18 +8,19 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.nonNull;
+
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -33,7 +34,6 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@Sealed
 @HigherKind
 public interface Option<T> extends OptionOf<T> {
 
