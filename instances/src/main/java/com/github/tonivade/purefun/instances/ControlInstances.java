@@ -5,29 +5,31 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.Instance;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.control.Control;
+import com.github.tonivade.purefun.control.ControlOf;
+import com.github.tonivade.purefun.control.Control_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface ControlInstances {
 
-  static Monad<Control.µ> monad() {
-    return ControlMonad.instance();
+  static Monad<Control_> monad() {
+    return ControlMonad.INSTANCE;
   }
 }
 
-@Instance
-interface ControlMonad extends Monad<Control.µ> {
+interface ControlMonad extends Monad<Control_> {
+
+  ControlMonad INSTANCE = new ControlMonad() {};
 
   @Override
-  default <T> Higher1<Control.µ, T> pure(T value) {
-    return Control.pure(value).kind1();
+  default <T> Control<T> pure(T value) {
+    return Control.pure(value);
   }
 
   @Override
-  default <T, R> Higher1<Control.µ, R> flatMap(
-      Higher1<Control.µ, T> value, Function1<T, ? extends Higher1<Control.µ, R>> map) {
-    return value.fix1(Control::narrowK).flatMap(map.andThen(Control::narrowK)).kind1();
+  default <T, R> Control<R> flatMap(
+      Kind<Control_, T> value, Function1<T, ? extends Kind<Control_, R>> map) {
+    return value.fix(ControlOf::narrowK).flatMap(map.andThen(ControlOf::narrowK));
   }
 }

@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.purefun.control;
 
+import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Sealed;
-
-import static java.util.Objects.requireNonNull;
 
 @Sealed
 interface Result<T> {
 
+  @SuppressWarnings("unchecked")
   static <T> T trampoline(Result<T> apply) {
     Result<T> result = apply;
 

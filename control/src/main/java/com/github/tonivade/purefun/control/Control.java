@@ -4,18 +4,17 @@
  */
 package com.github.tonivade.purefun.control;
 
+import static com.github.tonivade.purefun.Producer.cons;
+import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Sealed;
 import com.github.tonivade.purefun.Tuple2;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
-
 @Sealed
 @HigherKind
-public interface Control<T> {
+public interface Control<T> extends ControlOf<T> {
 
   <R> Result<R> apply(MetaCont<T, R> cont);
 
@@ -192,6 +191,5 @@ public interface Control<T> {
       return (Control<R>) this;
     }
   }
-
 }
 

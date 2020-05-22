@@ -4,18 +4,17 @@
  */
 package com.github.tonivade.purefun.control;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Higher1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import org.junit.jupiter.api.Test;
-
 import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 public class PipingExample {
 
@@ -41,7 +40,7 @@ public class PipingExample {
 
   private <R> Control<R> pipe(Function1<Receive, Control<R>> down, Function1<Send, Control<R>> up) {
     return down(new Prod<Control<R>>(unit -> cons ->
-        up(cons.fix1(Cons::narrowK)).apply(up::apply))).apply(down::apply);
+        up(cons.fix(ConsOf::narrowK)).apply(up::apply))).apply(down::apply);
   }
 
   @Test
@@ -53,28 +52,28 @@ public class PipingExample {
     assertEquals("1\n2\n3\n", executor.getOutput());
   }
 
-  private <R> Down<R> down(Prod<Control<R>> p) {
-    return new Down<>(p.kind1());
+  private <R> Down<R> down(Prod<Control<R>> prod) {
+    return new Down<>(prod);
   }
 
-  private <R> Up<R> up(Cons<Control<R>> p) {
-    return new Up<>(p.kind1());
+  private <R> Up<R> up(Cons<Control<R>> cons) {
+    return new Up<>(cons);
   }
 
   private Control<Unit> println(Integer x) {
     return Control.later(() -> { System.out.println(x); return unit(); });
   }
 
-  static abstract class Process<R, P extends Kind, E> extends Stateful<R, Higher1<P, Control<R>>, E> {
+  static abstract class Process<R, P extends Witness, E> extends Stateful<R, Kind<P, Control<R>>, E> {
 
-    Process(Higher1<P, Control<R>> init) {
+    Process(Kind<P, Control<R>> init) {
       super(init);
     }
   }
 
-  static final class Down<R> extends Process<R, Prod.µ, Receive> implements Receive {
+  static final class Down<R> extends Process<R, Prod_, Receive> implements Receive {
 
-    Down(Higher1<Prod.µ, Control<R>> init) {
+    Down(Kind<Prod_, Control<R>> init) {
       super(init);
     }
 
@@ -83,13 +82,13 @@ public class PipingExample {
 
     @Override
     public Control<Integer> receive() {
-      return useState(state -> resume -> state.fix1(Prod::narrowK).apply(unit()).apply(new Cons<>(resume).kind1()));
+      return useState(state -> resume -> state.fix(ProdOf::narrowK).apply(unit()).apply(new Cons<>(resume)));
     }
   }
 
-  static final class Up<R> extends Process<R, Cons.µ, Send> implements Send {
+  static final class Up<R> extends Process<R, Cons_, Send> implements Send {
 
-    Up(Higher1<Cons.µ, Control<R>> init) {
+    Up(Kind<Cons_, Control<R>> init) {
       super(init);
     }
 
@@ -98,35 +97,35 @@ public class PipingExample {
 
     @Override
     public Control<Unit> send(int n) {
-      return useState(state -> resume -> state.fix1(Cons::narrowK).apply(n).apply(new Prod<>(resume).kind1()));
+      return useState(state -> resume -> state.fix(ConsOf::narrowK).apply(n).apply(new Prod<>(resume)));
     }
   }
 }
 
 @HigherKind
-final class Prod<R> {
+final class Prod<R> implements ProdOf<R> {
 
-  private final Function1<Unit, Function1<Higher1<Cons.µ, R>, R>> apply;
+  private final Function1<Unit, Function1<Kind<Cons_, R>, R>> apply;
 
-  Prod(Function1<Unit, Function1<Higher1<Cons.µ, R>, R>> apply) {
+  Prod(Function1<Unit, Function1<Kind<Cons_, R>, R>> apply) {
     this.apply = requireNonNull(apply);
   }
 
-  public Function1<Higher1<Cons.µ, R>, R> apply(Unit unit) {
+  public Function1<Kind<Cons_, R>, R> apply(Unit unit) {
     return apply.apply(unit);
   }
 }
 
 @HigherKind
-final class Cons<R> {
+final class Cons<R> implements ConsOf<R> {
 
-  private final Function1<Integer, Function1<Higher1<Prod.µ, R>, R>> apply;
+  private final Function1<Integer, Function1<Kind<Prod_, R>, R>> apply;
 
-  Cons(Function1<Integer, Function1<Higher1<Prod.µ, R>, R>> apply) {
+  Cons(Function1<Integer, Function1<Kind<Prod_, R>, R>> apply) {
     this.apply = requireNonNull(apply);
   }
 
-  public Function1<Higher1<Prod.µ, R>, R> apply(int n) {
+  public Function1<Kind<Prod_, R>, R> apply(int n) {
     return apply.apply(n);
   }
 }
