@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.control;
 
+import static java.util.Objects.requireNonNull;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Sealed;
@@ -11,8 +12,6 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
-
-import static java.util.Objects.requireNonNull;
 
 @Sealed
 interface MetaCont<A, B> {
@@ -110,7 +109,7 @@ interface MetaCont<A, B> {
 
     @Override
     public <R> Tuple2<MetaCont<A, R>, MetaCont<R, C>> splitAt(Marker.Cont<R> cont) {
-      return tail.splitAt(cont).applyTo((head, tail) -> Tuple2.of(new Frames<>(frames, head), tail));
+      return tail.splitAt(cont).applyTo((h, t) -> Tuple2.of(new Frames<A, B, R>(frames, h), t));
     }
 
     @Override
@@ -160,7 +159,7 @@ interface MetaCont<A, B> {
         Tuple2<MetaCont<R, R1>, MetaCont<R, A>> tuple = Tuple2.of(handler, tail);
         return (Tuple2) tuple;
       }
-      return tail.splitAt(cont).applyTo((head, tail) -> Tuple2.of(new Handler<>(marker, head), tail));
+      return tail.splitAt(cont).applyTo((h, t) -> Tuple2.of(new Handler<R, R1>(marker, h), t));
     }
 
     @Override
@@ -234,7 +233,7 @@ interface MetaCont<A, B> {
     @Override
     public <R1> Tuple2<MetaCont<R, R1>, MetaCont<R1, A>> splitAt(Marker.Cont<R1> cont) {
       Tuple2<MetaCont<R, R1>, MetaCont<R1, A>> tuple = tail.splitAt(cont);
-      return tuple.applyTo((head, tail) -> Tuple2.of(new Catch<>(marker, head), tail));
+      return tuple.applyTo((h, t) -> Tuple2.of(new Catch<R, R1>(marker, h), t));
     }
 
     @Override
