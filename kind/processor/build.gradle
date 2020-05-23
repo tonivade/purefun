@@ -1,7 +1,7 @@
 archivesBaseName = 'purefun-processor'
 
 dependencies {
-  implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
   implementation project(':kind:annotation')
   testImplementation libs.compileTesting
+  testRuntime files("${System.getProperty('java.home')}/../lib/tools.jar")
 }

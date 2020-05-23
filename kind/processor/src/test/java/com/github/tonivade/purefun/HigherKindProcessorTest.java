@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun;
 
 import static com.google.common.truth.Truth.assert_;
@@ -45,6 +49,41 @@ public class HigherKindProcessorTest {
 
         "}");
 
+    assert_().about(javaSource()).that(file)
+        .processedWith(new HigherKindProcessor())
+        .compilesWithoutError().and().generatesSources(generated, witness);
+  }
+
+  @Test
+  public void compilesKind1NoPackage() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "import com.github.tonivade.purefun.HigherKind;",
+
+        "@HigherKind",
+        "public class Foo<T> implements FooOf<T> {",
+        "}");
+
+    JavaFileObject generated = forSourceLines("test.FooOf",
+        "import com.github.tonivade.purefun.Kind;",
+        "import javax.annotation.Generated;",
+
+        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "public interface FooOf<A> extends Kind<Foo_, A> {",
+
+        "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
+        "return (Foo<A>) hkt;",
+        "}",
+
+        "}");
+
+    JavaFileObject witness = forSourceLines("Foo_",
+        "import com.github.tonivade.purefun.Witness;",
+        "import javax.annotation.Generated;",
+
+        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "public final class Foo_ implements Witness {",
+        "private Foo_() {}",
+        "}");
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
         .compilesWithoutError().and().generatesSources(generated, witness);
@@ -130,7 +169,7 @@ public class HigherKindProcessorTest {
 
   @Test
   public void compilesKind3() {
-    JavaFileObject file = forSourceLines("test.Foo",
+    JavaFileObject file = forSourceLines("Foo",
         "package test;",
 
         "import com.github.tonivade.purefun.HigherKind;",
@@ -139,7 +178,7 @@ public class HigherKindProcessorTest {
         "public class Foo<A, B, C> implements FooOf<A, B, C> {",
         "}");
 
-    JavaFileObject generated = forSourceLines("test.FooOf",
+    JavaFileObject generated = forSourceLines("FooOf",
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun;
 
 import static java.lang.String.format;
@@ -19,15 +23,13 @@ import javax.tools.JavaFileObject;
 @SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
 public class HigherKindProcessor extends AbstractProcessor {
 
-  private static final String JAVA_8 = "1.8";
-
   private static final String GENERATED = "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")";
 
-  private static final String IMPORT_JAVAX_ANNOTATION_GENERATED = "import javax.annotation.Generated;";
-  private static final String IMPORT_JAVAX_ANNOTATION_PROCESSING_GENERATED = "import javax.annotation.processing.Generated;";
+  private static final String JAVAX_ANNOTATION_GENERATED = "javax.annotation.Generated";
+  private static final String JAVAX_ANNOTATION_PROCESSING_GENERATED = "javax.annotation.processing.Generated";
 
-  private static final String IMPORT_KIND = "import com.github.tonivade.purefun.Kind;";
-  private static final String IMPORT_WITNESS = "import com.github.tonivade.purefun.Witness;";
+  private static final String KIND = "com.github.tonivade.purefun.Kind";
+  private static final String WITNESS = "com.github.tonivade.purefun.Witness";
   private static final String END = "}";
 
   @Override
@@ -53,8 +55,16 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void generate(TypeElement element) throws IOException {
     String qualifiedName = element.getQualifiedName().toString();
-    String packageName =  qualifiedName.substring(0, qualifiedName.lastIndexOf('.'));
-    String className = qualifiedName.substring(qualifiedName.lastIndexOf('.') + 1);
+    int lastIndexOf = qualifiedName.lastIndexOf('.');
+    String packageName;
+    String className;
+    if (lastIndexOf > 0) {
+      packageName =  qualifiedName.substring(0, lastIndexOf);
+      className = qualifiedName.substring(lastIndexOf + 1);
+    } else {
+      packageName = null;
+      className = qualifiedName;
+    }
     String witnessName = className + "_";
     String typeOfName = className + "Of";
     writeWitness(packageName, witnessName);
@@ -62,7 +72,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
 
   private void writeWitness(String packageName, String witnessName) throws IOException {
-    JavaFileObject witnessFile = processingEnv.getFiler().createSourceFile(packageName + "." + witnessName);
+    JavaFileObject witnessFile = createFile(packageName, witnessName);
     try (PrintWriter writer = new PrintWriter(witnessFile.openWriter())) {
       witness(writer, packageName, witnessName);
     }
@@ -70,7 +80,7 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void writeTypeOf(String packageName, String className, String typeOfName, String witnessName,
     List<? extends TypeParameterElement> types) throws IOException {
-    JavaFileObject typeOfFile = processingEnv.getFiler().createSourceFile(packageName + "." + typeOfName);
+    JavaFileObject typeOfFile = createFile(packageName, typeOfName);
     try (PrintWriter writer = new PrintWriter(typeOfFile.openWriter())) {
       if (types.size() == 1) {
         generate1(writer, packageName, className, typeOfName, witnessName, types);
@@ -85,10 +95,12 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
 
   private void witness(PrintWriter writer, String packageName, String witnessName) {
-    writer.println(packageName(packageName));
-    writer.println();
-    writer.println(IMPORT_WITNESS);
-    writer.println(generatedImport());
+    if (packageName != null) {
+      writer.println(packageName(packageName));
+      writer.println();
+    }
+    writer.println(import_(WITNESS));
+    writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(witnessClass(witnessName));
@@ -103,10 +115,12 @@ public class HigherKindProcessor extends AbstractProcessor {
     String higher1 = "Kind<" + kindName + ", A>";
     String aType = type("A", list.get(0));
     String typeOfNameWithParams = typeOfName + "<" + aType + ">";
-    writer.println(packageName(packageName));
-    writer.println();
-    writer.println(IMPORT_KIND);
-    writer.println(generatedImport());
+    if (packageName != null) {
+      writer.println(packageName(packageName));
+      writer.println();
+    }
+    writer.println(import_(KIND));
+    writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(typeOfNameWithParams, higher1));
@@ -121,10 +135,13 @@ public class HigherKindProcessor extends AbstractProcessor {
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
     String typeOfNameWithParams = typeOfName + "<" + aType + ", " + bType + ">";
-    writer.println(packageName(packageName));
+    if (packageName != null) {
+      writer.println(packageName(packageName));
+      writer.println();
+    }
     writer.println();
-    writer.println(IMPORT_KIND);
-    writer.println(generatedImport());
+    writer.println(import_(KIND));
+    writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(typeOfNameWithParams, higher1));
@@ -140,16 +157,24 @@ public class HigherKindProcessor extends AbstractProcessor {
     String bType = type("B", list.get(1));
     String cType = type("C", list.get(2));
     String typeOfNameWithParams = typeOfName + "<" + aType + ", " + bType + ", " + cType + ">";
-    writer.println(packageName(packageName));
+    if (packageName != null) {
+      writer.println(packageName(packageName));
+      writer.println();
+    }
     writer.println();
-    writer.println(IMPORT_KIND);
-    writer.println(generatedImport());
+    writer.println(import_(KIND));
+    writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(typeOfNameWithParams, higher1));
     writer.println();
     narrowK3(writer, className, aType, bType, cType, higher1);
     writer.println(END);
+  }
+
+  private JavaFileObject createFile(String packageName, String className) throws IOException {
+    String qualifiedName = packageName != null ? packageName + "." + className : className;
+    return processingEnv.getFiler().createSourceFile(qualifiedName);
   }
 
   private String privateConstructor(String witnessName) {
@@ -183,13 +208,20 @@ public class HigherKindProcessor extends AbstractProcessor {
     return "public interface " + typeOfName + " extends " + type + " {";
   }
 
-  private String generatedImport() {
-    String version = System.getProperty("java.specification.version");
-    if (version.equals(JAVA_8)) {
-      return IMPORT_JAVAX_ANNOTATION_GENERATED;
-    } else {
-      return IMPORT_JAVAX_ANNOTATION_PROCESSING_GENERATED;
+  private String generated() {
+    if (checkClass(JAVAX_ANNOTATION_PROCESSING_GENERATED)) {
+      return JAVAX_ANNOTATION_PROCESSING_GENERATED;
     }
+    return JAVAX_ANNOTATION_GENERATED;
+  }
+
+  private boolean checkClass(String className) {
+    try {
+      Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+    return true;
   }
 
   private String type(String name, TypeParameterElement type1) {
@@ -197,8 +229,8 @@ public class HigherKindProcessor extends AbstractProcessor {
     return !bounds.isEmpty() ? name + " extends " + bounds : name;
   }
 
-  private String bounds(TypeParameterElement type1) {
-    return type1.getBounds().stream()
+  private String bounds(TypeParameterElement typeParameterElement) {
+    return typeParameterElement.getBounds().stream()
       .map(Object::toString)
       .filter(type -> !type.equals(Object.class.getName()))
       .collect(joining(","));
@@ -206,5 +238,9 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private String packageName(String packageName) {
     return "package " + packageName + ";";
+  }
+
+  private String import_(String className) {
+    return "import " + className + ";";
   }
 }
