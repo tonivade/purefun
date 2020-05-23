@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -19,7 +20,9 @@ import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEq
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqual;
 
-public final class Range implements Iterable<Integer> {
+public final class Range implements Iterable<Integer>, Serializable {
+
+  private static final long serialVersionUID = 7923835507243835436L;
 
   private static final Equal<Range> EQUAL = Equal.<Range>of().comparing(x -> x.begin).comparing(x -> x.end);
 
