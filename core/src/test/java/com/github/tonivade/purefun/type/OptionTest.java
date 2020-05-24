@@ -11,9 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Unit;
 
 public class OptionTest {
 
@@ -162,6 +169,27 @@ public class OptionTest {
     Option<String> option = Option.of(this::message);
 
     assertTrue(option.isPresent());
+  }
+  
+  @Test
+  public void noneSerializable() throws IOException, ClassNotFoundException {
+    Option<Unit> option = Option.none();
+    
+    byte[] bytes;
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(baos);) {
+      out.writeObject(option);
+      out.flush();
+
+      bytes = baos.toByteArray();
+    }
+    
+    Object result;
+    try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+      result = in.readObject();
+    }
+   
+    assertSame(option, result);
   }
 
   private String message() {
