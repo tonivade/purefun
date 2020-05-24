@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun;
 
-import java.util.Objects;
-
 @FunctionalInterface
 public interface Precondition {
 
@@ -20,7 +18,7 @@ public interface Precondition {
   }
 
   static Precondition nonNull(Object value) {
-    return () -> Objects.nonNull(value);
+    return () -> value != null;
   }
 
   static Precondition empty(String value) {
