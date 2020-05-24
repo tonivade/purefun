@@ -25,4 +25,8 @@ public final class Unit implements Serializable {
   public String toString() {
     return "Unit";
   }
+  
+  protected Object readResolve() {
+    return INSTANCE;
+  }
 }
