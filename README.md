@@ -420,6 +420,48 @@ EIO<E, T>   =>  ZIO<Any, E, T>
 Task<T>     =>  ZIO<Any, Throwable, T>
 ```
 
+## Algebraic Effects
+
+Also, I have implemented a version of delimited control monad based in this [project](https://b-studios.de/scala-effekt/).
+With this monad, you can implement algebraic effects. Example:
+
+```java
+  // the effect
+  interface Amb {
+    Control<Boolean> flip();
+  }
+
+  // the program, if true then 2 else 3
+  Control<Integer> program(Amb amb) {
+    return amb.flip().map(x -> x ? 2 : 3);
+  }
+
+  @Test
+  void test() {
+    Control<ImmutableList<Integer>> handled = ambList(this::program);
+
+    assertEquals(listOf(2, 3), handled.run());
+  }
+
+  <R> Control<ImmutableList<R>> ambList(Function1<Amb, Control<R>> program) {
+    return new AmbList<R>().apply(amb -> program.apply(amb).map(ImmutableList::of));
+  }
+
+  final class AmbList<R> implements Handler<ImmutableList<R>, Amb>, Amb {
+
+    @Override
+    public Amb effect() { return this; }
+
+    @Override
+    public Control<Boolean> flip() {
+      return use(resume ->
+          resume.apply(true) // first flip return true
+            .flatMap(ts -> resume.apply(false) // second flip return false
+              .map(ts::appendAll)));
+    }
+  }
+```
+
 ## Type Classes
 
 With higher kinded types simulation we can implement typeclases.
