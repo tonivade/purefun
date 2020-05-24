@@ -252,6 +252,10 @@ public interface Option<T> extends OptionOf<T> {
     public String toString() {
       return "None";
     }
+    
+    protected Object readResolve() {
+      return INSTANCE;
+    }
   }
 }
 
