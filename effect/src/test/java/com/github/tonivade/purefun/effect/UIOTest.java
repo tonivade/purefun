@@ -107,14 +107,14 @@ public class UIOTest {
   public void asyncRight(@Mock Consumer1<Try<Integer>> callback) {
     parseInt("1").async(callback);
 
-    verify(callback, timeout(100)).accept(Try.success(1));
+    verify(callback, timeout(1000)).accept(Try.success(1));
   }
 
   @Test
   public void asyncLeft(@Mock Consumer1<Try<Integer>> callback) {
     parseInt("kjsdf").async(callback);
 
-    verify(callback, timeout(100)).accept(captor.capture());
+    verify(callback, timeout(1000)).accept(captor.capture());
 
     assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
   }
