@@ -14,8 +14,7 @@ public interface Bracket<F extends Witness> {
   <A, B> Kind<F, B> bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use, Consumer1<A> release);
 
   default <A extends AutoCloseable, B> Kind<F, B>
-      bracket(Kind<F, A> acquire,
-              Function1<A, ? extends Kind<F, B>> use) {
+      bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 }

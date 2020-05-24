@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Unit.unit;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,7 +47,7 @@ final class MonadDeferReference<F extends Witness, A> implements Reference<F, A>
 
   @Override
   public Kind<F, Unit> set(A newValue) {
-    return monadF.later(() -> { value.set(newValue); return unit(); });
+    return monadF.exec(() -> value.set(newValue));
   }
 
   @Override

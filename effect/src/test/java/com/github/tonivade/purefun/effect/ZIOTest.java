@@ -200,6 +200,7 @@ public class ZIOTest {
     verify(computation, times(4)).get();
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void retrySuccess(@Mock Producer<Either<Throwable, String>> computation) {
     when(computation.get()).thenReturn(
@@ -224,6 +225,7 @@ public class ZIOTest {
     verify(computation, times(4)).get();
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void repeatFailure(@Mock Producer<Either<Throwable, String>> computation) {
     when(computation.get()).thenReturn(
@@ -272,9 +274,9 @@ public class ZIOTest {
   }
 
   private UIO<Integer> sum(Integer n, Integer sum) {
-    if ( n == 0) {
+    if (n == 0) {
       return UIO.pure(sum);
     }
-    return UIO.defer(() -> sum( n - 1, sum + n));
+    return UIO.defer(() -> sum(n - 1, sum + n));
   }
 }
