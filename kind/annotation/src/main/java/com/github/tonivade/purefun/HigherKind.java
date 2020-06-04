@@ -13,5 +13,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface HigherKind {
 
-  String value() default "_";
+  String value() default "";
+  
+  boolean sealed() default false;
 }

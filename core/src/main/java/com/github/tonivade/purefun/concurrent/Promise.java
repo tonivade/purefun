@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.Objects.isNull;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
+@HigherKind(sealed = true)
 public interface Promise<T> {
 
   boolean tryComplete(Try<T> value);
@@ -77,7 +79,7 @@ public interface Promise<T> {
   }
 }
 
-final class PromiseImpl<T> implements Promise<T> {
+final class PromiseImpl<T> implements SealedPromise<T> {
 
   private final State state = new State();
   private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();

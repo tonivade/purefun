@@ -35,7 +35,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <L> type of the left value, negative case
  * @param <R> type of the right value, positive case
  */
-@HigherKind
+@HigherKind(sealed = true)
 public interface Either<L, R> extends EitherOf<L, R> {
 
   static <L, R> Either<L, R> left(L value) {
@@ -178,9 +178,7 @@ public interface Either<L, R> extends EitherOf<L, R> {
     return fold(Validation::invalid, Validation::valid);
   }
 
-  EitherModule module();
-
-  final class Left<L, R> implements Either<L, R>, Serializable {
+  final class Left<L, R> implements SealedEither<L, R>, Serializable {
 
     private static final long serialVersionUID = 7040154642166638129L;
 
@@ -213,11 +211,6 @@ public interface Either<L, R> extends EitherOf<L, R> {
     }
 
     @Override
-    public EitherModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -233,7 +226,7 @@ public interface Either<L, R> extends EitherOf<L, R> {
     }
   }
 
-  final class Right<L, R> implements Either<L, R>, Serializable {
+  final class Right<L, R> implements SealedEither<L, R>, Serializable {
 
     private static final long serialVersionUID = 164989996450592091L;
 
@@ -266,11 +259,6 @@ public interface Either<L, R> extends EitherOf<L, R> {
     }
 
     @Override
-    public EitherModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -286,5 +274,3 @@ public interface Either<L, R> extends EitherOf<L, R> {
     }
   }
 }
-
-interface EitherModule { }

@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface Trampoline<T> extends TrampolineOf<T> {
 
   Trampoline<T> apply();
@@ -39,8 +39,6 @@ public interface Trampoline<T> extends TrampolineOf<T> {
     return TrampolineModule.iterate(this).get();
   }
 
-  TrampolineModule module();
-
   static <T> Trampoline<T> done(T value) {
     return new Done<>(value);
   }
@@ -49,7 +47,7 @@ public interface Trampoline<T> extends TrampolineOf<T> {
     return new More<>(next);
   }
 
-  final class Done<T> implements Trampoline<T> {
+  final class Done<T> implements SealedTrampoline<T> {
 
     private final T value;
 
@@ -71,14 +69,9 @@ public interface Trampoline<T> extends TrampolineOf<T> {
     public Trampoline<T> apply() {
       throw new UnsupportedOperationException();
     }
-
-    @Override
-    public TrampolineModule module() {
-      throw new UnsupportedOperationException();
-    }
   }
 
-  final class More<T> implements Trampoline<T> {
+  final class More<T> implements SealedTrampoline<T> {
 
     private final Producer<Trampoline<T>> next;
 
@@ -99,11 +92,6 @@ public interface Trampoline<T> extends TrampolineOf<T> {
     @Override
     public Trampoline<T> apply() {
       return next.get();
-    }
-
-    @Override
-    public TrampolineModule module() {
-      throw new UnsupportedOperationException();
     }
   }
 }

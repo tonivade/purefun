@@ -22,7 +22,7 @@ public class TrampolineTest {
         () -> assertEquals("done", done.get()),
         () -> assertTrue(done.complete()),
         () -> assertThrows(UnsupportedOperationException.class, done::apply),
-        () -> assertThrows(UnsupportedOperationException.class, done::module)
+        () -> assertThrows(UnsupportedOperationException.class, done::youShallNotPass)
         );
   }
 
@@ -34,7 +34,7 @@ public class TrampolineTest {
         () -> assertEquals("done", more.apply().get()),
         () -> assertFalse(more.complete()),
         () -> assertThrows(UnsupportedOperationException.class, more::get),
-        () -> assertThrows(UnsupportedOperationException.class, more::module)
+        () -> assertThrows(UnsupportedOperationException.class, more::youShallNotPass)
         );
   }
 

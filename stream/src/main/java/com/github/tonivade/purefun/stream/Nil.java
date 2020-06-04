@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-final class Nil<F extends Witness, T> implements Stream<F, T> {
+final class Nil<F extends Witness, T> implements SealedStream<F, T> {
 
   private final MonadDefer<F> monad;
 
@@ -123,7 +123,4 @@ final class Nil<F extends Witness, T> implements Stream<F, T> {
   public Stream<F, T> intersperse(Kind<F, T> value) {
     return this;
   }
-
-  @Override
-  public StreamModule getModule() { throw new UnsupportedOperationException(); }
 }

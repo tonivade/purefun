@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
 
   Monad<F> monad();
@@ -48,7 +48,7 @@ public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
   static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Kind<F, B>> run) {
     checkNonNull(monad);
     checkNonNull(run);
-    return new Kleisli<F, A, B>() {
+    return new SealedKleisli<F, A, B>() {
 
       @Override
       public Monad<F> monad() { return monad; }

@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-final class Suspend<F extends Witness, T> implements Stream<F, T> {
+final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, Stream<F, T>> evalStream;
@@ -126,9 +126,6 @@ final class Suspend<F extends Witness, T> implements Stream<F, T> {
   public Stream<F, T> intersperse(Kind<F, T> value) {
     return lazyMap(s -> s.intersperse(value));
   }
-
-  @Override
-  public StreamModule getModule() { throw new UnsupportedOperationException(); }
 
   private <R> Stream<F, R> lazyMap(Function1<Stream<F, T>, Stream<F, R>> mapper) {
     return suspend(() -> monad.map(evalStream, mapper));

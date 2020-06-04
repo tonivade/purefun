@@ -26,7 +26,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
 
   default Stream<F, T> head() {
@@ -88,8 +88,6 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
   default <R> Stream<F, R> andThen(Kind<F, R> next) {
     return mapEval(ignore -> next);
   }
-
-  StreamModule getModule();
 
   static <F extends Witness> StreamOf<F> of(MonadDefer<F> monad) {
     return () -> monad;

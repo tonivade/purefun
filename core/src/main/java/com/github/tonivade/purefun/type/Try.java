@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@HigherKind
+@HigherKind(sealed = true)
 public interface Try<T> extends TryOf<T> {
 
   static <T> Try<T> success(T value) {
@@ -188,9 +188,7 @@ public interface Try<T> extends TryOf<T> {
     return fold(map.andThen(Validation::invalid), Validation::valid);
   }
 
-  TryModule module();
-
-  final class Success<T> implements Try<T>, Serializable {
+  final class Success<T> implements SealedTry<T>, Serializable {
 
     private static final long serialVersionUID = -3934628369477099278L;
 
@@ -223,11 +221,6 @@ public interface Try<T> extends TryOf<T> {
     }
 
     @Override
-    public TryModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -243,7 +236,7 @@ public interface Try<T> extends TryOf<T> {
     }
   }
 
-  final class Failure<T> implements Try<T>, Serializable {
+  final class Failure<T> implements SealedTry<T>, Serializable {
 
     private static final long serialVersionUID = -8155444386075553318L;
 
@@ -285,11 +278,6 @@ public interface Try<T> extends TryOf<T> {
     }
 
     @Override
-    public TryModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(cause.getMessage(), cause.getStackTrace());
     }
@@ -305,5 +293,3 @@ public interface Try<T> extends TryOf<T> {
     }
   }
 }
-
-interface TryModule {}

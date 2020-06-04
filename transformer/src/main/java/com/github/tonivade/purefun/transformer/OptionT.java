@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
 
   Monad<F> monad();
@@ -70,7 +70,7 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
   static <F extends Witness, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
     checkNonNull(monad);
     checkNonNull(value);
-    return new OptionT<F, T>() {
+    return new SealedOptionT<F, T>() {
 
       @Override
       public Monad<F> monad() { return monad; }

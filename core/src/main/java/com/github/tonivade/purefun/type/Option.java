@@ -34,7 +34,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@HigherKind
+@HigherKind(sealed = true)
 public interface Option<T> extends OptionOf<T> {
 
   static <T> Option<T> some(T value) {
@@ -160,9 +160,7 @@ public interface Option<T> extends OptionOf<T> {
     return fold(() -> Either.left(new NoSuchElementException()), Either::right);
   }
 
-  OptionModule module();
-
-  final class Some<T> implements Option<T>, Serializable {
+  final class Some<T> implements SealedOption<T>, Serializable {
 
     private static final long serialVersionUID = 7757183287962895363L;
 
@@ -190,11 +188,6 @@ public interface Option<T> extends OptionOf<T> {
     }
 
     @Override
-    public OptionModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -210,7 +203,7 @@ public interface Option<T> extends OptionOf<T> {
     }
   }
 
-  final class None<T> implements Option<T>, Serializable {
+  final class None<T> implements SealedOption<T>, Serializable {
 
     private static final long serialVersionUID = 7202112931010040785L;
 
@@ -234,11 +227,6 @@ public interface Option<T> extends OptionOf<T> {
     }
 
     @Override
-    public OptionModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return 1;
     }
@@ -258,5 +246,3 @@ public interface Option<T> extends OptionOf<T> {
     }
   }
 }
-
-interface OptionModule {}

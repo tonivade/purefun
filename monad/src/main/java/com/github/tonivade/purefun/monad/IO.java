@@ -29,7 +29,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface IO<T> extends IOOf<T>, Recoverable {
 
   T unsafeRunSync();
@@ -142,8 +142,6 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return IOModule.retry(this, sleep(delay), maxRetries);
   }
 
-  IOModule getModule();
-
   static <T> IO<T> pure(T value) {
     return new Pure<>(value);
   }
@@ -192,7 +190,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
-  final class Pure<T> implements IO<T> {
+  final class Pure<T> implements SealedIO<T> {
 
     private final T value;
 
@@ -211,17 +209,12 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Pure(" + value + ")";
     }
   }
 
-  final class FlatMapped<T, R> implements IO<R> {
+  final class FlatMapped<T, R> implements SealedIO<R> {
 
     private final Producer<IO<T>> current;
     private final Function1<T, IO<R>> next;
@@ -248,11 +241,6 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "FlatMapped(" + current + ", ?)";
     }
@@ -266,7 +254,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
   }
 
-  final class Failure<T> implements IO<T>, Recoverable {
+  final class Failure<T> implements SealedIO<T>, Recoverable {
 
     private final Throwable error;
 
@@ -297,17 +285,12 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Failure(" + error + ")";
     }
   }
 
-  final class Task<T> implements IO<T> {
+  final class Task<T> implements SealedIO<T> {
 
     private final Producer<T> task;
 
@@ -326,17 +309,12 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Task(?)";
     }
   }
 
-  final class Suspend<T> implements IO<T> {
+  final class Suspend<T> implements SealedIO<T> {
 
     private final Producer<IO<T>> lazy;
 
@@ -360,11 +338,6 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Suspend(?)";
     }
@@ -374,7 +347,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
   }
 
-  final class Sleep implements IO<Unit>, Recoverable {
+  final class Sleep implements SealedIO<Unit>, Recoverable {
 
     private final Duration duration;
 
@@ -399,17 +372,12 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Sleep(" + duration + ')';
     }
   }
 
-  final class Bracket<T, R> implements IO<R> {
+  final class Bracket<T, R> implements SealedIO<R> {
 
     private final IO<T> acquire;
     private final Function1<T, IO<R>> use;
@@ -434,17 +402,12 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Bracket(" + acquire + ", ?, ?)";
     }
   }
 
-  final class Attempt<T> implements IO<Try<T>> {
+  final class Attempt<T> implements SealedIO<Try<T>> {
 
     private final IO<T> current;
 
@@ -460,11 +423,6 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     @Override
     public <F extends Witness> Kind<F, Try<T>> foldMap(MonadDefer<F> monad) {
       return monad.map(monad.attempt(current.foldMap(monad)), Try::fromEither);
-    }
-
-    @Override
-    public IOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     @Override

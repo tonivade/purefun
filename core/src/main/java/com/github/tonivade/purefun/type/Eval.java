@@ -24,7 +24,7 @@ import com.github.tonivade.purefun.Unit;
  * </ul>
  * @param <A> result of the computation
  */
-@HigherKind
+@HigherKind(sealed = true)
 public interface Eval<A> extends EvalOf<A> {
 
   Eval<Boolean> TRUE = now(true);
@@ -40,8 +40,6 @@ public interface Eval<A> extends EvalOf<A> {
   }
 
   <R> Eval<R> flatMap(Function1<A, Eval<R>> map);
-
-  EvalModule getModule();
 
   static <T> Eval<T> now(T value) {
     return new Done<>(cons(value));
@@ -63,7 +61,7 @@ public interface Eval<A> extends EvalOf<A> {
     return new Done<>(() -> { throw error; });
   }
 
-  final class Done<A> implements Eval<A> {
+  final class Done<A> implements SealedEval<A> {
 
     private final Producer<A> producer;
 
@@ -82,17 +80,12 @@ public interface Eval<A> extends EvalOf<A> {
     }
 
     @Override
-    public EvalModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Done(?)";
     }
   }
 
-  final class Defer<A> implements Eval<A> {
+  final class Defer<A> implements SealedEval<A> {
 
     private final Producer<Eval<A>> deferred;
 
@@ -110,11 +103,6 @@ public interface Eval<A> extends EvalOf<A> {
       return new FlatMapped<>(deferred::get, map::apply);
     }
 
-    @Override
-    public EvalModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
     protected Eval<A> next() {
       return deferred.get();
     }
@@ -125,7 +113,7 @@ public interface Eval<A> extends EvalOf<A> {
     }
   }
 
-  final class FlatMapped<A, B> implements Eval<B> {
+  final class FlatMapped<A, B> implements SealedEval<B> {
 
     private final Producer<Eval<A>> start;
     private final Function1<A, Eval<B>> run;
@@ -144,11 +132,6 @@ public interface Eval<A> extends EvalOf<A> {
     @SuppressWarnings("unchecked")
     public <R> Eval<R> flatMap(Function1<B, Eval<R>> map) {
       return new FlatMapped<>(() -> (Eval<B>) start(), b -> new FlatMapped<>(() -> run((A) b), map::apply));
-    }
-
-    @Override
-    public EvalModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     protected Eval<A> start() {

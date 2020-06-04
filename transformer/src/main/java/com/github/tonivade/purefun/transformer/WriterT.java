@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
 
   Monoid<L> monoid();
@@ -80,7 +80,7 @@ public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
     checkNonNull(monoid);
     checkNonNull(monad);
     checkNonNull(value);
-    return new WriterT<F, L, A>() {
+    return new SealedWriterT<F, L, A>() {
 
       @Override
       public Monoid<L> monoid() { return monoid; }

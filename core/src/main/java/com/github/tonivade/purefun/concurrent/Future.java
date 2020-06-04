@@ -59,7 +59,7 @@ import com.github.tonivade.purefun.type.Try;
  * @see Try
  * @see Promise
  */
-@HigherKind
+@HigherKind(sealed = true)
 public interface Future<T> extends FutureOf<T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
@@ -126,8 +126,6 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   Promise<T> toPromise();
-
-  FutureModule getModule();
 
   static <T> Future<T> success(T value) {
     return success(DEFAULT_EXECUTOR, value);
@@ -218,9 +216,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 }
 
-interface FutureModule { }
-
-final class FutureImpl<T> implements Future<T> {
+final class FutureImpl<T> implements SealedFuture<T> {
 
   private final Executor executor;
   private final Consumer1<Boolean> propagate;
@@ -324,11 +320,6 @@ final class FutureImpl<T> implements Future<T> {
   @Override
   public Promise<T> toPromise() {
     return promise;
-  }
-
-  @Override
-  public FutureModule getModule() {
-    throw new UnsupportedOperationException();
   }
 
   protected static <T> Future<T> sync(Executor executor, Try<T> result) {

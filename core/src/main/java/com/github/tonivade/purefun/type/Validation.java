@@ -41,7 +41,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <E> type of the error when invalid
  * @param <T> type of the value when valid
  */
-@HigherKind
+@HigherKind(sealed = true)
 public interface Validation<E, T> extends ValidationOf<E, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
@@ -167,8 +167,6 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     return fold(Either::left, Either::right);
   }
 
-  ValidationModule module();
-
   static <E, T, R> Validation<E, R> select(Validation<E, Either<T, R>> validation,
                                            Validation<E, Function1<T, R>> apply) {
     return validation.fold(Validation::invalid,
@@ -235,7 +233,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     return nonNullAnd(lowerThanOrEqual(x, () -> "require " + value + " <= " + x)).validate(value);
   }
 
-  final class Valid<E, T> implements Validation<E, T>, Serializable {
+  final class Valid<E, T> implements SealedValidation<E, T>, Serializable {
 
     private static final long serialVersionUID = -4276395187736455243L;
 
@@ -268,11 +266,6 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     }
 
     @Override
-    public ValidationModule module() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(value);
     }
@@ -288,7 +281,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     }
   }
 
-  final class Invalid<E, T> implements Validation<E, T>, Serializable {
+  final class Invalid<E, T> implements SealedValidation<E, T>, Serializable {
 
     private static final long serialVersionUID = -5116403366555721062L;
 
@@ -318,11 +311,6 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     @Override
     public E getError() {
       return error;
-    }
-
-    @Override
-    public ValidationModule module() {
-      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -416,5 +404,3 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     }
   }
 }
-
-interface ValidationModule { }
