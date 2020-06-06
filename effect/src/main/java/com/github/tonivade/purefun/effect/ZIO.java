@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-@HigherKind
+@HigherKind(sealed = true)
 public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   Either<E, A> provide(R env);
@@ -205,7 +205,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return (ZIO<R, E, Unit>) ZIOModule.UNIT;
   }
 
-  final class Pure<R, E, A> implements ZIO<R, E, A> {
+  final class Pure<R, E, A> implements SealedZIO<R, E, A> {
 
     private final A value;
 
@@ -234,7 +234,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Failure<R, E, A> implements ZIO<R, E, A> {
+  final class Failure<R, E, A> implements SealedZIO<R, E, A> {
 
     private E error;
 
@@ -263,7 +263,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class FlatMapped<R, E, A, F, B> implements ZIO<R, F, B> {
+  final class FlatMapped<R, E, A, F, B> implements SealedZIO<R, F, B> {
 
     private final Producer<ZIO<R, E, A>> current;
     private final Function1<E, ZIO<R, F, B>> nextError;
@@ -321,7 +321,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Task<R, E, A> implements ZIO<R, E, A> {
+  final class Task<R, E, A> implements SealedZIO<R, E, A> {
 
     private final Producer<Either<E, A>> task;
 
@@ -350,7 +350,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Suspend<R, E, A> implements ZIO<R, E, A> {
+  final class Suspend<R, E, A> implements SealedZIO<R, E, A> {
 
     private final Producer<ZIO<R, E, A>> lazy;
 
@@ -388,7 +388,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Swap<R, E, A> implements ZIO<R, A, E> {
+  final class Swap<R, E, A> implements SealedZIO<R, A, E> {
 
     private final ZIO<R, E, A> current;
 
@@ -417,7 +417,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Attempt<R, A> implements ZIO<R, Throwable, A> {
+  final class Attempt<R, A> implements SealedZIO<R, Throwable, A> {
 
     private final Producer<A> current;
 
@@ -446,7 +446,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Redeem<R, A> implements ZIO<R, Throwable, A> {
+  final class Redeem<R, A> implements SealedZIO<R, Throwable, A> {
 
     private final ZIO<R, Nothing, A> current;
 
@@ -475,7 +475,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class AccessM<R, E, A> implements ZIO<R, E, A> {
+  final class AccessM<R, E, A> implements SealedZIO<R, E, A> {
 
     private final Function1<R, ZIO<R, E, A>> function;
 
@@ -505,7 +505,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class FoldM<R, E, A, F, B> implements ZIO<R, F, B> {
+  final class FoldM<R, E, A, F, B> implements SealedZIO<R, F, B> {
 
     private final ZIO<R, E, A> current;
     private final Function1<E, ZIO<R, F, B>> nextError;
@@ -540,7 +540,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Sleep<R> implements ZIO<R, Throwable, Unit> {
+  final class Sleep<R> implements SealedZIO<R, Throwable, Unit> {
 
     private final Duration duration;
 
@@ -575,7 +575,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Bracket<R, A, B> implements ZIO<R, Throwable, B> {
+  final class Bracket<R, A, B> implements SealedZIO<R, Throwable, B> {
 
     private final ZIO<R, Throwable, A> acquire;
     private final Function1<A, ZIO<R, Throwable, B>> use;
