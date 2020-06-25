@@ -108,6 +108,10 @@ public interface Precondition {
     require(precondition, IllegalArgumentException::new);
   }
 
+  static void check(Precondition precondition, String message) {
+    check(precondition, () -> message);
+  }
+
   static void check(Precondition precondition, Producer<String> message) {
     require(precondition, message.andThen(IllegalArgumentException::new));
   }
