@@ -290,12 +290,12 @@ FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         DSL.readString("hola mundo"),
         DSL.readUnit(),
         Tuple::of
-    ).fix1(FreeApOf::narrowK);
+    ).fix(FreeApOf::narrowK);
 
 Kind<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
     tuple.foldMap(idTransform(), IdInstances.applicative());
 
-assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix1(IdOf::narrowK));
+assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(IdOf::narrowK));
 ```
 
 ## Monad Transformers
@@ -376,7 +376,7 @@ IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
   .takeWhile(Option::isPresent)
   .map(Option::get)
   .foldLeft("", (a, b) -> a + "\n" + b)
-  .fix1(IOOf::narrowK)
+  .fix(IOOf::narrowK)
   .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
 
 String content = readFile.unsafeRunSync();
