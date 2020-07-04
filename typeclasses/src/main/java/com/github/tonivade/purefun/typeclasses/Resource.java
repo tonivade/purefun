@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.monad;
+package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Consumer1.noop;
 import static java.util.Objects.requireNonNull;
@@ -14,7 +14,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
 public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
