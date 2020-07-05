@@ -40,7 +40,7 @@ interface StateMonad<S> extends Monad<Kind<State_, S>> {
 
   @Override
   default <T> State<S, T> pure(T value) {
-    return State.<S, T>pure(value);
+    return State.pure(value);
   }
 
   @Override
@@ -57,7 +57,7 @@ interface StateMonadState<S> extends MonadState<Kind<State_, S>, S>, StateMonad<
 
   @Override
   default State<S, S> get() {
-    return State.<S>get();
+    return State.get();
   }
 
   @Override
