@@ -18,7 +18,6 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -57,7 +56,6 @@ class ResourceTest {
   }
   
   @Test
-  @Disabled("I don't understand why it doesn't respect the order")
   void flatMap(@Mock DataSource dataSource, @Mock Connection connection, 
       @Mock PreparedStatement statement, @Mock ResultSet resultSet) throws SQLException {
     when(dataSource.getConnection()).thenReturn(connection);
@@ -65,9 +63,9 @@ class ResourceTest {
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.getString(0)).thenReturn("result");
     
-    Resource<IO_, ResultSet> flatMap = Resource.from(monadDefer(), task(dataSource::getConnection), release("connection"))
-      .flatMap(conn -> Resource.from(monadDefer(), task(() -> conn.prepareStatement("sql")), release("statement")))
-      .flatMap(stmt -> Resource.from(monadDefer(), task(() -> stmt.executeQuery()), release("resultSet")));
+    Resource<IO_, ResultSet> flatMap = Resource.from(monadDefer(), task(dataSource::getConnection))
+      .flatMap(conn -> Resource.from(monadDefer(), task(() -> conn.prepareStatement("sql"))))
+      .flatMap(stmt -> Resource.from(monadDefer(), task(() -> stmt.executeQuery())));
     
     Kind<IO_, String> use = flatMap.use(rs -> task(() -> rs.getString(0)));
     
@@ -76,10 +74,6 @@ class ResourceTest {
     inOrder.verify(resultSet).close();
     inOrder.verify(statement).close();
     inOrder.verify(connection).close();
-  }
-  
-  private <T extends AutoCloseable> Consumer1<T> release(String string) {
-    return resource -> { System.out.println(string); resource.close(); };
   }
 
   @Test

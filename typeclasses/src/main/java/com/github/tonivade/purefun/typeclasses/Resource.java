@@ -31,7 +31,12 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   }
   
   public <R> Resource<F, R> flatMap(Function1<T, Resource<F, R>> mapper) {
-    return new Resource<>(monad, use(t -> mapper.apply(t).resource));
+    Kind<F, Tuple2<R, Consumer1<R>>> result = monad.flatMap(resource, t -> {
+      Resource<F, R> apply = mapper.apply(t.get1());
+      return monad.flatMap(apply.resource, 
+          r -> monad.pure(Tuple.of(r.get1(), ignore -> releaseAndThen(t, r))));
+    });
+    return new Resource<>(monad, result);
   }
   
   public <R> Kind<F, R> use(Function1<T, Kind<F, R>> use) {
@@ -59,6 +64,15 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   public static <F extends Witness, T extends AutoCloseable> Resource<F, T> from(
       MonadDefer<F> monad, Kind<F, T> acquire) {
     return from(monad, acquire, AutoCloseable::close);
+  }
+
+  private static <T, R> void releaseAndThen(
+      Tuple2<T, Consumer1<T>> outter, Tuple2<R, Consumer1<R>> inner) {
+    try {
+      release(inner);
+    } finally {
+      release(outter);
+    }
   }
 
   private static <T> void release(Tuple2<T, Consumer1<T>> t) {
