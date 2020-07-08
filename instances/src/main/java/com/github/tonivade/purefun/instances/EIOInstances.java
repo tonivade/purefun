@@ -23,6 +23,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
+import com.github.tonivade.purefun.typeclasses.Resource;
 
   @SuppressWarnings("unchecked")
 public interface EIOInstances {
@@ -53,6 +54,14 @@ public interface EIOInstances {
 
   static <A> Reference<Kind<EIO_, Throwable>, A> ref(A value) {
     return Reference.of(monadDefer(), value);
+  }
+  
+  static <A extends AutoCloseable> Resource<Kind<EIO_, Throwable>, A> resource(EIO<Throwable, A> acquire) {
+    return resource(acquire, AutoCloseable::close);
+  }
+  
+  static <A> Resource<Kind<EIO_, Throwable>, A> resource(EIO<Throwable, A> acquire, Consumer1<A> release) {
+    return Resource.from(monadDefer(), acquire, release);
   }
 }
 

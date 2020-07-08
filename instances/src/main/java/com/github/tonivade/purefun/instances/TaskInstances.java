@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
+import com.github.tonivade.purefun.typeclasses.Resource;
 
 public interface TaskInstances {
 
@@ -51,6 +52,14 @@ public interface TaskInstances {
 
   static <A> Reference<Task_, A> ref(A value) {
     return Reference.of(monadDefer(), value);
+  }
+  
+  static <A extends AutoCloseable> Resource<Task_, A> resource(Task<A> acquire) {
+    return resource(acquire, AutoCloseable::close);
+  }
+  
+  static <A> Resource<Task_, A> resource(Task<A> acquire, Consumer1<A> release) {
+    return Resource.from(monadDefer(), acquire, release);
   }
 }
 

@@ -24,6 +24,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
+import com.github.tonivade.purefun.typeclasses.Resource;
 
 @SuppressWarnings("unchecked")
 public interface ZIOInstances {
@@ -54,6 +55,16 @@ public interface ZIOInstances {
 
   static <R, A> Reference<Kind<Kind<ZIO_, R>, Throwable>, A> ref(A value) {
     return Reference.of(monadDefer(), value);
+  }
+  
+  static <R, A extends AutoCloseable> Resource<Kind<Kind<ZIO_, R>, Throwable>, A> resource(
+      ZIO<R, Throwable, A> acquire) {
+    return resource(acquire, AutoCloseable::close);
+  }
+  
+  static <R, A> Resource<Kind<Kind<ZIO_, R>, Throwable>, A> resource(
+      ZIO<R, Throwable, A> acquire, Consumer1<A> release) {
+    return Resource.from(monadDefer(), acquire, release);
   }
 
   static <R> Console<Kind<Kind<ZIO_, R>, Throwable>> console() {

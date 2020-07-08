@@ -21,6 +21,8 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Reference;
+import com.github.tonivade.purefun.typeclasses.Resource;
 
 public interface ParInstances {
 
@@ -38,6 +40,18 @@ public interface ParInstances {
 
   static MonadDefer<Par_> monadDefer() {
     return ParMonadDefer.INSTANCE;
+  }
+  
+  static <A> Reference<Par_, A> reference(A value) {
+    return Reference.of(monadDefer(), value);
+  }
+  
+  static <A extends AutoCloseable> Resource<Par_, A> resource(Par<A> acquire) {
+    return resource(acquire, AutoCloseable::close);
+  }
+  
+  static <A> Resource<Par_, A> resource(Par<A> acquire, Consumer1<A> release) {
+    return Resource.from(monadDefer(), acquire, release);
   }
 }
 

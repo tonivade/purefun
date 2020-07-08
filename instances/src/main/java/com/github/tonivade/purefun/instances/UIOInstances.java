@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
+import com.github.tonivade.purefun.typeclasses.Resource;
 
 public interface UIOInstances {
 
@@ -51,6 +52,14 @@ public interface UIOInstances {
 
   static <A> Reference<UIO_, A> ref(A value) {
     return Reference.of(monadDefer(), value);
+  }
+  
+  static <A extends AutoCloseable> Resource<UIO_, A> resource(UIO<A> acquire) {
+    return resource(acquire, AutoCloseable::close);
+  }
+  
+  static <A> Resource<UIO_, A> resource(UIO<A> acquire, Consumer1<A> release) {
+    return Resource.from(monadDefer(), acquire, release);
   }
 }
 

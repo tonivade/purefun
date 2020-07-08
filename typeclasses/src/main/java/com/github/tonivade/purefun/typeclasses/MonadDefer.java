@@ -17,7 +17,7 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>
     return defer(() -> Try.of(later::get).fold(this::<A>raiseError, this::<A>pure));
   }
 
-  default <A> Kind<F, Unit> exec(CheckedRunnable later) {
+  default Kind<F, Unit> exec(CheckedRunnable later) {
     return later(later.asProducer());
   }
 }
