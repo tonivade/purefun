@@ -7,10 +7,13 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -259,6 +262,28 @@ public class ZIOTest {
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
+  }
+  
+  @Test
+  public void refineOrDie() {
+    ZIO<Nothing, Throwable, String> error = ZIO.raiseError(new IOException());
+    
+    ZIO<Nothing, IOException, String> refine = error.refineOrDie(IOException.class);
+    ZIO<Nothing, UnsupportedOperationException, String> die = error.refineOrDie(UnsupportedOperationException.class);
+    
+    assertEquals(IOException.class, refine.provide(nothing()).getLeft().getClass());
+    assertThrows(ClassCastException.class, () -> die.provide(nothing()));
+  }
+  
+  @Test
+  public void orDie() {
+    ZIO<Nothing, Integer, String> unsupported = ZIO.raiseError(3);
+    ZIO<Nothing, Throwable, String> error = ZIO.raiseError(new IOException());
+    ZIO<Nothing, Throwable, String> success = ZIO.pure("hola");
+    
+    assertEquals("hola", success.orDie().provide(nothing()).getRight());
+    assertThrows(IOException.class, () -> error.orDie().provide(nothing()));
+    assertThrows(UnsupportedOperationException.class, () -> unsupported.orDie().provide(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {

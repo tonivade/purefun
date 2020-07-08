@@ -130,8 +130,25 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
     return ZIOModule.retry(this, UIO.sleep(delay), maxRetries);
   }
-
-  ZIOModule getModule();
+  
+  @SuppressWarnings("unchecked")
+  default <X extends Throwable> ZIO<R, X, A> refineOrDie(Class<X> type) {
+    return mapError(error -> {
+      if (type.isAssignableFrom(error.getClass())) {
+        return (X) error;
+      }
+      throw new ClassCastException(error.getClass() + " not asignable to " + type);
+    });
+  }
+  
+  default ZIO<R, Nothing, A> orDie() {
+    return mapError(error -> {
+      if (error instanceof Throwable) {
+        throw (Throwable) error;
+      }
+      throw new UnsupportedOperationException(error.getClass() + " is not throwable");
+    });
+  }
 
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {
     return new AccessM<>(map);
@@ -224,11 +241,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Pure(" + value + ")";
     }
@@ -250,11 +262,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public <F extends Witness> Kind<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
       return monad.pure(Either.left(error));
-    }
-
-    @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -303,11 +310,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "FlatMapped(" + current + ", ?, ?)";
     }
@@ -340,11 +342,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Task(?)";
     }
@@ -371,11 +368,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public <F extends Witness> Kind<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
       return monad.defer(() -> lazy.get().foldMap(env, monad));
-    }
-
-    @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     protected ZIO<R, E, A> next() {
@@ -407,11 +399,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Swap(" + current + ")";
     }
@@ -433,11 +420,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public <F extends Witness> Kind<F, Either<Throwable, A>> foldMap(R env, MonadDefer<F> monad) {
       return monad.later(() -> Try.of(current).toEither());
-    }
-
-    @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -465,11 +447,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "Redeem(" + current + ")";
     }
@@ -492,11 +469,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     public <F extends Witness> Kind<F, Either<E, A>> foldMap(R env, MonadDefer<F> monad) {
       Kind<F, ZIO<R, E, A>> later = monad.later(() -> function.apply(env));
       return monad.flatMap(later, zio -> zio.foldMap(env, monad));
-    }
-
-    @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -530,11 +502,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "FoldM(" + current + ", ?, ?)";
     }
@@ -562,11 +529,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public <F extends Witness> Kind<F, Either<Throwable, Unit>> foldMap(R env, MonadDefer<F> monad) {
       return monad.attempt(monad.sleep(duration));
-    }
-
-    @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -601,11 +563,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       return monad.bracket(monad.flatMap(acquire.foldMap(env, monad), monad::<A>fromEither),
                            use.andThen(zio -> zio.foldMap(env, monad)),
                            release);
-    }
-
-    @Override
-    public ZIOModule getModule() {
-      throw new UnsupportedOperationException();
     }
 
     @Override
