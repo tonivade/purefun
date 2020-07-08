@@ -10,20 +10,20 @@ import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.instances.TaskInstances;
 
-class TaskResourceTest<F> extends ResourceTest<Task_> {
+public class TaskResourceTest<F> extends ResourceTest<Task_> {
 
   @Override
-  MonadDefer<Task_> monadDefer() {
+  protected MonadDefer<Task_> monadDefer() {
     return TaskInstances.monadDefer();
   }
   
   @Override
-  <T> Resource<Task_, T> makeResource(Kind<Task_, T> acquire, Consumer1<T> release) {
+  protected <T> Resource<Task_, T> makeResource(Kind<Task_, T> acquire, Consumer1<T> release) {
     return TaskInstances.resource(TaskOf.narrowK(acquire), release);
   }
 
   @Override
-  <T> T run(Kind<Task_, T> result) {
+  protected <T> T run(Kind<Task_, T> result) {
     return TaskOf.narrowK(result).safeRunSync().get();
   }
 }

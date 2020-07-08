@@ -9,20 +9,20 @@ import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.instances.UIOInstances;
 
-class UIOReferenceTest extends ReferenceTest<UIO_> {
+public class UIOReferenceTest extends ReferenceTest<UIO_> {
 
   @Override
-  <T> Reference<UIO_, T> makeRef(T value) {
+  protected <T> Reference<UIO_, T> makeRef(T value) {
     return UIOInstances.ref(value);
   }
 
   @Override
-  <T, R> Kind<UIO_, R> doAndThen(Kind<UIO_, T> now, Kind<UIO_, R> next) {
+  protected <T, R> Kind<UIO_, R> doAndThen(Kind<UIO_, T> now, Kind<UIO_, R> next) {
     return UIOInstances.monad().andThen(now, () -> next);
   }
 
   @Override
-  <T> T run(Kind<UIO_, T> value) {
+  protected <T> T run(Kind<UIO_, T> value) {
     return UIOOf.narrowK(value).unsafeRunSync();
   }
 }

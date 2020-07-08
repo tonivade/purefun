@@ -9,16 +9,16 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 
-abstract class ReferenceTest<F extends Witness> {
+public abstract class ReferenceTest<F extends Witness> {
 
-  abstract <T> Reference<F, T> makeRef(T value);
+  protected abstract <T> Reference<F, T> makeRef(T value);
   
-  abstract <T, R> Kind<F, R> doAndThen(Kind<F, T> now, Kind<F, R> next);
+  protected abstract <T, R> Kind<F, R> doAndThen(Kind<F, T> value, Kind<F, R> next);
   
-  abstract <T> T run(Kind<F, T> value);
+  protected abstract <T> T run(Kind<F, T> value);
 
   @Test
-  void get() {
+  public void get() {
     Reference<F, String> ref = makeRef("Hello World!");
 
     Kind<F, String> result = ref.get();
@@ -28,7 +28,7 @@ abstract class ReferenceTest<F extends Witness> {
 
 
   @Test
-  void set() {
+  public void set() {
     Reference<F, String> ref = makeRef("Hello World!");
 
     Kind<F, String> result = doAndThen(ref.set("Something else"), ref.get());
@@ -37,7 +37,7 @@ abstract class ReferenceTest<F extends Witness> {
   }
 
   @Test
-  void getAndSet() {
+  public void getAndSet() {
     Reference<F, String> ref = makeRef("Hello World!");
 
     Kind<F, String> result = ref.getAndSet("Something else");
@@ -48,7 +48,7 @@ abstract class ReferenceTest<F extends Witness> {
   }
 
   @Test
-  void getAndUpdate() {
+  public void getAndUpdate() {
     Reference<F, String> ref = makeRef("Hello World!");
 
     Kind<F, String> result = ref.getAndUpdate(String::toUpperCase);
@@ -59,7 +59,7 @@ abstract class ReferenceTest<F extends Witness> {
   }
 
   @Test
-  void updateAndGet() {
+  public void updateAndGet() {
     Reference<F, String> ref = makeRef("Hello World!");
 
     Kind<F, String> result = ref.updateAndGet(String::toUpperCase);

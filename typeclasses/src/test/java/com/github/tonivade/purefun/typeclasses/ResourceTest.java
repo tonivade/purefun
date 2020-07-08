@@ -25,28 +25,28 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Witness;
 
 @ExtendWith(MockitoExtension.class)
-abstract class ResourceTest<F extends Witness> {
+public abstract class ResourceTest<F extends Witness> {
   
-  abstract MonadDefer<F> monadDefer();
+  protected abstract MonadDefer<F> monadDefer();
   
-  <T extends AutoCloseable> Resource<F, T> makeResource(Kind<F, T> acquire) {
+  protected <T extends AutoCloseable> Resource<F, T> makeResource(Kind<F, T> acquire) {
     return makeResource(acquire, AutoCloseable::close);
   }
 
-  abstract <T> Resource<F, T> makeResource(Kind<F, T> acquire, Consumer1<T> release);
+  protected abstract <T> Resource<F, T> makeResource(Kind<F, T> acquire, Consumer1<T> release);
   
-  abstract <T> T run(Kind<F, T> result);
+  protected abstract <T> T run(Kind<F, T> result);
   
-  <T> Kind<F, T> pure(T value) {
+  protected <T> Kind<F, T> pure(T value) {
     return monadDefer().pure(value);
   }
 
-  <T> Kind<F, T> later(Producer<T> value) {
+  protected <T> Kind<F, T> later(Producer<T> value) {
     return monadDefer().later(value);
   }
 
   @Test
-  void use(@Mock Consumer1<String> release) {
+  public void use(@Mock Consumer1<String> release) {
     Resource<F, String> resource = makeResource(pure("hola"), release);
     
     Kind<F, String> use = resource.use(string -> pure(string.toUpperCase()));
@@ -56,7 +56,7 @@ abstract class ResourceTest<F extends Witness> {
   }
   
   @Test
-  void map(@Mock Consumer1<String> release) {
+  public void map(@Mock Consumer1<String> release) {
     Resource<F, String> resource = makeResource(pure("hola"), release).map(String::toUpperCase);
     
     Kind<F, Integer> use = resource.use(string -> pure(string.length()));
@@ -66,7 +66,7 @@ abstract class ResourceTest<F extends Witness> {
   }
   
   @Test
-  void flatMap(@Mock DataSource dataSource, @Mock Connection connection, 
+  public void flatMap(@Mock DataSource dataSource, @Mock Connection connection, 
       @Mock PreparedStatement statement, @Mock ResultSet resultSet) throws SQLException {
     when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement("sql")).thenReturn(statement);
@@ -87,7 +87,7 @@ abstract class ResourceTest<F extends Witness> {
   }
 
   @Test
-  void combine(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
+  public void combine(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
     Resource<F, String> res1 = makeResource(pure("hola"), release1);
     Resource<F, Integer> res2 = makeResource(pure(5), release2);
     

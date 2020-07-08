@@ -10,20 +10,20 @@ import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.instances.UIOInstances;
 
-class UIOResourceTest<F> extends ResourceTest<UIO_> {
+public class UIOResourceTest<F> extends ResourceTest<UIO_> {
 
   @Override
-  MonadDefer<UIO_> monadDefer() {
+  protected MonadDefer<UIO_> monadDefer() {
     return UIOInstances.monadDefer();
   }
   
   @Override
-  <T> Resource<UIO_, T> makeResource(Kind<UIO_, T> acquire, Consumer1<T> release) {
+  protected <T> Resource<UIO_, T> makeResource(Kind<UIO_, T> acquire, Consumer1<T> release) {
     return UIOInstances.resource(UIOOf.narrowK(acquire), release);
   }
 
   @Override
-  <T> T run(Kind<UIO_, T> result) {
+  protected <T> T run(Kind<UIO_, T> result) {
     return UIOOf.narrowK(result).unsafeRunSync();
   }
 }

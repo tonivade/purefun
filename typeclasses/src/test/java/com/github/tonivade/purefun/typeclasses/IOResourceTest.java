@@ -10,20 +10,20 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 
-class IOResourceTest<F> extends ResourceTest<IO_> {
+public class IOResourceTest<F> extends ResourceTest<IO_> {
 
   @Override
-  MonadDefer<IO_> monadDefer() {
+  protected MonadDefer<IO_> monadDefer() {
     return IOInstances.monadDefer();
   }
   
   @Override
-  <T> Resource<IO_, T> makeResource(Kind<IO_, T> acquire, Consumer1<T> release) {
+  protected <T> Resource<IO_, T> makeResource(Kind<IO_, T> acquire, Consumer1<T> release) {
     return IOInstances.resource(IOOf.narrowK(acquire), release);
   }
 
   @Override
-  <T> T run(Kind<IO_, T> result) {
+  protected <T> T run(Kind<IO_, T> result) {
     return IOOf.narrowK(result).unsafeRunSync();
   }
 }
