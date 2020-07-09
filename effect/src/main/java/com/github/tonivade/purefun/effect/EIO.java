@@ -132,6 +132,14 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   public EIO<E, T> retry(Duration delay, int maxRetries) {
     return retry(UIO.sleep(delay), maxRetries);
   }
+  
+  public <X extends Throwable> EIO<X, T> refineOrDie(Class<X> type) {
+    return new EIO<>(value.refineOrDie(type));
+  }
+  
+  public UIO<T> orDie() {
+    return new UIO<>(value.orDie().toZIO());
+  }
 
   private EIO<E, T> repeat(UIO<Unit> pause, int times) {
     return foldM(EIO::raiseError, value -> {

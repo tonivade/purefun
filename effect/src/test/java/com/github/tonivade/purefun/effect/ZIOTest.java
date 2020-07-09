@@ -281,9 +281,9 @@ public class ZIOTest {
     ZIO<Nothing, Throwable, String> error = ZIO.raiseError(new IOException());
     ZIO<Nothing, Throwable, String> success = ZIO.pure("hola");
     
-    assertEquals("hola", success.orDie().provide(nothing()).getRight());
-    assertThrows(IOException.class, () -> error.orDie().provide(nothing()));
-    assertThrows(UnsupportedOperationException.class, () -> unsupported.orDie().provide(nothing()));
+    assertEquals("hola", success.orDie().unsafeRunSync(nothing()));
+    assertThrows(IOException.class, () -> error.orDie().unsafeRunSync(nothing()));
+    assertThrows(UnsupportedOperationException.class, () -> unsupported.orDie().unsafeRunSync(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {

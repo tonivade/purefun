@@ -187,12 +187,12 @@ final class ConsoleZIO<R> implements Console<Kind<Kind<ZIO_, R>, Throwable>> {
   private final SystemConsole console = new SystemConsole();
 
   @Override
-  public Kind<Kind<Kind<ZIO_, R>, Throwable>, String> readln() {
+  public ZIO<R, Throwable, String> readln() {
     return ZIO.<R, String>task(console::readln);
   }
 
   @Override
-  public Kind<Kind<Kind<ZIO_, R>, Throwable>, Unit> println(String text) {
+  public ZIO<R, Throwable, Unit> println(String text) {
     return ZIO.<R>exec(() -> console.println(text));
   }
 }

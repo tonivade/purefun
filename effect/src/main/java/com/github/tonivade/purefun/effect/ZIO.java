@@ -141,13 +141,13 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     });
   }
   
-  default ZIO<R, Nothing, A> orDie() {
-    return mapError(error -> {
+  default URIO<R, A> orDie() {
+    return new URIO<>(mapError(error -> {
       if (error instanceof Throwable) {
         throw (Throwable) error;
       }
       throw new UnsupportedOperationException(error.getClass() + " is not throwable");
-    });
+    }));
   }
 
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {

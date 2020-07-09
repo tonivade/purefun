@@ -52,6 +52,11 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
     return new EIO<>((ZIO<Nothing, E, T>) value);
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> URIO<R, T> toURIO() {
+    return new URIO<>((ZIO<R, Nothing, T>) value);
+  }
+
   public Future<T> toFuture() {
     return value.toFuture(nothing()).map(Either::get);
   }

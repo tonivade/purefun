@@ -68,7 +68,7 @@ interface UIOFunctor extends Functor<UIO_> {
   UIOFunctor INSTANCE = new UIOFunctor() {};
 
   @Override
-  default <A, B> Kind<UIO_, B> map(Kind<UIO_, A> value, Function1<A, B> map) {
+  default <A, B> UIO<B> map(Kind<UIO_, A> value, Function1<A, B> map) {
     return UIOOf.narrowK(value).map(map);
   }
 }
@@ -76,7 +76,7 @@ interface UIOFunctor extends Functor<UIO_> {
 interface UIOPure extends Applicative<UIO_> {
 
   @Override
-  default <A> Kind<UIO_, A> pure(A value) {
+  default <A> UIO<A> pure(A value) {
     return UIO.pure(value);
   }
 }
@@ -86,7 +86,7 @@ interface UIOApplicative extends UIOPure {
   UIOApplicative INSTANCE = new UIOApplicative() {};
 
   @Override
-  default <A, B> Kind<UIO_, B> ap(Kind<UIO_, A> value, Kind<UIO_, Function1<A, B>> apply) {
+  default <A, B> UIO<B> ap(Kind<UIO_, A> value, Kind<UIO_, Function1<A, B>> apply) {
     return UIOOf.narrowK(apply).flatMap(map -> UIOOf.narrowK(value).map(map));
   }
 }
@@ -96,7 +96,7 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
   UIOMonad INSTANCE = new UIOMonad() {};
 
   @Override
-  default <A, B> Kind<UIO_, B> flatMap(Kind<UIO_, A> value, Function1<A, ? extends Kind<UIO_, B>> map) {
+  default <A, B> UIO<B> flatMap(Kind<UIO_, A> value, Function1<A, ? extends Kind<UIO_, B>> map) {
     return UIOOf.narrowK(value).flatMap(map.andThen(UIOOf::narrowK));
   }
 }
@@ -106,12 +106,12 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   UIOMonadError INSTANCE = new UIOMonadError() {};
 
   @Override
-  default <A> Kind<UIO_, A> raiseError(Throwable error) {
+  default <A> UIO<A> raiseError(Throwable error) {
     return UIO.<A>raiseError(error);
   }
 
   @Override
-  default <A> Kind<UIO_, A>
+  default <A> UIO<A>
           handleErrorWith(Kind<UIO_, A> value,
                           Function1<Throwable, ? extends Kind<UIO_, A>> handler) {
     Function1<Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
@@ -129,7 +129,7 @@ interface UIOMonadThrow extends UIOMonadError, MonadThrow<UIO_> {
 interface UIODefer extends Defer<UIO_> {
 
   @Override
-  default <A> Kind<UIO_, A>
+  default <A> UIO<A>
           defer(Producer<Kind<UIO_, A>> defer) {
     return UIO.defer(() -> defer.map(UIOOf::narrowK).get());
   }
@@ -138,7 +138,7 @@ interface UIODefer extends Defer<UIO_> {
 interface UIOBracket extends Bracket<UIO_> {
 
   @Override
-  default <A, B> Kind<UIO_, B>
+  default <A, B> UIO<B>
           bracket(Kind<UIO_, A> acquire,
                   Function1<A, ? extends Kind<UIO_, B>> use,
                   Consumer1<A> release) {
@@ -152,7 +152,7 @@ interface UIOMonadDefer
   UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
 
   @Override
-  default Kind<UIO_, Unit> sleep(Duration duration) {
+  default UIO<Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
   }
 }
