@@ -6,31 +6,31 @@ package com.github.tonivade.purefun.instances;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 
 final class SystemConsole {
-
+  
   protected void println(String message) {
-    try (PrintWriter writer = writer()) {
-      writer.println(message);
-    }
+    writer(System.out).println(message);
   }
 
   protected String readln() {
-    try (BufferedReader reader = reader()){
-      return reader.readLine();
+    try {
+      return reader(System.in).readLine();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-  private BufferedReader reader() {
-    return new BufferedReader(new InputStreamReader(System.in));
+  private static BufferedReader reader(InputStream stream) {
+    return new BufferedReader(new InputStreamReader(stream));
   }
 
-  private PrintWriter writer() {
-    return new PrintWriter(System.out, true);
+  private static PrintWriter writer(PrintStream stream) {
+    return new PrintWriter(stream, true);
   }
 }
