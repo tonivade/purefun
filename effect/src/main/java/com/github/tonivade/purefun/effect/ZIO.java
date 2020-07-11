@@ -208,14 +208,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Sleep<>(delay);
   }
 
-  static <R, A extends AutoCloseable, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
-                                                                      Function1<A, ZIO<R, Throwable, B>> use) {
+  static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, A> acquire,
+                                                                 Function1<A, ZIO<R, E, B>> use) {
     return new Bracket<>(acquire, use, AutoCloseable::close);
   }
 
-  static <R, A, B> ZIO<R, Throwable, B> bracket(ZIO<R, Throwable, A> acquire,
-                                                Function1<A, ZIO<R, Throwable, B>> use,
-                                                Consumer1<A> release) {
+  static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, A> acquire,
+                                           Function1<A, ZIO<R, E, B>> use,
+                                           Consumer1<A> release) {
     return new Bracket<>(acquire, use, release);
   }
 
@@ -546,14 +546,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Bracket<R, A, B> implements SealedZIO<R, Throwable, B> {
+  final class Bracket<R, E, A, B> implements SealedZIO<R, E, B> {
 
-    private final ZIO<R, Throwable, A> acquire;
-    private final Function1<A, ZIO<R, Throwable, B>> use;
+    private final ZIO<R, E, A> acquire;
+    private final Function1<A, ZIO<R, E, B>> use;
     private final Consumer1<A> release;
 
-    protected Bracket(ZIO<R, Throwable, A> acquire,
-                    Function1<A, ZIO<R, Throwable, B>> use,
+    protected Bracket(ZIO<R, E, A> acquire,
+                    Function1<A, ZIO<R, E, B>> use,
                     Consumer1<A> release) {
       this.acquire = checkNonNull(acquire);
       this.use = checkNonNull(use);
@@ -561,8 +561,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public Either<Throwable, B> provide(R env) {
-      try (ZIOResource<A> resource = new ZIOResource<>(acquire.provide(env), release)) {
+    public Either<E, B> provide(R env) {
+      try (ZIOResource<E, A> resource = new ZIOResource<>(acquire.provide(env), release)) {
         return resource.apply(use).provide(env);
       }
     }
@@ -652,17 +652,17 @@ interface ZIOModule {
   }
 }
 
-final class ZIOResource<A> implements AutoCloseable {
+final class ZIOResource<E, A> implements AutoCloseable {
 
-  private final Either<Throwable, A> resource;
+  private final Either<E, A> resource;
   private final Consumer1<A> release;
 
-  ZIOResource(Either<Throwable, A> resource, Consumer1<A> release) {
+  ZIOResource(Either<E, A> resource, Consumer1<A> release) {
     this.resource = checkNonNull(resource);
     this.release = checkNonNull(release);
   }
 
-  public <R, B> ZIO<R, Throwable, B> apply(Function1<A, ZIO<R, Throwable, B>> use) {
+  public <R, B> ZIO<R, E, B> apply(Function1<A, ZIO<R, E, B>> use) {
     return resource.map(use).fold(ZIO::raiseError, identity());
   }
 

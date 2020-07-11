@@ -199,11 +199,11 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     return new EIO<>(ZIO.raiseError(error));
   }
 
-  public static <A extends AutoCloseable, B> EIO<Throwable, B> bracket(EIO<Throwable, A> acquire, Function1<A, EIO<Throwable, B>> use) {
+  public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(EIO<E, A> acquire, Function1<A, EIO<E, B>> use) {
     return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
   }
 
-  public static <A, B> EIO<Throwable, B> bracket(EIO<Throwable, A> acquire, Function1<A, EIO<Throwable, B>> use, Consumer1<A> release) {
+  public static <E, A, B> EIO<E, B> bracket(EIO<E, A> acquire, Function1<A, EIO<E, B>> use, Consumer1<A> release) {
     return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
   }
 
