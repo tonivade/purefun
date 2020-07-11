@@ -61,7 +61,7 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
   }
 
   public <F extends Witness> Kind<F, T> foldMap(R env, MonadDefer<F> monad) {
-    return monad.flatMap(instance.foldMap(env, monad), monad::<T>fromEither);
+    return instance.foldMap(env, monad);
   }
 
   public <B> RIO<R, B> map(Function1<T, B> map) {

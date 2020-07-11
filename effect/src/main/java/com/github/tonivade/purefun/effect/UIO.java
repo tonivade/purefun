@@ -81,7 +81,7 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
   }
 
   public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
-    return monad.map(instance.foldMap(nothing(), monad), Either::get);
+    return instance.foldMap(nothing(), monad);
   }
 
   public <B> UIO<B> map(Function1<T, B> map) {

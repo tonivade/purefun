@@ -9,20 +9,24 @@ import static com.github.tonivade.purefun.effect.EIO.raiseError;
 import static com.github.tonivade.purefun.effect.EIO.task;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -167,18 +171,18 @@ public class EIOTest {
   public void foldMapRight() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Kind<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(monadDefer);
+    Kind<IO_, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Either.right(0), future.fix(IOOf::narrowK).unsafeRunSync());
+    assertEquals(0, future.fix(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Kind<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(monadDefer);
+    Kind<IO_, Integer> future = parseInt("jkdf").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
+    assertThrows(NumberFormatException.class, () -> future.fix(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test

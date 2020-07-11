@@ -17,10 +17,12 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -179,18 +181,18 @@ public class ZIOTest {
   public void foldMapRight() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Kind<IO_, Either<Throwable, Integer>> future = parseInt("0").foldMap(nothing(), monadDefer);
+    Kind<IO_, Integer> future = parseInt("0").foldMap(nothing(), monadDefer);
 
-    assertEquals(Either.right(0), future.fix(IOOf::narrowK).unsafeRunSync());
+    assertEquals(0, future.fix(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test
   public void foldMapLeft() {
     MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
 
-    Kind<IO_, Either<Throwable, Integer>> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
+    Kind<IO_, Integer> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix(IOOf::narrowK).unsafeRunSync().getLeft().getClass());
+    assertThrows(NumberFormatException.class, () -> future.fix(IOOf::narrowK).unsafeRunSync());
   }
 
   @Test

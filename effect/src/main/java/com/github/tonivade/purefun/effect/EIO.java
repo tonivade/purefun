@@ -55,7 +55,7 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     async(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Witness> Kind<F, Either<E, T>> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
     return instance.foldMap(nothing(), monad);
   }
 

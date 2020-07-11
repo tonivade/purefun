@@ -66,7 +66,7 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   public <F extends Witness> Kind<F, T> foldMap(R env, MonadDefer<F> monad) {
-    return monad.map(instance.foldMap(env, monad), Either::get);
+    return instance.foldMap(env, monad);
   }
 
   public <B> URIO<R, B> map(Function1<T, B> map) {

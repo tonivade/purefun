@@ -67,7 +67,7 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
-    return monad.flatMap(instance.foldMap(nothing(), monad), monad::<T>fromEither);
+    return instance.foldMap(nothing(), monad);
   }
 
   public <B> Task<B> map(Function1<T, B> map) {
