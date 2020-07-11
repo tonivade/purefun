@@ -54,6 +54,19 @@ public class ZManaged<R, A> {
         ZManaged::release));
   }
   
+  public <B> ZManaged<R, Either<A, B>> either(ZManaged<R, B> other) {
+    ZIO<R, Throwable, Either<Tuple2<A, Consumer1<A>>, Tuple2<B, Consumer1<B>>>> foldM = 
+        this.resource.foldM(
+            error -> other.resource.map(Either::right), 
+            success -> ZIO.pure(Either.left(success)));
+    
+    return new ZManaged<>(foldM.map(
+        e -> e.fold(
+            a -> Tuple.of(Either.left(a.get1()), ignore -> release(a)), 
+            b -> Tuple.of(Either.right(b.get1()), ignore -> release(b)))
+        ));
+  }
+  
   public static <R, A> ZManaged<R, A> pure(A resource) {
     return pure(ZIO.pure(resource));
   }
@@ -75,7 +88,7 @@ public class ZManaged<R, A> {
   }
   
   public static <R, A> ZManaged<R, A> from(Function1<R, A> mapper, Consumer1<A> release) {
-    return new ZManaged<>(URIO.<R, A>access(mapper).map(y -> Tuple.of(y, release)).toZIO());
+    return new ZManaged<>(RIO.<R, A>access(mapper).map(y -> Tuple.of(y, release)).toZIO());
   }
   
   public static <R, A extends AutoCloseable> ZManaged<R, A> fromM(Function1<R, ZIO<R, Throwable, A>> mapper) {

@@ -28,6 +28,8 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class UIO<T> implements UIOOf<T>, Recoverable {
 
+  private static final UIO<Unit> UNIT = new UIO<>(ZIO.unit());
+
   private final ZIO<Nothing, Nothing, T> instance;
 
   UIO(ZIO<Nothing, Nothing, T> value) {
@@ -53,8 +55,17 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
   }
 
   @SuppressWarnings("unchecked")
+  public <R> RIO<R, T> toRIO() {
+    return new RIO<>((ZIO<R, Throwable, T>) ZIO.redeem(instance));
+  }
+
+  @SuppressWarnings("unchecked")
   public <R> URIO<R, T> toURIO() {
     return new URIO<>((ZIO<R, Nothing, T>) instance);
+  }
+
+  public Task<T> toTask() {
+    return new Task<>(ZIO.redeem(instance));
   }
 
   public Future<T> toFuture() {
@@ -196,7 +207,7 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
   }
 
   public static UIO<Unit> unit() {
-    return new UIO<>(ZIO.unit());
+    return UNIT;
   }
 
   private static <A> UIO<A> fold(ZIO<Nothing, Throwable, A> zio) {

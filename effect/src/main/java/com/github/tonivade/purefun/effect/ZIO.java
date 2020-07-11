@@ -154,11 +154,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new AccessM<>(map);
   }
 
-  static <R, A> ZIO<R, Nothing, A> access(Function1<R, A> map) {
+  static <R, E, A> ZIO<R, E, A> access(Function1<R, A> map) {
     return accessM(map.andThen(ZIO::pure));
   }
 
-  static <R> ZIO<R, Nothing, R> env() {
+  static <R, E> ZIO<R, E, R> env() {
     return access(identity());
   }
 

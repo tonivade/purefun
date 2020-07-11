@@ -27,6 +27,8 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
 
+  private static final URIO<?, Unit> UNIT = new URIO<>(ZIO.unit());
+
   private final ZIO<R, Nothing, T> instance;
 
   URIO(ZIO<R, Nothing, T> value) {
@@ -197,8 +199,9 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance), release));
   }
 
+  @SuppressWarnings("unchecked")
   public static <R> URIO<R, Unit> unit() {
-    return new URIO<>(ZIO.unit());
+    return (URIO<R, Unit>) UNIT;
   }
 
   private static <R, A> URIO<R, A> fold(ZIO<R, Throwable, A> zio) {

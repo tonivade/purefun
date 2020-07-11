@@ -28,6 +28,8 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class Task<T> implements TaskOf<T>, Recoverable {
 
+  private static final Task<Unit> UNIT = new Task<>(ZIO.unit());
+
   private final ZIO<Nothing, Throwable, T> instance;
 
   Task(ZIO<Nothing, Throwable, T> value) {
@@ -43,12 +45,17 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     return new EIO<>(instance);
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> RIO<R, T> toURIO() {
+    return new RIO<>((ZIO<R, Throwable, T>)instance);
+  }
+
   public Try<T> safeRunSync() {
-    return absorb(instance.provide(nothing()));
+    return Try.fromEither(instance.provide(nothing()));
   }
 
   public Future<Try<T>> toFuture() {
-    return instance.toFuture(nothing()).map(this::absorb);
+    return instance.toFuture(nothing()).map(Try::fromEither);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {
@@ -192,14 +199,10 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public static Task<Unit> unit() {
-    return new Task<>(ZIO.unit());
+    return UNIT;
   }
 
   private Try<T> flatAbsorb(Try<Either<Throwable, T>> result) {
-    return result.map(this::absorb).flatMap(identity());
-  }
-
-  private Try<T> absorb(Either<Throwable, T> either) {
-    return either.fold(Try::failure, Try::success);
+    return result.map(Try::fromEither).flatMap(identity());
   }
 }

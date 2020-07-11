@@ -26,6 +26,8 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class EIO<E, T> implements EIOOf<E, T> {
 
+  private static final EIO<?, Unit> UNIT = new EIO<>(ZIO.unit());
+
   private final ZIO<Nothing, E, T> instance;
 
   EIO(ZIO<Nothing, E, T> value) {
@@ -205,7 +207,8 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
   }
 
+  @SuppressWarnings("unchecked")
   public static <E> EIO<E, Unit> unit() {
-    return new EIO<>(ZIO.unit());
+    return (EIO<E, Unit>) UNIT;
   }
 }

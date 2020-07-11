@@ -6,8 +6,9 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.type.Either.right;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.type.Either;
 
 @ExtendWith(MockitoExtension.class)
 public class ZManagedTest {
@@ -105,6 +107,34 @@ public class ZManagedTest {
 
     assertEquals(right("Tuple2(hola, 5)"), use.provide(nothing()));
     verify(release1).accept("hola");
+    verify(release2).accept(5);
+  }
+  
+  @Test
+  public void andThenLeft(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
+    ZManaged<Nothing, String> res1 = ZManaged.from(ZIO.pure("hola"), release1);
+    ZManaged<Nothing, Integer> res2 = ZManaged.from(ZIO.pure(5), release2);
+    
+    ZManaged<Nothing, Either<String, Integer>> either = res1.either(res2);
+
+    ZIO<Nothing, Throwable, String> use = either.use(tuple -> ZIO.task(tuple::toString));
+
+    assertEquals(right("Left(hola)"), use.provide(nothing()));
+    verify(release1).accept("hola");
+    verify(release2, never()).accept(5);
+  }
+  
+  @Test
+  public void andThenRight(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
+    ZManaged<Nothing, String> res1 = ZManaged.from(ZIO.raiseError(new UnsupportedOperationException()), release1);
+    ZManaged<Nothing, Integer> res2 = ZManaged.from(ZIO.pure(5), release2);
+    
+    ZManaged<Nothing, Either<String, Integer>> either = res1.either(res2);
+
+    ZIO<Nothing, Throwable, String> use = either.use(tuple -> ZIO.task(tuple::toString));
+
+    assertEquals(right("Right(5)"), use.provide(nothing()));
+    verify(release1, never()).accept("hola");
     verify(release2).accept(5);
   }
 }
