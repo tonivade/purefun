@@ -84,14 +84,14 @@ public class TaskTest {
 
   @Test
   public void orElseRight() {
-    Try<Integer> result = parseInt("1").orElse(() -> pure(2)).safeRunSync();
+    Try<Integer> result = parseInt("1").orElse(pure(2)).safeRunSync();
 
     assertEquals(Try.success(1), result);
   }
 
   @Test
   public void orElseLeft() {
-    Try<Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).safeRunSync();
+    Try<Integer> result = parseInt("kjsdfe").orElse(pure(2)).safeRunSync();
 
     assertEquals(Try.success(2), result);
   }

@@ -99,8 +99,8 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public EIO<E, T> orElse(Producer<EIO<E, T>> other) {
-    return new EIO<>(instance.orElse(() -> other.get().instance));
+  public EIO<E, T> orElse(EIO<E, T> other) {
+    return new EIO<>(instance.orElse(other.instance));
   }
 
   public EIO<E, T> repeat() {

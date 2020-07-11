@@ -23,6 +23,8 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -97,8 +99,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return fold(mapError, identity());
   }
 
-  default ZIO<R, E, A> orElse(Producer<ZIO<R, E, A>> other) {
-    return foldM(other.asFunction(), Function1.cons(this));
+  default ZIO<R, E, A> orElse(ZIO<R, E, A> other) {
+    return foldM(Function1.cons(other), Function1.cons(this));
   }
 
   default ZIO<R, E, A> repeat() {
@@ -131,6 +133,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
     return ZIOModule.retry(this, UIO.sleep(delay), maxRetries);
+  }
+
+  default ZIO<R, E, Tuple2<Duration, A>> timed() {
+    return new Timed<>(this);
   }
   
   @SuppressWarnings("unchecked")
@@ -543,6 +549,32 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public String toString() {
       return "Sleep(" + duration + ')';
+    }
+  }
+  
+  final class Timed<R, E, A> implements SealedZIO<R, E, Tuple2<Duration, A>> {
+    
+    private final ZIO<R, E, A> current;
+
+    public Timed(ZIO<R, E, A> current) {
+      this.current = checkNonNull(current);
+    }
+    
+    @Override
+    public Either<E, Tuple2<Duration, A>> provide(R env) {
+      long start = System.nanoTime();
+      Either<E, A> result = current.provide(env);
+      return result.map(value -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), value));
+    }
+    
+    @Override
+    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(R env, MonadDefer<F> monad) {
+      return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::pure));
+    }
+    
+    @Override
+    public String toString() {
+      return "Timed(" + current + ')';
     }
   }
 

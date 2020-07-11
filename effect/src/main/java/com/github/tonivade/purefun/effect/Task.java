@@ -94,8 +94,8 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public Task<T> orElse(Producer<Task<T>> other) {
-    return new Task<>(instance.orElse(() -> other.get().instance));
+  public Task<T> orElse(Task<T> other) {
+    return new Task<>(instance.orElse(other.instance));
   }
 
   public Task<T> repeat() {

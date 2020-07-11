@@ -27,6 +27,8 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -124,7 +126,7 @@ public class ZIOTest {
   @Test
   public void orElseRight() {
     Either<Throwable, Integer> result =
-        parseInt("1").orElse(() -> ZIO.pure(2)).provide(nothing());
+        parseInt("1").orElse(ZIO.pure(2)).provide(nothing());
 
     assertEquals(Either.right(1), result);
   }
@@ -132,7 +134,7 @@ public class ZIOTest {
   @Test
   public void orElseLeft() {
     Either<Throwable, Integer> result =
-        parseInt("kjsdfe").orElse(() -> ZIO.pure(2)).provide(nothing());
+        parseInt("kjsdfe").orElse(ZIO.pure(2)).provide(nothing());
 
     assertEquals(Either.right(2), result);
   }
@@ -243,6 +245,15 @@ public class ZIOTest {
 
     assertTrue(provide.isLeft());
     verify(computation, times(4)).get();
+  }
+  
+  @Test
+  public void timed() {
+    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = ZIO.<Nothing>sleep(Duration.ofMillis(100)).timed();
+    
+    Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(Nothing.nothing());
+    
+    assertTrue(provide.getRight().get1().toMillis() > 100);
   }
 
   @Test

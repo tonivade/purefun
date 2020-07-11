@@ -118,14 +118,14 @@ public class EIOTest {
 
   @Test
   public void orElseRight() {
-    Either<Throwable, Integer> result = parseInt("1").orElse(() -> pure(2)).safeRunSync();
+    Either<Throwable, Integer> result = parseInt("1").orElse(pure(2)).safeRunSync();
 
     assertEquals(Either.right(1), result);
   }
 
   @Test
   public void orElseLeft() {
-    Either<Throwable, Integer> result = parseInt("kjsdfe").orElse(() -> pure(2)).safeRunSync();
+    Either<Throwable, Integer> result = parseInt("kjsdfe").orElse(pure(2)).safeRunSync();
 
     assertEquals(Either.right(2), result);
   }
