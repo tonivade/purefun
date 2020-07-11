@@ -27,14 +27,14 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
 
-  private final ZIO<R, Nothing, T> value;
+  private final ZIO<R, Nothing, T> instance;
 
   URIO(ZIO<R, Nothing, T> value) {
-    this.value = checkNonNull(value);
+    this.instance = checkNonNull(value);
   }
 
   public T unsafeRunSync(R env) {
-    return value.provide(env).get();
+    return instance.provide(env).get();
   }
 
   public Try<T> safeRunSync(R env) {
@@ -43,20 +43,20 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
 
   @SuppressWarnings("unchecked")
   public <E> ZIO<R, E, T> toZIO() {
-    return (ZIO<R, E, T>) value;
+    return (ZIO<R, E, T>) instance;
   }
 
   @SuppressWarnings("unchecked")
   public <E> EIO<E, T> toEIO() {
-    return new EIO<>((ZIO<Nothing, E, T>) value);
+    return new EIO<>((ZIO<Nothing, E, T>) instance);
   }
 
   public Future<T> toFuture(R env) {
-    return value.toFuture(env).map(Either::get);
+    return instance.toFuture(env).map(Either::get);
   }
 
   public void provideAsync(Executor executor, R env, Consumer1<Try<T>> callback) {
-    value.provideAsync(executor, env, result -> callback.accept(result.map(Either::get)));
+    instance.provideAsync(executor, env, result -> callback.accept(result.map(Either::get)));
   }
 
   public void provideAsync(R env, Consumer1<Try<T>> callback) {
@@ -64,19 +64,19 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   public <F extends Witness> Kind<F, T> foldMap(R env, MonadDefer<F> monad) {
-    return monad.map(value.foldMap(env, monad), Either::get);
+    return monad.map(instance.foldMap(env, monad), Either::get);
   }
 
   public <B> URIO<R, B> map(Function1<T, B> map) {
-    return new URIO<>(value.map(map));
+    return new URIO<>(instance.map(map));
   }
 
   public <B> URIO<R, B> flatMap(Function1<T, URIO<R, B>> map) {
-    return new URIO<>(value.flatMap(x -> map.apply(x).value));
+    return new URIO<>(instance.flatMap(x -> map.apply(x).instance));
   }
 
   public <B> URIO<R, B> andThen(URIO<R, B> next) {
-    return new URIO<>(value.andThen(next.value));
+    return new URIO<>(instance.andThen(next.instance));
   }
 
   public URIO<R, T> recover(Function1<Throwable, T> mapError) {
@@ -98,7 +98,7 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   public <B> URIO<R, B> redeemWith(Function1<Throwable, URIO<R, B>> mapError, Function1<T, URIO<R, B>> map) {
-    return new URIO<>(ZIO.redeem(value).foldM(error -> mapError.apply(error).value, x -> map.apply(x).value));
+    return new URIO<>(ZIO.redeem(instance).foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
   }
 
   public URIO<R, T> repeat() {
@@ -153,8 +153,16 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     }, URIO::<R, T>pure);
   }
 
+  public static <R, A> URIO<R, A> access(Function1<R, A> map) {
+    return new URIO<>(ZIO.accessM(map.andThen(ZIO::pure)));
+  }
+
+  public static <R> URIO<R, R> env() {
+    return access(identity());
+  }
+
   public static <R, A, B, C> URIO<R, C> map2(URIO<R, A> za, URIO<R, B> zb, Function2<A, B, C> mapper) {
-    return new URIO<>(ZIO.map2(za.value, zb.value, mapper));
+    return new URIO<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
   public static <R> URIO<R, Unit> sleep(Duration delay) {
@@ -174,7 +182,7 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   public static <R, A> URIO<R, A> defer(Producer<URIO<R, A>> lazy) {
-    return new URIO<>(ZIO.defer(() -> lazy.get().value));
+    return new URIO<>(ZIO.defer(() -> lazy.get().instance));
   }
 
   public static <R, A> URIO<R, A> task(Producer<A> task) {
@@ -182,11 +190,11 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(URIO<R, A> acquire, Function1<A, URIO<R, B>> use) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.value), resource -> ZIO.redeem(use.apply(resource).value)));
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance)));
   }
 
   public static <R, A, B> URIO<R, B> bracket(URIO<R, A> acquire, Function1<A, URIO<R, B>> use, Consumer1<A> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.value), resource -> ZIO.redeem(use.apply(resource).value), release));
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance), release));
   }
 
   public static <R> URIO<R, Unit> unit() {
@@ -194,6 +202,6 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   private static <R, A> URIO<R, A> fold(ZIO<R, Throwable, A> zio) {
-    return new URIO<>(zio.foldM(error -> URIO.<R, A>raiseError(error).value, value -> URIO.<R, A>pure(value).value));
+    return new URIO<>(zio.foldM(error -> URIO.<R, A>raiseError(error).instance, value -> URIO.<R, A>pure(value).instance));
   }
 }

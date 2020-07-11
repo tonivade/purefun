@@ -31,12 +31,9 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   }
   
   public <R> Resource<F, R> flatMap(Function1<T, Resource<F, R>> mapper) {
-    Kind<F, Tuple2<R, Consumer1<R>>> result = monad.flatMap(resource, t -> {
-      Resource<F, R> apply = mapper.apply(t.get1());
-      return monad.flatMap(apply.resource, 
-          r -> monad.pure(Tuple.of(r.get1(), ignore -> releaseAndThen(t, r))));
-    });
-    return new Resource<>(monad, result);
+    return new Resource<>(monad, monad.flatMap(resource, 
+        t -> monad.map(mapper.apply(t.get1()).resource, 
+            r -> Tuple.of(r.get1(), ignore -> releaseAndThen(t, r)))));
   }
   
   public <R> Kind<F, R> use(Function1<T, Kind<F, R>> use) {

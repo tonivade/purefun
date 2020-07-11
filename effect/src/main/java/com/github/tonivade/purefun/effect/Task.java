@@ -28,31 +28,31 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class Task<T> implements TaskOf<T>, Recoverable {
 
-  private final ZIO<Nothing, Throwable, T> value;
+  private final ZIO<Nothing, Throwable, T> instance;
 
   Task(ZIO<Nothing, Throwable, T> value) {
-    this.value = checkNonNull(value);
+    this.instance = checkNonNull(value);
   }
 
   @SuppressWarnings("unchecked")
   public <R> ZIO<R, Throwable, T> toZIO() {
-    return (ZIO<R, Throwable, T>) value;
+    return (ZIO<R, Throwable, T>) instance;
   }
 
   public EIO<Throwable, T> toEIO() {
-    return new EIO<>(value);
+    return new EIO<>(instance);
   }
 
   public Try<T> safeRunSync() {
-    return absorb(value.provide(nothing()));
+    return absorb(instance.provide(nothing()));
   }
 
   public Future<Try<T>> toFuture() {
-    return value.toFuture(nothing()).map(this::absorb);
+    return instance.toFuture(nothing()).map(this::absorb);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {
-    value.provideAsync(executor, nothing(), result -> callback.accept(flatAbsorb(result)));
+    instance.provideAsync(executor, nothing(), result -> callback.accept(flatAbsorb(result)));
   }
 
   public void async(Consumer1<Try<T>> callback) {
@@ -60,7 +60,7 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
-    return monad.flatMap(value.foldMap(nothing(), monad), monad::<T>fromEither);
+    return monad.flatMap(instance.foldMap(nothing(), monad), monad::<T>fromEither);
   }
 
   public <B> Task<B> map(Function1<T, B> map) {
@@ -68,27 +68,27 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public <B> Task<B> flatMap(Function1<T, Task<B>> map) {
-    return new Task<>(value.flatMap(value -> map.apply(value).value));
+    return new Task<>(instance.flatMap(value -> map.apply(value).instance));
   }
 
   public <B> Task<B> andThen(Task<B> next) {
-    return new Task<>(value.andThen(next.value));
+    return new Task<>(instance.andThen(next.instance));
   }
 
   public <B> Task<B> foldM(Function1<Throwable, Task<B>> mapError, Function1<T, Task<B>> map) {
-    return new Task<>(value.foldM(error -> mapError.apply(error).value, value -> map.apply(value).value));
+    return new Task<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
   }
 
   public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
-    return new UIO<>(value.fold(mapError, map));
+    return new UIO<>(instance.fold(mapError, map));
   }
 
   public UIO<T> recover(Function1<Throwable, T> mapError) {
-    return new UIO<>(value.recover(mapError));
+    return new UIO<>(instance.recover(mapError));
   }
 
   public Task<T> orElse(Producer<Task<T>> other) {
-    return new Task<>(value.orElse(() -> other.get().value));
+    return new Task<>(instance.orElse(() -> other.get().instance));
   }
 
   public Task<T> repeat() {
@@ -144,11 +144,11 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public static <A, B, C> Task<C> map2(Task<A> za, Task<B> zb, Function2<A, B, C> mapper) {
-    return new Task<>(ZIO.map2(za.value, zb.value, mapper));
+    return new Task<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
   public static <A> Task<A> absorb(Task<Either<Throwable, A>> value) {
-    return new Task<>(ZIO.absorb(value.value));
+    return new Task<>(ZIO.absorb(value.instance));
   }
 
   public static <A, B> Function1<A, Task<B>> lift(Function1<A, B> function) {
@@ -172,7 +172,7 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public static <A> Task<A> defer(Producer<Task<A>> lazy) {
-    return new Task<>(ZIO.defer(() -> lazy.get().value));
+    return new Task<>(ZIO.defer(() -> lazy.get().instance));
   }
 
   public static <A> Task<A> task(Producer<A> task) {
@@ -184,11 +184,11 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public static <A extends AutoCloseable, B> Task<B> bracket(Task<A> acquire, Function1<A, Task<B>> use) {
-    return new Task<>(ZIO.bracket(acquire.value, resource -> use.apply(resource).value));
+    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
   }
 
   public static <A, B> Task<B> bracket(Task<A> acquire, Function1<A, Task<B>> use, Consumer1<A> release) {
-    return new Task<>(ZIO.bracket(acquire.value, resource -> use.apply(resource).value, release));
+    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
   }
 
   public static Task<Unit> unit() {

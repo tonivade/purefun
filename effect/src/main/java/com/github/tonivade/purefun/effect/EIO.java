@@ -26,27 +26,27 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 @HigherKind
 public final class EIO<E, T> implements EIOOf<E, T> {
 
-  private final ZIO<Nothing, E, T> value;
+  private final ZIO<Nothing, E, T> instance;
 
   EIO(ZIO<Nothing, E, T> value) {
-    this.value = checkNonNull(value);
+    this.instance = checkNonNull(value);
   }
 
   @SuppressWarnings("unchecked")
   public <R> ZIO<R, E, T> toZIO() {
-    return (ZIO<R, E, T>) value;
+    return (ZIO<R, E, T>) instance;
   }
 
   public Either<E, T> safeRunSync() {
-    return value.provide(nothing());
+    return instance.provide(nothing());
   }
 
   public Future<Either<E, T>> toFuture() {
-    return value.toFuture(nothing());
+    return instance.toFuture(nothing());
   }
 
   public void async(Executor executor, Consumer1<Try<Either<E, T>>> callback) {
-    value.provideAsync(executor, nothing(), callback);
+    instance.provideAsync(executor, nothing(), callback);
   }
 
   public void async(Consumer1<Try<Either<E, T>>> callback) {
@@ -54,51 +54,51 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   }
 
   public <F extends Witness> Kind<F, Either<E, T>> foldMap(MonadDefer<F> monad) {
-    return value.foldMap(nothing(), monad);
+    return instance.foldMap(nothing(), monad);
   }
 
   public <B> EIO<E, B> map(Function1<T, B> map) {
-    return new EIO<>(value.map(map));
+    return new EIO<>(instance.map(map));
   }
 
   public <B> EIO<E, B> flatMap(Function1<T, EIO<E, B>> map) {
-    return new EIO<>(value.flatMap(value -> map.apply(value).value));
+    return new EIO<>(instance.flatMap(value -> map.apply(value).instance));
   }
 
   public EIO<T, E> swap() {
-    return new EIO<>(value.swap());
+    return new EIO<>(instance.swap());
   }
 
   public <B> EIO<B, T> mapError(Function1<E, B> map) {
-    return new EIO<>(value.mapError(map));
+    return new EIO<>(instance.mapError(map));
   }
 
   public <F> EIO<F, T> flatMapError(Function1<E, EIO<F, T>> map) {
-    return new EIO<>(value.flatMapError(error -> map.apply(error).value));
+    return new EIO<>(instance.flatMapError(error -> map.apply(error).instance));
   }
 
   public <B, F> EIO<F, B> bimap(Function1<E, F> mapError, Function1<T, B> map) {
-    return new EIO<>(value.bimap(mapError, map));
+    return new EIO<>(instance.bimap(mapError, map));
   }
 
   public <B> EIO<E, B> andThen(EIO<E, B> next) {
-    return new EIO<>(value.andThen(next.value));
+    return new EIO<>(instance.andThen(next.instance));
   }
 
   public <B, F> EIO<F, B> foldM(Function1<E, EIO<F, B>> mapError, Function1<T, EIO<F, B>> map) {
-    return new EIO<>(value.foldM(error -> mapError.apply(error).value, value -> map.apply(value).value));
+    return new EIO<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
   }
 
   public <B> UIO<B> fold(Function1<E, B> mapError, Function1<T, B> map) {
-    return new UIO<>(value.fold(mapError, map));
+    return new UIO<>(instance.fold(mapError, map));
   }
 
   public UIO<T> recover(Function1<E, T> mapError) {
-    return new UIO<>(value.recover(mapError));
+    return new UIO<>(instance.recover(mapError));
   }
 
   public EIO<E, T> orElse(Producer<EIO<E, T>> other) {
-    return new EIO<>(value.orElse(() -> other.get().value));
+    return new EIO<>(instance.orElse(() -> other.get().instance));
   }
 
   public EIO<E, T> repeat() {
@@ -134,11 +134,11 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   }
   
   public <X extends Throwable> EIO<X, T> refineOrDie(Class<X> type) {
-    return new EIO<>(value.refineOrDie(type));
+    return new EIO<>(instance.refineOrDie(type));
   }
   
   public UIO<T> orDie() {
-    return new UIO<>(value.orDie().toZIO());
+    return new UIO<>(instance.orDie().toZIO());
   }
 
   private EIO<E, T> repeat(UIO<Unit> pause, int times) {
@@ -162,11 +162,11 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   }
 
   public static <E, A, B, C> EIO<E, C> map2(EIO<E, A> za, EIO<E, B> zb, Function2<A, B, C> mapper) {
-    return new EIO<>(ZIO.map2(za.value, zb.value, mapper));
+    return new EIO<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
   public static <E, A> EIO<E, A> absorb(EIO<E, Either<E, A>> value) {
-    return new EIO<>(ZIO.absorb(value.value));
+    return new EIO<>(ZIO.absorb(value.instance));
   }
 
   public static <A, B> Function1<A, EIO<Throwable, B>> lift(Function1<A, B> function) {
@@ -186,7 +186,7 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   }
 
   public static <E, A> EIO<E, A> defer(Producer<EIO<E, A>> lazy) {
-    return new EIO<>(ZIO.defer(() -> lazy.get().value));
+    return new EIO<>(ZIO.defer(() -> lazy.get().instance));
   }
 
   public static <A> EIO<Throwable, A> task(Producer<A> task) {
@@ -198,11 +198,11 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   }
 
   public static <A extends AutoCloseable, B> EIO<Throwable, B> bracket(EIO<Throwable, A> acquire, Function1<A, EIO<Throwable, B>> use) {
-    return new EIO<>(ZIO.bracket(acquire.value, resource -> use.apply(resource).value));
+    return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
   }
 
   public static <A, B> EIO<Throwable, B> bracket(EIO<Throwable, A> acquire, Function1<A, EIO<Throwable, B>> use, Consumer1<A> release) {
-    return new EIO<>(ZIO.bracket(acquire.value, resource -> use.apply(resource).value, release));
+    return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
   }
 
   public static <E> EIO<E, Unit> unit() {
