@@ -1,20 +1,31 @@
 package com.github.tonivade.purefun.effect;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static com.github.tonivade.purefun.Nothing.nothing;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.type.Either;
 
-class ScheduleTest {
+@ExtendWith(MockitoExtension.class)
+public class ScheduleTest {
 
   @Test
-  void test() {
-    Schedule<Nothing, Integer, Object, Integer> schedule = Schedule.repeat(3);
-  
-    Schedule<Nothing, Tuple2<Integer, Integer>, Object, Integer> fold = schedule.fold(0,
-        (Tuple2<Integer, Integer> tuple) -> tuple.applyTo(Integer::sum));
+  public void repeat(@Mock Consumer1<String> console) {
+    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
+    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(Schedule.repeat(2));
+    
+    Either<Throwable, Integer> provide = repeat.provide(nothing());
+    
+    assertEquals(Either.right(2), provide);
+    verify(console, times(3)).accept("hola");
   }
-
 }

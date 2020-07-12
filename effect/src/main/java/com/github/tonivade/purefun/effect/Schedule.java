@@ -18,22 +18,26 @@ public abstract class Schedule<R, S, A, B> {
   protected Schedule(URIO<R, S> initial) {
     this.initial = checkNonNull(initial);
   }
-
-  public abstract B extract(Tuple2<A, S> input);
   
-  public abstract ZIO<R, Unit, S> update(Tuple2<A, S> input);
+  public URIO<R, S> initial() {
+    return initial;
+  }
+
+  public abstract B extract(A last, S state);
+  
+  public abstract ZIO<R, Unit, S> update(A last, S state);
 
   public <Z> Schedule<R, Tuple2<S, Z>, A, Z> fold(Z zero, Function1<Tuple2<Z, B>, Z> next) {
     return foldM(zero, tuple -> ZIO.pure(next.apply(tuple)));
   }
   
   public <Z> Schedule<R, Tuple2<S, Z>, A, Z> foldM(Z zero, Function1<Tuple2<Z, B>, ZIO<R, Unit, Z>> next) {
-    return Schedule.of(initial.map(s -> Tuple.of(s, zero)), tuple -> {
-      ZIO<R, Unit, S> update = update(Tuple.of(tuple.get1(), tuple.get2().get1()));
+    return Schedule.of(initial.map(s -> Tuple.of(s, zero)), (a, sz) -> {
+      ZIO<R, Unit, S> update = update(a, sz.get1());
       ZIO<R, Unit, Z> apply = 
-          next.apply(Tuple.of(tuple.get2().get2(), extract(Tuple.of(tuple.get1(), tuple.get2().get1()))));
-      return ZIO.map2(update, apply, Tuple::of).orDie();
-    }, tuple -> tuple.get2().get2());
+          next.apply(Tuple.of(sz.get2(), extract(a, sz.get1())));
+      return ZIO.map2(update, apply, Tuple::of);
+    }, (a, sz) -> sz.get2());
   }
   
   public Schedule<R, S, A, B> whileOutput(Matcher1<B> matcher) {
@@ -45,31 +49,30 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public Schedule<R, S, A, B> check(Function2<A, B, UIO<Boolean>> test) {
-    return updated(update -> tuple -> {
-      ZIO<R, Unit, Boolean> apply = test.apply(tuple.get1(), this.extract(tuple)).toZIO();
-      return apply.flatMap(result -> result ? update.update(tuple) : ZIO.raiseError(unit()));
+    return updated(update -> (a, s) -> {
+      ZIO<R, Unit, Boolean> apply = test.apply(a, this.extract(a, s)).toZIO();
+      return apply.flatMap(result -> result ? update.update(a, s) : ZIO.raiseError(unit()));
     });
   }
   
   public Schedule<R, S, A, B> updated(Function1<Update<R, S, A>, Update<R, S, A>> update) {
-    Function1<Tuple2<A, S>, ZIO<R, Unit, S>> apply = update.apply(this::update)::update;
-    return Schedule.of(initial, apply.andThen(ZIO::orDie), this::extract);
+    return Schedule.of(initial, update.apply(this::update)::update, this::extract);
   }
   
   public static <R, S, A, B> Schedule<R, S, A, B> of(
       URIO<R, S> initial, 
-      Function1<Tuple2<A, S>, URIO<R, S>> update,
-      Function1<Tuple2<A, S>, B> extract) {
+      Function2<A, S, ZIO<R, Unit, S>> update,
+      Function2<A, S, B> extract) {
     return new Schedule<R, S, A, B>(initial) {
       
       @Override
-      public ZIO<R, Unit, S> update(Tuple2<A, S> input) {
-        return update.apply(input).toZIO();
+      public ZIO<R, Unit, S> update(A last, S state) {
+        return update.apply(last, state);
       }
       
       @Override
-      public B extract(Tuple2<A, S> input) {
-        return extract.apply(input);
+      public B extract(A last, S state) {
+        return extract.apply(last, state);
       }
     };
   }
@@ -83,20 +86,20 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public static <R, A, B> Schedule<R, B, A, B> unfold(B initial, Operator1<B> next) {
-    return unfoldM(URIO.pure(initial), next.andThen(URIO::pure));
+    return unfoldM(URIO.pure(initial), next.andThen(ZIO::pure));
   }
   
   public static <R, A, B> Schedule<R, B, A, B> unfoldM(
-      URIO<R, B> initial, Function1<B, URIO<R, B>> next) {
-    return Schedule.<R, B, A, B>of(initial, t1 -> next.apply(t1.get2()), t2 -> t2.get2());
+      URIO<R, B> initial, Function1<B, ZIO<R, Unit, B>> next) {
+    return Schedule.<R, B, A, B>of(initial, (a, s) -> next.apply(s), (a, s) -> s);
   }
   
   @FunctionalInterface
   interface Update<R, S, A> {
-    ZIO<R, Unit, S> update(Tuple2<A, S> input);
+    ZIO<R, Unit, S> update(A las, S state);
     
-    default Function1<Tuple2<A, S>, URIO<R, S>> toURIO() {
-      return input -> update(input).orDie();
+    default Function2<A, S, URIO<R, S>> toURIO() {
+      return (a, s) -> update(a, s).orDie();
     }
   }
 }

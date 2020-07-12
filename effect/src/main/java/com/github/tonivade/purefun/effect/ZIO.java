@@ -29,6 +29,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
@@ -117,6 +118,35 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   default ZIO<R, E, A> repeat(Duration delay, int times) {
     return ZIOModule.repeat(this, UIO.sleep(delay), times);
+  }
+  
+  default <S, B> ZIO<R, E, B> repeat(Schedule<R, S, A, B> schedule) {
+    return repeatOrElse(schedule, (e, b) -> ZIO.raiseError(e));
+  }
+  
+  default <S, B> ZIO<R, E, B> repeatOrElse(
+      Schedule<R, S, A, B> schedule, 
+      Function2<E, Option<B>, ZIO<R, E, B>> orElse) {
+    return repeatOrElseEither(schedule, orElse).map(either -> either.fold(identity(), identity()));
+  }
+
+  default <S, B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
+      Schedule<R, S, A, B> schedule, 
+      Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
+    
+    class Helper {
+      ZIO<R, E, Either<C, B>> loop(A later, S state) {
+        return schedule.update(later, state)
+            .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+                s -> foldM(
+                    e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
+                    a -> loop(a, s)));
+      }
+    }
+    
+    return foldM(
+        error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
+        a -> schedule.initial().<E>toZIO().flatMap(s -> new Helper().loop(a, s)));
   }
 
   default ZIO<R, E, A> retry() {
