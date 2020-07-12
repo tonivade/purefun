@@ -51,12 +51,12 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     return instance.toFuture(executor, nothing());
   }
 
-  public void async(Executor executor, Consumer1<Try<Either<E, T>>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<Try<Either<E, T>>> callback) {
     instance.provideAsync(executor, nothing(), callback);
   }
 
-  public void async(Consumer1<Try<Either<E, T>>> callback) {
-    async(Future.DEFAULT_EXECUTOR, callback);
+  public void safeRunAsync(Consumer1<Try<Either<E, T>>> callback) {
+    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
   public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {

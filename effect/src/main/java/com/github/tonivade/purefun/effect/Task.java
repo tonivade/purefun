@@ -62,12 +62,12 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     return instance.toFuture(executor, nothing()).map(Try::fromEither);
   }
 
-  public void async(Executor executor, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
     instance.provideAsync(executor, nothing(), result -> callback.accept(flatAbsorb(result)));
   }
 
-  public void async(Consumer1<Try<T>> callback) {
-    async(Future.DEFAULT_EXECUTOR, callback);
+  public void safeRunAsync(Consumer1<Try<T>> callback) {
+    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
   public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {

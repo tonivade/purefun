@@ -76,12 +76,12 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
     return instance.toFuture(executor, nothing()).map(Either::get);
   }
 
-  public void async(Executor executor, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
     instance.provideAsync(executor, nothing(), result -> callback.accept(result.map(Either::get)));
   }
 
-  public void async(Consumer1<Try<T>> callback) {
-    async(Future.DEFAULT_EXECUTOR, callback);
+  public void safeRunAsync(Consumer1<Try<T>> callback) {
+    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
   public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {

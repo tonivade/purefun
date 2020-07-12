@@ -105,14 +105,14 @@ public class UIOTest {
 
   @Test
   public void asyncRight(@Mock Consumer1<Try<Integer>> callback) {
-    parseInt("1").async(callback);
+    parseInt("1").safeRunAsync(callback);
 
     verify(callback, timeout(1000)).accept(Try.success(1));
   }
 
   @Test
   public void asyncLeft(@Mock Consumer1<Try<Integer>> callback) {
-    parseInt("kjsdf").async(callback);
+    parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(1000)).accept(captor.capture());
 

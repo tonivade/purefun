@@ -35,7 +35,7 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     this.instance = checkNonNull(value);
   }
 
-  public Try<T> provide(R env) {
+  public Try<T> safeRunSync(R env) {
     return Try.fromEither(instance.provide(env));
   }
 
@@ -56,12 +56,12 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     return instance.toFuture(executor, env).map(Try::fromEither);
   }
 
-  public void async(Executor executor, R env, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, R env, Consumer1<Try<T>> callback) {
     instance.provideAsync(executor, env, result -> callback.accept(flatAbsorb(result)));
   }
 
-  public void async(R env, Consumer1<Try<T>> callback) {
-    async(Future.DEFAULT_EXECUTOR, env, callback);
+  public void safeRunAsyc(R env, Consumer1<Try<T>> callback) {
+    safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
   public <F extends Witness> Kind<F, T> foldMap(R env, MonadDefer<F> monad) {
@@ -168,6 +168,10 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
 
   public static <R> RIO<R, R> env() {
     return access(identity());
+  }
+
+  public static <R, A> RIO<R, A> absorb(RIO<R, Either<Throwable, A>> value) {
+    return new RIO<>(ZIO.absorb(value.instance));
   }
 
   public static <R, A, B, C> RIO<R, C> map2(RIO<R, A> za, RIO<R, B> zb, Function2<A, B, C> mapper) {

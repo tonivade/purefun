@@ -61,12 +61,12 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     return instance.toFuture(executor, env).map(Either::get);
   }
 
-  public void provideAsync(Executor executor, R env, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, R env, Consumer1<Try<T>> callback) {
     instance.provideAsync(executor, env, result -> callback.accept(result.map(Either::get)));
   }
 
-  public void provideAsync(R env, Consumer1<Try<T>> callback) {
-    provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
+  public void safeRunAsync(R env, Consumer1<Try<T>> callback) {
+    safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
   public <F extends Witness> Kind<F, T> foldMap(R env, MonadDefer<F> monad) {

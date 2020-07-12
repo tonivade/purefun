@@ -143,14 +143,14 @@ public class EIOTest {
 
   @Test
   public void asyncRight(@Mock Consumer1<Try<Either<Throwable, Integer>>> callback) {
-    parseInt("1").async(callback);
+    parseInt("1").safeRunAsync(callback);
 
     verify(callback, timeout(500)).accept(Try.success(Either.right(1)));
   }
 
   @Test
   public void asyncLeft(@Mock Consumer1<Try<Either<Throwable, Integer>>> callback) {
-    parseInt("kjsdf").async(callback);
+    parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(500)).accept(captor.capture());
 

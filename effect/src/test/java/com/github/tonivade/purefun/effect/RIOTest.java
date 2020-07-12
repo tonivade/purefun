@@ -46,7 +46,7 @@ public class RIOTest {
 
   @Test
   public void mapRight() {
-    Try<Integer> result = parseInt("1").map(x -> x + 1).provide(nothing());
+    Try<Integer> result = parseInt("1").map(x -> x + 1).safeRunSync(nothing());
 
     assertEquals(Try.success(2), result);
   }
@@ -55,12 +55,12 @@ public class RIOTest {
   public void mapLeft() {
     RIO<Nothing, Integer> result = parseInt("lskjdf").map(x -> x + 1);
 
-    assertEquals(NumberFormatException.class, result.provide(nothing()).getCause().getClass());
+    assertEquals(NumberFormatException.class, result.safeRunSync(nothing()).getCause().getClass());
   }
 
   @Test
   public void flatMapRight() {
-    Try<Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).provide(nothing());
+    Try<Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).safeRunSync(nothing());
 
     assertEquals(Try.success(2), result);
   }
@@ -69,19 +69,19 @@ public class RIOTest {
   public void flatMapLeft() {
     RIO<Nothing, Integer> result = parseInt("kjere").flatMap(x -> pure(x + 1));
 
-    assertEquals(NumberFormatException.class, result.provide(nothing()).getCause().getClass());
+    assertEquals(NumberFormatException.class, result.safeRunSync(nothing()).getCause().getClass());
   }
 
   @Test
   public void redeemRight() {
-    Try<Integer> result = parseInt("1").recover(e -> -1).provide(nothing());
+    Try<Integer> result = parseInt("1").recover(e -> -1).safeRunSync(nothing());
 
     assertEquals(Try.success(1), result);
   }
 
   @Test
   public void redeemLeft() {
-    Try<Integer> result = parseInt("kjsdfdf").recover(e -> -1).provide(nothing());
+    Try<Integer> result = parseInt("kjsdfdf").recover(e -> -1).safeRunSync(nothing());
 
     assertEquals(Try.success(-1), result);
   }
@@ -93,7 +93,7 @@ public class RIOTest {
 
     RIO<Nothing, String> bracket = RIO.bracket(open(resultSet), getString("id"));
 
-    assertEquals(Try.success("value"), bracket.provide(nothing()));
+    assertEquals(Try.success("value"), bracket.safeRunSync(nothing()));
     verify(resultSet).close();
   }
 
@@ -101,19 +101,19 @@ public class RIOTest {
   public void bracketError() {
     RIO<Nothing, String> bracket = RIO.bracket(openError(), getString("id"));
 
-    assertEquals(SQLException.class, bracket.provide(nothing()).getCause().getClass());
+    assertEquals(SQLException.class, bracket.safeRunSync(nothing()).getCause().getClass());
   }
 
   @Test
   public void asyncRight(@Mock Consumer1<Try<Integer>> callback) {
-    parseInt("1").async(nothing(), callback);
+    parseInt("1").safeRunAsyc(nothing(), callback);
 
     verify(callback, timeout(1000)).accept(Try.success(1));
   }
 
   @Test
   public void asyncLeft(@Mock Consumer1<Try<Integer>> callback) {
-    parseInt("kjsdf").async(nothing(), callback);
+    parseInt("kjsdf").safeRunAsyc(nothing(), callback);
 
     verify(callback, timeout(100)).accept(captor.capture());
 
@@ -142,7 +142,7 @@ public class RIOTest {
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
-    Try<String> retry = task(computation).retry().provide(nothing());
+    Try<String> retry = task(computation).retry().safeRunSync(nothing());
 
     assertTrue(retry.isFailure());
     verify(computation, times(2)).get();
@@ -152,7 +152,7 @@ public class RIOTest {
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
-    Try<String> repeat = task(computation).repeat().provide(nothing());
+    Try<String> repeat = task(computation).repeat().safeRunSync(nothing());
 
     assertEquals("hola", repeat.get());
     verify(computation, times(2)).get();
