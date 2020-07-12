@@ -44,7 +44,11 @@ public final class EIO<E, T> implements EIOOf<E, T> {
   }
 
   public Future<Either<E, T>> toFuture() {
-    return instance.toFuture(nothing());
+    return toFuture(Future.DEFAULT_EXECUTOR);
+  }
+
+  public Future<Either<E, T>> toFuture(Executor executor) {
+    return instance.toFuture(executor, nothing());
   }
 
   public void async(Executor executor, Consumer1<Try<Either<E, T>>> callback) {

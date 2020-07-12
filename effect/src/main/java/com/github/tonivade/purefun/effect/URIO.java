@@ -54,7 +54,11 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
   }
 
   public Future<T> toFuture(R env) {
-    return instance.toFuture(env).map(Either::get);
+    return toFuture(Future.DEFAULT_EXECUTOR, env);
+  }
+
+  public Future<T> toFuture(Executor executor, R env) {
+    return instance.toFuture(executor, env).map(Either::get);
   }
 
   public void provideAsync(Executor executor, R env, Consumer1<Try<T>> callback) {
@@ -155,8 +159,12 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     }, URIO::<R, T>pure);
   }
 
+  static <R, A> URIO<R, A> accessM(Function1<R, URIO<R, A>> map) {
+    return new URIO<>(ZIO.accessM(map.andThen(URIO::toZIO)));
+  }
+
   public static <R, A> URIO<R, A> access(Function1<R, A> map) {
-    return new URIO<>(ZIO.accessM(map.andThen(ZIO::pure)));
+    return accessM(map.andThen(URIO::pure));
   }
 
   public static <R> URIO<R, R> env() {

@@ -69,7 +69,11 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
   }
 
   public Future<T> toFuture() {
-    return instance.toFuture(nothing()).map(Either::get);
+    return toFuture(Future.DEFAULT_EXECUTOR);
+  }
+
+  public Future<T> toFuture(Executor executor) {
+    return instance.toFuture(executor, nothing()).map(Either::get);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {

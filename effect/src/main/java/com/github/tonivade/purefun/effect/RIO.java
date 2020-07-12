@@ -49,7 +49,11 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
   }
 
   public Future<Try<T>> toFuture(R env) {
-    return instance.toFuture(env).map(Try::fromEither);
+    return toFuture(Future.DEFAULT_EXECUTOR, env);
+  }
+
+  public Future<Try<T>> toFuture(Executor executor, R env) {
+    return instance.toFuture(executor, env).map(Try::fromEither);
   }
 
   public void async(Executor executor, R env, Consumer1<Try<T>> callback) {
@@ -96,6 +100,10 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
 
   public <B> RIO<R, B> foldM(Function1<Throwable, RIO<R, B>> mapError, Function1<T, RIO<R, B>> map) {
     return new RIO<>(instance.foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
+  }
+
+  public RIO<R, T> orElse(RIO<R, T> other) {
+    return foldM(Function1.cons(other), Function1.cons(this));
   }
 
   public RIO<R, T> repeat() {
@@ -150,8 +158,12 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     }, RIO::<R, T>pure);
   }
 
+  static <R, A> RIO<R, A> accessM(Function1<R, RIO<R, A>> map) {
+    return new RIO<>(ZIO.accessM(map.andThen(RIO::toZIO)));
+  }
+
   public static <R, A> RIO<R, A> access(Function1<R, A> map) {
-    return new RIO<>(ZIO.accessM(map.andThen(ZIO::pure)));
+    return accessM(map.andThen(RIO::pure));
   }
 
   public static <R> RIO<R, R> env() {

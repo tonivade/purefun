@@ -55,7 +55,11 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
 
   public Future<Try<T>> toFuture() {
-    return instance.toFuture(nothing()).map(Try::fromEither);
+    return toFuture(Future.DEFAULT_EXECUTOR);
+  }
+
+  public Future<Try<T>> toFuture(Executor executor) {
+    return instance.toFuture(executor, nothing()).map(Try::fromEither);
   }
 
   public void async(Executor executor, Consumer1<Try<T>> callback) {
