@@ -251,7 +251,7 @@ public class ZIOTest {
   public void timed() {
     ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = ZIO.<Nothing>sleep(Duration.ofMillis(100)).timed();
     
-    Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(Nothing.nothing());
+    Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
     
     assertTrue(provide.getRight().get1().toMillis() > 100);
   }
@@ -296,7 +296,7 @@ public class ZIOTest {
     
     assertEquals("hola", success.orDie().unsafeRunSync(nothing()));
     assertThrows(IOException.class, () -> error.orDie().unsafeRunSync(nothing()));
-    assertThrows(UnsupportedOperationException.class, () -> unsupported.orDie().unsafeRunSync(nothing()));
+    assertThrows(ClassCastException.class, () -> unsupported.orDie().unsafeRunSync(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
