@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
@@ -139,6 +140,10 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     return retry(sleep(delay), maxRetries);
   }
 
+  public URIO<R, Tuple2<Duration, T>> timed() {
+    return new URIO<>(instance.timed());
+  }
+
   private URIO<R, T> repeat(URIO<R, Unit> pause, int times) {
     return redeemWith(URIO::<R, T>raiseError, value -> {
       if (times > 0) {
@@ -159,7 +164,7 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     }, URIO::<R, T>pure);
   }
 
-  static <R, A> URIO<R, A> accessM(Function1<R, URIO<R, A>> map) {
+  public static <R, A> URIO<R, A> accessM(Function1<R, URIO<R, A>> map) {
     return new URIO<>(ZIO.accessM(map.andThen(URIO::toZIO)));
   }
 
@@ -173,6 +178,10 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
 
   public static <R, A, B, C> URIO<R, C> map2(URIO<R, A> za, URIO<R, B> zb, Function2<A, B, C> mapper) {
     return new URIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+  }
+
+  public static <R, A, B> Function1<A, URIO<R, B>> lift(Function1<A, B> function) {
+    return value -> task(() -> function.apply(value));
   }
 
   public static <R> URIO<R, Unit> sleep(Duration delay) {

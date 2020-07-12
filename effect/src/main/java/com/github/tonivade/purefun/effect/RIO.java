@@ -6,19 +6,22 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
 import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -80,12 +83,12 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     return new RIO<>(instance.andThen(next.instance));
   }
 
-  public RIO<R, T> recover(Function1<Throwable, T> mapError) {
+  public URIO<R, T> recover(Function1<Throwable, T> mapError) {
     return fold(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> RIO<R, T> recoverWith(Class<X> type, Function1<X, T> function) {
+  public <X extends Throwable> URIO<R, T> recoverWith(Class<X> type, Function1<X, T> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -94,8 +97,8 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     });
   }
 
-  public <B> RIO<R, B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
-    return foldM(mapError.andThen(RIO::pure), map.andThen(RIO::pure));
+  public <B> URIO<R, B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
+    return new URIO<>(instance.foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure)));
   }
 
   public <B> RIO<R, B> foldM(Function1<Throwable, RIO<R, B>> mapError, Function1<T, RIO<R, B>> map) {
@@ -138,6 +141,14 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     return retry(sleep(delay), maxRetries);
   }
 
+  public RIO<R, Tuple2<Duration, T>> timed() {
+    return new RIO<>(instance.timed());
+  }
+  
+  public URIO<R, T> orDie() {
+    return recover(error -> { throw error; });
+  }
+
   private RIO<R, T> repeat(RIO<R, Unit> pause, int times) {
     return foldM(RIO::<R, T>raiseError, value -> {
       if (times > 0) {
@@ -158,7 +169,7 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
     }, RIO::<R, T>pure);
   }
 
-  static <R, A> RIO<R, A> accessM(Function1<R, RIO<R, A>> map) {
+  public static <R, A> RIO<R, A> accessM(Function1<R, RIO<R, A>> map) {
     return new RIO<>(ZIO.accessM(map.andThen(RIO::toZIO)));
   }
 
@@ -180,6 +191,14 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
 
   public static <R> RIO<R, Unit> sleep(Duration delay) {
     return new RIO<>(ZIO.sleep(delay));
+  }
+
+  public static <R, A, B> Function1<A, RIO<R, B>> lift(Function1<A, B> function) {
+    return value -> task(() -> function.apply(value));
+  }
+
+  public static <R, A> RIO<R, A> fromEither(Producer<Either<Throwable, A>> task) {
+    return new RIO<>(ZIO.fromEither(task));
   }
 
   public static <R> RIO<R, Unit> exec(CheckedRunnable task) {

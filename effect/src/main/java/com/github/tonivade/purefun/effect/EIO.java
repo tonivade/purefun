@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
@@ -137,6 +138,10 @@ public final class EIO<E, T> implements EIOOf<E, T> {
 
   public EIO<E, T> retry(Duration delay, int maxRetries) {
     return retry(UIO.sleep(delay), maxRetries);
+  }
+
+  public EIO<E, Tuple2<Duration, T>> timed() {
+    return new EIO<>(instance.timed());
   }
   
   public <X extends Throwable> EIO<X, T> refineOrDie(Class<X> type) {

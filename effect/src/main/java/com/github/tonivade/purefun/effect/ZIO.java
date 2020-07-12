@@ -154,7 +154,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       if (error instanceof Throwable) {
         throw (Throwable) error;
       }
-      throw new UnsupportedOperationException(error.getClass() + " is not throwable");
+      throw new ClassCastException(error.getClass() + " is not throwable");
     }));
   }
 
@@ -526,7 +526,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     private final Duration duration;
 
-    public Sleep(Duration duration) {
+    protected Sleep(Duration duration) {
       this.duration = checkNonNull(duration);
     }
 
@@ -556,7 +556,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     private final ZIO<R, E, A> current;
 
-    public Timed(ZIO<R, E, A> current) {
+    protected Timed(ZIO<R, E, A> current) {
       this.current = checkNonNull(current);
     }
     

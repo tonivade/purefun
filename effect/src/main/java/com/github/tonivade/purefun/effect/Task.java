@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
@@ -132,6 +133,14 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
 
   public Task<T> retry(Duration delay, int maxRetries) {
     return retry(sleep(delay), maxRetries);
+  }
+
+  public Task<Tuple2<Duration, T>> timed() {
+    return new Task<>(instance.timed());
+  }
+  
+  public UIO<T> orDie() {
+    return recover(error -> { throw error; });
   }
 
   private Task<T> repeat(Task<Unit> pause, int times) {

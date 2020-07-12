@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
@@ -154,6 +155,10 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
     return retry(sleep(delay), maxRetries);
   }
 
+  public UIO<Tuple2<Duration, T>> timed() {
+    return new UIO<>(instance.timed());
+  }
+
   private UIO<T> repeat(UIO<Unit> pause, int times) {
     return redeemWith(UIO::raiseError, value -> {
       if (times > 0) {
@@ -176,6 +181,10 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
 
   public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {
     return new UIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+  }
+
+  public static <A, B> Function1<A, UIO<B>> lift(Function1<A, B> function) {
+    return value -> task(() -> function.apply(value));
   }
 
   public static UIO<Unit> sleep(Duration delay) {
