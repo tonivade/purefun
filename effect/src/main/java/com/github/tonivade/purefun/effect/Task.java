@@ -95,6 +95,16 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     return new UIO<>(instance.fold(mapError, map));
   }
 
+  @SuppressWarnings("unchecked")
+  public <X extends Throwable> UIO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+    return recover(cause -> {
+      if (type.isAssignableFrom(cause.getClass())) {
+        return function.apply((X) cause);
+      }
+      return sneakyThrow(cause);
+    });
+  }
+
   public UIO<T> recover(Function1<Throwable, T> mapError) {
     return new UIO<>(instance.recover(mapError));
   }
@@ -140,7 +150,7 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
   }
   
   public UIO<T> orDie() {
-    return recover(error -> { throw error; });
+    return recover(this::sneakyThrow);
   }
 
   private Task<T> repeat(Task<Unit> pause, int times) {

@@ -146,7 +146,7 @@ public final class RIO<R, T> implements RIOOf<R, T>, Recoverable {
   }
   
   public URIO<R, T> orDie() {
-    return recover(error -> { throw error; });
+    return recover(this::sneakyThrow);
   }
 
   private RIO<R, T> repeat(RIO<R, Unit> pause, int times) {
