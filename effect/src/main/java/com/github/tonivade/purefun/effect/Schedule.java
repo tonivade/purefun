@@ -58,7 +58,7 @@ public abstract class Schedule<R, S, A, B> {
               return this.update(a, s).map(Either::<S, T>left).orElse(orElse);
             }, 
             t -> next.update(a, t).map(Either::<S, T>right)),
-        (A a, Either<S, T> st) -> st.fold(
+        (a, st) -> st.fold(
             s -> Either.left(this.extract(a, s)), 
             t -> Either.right(next.extract(a, t)))
         );
