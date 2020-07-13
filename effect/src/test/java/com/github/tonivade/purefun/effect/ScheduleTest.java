@@ -1,9 +1,12 @@
+/*
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Unit.unit;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,5 +69,19 @@ public class ScheduleTest {
     Either<Throwable, String> provide = retry.provide(nothing());
     
     assertTrue(provide.isLeft());
+  }
+  
+  @Test
+  public void andThen(@Mock Consumer1<String> console) {
+    Schedule<Nothing, Either<Integer, Integer>, Unit, Integer> two = 
+        Schedule.<Nothing, Unit>recurs(1).andThen(Schedule.<Nothing, Unit>recurs(1));
+
+    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
+    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(two);
+    
+    Either<Throwable, Integer> provide = repeat.provide(nothing());
+    
+    assertEquals(Either.right(1), provide);
+    verify(console, times(3)).accept("hola");
   }
 }

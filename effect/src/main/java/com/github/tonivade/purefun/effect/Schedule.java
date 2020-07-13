@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018-2020, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
@@ -10,6 +14,7 @@ import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.type.Either;
 
 public abstract class Schedule<R, S, A, B> {
 
@@ -26,16 +31,39 @@ public abstract class Schedule<R, S, A, B> {
   public abstract B extract(A last, S state);
   
   public abstract ZIO<R, Unit, S> update(A last, S state);
+  
+  public <C> Schedule<R, S, A, C> map(Function1<B, C> mapper) {
+    return Schedule.of(initial, this::update, (a, s) -> mapper.apply(extract(a, s)));
+  }
 
-  public <Z> Schedule<R, Tuple2<S, Z>, A, Z> fold(Z zero, Function1<Tuple2<Z, B>, Z> next) {
-    return foldM(zero, tuple -> ZIO.pure(next.apply(tuple)));
+  public <T> Schedule<R, Either<S, T>, A, B> andThen(Schedule<R, T, A, B> next) {
+    return andThenEither(next).map(Either::merge);
+  }
+
+  public <T, C> Schedule<R, Either<S, T>, A, Either<B, C>> andThenEither(Schedule<R, T, A, C> next) {
+    return Schedule.of(
+        initial.map(s -> Either.left(s)), 
+        (a, st) -> st.fold(
+            s -> {
+              ZIO<R, Unit, Either<S, T>> orElse = 
+                  next.initial().<Unit>toZIO().flatMap(c -> next.update(a, c).map(Either::<S, T>right));
+              return this.update(a, s).map(Either::<S, T>left).orElse(orElse);
+            }, 
+            t -> next.update(a, t).map(Either::<S, T>right)),
+        (A a, Either<S, T> st) -> st.fold(
+            s -> Either.left(this.extract(a, s)), 
+            t -> Either.right(next.extract(a, t)))
+        );
+  }
+
+  public <Z> Schedule<R, Tuple2<S, Z>, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
+    return foldM(zero, (z, b) -> ZIO.pure(next.apply(z, b)));
   }
   
-  public <Z> Schedule<R, Tuple2<S, Z>, A, Z> foldM(Z zero, Function1<Tuple2<Z, B>, ZIO<R, Unit, Z>> next) {
+  public <Z> Schedule<R, Tuple2<S, Z>, A, Z> foldM(Z zero, Function2<Z, B, ZIO<R, Unit, Z>> next) {
     return Schedule.of(initial.map(s -> Tuple.of(s, zero)), (a, sz) -> {
       ZIO<R, Unit, S> update = update(a, sz.get1());
-      ZIO<R, Unit, Z> apply = 
-          next.apply(Tuple.of(sz.get2(), extract(a, sz.get1())));
+      ZIO<R, Unit, Z> apply = next.apply(sz.get2(), extract(a, sz.get1()));
       return ZIO.map2(update, apply, Tuple::of);
     }, (a, sz) -> sz.get2());
   }
