@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Unit.unit;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -14,10 +13,11 @@ import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.type.Either;
 
 public abstract class Schedule<R, S, A, B> {
-
+  
   private final URIO<R, S> initial;
   
   protected Schedule(URIO<R, S> initial) {
@@ -34,6 +34,14 @@ public abstract class Schedule<R, S, A, B> {
   
   public <C> Schedule<R, S, A, C> map(Function1<B, C> mapper) {
     return Schedule.of(initial, this::update, (a, s) -> mapper.apply(extract(a, s)));
+  }
+  
+  public <C> Schedule<R, S, A, C> as(C value) {
+    return map(ignore -> value);
+  }
+  
+  public Schedule<R, S, A, Unit> unit() {
+    return map(ignore -> Unit.unit());
   }
 
   public <T> Schedule<R, Either<S, T>, A, B> andThen(Schedule<R, T, A, B> next) {
@@ -55,6 +63,10 @@ public abstract class Schedule<R, S, A, B> {
             t -> Either.right(next.extract(a, t)))
         );
   }
+  
+  public Schedule<R, Tuple2<S, ImmutableList<B>>, A, ImmutableList<B>> collect() {
+    return fold(ImmutableList.<B>empty(), (list, b) -> list.append(b));
+  }
 
   public <Z> Schedule<R, Tuple2<S, Z>, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
     return foldM(zero, (z, b) -> ZIO.pure(next.apply(z, b)));
@@ -68,18 +80,26 @@ public abstract class Schedule<R, S, A, B> {
     }, (a, sz) -> sz.get2());
   }
   
+  public Schedule<R, S, A, B> whileInput(Matcher1<A> matcher) {
+    return whileInputM(matcher.asFunction().andThen(UIO::pure));
+  }
+  
+  public Schedule<R, S, A, B> whileInputM(Function1<A, UIO<Boolean>> matcher) {
+    return check((a, b) -> matcher.apply(a));
+  }
+  
   public Schedule<R, S, A, B> whileOutput(Matcher1<B> matcher) {
     return whileOutputM(matcher.asFunction().andThen(UIO::pure));
   }
   
   public Schedule<R, S, A, B> whileOutputM(Function1<B, UIO<Boolean>> matcher) {
-    return check((ignore, b) -> matcher.apply(b));
+    return check((a, b) -> matcher.apply(b));
   }
   
   public Schedule<R, S, A, B> check(Function2<A, B, UIO<Boolean>> test) {
     return updated(update -> (a, s) -> {
       ZIO<R, Unit, Boolean> apply = test.apply(a, this.extract(a, s)).toZIO();
-      return apply.flatMap(result -> result != null && result ? update.update(a, s) : ZIO.raiseError(unit()));
+      return apply.flatMap(result -> result != null && result ? update.update(a, s) : ZIO.raiseError(Unit.unit()));
     });
   }
   
@@ -110,11 +130,15 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public static <R, A> Schedule<R, Unit, A, Unit> never() {
-    return Schedule.of(URIO.unit(), (a, s) -> ZIO.<R, Unit, Unit>raiseError(unit()), (a, never) -> never);
+    return Schedule.of(URIO.unit(), (a, s) -> ZIO.<R, Unit, Unit>raiseError(Unit.unit()), (a, never) -> never);
   }
   
   public static <R, A> Schedule<R, Integer, A, Integer> forever() {
     return unfold(0, a -> a + 1);
+  }
+  
+  public static <R, A, B> Schedule<R, Integer, A, B> succeed(B value) {
+    return Schedule.<R, A>forever().as(value);
   }
   
   public static <R, A, B> Schedule<R, B, A, B> unfold(B initial, Operator1<B> next) {
