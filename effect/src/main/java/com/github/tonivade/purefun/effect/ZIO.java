@@ -104,30 +104,34 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
 
+  @Deprecated
   default ZIO<R, E, A> repeat() {
     return repeat(1);
   }
 
+  @Deprecated
   default ZIO<R, E, A> repeat(int times) {
     return ZIOModule.repeat(this, UIO.unit(), times);
   }
 
+  @Deprecated
   default ZIO<R, E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Deprecated
   default ZIO<R, E, A> repeat(Duration delay, int times) {
     return ZIOModule.repeat(this, UIO.sleep(delay), times);
   }
   
   default <S, B> ZIO<R, E, B> repeat(Schedule<R, S, A, B> schedule) {
-    return repeatOrElse(schedule, (e, b) -> ZIO.raiseError(e));
+    return repeatOrElse(schedule, (e, b) -> raiseError(e));
   }
   
   default <S, B> ZIO<R, E, B> repeatOrElse(
       Schedule<R, S, A, B> schedule, 
       Function2<E, Option<B>, ZIO<R, E, B>> orElse) {
-    return repeatOrElseEither(schedule, orElse).map(either -> either.fold(identity(), identity()));
+    return repeatOrElseEither(schedule, orElse).map(Either::merge);
   }
 
   default <S, B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
@@ -149,20 +153,51 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
         a -> schedule.initial().<E>toZIO().flatMap(s -> new Helper().loop(a, s)));
   }
 
+  @Deprecated
   default ZIO<R, E, A> retry() {
     return retry(1);
   }
 
+  @Deprecated
   default ZIO<R, E, A> retry(int maxRetries) {
     return ZIOModule.retry(this, UIO.unit(), maxRetries);
   }
 
+  @Deprecated
   default ZIO<R, E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Deprecated
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
     return ZIOModule.retry(this, UIO.sleep(delay), maxRetries);
+  }
+  
+  default <S> ZIO<R, E, A> retry(Schedule<R, S, E, S> schedule) {
+    return retryOrElse(schedule, (e, s) -> raiseError(e));
+  }
+
+  default <S> ZIO<R, E, A> retryOrElse(
+      Schedule<R, S, E, S> schedule,
+      Function2<E, S, ZIO<R, E, A>> orElse) {
+    return retryOrElseEither(schedule, orElse).map(Either::merge);
+  }
+
+  default <S, B> ZIO<R, E, Either<B, A>> retryOrElseEither(
+      Schedule<R, S, E, S> schedule,
+      Function2<E, S, ZIO<R, E, B>> orElse) {
+    
+    class Helper {
+      ZIO<R, E, Either<B, A>> loop(S state) {
+        return foldM(error -> {
+          ZIO<R, Unit, S> update = schedule.update(error, state);
+          return update.foldM(
+            e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
+        }, value -> ZIO.pure(Either.right(value)));
+      }
+    }
+    
+    return schedule.initial().<E>toZIO().flatMap(new Helper()::loop);
   }
 
   default ZIO<R, E, Tuple2<Duration, A>> timed() {

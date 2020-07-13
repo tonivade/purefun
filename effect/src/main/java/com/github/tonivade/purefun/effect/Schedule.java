@@ -51,7 +51,7 @@ public abstract class Schedule<R, S, A, B> {
   public Schedule<R, S, A, B> check(Function2<A, B, UIO<Boolean>> test) {
     return updated(update -> (a, s) -> {
       ZIO<R, Unit, Boolean> apply = test.apply(a, this.extract(a, s)).toZIO();
-      return apply.flatMap(result -> result ? update.update(a, s) : ZIO.raiseError(unit()));
+      return apply.flatMap(result -> result != null && result ? update.update(a, s) : ZIO.raiseError(unit()));
     });
   }
   
@@ -77,8 +77,12 @@ public abstract class Schedule<R, S, A, B> {
     };
   }
   
-  public static <R, A> Schedule<R, Integer, A, Integer> repeat(int times) {
+  public static <R, A> Schedule<R, Integer, A, Integer> recurs(int times) {
     return Schedule.<R, A>forever().whileOutput(x -> x < times);
+  }
+  
+  public static <R, A> Schedule<R, Unit, A, Unit> never() {
+    return Schedule.of(URIO.unit(), (a, s) -> ZIO.<R, Unit, Unit>raiseError(unit()), (a, never) -> never);
   }
   
   public static <R, A> Schedule<R, Integer, A, Integer> forever() {
@@ -96,10 +100,8 @@ public abstract class Schedule<R, S, A, B> {
   
   @FunctionalInterface
   interface Update<R, S, A> {
+
     ZIO<R, Unit, S> update(A las, S state);
-    
-    default Function2<A, S, URIO<R, S>> toURIO() {
-      return (a, s) -> update(a, s).orDie();
-    }
+
   }
 }
