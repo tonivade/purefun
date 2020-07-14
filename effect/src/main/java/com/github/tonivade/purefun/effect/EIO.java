@@ -127,6 +127,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return map2(this, other, mapper);
   }
 
+  @Deprecated
   public EIO<E, A> repeat() {
     return repeat(1);
   }

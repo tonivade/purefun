@@ -10,7 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import java.time.Duration;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Either;
 
@@ -27,11 +29,26 @@ public class ScheduleTest {
   @Test
   public void repeat(@Mock Consumer1<String> console) {
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(Schedule.recurs(2));
+    Schedule<Nothing, Integer, Unit, Integer> recurs = Schedule.recurs(2);
+    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(recurs);
     
     Either<Throwable, Integer> provide = repeat.provide(nothing());
     
     assertEquals(Either.right(2), provide);
+    verify(console, times(3)).accept("hola");
+  }
+
+  @Test
+  public void repeatDelay(@Mock Consumer1<String> console) {
+    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
+    Schedule<Nothing, Integer, Unit, Integer> recurs = Schedule.recurs(2);
+    Schedule<Nothing, Integer, Unit, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
+    ZIO<Nothing, Throwable, Tuple2<Duration, Tuple2<Integer, Integer>>> repeat = print.repeat(recurs.both(spaced)).timed();
+    
+    Either<Throwable, Tuple2<Duration, Tuple2<Integer, Integer>>> provide = repeat.provide(nothing());
+    
+    assertTrue(provide.map(Tuple2::get1).getRight().toMillis() > 1000);
+    assertEquals(Either.right(2), provide.map(Tuple2::get2).map(Tuple2::get2));
     verify(console, times(3)).accept("hola");
   }
   
@@ -58,6 +75,22 @@ public class ScheduleTest {
     assertEquals(Either.right("hola"), provide);
     verify(console, times(2)).get();
   }
+
+  @Test
+  public void retryDelay(@Mock Producer<String> console) {
+    when(console.get()).thenThrow(RuntimeException.class).thenReturn("hola");
+
+    ZIO<Nothing, Throwable, String> read = ZIO.task(console::get);
+    Schedule<Nothing, Integer, Throwable, Integer> recurs = Schedule.recurs(2);
+    Schedule<Nothing, Integer, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
+    ZIO<Nothing, Throwable, Tuple2<Duration, String>> retry = read.retry(recurs.both(spaced)).timed();
+    
+    Either<Throwable, Tuple2<Duration, String>> provide = retry.provide(nothing());
+    
+    assertTrue(provide.map(Tuple2::get1).getRight().toMillis() > 500);
+    assertEquals(Either.right("hola"), provide.map(Tuple2::get2));
+    verify(console, times(2)).get();
+  }
   
   @Test
   public void noRetry(@Mock Producer<String> console) {
@@ -75,6 +108,21 @@ public class ScheduleTest {
   public void andThen(@Mock Consumer1<String> console) {
     Schedule<Nothing, Either<Integer, Integer>, Unit, Integer> two = 
         Schedule.<Nothing, Unit>recurs(1).andThen(Schedule.<Nothing, Unit>recurs(1));
+
+    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
+    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(two);
+    
+    Either<Throwable, Integer> provide = repeat.provide(nothing());
+    
+    assertEquals(Either.right(1), provide);
+    verify(console, times(3)).accept("hola");
+  }
+  
+  @Test
+  @Disabled("I don't understand very well this")
+  public void compose(@Mock Consumer1<String> console) {
+    Schedule<Nothing, Tuple2<Integer, Integer>, Unit, Integer> two = 
+      Schedule.<Nothing, Unit>recurs(1).compose(Schedule.<Nothing, Integer>recurs(1));
 
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
     ZIO<Nothing, Throwable, Integer> repeat = print.repeat(two);

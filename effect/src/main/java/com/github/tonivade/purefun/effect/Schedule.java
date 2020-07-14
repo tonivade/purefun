@@ -4,8 +4,9 @@
  */
 package com.github.tonivade.purefun.effect;
 
+import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
+import java.time.Duration;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Matcher1;
@@ -114,6 +115,25 @@ public abstract class Schedule<R, S, A, B> {
       (a, sz) -> sz.get2());
   }
   
+  public Schedule<R, S, A, B> addDelay(Function1<B, Duration> map) {
+    return addDelayM(map.andThen(URIO::pure));
+  }
+  
+  public Schedule<R, S, A, B> addDelayM(Function1<B, URIO<R, Duration>> map) {
+    return updated(update -> (a, s) -> {
+      ZIO<R, Unit, Tuple2<Duration, S>> map2 = 
+        ZIO.map2(
+          map.apply(extract(a, s)).toZIO(), 
+          update.update(a, s), 
+          Tuple::of);
+      
+      return map2.flatMap(ds -> {
+        ZIO<R, Unit, Unit> sleep = URIO.<R>sleep(ds.get1()).toZIO();
+        return sleep.map(ignore -> ds.get2());
+      });
+    });
+  }
+  
   public Schedule<R, S, A, B> whileInput(Matcher1<A> matcher) {
     return whileInputM(matcher.asFunction().andThen(UIO::pure));
   }
@@ -169,6 +189,10 @@ public abstract class Schedule<R, S, A, B> {
   
   public static <R, A> Schedule<R, Integer, A, Integer> recurs(int times) {
     return Schedule.<R, A>forever().whileOutput(x -> x < times);
+  }
+  
+  public static <R, A> Schedule<R, Integer, A, Integer> spaced(Duration delay) {
+    return Schedule.<R, A>forever().addDelay(cons(delay));
   }
   
   public static <R, A> Schedule<R, Unit, A, Unit> never() {
