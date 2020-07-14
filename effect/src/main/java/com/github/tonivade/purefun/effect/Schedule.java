@@ -50,7 +50,7 @@ public abstract class Schedule<R, S, A, B> {
 
   public <T, C> Schedule<R, Either<S, T>, A, Either<B, C>> andThenEither(Schedule<R, T, A, C> next) {
     return Schedule.of(
-        initial.map(s -> Either.left(s)), 
+        initial.map(Either::<S, T>left), 
         (a, st) -> st.fold(
             s -> {
               ZIO<R, Unit, Either<S, T>> orElse = 

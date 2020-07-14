@@ -101,20 +101,8 @@ public class ZManaged<R, E, A> {
         ));
   }
   
-  public ZManaged<R, E, A> retry() {
-    return retry(1);
-  }
-  
-  public ZManaged<R, E, A> retry(int maxRetries) {
-    return new ZManaged<>(resource.retry(maxRetries));
-  }
-  
-  public ZManaged<R, E, A> retry(Duration delay) {
-    return retry(delay, 1);
-  }
-  
-  public ZManaged<R, E, A> retry(Duration delay, int maxRetries) {
-    return new ZManaged<>(resource.retry(delay, maxRetries));
+  public <S> ZManaged<R, E, A> retry(Schedule<R, S, E, S> schedule) {
+    return new ZManaged<>(resource.retry(schedule));
   }
   
   public ZManaged<R, E, Tuple2<Duration, A>> timed() {
