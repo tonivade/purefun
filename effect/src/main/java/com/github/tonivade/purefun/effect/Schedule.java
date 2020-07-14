@@ -18,22 +18,19 @@ import com.github.tonivade.purefun.type.Either;
 
 public abstract class Schedule<R, S, A, B> {
   
-  private final URIO<R, S> initial;
+  private Schedule() { }
   
-  protected Schedule(URIO<R, S> initial) {
-    this.initial = checkNonNull(initial);
-  }
-  
-  public URIO<R, S> initial() {
-    return initial;
-  }
+  public abstract URIO<R, S> initial();
 
   public abstract B extract(A last, S state);
   
   public abstract ZIO<R, Unit, S> update(A last, S state);
   
   public <C> Schedule<R, S, A, C> map(Function1<B, C> mapper) {
-    return Schedule.of(initial, this::update, (a, s) -> mapper.apply(extract(a, s)));
+    return Schedule.of(
+      initial(), 
+      this::update, 
+      (a, s) -> mapper.apply(extract(a, s)));
   }
   
   public <C> Schedule<R, S, A, C> as(C value) {
@@ -41,7 +38,7 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public Schedule<R, S, A, Unit> unit() {
-    return map(ignore -> Unit.unit());
+    return as(Unit.unit());
   }
 
   public <T> Schedule<R, Either<S, T>, A, B> andThen(Schedule<R, T, A, B> next) {
@@ -50,7 +47,7 @@ public abstract class Schedule<R, S, A, B> {
 
   public <T, C> Schedule<R, Either<S, T>, A, Either<B, C>> andThenEither(Schedule<R, T, A, C> next) {
     return Schedule.of(
-        initial.map(Either::<S, T>left), 
+        initial().map(Either::<S, T>left), 
         (a, st) -> st.fold(
             s -> {
               ZIO<R, Unit, Either<S, T>> orElse = 
@@ -60,8 +57,18 @@ public abstract class Schedule<R, S, A, B> {
             t -> next.update(a, t).map(Either::<S, T>right)),
         (a, st) -> st.fold(
             s -> Either.left(this.extract(a, s)), 
-            t -> Either.right(next.extract(a, t)))
-        );
+            t -> Either.right(next.extract(a, t))));
+  }
+  
+  public <C> Schedule<R, S, C, B> contramap(Function1<C, A> comap) {
+    return Schedule.of(
+      initial(), 
+      (c, s) -> update(comap.apply(c), s), 
+      (c, s) -> extract(comap.apply(c), s));
+  }
+  
+  public <C, D> Schedule<R, S, C, D> dimap(Function1<C, A> comap, Function1<B, D> map) {
+    return contramap(comap).map(map);
   }
   
   public Schedule<R, Tuple2<S, ImmutableList<B>>, A, ImmutableList<B>> collect() {
@@ -73,11 +80,14 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public <Z> Schedule<R, Tuple2<S, Z>, A, Z> foldM(Z zero, Function2<Z, B, ZIO<R, Unit, Z>> next) {
-    return Schedule.of(initial.map(s -> Tuple.of(s, zero)), (a, sz) -> {
-      ZIO<R, Unit, S> update = update(a, sz.get1());
-      ZIO<R, Unit, Z> apply = next.apply(sz.get2(), extract(a, sz.get1()));
-      return ZIO.map2(update, apply, Tuple::of);
-    }, (a, sz) -> sz.get2());
+    return Schedule.of(
+      initial().map(s -> Tuple.of(s, zero)), 
+      (a, sz) -> {
+        ZIO<R, Unit, S> update = update(a, sz.get1());
+        ZIO<R, Unit, Z> apply = next.apply(sz.get2(), extract(a, sz.get1()));
+        return ZIO.map2(update, apply, Tuple::of);
+      }, 
+      (a, sz) -> sz.get2());
   }
   
   public Schedule<R, S, A, B> whileInput(Matcher1<A> matcher) {
@@ -103,24 +113,32 @@ public abstract class Schedule<R, S, A, B> {
     });
   }
   
-  public Schedule<R, S, A, B> updated(Function1<Update<R, S, A>, Update<R, S, A>> update) {
-    return Schedule.of(initial, update.apply(this::update)::update, this::extract);
+  private Schedule<R, S, A, B> updated(Function1<Update<R, S, A>, Update<R, S, A>> update) {
+    return Schedule.of(initial(), update.apply(this::update), this::extract);
   }
   
   public static <R, S, A, B> Schedule<R, S, A, B> of(
       URIO<R, S> initial, 
-      Function2<A, S, ZIO<R, Unit, S>> update,
-      Function2<A, S, B> extract) {
-    return new Schedule<R, S, A, B>(initial) {
+      Update<R, S, A> update,
+      Extract<A, S, B> extract) {
+    checkNonNull(initial);
+    checkNonNull(update);
+    checkNonNull(extract);
+    return new Schedule<R, S, A, B>() {
+      
+      @Override
+      public URIO<R, S> initial() {
+        return initial;
+      }
       
       @Override
       public ZIO<R, Unit, S> update(A last, S state) {
-        return update.apply(last, state);
+        return update.update(last, state);
       }
       
       @Override
       public B extract(A last, S state) {
-        return extract.apply(last, state);
+        return extract.extract(last, state);
       }
     };
   }
@@ -130,7 +148,10 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public static <R, A> Schedule<R, Unit, A, Unit> never() {
-    return Schedule.of(URIO.unit(), (a, s) -> ZIO.<R, Unit, Unit>raiseError(Unit.unit()), (a, never) -> never);
+    return Schedule.of(
+      URIO.unit(), 
+      (a, s) -> ZIO.<R, Unit, Unit>raiseError(Unit.unit()), 
+      (a, s) -> s);
   }
   
   public static <R, A> Schedule<R, Integer, A, Integer> forever() {
@@ -151,9 +172,16 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   @FunctionalInterface
-  interface Update<R, S, A> {
+  public static interface Update<R, S, A> {
 
-    ZIO<R, Unit, S> update(A las, S state);
+    ZIO<R, Unit, S> update(A last, S state);
+
+  }
+  
+  @FunctionalInterface
+  public static interface Extract<A, S, B> {
+
+    B extract(A last, S state);
 
   }
 }
