@@ -38,8 +38,8 @@ public interface ZRandom {
     return ZIO.accessM(env -> env.<R>random().nextChar());
   }
 
-  static <R extends ZRandom> ZIO<ZRandom, Nothing, String> nextString(int length) {
-    return ZIO.accessM(env -> env.random().nextString(length));
+  static <R extends ZRandom> ZIO<R, Nothing, String> nextString(int length) {
+    return ZIO.accessM(env -> env.<R>random().nextString(length));
   }
 
   interface Service<R extends ZRandom> {

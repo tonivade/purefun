@@ -33,6 +33,17 @@ public abstract class Schedule<R, S, A, B> {
       (a, s) -> mapper.apply(extract(a, s)));
   }
   
+  public <C> Schedule<R, S, C, B> contramap(Function1<C, A> comap) {
+    return Schedule.of(
+      initial(), 
+      (c, s) -> update(comap.apply(c), s), 
+      (c, s) -> extract(comap.apply(c), s));
+  }
+  
+  public <C, D> Schedule<R, S, C, D> dimap(Function1<C, A> comap, Function1<B, D> map) {
+    return contramap(comap).map(map);
+  }
+  
   public <C> Schedule<R, S, A, C> as(C value) {
     return map(ignore -> value);
   }
@@ -60,15 +71,28 @@ public abstract class Schedule<R, S, A, B> {
             t -> Either.right(next.extract(a, t))));
   }
   
-  public <C> Schedule<R, S, C, B> contramap(Function1<C, A> comap) {
-    return Schedule.of(
-      initial(), 
-      (c, s) -> update(comap.apply(c), s), 
-      (c, s) -> extract(comap.apply(c), s));
+  public <T, C> Schedule<R, Tuple2<S, T>, A, Tuple2<B, C>> both(Schedule<R, T, A, C> other) {
+    return Schedule.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
+      this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).orDie(), 
+      (a, st) -> {
+        ZIO<R, Unit, S> self = this.update(a, st.get1());
+        ZIO<R, Unit, T> next = other.update(a, st.get2());
+        return self.zip(next);
+      }, 
+      (a, st) -> Tuple.of(
+        this.extract(a, st.get1()), 
+        other.extract(a, st.get2())));
   }
   
-  public <C, D> Schedule<R, S, C, D> dimap(Function1<C, A> comap, Function1<B, D> map) {
-    return contramap(comap).map(map);
+  public <T, C> Schedule<R, Tuple2<S, T>, A, C> compose(Schedule<R, T, B, C> other) {
+    return Schedule.<R, Tuple2<S, T>, A, C>of(
+      this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).orDie(), 
+      (a, st) -> {
+        ZIO<R,Unit,S> self = this.update(a, st.get1());
+        ZIO<R,Unit,T> next = other.update(this.extract(a, st.get1()), st.get2());
+        return self.zip(next);
+      }, 
+      (a, st) -> other.extract(this.extract(a, st.get1()), st.get2()));
   }
   
   public Schedule<R, Tuple2<S, ImmutableList<B>>, A, ImmutableList<B>> collect() {
@@ -84,8 +108,8 @@ public abstract class Schedule<R, S, A, B> {
       initial().map(s -> Tuple.of(s, zero)), 
       (a, sz) -> {
         ZIO<R, Unit, S> update = update(a, sz.get1());
-        ZIO<R, Unit, Z> apply = next.apply(sz.get2(), extract(a, sz.get1()));
-        return ZIO.map2(update, apply, Tuple::of);
+        ZIO<R, Unit, Z> other = next.apply(sz.get2(), extract(a, sz.get1()));
+        return update.zip(other);
       }, 
       (a, sz) -> sz.get2());
   }

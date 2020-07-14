@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.effect.WrappedException.unwrap;
@@ -102,6 +103,22 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   default ZIO<R, E, A> orElse(ZIO<R, E, A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
+  }
+  
+  default <B> ZIO<R, E, Tuple2<A, B>> zip(ZIO<R, E, B> other) {
+    return zipWith(other, Tuple::of);
+  }
+  
+  default <B> ZIO<R, E, A> zipLeft(ZIO<R, E, B> other) {
+    return zipWith(other, first());
+  }
+  
+  default <B> ZIO<R, E, B> zipRight(ZIO<R, E, B> other) {
+    return zipWith(other, Function2.second());
+  }
+  
+  default <B, C> ZIO<R, E, C> zipWith(ZIO<R, E, B> other, Function2<A, B, C> mapper) {
+    return map2(this, other, mapper);
   }
 
   @Deprecated
