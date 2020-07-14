@@ -157,7 +157,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
     
     class Helper {
-      ZIO<R, E, Either<C, B>> loop(A later, S state) {
+      private ZIO<R, E, Either<C, B>> loop(A later, S state) {
         return schedule.update(later, state)
             .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
                 s -> foldM(
@@ -202,7 +202,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       Function2<E, S, ZIO<R, E, B>> orElse) {
     
     class Helper {
-      ZIO<R, E, Either<B, A>> loop(S state) {
+      private ZIO<R, E, Either<B, A>> loop(S state) {
         return foldM(error -> {
           ZIO<R, Unit, S> update = schedule.update(error, state);
           return update.foldM(
