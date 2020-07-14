@@ -6,7 +6,9 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Matcher1;
@@ -187,12 +189,28 @@ public abstract class Schedule<R, S, A, B> {
     };
   }
   
+  public static <R, A> Schedule<R, Integer, A, Integer> once() {
+    return recurs(1);
+  }
+  
   public static <R, A> Schedule<R, Integer, A, Integer> recurs(int times) {
     return Schedule.<R, A>forever().whileOutput(x -> x < times);
   }
   
   public static <R, A> Schedule<R, Integer, A, Integer> spaced(Duration delay) {
     return Schedule.<R, A>forever().addDelay(cons(delay));
+  }
+  
+  public static <R, A> Schedule<R, Integer, A, Duration> exponential(Duration delay) {
+    return exponential(delay, 2.0);
+  }
+  
+  public static <R, A> Schedule<R, Integer, A, Duration> exponential(Duration delay, double factor) {
+    return delayed(Schedule.<R, A>forever().map(i -> delay.multipliedBy((long) Math.pow(factor, i.doubleValue()))));
+  }
+  
+  public static <R, A> Schedule<R, Integer, A, Duration> delayed(Schedule<R, Integer, A, Duration> schedule) {
+    return schedule.addDelay(x -> x);
   }
   
   public static <R, A> Schedule<R, Tuple2<Integer, Integer>, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times) {
