@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.effect.WrappedException.unwrap;
@@ -114,7 +115,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
   
   default <B> ZIO<R, E, B> zipRight(ZIO<R, E, B> other) {
-    return zipWith(other, Function2.second());
+    return zipWith(other, second());
   }
   
   default <B, C> ZIO<R, E, C> zipWith(ZIO<R, E, B> other, Function2<A, B, C> mapper) {
@@ -743,6 +744,7 @@ interface ZIOModule {
     return current.provide(env);
   }
 
+  @Deprecated
   static <R, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> self, UIO<Unit> delay, int times) {
     return self.foldM(
         ZIO::<R, E, A>raiseError, value -> {
@@ -754,6 +756,7 @@ interface ZIOModule {
         });
   }
 
+  @Deprecated
   static <R, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> self, UIO<Unit> delay, int maxRetries) {
     return self.foldM(
         error -> {

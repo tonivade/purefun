@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.effect;
 
+import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.time.Duration;
@@ -17,6 +19,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -25,66 +28,66 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class EIO<E, T> implements EIOOf<E, T> {
+public final class EIO<E, A> implements EIOOf<E, A> {
 
   private static final EIO<?, Unit> UNIT = new EIO<>(ZIO.unit());
 
-  private final ZIO<Nothing, E, T> instance;
+  private final ZIO<Nothing, E, A> instance;
 
-  EIO(ZIO<Nothing, E, T> value) {
+  EIO(ZIO<Nothing, E, A> value) {
     this.instance = checkNonNull(value);
   }
 
   @SuppressWarnings("unchecked")
-  public <R> ZIO<R, E, T> toZIO() {
-    return (ZIO<R, E, T>) instance;
+  public <R> ZIO<R, E, A> toZIO() {
+    return (ZIO<R, E, A>) instance;
   }
 
-  public Either<E, T> safeRunSync() {
+  public Either<E, A> safeRunSync() {
     return instance.provide(nothing());
   }
 
-  public Future<Either<E, T>> toFuture() {
+  public Future<Either<E, A>> toFuture() {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
-  public Future<Either<E, T>> toFuture(Executor executor) {
+  public Future<Either<E, A>> toFuture(Executor executor) {
     return instance.toFuture(executor, nothing());
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<Try<Either<E, T>>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<Try<Either<E, A>>> callback) {
     instance.provideAsync(executor, nothing(), callback);
   }
 
-  public void safeRunAsync(Consumer1<Try<Either<E, T>>> callback) {
+  public void safeRunAsync(Consumer1<Try<Either<E, A>>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, A> foldMap(MonadDefer<F> monad) {
     return instance.foldMap(nothing(), monad);
   }
 
-  public <B> EIO<E, B> map(Function1<T, B> map) {
+  public <B> EIO<E, B> map(Function1<A, B> map) {
     return new EIO<>(instance.map(map));
   }
 
-  public <B> EIO<E, B> flatMap(Function1<T, EIO<E, B>> map) {
+  public <B> EIO<E, B> flatMap(Function1<A, EIO<E, B>> map) {
     return new EIO<>(instance.flatMap(value -> map.apply(value).instance));
   }
 
-  public EIO<T, E> swap() {
+  public EIO<A, E> swap() {
     return new EIO<>(instance.swap());
   }
 
-  public <B> EIO<B, T> mapError(Function1<E, B> map) {
+  public <B> EIO<B, A> mapError(Function1<E, B> map) {
     return new EIO<>(instance.mapError(map));
   }
 
-  public <F> EIO<F, T> flatMapError(Function1<E, EIO<F, T>> map) {
+  public <F> EIO<F, A> flatMapError(Function1<E, EIO<F, A>> map) {
     return new EIO<>(instance.flatMapError(error -> map.apply(error).instance));
   }
 
-  public <B, F> EIO<F, B> bimap(Function1<E, F> mapError, Function1<T, B> map) {
+  public <B, F> EIO<F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
     return new EIO<>(instance.bimap(mapError, map));
   }
 
@@ -92,84 +95,93 @@ public final class EIO<E, T> implements EIOOf<E, T> {
     return new EIO<>(instance.andThen(next.instance));
   }
 
-  public <B, F> EIO<F, B> foldM(Function1<E, EIO<F, B>> mapError, Function1<T, EIO<F, B>> map) {
+  public <B, F> EIO<F, B> foldM(Function1<E, EIO<F, B>> mapError, Function1<A, EIO<F, B>> map) {
     return new EIO<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
   }
 
-  public <B> UIO<B> fold(Function1<E, B> mapError, Function1<T, B> map) {
+  public <B> UIO<B> fold(Function1<E, B> mapError, Function1<A, B> map) {
     return new UIO<>(instance.fold(mapError, map));
   }
 
-  public UIO<T> recover(Function1<E, T> mapError) {
+  public UIO<A> recover(Function1<E, A> mapError) {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public EIO<E, T> orElse(EIO<E, T> other) {
+  public EIO<E, A> orElse(EIO<E, A> other) {
     return new EIO<>(instance.orElse(other.instance));
   }
+  
+  public <B> EIO<E, Tuple2<A, B>> zip(EIO<E, B> other) {
+    return zipWith(other, Tuple::of);
+  }
+  
+  public <B> EIO<E, A> zipLeft(EIO<E, B> other) {
+    return zipWith(other, first());
+  }
+  
+  public <B> EIO<E, B> zipRight(EIO<E, B> other) {
+    return zipWith(other, second());
+  }
+  
+  public <B, C> EIO<E, C> zipWith(EIO<E, B> other, Function2<A, B, C> mapper) {
+    return map2(this, other, mapper);
+  }
 
-  public EIO<E, T> repeat() {
+  public EIO<E, A> repeat() {
     return repeat(1);
   }
 
-  public EIO<E, T> repeat(int times) {
-    return repeat(UIO.unit(), times);
+  @Deprecated
+  public EIO<E, A> repeat(int times) {
+    return new EIO<>(instance.repeat(times));
   }
 
-  public EIO<E, T> repeat(Duration delay) {
+  @Deprecated
+  public EIO<E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  public EIO<E, T> repeat(Duration delay, int times) {
-    return repeat(UIO.sleep(delay), times);
+  @Deprecated
+  public EIO<E, A> repeat(Duration delay, int times) {
+    return new EIO<>(instance.repeat(delay, times));
+  }
+  
+  public <S, B> EIO<E, B> repeat(Schedule<Nothing, S, A, B> schedule) {
+    return new EIO<>(instance.repeat(schedule));
   }
 
-  public EIO<E, T> retry() {
+  public EIO<E, A> retry() {
     return retry(1);
   }
 
-  public EIO<E, T> retry(int maxRetries) {
-    return retry(UIO.unit(), maxRetries);
+  public EIO<E, A> retry(int maxRetries) {
+    return retry(Schedule.recurs(maxRetries));
   }
 
-  public EIO<E, T> retry(Duration delay) {
+  @Deprecated
+  public EIO<E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  public EIO<E, T> retry(Duration delay, int maxRetries) {
-    return retry(UIO.sleep(delay), maxRetries);
+  @Deprecated
+  public EIO<E, A> retry(Duration delay, int maxRetries) {
+    return new EIO<>(instance.retry(delay, maxRetries));
+  }
+  
+  public <S> EIO<E, A> retry(Schedule<Nothing, S, E, S> schedule) {
+    return new EIO<>(instance.retry(schedule));
   }
 
-  public EIO<E, Tuple2<Duration, T>> timed() {
+  public EIO<E, Tuple2<Duration, A>> timed() {
     return new EIO<>(instance.timed());
   }
   
-  public <X extends Throwable> EIO<X, T> refineOrDie(Class<X> type) {
+  public <X extends Throwable> EIO<X, A> refineOrDie(Class<X> type) {
     return new EIO<>(instance.refineOrDie(type));
   }
   
-  public UIO<T> orDie() {
+  public UIO<A> orDie() {
     return new UIO<>(instance.orDie().toZIO());
-  }
-
-  private EIO<E, T> repeat(UIO<Unit> pause, int times) {
-    return foldM(EIO::raiseError, value -> {
-      if (times > 0) {
-        return pause.<E>toEIO().andThen(repeat(pause, times - 1));
-      } else {
-        return pure(value);
-      }
-    });
-  }
-
-  private EIO<E, T> retry(UIO<Unit> pause, int maxRetries) {
-    return foldM(error -> {
-      if (maxRetries > 0) {
-        return pause.<E>toEIO().andThen(retry(pause.repeat(), maxRetries - 1));
-      } else {
-        return raiseError(error);
-      }
-    }, EIO::pure);
   }
 
   public static <E, A, B, C> EIO<E, C> map2(EIO<E, A> za, EIO<E, B> zb, Function2<A, B, C> mapper) {

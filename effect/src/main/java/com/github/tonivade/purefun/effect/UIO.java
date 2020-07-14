@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.time.Duration;
@@ -19,6 +21,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -27,73 +30,73 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class UIO<T> implements UIOOf<T>, Recoverable {
+public final class UIO<A> implements UIOOf<A>, Recoverable {
 
   private static final UIO<Unit> UNIT = new UIO<>(ZIO.unit());
 
-  private final ZIO<Nothing, Nothing, T> instance;
+  private final ZIO<Nothing, Nothing, A> instance;
 
-  UIO(ZIO<Nothing, Nothing, T> value) {
+  UIO(ZIO<Nothing, Nothing, A> value) {
     this.instance = checkNonNull(value);
   }
 
-  public T unsafeRunSync() {
+  public A unsafeRunSync() {
     return instance.provide(nothing()).get();
   }
 
-  public Try<T> safeRunSync() {
+  public Try<A> safeRunSync() {
     return Try.of(this::unsafeRunSync);
   }
 
   @SuppressWarnings("unchecked")
-  public <R, E> ZIO<R, E, T> toZIO() {
-    return (ZIO<R, E, T>) instance;
+  public <R, E> ZIO<R, E, A> toZIO() {
+    return (ZIO<R, E, A>) instance;
   }
 
   @SuppressWarnings("unchecked")
-  public <E> EIO<E, T> toEIO() {
-    return new EIO<>((ZIO<Nothing, E, T>) instance);
+  public <E> EIO<E, A> toEIO() {
+    return new EIO<>((ZIO<Nothing, E, A>) instance);
   }
 
   @SuppressWarnings("unchecked")
-  public <R> RIO<R, T> toRIO() {
-    return new RIO<>((ZIO<R, Throwable, T>) ZIO.redeem(instance));
+  public <R> RIO<R, A> toRIO() {
+    return new RIO<>((ZIO<R, Throwable, A>) ZIO.redeem(instance));
   }
 
   @SuppressWarnings("unchecked")
-  public <R> URIO<R, T> toURIO() {
-    return new URIO<>((ZIO<R, Nothing, T>) instance);
+  public <R> URIO<R, A> toURIO() {
+    return new URIO<>((ZIO<R, Nothing, A>) instance);
   }
 
-  public Task<T> toTask() {
+  public Task<A> toTask() {
     return new Task<>(ZIO.redeem(instance));
   }
 
-  public Future<T> toFuture() {
+  public Future<A> toFuture() {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
-  public Future<T> toFuture(Executor executor) {
+  public Future<A> toFuture(Executor executor) {
     return instance.toFuture(executor, nothing()).map(Either::get);
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<Try<A>> callback) {
     instance.provideAsync(executor, nothing(), result -> callback.accept(result.map(Either::get)));
   }
 
-  public void safeRunAsync(Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Consumer1<Try<A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, A> foldMap(MonadDefer<F> monad) {
     return instance.foldMap(nothing(), monad);
   }
 
-  public <B> UIO<B> map(Function1<T, B> map) {
+  public <B> UIO<B> map(Function1<A, B> map) {
     return new UIO<>(instance.map(map));
   }
 
-  public <B> UIO<B> flatMap(Function1<T, UIO<B>> map) {
+  public <B> UIO<B> flatMap(Function1<A, UIO<B>> map) {
     return new UIO<>(instance.flatMap(x -> map.apply(x).instance));
   }
 
@@ -101,12 +104,12 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
     return new UIO<>(instance.andThen(next.instance));
   }
 
-  public UIO<T> recover(Function1<Throwable, T> mapError) {
+  public UIO<A> recover(Function1<Throwable, A> mapError) {
     return redeem(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> UIO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+  public <X extends Throwable> UIO<A> recoverWith(Class<X> type, Function1<X, A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -115,68 +118,78 @@ public final class UIO<T> implements UIOOf<T>, Recoverable {
     });
   }
 
-  public <B> UIO<B> redeem(Function1<Throwable, B> mapError, Function1<T, B> map) {
+  public <B> UIO<B> redeem(Function1<Throwable, B> mapError, Function1<A, B> map) {
     return redeemWith(mapError.andThen(UIO::pure), map.andThen(UIO::pure));
   }
 
-  public <B> UIO<B> redeemWith(Function1<Throwable, UIO<B>> mapError, Function1<T, UIO<B>> map) {
+  public <B> UIO<B> redeemWith(Function1<Throwable, UIO<B>> mapError, Function1<A, UIO<B>> map) {
     return new UIO<>(ZIO.redeem(instance).foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
   }
+  
+  public <B> UIO<Tuple2<A, B>> zip(UIO<B> other) {
+    return zipWith(other, Tuple::of);
+  }
+  
+  public <B> UIO<A> zipLeft(UIO<B> other) {
+    return zipWith(other, first());
+  }
+  
+  public <B> UIO<B> zipRight(UIO<B> other) {
+    return zipWith(other, second());
+  }
+  
+  public <B, C> UIO<C> zipWith(UIO<B> other, Function2<A, B, C> mapper) {
+    return map2(this, other, mapper);
+  }
 
-  public UIO<T> repeat() {
+  @Deprecated
+  public UIO<A> repeat() {
     return repeat(1);
   }
 
-  public UIO<T> repeat(int times) {
-    return repeat(unit(), times);
+  @Deprecated
+  public UIO<A> repeat(int times) {
+    return fold(toTask().repeat(times).toZIO());
   }
 
-  public UIO<T> repeat(Duration delay) {
+  @Deprecated
+  public UIO<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  public UIO<T> repeat(Duration delay, int times) {
-    return repeat(sleep(delay), times);
+  @Deprecated
+  public UIO<A> repeat(Duration delay, int times) {
+    return fold(toTask().repeat(delay, times).toZIO());
+  }
+  
+  public <S, B> UIO<B> repeat(Schedule<Nothing, S, A, B> schedule) {
+    return fold(toTask().repeat(schedule).toZIO());
   }
 
-  public UIO<T> retry() {
+  public UIO<A> retry() {
     return retry(1);
   }
 
-  public UIO<T> retry(int maxRetries) {
-    return retry(unit(), maxRetries);
+  public UIO<A> retry(int maxRetries) {
+    return retry(Schedule.recurs(maxRetries));
   }
 
-  public UIO<T> retry(Duration delay) {
+  @Deprecated
+  public UIO<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  public UIO<T> retry(Duration delay, int maxRetries) {
-    return retry(sleep(delay), maxRetries);
+  @Deprecated
+  public UIO<A> retry(Duration delay, int maxRetries) {
+    return fold(toTask().retry(delay, maxRetries).toZIO());
+  }
+  
+  public <S> UIO<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {
+    return fold(toTask().retry(schedule).toZIO());
   }
 
-  public UIO<Tuple2<Duration, T>> timed() {
+  public UIO<Tuple2<Duration, A>> timed() {
     return new UIO<>(instance.timed());
-  }
-
-  private UIO<T> repeat(UIO<Unit> pause, int times) {
-    return redeemWith(UIO::raiseError, value -> {
-      if (times > 0) {
-        return pause.andThen(repeat(pause, times - 1));
-      } else {
-        return pure(value);
-      }
-    });
-  }
-
-  private UIO<T> retry(UIO<Unit> pause, int maxRetries) {
-    return redeemWith(error -> {
-      if (maxRetries > 0) {
-        return pause.andThen(retry(pause.repeat(), maxRetries - 1));
-      } else {
-        return raiseError(error);
-      }
-    }, UIO::pure);
   }
 
   public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {

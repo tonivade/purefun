@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.time.Duration;
@@ -19,6 +21,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -27,59 +30,59 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class Task<T> implements TaskOf<T>, Recoverable {
+public final class Task<A> implements TaskOf<A>, Recoverable {
 
   private static final Task<Unit> UNIT = new Task<>(ZIO.unit());
 
-  private final ZIO<Nothing, Throwable, T> instance;
+  private final ZIO<Nothing, Throwable, A> instance;
 
-  Task(ZIO<Nothing, Throwable, T> value) {
+  Task(ZIO<Nothing, Throwable, A> value) {
     this.instance = checkNonNull(value);
   }
 
   @SuppressWarnings("unchecked")
-  public <R> ZIO<R, Throwable, T> toZIO() {
-    return (ZIO<R, Throwable, T>) instance;
+  public <R> ZIO<R, Throwable, A> toZIO() {
+    return (ZIO<R, Throwable, A>) instance;
   }
 
-  public EIO<Throwable, T> toEIO() {
+  public EIO<Throwable, A> toEIO() {
     return new EIO<>(instance);
   }
 
   @SuppressWarnings("unchecked")
-  public <R> RIO<R, T> toURIO() {
-    return new RIO<>((ZIO<R, Throwable, T>)instance);
+  public <R> RIO<R, A> toURIO() {
+    return new RIO<>((ZIO<R, Throwable, A>)instance);
   }
 
-  public Try<T> safeRunSync() {
+  public Try<A> safeRunSync() {
     return Try.fromEither(instance.provide(nothing()));
   }
 
-  public Future<Try<T>> toFuture() {
+  public Future<Try<A>> toFuture() {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
-  public Future<Try<T>> toFuture(Executor executor) {
+  public Future<Try<A>> toFuture(Executor executor) {
     return instance.toFuture(executor, nothing()).map(Try::fromEither);
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<Try<A>> callback) {
     instance.provideAsync(executor, nothing(), result -> callback.accept(flatAbsorb(result)));
   }
 
-  public void safeRunAsync(Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Consumer1<Try<A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Witness> Kind<F, T> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, A> foldMap(MonadDefer<F> monad) {
     return instance.foldMap(nothing(), monad);
   }
 
-  public <B> Task<B> map(Function1<T, B> map) {
+  public <B> Task<B> map(Function1<A, B> map) {
     return flatMap(lift(map));
   }
 
-  public <B> Task<B> flatMap(Function1<T, Task<B>> map) {
+  public <B> Task<B> flatMap(Function1<A, Task<B>> map) {
     return new Task<>(instance.flatMap(value -> map.apply(value).instance));
   }
 
@@ -87,16 +90,16 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     return new Task<>(instance.andThen(next.instance));
   }
 
-  public <B> Task<B> foldM(Function1<Throwable, Task<B>> mapError, Function1<T, Task<B>> map) {
+  public <B> Task<B> foldM(Function1<Throwable, Task<B>> mapError, Function1<A, Task<B>> map) {
     return new Task<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
   }
 
-  public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<T, B> map) {
+  public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<A, B> map) {
     return new UIO<>(instance.fold(mapError, map));
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> UIO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+  public <X extends Throwable> UIO<A> recoverWith(Class<X> type, Function1<X, A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -105,72 +108,82 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     });
   }
 
-  public UIO<T> recover(Function1<Throwable, T> mapError) {
+  public UIO<A> recover(Function1<Throwable, A> mapError) {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public Task<T> orElse(Task<T> other) {
+  public Task<A> orElse(Task<A> other) {
     return new Task<>(instance.orElse(other.instance));
   }
+  
+  public <B> Task<Tuple2<A, B>> zip(Task<B> other) {
+    return zipWith(other, Tuple::of);
+  }
+  
+  public <B> Task<A> zipLeft(Task<B> other) {
+    return zipWith(other, first());
+  }
+  
+  public <B> Task<B> zipRight(Task<B> other) {
+    return zipWith(other, second());
+  }
+  
+  public <B, C> Task<C> zipWith(Task<B> other, Function2<A, B, C> mapper) {
+    return map2(this, other, mapper);
+  }
 
-  public Task<T> repeat() {
+  @Deprecated
+  public Task<A> repeat() {
     return repeat(1);
   }
 
-  public Task<T> repeat(int times) {
-    return repeat(unit(), times);
+  @Deprecated
+  public Task<A> repeat(int times) {
+    return new Task<>(instance.repeat(times));
   }
 
-  public Task<T> repeat(Duration delay) {
+  @Deprecated
+  public Task<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  public Task<T> repeat(Duration delay, int times) {
-    return repeat(sleep(delay), times);
+  @Deprecated
+  public Task<A> repeat(Duration delay, int times) {
+    return new Task<>(instance.repeat(delay, times));
+  }
+  
+  public <S, B> Task<B> repeat(Schedule<Nothing, S, A, B> schedule) {
+    return new Task<>(instance.repeat(schedule));
   }
 
-  public Task<T> retry() {
+  public Task<A> retry() {
     return retry(1);
   }
 
-  public Task<T> retry(int maxRetries) {
-    return retry(unit(), maxRetries);
+  public Task<A> retry(int maxRetries) {
+    return retry(Schedule.recurs(maxRetries));
   }
 
-  public Task<T> retry(Duration delay) {
+  @Deprecated
+  public Task<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  public Task<T> retry(Duration delay, int maxRetries) {
-    return retry(sleep(delay), maxRetries);
+  @Deprecated
+  public Task<A> retry(Duration delay, int maxRetries) {
+    return new Task<>(instance.repeat(delay, maxRetries));
+  }
+  
+  public <S> Task<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {
+    return new Task<>(instance.retry(schedule));
   }
 
-  public Task<Tuple2<Duration, T>> timed() {
+  public Task<Tuple2<Duration, A>> timed() {
     return new Task<>(instance.timed());
   }
   
-  public UIO<T> orDie() {
+  public UIO<A> orDie() {
     return recover(this::sneakyThrow);
-  }
-
-  private Task<T> repeat(Task<Unit> pause, int times) {
-    return foldM(Task::raiseError, value -> {
-      if (times > 0) {
-        return pause.andThen(repeat(pause, times - 1));
-      } else {
-        return pure(value);
-      }
-    });
-  }
-
-  private Task<T> retry(Task<Unit> pause, int maxRetries) {
-    return foldM(error -> {
-      if (maxRetries > 0) {
-        return pause.andThen(retry(pause.repeat(), maxRetries - 1));
-      } else {
-        return raiseError(error);
-      }
-    }, Task::pure);
   }
 
   public static <A, B, C> Task<C> map2(Task<A> za, Task<B> zb, Function2<A, B, C> mapper) {
@@ -225,7 +238,7 @@ public final class Task<T> implements TaskOf<T>, Recoverable {
     return UNIT;
   }
 
-  private Try<T> flatAbsorb(Try<Either<Throwable, T>> result) {
+  private Try<A> flatAbsorb(Try<Either<Throwable, A>> result) {
     return result.map(Try::fromEither).flatMap(identity());
   }
 }
