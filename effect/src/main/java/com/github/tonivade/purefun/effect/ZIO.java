@@ -171,24 +171,20 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
         a -> schedule.initial().<E>toZIO().flatMap(s -> new Helper().loop(a, s)));
   }
 
-  @Deprecated
   default ZIO<R, E, A> retry() {
     return retry(1);
   }
 
-  @Deprecated
   default ZIO<R, E, A> retry(int maxRetries) {
-    return ZIOModule.retry(this, UIO.unit(), maxRetries);
+    return retry(Schedule.recurs(maxRetries));
   }
 
-  @Deprecated
   default ZIO<R, E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  @Deprecated
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
-    return ZIOModule.retry(this, UIO.sleep(delay), maxRetries);
+    return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
   }
   
   default <S> ZIO<R, E, A> retry(Schedule<R, S, E, S> schedule) {

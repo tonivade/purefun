@@ -160,14 +160,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return retry(Schedule.recurs(maxRetries));
   }
 
-  @Deprecated
   public RIO<R, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  @Deprecated
   public RIO<R, A> retry(Duration delay, int maxRetries) {
-    return new RIO<>(instance.repeat(delay, maxRetries));
+    return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }
   
   public <S> RIO<R, A> retry(Schedule<R, S, Throwable, S> schedule) {

@@ -170,7 +170,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
 
   @Deprecated
   public URIO<R, A> retry(Duration delay, int maxRetries) {
-    return fold(toRIO().retry(delay, maxRetries).toZIO());
+    return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }
   
   public <S> URIO<R, A> retry(Schedule<R, S, Throwable, S> schedule) {

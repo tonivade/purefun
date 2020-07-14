@@ -174,14 +174,12 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return retry(Schedule.recurs(maxRetries));
   }
 
-  @Deprecated
   public UIO<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  @Deprecated
   public UIO<A> retry(Duration delay, int maxRetries) {
-    return fold(toTask().retry(delay, maxRetries).toZIO());
+    return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
   
   public <S> UIO<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {

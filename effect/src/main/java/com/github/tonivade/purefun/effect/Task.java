@@ -164,14 +164,12 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return retry(Schedule.recurs(maxRetries));
   }
 
-  @Deprecated
   public Task<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  @Deprecated
   public Task<A> retry(Duration delay, int maxRetries) {
-    return new Task<>(instance.repeat(delay, maxRetries));
+    return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
   
   public <S> Task<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {

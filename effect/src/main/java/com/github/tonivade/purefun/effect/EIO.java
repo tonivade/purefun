@@ -159,14 +159,12 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return retry(Schedule.recurs(maxRetries));
   }
 
-  @Deprecated
   public EIO<E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  @Deprecated
   public EIO<E, A> retry(Duration delay, int maxRetries) {
-    return new EIO<>(instance.retry(delay, maxRetries));
+    return retry(Schedule.<Nothing, E>recursSpaced(delay, maxRetries));
   }
   
   public <S> EIO<E, A> retry(Schedule<Nothing, S, E, S> schedule) {

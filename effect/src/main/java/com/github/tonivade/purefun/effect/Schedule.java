@@ -195,6 +195,10 @@ public abstract class Schedule<R, S, A, B> {
     return Schedule.<R, A>forever().addDelay(cons(delay));
   }
   
+  public static <R, A> Schedule<R, Tuple2<Integer, Integer>, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times) {
+    return Schedule.<R, A>recurs(times).both(Schedule.<R, A>spaced(delay));
+  }
+  
   public static <R, A> Schedule<R, Unit, A, Unit> never() {
     return Schedule.of(
       URIO.unit(), 
