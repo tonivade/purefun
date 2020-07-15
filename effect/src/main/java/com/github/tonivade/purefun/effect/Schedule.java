@@ -74,7 +74,7 @@ public abstract class Schedule<R, S, A, B> {
             t -> Either.right(next.extract(a, t))));
   }
   
-  public <T, C> Schedule<R, Tuple2<S, T>, A, Tuple2<B, C>> both(Schedule<R, T, A, C> other) {
+  public <T, C> Schedule<R, Tuple2<S, T>, A, Tuple2<B, C>> zip(Schedule<R, T, A, C> other) {
     return Schedule.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
       this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).orDie(), 
       (a, st) -> {
@@ -85,6 +85,14 @@ public abstract class Schedule<R, S, A, B> {
       (a, st) -> Tuple.of(
         this.extract(a, st.get1()), 
         other.extract(a, st.get2())));
+  }
+
+  public <T, C> Schedule<R, Tuple2<S, T>, A, B> zipLeft(Schedule<R, T, A, C> other) {
+    return zip(other).map(Tuple2::get1);
+  }
+
+  public <T, C> Schedule<R, Tuple2<S, T>, A, C> zipRight(Schedule<R, T, A, C> other) {
+    return zip(other).map(Tuple2::get2);
   }
   
   public <T, C> Schedule<R, Tuple2<S, T>, A, C> compose(Schedule<R, T, B, C> other) {
@@ -136,25 +144,49 @@ public abstract class Schedule<R, S, A, B> {
     });
   }
   
-  public Schedule<R, S, A, B> whileInput(Matcher1<A> matcher) {
-    return whileInputM(matcher.asFunction().andThen(UIO::pure));
+  public Schedule<R, S, A, B> whileInput(Matcher1<A> condition) {
+    return whileInputM(condition.asFunction().andThen(UIO::pure));
   }
   
-  public Schedule<R, S, A, B> whileInputM(Function1<A, UIO<Boolean>> matcher) {
-    return check((a, b) -> matcher.apply(a));
+  public Schedule<R, S, A, B> whileInputM(Function1<A, UIO<Boolean>> condition) {
+    return check((a, b) -> condition.apply(a));
   }
   
-  public Schedule<R, S, A, B> whileOutput(Matcher1<B> matcher) {
-    return whileOutputM(matcher.asFunction().andThen(UIO::pure));
+  public Schedule<R, S, A, B> whileOutput(Matcher1<B> condition) {
+    return whileOutputM(condition.asFunction().andThen(UIO::pure));
   }
   
-  public Schedule<R, S, A, B> whileOutputM(Function1<B, UIO<Boolean>> matcher) {
-    return check((a, b) -> matcher.apply(b));
+  public Schedule<R, S, A, B> whileOutputM(Function1<B, UIO<Boolean>> condition) {
+    return check((a, b) -> condition.apply(b));
   }
   
-  public Schedule<R, S, A, B> check(Function2<A, B, UIO<Boolean>> test) {
+  public Schedule<R, S, A, B> untilInput(Matcher1<A> condition) {
+    return untilInputM(condition.asFunction().andThen(UIO::pure));
+  }
+  
+  public Schedule<R, S, A, B> untilInputM(Function1<A, UIO<Boolean>> condition) {
     return updated(update -> (a, s) -> {
-      ZIO<R, Unit, Boolean> apply = test.apply(a, this.extract(a, s)).toZIO();
+      UIO<Boolean> apply = condition.apply(a);
+      return apply.<R, Unit>toZIO()
+        .flatMap(test -> test ? ZIO.raiseError(Unit.unit()) : update(a, s));
+    });
+  }
+  
+  public Schedule<R, S, A, B> untilOutput(Matcher1<B> condition) {
+    return untilOutputM(condition.asFunction().andThen(UIO::pure));
+  }
+  
+  public Schedule<R, S, A, B> untilOutputM(Function1<B, UIO<Boolean>> condition) {
+    return updated(update -> (a, s) -> {
+      UIO<Boolean> apply = condition.apply(extract(a, s));
+      return apply.<R, Unit>toZIO()
+        .flatMap(test -> test ? ZIO.raiseError(Unit.unit()) : update(a, s));
+    });
+  }
+  
+  public Schedule<R, S, A, B> check(Function2<A, B, UIO<Boolean>> condition) {
+    return updated(update -> (a, s) -> {
+      ZIO<R, Unit, Boolean> apply = condition.apply(a, this.extract(a, s)).toZIO();
       return apply.flatMap(result -> result != null && result ? update.update(a, s) : ZIO.raiseError(Unit.unit()));
     });
   }
@@ -189,8 +221,8 @@ public abstract class Schedule<R, S, A, B> {
     };
   }
   
-  public static <R, A> Schedule<R, Integer, A, Integer> once() {
-    return recurs(1);
+  public static <R, A> Schedule<R, Integer, A, Unit> once() {
+    return Schedule.<R, A>recurs(1).unit();
   }
   
   public static <R, A> Schedule<R, Integer, A, Integer> recurs(int times) {
@@ -199,6 +231,10 @@ public abstract class Schedule<R, S, A, B> {
   
   public static <R, A> Schedule<R, Integer, A, Integer> spaced(Duration delay) {
     return Schedule.<R, A>forever().addDelay(cons(delay));
+  }
+  
+  public static <R, A> Schedule<R, Integer, A, Duration> linear(Duration delay) {
+    return delayed(Schedule.<R, A>forever().map(i -> delay.multipliedBy(i + 1)));
   }
   
   public static <R, A> Schedule<R, Integer, A, Duration> exponential(Duration delay) {
@@ -214,7 +250,7 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public static <R, A> Schedule<R, Tuple2<Integer, Integer>, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times) {
-    return Schedule.<R, A>recurs(times).both(Schedule.<R, A>spaced(delay));
+    return Schedule.<R, A>recurs(times).zip(Schedule.<R, A>spaced(delay));
   }
   
   public static <R, A> Schedule<R, Unit, A, Unit> never() {
@@ -230,6 +266,28 @@ public abstract class Schedule<R, S, A, B> {
   
   public static <R, A, B> Schedule<R, Integer, A, B> succeed(B value) {
     return Schedule.<R, A>forever().as(value);
+  }
+  
+  public static <R, A> Schedule<R, Unit, A, A> identity() {
+    return Schedule.of(URIO.unit(), 
+      (a, s) -> ZIO.unit(), 
+      (a, s) -> a);
+  }
+  
+  public static <R, A> Schedule<R, Unit, A, A> doWhile(Matcher1<A> condition) {
+    return doWhileM(condition.asFunction().andThen(UIO::pure));
+  }
+  
+  public static <R, A> Schedule<R, Unit, A, A> doWhileM(Function1<A, UIO<Boolean>> condition) {
+    return Schedule.<R, A>identity().whileInputM(condition);
+  }
+  
+  public static <R, A> Schedule<R, Unit, A, A> doUntil(Matcher1<A> condition) {
+    return doWhileM(condition.asFunction().andThen(UIO::pure));
+  }
+  
+  public static <R, A> Schedule<R, Unit, A, A> doUntilM(Function1<A, UIO<Boolean>> condition) {
+    return Schedule.<R, A>identity().untilInputM(condition);
   }
   
   public static <R, A, B> Schedule<R, B, A, B> unfold(B initial, Operator1<B> next) {

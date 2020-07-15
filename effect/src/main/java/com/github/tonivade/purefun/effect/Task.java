@@ -132,22 +132,18 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return map2(this, other, mapper);
   }
 
-  @Deprecated
   public Task<A> repeat() {
     return repeat(1);
   }
 
-  @Deprecated
   public Task<A> repeat(int times) {
     return new Task<>(instance.repeat(times));
   }
 
-  @Deprecated
   public Task<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  @Deprecated
   public Task<A> repeat(Duration delay, int times) {
     return new Task<>(instance.repeat(delay, times));
   }

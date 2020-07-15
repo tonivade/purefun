@@ -122,24 +122,20 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return map2(this, other, mapper);
   }
 
-  @Deprecated
   default ZIO<R, E, A> repeat() {
     return repeat(1);
   }
 
-  @Deprecated
   default ZIO<R, E, A> repeat(int times) {
-    return ZIOModule.repeat(this, UIO.unit(), times);
+    return repeat(Schedule.<R, A>recurs(times).zipRight(Schedule.identity()));
   }
 
-  @Deprecated
   default ZIO<R, E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  @Deprecated
   default ZIO<R, E, A> repeat(Duration delay, int times) {
-    return ZIOModule.repeat(this, UIO.sleep(delay), times);
+    return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
   }
   
   default <S, B> ZIO<R, E, B> repeat(Schedule<R, S, A, B> schedule) {
@@ -156,6 +152,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       Schedule<R, S, A, B> schedule, 
       Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
     
+    // XXX: not stack safe
     class Helper {
       private ZIO<R, E, Either<C, B>> loop(A later, S state) {
         return schedule.update(later, state)
@@ -201,6 +198,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       Schedule<R, S, E, S> schedule,
       Function2<E, S, ZIO<R, E, B>> orElse) {
     
+    // XXX: not stack safe
     class Helper {
       private ZIO<R, E, Either<B, A>> loop(S state) {
         return foldM(error -> {
@@ -738,30 +736,6 @@ interface ZIOModule {
       }
     }
     return current.provide(env);
-  }
-
-  @Deprecated
-  static <R, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> self, UIO<Unit> delay, int times) {
-    return self.foldM(
-        ZIO::<R, E, A>raiseError, value -> {
-          if (times > 0) {
-            return delay.<R, E>toZIO().andThen(repeat(self, delay, times - 1));
-          } else {
-            return ZIO.pure(value);
-          }
-        });
-  }
-
-  @Deprecated
-  static <R, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> self, UIO<Unit> delay, int maxRetries) {
-    return self.foldM(
-        error -> {
-          if (maxRetries > 0) {
-            return delay.<R, E>toZIO().andThen(retry(self, delay.repeat(), maxRetries - 1));
-          } else {
-            return ZIO.raiseError(error);
-          }
-        }, ZIO::<R, E, A>pure);
   }
 }
 

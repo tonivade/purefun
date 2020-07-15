@@ -142,28 +142,24 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return map2(this, other, mapper);
   }
 
-  @Deprecated
   public UIO<A> repeat() {
     return repeat(1);
   }
 
-  @Deprecated
   public UIO<A> repeat(int times) {
-    return fold(toTask().repeat(times).toZIO());
+    return fold(ZIO.redeem(instance).repeat(times));
   }
 
-  @Deprecated
   public UIO<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  @Deprecated
   public UIO<A> repeat(Duration delay, int times) {
-    return fold(toTask().repeat(delay, times).toZIO());
+    return fold(ZIO.redeem(instance).repeat(delay, times));
   }
   
   public <S, B> UIO<B> repeat(Schedule<Nothing, S, A, B> schedule) {
-    return fold(toTask().repeat(schedule).toZIO());
+    return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
   public UIO<A> retry() {
@@ -183,7 +179,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
   }
   
   public <S> UIO<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {
-    return fold(toTask().retry(schedule).toZIO());
+    return fold(ZIO.redeem(instance).retry(schedule));
   }
 
   public UIO<Tuple2<Duration, A>> timed() {

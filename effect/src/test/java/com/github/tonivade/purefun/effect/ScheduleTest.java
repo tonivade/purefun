@@ -33,26 +33,24 @@ public class ScheduleTest {
   @Test
   public void repeat(@Mock Consumer1<String> console) {
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    Schedule<Nothing, Integer, Unit, Integer> recurs = Schedule.recurs(2);
-    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(recurs);
+    ZIO<Nothing, Throwable, Unit> repeat = print.repeat(Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity()));
     
-    Either<Throwable, Integer> provide = repeat.provide(nothing());
+    Either<Throwable, Unit> provide = repeat.provide(nothing());
     
-    assertEquals(Either.right(2), provide);
+    assertEquals(Either.right(Unit.unit()), provide);
     verify(console, times(3)).accept("hola");
   }
 
   @Test
   public void repeatDelay(@Mock Consumer1<String> console) {
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    Schedule<Nothing, Integer, Unit, Integer> recurs = Schedule.recurs(2);
+    Schedule<Nothing, Tuple2<Integer, Unit>, Unit, Unit> recurs = Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity());
     Schedule<Nothing, Integer, Unit, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
-    ZIO<Nothing, Throwable, Tuple2<Duration, Tuple2<Integer, Integer>>> repeat = print.repeat(recurs.both(spaced)).timed();
+    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = print.repeat(recurs.zipLeft(spaced)).timed();
     
-    Either<Throwable, Tuple2<Duration, Tuple2<Integer, Integer>>> provide = repeat.provide(nothing());
+    Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
     
     assertTrue(provide.map(Tuple2::get1).getRight().toMillis() > 1000);
-    assertEquals(Either.right(2), provide.map(Tuple2::get2).map(Tuple2::get2));
     verify(console, times(3)).accept("hola");
   }
   
@@ -87,7 +85,7 @@ public class ScheduleTest {
     ZIO<Nothing, Throwable, String> read = ZIO.task(console::get);
     Schedule<Nothing, Integer, Throwable, Integer> recurs = Schedule.recurs(2);
     Schedule<Nothing, Integer, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
-    ZIO<Nothing, Throwable, Tuple2<Duration, String>> retry = read.retry(recurs.both(spaced)).timed();
+    ZIO<Nothing, Throwable, Tuple2<Duration, String>> retry = read.retry(recurs.zip(spaced)).timed();
     
     Either<Throwable, Tuple2<Duration, String>> provide = retry.provide(nothing());
     

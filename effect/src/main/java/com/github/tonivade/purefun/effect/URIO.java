@@ -131,28 +131,24 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return map2(this, other, mapper);
   }
 
-  @Deprecated
   public URIO<R, A> repeat() {
     return repeat(1);
   }
 
-  @Deprecated
   public URIO<R, A> repeat(int times) {
-    return fold(toRIO().repeat(times).toZIO());
+    return fold(ZIO.redeem(instance).repeat(times));
   }
 
-  @Deprecated
   public URIO<R, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  @Deprecated
   public URIO<R, A> repeat(Duration delay, int times) {
-    return fold(toRIO().repeat(delay, times).toZIO());
+    return fold(ZIO.redeem(instance).repeat(delay, times));
   }
   
   public <S, B> URIO<R, B> repeat(Schedule<R, S, A, B> schedule) {
-    return fold(toRIO().repeat(schedule).toZIO());
+    return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
   public URIO<R, A> retry() {
@@ -163,18 +159,16 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return retry(Schedule.recurs(maxRetries));
   }
 
-  @Deprecated
   public URIO<R, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  @Deprecated
   public URIO<R, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }
   
   public <S> URIO<R, A> retry(Schedule<R, S, Throwable, S> schedule) {
-    return fold(toRIO().retry(schedule).toZIO());
+    return fold(ZIO.redeem(instance).retry(schedule));
   }
 
   public URIO<R, Tuple2<Duration, A>> timed() {

@@ -128,22 +128,18 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return map2(this, other, mapper);
   }
 
-  @Deprecated
   public RIO<R, A> repeat() {
     return repeat(1);
   }
 
-  @Deprecated
   public RIO<R, A> repeat(int times) {
     return new RIO<>(instance.repeat(times));
   }
 
-  @Deprecated
   public RIO<R, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  @Deprecated
   public RIO<R, A> repeat(Duration delay, int times) {
     return new RIO<>(instance.repeat(delay, times));
   }

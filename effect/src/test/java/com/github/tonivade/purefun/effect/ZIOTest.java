@@ -253,7 +253,7 @@ public class ZIOTest {
     
     Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
     
-    assertTrue(provide.getRight().get1().toMillis() > 100);
+    assertTrue(provide.getRight().get1().toMillis() >= 100);
   }
 
   @Test

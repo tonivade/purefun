@@ -127,22 +127,18 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return map2(this, other, mapper);
   }
 
-  @Deprecated
   public EIO<E, A> repeat() {
     return repeat(1);
   }
 
-  @Deprecated
   public EIO<E, A> repeat(int times) {
     return new EIO<>(instance.repeat(times));
   }
 
-  @Deprecated
   public EIO<E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  @Deprecated
   public EIO<E, A> repeat(Duration delay, int times) {
     return new EIO<>(instance.repeat(delay, times));
   }
