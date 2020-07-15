@@ -61,7 +61,7 @@ public abstract class Schedule<R, S, A, B> {
 
   public <T, C> Schedule<R, Either<S, T>, A, Either<B, C>> andThenEither(Schedule<R, T, A, C> next) {
     return Schedule.of(
-        initial().map(Either::<S, T>left), 
+        initial().map(Either::<S, T>left),
         (a, st) -> st.fold(
             s -> {
               ZIO<R, Unit, Either<S, T>> orElse = 
@@ -107,7 +107,7 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public Schedule<R, Tuple2<S, ImmutableList<B>>, A, ImmutableList<B>> collect() {
-    return fold(ImmutableList.<B>empty(), (list, b) -> list.append(b));
+    return fold(ImmutableList.<B>empty(), ImmutableList::append);
   }
 
   public <Z> Schedule<R, Tuple2<S, Z>, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
@@ -283,7 +283,7 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   public static <R, A> Schedule<R, Unit, A, A> doUntil(Matcher1<A> condition) {
-    return doWhileM(condition.asFunction().andThen(UIO::pure));
+    return doUntilM(condition.asFunction().andThen(UIO::pure));
   }
   
   public static <R, A> Schedule<R, Unit, A, A> doUntilM(Function1<A, UIO<Boolean>> condition) {

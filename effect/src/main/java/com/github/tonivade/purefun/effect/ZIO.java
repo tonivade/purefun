@@ -333,7 +333,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Failure<R, E, A> implements SealedZIO<R, E, A> {
 
-    private E error;
+    private final E error;
 
     protected Failure(E error) {
       this.error = checkNonNull(error);
@@ -426,7 +426,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
       Kind<F, Either<E, A>> later = monad.later(task::get);
-      return monad.flatMap(later, either -> either.fold(error -> monad.raiseError(wrap(error)), monad::pure));
+      return monad.flatMap(later, either -> either.fold(error -> monad.raiseError(wrap(error)), monad::<A>pure));
     }
 
     @Override
@@ -646,7 +646,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(R env, MonadDefer<F> monad) {
-      return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::pure));
+      return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::<Tuple2<Duration, A>>pure));
     }
     
     @Override
