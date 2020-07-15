@@ -39,7 +39,7 @@ public class ScheduleTest {
     
     Either<Throwable, Unit> provide = repeat.provide(nothing());
     
-    assertEquals(Either.right(Unit.unit()), provide);
+    assertEquals(Either.right(unit()), provide);
     verify(console, times(3)).accept("hola");
   }
 
