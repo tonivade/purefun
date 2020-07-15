@@ -101,6 +101,22 @@ public class ZManaged<R, E, A> {
         ));
   }
   
+  public ZManaged<R, E, A> retry() {
+    return retry(1);
+  }
+  
+  public ZManaged<R, E, A> retry(int maxRetries) {
+    return retry(Schedule.recurs(maxRetries));
+  }
+  
+  public ZManaged<R, E, A> retry(Duration delay) {
+    return retry(delay, 1);
+  }
+  
+  public ZManaged<R, E, A> retry(Duration delay, int maxRetries) {
+    return retry(Schedule.recursSpaced(delay, maxRetries));
+  }
+  
   public <S> ZManaged<R, E, A> retry(Schedule<R, S, E, S> schedule) {
     return new ZManaged<>(resource.retry(schedule));
   }
