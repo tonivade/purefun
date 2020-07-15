@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
@@ -25,6 +26,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.type.Either;
 
 @ExtendWith(MockitoExtension.class)
@@ -133,5 +135,17 @@ public class ScheduleTest {
     
     assertEquals(Either.right(1), provide);
     verify(console, times(3)).accept("hola");
+  }
+  
+  @Test
+  public void collect() {
+    ZIO<Nothing, Nothing, Unit> pure = ZIO.unit();
+    
+    ZIO<Nothing, Nothing, ImmutableList<Integer>> repeat = 
+        pure.repeat(Schedule.<Nothing, Unit>recurs(5).collect().zipLeft(Schedule.identity()));
+    
+    Either<Nothing, ImmutableList<Integer>> provide = repeat.provide(nothing());
+    
+    assertEquals(listOf(0, 1, 2, 3, 4), provide.getRight());
   }
 }
