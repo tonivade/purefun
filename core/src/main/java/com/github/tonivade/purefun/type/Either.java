@@ -177,6 +177,10 @@ public interface Either<L, R> extends EitherOf<L, R> {
   default Validation<L, R> toValidation() {
     return fold(Validation::invalid, Validation::valid);
   }
+  
+  static <A> A merge(Either<A, A> either) {
+    return either.fold(identity(), identity());
+  }
 
   final class Left<L, R> implements SealedEither<L, R>, Serializable {
 

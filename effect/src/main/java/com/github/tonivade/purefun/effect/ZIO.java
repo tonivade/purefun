@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.effect.WrappedException.unwrap;
@@ -29,6 +31,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
@@ -102,13 +105,29 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   default ZIO<R, E, A> orElse(ZIO<R, E, A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
+  
+  default <B> ZIO<R, E, Tuple2<A, B>> zip(ZIO<R, E, B> other) {
+    return zipWith(other, Tuple::of);
+  }
+  
+  default <B> ZIO<R, E, A> zipLeft(ZIO<R, E, B> other) {
+    return zipWith(other, first());
+  }
+  
+  default <B> ZIO<R, E, B> zipRight(ZIO<R, E, B> other) {
+    return zipWith(other, second());
+  }
+  
+  default <B, C> ZIO<R, E, C> zipWith(ZIO<R, E, B> other, Function2<A, B, C> mapper) {
+    return map2(this, other, mapper);
+  }
 
   default ZIO<R, E, A> repeat() {
     return repeat(1);
   }
 
   default ZIO<R, E, A> repeat(int times) {
-    return ZIOModule.repeat(this, UIO.unit(), times);
+    return repeat(Schedule.<R, A>recurs(times).zipRight(Schedule.identity()));
   }
 
   default ZIO<R, E, A> repeat(Duration delay) {
@@ -116,7 +135,37 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   default ZIO<R, E, A> repeat(Duration delay, int times) {
-    return ZIOModule.repeat(this, UIO.sleep(delay), times);
+    return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
+  }
+  
+  default <S, B> ZIO<R, E, B> repeat(Schedule<R, S, A, B> schedule) {
+    return repeatOrElse(schedule, (e, b) -> raiseError(e));
+  }
+  
+  default <S, B> ZIO<R, E, B> repeatOrElse(
+      Schedule<R, S, A, B> schedule, 
+      Function2<E, Option<B>, ZIO<R, E, B>> orElse) {
+    return repeatOrElseEither(schedule, orElse).map(Either::merge);
+  }
+
+  default <S, B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
+      Schedule<R, S, A, B> schedule, 
+      Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
+    
+    // XXX: not stack safe
+    class Helper {
+      private ZIO<R, E, Either<C, B>> loop(A later, S state) {
+        return schedule.update(later, state)
+            .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+                s -> foldM(
+                    e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
+                    a -> loop(a, s)));
+      }
+    }
+    
+    return foldM(
+        error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
+        a -> schedule.initial().<E>toZIO().flatMap(s -> new Helper().loop(a, s)));
   }
 
   default ZIO<R, E, A> retry() {
@@ -124,7 +173,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   default ZIO<R, E, A> retry(int maxRetries) {
-    return ZIOModule.retry(this, UIO.unit(), maxRetries);
+    return retry(Schedule.recurs(maxRetries));
   }
 
   default ZIO<R, E, A> retry(Duration delay) {
@@ -132,7 +181,35 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
-    return ZIOModule.retry(this, UIO.sleep(delay), maxRetries);
+    return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
+  }
+  
+  default <S> ZIO<R, E, A> retry(Schedule<R, S, E, S> schedule) {
+    return retryOrElse(schedule, (e, s) -> raiseError(e));
+  }
+
+  default <S> ZIO<R, E, A> retryOrElse(
+      Schedule<R, S, E, S> schedule,
+      Function2<E, S, ZIO<R, E, A>> orElse) {
+    return retryOrElseEither(schedule, orElse).map(Either::merge);
+  }
+
+  default <S, B> ZIO<R, E, Either<B, A>> retryOrElseEither(
+      Schedule<R, S, E, S> schedule,
+      Function2<E, S, ZIO<R, E, B>> orElse) {
+    
+    // XXX: not stack safe
+    class Helper {
+      private ZIO<R, E, Either<B, A>> loop(S state) {
+        return foldM(error -> {
+          ZIO<R, Unit, S> update = schedule.update(error, state);
+          return update.foldM(
+            e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
+        }, value -> ZIO.pure(Either.right(value)));
+      }
+    }
+    
+    return schedule.initial().<E>toZIO().flatMap(new Helper()::loop);
   }
 
   default ZIO<R, E, Tuple2<Duration, A>> timed() {
@@ -256,7 +333,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Failure<R, E, A> implements SealedZIO<R, E, A> {
 
-    private E error;
+    private final E error;
 
     protected Failure(E error) {
       this.error = checkNonNull(error);
@@ -349,7 +426,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
       Kind<F, Either<E, A>> later = monad.later(task::get);
-      return monad.flatMap(later, either -> either.fold(error -> monad.raiseError(wrap(error)), monad::pure));
+      return monad.flatMap(later, either -> either.fold(error -> monad.raiseError(wrap(error)), monad::<A>pure));
     }
 
     @Override
@@ -569,7 +646,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(R env, MonadDefer<F> monad) {
-      return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::pure));
+      return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::<Tuple2<Duration, A>>pure));
     }
     
     @Override
@@ -659,28 +736,6 @@ interface ZIOModule {
       }
     }
     return current.provide(env);
-  }
-
-  static <R, E, A> ZIO<R, E, A> repeat(ZIO<R, E, A> self, UIO<Unit> delay, int times) {
-    return self.foldM(
-        ZIO::<R, E, A>raiseError, value -> {
-          if (times > 0) {
-            return delay.<R, E>toZIO().andThen(repeat(self, delay, times - 1));
-          } else {
-            return ZIO.pure(value);
-          }
-        });
-  }
-
-  static <R, E, A> ZIO<R, E, A> retry(ZIO<R, E, A> self, UIO<Unit> delay, int maxRetries) {
-    return self.foldM(
-        error -> {
-          if (maxRetries > 0) {
-            return delay.<R, E>toZIO().andThen(retry(self, delay.repeat(), maxRetries - 1));
-          } else {
-            return ZIO.raiseError(error);
-          }
-        }, ZIO::<R, E, A>pure);
   }
 }
 

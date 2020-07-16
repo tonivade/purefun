@@ -21,6 +21,10 @@ public interface Matcher1<A> extends Recoverable {
   }
 
   boolean run(A target) throws Throwable;
+  
+  default Function1<A, Boolean> asFunction() {
+    return this::match;
+  }
 
   default Matcher1<A> and(Matcher1<A> other) {
     return value -> match(value) && other.match(value);

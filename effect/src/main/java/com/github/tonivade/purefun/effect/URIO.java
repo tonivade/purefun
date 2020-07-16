@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.time.Duration;
 import java.util.concurrent.Executor;
@@ -18,6 +20,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -26,59 +29,63 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
+public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
 
   private static final URIO<?, Unit> UNIT = new URIO<>(ZIO.unit());
 
-  private final ZIO<R, Nothing, T> instance;
+  private final ZIO<R, Nothing, A> instance;
 
-  URIO(ZIO<R, Nothing, T> value) {
+  URIO(ZIO<R, Nothing, A> value) {
     this.instance = checkNonNull(value);
   }
 
-  public T unsafeRunSync(R env) {
+  public A unsafeRunSync(R env) {
     return instance.provide(env).get();
   }
 
-  public Try<T> safeRunSync(R env) {
+  public Try<A> safeRunSync(R env) {
     return Try.of(() -> unsafeRunSync(env));
   }
 
   @SuppressWarnings("unchecked")
-  public <E> ZIO<R, E, T> toZIO() {
-    return (ZIO<R, E, T>) instance;
+  public <E> ZIO<R, E, A> toZIO() {
+    return (ZIO<R, E, A>) instance;
   }
 
   @SuppressWarnings("unchecked")
-  public <E> EIO<E, T> toEIO() {
-    return new EIO<>((ZIO<Nothing, E, T>) instance);
+  public <E> EIO<E, A> toEIO() {
+    return new EIO<>((ZIO<Nothing, E, A>) instance);
   }
 
-  public Future<T> toFuture(R env) {
+  public RIO<R, A> toRIO() {
+    return new RIO<>(ZIO.redeem(instance));
+  }
+
+  public Future<A> toFuture(R env) {
     return toFuture(Future.DEFAULT_EXECUTOR, env);
   }
 
-  public Future<T> toFuture(Executor executor, R env) {
+  public Future<A> toFuture(Executor executor, R env) {
     return instance.toFuture(executor, env).map(Either::get);
   }
 
-  public void safeRunAsync(Executor executor, R env, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(Executor executor, R env, Consumer1<Try<A>> callback) {
     instance.provideAsync(executor, env, result -> callback.accept(result.map(Either::get)));
   }
 
-  public void safeRunAsync(R env, Consumer1<Try<T>> callback) {
+  public void safeRunAsync(R env, Consumer1<Try<A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
-  public <F extends Witness> Kind<F, T> foldMap(R env, MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
     return instance.foldMap(env, monad);
   }
 
-  public <B> URIO<R, B> map(Function1<T, B> map) {
+  public <B> URIO<R, B> map(Function1<A, B> map) {
     return new URIO<>(instance.map(map));
   }
 
-  public <B> URIO<R, B> flatMap(Function1<T, URIO<R, B>> map) {
+  public <B> URIO<R, B> flatMap(Function1<A, URIO<R, B>> map) {
     return new URIO<>(instance.flatMap(x -> map.apply(x).instance));
   }
 
@@ -86,12 +93,12 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     return new URIO<>(instance.andThen(next.instance));
   }
 
-  public URIO<R, T> recover(Function1<Throwable, T> mapError) {
+  public URIO<R, A> recover(Function1<Throwable, A> mapError) {
     return redeem(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> URIO<R, T> recoverWith(Class<X> type, Function1<X, T> function) {
+  public <X extends Throwable> URIO<R, A> recoverWith(Class<X> type, Function1<X, A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -100,68 +107,72 @@ public final class URIO<R, T> implements URIOOf<R, T>, Recoverable {
     });
   }
 
-  public <B> URIO<R, B> redeem(Function1<Throwable, B> mapError, Function1<T, B> map) {
+  public <B> URIO<R, B> redeem(Function1<Throwable, B> mapError, Function1<A, B> map) {
     return redeemWith(mapError.andThen(URIO::pure), map.andThen(URIO::pure));
   }
 
-  public <B> URIO<R, B> redeemWith(Function1<Throwable, URIO<R, B>> mapError, Function1<T, URIO<R, B>> map) {
+  public <B> URIO<R, B> redeemWith(Function1<Throwable, URIO<R, B>> mapError, Function1<A, URIO<R, B>> map) {
     return new URIO<>(ZIO.redeem(instance).foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
   }
+  
+  public <B> URIO<R, Tuple2<A, B>> zip(URIO<R, B> other) {
+    return zipWith(other, Tuple::of);
+  }
+  
+  public <B> URIO<R, A> zipLeft(URIO<R, B> other) {
+    return zipWith(other, first());
+  }
+  
+  public <B> URIO<R, B> zipRight(URIO<R, B> other) {
+    return zipWith(other, second());
+  }
+  
+  public <B, C> URIO<R, C> zipWith(URIO<R, B> other, Function2<A, B, C> mapper) {
+    return map2(this, other, mapper);
+  }
 
-  public URIO<R, T> repeat() {
+  public URIO<R, A> repeat() {
     return repeat(1);
   }
 
-  public URIO<R, T> repeat(int times) {
-    return repeat(unit(), times);
+  public URIO<R, A> repeat(int times) {
+    return fold(ZIO.redeem(instance).repeat(times));
   }
 
-  public URIO<R, T> repeat(Duration delay) {
+  public URIO<R, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
-  public URIO<R, T> repeat(Duration delay, int times) {
-    return repeat(sleep(delay), times);
+  public URIO<R, A> repeat(Duration delay, int times) {
+    return fold(ZIO.redeem(instance).repeat(delay, times));
+  }
+  
+  public <S, B> URIO<R, B> repeat(Schedule<R, S, A, B> schedule) {
+    return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
-  public URIO<R, T> retry() {
+  public URIO<R, A> retry() {
     return retry(1);
   }
 
-  public URIO<R, T> retry(int maxRetries) {
-    return retry(unit(), maxRetries);
+  public URIO<R, A> retry(int maxRetries) {
+    return retry(Schedule.recurs(maxRetries));
   }
 
-  public URIO<R, T> retry(Duration delay) {
+  public URIO<R, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
-  public URIO<R, T> retry(Duration delay, int maxRetries) {
-    return retry(sleep(delay), maxRetries);
+  public URIO<R, A> retry(Duration delay, int maxRetries) {
+    return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
+  }
+  
+  public <S> URIO<R, A> retry(Schedule<R, S, Throwable, S> schedule) {
+    return fold(ZIO.redeem(instance).retry(schedule));
   }
 
-  public URIO<R, Tuple2<Duration, T>> timed() {
+  public URIO<R, Tuple2<Duration, A>> timed() {
     return new URIO<>(instance.timed());
-  }
-
-  private URIO<R, T> repeat(URIO<R, Unit> pause, int times) {
-    return redeemWith(URIO::<R, T>raiseError, value -> {
-      if (times > 0) {
-        return pause.andThen(repeat(pause, times - 1));
-      } else {
-        return pure(value);
-      }
-    });
-  }
-
-  private URIO<R, T> retry(URIO<R, Unit> pause, int maxRetries) {
-    return redeemWith(error -> {
-      if (maxRetries > 0) {
-        return pause.andThen(retry(pause.repeat(), maxRetries - 1));
-      } else {
-        return raiseError(error);
-      }
-    }, URIO::<R, T>pure);
   }
 
   public static <R, A> URIO<R, A> accessM(Function1<R, URIO<R, A>> map) {

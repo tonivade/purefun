@@ -29,9 +29,6 @@ class WrappedException extends RuntimeException {
     if (exception instanceof WrappedException) {
       return (E) ((WrappedException) exception).wrapped;
     }
-    if (exception instanceof Throwable) {
-      return (E) exception;
-    }
-    throw new ClassCastException("not compatible: " + exception.getClass());
+    return (E) exception;
   }
 }
