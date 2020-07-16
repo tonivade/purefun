@@ -53,6 +53,10 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
   public <R> RIO<R, A> toURIO() {
     return new RIO<>((ZIO<R, Throwable, A>)instance);
   }
+  
+  public UIO<A> toUIO() {
+    return recover(this::sneakyThrow);
+  }
 
   public Try<A> safeRunSync() {
     return Try.fromEither(instance.provide(nothing()));
@@ -174,10 +178,6 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
 
   public Task<Tuple2<Duration, A>> timed() {
     return new Task<>(instance.timed());
-  }
-  
-  public UIO<A> orDie() {
-    return recover(this::sneakyThrow);
   }
 
   public static <A, B, C> Task<C> map2(Task<A> za, Task<B> zb, Function2<A, B, C> mapper) {

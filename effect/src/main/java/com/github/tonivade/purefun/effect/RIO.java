@@ -53,6 +53,10 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
   public <E> EIO<E, A> toEIO() {
     return new EIO<>((ZIO<Nothing, E, A>) instance);
   }
+  
+  public URIO<R, A> toURIO() {
+    return recover(this::sneakyThrow);
+  }
 
   public Future<Try<A>> toFuture(R env) {
     return toFuture(Future.DEFAULT_EXECUTOR, env);
@@ -66,7 +70,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     instance.provideAsync(executor, env, result -> callback.accept(flatAbsorb(result)));
   }
 
-  public void safeRunAsyc(R env, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(R env, Consumer1<Try<A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
@@ -170,10 +174,6 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
 
   public RIO<R, Tuple2<Duration, A>> timed() {
     return new RIO<>(instance.timed());
-  }
-  
-  public URIO<R, A> orDie() {
-    return recover(this::sneakyThrow);
   }
 
   public static <R, A> RIO<R, A> accessM(Function1<R, RIO<R, A>> map) {

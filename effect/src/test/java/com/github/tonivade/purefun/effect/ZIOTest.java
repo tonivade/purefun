@@ -289,14 +289,26 @@ public class ZIOTest {
   }
   
   @Test
-  public void orDie() {
+  public void toURIO() {
     ZIO<Nothing, Integer, String> unsupported = ZIO.raiseError(3);
     ZIO<Nothing, Throwable, String> error = ZIO.raiseError(new IOException());
     ZIO<Nothing, Throwable, String> success = ZIO.pure("hola");
     
-    assertEquals("hola", success.orDie().unsafeRunSync(nothing()));
-    assertThrows(IOException.class, () -> error.orDie().unsafeRunSync(nothing()));
-    assertThrows(ClassCastException.class, () -> unsupported.orDie().unsafeRunSync(nothing()));
+    assertEquals("hola", success.toURIO().unsafeRunSync(nothing()));
+    assertThrows(IOException.class, () -> error.toURIO().unsafeRunSync(nothing()));
+    assertThrows(ClassCastException.class, () -> unsupported.toURIO().unsafeRunSync(nothing()));
+  }
+  
+  @Test
+  public void toRIO() {
+    ZIO<Nothing, Integer, String> unsupported = ZIO.raiseError(3);
+    IOException exception = new IOException();
+    ZIO<Nothing, Throwable, String> error = ZIO.raiseError(exception);
+    ZIO<Nothing, Throwable, String> success = ZIO.pure("hola");
+    
+    assertEquals(Try.success("hola"), success.toRIO().safeRunSync(nothing()));
+    assertEquals(Try.failure(exception), error.toRIO().safeRunSync(nothing()));
+    assertThrows(ClassCastException.class, () -> unsupported.toRIO().safeRunSync(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {

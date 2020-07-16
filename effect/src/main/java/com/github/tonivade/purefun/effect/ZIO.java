@@ -16,7 +16,6 @@ import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -226,13 +225,30 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     });
   }
   
-  default URIO<R, A> orDie() {
+  default URIO<R, A> toURIO() {
     return new URIO<>(mapError(error -> {
       if (error instanceof Throwable) {
         throw (Throwable) error;
       }
       throw new ClassCastException(error.getClass() + " is not throwable");
     }));
+  }
+  
+  default RIO<R, A> toRIO() {
+    return new RIO<>(mapError(error -> {
+      if (error instanceof Throwable) {
+        return (Throwable) error;
+      }
+      throw new ClassCastException(error.getClass() + " is not throwable");
+    }));
+  }
+  
+  default ZManaged<R, E, A> toManaged() {
+    return ZManaged.pure(this);
+  }
+  
+  default ZManaged<R, E, A> toManaged(Consumer1<A> release) {
+    return ZManaged.from(this, release);
   }
 
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {

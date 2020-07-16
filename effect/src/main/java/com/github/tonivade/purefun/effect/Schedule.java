@@ -76,7 +76,7 @@ public abstract class Schedule<R, S, A, B> {
   
   public <T, C> Schedule<R, Tuple2<S, T>, A, Tuple2<B, C>> zip(Schedule<R, T, A, C> other) {
     return Schedule.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
-      this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).orDie(), 
+      this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).toURIO(), 
       (a, st) -> {
         ZIO<R, Unit, S> self = this.update(a, st.get1());
         ZIO<R, Unit, T> next = other.update(a, st.get2());
@@ -97,7 +97,7 @@ public abstract class Schedule<R, S, A, B> {
   
   public <T, C> Schedule<R, Tuple2<S, T>, A, C> compose(Schedule<R, T, B, C> other) {
     return Schedule.<R, Tuple2<S, T>, A, C>of(
-      this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).orDie(), 
+      this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).toURIO(), 
       (a, st) -> {
         ZIO<R,Unit,S> self = this.update(a, st.get1());
         ZIO<R,Unit,T> next = other.update(this.extract(a, st.get1()), st.get2());

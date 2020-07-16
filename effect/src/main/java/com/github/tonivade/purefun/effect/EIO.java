@@ -42,6 +42,10 @@ public final class EIO<E, A> implements EIOOf<E, A> {
   public <R> ZIO<R, E, A> toZIO() {
     return (ZIO<R, E, A>) instance;
   }
+  
+  public UIO<A> toUIO() {
+    return new UIO<>(instance.toURIO().toZIO());
+  }
 
   public Either<E, A> safeRunSync() {
     return instance.provide(nothing());
@@ -173,10 +177,6 @@ public final class EIO<E, A> implements EIOOf<E, A> {
   
   public <X extends Throwable> EIO<X, A> refineOrDie(Class<X> type) {
     return new EIO<>(instance.refineOrDie(type));
-  }
-  
-  public UIO<A> orDie() {
-    return new UIO<>(instance.orDie().toZIO());
   }
 
   public static <E, A, B, C> EIO<E, C> map2(EIO<E, A> za, EIO<E, B> zb, Function2<A, B, C> mapper) {
