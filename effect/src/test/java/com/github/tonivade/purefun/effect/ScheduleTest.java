@@ -26,7 +26,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
 @ExtendWith(MockitoExtension.class)
@@ -141,10 +141,10 @@ public class ScheduleTest {
   public void collect() {
     ZIO<Nothing, Nothing, Unit> pure = ZIO.unit();
     
-    ZIO<Nothing, Nothing, ImmutableList<Integer>> repeat = 
-        pure.repeat(Schedule.<Nothing, Unit>recurs(5).collect().zipLeft(Schedule.identity()));
+    ZIO<Nothing, Nothing, Sequence<Integer>> repeat = 
+        pure.repeat(Schedule.<Nothing, Unit>recurs(5).collectAll().zipLeft(Schedule.identity()));
     
-    Either<Nothing, ImmutableList<Integer>> provide = repeat.provide(nothing());
+    Either<Nothing, Sequence<Integer>> provide = repeat.provide(nothing());
     
     assertEquals(listOf(0, 1, 2, 3, 4), provide.getRight());
   }

@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
 public abstract class Schedule<R, S, A, B> {
@@ -106,8 +107,8 @@ public abstract class Schedule<R, S, A, B> {
       (a, st) -> other.extract(this.extract(a, st.get1()), st.get2()));
   }
   
-  public Schedule<R, Tuple2<S, ImmutableList<B>>, A, ImmutableList<B>> collect() {
-    return fold(ImmutableList.<B>empty(), ImmutableList::append);
+  public Schedule<R, Tuple2<S, Sequence<B>>, A, Sequence<B>> collectAll() {
+    return this.<Sequence<B>>fold(ImmutableList.<B>empty(), Sequence::append);
   }
 
   public <Z> Schedule<R, Tuple2<S, Z>, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
