@@ -418,6 +418,8 @@ Additionally, there are aliases for some ZIO special cases:
 UIO<T>      =>  ZIO<Any, Nothing, T>
 EIO<E, T>   =>  ZIO<Any, E, T>
 Task<T>     =>  ZIO<Any, Throwable, T>
+RIO<R, T>   =>  ZIO<R, Throwable, T>
+URIO<T>     =>  ZIO<R, Nothing, T>
 ```
 
 ## Algebraic Effects
