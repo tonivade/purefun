@@ -150,21 +150,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   default <S, B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
       Schedule<R, S, A, B> schedule, 
       Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
-    
-    // XXX: not stack safe
-    class Helper {
-      private ZIO<R, E, Either<C, B>> loop(A later, S state) {
-        return schedule.update(later, state)
-            .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
-                s -> foldM(
-                    e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
-                    a -> loop(a, s)));
-      }
-    }
-    
-    return foldM(
-        error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
-        a -> schedule.initial().<E>toZIO().flatMap(s -> new Helper().loop(a, s)));
+    return new Repeat<>(this, schedule, orElse);
   }
 
   default ZIO<R, E, A> retry() {
@@ -196,19 +182,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   default <S, B> ZIO<R, E, Either<B, A>> retryOrElseEither(
       Schedule<R, S, E, S> schedule,
       Function2<E, S, ZIO<R, E, B>> orElse) {
-    
-    // XXX: not stack safe
-    class Helper {
-      private ZIO<R, E, Either<B, A>> loop(S state) {
-        return foldM(error -> {
-          ZIO<R, Unit, S> update = schedule.update(error, state);
-          return update.foldM(
-            e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
-        }, value -> ZIO.pure(Either.right(value)));
-      }
-    }
-    
-    return schedule.initial().<E>toZIO().flatMap(new Helper()::loop);
+    return new Retry<>(this, schedule, orElse);
   }
 
   default ZIO<R, E, Tuple2<Duration, A>> timed() {
@@ -612,6 +586,78 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public String toString() {
       return "FoldM(" + current + ", ?, ?)";
+    }
+  }
+  
+  final class Repeat<R, S, E, A, B, C> implements SealedZIO<R, E, Either<C, B>> {
+    
+    private final ZIO<R, E, A> current;
+    private final Schedule<R, S, A, B> schedule;
+    private final Function2<E, Option<B>, ZIO<R, E, C>> orElse;
+
+    public Repeat(ZIO<R, E, A> current, Schedule<R, S, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
+      this.current = checkNonNull(current);
+      this.schedule = checkNonNull(schedule);
+      this.orElse = checkNonNull(orElse);
+    }
+    
+    @Override
+    public Either<E, Either<C, B>> provide(R env) {
+    return run().provide(env);
+    }
+    
+    @Override
+    public <F extends Witness> Kind<F, Either<C, B>> foldMap(R env, MonadDefer<F> monad) {
+      return run().foldMap(env, monad);
+    }
+
+    private ZIO<R, E, Either<C, B>> run() {
+      return current.foldM(
+          error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
+          a -> schedule.initial().<E>toZIO().flatMap(s -> loop(a, s)));
+    }
+
+    private ZIO<R, E, Either<C, B>> loop(A later, S state) {
+      return schedule.update(later, state)
+        .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+          s -> current.foldM(
+            e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
+            a -> loop(a, s)));
+    }
+  }
+
+  final class Retry<R, S, E, A, B> implements SealedZIO<R, E, Either<B, A>> {
+    
+    private final ZIO<R, E, A> current;
+    private final Schedule<R, S, E, S> schedule;
+    private final Function2<E, S, ZIO<R, E, B>> orElse;
+    
+    public Retry(ZIO<R, E, A> current, Schedule<R, S, E, S> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
+      this.current = checkNonNull(current);
+      this.schedule = checkNonNull(schedule);
+      this.orElse = checkNonNull(orElse);
+    }
+
+    @Override
+    public Either<E, Either<B, A>> provide(R env) {
+      return run().provide(env);
+    }
+
+    @Override
+    public <F extends Witness> Kind<F, Either<B, A>> foldMap(R env, MonadDefer<F> monad) {
+      return run().foldMap(env, monad);
+    }
+
+    private ZIO<R, E, Either<B, A>> run() {
+      return schedule.initial().<E>toZIO().flatMap(this::loop);
+    }
+
+    private ZIO<R, E, Either<B, A>> loop(S state) {
+      return current.foldM(error -> {
+        ZIO<R, Unit, S> update = schedule.update(error, state);
+        return update.foldM(
+          e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
+      }, value -> ZIO.pure(Either.right(value)));
     }
   }
 
