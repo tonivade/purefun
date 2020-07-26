@@ -217,12 +217,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }));
   }
   
-  default ZManaged<R, E, A> toManaged() {
-    return ZManaged.pure(this);
+  default Managed<R, E, A> toManaged() {
+    return Managed.pure(this);
   }
   
-  default ZManaged<R, E, A> toManaged(Consumer1<A> release) {
-    return ZManaged.from(this, release);
+  default Managed<R, E, A> toManaged(Consumer1<A> release) {
+    return Managed.from(this, release);
   }
 
   static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {
@@ -622,12 +622,26 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
           a -> schedule.initial().<E>toZIO().flatMap(s -> loop(env, a, s)));
     }
 
-    private ZIO<R, E, Either<C, B>> loop(R env, A later, S state) {
-      return schedule.update(later, state).provide(env)
-        .fold(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
-          s -> current.provide(env).fold(
-            e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
-            a -> loop(env,a, s)));
+    private ZIO<R, E, Either<C, B>> loop(R env, A last, S state) {
+      A a = last;
+      S s = state;
+      
+      while (true) {
+        Either<Unit, S> update = schedule.update(a, s).provide(env);
+        
+        if (update.isLeft()) {
+          return ZIO.pure(Either.right(schedule.extract(a, s)));
+        }
+        
+        Either<E, A> provide = current.provide(env);
+        
+        if (provide.isLeft()) {
+          return orElse.apply(provide.getLeft(), Option.some(schedule.extract(a, s))).map(Either::<C, B>left);
+        }
+
+        a = provide.getRight();
+        s = update.getRight();
+      }
     }
   }
 
@@ -660,11 +674,23 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     private ZIO<R, E, Either<B, A>> loop(R env, S state) {
-      return current.provide(env).fold(error -> {
-        ZIO<R, Unit, S> update = schedule.update(error, state);
-        return update.provide(env).fold(
-          e -> orElse.apply(error, state).map(Either::<B, A>left), s -> loop(env, s));
-      }, value -> ZIO.pure(Either.right(value)));
+      S s = state;
+      
+      while(true) {
+        Either<E, A> provide = current.provide(env);
+        
+        if (provide.isRight()) {
+          return ZIO.pure(Either.right(provide.getRight()));
+        }
+        
+        Either<Unit, S> update = schedule.update(provide.getLeft(), s).provide(env);
+        
+        if (update.isLeft()) {
+          return orElse.apply(provide.getLeft(), s).map(Either::<B, A>left);
+        }
+        
+        s = update.getRight();
+      }
     }
   }
 
