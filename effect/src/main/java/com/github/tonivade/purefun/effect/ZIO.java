@@ -603,12 +603,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public Either<E, Either<C, B>> provide(R env) {
-      return run(env).provide(env);
+      return run().provide(env);
     }
     
     @Override
     public <F extends Witness> Kind<F, Either<C, B>> foldMap(R env, MonadDefer<F> monad) {
-      return run(env).foldMap(env, monad);
+      return run().foldMap(env, monad);
     }
 
     @Override
@@ -616,32 +616,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       return "Repeat(" + current + ", ?, ?)";
     }
 
-    private ZIO<R, E, Either<C, B>> run(R env) {
-      return current.provide(env).fold(
+    private ZIO<R, E, Either<C, B>> run() {
+      return current.foldM(
           error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
-          a -> schedule.initial().<E>toZIO().flatMap(s -> loop(env, a, s)));
+          a -> schedule.initial().<E>toZIO().flatMap(s -> loop(a, s)));
     }
 
-    private ZIO<R, E, Either<C, B>> loop(R env, A last, S state) {
-      A a = last;
-      S s = state;
-      
-      while (true) {
-        Either<Unit, S> update = schedule.update(a, s).provide(env);
-        
-        if (update.isLeft()) {
-          return ZIO.pure(Either.right(schedule.extract(a, s)));
-        }
-        
-        Either<E, A> provide = current.provide(env);
-        
-        if (provide.isLeft()) {
-          return orElse.apply(provide.getLeft(), Option.some(schedule.extract(a, s))).map(Either::<C, B>left);
-        }
-
-        a = provide.getRight();
-        s = update.getRight();
-      }
+    private ZIO<R, E, Either<C, B>> loop(A later, S state) {
+      return schedule.update(later, state)
+        .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+          s -> current.foldM(
+            e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
+            a -> loop(a, s)));
     }
   }
 
@@ -659,13 +645,13 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<E, Either<B, A>> provide(R env) {
-      return schedule.initial().<E>toZIO().provide(env).flatMap(s -> loop(env, s).provide(env));
+      return schedule.initial().<E>toZIO().flatMap(this::loop).provide(env);
     }
 
     @Override
     public <F extends Witness> Kind<F, Either<B, A>> foldMap(R env, MonadDefer<F> monad) {
       ZIO<R, E, S> zio = schedule.initial().<E>toZIO();
-      return monad.flatMap(zio.foldMap(env, monad), s -> loop(env, s).foldMap(env, monad));
+      return monad.flatMap(zio.foldMap(env, monad), s -> loop(s).foldMap(env, monad));
     }
 
     @Override
@@ -673,24 +659,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       return "Retry(" + current + ", ?, ?)";
     }
 
-    private ZIO<R, E, Either<B, A>> loop(R env, S state) {
-      S s = state;
-      
-      while(true) {
-        Either<E, A> provide = current.provide(env);
-        
-        if (provide.isRight()) {
-          return ZIO.pure(Either.right(provide.getRight()));
-        }
-        
-        Either<Unit, S> update = schedule.update(provide.getLeft(), s).provide(env);
-        
-        if (update.isLeft()) {
-          return orElse.apply(provide.getLeft(), s).map(Either::<B, A>left);
-        }
-        
-        s = update.getRight();
-      }
+    private ZIO<R, E, Either<B, A>> loop(S state) {
+      return current.foldM(error -> {
+        ZIO<R, Unit, S> update = schedule.update(error, state);
+        return update.foldM(
+          e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
+      }, value -> ZIO.pure(Either.right(value)));
     }
   }
 
