@@ -523,8 +523,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
-      // TODO: this is wrong
-      return ZIO.redeem(current).foldMap(env, monad);
+      return monad.defer(() -> provide(env).fold(monad::raiseError, monad::pure));
     }
 
     @Override
@@ -611,18 +610,15 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public <F extends Witness> Kind<F, Either<C, B>> foldMap(R env, MonadDefer<F> monad) {
-      return run().foldMap(env, monad);
+      return current.foldM(
+          error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
+          a -> schedule.initial().<E>toZIO().flatMap(s -> loop(a, s)))
+        .foldMap(env, monad);
     }
 
     @Override
     public String toString() {
       return "Repeat(" + current + ", ?, ?)";
-    }
-
-    private ZIO<R, E, Either<C, B>> run() {
-      return current.foldM(
-          error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
-          a -> schedule.initial().<E>toZIO().flatMap(s -> loop(a, s)));
     }
 
     private ZIO<R, E, Either<C, B>> loop(A later, S state) {
