@@ -523,6 +523,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+      // TODO: this is wrong
       return ZIO.redeem(current).foldMap(env, monad);
     }
 
@@ -603,7 +604,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public Either<E, Either<C, B>> provide(R env) {
-      return run().provide(env);
+      return current.provide(env).fold(
+          error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left).provide(env),
+          a -> schedule.initial().<E>toZIO().provide(env).flatMap(s -> run(env, a, s)));
     }
     
     @Override
@@ -629,6 +632,28 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
             e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
             a -> loop(a, s)));
     }
+
+    private Either<E, Either<C, B>> run(R env, A last, S state) {
+      A a = last;
+      S s = state;
+      
+      while (true) {
+        Either<Unit, S> update = schedule.update(a, s).provide(env);
+        
+        if (update.isLeft()) {
+          return Either.right(Either.right(schedule.extract(a, s)));
+        }
+        
+        Either<E, A> provide = current.provide(env);
+        
+        if (provide.isLeft()) {
+          return orElse.apply(provide.getLeft(), Option.some(schedule.extract(a, s))).provide(env).map(Either::<C, B>left);
+        }
+
+        a = provide.getRight();
+        s = update.getRight();
+      }
+    }
   }
 
   final class Retry<R, S, E, A, B, C> implements SealedZIO<R, E, Either<B, A>> {
@@ -645,7 +670,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<E, Either<B, A>> provide(R env) {
-      return schedule.initial().<E>toZIO().flatMap(this::loop).provide(env);
+      return schedule.initial().<E>toZIO().provide(env).flatMap(s -> run(env, s));
     }
 
     @Override
@@ -665,6 +690,27 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
         return update.foldM(
           e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
       }, value -> ZIO.pure(Either.right(value)));
+    }
+    
+
+    private Either<E, Either<B, A>> run(R env, S state) {
+      S s = state;
+      
+      while(true) {
+        Either<E, A> provide = current.provide(env);
+        
+        if (provide.isRight()) {
+          return Either.right(Either.right(provide.getRight()));
+        }
+        
+        Either<Unit, S> update = schedule.update(provide.getLeft(), s).provide(env);
+        
+        if (update.isLeft()) {
+          return orElse.apply(provide.getLeft(), s).provide(env).map(Either::<B, A>left);
+        }
+        
+        s = update.getRight();
+      }
     }
   }
 
