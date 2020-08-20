@@ -48,7 +48,7 @@ public class Managed<R, E, A> {
   public <B> Managed<R, E, B> andThen(Managed<A, E, B> other) {
     ZIO<R, E, Tuple2<B, Consumer1<B>>> flatMap = resource.flatMap(a -> {
       Either<E, Tuple2<B, Consumer1<B>>> next = other.resource.provide(a.get1());
-      return ZIO.fromEither(() -> next.map(t -> t.map2(ingore -> releaseAndThen(a, t))));
+      return ZIO.fromEither(() -> next.map(t -> t.map2(ignore -> releaseAndThen(a, t))));
     });
     return new Managed<>(flatMap);
   }
@@ -159,12 +159,12 @@ public class Managed<R, E, A> {
   }
 
   private static <X, T, R> Consumer1<X> releaseAndThen(
-      Tuple2<T, Consumer1<T>> outter, Tuple2<R, Consumer1<R>> inner) {
+      Tuple2<T, Consumer1<T>> outer, Tuple2<R, Consumer1<R>> inner) {
     return ignore -> {
       try {
         release(inner);
       } finally {
-        release(outter);
+        release(outer);
       }
     };
   }

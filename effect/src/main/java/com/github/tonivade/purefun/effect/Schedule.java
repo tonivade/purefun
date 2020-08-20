@@ -301,14 +301,14 @@ public abstract class Schedule<R, S, A, B> {
   }
   
   @FunctionalInterface
-  public static interface Update<R, S, A> {
+  public interface Update<R, S, A> {
 
     ZIO<R, Unit, S> update(A last, S state);
 
   }
   
   @FunctionalInterface
-  public static interface Extract<A, S, B> {
+  public interface Extract<A, S, B> {
 
     B extract(A last, S state);
 
