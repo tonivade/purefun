@@ -158,7 +158,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return fold(ZIO.redeem(instance).repeat(delay, times));
   }
   
-  public <S, B> UIO<B> repeat(Schedule<Nothing, S, A, B> schedule) {
+  public <B> UIO<B> repeat(Schedule<Nothing, A, B> schedule) {
     return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
@@ -178,7 +178,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
   
-  public <S> UIO<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {
+  public <B> UIO<A> retry(Schedule<Nothing, Throwable, B> schedule) {
     return fold(ZIO.redeem(instance).retry(schedule));
   }
 

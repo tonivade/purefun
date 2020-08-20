@@ -117,7 +117,7 @@ public class Managed<R, E, A> {
     return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
-  public <S> Managed<R, E, A> retry(Schedule<R, S, E, S> schedule) {
+  public <B> Managed<R, E, A> retry(Schedule<R, E, B> schedule) {
     return new Managed<>(resource.retry(schedule));
   }
   

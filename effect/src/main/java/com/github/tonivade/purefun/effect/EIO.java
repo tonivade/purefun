@@ -147,7 +147,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.repeat(delay, times));
   }
   
-  public <S, B> EIO<E, B> repeat(Schedule<Nothing, S, A, B> schedule) {
+  public <B> EIO<E, B> repeat(Schedule<Nothing, A, B> schedule) {
     return new EIO<>(instance.repeat(schedule));
   }
 
@@ -167,7 +167,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return retry(Schedule.<Nothing, E>recursSpaced(delay, maxRetries));
   }
   
-  public <S> EIO<E, A> retry(Schedule<Nothing, S, E, S> schedule) {
+  public <S> EIO<E, A> retry(Schedule<Nothing, E, S> schedule) {
     return new EIO<>(instance.retry(schedule));
   }
 

@@ -148,7 +148,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(instance.repeat(delay, times));
   }
   
-  public <S, B> RIO<R, B> repeat(Schedule<R, S, A, B> schedule) {
+  public <B> RIO<R, B> repeat(Schedule<R, A, B> schedule) {
     return new RIO<>(instance.repeat(schedule));
   }
 
@@ -168,7 +168,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }
   
-  public <S> RIO<R, A> retry(Schedule<R, S, Throwable, S> schedule) {
+  public <B> RIO<R, A> retry(Schedule<R, Throwable, B> schedule) {
     return new RIO<>(instance.retry(schedule));
   }
 

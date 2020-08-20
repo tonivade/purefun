@@ -46,8 +46,8 @@ public class ScheduleTest {
   @Test
   public void repeatDelay(@Mock Consumer1<String> console) {
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    Schedule<Nothing, Tuple2<Integer, Unit>, Unit, Unit> recurs = Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity());
-    Schedule<Nothing, Integer, Unit, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
+    Schedule<Nothing, Unit, Unit> recurs = Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity());
+    Schedule<Nothing, Unit, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
     ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = print.repeat(recurs.zipLeft(spaced)).timed();
     
     Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
@@ -85,8 +85,8 @@ public class ScheduleTest {
     when(console.get()).thenThrow(RuntimeException.class).thenReturn("hola");
 
     ZIO<Nothing, Throwable, String> read = ZIO.task(console::get);
-    Schedule<Nothing, Integer, Throwable, Integer> recurs = Schedule.recurs(2);
-    Schedule<Nothing, Integer, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
+    Schedule<Nothing, Throwable, Integer> recurs = Schedule.recurs(2);
+    Schedule<Nothing, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
     ZIO<Nothing, Throwable, Tuple2<Duration, String>> retry = read.retry(recurs.zip(spaced)).timed();
     
     Either<Throwable, Tuple2<Duration, String>> provide = retry.provide(nothing());
@@ -110,7 +110,7 @@ public class ScheduleTest {
   
   @Test
   public void andThen(@Mock Consumer1<String> console) {
-    Schedule<Nothing, Either<Integer, Integer>, Unit, Integer> two = 
+    Schedule<Nothing, Unit, Integer> two =
         Schedule.<Nothing, Unit>recurs(1).andThen(Schedule.<Nothing, Unit>recurs(1));
 
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
@@ -125,7 +125,7 @@ public class ScheduleTest {
   @Test
   @Disabled("I don't understand very well this")
   public void compose(@Mock Consumer1<String> console) {
-    Schedule<Nothing, Tuple2<Integer, Integer>, Unit, Integer> two = 
+    Schedule<Nothing, Unit, Integer> two =
       Schedule.<Nothing, Unit>recurs(1).compose(Schedule.<Nothing, Integer>recurs(1));
 
     ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));

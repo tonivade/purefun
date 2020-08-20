@@ -152,7 +152,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.repeat(delay, times));
   }
   
-  public <S, B> Task<B> repeat(Schedule<Nothing, S, A, B> schedule) {
+  public <B> Task<B> repeat(Schedule<Nothing, A, B> schedule) {
     return new Task<>(instance.repeat(schedule));
   }
 
@@ -172,7 +172,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
   
-  public <S> Task<A> retry(Schedule<Nothing, S, Throwable, S> schedule) {
+  public <B> Task<A> retry(Schedule<Nothing, Throwable, B> schedule) {
     return new Task<>(instance.retry(schedule));
   }
 

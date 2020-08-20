@@ -137,18 +137,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
   }
   
-  default <S, B> ZIO<R, E, B> repeat(Schedule<R, S, A, B> schedule) {
+  default <B> ZIO<R, E, B> repeat(Schedule<R, A, B> schedule) {
     return repeatOrElse(schedule, (e, b) -> raiseError(e));
   }
   
-  default <S, B> ZIO<R, E, B> repeatOrElse(
-      Schedule<R, S, A, B> schedule, 
+  default <B> ZIO<R, E, B> repeatOrElse(
+      Schedule<R, A, B> schedule,
       Function2<E, Option<B>, ZIO<R, E, B>> orElse) {
     return repeatOrElseEither(schedule, orElse).map(Either::merge);
   }
 
-  default <S, B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
-      Schedule<R, S, A, B> schedule, 
+  default <B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
+      Schedule<R, A, B> schedule,
       Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
     return new Repeat<>(this, schedule, orElse);
   }
@@ -169,18 +169,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
   }
   
-  default <S> ZIO<R, E, A> retry(Schedule<R, S, E, S> schedule) {
+  default <S> ZIO<R, E, A> retry(Schedule<R, E, S> schedule) {
     return retryOrElse(schedule, (e, s) -> raiseError(e));
   }
 
   default <S> ZIO<R, E, A> retryOrElse(
-      Schedule<R, S, E, S> schedule,
+      Schedule<R, E, S> schedule,
       Function2<E, S, ZIO<R, E, A>> orElse) {
     return retryOrElseEither(schedule, orElse).map(Either::merge);
   }
 
   default <S, B> ZIO<R, E, Either<B, A>> retryOrElseEither(
-      Schedule<R, S, E, S> schedule,
+      Schedule<R, E, S> schedule,
       Function2<E, S, ZIO<R, E, B>> orElse) {
     return new Retry<>(this, schedule, orElse);
   }
@@ -592,15 +592,15 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   final class Repeat<R, S, E, A, B, C> implements SealedZIO<R, E, Either<C, B>> {
     
     private final ZIO<R, E, A> current;
-    private final Schedule<R, S, A, B> schedule;
+    private final ScheduleImpl<R, S, A, B> schedule;
     private final Function2<E, Option<B>, ZIO<R, E, C>> orElse;
 
-    protected Repeat(ZIO<R, E, A> current, Schedule<R, S, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
+    protected Repeat(ZIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
       this.current = checkNonNull(current);
-      this.schedule = checkNonNull(schedule);
+      this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
       this.orElse = checkNonNull(orElse);
     }
-    
+
     @Override
     public Either<E, Either<C, B>> provide(R env) {
       return current.provide(env).fold(
@@ -655,12 +655,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   final class Retry<R, S, E, A, B, C> implements SealedZIO<R, E, Either<B, A>> {
     
     private final ZIO<R, E, A> current;
-    private final Schedule<R, S, E, C> schedule;
+    private final ScheduleImpl<R, S, E, C> schedule;
     private final Function2<E, S, ZIO<R, E, B>> orElse;
     
-    protected Retry(ZIO<R, E, A> current, Schedule<R, S, E, C> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
+    protected Retry(ZIO<R, E, A> current, Schedule<R, E, C> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
       this.current = checkNonNull(current);
-      this.schedule = checkNonNull(schedule);
+      this.schedule = (ScheduleImpl<R, S, E, C>) checkNonNull(schedule);
       this.orElse = checkNonNull(orElse);
     }
 

@@ -147,7 +147,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return fold(ZIO.redeem(instance).repeat(delay, times));
   }
   
-  public <S, B> URIO<R, B> repeat(Schedule<R, S, A, B> schedule) {
+  public <B> URIO<R, B> repeat(Schedule<R, A, B> schedule) {
     return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
@@ -167,7 +167,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }
   
-  public <S> URIO<R, A> retry(Schedule<R, S, Throwable, S> schedule) {
+  public <B> URIO<R, A> retry(Schedule<R, Throwable, B> schedule) {
     return fold(ZIO.redeem(instance).retry(schedule));
   }
 
