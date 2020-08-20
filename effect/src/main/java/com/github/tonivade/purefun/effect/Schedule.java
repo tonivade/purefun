@@ -9,7 +9,14 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.*;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
@@ -176,29 +183,25 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 
   @FunctionalInterface
-  public interface Update<R, S, A> {
+  interface Update<R, S, A> {
 
     ZIO<R, Unit, S> update(A last, S state);
 
   }
 
   @FunctionalInterface
-  public interface Extract<A, S, B> {
+  interface Extract<A, S, B> {
 
     B extract(A last, S state);
 
   }
 }
 
-abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B> {
+abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
   
   private ScheduleImpl() { }
   
   public abstract URIO<R, S> initial();
-
-  public abstract B extract(A last, S state);
-  
-  public abstract ZIO<R, Unit, S> update(A last, S state);
 
   @Override
   public <C> Schedule<R, A, C> map(Function1<B, C> mapper) {
