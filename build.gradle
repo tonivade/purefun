@@ -51,6 +51,7 @@ allprojects {
 
   compileJava {
     options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:rawtypes'
   }
 
   jacocoTestReport {

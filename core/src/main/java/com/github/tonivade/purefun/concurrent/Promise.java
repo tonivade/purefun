@@ -21,7 +21,7 @@ import static java.util.Objects.isNull;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 @HigherKind(sealed = true)
-public interface Promise<T> {
+public interface Promise<T> extends PromiseOf<T> {
 
   boolean tryComplete(Try<T> value);
 
