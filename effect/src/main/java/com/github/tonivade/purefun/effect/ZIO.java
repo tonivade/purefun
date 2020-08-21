@@ -595,6 +595,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     private final ScheduleImpl<R, S, A, B> schedule;
     private final Function2<E, Option<B>, ZIO<R, E, C>> orElse;
 
+    @SuppressWarnings("unchecked")
     protected Repeat(ZIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
       this.current = checkNonNull(current);
       this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
@@ -657,7 +658,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     private final ZIO<R, E, A> current;
     private final ScheduleImpl<R, S, E, C> schedule;
     private final Function2<E, S, ZIO<R, E, B>> orElse;
-    
+
+    @SuppressWarnings("unchecked")
     protected Retry(ZIO<R, E, A> current, Schedule<R, E, C> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
       this.current = checkNonNull(current);
       this.schedule = (ScheduleImpl<R, S, E, C>) checkNonNull(schedule);
@@ -688,7 +690,6 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       }, value -> ZIO.pure(Either.right(value)));
     }
     
-
     private Either<E, Either<B, A>> run(R env, S state) {
       S s = state;
       

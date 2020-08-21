@@ -49,6 +49,10 @@ allprojects {
     toolVersion = '0.8.5'
   }
 
+  compileJava {
+    options.compilerArgs << '-Xlint:unchecked'
+  }
+
   jacocoTestReport {
     reports {
       xml.enabled = true
