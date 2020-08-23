@@ -4,20 +4,21 @@
  */
 package com.github.tonivade.purefun;
 
-import com.github.tonivade.purefun.type.Validation;
-import com.github.tonivade.purefun.type.Validation.Result;
-
-import java.util.regex.Pattern;
-
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.isNotNull;
 import static com.github.tonivade.purefun.Matcher1.not;
+import static com.github.tonivade.purefun.Precondition.check;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Precondition.checkPositive;
 import static com.github.tonivade.purefun.type.Validation.map2;
 import static com.github.tonivade.purefun.type.Validation.map3;
 import static com.github.tonivade.purefun.type.Validation.map4;
 import static com.github.tonivade.purefun.type.Validation.map5;
-import static java.util.Objects.isNull;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
+import java.util.regex.Pattern;
+
+import com.github.tonivade.purefun.type.Validation;
+import com.github.tonivade.purefun.type.Validation.Result;
 
 @FunctionalInterface
 public interface Validator<E, T> {
@@ -234,14 +235,21 @@ public interface Validator<E, T> {
   }
 
   static <T> Validator<String, T> equalsTo(T expected) {
-    return equalsTo(expected, () -> "require non empty string");
+    return equalsTo(expected, () -> "require equals to " + expected);
   }
 
   static <T> Validator<String, T> equalsTo(T expected, Producer<String> message) {
-    if (isNull(expected)) {
-      throw new IllegalArgumentException("expected should not be null");
-    }
+    checkNonNull(expected, "expected should not be null");
     return from(Matcher1.is(expected), message);
+  }
+
+  static <T> Validator<String, T> instanceOf(Class<?> clazz) {
+    return instanceOf(clazz, () -> "require instance of " + clazz);
+  }
+
+  static <T> Validator<String, T> instanceOf(Class<?> clazz, Producer<String> message) {
+    checkNonNull(clazz, "expected should not be null");
+    return from(Matcher1.instanceOf(clazz), message);
   }
 
   static Validator<String, String> nonEmpty() {
@@ -273,9 +281,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> startsWith(String prefix, Producer<String> message) {
-    if (isNull(prefix)) {
-      throw new IllegalArgumentException("prefix should not be null");
-    }
+    checkNonNull(prefix, "prefix should not be null");
     return from(value -> value.startsWith(prefix), message);
   }
 
@@ -284,9 +290,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> contains(String substring, Producer<String> message) {
-    if (isNull(substring)) {
-      throw new IllegalArgumentException("string should not be null");
-    }
+    checkNonNull(substring, "substring should not be null");
     return from(value -> value.contains(substring), message);
   }
 
@@ -295,9 +299,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> endsWith(String suffix, Producer<String> message) {
-    if (isNull(suffix)) {
-      throw new IllegalArgumentException("suffix should not be null");
-    }
+    checkNonNull(suffix, "suffix should not be null");
     return from(value -> value.endsWith(suffix), message);
   }
 
@@ -306,9 +308,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> match(String regex, Producer<String> message) {
-    if (isNull(regex)) {
-      throw new IllegalArgumentException("regex should not be null");
-    }
+    checkNonNull(regex, "regex should not be null");
     return from(value -> Pattern.matches(regex, value), message);
   }
 
@@ -317,9 +317,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> minLength(int length, Producer<String> message) {
-    if (length < 0) {
-      throw new IllegalArgumentException("length should be a positive value");
-    }
+    checkPositive(length, "length should be a positive value");
     return greaterThanOrEqual(length, message).compose(String::length);
   }
 
@@ -328,9 +326,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> maxLength(int length, Producer<String> message) {
-    if (length < 0) {
-      throw new IllegalArgumentException("length should be a positive value");
-    }
+    checkPositive(length, "length should be a positive value");
     return lowerThan(length, message).compose(String::length);
   }
 
@@ -387,9 +383,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> length(int min, int max, Producer<String> message) {
-    if (min >= max) {
-      throw new IllegalArgumentException(min + " should not be greater than " + max);
-    }
+    check(() -> min < max, min + " should not be greater than " + max);
     return Validator.<String>nonNull()
         .andThen(combine(minLength(min), maxLength(max), join(message)));
   }
@@ -399,9 +393,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, Integer> range(int start, int end, Producer<String> message) {
-    if (start >= end) {
-      throw new IllegalArgumentException("start should not be greater than end");
-    }
+    check(() -> start < end, "start should not be greater than end");
     return Validator.<Integer>nonNull()
         .andThen(combine(greaterThanOrEqual(start), lowerThan(end), join(message)));
   }
