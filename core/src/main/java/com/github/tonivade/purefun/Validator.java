@@ -243,6 +243,15 @@ public interface Validator<E, T> {
     return from(Matcher1.is(expected), message);
   }
 
+  static <T> Validator<String, T> notEqualsTo(T expected) {
+    return notEqualsTo(expected, () -> "require not equals to " + expected);
+  }
+
+  static <T> Validator<String, T> notEqualsTo(T expected, Producer<String> message) {
+    checkNonNull(expected, "expected should not be null");
+    return from(Matcher1.is(expected).negate(), message);
+  }
+
   static <T> Validator<String, T> instanceOf(Class<?> clazz) {
     return instanceOf(clazz, () -> "require instance of " + clazz);
   }
