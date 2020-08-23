@@ -39,6 +39,11 @@ public interface Validator<E, T> {
     return value -> validate(value).flatMap(then::validate);
   }
 
+  default Validator<Result<E>, T> combine(Validator<E, T> other) {
+    checkNonNull(other);
+    return combine(this, other);
+  }
+
   static <E, T> Validator<E, T> from(Matcher1<T> matcher, Producer<E> error) {
     checkNonNull(matcher);
     checkNonNull(error);
@@ -46,7 +51,7 @@ public interface Validator<E, T> {
   }
 
   static <E, A, B> Validator<Result<E>, Tuple2<A, B>> product(Validator<E, A> v1,
-                                                                Validator<E, B> v2) {
+                                                              Validator<E, B> v2) {
     return product(v1, v2, identity());
   }
 
@@ -64,8 +69,8 @@ public interface Validator<E, T> {
   }
 
   static <E, A, B, C> Validator<Result<E>, Tuple3<A, B, C>> product(Validator<E, A> v1,
-                                                                      Validator<E, B> v2,
-                                                                      Validator<E, C> v3) {
+                                                                    Validator<E, B> v2,
+                                                                    Validator<E, C> v3) {
     return product(v1, v2, v3, identity());
   }
 
@@ -86,9 +91,9 @@ public interface Validator<E, T> {
   }
 
   static <E, A, B, C, D> Validator<Result<E>, Tuple4<A, B, C, D>> product(Validator<E, A> v1,
-                                                                            Validator<E, B> v2,
-                                                                            Validator<E, C> v3,
-                                                                            Validator<E, D> v4) {
+                                                                          Validator<E, B> v2,
+                                                                          Validator<E, C> v3,
+                                                                          Validator<E, D> v4) {
     return product(v1, v2, v3, v4, identity());
   }
 
@@ -112,10 +117,10 @@ public interface Validator<E, T> {
   }
 
   static <F, A, B, C, D, E> Validator<Result<F>, Tuple5<A, B, C, D, E>> product(Validator<F, A> v1,
-                                                                                  Validator<F, B> v2,
-                                                                                  Validator<F, C> v3,
-                                                                                  Validator<F, D> v4,
-                                                                                  Validator<F, E> v5) {
+                                                                                Validator<F, B> v2,
+                                                                                Validator<F, C> v3,
+                                                                                Validator<F, D> v4,
+                                                                                Validator<F, E> v5) {
     return product(v1, v2, v3, v4, v5, identity());
   }
 
@@ -226,6 +231,17 @@ public interface Validator<E, T> {
 
   static <T> Validator<String, T> nonNullAnd(Producer<String> message, Validator<String, T> then) {
     return Validator.<T>nonNull(message).andThen(then);
+  }
+
+  static <T> Validator<String, T> equalsTo(T expected) {
+    return equalsTo(expected, () -> "require non empty string");
+  }
+
+  static <T> Validator<String, T> equalsTo(T expected, Producer<String> message) {
+    if (isNull(expected)) {
+      throw new IllegalArgumentException("expected should not be null");
+    }
+    return from(Matcher1.is(expected), message);
   }
 
   static Validator<String, String> nonEmpty() {

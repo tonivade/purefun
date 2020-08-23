@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -48,6 +49,8 @@ public interface Promise<T> extends PromiseOf<T> {
   default Promise<T> onFailure(Consumer1<Throwable> consumer) {
     return onComplete(value -> value.onFailure(consumer));
   }
+  
+  <R> Promise<R> map(Function1<T, R> mapper);
 
   Try<T> get();
   Try<T> get(Duration timeout);
@@ -151,6 +154,13 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   public Promise<T> onComplete(Consumer1<Try<T>> consumer) {
     current(consumer).ifPresent(consumer);
     return this;
+  }
+  
+  @Override
+  public <R> Promise<R> map(Function1<T, R> mapper) {
+    Promise<R> other = new PromiseImpl<R>(executor);
+    onComplete(value -> other.tryComplete(value.map(mapper)));
+    return other;
   }
 
   private Option<Try<T>> current(Consumer1<Try<T>> consumer) {
