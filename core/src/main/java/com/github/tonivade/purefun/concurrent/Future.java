@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
+import static com.github.tonivade.purefun.Consumer1.noop;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
@@ -224,7 +225,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
   private final Cancellable<T> cancellable;
 
   private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback) {
-    this(executor, callback, x -> {});
+    this(executor, callback, noop());
   }
 
   protected FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {

@@ -86,8 +86,8 @@ public interface Control<T> extends ControlOf<T> {
       Tuple2<MetaCont<A, R>, MetaCont<R, R1>> tuple = cont.splitAt(marker);
       Control<R> handled = cps.apply(value -> new Control<R>() {
         @Override
-        public <R2> Result<R2> apply(MetaCont<R, R2> cont) {
-          return tuple.get1().append(cont).apply(value);
+        public <R2> Result<R2> apply(MetaCont<R, R2> other) {
+          return tuple.get1().append(other).apply(value);
         }
       });
       return Result.computation(handled, tuple.get2());

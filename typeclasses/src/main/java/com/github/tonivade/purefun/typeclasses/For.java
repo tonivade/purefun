@@ -63,7 +63,7 @@ abstract class AbstractFor<F extends Witness, A, B> {
     consumer.accept(run());
   }
 
-  public <R> Kind<F, R> returns(R value) {
-    return monad.map(run(), ignore -> value);
+  public <R> Kind<F, R> returns(R other) {
+    return monad.map(run(), ignore -> other);
   }
 }

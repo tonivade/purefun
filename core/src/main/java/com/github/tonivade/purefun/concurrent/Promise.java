@@ -158,7 +158,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   
   @Override
   public <R> Promise<R> map(Function1<T, R> mapper) {
-    Promise<R> other = new PromiseImpl<R>(executor);
+    Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> other.tryComplete(value.map(mapper)));
     return other;
   }

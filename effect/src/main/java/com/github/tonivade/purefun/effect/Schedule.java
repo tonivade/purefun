@@ -223,15 +223,18 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
     return andThenEither(next).map(Either::merge);
   }
 
+  @SuppressWarnings("unchecked")
   public <C> Schedule<R, A, Either<B, C>> andThenEither(Schedule<R, A, C> next) {
     return _andThenEither((ScheduleImpl<R, ?, A, C>) next);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, Tuple2<B, C>> zip(Schedule<R, A, C> other) {
     return _zip((ScheduleImpl<R, ?, A, C>) other);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, C> compose(Schedule<R, B, C> other) {
     return _compose((ScheduleImpl<R, ?, B, C>) other);

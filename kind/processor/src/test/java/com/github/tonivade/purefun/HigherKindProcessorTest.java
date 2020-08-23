@@ -115,7 +115,7 @@ public class HigherKindProcessorTest {
 
         "}");
 
-    JavaFileObject witness = forSourceLines("Foo_",
+    JavaFileObject generatedWitness = forSourceLines("Foo_",
         "import com.github.tonivade.purefun.Witness;",
         "import javax.annotation.Generated;",
 
@@ -125,7 +125,7 @@ public class HigherKindProcessorTest {
         "}");
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, witness);
+        .compilesWithoutError().and().generatesSources(generated, generatedWitness);
   }
 
   @Test

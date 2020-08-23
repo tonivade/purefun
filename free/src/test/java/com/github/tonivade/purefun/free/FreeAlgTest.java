@@ -54,8 +54,8 @@ public class FreeAlgTest {
         return from.fix(EitherKOf::narrowK).foldK(
           new FunctionK<ConsoleAlg_, IO_>() {
             @Override
-            public <X> Kind<IO_, X> apply(Kind<ConsoleAlg_, X> from) {
-              ConsoleAlg<X> consoleAlg = from.fix(ConsoleAlgOf::narrowK);
+            public <X> Kind<IO_, X> apply(Kind<ConsoleAlg_, X> kind) {
+              ConsoleAlg<X> consoleAlg = kind.fix(ConsoleAlgOf::narrowK);
               if (consoleAlg instanceof ConsoleAlg.ReadLine) {
                 return (Kind<IO_, X>) console.readln();
               }
@@ -68,8 +68,8 @@ public class FreeAlgTest {
           },
             new FunctionK<EmailAlg_, IO_>() {
               @Override
-              public <X> Kind<IO_, X> apply(Kind<EmailAlg_, X> from) {
-                EmailAlg<X> emailAlg = from.fix(EmailAlgOf::narrowK);
+              public <X> Kind<IO_, X> apply(Kind<EmailAlg_, X> kind) {
+                EmailAlg<X> emailAlg = kind.fix(EmailAlgOf::narrowK);
                 if (emailAlg instanceof EmailAlg.SendEmail) {
                   EmailAlg.SendEmail sendEmail = (EmailAlg.SendEmail) emailAlg;
                   return (Kind<IO_, X>) console.println(

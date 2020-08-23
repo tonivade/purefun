@@ -195,7 +195,7 @@ interface MetaCont<A, B> {
     @Override
     public <R1> Tuple2<MetaCont<R, R1>, MetaCont<R1, A>> splitAt(Marker.Cont<R1> cont) {
       Tuple2<MetaCont<R, R1>, MetaCont<R1, A>> tuple = tail.splitAt(cont);
-      return tuple.applyTo((head, tail) -> Tuple2.of(new Captured<>(marker, marker.backup(), head), tail));
+      return tuple.applyTo((h, t) -> Tuple2.of(new Captured<>(marker, marker.backup(), h), t));
     }
 
     @Override

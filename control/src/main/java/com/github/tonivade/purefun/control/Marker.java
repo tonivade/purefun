@@ -11,11 +11,14 @@ interface Marker {
   interface Cont<R> {}
 
   interface State<S> {
+
     S backup();
+
     void restore(S value);
   }
 
   interface Catch<R> {
+
     PartialFunction1<Throwable, Control<R>> handle();
   }
 }

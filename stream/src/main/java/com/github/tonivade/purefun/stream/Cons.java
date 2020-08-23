@@ -140,8 +140,8 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
     return suspend(() -> cons(head, suspend(() -> cons(value, tail.intersperse(value)))));
   }
 
-  private <R> Stream<F, R> cons(Kind<F, R> head, Stream<F, R> tail) {
-    return new Cons<>(monad, head, tail);
+  private <R> Stream<F, R> cons(Kind<F, R> h, Stream<F, R> t) {
+    return new Cons<>(monad, h, t);
   }
 
   private <R> Stream<F, R> suspend(Producer<Stream<F, R>> stream) {

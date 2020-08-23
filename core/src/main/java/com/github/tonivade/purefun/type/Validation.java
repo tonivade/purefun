@@ -346,8 +346,8 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     }
 
     @SuppressWarnings("unchecked")
-    public Result<E> appendAll(E... errors) {
-      return new Result<>(this.errors.appendAll(listOf(errors)));
+    public Result<E> appendAll(E... other) {
+      return new Result<>(this.errors.appendAll(listOf(other)));
     }
 
     public String join() {
