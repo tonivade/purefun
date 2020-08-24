@@ -24,6 +24,7 @@ import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -82,6 +83,8 @@ public interface Future<T> extends FutureOf<T> {
   <R> Future<R> flatMap(Function1<T, Future<R>> mapper);
 
   <R> Future<R> andThen(Future<R> next);
+
+  <R> Future<R> ap(Future<Function1<T, R>> apply);
 
   Future<T> filter(Matcher1<T> matcher);
 
@@ -215,6 +218,10 @@ public interface Future<T> extends FutureOf<T> {
   static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
     return FutureImpl.bracket(executor, acquire, use, release);
   }
+  
+  static <T, V, R> Future<R> map2(Future<T> fa, Future<V> fb, Function2<T, V, R> mapper) {
+    return fb.ap(fa.map(mapper.curried()));
+  }
 }
 
 final class FutureImpl<T> implements SealedFuture<T> {
@@ -287,6 +294,15 @@ final class FutureImpl<T> implements SealedFuture<T> {
   @Override
   public <R> Future<R> andThen(Future<R> next) {
     return flatMap(ignore -> next);
+  }
+  
+  @Override
+  public <R> Future<R> ap(Future<Function1<T, R>> apply) {
+    return new FutureImpl<>(executor, (p, c) -> {
+      promise.onComplete(try1 -> apply.onComplete(try2 -> {
+        p.tryComplete(try1.flatMap(t -> try2.map(f -> f.apply(t))));
+      }));
+    });
   }
 
   @Override

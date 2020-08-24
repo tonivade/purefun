@@ -44,7 +44,7 @@ public interface Par<T> extends ParOf<T> {
   }
 
   default <R> Par<R> ap(Par<Function1<T, R>> apply) {
-    return apply.flatMap(this::map);
+    return executor -> apply(executor).ap(apply.apply(executor));
   }
 
   default Par<T> filter(Matcher1<T> matcher) {
@@ -105,7 +105,7 @@ public interface Par<T> extends ParOf<T> {
 
   static <A> Par<Sequence<A>> traverse(Sequence<Par<A>> sequence) {
     return sequence.foldLeft(success(empty()),
-        (Par<Sequence<A>> parA, Par<A> parB) -> map2(parA, parB, Sequence::append));
+        (Par<Sequence<A>> xa, Par<A> a) -> map2(xa, a, Sequence::append));
   }
 
   static Par<Unit> sequence(Sequence<Par<?>> sequence) {

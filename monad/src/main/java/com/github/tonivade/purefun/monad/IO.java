@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
@@ -24,6 +25,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -66,6 +68,10 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   default <R> IO<R> andThen(IO<R> after) {
     return flatMap(ignore -> after);
+  }
+
+  default <R> IO<R> ap(IO<Function1<T, R>> apply) {
+    return apply.flatMap(this::map);
   }
 
   default IO<Try<T>> attempt() {
@@ -190,6 +196,19 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
+  static <A> IO<Sequence<A>> traverse(Sequence<IO<A>> sequence) {
+    return sequence.foldLeft(IO.pure(ImmutableList.empty()), 
+        (IO<Sequence<A>> xs, IO<A> a) -> map2(xs, a, Sequence::append));
+  }
+
+  static <A, B, C> IO<C> map2(IO<A> fa, IO<B> fb, Function2<A, B, C> mapper) {
+    return new Zip<>(fa, fb, mapper);
+  }
+
+  static <A, B> IO<Tuple2<A, B>> tuple(IO<A> fa, IO<B> fb) {
+    return map2(fa, fb, Tuple::of);
+  }
+
   final class Pure<T> implements SealedIO<T> {
 
     private final T value;
@@ -211,6 +230,36 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     @Override
     public String toString() {
       return "Pure(" + value + ")";
+    }
+  }
+
+  final class Zip<A, B, C> implements SealedIO<C> {
+    
+    private final IO<A> left;
+    private final IO<B> right;
+    private final Function2<A, B, C> mapper;
+
+    public Zip(IO<A> left, IO<B> right, Function2<A, B, C> mapper) {
+      this.left = checkNonNull(left);
+      this.right = checkNonNull(right);
+      this.mapper = checkNonNull(mapper);
+    }
+
+    @Override
+    public C unsafeRunSync() {
+      return IOModule.evaluate(left.flatMap(a -> right.map(b -> mapper.apply(a, b))));
+    }
+    
+    @Override
+    public <F extends Witness> Kind<F, C> foldMap(MonadDefer<F> monad) {
+      Kind<F, A> fa = left.foldMap(monad);
+      Kind<F, B> fb = right.foldMap(monad);
+      return monad.map2(fa, fb, mapper);
+    }
+    
+    @Override
+    public String toString() {
+      return "Zip(" + left + "," + right + "?)";
     }
   }
 
