@@ -294,22 +294,22 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
     });
   }
 
-  private <T, C> Schedule<R, A, Either<B, C>> _andThenEither(ScheduleImpl<R, T, A, C> next) {
-    return ScheduleImpl.of(
+  private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> _andThenEither(ScheduleImpl<R, T, A, C> other) {
+    return ScheduleImpl.<R, Either<S, T>, A, Either<B, C>>of(
             initial().map(Either::<S, T>left),
             (a, st) -> st.fold(
                     s -> {
                       ZIO<R, Unit, Either<S, T>> orElse =
-                              next.initial().<Unit>toZIO().flatMap(c -> next.update(a, c).map(Either::<S, T>right));
+                              other.initial().<Unit>toZIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
                       return this.update(a, s).map(Either::<S, T>left).orElse(orElse);
                     },
-                    t -> next.update(a, t).map(Either::<S, T>right)),
+                    t -> other.update(a, t).map(Either::<S, T>right)),
             (a, st) -> st.fold(
                     s -> Either.left(this.extract(a, s)),
-                    t -> Either.right(next.extract(a, t))));
+                    t -> Either.right(other.extract(a, t))));
   }
 
-  private <T, C> Schedule<R, A, Tuple2<B, C>> _zip(ScheduleImpl<R, T, A, C> other) {
+  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> _zip(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
             this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).toURIO(),
             (a, st) -> {
@@ -322,12 +322,12 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
                     other.extract(a, st.get2())));
   }
 
-  private <T, C> Schedule<R, A, C> _compose(ScheduleImpl<R, T, B, C> other) {
+  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> _compose(ScheduleImpl<R, T, B, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, C>of(
             this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).toURIO(),
             (a, st) -> {
-              ZIO<R,Unit,S> self = this.update(a, st.get1());
-              ZIO<R,Unit,T> next = other.update(this.extract(a, st.get1()), st.get2());
+              ZIO<R, Unit, S> self = this.update(a, st.get1());
+              ZIO<R, Unit, T> next = other.update(this.extract(a, st.get1()), st.get2());
               return self.zip(next);
             },
             (a, st) -> other.extract(this.extract(a, st.get1()), st.get2()));
