@@ -238,7 +238,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<A, B, C> mapper) {
-    return za.flatMap(a -> zb.map(b -> mapper.curried().apply(a).apply(b)));
+    return new Zip<>(za, zb, mapper);
   }
 
   static <R, E, A> ZIO<R, E, A> absorb(ZIO<R, E, Either<E, A>> value) {
@@ -318,6 +318,34 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public String toString() {
       return "Pure(" + value + ")";
+    }
+  }
+
+  final class Zip<R, E, A, B, C> implements SealedZIO<R, E, C> {
+    
+    private final ZIO<R, E, A> left;
+    private final ZIO<R, E, B> right;
+    private final Function2<A, B, C> mapper;
+
+    protected Zip(ZIO<R, E, A> left, ZIO<R, E, B> right, Function2<A, B, C> mapper) {
+      this.left = checkNonNull(left);
+      this.right = checkNonNull(right);
+      this.mapper = checkNonNull(mapper);
+    }
+
+    @Override
+    public Either<E, C> provide(R env) {
+      return ZIOModule.evaluate(env, left.flatMap(a -> right.map(b -> mapper.apply(a, b))));
+    }
+    
+    @Override
+    public <F extends Witness> Kind<F, C> foldMap(R env, MonadDefer<F> monad) {
+      return monad.map2(left.foldMap(env, monad), right.foldMap(env, monad), mapper);
+    }
+    
+    @Override
+    public String toString() {
+      return "Zip(" + left + "," + right + "?)";
     }
   }
 
@@ -468,7 +496,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<A, E> provide(R env) {
-      return current.provide(env).swap();
+      return ZIOModule.evaluate(env, current).swap();
     }
 
     @Override
@@ -518,7 +546,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<Throwable, A> provide(R env) {
-      return Try.of(() -> current.provide(env).get()).toEither();
+      return Try.of(() -> ZIOModule.evaluate(env, current).get()).toEither();
     }
 
     @Override
@@ -542,7 +570,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<E, A> provide(R env) {
-      return function.apply(env).provide(env);
+      return ZIOModule.evaluate(env, function.apply(env));
     }
 
     @Override
@@ -571,7 +599,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<F, B> provide(R env) {
-      return current.provide(env).fold(nextError, next).provide(env);
+      ZIO<R, F, B> fold = ZIOModule.evaluate(env, current).fold(nextError, next);
+      return ZIOModule.evaluate(env, fold);
     }
 
     @Override
@@ -604,9 +633,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<E, Either<C, B>> provide(R env) {
-      return current.provide(env).fold(
-          error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left).provide(env),
-          a -> schedule.initial().<E>toZIO().provide(env).flatMap(s -> run(env, a, s)));
+      return ZIOModule.evaluate(env, current).fold(
+          error -> ZIOModule.evaluate(env, orElse.apply(error, Option.<B>none()).map(Either::<C, B>left)),
+          a -> ZIOModule.evaluate(env, schedule.initial().<E>toZIO()).flatMap(s -> run(env, a, s)));
     }
     
     @Override
@@ -635,13 +664,13 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       S s = state;
       
       while (true) {
-        Either<Unit, S> update = schedule.update(a, s).provide(env);
+        Either<Unit, S> update = ZIOModule.evaluate(env, schedule.update(a, s));
         
         if (update.isLeft()) {
           return Either.right(Either.right(schedule.extract(a, s)));
         }
         
-        Either<E, A> provide = current.provide(env);
+        Either<E, A> provide = ZIOModule.evaluate(env, current);
         
         if (provide.isLeft()) {
           return orElse.apply(provide.getLeft(), Option.some(schedule.extract(a, s))).provide(env).map(Either::<C, B>left);
@@ -668,7 +697,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<E, Either<B, A>> provide(R env) {
-      return schedule.initial().<E>toZIO().provide(env).flatMap(s -> run(env, s));
+      return ZIOModule.evaluate(env, schedule.initial().<E>toZIO()).flatMap(s -> run(env, s));
     }
 
     @Override
@@ -694,16 +723,16 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       S s = state;
       
       while(true) {
-        Either<E, A> provide = current.provide(env);
+        Either<E, A> provide = ZIOModule.evaluate(env, current);
         
         if (provide.isRight()) {
           return Either.right(Either.right(provide.getRight()));
         }
         
-        Either<Unit, S> update = schedule.update(provide.getLeft(), s).provide(env);
+        Either<Unit, S> update = ZIOModule.evaluate(env, schedule.update(provide.getLeft(), s));
         
         if (update.isLeft()) {
-          return orElse.apply(provide.getLeft(), s).provide(env).map(Either::<B, A>left);
+          return ZIOModule.evaluate(env, orElse.apply(provide.getLeft(), s)).map(Either::<B, A>left);
         }
         
         s = update.getRight();
@@ -752,7 +781,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public Either<E, Tuple2<Duration, A>> provide(R env) {
       long start = System.nanoTime();
-      Either<E, A> result = current.provide(env);
+      Either<E, A> result = ZIOModule.evaluate(env, current);
       return result.map(value -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), value));
     }
     
@@ -783,8 +812,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<E, B> provide(R env) {
-      try (ZIOResource<E, A> resource = new ZIOResource<>(acquire.provide(env), release)) {
-        return resource.apply(use).provide(env);
+      try (ZIOResource<E, A> resource = new ZIOResource<>(ZIOModule.evaluate(env, acquire), release)) {
+        return ZIOModule.evaluate(env, resource.apply(use));
       }
     }
 

@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.Function1.identity;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -91,10 +90,14 @@ interface ParMonad extends ParPure, Monad<Par_> {
   default <T, R> Par<R> flatMap(Kind<Par_, T> value, Function1<T, ? extends Kind<Par_, R>> map) {
     return value.fix(ParOf::narrowK).flatMap(x -> map.apply(x).fix(ParOf::narrowK));
   }
-  
+
+  /**
+   * XXX In order to create real parallel computations, we need to override ap to use the
+   * applicative version of the ap method
+   */
   @Override
-  default <A, B, R> Kind<Par_, R> map2(Kind<Par_, A> fa, Kind<Par_, B> fb, Function2<A, B, R> mapper) {
-    return Par.map2(fa.fix(ParOf::narrowK), fb.fix(ParOf::narrowK), mapper);
+  default <T, R> Par<R> ap(Kind<Par_, T> value, Kind<Par_, Function1<T, R>> apply) {
+    return ParInstances.applicative().ap(value, apply).fix(ParOf::narrowK);
   }
 }
 

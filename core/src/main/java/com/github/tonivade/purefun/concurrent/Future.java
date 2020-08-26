@@ -22,13 +22,15 @@ import java.util.concurrent.TimeUnit;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 
 /**
@@ -218,9 +220,18 @@ public interface Future<T> extends FutureOf<T> {
   static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
     return FutureImpl.bracket(executor, acquire, use, release);
   }
+
+  static <A> Future<Sequence<A>> traverse(Sequence<Future<A>> sequence) {
+    return sequence.foldLeft(success(ImmutableList.empty()), 
+        (Future<Sequence<A>> xs, Future<A> a) -> map2(xs, a, Sequence::append));
+  }
   
   static <T, V, R> Future<R> map2(Future<T> fa, Future<V> fb, Function2<T, V, R> mapper) {
     return fb.ap(fa.map(mapper.curried()));
+  }
+  
+  static <T, V> Future<Tuple2<T, V>> tuple(Future<T> fa, Future<V> fb) {
+    return map2(fa, fb, Tuple2::of);
   }
 }
 
@@ -231,11 +242,11 @@ final class FutureImpl<T> implements SealedFuture<T> {
   private final Promise<T> promise;
   private final Cancellable<T> cancellable;
 
-  private FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback) {
+  private FutureImpl(Executor executor, Callback<T> callback) {
     this(executor, callback, noop());
   }
 
-  protected FutureImpl(Executor executor, Consumer2<Promise<T>, Cancellable<T>> callback, Consumer1<Boolean> propagate) {
+  protected FutureImpl(Executor executor, Callback<T> callback, Consumer1<Boolean> propagate) {
     this.executor = checkNonNull(executor);
     this.propagate = checkNonNull(propagate);
     this.promise = Promise.make(executor);
@@ -298,11 +309,10 @@ final class FutureImpl<T> implements SealedFuture<T> {
   
   @Override
   public <R> Future<R> ap(Future<Function1<T, R>> apply) {
-    return new FutureImpl<>(executor, (p, c) -> {
-      promise.onComplete(try1 -> apply.onComplete(try2 -> {
-        p.tryComplete(try1.flatMap(t -> try2.map(f -> f.apply(t))));
-      }));
-    });
+    checkNonNull(apply);
+    return new FutureImpl<>(executor, 
+        (p, c) -> promise.onComplete(try1 -> apply.onComplete(
+            try2 -> p.tryComplete(try1.flatMap(t -> try2.map(f -> f.apply(t)))))), this::cancel);
   }
 
   @Override
@@ -411,4 +421,9 @@ final class Delayed {
   private static Executor delayedExecutor(Duration delay, Executor executor) {
     return task -> SCHEDULER.schedule(() -> executor.execute(task), delay.toMillis(), TimeUnit.MILLISECONDS);
   }
+}
+
+interface Callback<T> {
+  
+  void accept(Promise<T> promise, Cancellable<T> cancellable);
 }

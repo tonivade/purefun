@@ -109,6 +109,15 @@ interface FutureMonad extends FuturePure, Monad<Future_> {
       Function1<T, ? extends Kind<Future_, R>> map) {
     return FutureOf.narrowK(value).flatMap(map.andThen(FutureOf::narrowK));
   }
+
+  /**
+   * XXX In order to create real parallel computations, we need to override ap to use the
+   * applicative version of the ap method
+   */
+  @Override
+  default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<T, R>> apply) {
+    return FutureInstances.applicative().ap(value, apply);
+  }
 }
 
 interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {

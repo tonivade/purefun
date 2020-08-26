@@ -197,7 +197,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   static <A> IO<Sequence<A>> traverse(Sequence<IO<A>> sequence) {
-    return sequence.foldLeft(IO.pure(ImmutableList.empty()), 
+    return sequence.foldLeft(pure(ImmutableList.empty()), 
         (IO<Sequence<A>> xs, IO<A> a) -> map2(xs, a, Sequence::append));
   }
 
@@ -239,7 +239,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     private final IO<B> right;
     private final Function2<A, B, C> mapper;
 
-    public Zip(IO<A> left, IO<B> right, Function2<A, B, C> mapper) {
+    protected Zip(IO<A> left, IO<B> right, Function2<A, B, C> mapper) {
       this.left = checkNonNull(left);
       this.right = checkNonNull(right);
       this.mapper = checkNonNull(mapper);
@@ -252,9 +252,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     
     @Override
     public <F extends Witness> Kind<F, C> foldMap(MonadDefer<F> monad) {
-      Kind<F, A> fa = left.foldMap(monad);
-      Kind<F, B> fb = right.foldMap(monad);
-      return monad.map2(fa, fb, mapper);
+      return monad.map2(left.foldMap(monad), right.foldMap(monad), mapper);
     }
     
     @Override
@@ -440,8 +438,8 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public R unsafeRunSync() {
-      try (IOResource<T> resource = new IOResource<>(acquire.unsafeRunSync(), release)) {
-        return resource.apply(use).unsafeRunSync();
+      try (IOResource<T> resource = new IOResource<>(IOModule.evaluate(acquire), release)) {
+        return IOModule.evaluate(resource.apply(use));
       }
     }
 
@@ -466,7 +464,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public Try<T> unsafeRunSync() {
-      return Try.of(current::unsafeRunSync);
+      return Try.of(() -> IOModule.evaluate(current));
     }
 
     @Override
@@ -495,9 +493,7 @@ interface IOModule {
       } else if (current instanceof IO.FlatMapped) {
         IO.FlatMapped<X, A> flatMapped = (IO.FlatMapped<X, A>) current;
         return new IO.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
-      } else {
-        break;
-      }
+      } else break;
     }
     return current;
   }
@@ -520,9 +516,7 @@ interface IOModule {
         }
       } else if (!stack.isEmpty()) {
         current = stack.pop().apply(current.unsafeRunSync());
-      } else {
-        break;
-      }
+      } else break;
     }
     return current.unsafeRunSync();
   }
@@ -531,9 +525,7 @@ interface IOModule {
     return self.redeemWith(IO::raiseError, value -> {
       if (times > 0) {
         return pause.andThen(repeat(self, pause, times - 1));
-      } else {
-        return IO.pure(value);
-      }
+      } else return IO.pure(value);
     });
   }
 
@@ -541,9 +533,7 @@ interface IOModule {
     return self.redeemWith(error -> {
       if (maxRetries > 0) {
         return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
-      } else {
-        return IO.raiseError(error);
-      }
+      } else return IO.raiseError(error);
     }, IO::pure);
   }
 }

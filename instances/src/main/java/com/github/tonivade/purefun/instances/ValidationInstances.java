@@ -104,7 +104,7 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Kind<V
 
   @Override
   default <T, R> Validation<E, R> ap(Kind<Kind<Validation_, E>, T> value,
-                                                Kind<Kind<Validation_, E>, Function1<T, R>> apply) {
+                                     Kind<Kind<Validation_, E>, Function1<T, R>> apply) {
     Validation<E, T> validation = value.fix(ValidationOf::narrowK);
     Validation<E, Function1<T, R>> validationF = apply.fix(ValidationOf::narrowK);
 
