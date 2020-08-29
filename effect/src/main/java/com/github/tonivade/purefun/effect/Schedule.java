@@ -117,7 +117,7 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 
   static <R, A> Schedule<R, A, Duration> linear(Duration delay) {
-    return delayed(Schedule.<R, A>forever().map(i -> delay.multipliedBy(i + 1)));
+    return delayed(Schedule.<R, A>forever().map(i -> delay.multipliedBy(i + 1L)));
   }
 
   static <R, A> Schedule<R, A, Duration> exponential(Duration delay) {
