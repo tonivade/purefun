@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Matcher2.invalid;
+import static com.github.tonivade.purefun.Function2.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public class Pattern2<A, B, R> implements PartialFunction2<A, B, R> {
@@ -33,43 +33,25 @@ public class Pattern2<A, B, R> implements PartialFunction2<A, B, R> {
     return new Pattern2<>();
   }
 
-  public CaseBuilder2<Pattern2<A, B, R>, A, B, R> when(Matcher2<A, B> matcher) {
-    return new CaseBuilder2<>(this::add).when(matcher);
+  public ThenStep<Pattern2<A, B, R>, A, B, R> when(Matcher2<A, B> matcher) {
+    return handler -> add(matcher, handler);
   }
 
-  public CaseBuilder2<Pattern2<A, B, R>, A, B, R> otherwise() {
-    return new CaseBuilder2<>(this::add).when(Matcher2.otherwise());
+  public ThenStep<Pattern2<A, B, R>, A, B, R> otherwise() {
+    return handler -> add(Matcher2.otherwise(), handler);
   }
 
   private Pattern2<A, B, R> add(Matcher2<A, B> matcher, Function2<A, B, R> handler) {
     return new Pattern2<>(pattern.add(matcher.tupled(), handler.tupled()));
   }
-
-  public static final class CaseBuilder2<B, T, V, R> {
-
-    private final Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher;
-    private final Matcher2<T, V> matcher;
-
-    private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher) {
-      this.finisher = checkNonNull(finisher);
-      this.matcher = invalid();
-    }
-
-    private CaseBuilder2(Function2<Matcher2<T, V>, Function2<T, V, R>, B> finisher, Matcher2<T, V> matcher) {
-      this.finisher = checkNonNull(finisher);
-      this.matcher = checkNonNull(matcher);
-    }
-
-    public CaseBuilder2<B, T, V, R> when(Matcher2<T, V> matcher) {
-      return new CaseBuilder2<>(finisher, matcher);
-    }
-
-    public B then(Function2<T, V, R> handler) {
-      return finisher.apply(matcher, handler);
-    }
-
-    public B returns(R value) {
-      return then((a, b) -> value);
+  
+  @FunctionalInterface
+  public interface ThenStep<P, A, B, R> {
+    
+    P then(Function2<A, B, R> handler);
+    
+    default P returns(R value) {
+      return then(cons(value));
     }
   }
 }

@@ -6,7 +6,6 @@ package com.github.tonivade.purefun;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.fail;
-import static com.github.tonivade.purefun.Matcher1.invalid;
 import static com.github.tonivade.purefun.Matcher1.never;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
@@ -22,12 +21,12 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
     return new Pattern1<>(PartialFunction1.of(never(), fail(UnsupportedOperationException::new)));
   }
 
-  public CaseBuilder1<Pattern1<A, R>, A, R> when(Matcher1<A> matcher) {
-    return new CaseBuilder1<>(this::add).when(matcher);
+  public ThenStep<Pattern1<A, R>, A, R> when(Matcher1<A> matcher) {
+    return handler -> add(matcher, handler);
   }
 
-  public CaseBuilder1<Pattern1<A, R>, A, R> otherwise() {
-    return new CaseBuilder1<>(this::add).when(Matcher1.otherwise());
+  public ThenStep<Pattern1<A, R>, A, R> otherwise() {
+    return handler -> add(Matcher1.otherwise(), handler);
   }
 
   @Override
@@ -43,34 +42,13 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
   protected Pattern1<A, R> add(Matcher1<A> matcher, Function1<A, R> handler) {
     return new Pattern1<>(function.orElse(PartialFunction1.of(matcher, handler)));
   }
+  
+  @FunctionalInterface
+  public interface ThenStep<P, T, R> {
 
-  public static final class CaseBuilder1<B, T, R> {
-
-    private final Function2<Matcher1<T>, Function1<T, R>, B> finisher;
-    private final Matcher1<T> matcher;
-
-    private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher) {
-      this.finisher = checkNonNull(finisher);
-      this.matcher = invalid();
-    }
-
-    private CaseBuilder1(Function2<Matcher1<T>, Function1<T, R>, B> finisher, Matcher1<T> matcher) {
-      this.finisher = checkNonNull(finisher);
-      this.matcher = checkNonNull(matcher);
-    }
-
-    public CaseBuilder1<B, T, R> when(Matcher1<T> matcher) {
-      return new CaseBuilder1<>(finisher, matcher);
-    }
-
-    public B then(Function1<T, R> handler) {
-      return finisher.apply(matcher, handler);
-    }
-
-    // XXX: I have to rename this method because eclipse complains, it says that there are ambiguous.
-    // javac compiler works fine.
-    // related bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=522380
-    public B returns(R value) {
+    P then(Function1<T, R> handler);
+    
+    default P returns(R value) {
       return then(cons(value));
     }
   }

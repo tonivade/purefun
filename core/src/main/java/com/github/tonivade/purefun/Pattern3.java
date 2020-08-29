@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Matcher3.invalid;
+import static com.github.tonivade.purefun.Function3.cons;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public class Pattern3<A, B, C, R> implements PartialFunction3<A, B, C, R> {
@@ -33,43 +33,25 @@ public class Pattern3<A, B, C, R> implements PartialFunction3<A, B, C, R> {
     return new Pattern3<>();
   }
 
-  public CaseBuilder3<Pattern3<A, B, C, R>, A, B, C, R> when(Matcher3<A, B, C> matcher) {
-    return new CaseBuilder3<>(this::add).when(matcher);
+  public ThenStep<Pattern3<A, B, C, R>, A, B, C, R> when(Matcher3<A, B, C> matcher) {
+    return handler -> add(matcher, handler);
   }
 
-  public CaseBuilder3<Pattern3<A, B, C, R>, A, B, C, R> otherwise() {
-    return new CaseBuilder3<>(this::add).when(Matcher3.otherwise());
+  public ThenStep<Pattern3<A, B, C, R>, A, B, C, R> otherwise() {
+    return handler -> add(Matcher3.otherwise(), handler);
   }
 
   private Pattern3<A, B, C, R> add(Matcher3<A, B, C> matcher, Function3<A, B, C, R> handler) {
     return new Pattern3<>(pattern.add(matcher.tupled(), handler.tupled()));
   }
-
-  public static final class CaseBuilder3<B, T, V, U, R> {
-
-    private final Function2<Matcher3<T, V, U>, Function3<T, V, U, R>, B> finisher;
-    private final Matcher3<T, V, U> matcher;
-
-    private CaseBuilder3(Function2<Matcher3<T, V, U>, Function3<T, V, U, R>, B> finisher) {
-      this.finisher = checkNonNull(finisher);
-      this.matcher = invalid();
-    }
-
-    private CaseBuilder3(Function2<Matcher3<T, V, U>, Function3<T, V, U, R>, B> finisher, Matcher3<T, V, U> matcher) {
-      this.finisher = checkNonNull(finisher);
-      this.matcher = checkNonNull(matcher);
-    }
-
-    public CaseBuilder3<B, T, V, U, R> when(Matcher3<T, V, U> matcher) {
-      return new CaseBuilder3<>(finisher, matcher);
-    }
-
-    public B then(Function3<T, V, U, R> handler) {
-      return finisher.apply(matcher, handler);
-    }
-
-    public B returns(R value) {
-      return then((a, b, c) -> value);
+  
+  @FunctionalInterface
+  public interface ThenStep<P, A, B, C, R> {
+    
+    P then(Function3<A, B, C, R> handler);
+    
+    default P returns(R value) {
+      return then(cons(value));
     }
   }
 }
