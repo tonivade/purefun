@@ -251,19 +251,10 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
 
   private String generated() {
-    if (checkClass(JAVAX_ANNOTATION_PROCESSING_GENERATED)) {
-      return JAVAX_ANNOTATION_PROCESSING_GENERATED;
+    if (processingEnv.getSourceVersion() == SourceVersion.RELEASE_8) {
+      return JAVAX_ANNOTATION_GENERATED;
     }
-    return JAVAX_ANNOTATION_GENERATED;
-  }
-
-  private boolean checkClass(String className) {
-    try {
-      Class.forName(className);
-    } catch (ClassNotFoundException e) {
-      return false;
-    }
-    return true;
+    return JAVAX_ANNOTATION_PROCESSING_GENERATED;
   }
 
   private String type(String name, TypeParameterElement type1) {

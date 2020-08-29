@@ -16,7 +16,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Witness;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public final class Foo_ implements Witness {",
@@ -38,7 +38,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A> extends Kind<Foo_, A> {",
@@ -69,7 +69,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A> extends Kind<Foo_, A> {",
@@ -104,7 +104,7 @@ public class HigherKindProcessorTest {
 
     JavaFileObject generated = forSourceLines("test.FooOf",
         "import com.github.tonivade.purefun.Kind;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A> extends Kind<Foo_, A> {",
@@ -117,7 +117,7 @@ public class HigherKindProcessorTest {
 
     JavaFileObject generatedWitness = forSourceLines("Foo_",
         "import com.github.tonivade.purefun.Witness;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public final class Foo_ implements Witness {",
@@ -143,7 +143,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A extends java.lang.String> extends Kind<Foo_, A> {",
@@ -190,7 +190,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A, B> extends Kind<Kind<Foo_, A>, B> {",
@@ -221,7 +221,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import javax.annotation.Generated;",
+        "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo_, A>, B>, C> {",
