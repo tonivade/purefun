@@ -65,12 +65,12 @@ public class StateTTest {
   }
 
   @Test
-  public void compose() {
+  public void traverse() {
     StateT<IO_, Unit, String> sa = StateT.pure(monad, "a");
     StateT<IO_, Unit, String> sb = StateT.pure(monad, "b");
     StateT<IO_, Unit, String> sc = StateT.pure(monad, "c");
 
-    Kind<IO_, Tuple2<Unit, Sequence<String>>> result = StateT.compose(monad, listOf(sa, sb, sc)).run(unit());
+    Kind<IO_, Tuple2<Unit, Sequence<String>>> result = StateT.traverse(monad, listOf(sa, sb, sc)).run(unit());
 
     assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), IOOf.narrowK(result).unsafeRunSync());
   }
