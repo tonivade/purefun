@@ -21,6 +21,7 @@ public class PreconditionTest {
   public void notValid() {
     assertAll(
         () -> assertThrows(IllegalArgumentException.class, () -> checkNonNull(null)),
+        () -> assertThrows(IllegalArgumentException.class, () -> checkNonEmpty(null)),
         () -> assertThrows(IllegalArgumentException.class, () -> checkNonEmpty("")),
         () -> assertThrows(IllegalArgumentException.class, () -> checkPositive(0)),
         () -> assertThrows(IllegalArgumentException.class, () -> checkNegative(0)),

@@ -22,7 +22,7 @@ public interface Precondition {
   }
 
   static Precondition empty(String value) {
-    return value::isEmpty;
+    return () -> value.isEmpty();
   }
 
   static Precondition nonEmpty(String value) {
