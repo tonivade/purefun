@@ -551,7 +551,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
-      return monad.defer(() -> provide(env).fold(monad::raiseError, monad::pure));
+      return monad.defer(() -> provide(env).fold(monad::<A>raiseError, monad::<A>pure));
     }
 
     @Override

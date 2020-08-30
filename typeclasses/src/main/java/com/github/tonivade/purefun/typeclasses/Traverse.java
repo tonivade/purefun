@@ -44,12 +44,12 @@ interface IdApplicative extends Applicative<Id_> {
   IdApplicative INSTANCE = new IdApplicative() {};
 
   @Override
-  default <T> Kind<Id_, T> pure(T value) {
+  default <T> Id<T> pure(T value) {
     return Id.of(value);
   }
 
   @Override
-  default <T, R> Kind<Id_, R> ap(Kind<Id_, T> value, Kind<Id_, Function1<T, R>> apply) {
+  default <T, R> Id<R> ap(Kind<Id_, T> value, Kind<Id_, Function1<T, R>> apply) {
     return IdOf.narrowK(value).flatMap(t -> IdOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

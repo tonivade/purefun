@@ -57,6 +57,6 @@ public final class For5<F extends Witness, A, B, C, D, E> extends AbstractFor<F,
 
   @Override
   public Kind<F, E> run() {
-    return yield((a, b, c, d, e) -> e);
+    return this.yield((a, b, c, d, e) -> e);
   }
 }

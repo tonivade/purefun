@@ -27,7 +27,7 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   }
   
   public <R> Resource<F, R> map(Function1<T, R> mapper) {
-    return flatMap(t -> pure(monad, mapper.andThen(monad::pure).apply(t)));
+    return flatMap(t -> pure(monad, mapper.andThen(monad::<R>pure).apply(t)));
   }
   
   public <R> Resource<F, R> flatMap(Function1<T, Resource<F, R>> mapper) {

@@ -11,11 +11,11 @@ public interface Conested<F extends Witness, A> extends Witness {
 
   @SuppressWarnings("unchecked")
   static <F extends Witness, A, B> Kind<Conested<F, B>, A> conest(Kind<Kind<F, A>, B> counnested) {
-    return Kind.class.cast(counnested);
+    return (Kind) counnested;
   }
   
   @SuppressWarnings("unchecked")
   static <F extends Witness, A, B> Kind<Kind<F, A>, B> counnest(Kind<Conested<F, B>, A> conested) {
-    return Kind.class.cast(conested);
+    return (Kind) conested;
   }
 }

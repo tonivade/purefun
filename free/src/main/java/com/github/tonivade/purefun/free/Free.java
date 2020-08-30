@@ -190,7 +190,7 @@ interface FreeMonad<F extends Witness> extends Monad<Kind<Free_, F>> {
 
   @Override
   default <T> Free<F, T> pure(T value) {
-    return Free.<F, T>pure(value);
+    return Free.pure(value);
   }
 
   @Override

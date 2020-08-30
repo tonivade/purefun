@@ -125,7 +125,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> sort(Comparator<E> comparator) {
       List<E> list = toList();
-      Collections.sort(list, comparator);
+      list.sort(comparator);
       return new JavaBasedImmutableArray<>(list);
     }
 

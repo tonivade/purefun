@@ -47,13 +47,13 @@ public interface Selective<F extends Witness> extends Applicative<F> {
   default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable,
                                                              Kind<G, A> values,
                                                              Function1<A, Kind<F, Boolean>> condition) {
-    return foldable.foldRight(values, FALSE.map(this::pure), (a, eb) -> eb.map(b -> orS(b, condition.apply(a))));
+    return foldable.foldRight(values, FALSE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> orS(b, condition.apply(a))));
   }
 
   default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable,
                                                              Kind<G, A> values,
                                                              Function1<A, Kind<F, Boolean>> condition) {
-    return foldable.foldRight(values, TRUE.map(this::pure), (a, eb) -> eb.map(b -> andS(b, condition.apply(a))));
+    return foldable.foldRight(values, TRUE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> andS(b, condition.apply(a))));
   }
 }
 

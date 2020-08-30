@@ -64,7 +64,7 @@ class ZRandomImpl implements ZRandom {
 
   private static final String PRINTABLE_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  private Random random;
+  private final Random random;
 
   ZRandomImpl(Random random) {
     this.random = checkNonNull(random);

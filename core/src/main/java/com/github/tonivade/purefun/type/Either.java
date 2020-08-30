@@ -188,7 +188,7 @@ public interface Either<L, R> extends EitherOf<L, R> {
 
     private static final Equal<Left<?, ?>> EQUAL = Equal.<Left<?, ?>>of().comparing(Left::getLeft);
 
-    private L value;
+    private final L value;
 
     private Left(L value) {
       this.value = checkNonNull(value);
@@ -236,7 +236,7 @@ public interface Either<L, R> extends EitherOf<L, R> {
 
     private static final Equal<Right<?, ?>> EQUAL = Equal.<Right<?, ?>>of().comparing(Right::getRight);
 
-    private R value;
+    private final R value;
 
     private Right(R value) {
       this.value = checkNonNull(value);

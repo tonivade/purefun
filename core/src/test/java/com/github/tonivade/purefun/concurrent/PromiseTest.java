@@ -31,10 +31,7 @@ import com.github.tonivade.purefun.type.Try;
 @ExtendWith(MockitoExtension.class)
 public class PromiseTest {
 
-  @Mock
-  private Consumer1<Try<String>> consumer;
-
-  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
   @Test
   public void notCompleted() {
@@ -62,7 +59,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void onCompleteBefore() {
+  public void onCompleteBefore(@Mock Consumer1<Try<String>> consumer) {
     Try<String> value = Try.success("hola mundo!");
     Promise<String> promise = Promise.make();
 
@@ -73,7 +70,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void onCompleteAfter() {
+  public void onCompleteAfter(@Mock Consumer1<Try<String>> consumer) {
     Try<String> value = Try.success("hola mundo!");
     Promise<String> promise = Promise.make();
 
@@ -108,6 +105,17 @@ public class PromiseTest {
     executor.schedule(() -> promise.tryComplete(value), 500, TimeUnit.MILLISECONDS);
 
     assertEquals(value, promise.get());
+  }
+
+  @Test
+  public void map() {
+    Promise<String> promise = Promise.make();
+    Promise<String> map = promise.map(String::toUpperCase);
+    Try<String> value = Try.success("hello world!");
+
+    executor.schedule(() -> promise.tryComplete(value), 500, TimeUnit.MILLISECONDS);
+
+    assertEquals(value.map(String::toUpperCase), map.get());
   }
 
   @Test

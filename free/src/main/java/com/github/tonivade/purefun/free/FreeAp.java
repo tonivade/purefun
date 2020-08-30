@@ -221,7 +221,7 @@ interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F
 
   @Override
   default <T> FreeAp<F, T> pure(T value) {
-    return FreeAp.<F, T>pure(value);
+    return FreeAp.pure(value);
   }
 
   @Override

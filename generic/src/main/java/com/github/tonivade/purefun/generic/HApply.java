@@ -15,7 +15,7 @@ public interface HApply<F, A, R> {
   R apply(F context, A value);
 
   static <A, B> HApply<Function1<A, B>, A, B> function() {
-    return (function, value) -> function.apply(value);
+    return Function1::apply;
   }
 
   static <F, A> HApply<F, A, A> identity() {

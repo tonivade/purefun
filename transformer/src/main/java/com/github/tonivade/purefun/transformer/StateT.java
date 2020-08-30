@@ -80,7 +80,7 @@ public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A> {
 
   static <F extends Witness, S, A> StateT<F, S, Sequence<A>> compose(Monad<F> monad,
                                                                          Sequence<StateT<F, S, A>> states) {
-    return states.foldLeft(pure(monad, ImmutableList.empty()), (sa, sb) -> map2(sa, sb, (acc, a) -> acc.append(a)));
+    return states.foldLeft(pure(monad, ImmutableList.empty()), (sa, sb) -> map2(sa, sb, Sequence::append));
   }
 
   static <F extends Witness, S, A, B, C> StateT<F, S, C> map2(StateT<F, S, A> sa,

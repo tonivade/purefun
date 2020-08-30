@@ -97,6 +97,16 @@ public class ValidatorTest {
   }
 
   @Test
+  public void equalsTo() {
+    Validator<String, String> equalsTo = Validator.equalsTo("a");
+
+    assertAll(
+        () -> assertEquals(Validation.valid("a"), equalsTo.validate("a")),
+        () -> assertEquals(Validation.invalid("require equals to a"), equalsTo.validate("A"))
+    );
+  }
+
+  @Test
   public void combine() {
     Validator<String, String> validator =
         Validator.nonNullAnd(Validator.combine(Validator.nonEmpty(), Validator.match("[a-z]+"), join()));
