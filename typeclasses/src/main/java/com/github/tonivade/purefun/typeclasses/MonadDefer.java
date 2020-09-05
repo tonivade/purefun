@@ -6,9 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Try;
 
 public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>, Defer<F>, Timer<F> {

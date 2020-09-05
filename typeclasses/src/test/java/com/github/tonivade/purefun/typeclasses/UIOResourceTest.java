@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.instances.UIOInstances;
 
-public class UIOResourceTest<F> extends ResourceTest<UIO_> {
+public class UIOResourceTest extends ResourceTest<UIO_> {
 
   @Override
   protected MonadDefer<UIO_> monadDefer() {

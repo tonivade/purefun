@@ -111,7 +111,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   default IO<Tuple2<Duration, T>> timed() {
     return IO.task(() -> {
       long start = System.nanoTime();
-      T result = unsafeRunSync();
+      T result = IOModule.evaluate(this);
       return Tuple.of(Duration.ofNanos(System.nanoTime() - start), result);
     });
   }

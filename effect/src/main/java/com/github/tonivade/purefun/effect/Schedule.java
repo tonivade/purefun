@@ -247,7 +247,8 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
       (a, sz) -> {
         ZIO<R, Unit, S> update = update(a, sz.get1());
         ZIO<R, Unit, Z> other = next.apply(sz.get2(), extract(a, sz.get1()));
-        return update.zip(other);
+        ZIO<R, Unit, Tuple2<S, Z>> zip = update.zip(other);
+        return zip;
       }, 
       (a, sz) -> sz.get2());
   }

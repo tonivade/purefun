@@ -169,19 +169,19 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
   }
   
-  default <S> ZIO<R, E, A> retry(Schedule<R, E, S> schedule) {
-    return retryOrElse(schedule, (e, s) -> raiseError(e));
+  default <B> ZIO<R, E, A> retry(Schedule<R, E, B> schedule) {
+    return retryOrElse(schedule, (e, b) -> raiseError(e));
   }
 
-  default <S> ZIO<R, E, A> retryOrElse(
-      Schedule<R, E, S> schedule,
-      Function2<E, S, ZIO<R, E, A>> orElse) {
+  default <B> ZIO<R, E, A> retryOrElse(
+      Schedule<R, E, B> schedule,
+      Function2<E, B, ZIO<R, E, A>> orElse) {
     return retryOrElseEither(schedule, orElse).map(Either::merge);
   }
 
-  default <S, B> ZIO<R, E, Either<B, A>> retryOrElseEither(
-      Schedule<R, E, S> schedule,
-      Function2<E, S, ZIO<R, E, B>> orElse) {
+  default <B, C> ZIO<R, E, Either<B, A>> retryOrElseEither(
+      Schedule<R, E, C> schedule,
+      Function2<E, C, ZIO<R, E, B>> orElse) {
     return new Retry<>(this, schedule, orElse);
   }
 
@@ -682,16 +682,16 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Retry<R, S, E, A, B, C> implements SealedZIO<R, E, Either<B, A>> {
+  final class Retry<R, E, A, B, S> implements SealedZIO<R, E, Either<B, A>> {
     
     private final ZIO<R, E, A> current;
-    private final ScheduleImpl<R, S, E, C> schedule;
+    private final ScheduleImpl<R, S, E, S> schedule;
     private final Function2<E, S, ZIO<R, E, B>> orElse;
 
     @SuppressWarnings("unchecked")
-    protected Retry(ZIO<R, E, A> current, Schedule<R, E, C> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
+    protected Retry(ZIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
       this.current = checkNonNull(current);
-      this.schedule = (ScheduleImpl<R, S, E, C>) checkNonNull(schedule);
+      this.schedule = (ScheduleImpl<R, S, E, S>) checkNonNull(schedule);
       this.orElse = checkNonNull(orElse);
     }
 

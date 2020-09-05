@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -180,6 +181,10 @@ public interface Either<L, R> extends EitherOf<L, R> {
   
   static <A> A merge(Either<A, A> either) {
     return either.fold(identity(), identity());
+  }
+
+  static <L, A, B, Z> Either<L, Z> map2(Either<L, A> eitherA, Either<L, B> eitherB, Function2<A, B, Z> mapper) {
+    return eitherA.flatMap(a -> eitherB.map(b -> mapper.apply(a, b)));
   }
 
   final class Left<L, R> implements SealedEither<L, R>, Serializable {

@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 
-public class IOResourceTest<F> extends ResourceTest<IO_> {
+public class IOResourceTest extends ResourceTest<IO_> {
 
   @Override
   protected MonadDefer<IO_> monadDefer() {

@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.instances.TaskInstances;
 
-public class TaskResourceTest<F> extends ResourceTest<Task_> {
+public class TaskResourceTest extends ResourceTest<Task_> {
 
   @Override
   protected MonadDefer<Task_> monadDefer() {
