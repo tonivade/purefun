@@ -36,6 +36,10 @@ public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
     };
   }
   
+  static <F extends Witness> ScheduleOf<F> of(MonadDefer<F> monad) {
+    return of(monad, monad);
+  }
+  
   Monad<F> monad();
   
   Timer<F> timer();

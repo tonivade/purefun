@@ -44,10 +44,8 @@ public class MonadDeferTest {
   private MonadDefer<Kind<Kind<ZIO_, Nothing>, Throwable>> zioMonadDefer =
       ZIOInstances.monadDefer();
   private MonadDefer<Future_> futureMonadDefer = FutureInstances.monadDefer();
-  private MonadDefer<Kind<Kind<EitherT_, IO_>, Throwable>> eitherTMonadDeferFromMonad =
-      EitherTInstances.monadDeferFromMonad(ioMonadDefer);
-  private MonadDefer<Kind<Kind<EitherT_, IO_>, Throwable>> eitherTMonadDeferFromMonadThrow =
-      EitherTInstances.monadDeferFromMonadThrow(ioMonadDefer);
+  private MonadDefer<Kind<Kind<EitherT_, IO_>, Throwable>> eitherTMonadDefer =
+      EitherTInstances.monadDefer(ioMonadDefer);
   private MonadDefer<Kind<OptionT_, IO_>> optionTMonadDefer =
       OptionTInstances.monadDefer(ioMonadDefer);
 
@@ -85,52 +83,15 @@ public class MonadDeferTest {
   }
 
   @Test
-  public void eitherTBracket() throws Exception {
-    Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
-        eitherTMonadDeferFromMonad.bracket(EitherT.<IO_, Throwable, AutoCloseable>right(IOInstances.monad(), resource),
-                                           r -> EitherT.<IO_, Throwable, String>right(IOInstances.monad(), "done"));
-
-    String result = bracket.fix(EitherTOf::narrowK).get().fix(toIO()).unsafeRunSync();
-
-    assertEquals("done", result);
-    verify(resource).close();
-  }
-
-  @Test
   public void eitherTBracketAcquireError() throws Exception {
     Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
-        eitherTMonadDeferFromMonadThrow.bracket(EitherT.<IO_, Throwable, AutoCloseable>left(IOInstances.monad(), new IllegalStateException()),
+        eitherTMonadDefer.bracket(EitherT.<IO_, Throwable, AutoCloseable>left(IOInstances.monad(), new IllegalStateException()),
                                                 r -> EitherT.<IO_, Throwable, String>right(IOInstances.monad(), "done"));
 
     assertThrows(IllegalStateException.class,
                  () -> bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync());
 
     verify(resource, never()).close();
-  }
-
-  @Test
-  public void eitherTBracketAcquireError2() throws Exception {
-    Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
-        eitherTMonadDeferFromMonad.bracket(EitherT.<IO_, Throwable, AutoCloseable>left(IOInstances.monad(), new IllegalStateException()),
-                                           r -> EitherT.<IO_, Throwable, String>right(IOInstances.monad(), "done"));
-
-    Throwable error = bracket.fix(EitherTOf::narrowK).getLeft().fix(toIO()).unsafeRunSync();
-
-    assertEquals(IllegalStateException.class, error.getClass());
-    verify(resource, never()).close();
-  }
-
-  @Test
-  public void eitherTBracketUseError() throws Exception {
-    Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
-        eitherTMonadDeferFromMonad.bracket(EitherT.<IO_, Throwable, AutoCloseable>right(IOInstances.monad(), resource),
-                                           r -> EitherT.<IO_, Throwable, String>left(IOInstances.monad(),
-                                                             new UnsupportedOperationException()));
-
-    Throwable error = bracket.fix(EitherTOf::narrowK).getLeft().fix(toIO()).unsafeRunSync();
-
-    assertEquals(UnsupportedOperationException.class, error.getClass());
-    verify(resource).close();
   }
 
   @Test
