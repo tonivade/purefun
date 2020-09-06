@@ -13,7 +13,7 @@ public class IOReferenceTest extends ReferenceTest<IO_> {
 
   @Override
   protected <T> Reference<IO_, T> makeRef(T value) {
-    return IOInstances.ref(value);
+    return IOInstances.monadDefer().ref(value);
   }
 
   @Override

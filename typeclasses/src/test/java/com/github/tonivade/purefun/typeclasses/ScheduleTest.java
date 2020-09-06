@@ -13,22 +13,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.Duration;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.instances.ScheduleInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
@@ -37,7 +33,7 @@ import com.github.tonivade.purefun.typeclasses.Schedule.ScheduleOf;
 @ExtendWith(MockitoExtension.class)
 public class ScheduleTest {
 
-  private final ScheduleOf<IO_> scheduleOfIO = ScheduleInstances.ofIO();
+  private final ScheduleOf<IO_> scheduleOfIO = IOInstances.monadDefer().scheduleOf();
   private final MonadError<IO_,Throwable> monadError = IOInstances.monadError();
 
   @Test

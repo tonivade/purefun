@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.CheckedRunnable;
+import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
@@ -19,5 +20,21 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>
 
   default Kind<F, Unit> exec(CheckedRunnable later) {
     return later(later.asProducer());
+  }
+
+  default <A> Reference<F, A> ref(A value) {
+    return Reference.of(this, value);
+  }
+
+  default Schedule.ScheduleOf<F> scheduleOf() {
+    return Schedule.of(this);
+  }
+  
+  default <A extends AutoCloseable> Resource<F, A> resource(Kind<F, A> acquire) {
+    return resource(acquire, AutoCloseable::close);
+  }
+  
+  default <A> Resource<F, A> resource(Kind<F, A> acquire, Consumer1<A> release) {
+    return Resource.from(this, acquire, release);
   }
 }

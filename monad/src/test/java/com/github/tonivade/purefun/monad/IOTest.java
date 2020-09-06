@@ -273,7 +273,7 @@ public class IOTest {
   }
 
   private IO<ImmutableList<String>> currentThreadIO() {
-    Reference<IO_, ImmutableList<String>> ref = IOInstances.ref(ImmutableList.empty());
+    Reference<IO_, ImmutableList<String>> ref = IOInstances.monadDefer().ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
         ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix(toIO());
 

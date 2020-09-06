@@ -12,9 +12,9 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.URIO_;
 import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.URIOOf;
+import com.github.tonivade.purefun.effect.URIO_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -24,8 +24,6 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
-import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.typeclasses.Resource;
 import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
@@ -53,18 +51,6 @@ public interface URIOInstances {
 
   static <R> MonadDefer<Kind<URIO_, R>> monadDefer() {
     return URIOMonadDefer.INSTANCE;
-  }
-
-  static <R, A> Reference<Kind<URIO_, R>, A> ref(A value) {
-    return Reference.of(monadDefer(), value);
-  }
-  
-  static <R, A extends AutoCloseable> Resource<Kind<URIO_, R>, A> resource(URIO<R, A> acquire) {
-    return resource(acquire, AutoCloseable::close);
-  }
-  
-  static <R, A> Resource<Kind<URIO_, R>, A> resource(URIO<R, A> acquire, Consumer1<A> release) {
-    return Resource.from(monadDefer(), acquire, release);
   }
 
   static <R> Console<Kind<Kind<URIO_, R>, Throwable>> console() {

@@ -11,10 +11,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.RIO_;
 import com.github.tonivade.purefun.effect.RIO;
 import com.github.tonivade.purefun.effect.RIOOf;
+import com.github.tonivade.purefun.effect.RIO_;
+import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -24,8 +24,6 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
-import com.github.tonivade.purefun.typeclasses.Reference;
-import com.github.tonivade.purefun.typeclasses.Resource;
 import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
@@ -53,18 +51,6 @@ public interface RIOInstances {
 
   static <R> MonadDefer<Kind<RIO_, R>> monadDefer() {
     return RIOMonadDefer.INSTANCE;
-  }
-
-  static <R, A> Reference<Kind<RIO_, R>, A> ref(A value) {
-    return Reference.of(monadDefer(), value);
-  }
-  
-  static <R, A extends AutoCloseable> Resource<Kind<RIO_, R>, A> resource(RIO<R, A> acquire) {
-    return resource(acquire, AutoCloseable::close);
-  }
-  
-  static <R, A> Resource<Kind<RIO_, R>, A> resource(RIO<R, A> acquire, Consumer1<A> release) {
-    return Resource.from(monadDefer(), acquire, release);
   }
 
   static <R> Console<Kind<Kind<RIO_, R>, Throwable>> console() {

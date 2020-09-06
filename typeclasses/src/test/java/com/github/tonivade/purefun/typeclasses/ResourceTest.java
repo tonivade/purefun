@@ -33,7 +33,9 @@ public abstract class ResourceTest<F extends Witness> {
     return makeResource(acquire, AutoCloseable::close);
   }
 
-  protected abstract <T> Resource<F, T> makeResource(Kind<F, T> acquire, Consumer1<T> release);
+  protected <T> Resource<F, T> makeResource(Kind<F, T> acquire, Consumer1<T> release) {
+    return monadDefer().resource(acquire, release);
+  }
   
   protected abstract <T> T run(Kind<F, T> result);
   
