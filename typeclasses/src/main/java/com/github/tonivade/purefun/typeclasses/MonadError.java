@@ -54,7 +54,7 @@ interface MonadErrorModule {
       MonadError<F, E> monad, Kind<F, A> value, ScheduleImpl<F, S, A, B> schedule, Function2<E, Option<B>, Kind<F, C>> orElse) {
     
     class Loop {
-      Kind<F, Either<C, B>> loop(A last, S state) {
+      private Kind<F, Either<C, B>> loop(A last, S state) {
         return monad.flatMap(schedule.update(last, state), decision -> decision.fold(
             ignore -> monad.pure(Either.right(schedule.extract(last, state))), 
             s -> monad.flatMap(monad.attempt(value), either -> either.fold(
@@ -72,7 +72,7 @@ interface MonadErrorModule {
       MonadError<F, E> monad, Kind<F, A> value, ScheduleImpl<F, S, E, S> schedule, Function2<E, S, Kind<F, B>> orElse) {
     
     class Loop {
-      Kind<F, Either<B, A>> loop(S state) {
+      private Kind<F, Either<B, A>> loop(S state) {
         return monad.flatMap(monad.attempt(value), either -> either.fold(
             error -> {
               Kind<F, Either<Unit, S>> update = schedule.update(error, state);
