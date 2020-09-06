@@ -51,6 +51,10 @@ interface SomeTypeOf<T> implements Kind<SomeType_, T> {
   static SomeType<T> narrowK(Kind<SomeType_, T> hkt) {
     return (SomeType<T>) hkt;
   }
+  
+  static Fixer<Kind<SomeType_, T>, SomeType<T>> toSomeType() {
+    return SomeType::narrowK;
+  }
 }
 
 final class SomeType_ extends Witness {
@@ -274,7 +278,7 @@ Free<IOProgram_, Unit> echo =
 
 Kind<IO_, Unit> foldMap = echo.foldMap(IOInstances.monad(), new IOProgramInterperter());
 
-IOOf.narrowK(foldMap).unsafeRunSync();
+foldMap.fix(toIO()).unsafeRunSync();
 ```
 
 ### Free Applicative
@@ -290,12 +294,12 @@ FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
         DSL.readString("hola mundo"),
         DSL.readUnit(),
         Tuple::of
-    ).fix(FreeApOf::narrowK);
+    ).fix(toFreeAp());
 
 Kind<Id_, Tuple5<Integer, Boolean, Double, String, Unit>> map =
     tuple.foldMap(idTransform(), IdInstances.applicative());
 
-assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(IdOf::narrowK));
+assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(toId()));
 ```
 
 ## Monad Transformers
@@ -309,7 +313,7 @@ OptionT<IO_, String> some = OptionT.some(IO.monad(), "abc");
 
 OptionT<IO_, String> map = some.flatMap(value -> OptionT.some(IOInstances.monad(), value.toUpperCase()));
 
-assertEquals("ABC", IOOf.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", map.get().fix(toIO()).unsafeRunSync());
 ```
 
 ### EitherT
@@ -321,7 +325,7 @@ EitherT<IO_, Nothing, String> right = EitherT.right(IO.monad(), "abc");
 
 EitherT<IO_, Nothing, String> map = right.flatMap(value -> EitherT.right(IOInstances.monad(), value.toUpperCase()));
 
-assertEquals("ABC", IOOf.narrowK(map.get()).unsafeRunSync());
+assertEquals("ABC", map.get().fix(toIO()).unsafeRunSync());
 ```
 
 ### StateT
@@ -332,7 +336,7 @@ Monad Transformer for `State` type
 StateT<IO_, ImmutableList<String>, Unit> state =
   pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-IO<Tuple2<ImmutableList<String>, Unit>> result = IOOf.narrowK(state.run(ImmutableList.empty()));
+IO<Tuple2<ImmutableList<String>, Unit>> result = state.run(ImmutableList.empty()).fix(toIO());
 
 assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
 ```
@@ -376,7 +380,7 @@ IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
   .takeWhile(Option::isPresent)
   .map(Option::get)
   .foldLeft("", (a, b) -> a + "\n" + b)
-  .fix(IOOf::narrowK)
+  .fix(toIO())
   .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
 
 String content = readFile.unsafeRunSync();
@@ -480,11 +484,11 @@ With higher kinded types simulation we can implement typeclases.
   MonadWriter          Monad      |
         \________________|        |
         /          /      \      / 
-  MonadState  MonadReader  MonadError
-                               \
+  MonadState  MonadReader  MonadError_____
+                               \          \
                             MonadThrow  Bracket
                                   \      /
-                        Defer -- MonadDefer
+                        Defer -- MonadDefer -- Timer
 ```
 
 ### Functor
@@ -754,7 +758,7 @@ public interface Defer<F extends Witness> {
 ### Bracket
 
 ```java
-public interface Bracket<F extends Witness> {
+public interface Bracket<F extends Witness, E> extends MonadError<F, E> {
 
   <A, B> Kind<F, B> bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use, Consumer1<A> release);
 }
@@ -763,7 +767,7 @@ public interface Bracket<F extends Witness> {
 ### MonadDefer
 
 ```java
-public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>, Defer<F> {
+public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
 
   default <A> Kind<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
@@ -771,13 +775,22 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>
 }
 ```
 
-### Transformer
+### Timer
+
+```java
+public interface Timer<F extends Witness> {
+
+  Kind<F, Unit> sleep(Duration duration);
+}
+```
+
+### FunctionK
 
 It represents a natural transformation between two different kinds.
 
 ```java
-public interface Transformer<F extends Witness, G extends Witness> {
-  <X> Kind<G, T> apply(Kind<F, T> from);
+public interface FunctionK<F extends Witness, G extends Witness> {
+  <T> Kind<G, T> apply(Kind<F, T> from);
 }
 ```
 

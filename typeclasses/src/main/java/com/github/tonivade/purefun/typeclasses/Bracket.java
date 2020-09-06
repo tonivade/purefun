@@ -9,7 +9,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 
-public interface Bracket<F extends Witness> {
+public interface Bracket<F extends Witness, E> extends MonadError<F, E> {
 
   <A, B> Kind<F, B> bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use, Consumer1<A> release);
 

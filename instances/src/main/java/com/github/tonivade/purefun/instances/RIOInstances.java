@@ -142,7 +142,7 @@ interface RIODefer<R> extends Defer<Kind<RIO_, R>> {
   }
 }
 
-interface RIOBracket<R> extends Bracket<Kind<RIO_, R>> {
+interface RIOBracket<R> extends Bracket<Kind<RIO_, R>, Throwable> {
 
   @Override
   default <A, B> RIO<R, B>

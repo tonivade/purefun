@@ -142,7 +142,7 @@ interface URIODefer<R> extends Defer<Kind<URIO_, R>> {
   }
 }
 
-interface URIOBracket<R> extends Bracket<Kind<URIO_, R>> {
+interface URIOBracket<R> extends Bracket<Kind<URIO_, R>, Throwable> {
 
   @Override
   default <A, B> URIO<R, B>

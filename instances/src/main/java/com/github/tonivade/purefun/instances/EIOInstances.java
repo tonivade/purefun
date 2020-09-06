@@ -132,21 +132,21 @@ interface EIOMonadThrow
   EIOMonadThrow INSTANCE = new EIOMonadThrow() {};
 }
 
-interface EIODefer extends Defer<Kind<EIO_, Throwable>> {
+interface EIODefer<E> extends Defer<Kind<EIO_, E>> {
 
   @Override
-  default <A> EIO<Throwable, A>
-          defer(Producer<Kind<Kind<EIO_, Throwable>, A>> defer) {
+  default <A> EIO<E, A>
+          defer(Producer<Kind<Kind<EIO_, E>, A>> defer) {
     return EIO.defer(() -> defer.map(EIOOf::narrowK).get());
   }
 }
 
-interface EIOBracket extends Bracket<Kind<EIO_, Throwable>> {
+interface EIOBracket<E> extends Bracket<Kind<EIO_, E>, E> {
 
   @Override
-  default <A, B> EIO<Throwable, B>
-          bracket(Kind<Kind<EIO_, Throwable>, A> acquire,
-                  Function1<A, ? extends Kind<Kind<EIO_, Throwable>, B>> use,
+  default <A, B> EIO<E, B>
+          bracket(Kind<Kind<EIO_, E>, A> acquire,
+                  Function1<A, ? extends Kind<Kind<EIO_, E>, B>> use,
                   Consumer1<A> release) {
     return EIO.bracket(acquire.fix(toEIO()), use.andThen(EIOOf::narrowK), release);
   }
@@ -163,7 +163,7 @@ interface EIOTimer extends Timer<Kind<EIO_, Throwable>> {
 }
 
 interface EIOMonadDefer
-    extends MonadDefer<Kind<EIO_, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket, EIOTimer {
+    extends MonadDefer<Kind<EIO_, Throwable>>, EIOMonadThrow, EIODefer<Throwable>, EIOBracket<Throwable>, EIOTimer {
 
   EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
 }

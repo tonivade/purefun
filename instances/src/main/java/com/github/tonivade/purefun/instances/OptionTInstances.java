@@ -49,10 +49,6 @@ public interface OptionTInstances {
     return OptionTMonadThrow.instance(checkNonNull(checkNonNull(monadThrowF)));
   }
 
-  static <F extends Witness> Defer<Kind<OptionT_, F>> defer(MonadDefer<F> monadDeferF) {
-    return OptionTDefer.instance(checkNonNull(monadDeferF));
-  }
-
   static <F extends Witness> MonadDefer<Kind<OptionT_, F>> monadDefer(MonadDefer<F> monadDeferF) {
     return OptionTMonadDefer.instance(checkNonNull(monadDeferF));
   }
@@ -140,10 +136,6 @@ interface OptionTMonadThrow<F extends Witness>
 
 interface OptionTDefer<F extends Witness> extends Defer<Kind<OptionT_, F>> {
 
-  static <F extends Witness> OptionTDefer<F> instance(MonadDefer<F> monadDeferF) {
-    return () -> monadDeferF;
-  }
-
   MonadDefer<F> monadF();
 
   @Override
@@ -152,13 +144,9 @@ interface OptionTDefer<F extends Witness> extends Defer<Kind<OptionT_, F>> {
   }
 }
 
-interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>> {
+interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, Throwable> {
 
-  static <F extends Witness> OptionTBracket<F> instance(MonadDefer<F> monadDeferF) {
-    return () -> monadDeferF;
-  }
-
-  MonadDefer<F> monadF();
+  Bracket<F, Throwable> monadF();
 
   @Override
   default <A, B> OptionT<F, B> bracket(Kind<Kind<OptionT_, F>, A> acquire,

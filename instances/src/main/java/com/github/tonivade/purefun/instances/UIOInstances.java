@@ -127,7 +127,7 @@ interface UIODefer extends Defer<UIO_> {
   }
 }
 
-interface UIOBracket extends Bracket<UIO_> {
+interface UIOBracket extends Bracket<UIO_, Throwable> {
 
   @Override
   default <A, B> UIO<B>

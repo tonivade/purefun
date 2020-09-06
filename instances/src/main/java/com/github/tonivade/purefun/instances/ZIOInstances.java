@@ -137,21 +137,21 @@ interface ZIOMonadThrow<R>
   ZIOMonadThrow INSTANCE = new ZIOMonadThrow() {};
 }
 
-interface ZIODefer<R> extends Defer<Kind<Kind<ZIO_, R>, Throwable>> {
+interface ZIODefer<R, E> extends Defer<Kind<Kind<ZIO_, R>, E>> {
 
   @Override
-  default <A> ZIO<R, Throwable, A>
-          defer(Producer<Kind<Kind<Kind<ZIO_, R>, Throwable>, A>> defer) {
+  default <A> ZIO<R, E, A>
+          defer(Producer<Kind<Kind<Kind<ZIO_, R>, E>, A>> defer) {
     return ZIO.defer(() -> defer.map(ZIOOf::narrowK).get());
   }
 }
 
-interface ZIOBracket<R> extends Bracket<Kind<Kind<ZIO_, R>, Throwable>> {
+interface ZIOBracket<R, E> extends Bracket<Kind<Kind<ZIO_, R>, E>, E> {
 
   @Override
-  default <A, B> ZIO<R, Throwable, B>
-          bracket(Kind<Kind<Kind<ZIO_, R>, Throwable>, A> acquire,
-                  Function1<A, ? extends Kind<Kind<Kind<ZIO_, R>, Throwable>, B>> use,
+  default <A, B> ZIO<R, E, B>
+          bracket(Kind<Kind<Kind<ZIO_, R>, E>, A> acquire,
+                  Function1<A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, B>> use,
                   Consumer1<A> release) {
     return ZIO.bracket(acquire.fix(toZIO()), use.andThen(ZIOOf::narrowK), release);
   }
@@ -169,7 +169,7 @@ interface ZIOTimer<R> extends Timer<Kind<Kind<ZIO_, R>, Throwable>> {
 }
 
 interface ZIOMonadDefer<R>
-    extends MonadDefer<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadThrow<R>, ZIODefer<R>, ZIOBracket<R>, ZIOTimer<R> {
+    extends MonadDefer<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadThrow<R>, ZIODefer<R, Throwable>, ZIOBracket<R, Throwable>, ZIOTimer<R> {
 
   @SuppressWarnings("rawtypes")
   ZIOMonadDefer INSTANCE = new ZIOMonadDefer() {};

@@ -147,7 +147,7 @@ interface FutureDefer extends Defer<Future_>, ExecutorHolder {
   }
 }
 
-interface FutureBracket extends Bracket<Future_>, ExecutorHolder {
+interface FutureBracket extends Bracket<Future_, Throwable>, ExecutorHolder {
 
   @Override
   default <A, B> Kind<Future_, B> bracket(Kind<Future_, A> acquire, Function1<A, ? extends Kind<Future_, B>> use, Consumer1<A> release) {

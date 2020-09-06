@@ -161,18 +161,18 @@ interface EitherTDefer<F extends Witness, E> extends Defer<Kind<Kind<EitherT_, F
   }
 }
 
-interface EitherTBracket<F extends Witness> extends Bracket<Kind<Kind<EitherT_, F>, Throwable>> {
+interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT_, F>, E>, E> {
 
   MonadDefer<F> monadF();
 
-  <A> Kind<F, Either<Throwable, A>> acquireRecover(Throwable error);
+  <A> Kind<F, Either<E, A>> acquireRecover(E error);
 
   @Override
-  default <A, B> EitherT<F, Throwable, B>
-          bracket(Kind<Kind<Kind<EitherT_, F>, Throwable>, A> acquire,
-                  Function1<A, ? extends Kind<Kind<Kind<EitherT_, F>, Throwable>, B>> use,
+  default <A, B> EitherT<F, E, B>
+          bracket(Kind<Kind<Kind<EitherT_, F>, E>, A> acquire,
+                  Function1<A, ? extends Kind<Kind<Kind<EitherT_, F>, E>, B>> use,
                   Consumer1<A> release) {
-    Kind<F, Either<Throwable, B>> bracket =
+    Kind<F, Either<E, B>> bracket =
         monadF().bracket(
             acquire.fix(EitherTOf::narrowK).value(),
             either -> either.fold(
@@ -196,7 +196,7 @@ interface EitherTTimer<F extends Witness> extends Timer<Kind<Kind<EitherT_, F>, 
 interface EitherTMonadDefer<F extends Witness>
     extends EitherTMonadThrowFromMonadThrow<F>,
             EitherTDefer<F, Throwable>,
-            EitherTBracket<F>,
+            EitherTBracket<F, Throwable>,
             EitherTTimer<F>,
             MonadDefer<Kind<Kind<EitherT_, F>, Throwable>> {
 

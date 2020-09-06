@@ -146,7 +146,7 @@ interface TaskDefer extends Defer<Task_> {
   }
 }
 
-interface TaskBracket extends Bracket<Task_> {
+interface TaskBracket extends Bracket<Task_, Throwable> {
 
   @Override
   default <A, B> Task<B>

@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Try;
 
-public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F>, Defer<F>, Timer<F> {
+public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
 
   default <A> Kind<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::<A>raiseError, this::<A>pure));

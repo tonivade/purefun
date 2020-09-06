@@ -125,7 +125,7 @@ interface ParDefer extends Defer<Par_> {
   }
 }
 
-interface ParBracket extends Bracket<Par_> {
+interface ParBracket extends Bracket<Par_, Throwable> {
 
   @Override
   default <A, B> Par<B> bracket(

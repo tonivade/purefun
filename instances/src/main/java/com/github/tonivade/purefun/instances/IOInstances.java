@@ -108,7 +108,7 @@ interface IODefer extends Defer<IO_> {
   }
 }
 
-interface IOBracket extends Bracket<IO_> {
+interface IOBracket extends Bracket<IO_, Throwable> {
 
   @Override
   default <A, B> IO<B> bracket(Kind<IO_, A> acquire, Function1<A, ? extends Kind<IO_, B>> use, Consumer1<A> release) {

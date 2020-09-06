@@ -107,10 +107,10 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), raiseError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()),
-        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()),
-        () -> assertEquals(Try.failure(error), ensureError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()),
-        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()));
+        () -> assertEquals(Try.failure(error), raiseError.fix(toEitherT()).value().fix(toFuture()).await()),
+        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix(toEitherT()).value().fix(toFuture()).await()),
+        () -> assertEquals(Try.failure(error), ensureError.fix(toEitherT()).value().fix(toFuture()).await()),
+        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix(toEitherT()).value().fix(toFuture()).await()));
   }
 
   @Test
