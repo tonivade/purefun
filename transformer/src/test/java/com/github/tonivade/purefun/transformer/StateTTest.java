@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -33,25 +34,25 @@ public class StateTTest {
   @Test
   public void get() {
     Kind<IO_, Tuple2<Object, Object>> run = StateT.get(monad).run("abc");
-    assertEquals(Tuple.of("abc", "abc"), IOOf.narrowK(run).unsafeRunSync());
+    assertEquals(Tuple.of("abc", "abc"), run.fix(toIO()).unsafeRunSync());
   }
 
   @Test
   public void set() {
     Kind<IO_, Tuple2<String, Unit>> run = StateT.set(monad, "abc").run("zzz");
-    assertEquals(Tuple.of("abc", unit()), IOOf.narrowK(run).unsafeRunSync());
+    assertEquals(Tuple.of("abc", unit()), run.fix(toIO()).unsafeRunSync());
   }
 
   @Test
   public void gets() {
     Kind<IO_, String> eval = StateT.<IO_, String, String>inspect(monad, String::toUpperCase).eval("abc");
-    assertEquals("ABC", IOOf.narrowK(eval).unsafeRunSync());
+    assertEquals("ABC", eval.fix(toIO()).unsafeRunSync());
   }
 
   @Test
   public void modify() {
     Kind<IO_, Tuple2<String, Unit>> run = StateT.<IO_, String>modify(monad, String::toUpperCase).run("abc");
-    assertEquals(Tuple.of("ABC", unit()), IOOf.narrowK(run).unsafeRunSync());
+    assertEquals(Tuple.of("ABC", unit()), run.fix(toIO()).unsafeRunSync());
   }
 
   @Test

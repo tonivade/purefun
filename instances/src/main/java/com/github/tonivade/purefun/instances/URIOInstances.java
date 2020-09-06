@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.effect.URIOOf.toURIO;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -25,6 +26,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
 public interface URIOInstances {
@@ -43,6 +45,10 @@ public interface URIOInstances {
 
   static <R> MonadThrow<Kind<URIO_, R>> monadThrow() {
     return URIOMonadThrow.INSTANCE;
+  }
+  
+  static <R> Timer<Kind<URIO_, R>> timer() {
+   return URIOTimer.INSTANCE;
   }
 
   static <R> MonadDefer<Kind<URIO_, R>> monadDefer() {
@@ -108,7 +114,7 @@ interface URIOMonad<R> extends URIOPure<R>, Monad<Kind<URIO_, R>> {
   default <A, B> URIO<R, B>
           flatMap(Kind<Kind<URIO_, R>, A> value,
                   Function1<A, ? extends Kind<Kind<URIO_, R>, B>> map) {
-    return URIOOf.narrowK(value).flatMap(map.andThen(URIOOf::narrowK));
+    return value.fix(toURIO()).flatMap(map.andThen(URIOOf::narrowK));
   }
 }
 
@@ -157,20 +163,26 @@ interface URIOBracket<R> extends Bracket<Kind<URIO_, R>> {
           bracket(Kind<Kind<URIO_, R>, A> acquire,
                   Function1<A, ? extends Kind<Kind<URIO_, R>, B>> use,
                   Consumer1<A> release) {
-    return URIO.bracket(acquire.fix(URIOOf::narrowK), use.andThen(URIOOf::narrowK), release);
+    return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release);
   }
 }
 
-interface URIOMonadDefer<R>
-    extends MonadDefer<Kind<URIO_, R>>, URIOMonadThrow<R>, URIODefer<R>, URIOBracket<R> {
-
+interface URIOTimer<R> extends Timer<Kind<URIO_, R>> {
+  
   @SuppressWarnings("rawtypes")
-  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
+  URIOTimer INSTANCE = new URIOTimer() {};
 
   @Override
   default URIO<R, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R>toURIO();
   }
+}
+
+interface URIOMonadDefer<R>
+    extends MonadDefer<Kind<URIO_, R>>, URIOMonadThrow<R>, URIODefer<R>, URIOBracket<R>, URIOTimer<R> {
+
+  @SuppressWarnings("rawtypes")
+  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
 }
 
 final class ConsoleURIO<R> implements Console<Kind<URIO_, R>> {

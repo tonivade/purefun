@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.type.EvalOf.toEval;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
@@ -60,7 +61,7 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
   public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
     Eval<Kind<F, B>> eval =
         traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper))
-            .fix(EvalOf::narrowK);
+            .fix(toEval());
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 

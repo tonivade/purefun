@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
+import static com.github.tonivade.purefun.type.IdOf.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -22,10 +24,8 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Id_;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,7 +36,7 @@ public class ForTest {
     Id<String> result = For.with(IdInstances.monad())
         .andThen(() -> Id.of("value"))
         .map(String::toUpperCase)
-        .fix(IdOf::narrowK);
+        .fix(toId());
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -61,7 +61,7 @@ public class ForTest {
     Id<String> result = For.with(monad)
         .andThen(() -> monad.pure("value"))
         .flatMap(string -> monad.pure(string.toUpperCase()))
-        .fix(IdOf::narrowK);
+        .fix(toId());
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -76,7 +76,7 @@ public class ForTest {
           .and("d")
           .and("e")
           .tuple()
-          .fix(IdOf::narrowK);
+          .fix(toId());
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
   }
@@ -93,11 +93,11 @@ public class ForTest {
 
     IO<Integer> yield =
       program
-        .yield((a, b, c, d, e) -> a + b + c + d + e).fix(IOOf::narrowK);
+        .yield((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
 
     IO<Integer> apply =
       program
-        .apply((a, b, c, d, e) -> a + b + c + d + e).fix(IOOf::narrowK);
+        .apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
 
     assertEquals(15, yield.unsafeRunSync());
     assertEquals(15, apply.unsafeRunSync());

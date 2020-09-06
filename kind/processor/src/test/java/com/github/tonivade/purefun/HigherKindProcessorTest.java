@@ -38,6 +38,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
@@ -45,6 +46,10 @@ public class HigherKindProcessorTest {
 
         "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
         "return (Foo<A>) hkt;",
+        "}",
+
+        "static <A> Fixer<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -69,6 +74,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
@@ -78,6 +84,10 @@ public class HigherKindProcessorTest {
 
         "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
         "return (Foo<A>) hkt;",
+        "}",
+
+        "static <A> Fixer<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "return FooOf::narrowK;",
         "}",
 
         "}",
@@ -104,6 +114,7 @@ public class HigherKindProcessorTest {
 
     JavaFileObject generated = forSourceLines("test.FooOf",
         "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
@@ -111,6 +122,10 @@ public class HigherKindProcessorTest {
 
         "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
         "return (Foo<A>) hkt;",
+        "}",
+
+        "static <A> Fixer<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -143,6 +158,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
@@ -150,6 +166,10 @@ public class HigherKindProcessorTest {
 
         "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
         "return (Foo<A>) hkt;",
+        "}",
+
+        "static <A extends java.lang.String> Fixer<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -190,6 +210,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
@@ -197,6 +218,10 @@ public class HigherKindProcessorTest {
 
         "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo_, A>, B> hkt) {",
         "return (Foo<A, B>) hkt;",
+        "}",
+        
+        "static <A, B> Fixer<Kind<Kind<Foo_, A>, B>, Foo<A, B>> toFoo() {",
+        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -221,6 +246,7 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
@@ -228,6 +254,10 @@ public class HigherKindProcessorTest {
 
         "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo_, A>, B>, C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
+        "}",
+        
+        "static <A, B, C> Fixer<Kind<Kind<Kind<Foo_, A>, B>, C>, Foo<A, B, C>> toFoo() {",
+        "return FooOf::narrowK;",
         "}",
 
         "}");

@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 
 public class IOResourceTest extends ResourceTest<IO_> {
@@ -19,11 +19,11 @@ public class IOResourceTest extends ResourceTest<IO_> {
   
   @Override
   protected <T> Resource<IO_, T> makeResource(Kind<IO_, T> acquire, Consumer1<T> release) {
-    return IOInstances.resource(IOOf.narrowK(acquire), release);
+    return IOInstances.resource(acquire.fix(toIO()), release);
   }
 
   @Override
   protected <T> T run(Kind<IO_, T> result) {
-    return IOOf.narrowK(result).unsafeRunSync();
+    return result.fix(toIO()).unsafeRunSync();
   }
 }

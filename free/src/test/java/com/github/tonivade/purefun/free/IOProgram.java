@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
@@ -96,9 +96,9 @@ class IOProgramToIO implements FunctionK<IOProgram_, IO_> {
   public <X> Kind<IO_, X> apply(Kind<IOProgram_, X> from) {
     return Pattern1.<IOProgram<X>, IO<X>>build()
       .when(instanceOf(IOProgram.Read.class))
-        .then(program -> (IO<X>) console.readln().fix(IOOf::narrowK))
+        .then(program -> (IO<X>) console.readln().fix(toIO()))
       .when(instanceOf(IOProgram.Write.class))
-        .then(program -> (IO<X>) IOOf.narrowK(console.println(program.asWrite().value())))
+        .then(program -> (IO<X>) console.println(program.asWrite().value()).fix(toIO()))
       .apply(IOProgramOf.narrowK(from));
   }
 }

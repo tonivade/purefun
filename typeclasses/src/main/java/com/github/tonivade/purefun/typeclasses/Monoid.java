@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.typeclasses.MonoidOf.toMonoid;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
@@ -54,12 +55,12 @@ interface MonoidInvariant extends Invariant<Monoid_> {
 
       @Override
       public B zero() {
-        return map.apply(value.fix(MonoidOf::narrowK).zero());
+        return map.apply(value.fix(toMonoid()).zero());
       }
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix(MonoidOf::narrowK).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.fix(toMonoid()).combine(comap.apply(t1), comap.apply(t2)));
       }
     };
   }

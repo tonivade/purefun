@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.effect.RIOOf.toRIO;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -25,6 +26,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
 public interface RIOInstances {
@@ -43,6 +45,10 @@ public interface RIOInstances {
 
   static <R> MonadThrow<Kind<RIO_, R>> monadThrow() {
     return RIOMonadThrow.INSTANCE;
+  }
+  
+  static <R> Timer<Kind<RIO_, R>> timer() {
+   return RIOTimer.INSTANCE;
   }
 
   static <R> MonadDefer<Kind<RIO_, R>> monadDefer() {
@@ -108,7 +114,7 @@ interface RIOMonad<R> extends RIOPure<R>, Monad<Kind<RIO_, R>> {
   default <A, B> RIO<R, B>
           flatMap(Kind<Kind<RIO_, R>, A> value,
                   Function1<A, ? extends Kind<Kind<RIO_, R>, B>> map) {
-    return RIOOf.narrowK(value).flatMap(map.andThen(RIOOf::narrowK));
+    return value.fix(toRIO()).flatMap(map.andThen(RIOOf::narrowK));
   }
 }
 
@@ -157,20 +163,26 @@ interface RIOBracket<R> extends Bracket<Kind<RIO_, R>> {
           bracket(Kind<Kind<RIO_, R>, A> acquire,
                   Function1<A, ? extends Kind<Kind<RIO_, R>, B>> use,
                   Consumer1<A> release) {
-    return RIO.bracket(acquire.fix(RIOOf::narrowK), use.andThen(RIOOf::narrowK), release);
+    return RIO.bracket(acquire.fix(toRIO()), use.andThen(RIOOf::narrowK), release);
   }
 }
 
-interface RIOMonadDefer<R>
-    extends MonadDefer<Kind<RIO_, R>>, RIOMonadThrow<R>, RIODefer<R>, RIOBracket<R> {
-
+interface RIOTimer<R> extends Timer<Kind<RIO_, R>> {
+  
   @SuppressWarnings("rawtypes")
-  RIOMonadDefer INSTANCE = new RIOMonadDefer<Object>() {};
+  RIOTimer INSTANCE = new RIOTimer() {};
 
   @Override
   default RIO<R, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R>toRIO();
   }
+}
+
+interface RIOMonadDefer<R>
+    extends MonadDefer<Kind<RIO_, R>>, RIOMonadThrow<R>, RIODefer<R>, RIOBracket<R>, RIOTimer<R> {
+
+  @SuppressWarnings("rawtypes")
+  RIOMonadDefer INSTANCE = new RIOMonadDefer<Object>() {};
 }
 
 final class ConsoleRIO<R> implements Console<Kind<RIO_, R>> {

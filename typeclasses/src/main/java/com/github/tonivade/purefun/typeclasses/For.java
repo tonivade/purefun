@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Fixer;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
@@ -55,8 +56,8 @@ abstract class AbstractFor<F extends Witness, A, B> {
 
   public abstract Kind<F, B> run();
 
-  public <R> R fix(Function1<Kind<F, B>, R> fix) {
-    return fix.apply(run());
+  public <R> R fix(Fixer<Kind<F, B>, R> fixer) {
+    return fixer.apply(run());
   }
 
   public void end(Consumer1<Kind<F, B>> consumer) {

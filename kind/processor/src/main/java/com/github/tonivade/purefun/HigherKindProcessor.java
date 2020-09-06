@@ -30,6 +30,7 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private static final String KIND = "com.github.tonivade.purefun.Kind";
   private static final String WITNESS = "com.github.tonivade.purefun.Witness";
+  private static final String FIXER = "com.github.tonivade.purefun.Fixer";
   private static final String END = "}";
 
   @Override
@@ -124,6 +125,7 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println();
     }
     writer.println(import_(KIND));
+    writer.println(import_(FIXER));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -134,6 +136,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     narrowK1(writer, className, aType, higher1);
+    toTypeOf1(writer, className, aType, higher1, typeOfName);
     writer.println(END);
     if (sealed) {
       writer.println();
@@ -154,6 +157,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     writer.println(import_(KIND));
+    writer.println(import_(FIXER));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -164,6 +168,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     narrowK2(writer, className, aType, bType, higher1);
+    toTypeOf2(writer, className, aType, bType, higher1, typeOfName);
     writer.println(END);
     if (sealed) {
       writer.println();
@@ -185,6 +190,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     writer.println(import_(KIND));
+    writer.println(import_(FIXER));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -195,6 +201,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     narrowK3(writer, className, aType, bType, cType, higher1);
+    toTypeOf3(writer, className, aType, bType, cType, higher1, typeOfName);
     writer.println(END);
     if (sealed) {
       writer.println();
@@ -234,10 +241,29 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void narrowK3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt) {
     narrowK(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
   }
-
+  
   private void narrowK(PrintWriter writer, String types, String returnType, String param) {
     writer.println("  static " + types + " " + returnType + " narrowK(" + param + " hkt) {");
     writer.println("    return (" + returnType + ") hkt;");
+    writer.println("  }");
+    writer.println();
+  }
+  
+  private void toTypeOf1(PrintWriter writer, String className, String aType, String hkt, String typeOf) {
+    toTypeOf(writer, "<" + aType + ">", className + "<A>", hkt, typeOf, className);
+  }
+  
+  private void toTypeOf2(PrintWriter writer, String className, String aType, String bType, String hkt, String typeOf) {
+    toTypeOf(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt, typeOf, className);
+  }
+  
+  private void toTypeOf3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt, String typeOf) {
+    toTypeOf(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt, typeOf, className);
+  }
+
+  private void toTypeOf(PrintWriter writer, String types, String returnType, String param, String typeOf, String type) {
+    writer.println("  static " + types + " Fixer<" + param + ", " + returnType + "> to" + type + "() {");
+    writer.println("    return " + typeOf + "::narrowK;");
     writer.println("  }");
     writer.println();
   }

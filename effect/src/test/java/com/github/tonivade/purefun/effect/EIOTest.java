@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -173,7 +173,7 @@ public class EIOTest {
 
     Kind<IO_, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(0, future.fix(IOOf::narrowK).unsafeRunSync());
+    assertEquals(0, future.fix(toIO()).unsafeRunSync());
   }
 
   @Test
@@ -182,7 +182,7 @@ public class EIOTest {
 
     Kind<IO_, Integer> future = parseInt("jkdf").foldMap(monadDefer);
 
-    assertThrows(NumberFormatException.class, () -> future.fix(IOOf::narrowK).unsafeRunSync());
+    assertThrows(NumberFormatException.class, () -> future.fix(toIO()).unsafeRunSync());
   }
 
   @Test

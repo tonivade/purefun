@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.free.FreeOf.toFree;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
@@ -196,7 +197,7 @@ interface FreeMonad<F extends Witness> extends Monad<Kind<Free_, F>> {
   @Override
   default <T, R> Free<F, R> flatMap(
       Kind<Kind<Free_, F>, T> value, Function1<T, ? extends Kind<Kind<Free_, F>, R>> map) {
-    Free<F, T> free = value.fix(FreeOf::narrowK);
+    Free<F, T> free = value.fix(toFree());
     return free.flatMap(map.andThen(FreeOf::narrowK));
   }
 }

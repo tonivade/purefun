@@ -23,6 +23,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface TaskInstances {
 
@@ -44,6 +45,10 @@ public interface TaskInstances {
 
   static MonadThrow<Task_> monadThrow() {
     return TaskMonadThrow.INSTANCE;
+  }
+  
+  static Timer<Task_> timer() {
+    return TaskTimer.INSTANCE;
   }
 
   static MonadDefer<Task_> monadDefer() {
@@ -152,13 +157,18 @@ interface TaskBracket extends Bracket<Task_> {
   }
 }
 
-interface TaskMonadDefer
-    extends MonadDefer<Task_>, TaskMonadThrow, TaskDefer, TaskBracket {
-
-  TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
+interface TaskTimer extends Timer<Task_> {
+  
+  TaskTimer INSTANCE = new TaskTimer() {};
 
   @Override
   default Task<Unit> sleep(Duration duration) {
     return Task.sleep(duration);
   }
+}
+
+interface TaskMonadDefer
+    extends MonadDefer<Task_>, TaskMonadThrow, TaskDefer, TaskBracket, TaskTimer {
+
+  TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
 }

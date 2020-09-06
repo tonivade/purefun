@@ -9,8 +9,10 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.effect.EIO_;
+import com.github.tonivade.purefun.effect.RIO_;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.URIO_;
 import com.github.tonivade.purefun.effect.ZIO_;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.Stream;
@@ -42,13 +44,17 @@ public interface StreamInstances {
     return Stream.of(TaskInstances.monadDefer());
   }
 
+  static <R> Stream.StreamOf<Kind<URIO_, R>> ofURIO() {
+    return Stream.of(URIOInstances.monadDefer());
+  }
+
+  static <R> Stream.StreamOf<Kind<RIO_, R>> ofRIO() {
+    return Stream.of(RIOInstances.monadDefer());
+  }
+
   @SuppressWarnings("unchecked")
   static <F extends Witness> Functor<Kind<Stream_, F>> functor() {
     return StreamFunctor.INSTANCE;
-  }
-
-  static <F extends Witness> Applicative<Kind<Stream_, F>> applicative(Stream.StreamOf<F> streamOf) {
-    return StreamApplicative.instance(checkNonNull(streamOf));
   }
 
   static <F extends Witness> Monad<Kind<Stream_, F>> monad(Stream.StreamOf<F> streamOf) {
@@ -74,19 +80,6 @@ interface StreamPure<F extends Witness> extends Applicative<Kind<Stream_, F>> {
   @Override
   default <T> Stream<F, T> pure(T value) {
     return streamOf().pure(value);
-  }
-}
-
-interface StreamApplicative<F extends Witness> extends StreamPure<F> {
-
-  static <F extends Witness> StreamApplicative<F> instance(Stream.StreamOf<F> streamOf) {
-    return () -> streamOf;
-  }
-
-  @Override
-  default <T, R> Stream<F, R> ap(Kind<Kind<Stream_, F>, T> value,
-      Kind<Kind<Stream_, F>, Function1<T, R>> apply) {
-    return StreamOf.narrowK(value).flatMap(t -> StreamOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
 

@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
@@ -45,7 +45,7 @@ public class FreeTest {
     Kind<IO_, Unit> foldMap =
         echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
-    IO<Unit> echoIO = IOOf.narrowK(foldMap);
+    IO<Unit> echoIO = foldMap.fix(toIO());
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 

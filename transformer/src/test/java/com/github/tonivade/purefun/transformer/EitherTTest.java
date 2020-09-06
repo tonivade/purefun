@@ -6,13 +6,14 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
+import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.instances.EitherTInstances;
 import com.github.tonivade.purefun.instances.FutureInstances;
@@ -106,10 +107,10 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), raiseError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()),
-        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()),
-        () -> assertEquals(Try.failure(error), ensureError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()),
-        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(FutureOf::narrowK).await()));
+        () -> assertEquals(Try.failure(error), raiseError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()),
+        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()),
+        () -> assertEquals(Try.failure(error), ensureError.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()),
+        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix(EitherTOf::<Future_, Throwable, String>narrowK).value().fix(toFuture()).await()));
   }
 
   @Test
@@ -128,9 +129,9 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Id.of(Either.left(error)), raiseError.fix(EitherTOf::narrowK).value()),
-        () -> assertEquals(Id.of(Either.right("not an error")), handleError.fix(EitherTOf::narrowK).value()),
-        () -> assertEquals(Id.of(Either.left(error)), ensureError.fix(EitherTOf::narrowK).value()),
-        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.fix(EitherTOf::narrowK).value()));
+        () -> assertEquals(Id.of(Either.left(error)), raiseError.fix(toEitherT()).value()),
+        () -> assertEquals(Id.of(Either.right("not an error")), handleError.fix(toEitherT()).value()),
+        () -> assertEquals(Id.of(Either.left(error)), ensureError.fix(toEitherT()).value()),
+        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.fix(toEitherT()).value()));
   }
 }

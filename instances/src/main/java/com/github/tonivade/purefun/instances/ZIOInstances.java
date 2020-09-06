@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.effect.ZIOOf.toZIO;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -25,6 +26,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
 public interface ZIOInstances {
@@ -47,6 +49,10 @@ public interface ZIOInstances {
 
   static <R> MonadThrow<Kind<Kind<ZIO_, R>, Throwable>> monadThrow() {
     return ZIOMonadThrow.INSTANCE;
+  }
+
+  static <R> Timer<Kind<Kind<ZIO_, R>, Throwable>> timer() {
+    return ZIOTimer.INSTANCE;
   }
 
   static <R> MonadDefer<Kind<Kind<ZIO_, R>, Throwable>> monadDefer() {
@@ -114,7 +120,7 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Kind<Kind<ZIO_, R>, E>> {
   default <A, B> ZIO<R, E, B>
           flatMap(Kind<Kind<Kind<ZIO_, R>, E>, A> value,
                   Function1<A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, B>> map) {
-    return ZIOOf.narrowK(value).flatMap(map.andThen(ZIOOf::narrowK));
+    return value.fix(toZIO()).flatMap(map.andThen(ZIOOf::narrowK));
   }
 }
 
@@ -163,20 +169,26 @@ interface ZIOBracket<R> extends Bracket<Kind<Kind<ZIO_, R>, Throwable>> {
           bracket(Kind<Kind<Kind<ZIO_, R>, Throwable>, A> acquire,
                   Function1<A, ? extends Kind<Kind<Kind<ZIO_, R>, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return ZIO.bracket(acquire.fix(ZIOOf::narrowK), use.andThen(ZIOOf::narrowK), release);
+    return ZIO.bracket(acquire.fix(toZIO()), use.andThen(ZIOOf::narrowK), release);
   }
 }
 
-interface ZIOMonadDefer<R>
-    extends MonadDefer<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadThrow<R>, ZIODefer<R>, ZIOBracket<R> {
+interface ZIOTimer<R> extends Timer<Kind<Kind<ZIO_, R>, Throwable>> {
 
   @SuppressWarnings("rawtypes")
-  ZIOMonadDefer INSTANCE = new ZIOMonadDefer() {};
+  ZIOTimer INSTANCE = new ZIOTimer() {};
 
   @Override
   default ZIO<R, Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R, Throwable>toZIO();
   }
+}
+
+interface ZIOMonadDefer<R>
+    extends MonadDefer<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadThrow<R>, ZIODefer<R>, ZIOBracket<R>, ZIOTimer<R> {
+
+  @SuppressWarnings("rawtypes")
+  ZIOMonadDefer INSTANCE = new ZIOMonadDefer() {};
 }
 
 final class ConsoleZIO<R> implements Console<Kind<Kind<ZIO_, R>, Throwable>> {

@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -23,6 +24,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface UIOInstances {
 
@@ -44,6 +46,10 @@ public interface UIOInstances {
 
   static MonadThrow<UIO_> monadThrow() {
     return UIOMonadThrow.INSTANCE;
+  }
+
+  static Timer<UIO_> timer() {
+    return UIOTimer.INSTANCE;
   }
 
   static MonadDefer<UIO_> monadDefer() {
@@ -97,7 +103,7 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
 
   @Override
   default <A, B> UIO<B> flatMap(Kind<UIO_, A> value, Function1<A, ? extends Kind<UIO_, B>> map) {
-    return UIOOf.narrowK(value).flatMap(map.andThen(UIOOf::narrowK));
+    return value.fix(toUIO()).flatMap(map.andThen(UIOOf::narrowK));
   }
 }
 
@@ -142,17 +148,22 @@ interface UIOBracket extends Bracket<UIO_> {
           bracket(Kind<UIO_, A> acquire,
                   Function1<A, ? extends Kind<UIO_, B>> use,
                   Consumer1<A> release) {
-    return UIO.bracket(acquire.fix(UIOOf::narrowK), use.andThen(UIOOf::narrowK), release);
+    return UIO.bracket(acquire.fix(toUIO()), use.andThen(UIOOf::narrowK), release);
   }
 }
 
-interface UIOMonadDefer
-    extends MonadDefer<UIO_>, UIOMonadThrow, UIODefer, UIOBracket {
-
-  UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
+interface UIOTimer extends Timer<UIO_> {
+  
+  UIOTimer INSTANCE = new UIOTimer() {};
 
   @Override
   default UIO<Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
   }
+}
+
+interface UIOMonadDefer
+    extends MonadDefer<UIO_>, UIOMonadThrow, UIODefer, UIOBracket, UIOTimer {
+
+  UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
 }

@@ -6,13 +6,15 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.Collections.singletonList;
+import static com.github.tonivade.purefun.free.FreeApOf.toFreeAp;
+import static com.github.tonivade.purefun.free.FreeOf.toFree;
+import static com.github.tonivade.purefun.type.ConstOf.toConst;
 import java.util.Deque;
 import java.util.LinkedList;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.type.ConstOf;
 import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
@@ -37,20 +39,20 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
   }
 
   public <G extends Witness> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
-    return foldMap(functionKF(transformer), applicativeF()).fix(FreeApOf::narrowK);
+    return foldMap(functionKF(transformer), applicativeF()).fix(toFreeAp());
   }
 
   public <G extends Witness> FreeAp<G, A> flatCompile(
       FunctionK<F, Kind<FreeAp_, G>> functionK, Applicative<Kind<FreeAp_, G>> applicative) {
-    return foldMap(functionK, applicative).fix(FreeApOf::narrowK);
+    return foldMap(functionK, applicative).fix(toFreeAp());
   }
 
   public <M> M analyze(FunctionK<F, Kind<Const_, M>> functionK, Applicative<Kind<Const_, M>> applicative) {
-    return foldMap(functionK, applicative).fix(ConstOf::narrowK).get();
+    return foldMap(functionK, applicative).fix(toConst()).get();
   }
 
   public Free<F, A> monad() {
-    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(FreeOf::narrowK);
+    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(toFree());
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -227,8 +229,8 @@ interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F
   @Override
   default <T, R> FreeAp<F, R> ap(
       Kind<Kind<FreeAp_, F>, T> value, Kind<Kind<FreeAp_, F>, Function1<T, R>> apply) {
-    FreeAp<F, T> freeAp = value.fix(FreeApOf::narrowK);
-    FreeAp<F, Function1<T, R>> apply1 = apply.fix(FreeApOf::narrowK);
+    FreeAp<F, T> freeAp = value.fix(toFreeAp());
+    FreeAp<F, Function1<T, R>> apply1 = apply.fix(toFreeAp());
     return FreeAp.apply(freeAp, apply1);
   }
 }

@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.free;
 
+import static com.github.tonivade.purefun.type.IdOf.toId;
+import static com.github.tonivade.purefun.type.OptionOf.toOption;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -22,10 +24,8 @@ import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.typeclasses.For;
 
@@ -42,7 +42,7 @@ public class CofreeTest {
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
-          .tuple().fix(IdOf::narrowK);
+          .tuple().fix(toId());
 
     assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.get().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
   }
@@ -54,7 +54,7 @@ public class CofreeTest {
 
     assertEquals(5151,
         cofree.<Integer>fold(EvalInstances.applicative(), OptionInstances.traverse(),
-            (a, fb) -> Eval.later(() -> fb.fix(OptionOf::narrowK).fold(() -> a, x -> x + a))).value());
+            (a, fb) -> Eval.later(() -> fb.fix(toOption()).fold(() -> a, x -> x + a))).value());
   }
 
   @Test

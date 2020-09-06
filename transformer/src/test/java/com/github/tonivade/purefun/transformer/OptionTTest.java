@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,7 +21,6 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Id_;
@@ -154,6 +154,6 @@ class IOToTryFunctionK implements FunctionK<IO_, Try_> {
 
   @Override
   public <T> Kind<Try_, T> apply(Kind<IO_, T> from) {
-    return Try.of(IOOf.narrowK(from)::unsafeRunSync);
+    return Try.of(from.fix(toIO())::unsafeRunSync);
   }
 }

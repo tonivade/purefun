@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 
 public class IOReferenceTest extends ReferenceTest<IO_> {
@@ -23,6 +23,6 @@ public class IOReferenceTest extends ReferenceTest<IO_> {
 
   @Override
   protected <T> T run(Kind<IO_, T> value) {
-    return IOOf.narrowK(value).unsafeRunSync();
+    return value.fix(toIO()).unsafeRunSync();
   }
 }

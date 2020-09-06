@@ -4,12 +4,10 @@
  */
 package com.github.tonivade.purefun;
 
-import java.util.function.Function;
-
 public interface Kind<F extends Witness, A> extends Witness {
 
-  default <R> R fix(Function<? super Kind<F, A>, ? extends R> function) {
-    return function.apply(this);
+  default <R> R fix(Fixer<? super Kind<F, A>, ? extends R> fixer) {
+    return fixer.apply(this);
   }
 
   default Kind<F, A> kind() {

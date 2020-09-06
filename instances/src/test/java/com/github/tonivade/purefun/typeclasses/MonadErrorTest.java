@@ -37,7 +37,7 @@ import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.instances.ZIOInstances;
-import com.github.tonivade.purefun.monad.IOOf;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Either_;
@@ -200,10 +200,10 @@ public class MonadErrorTest {
     Kind<IO_, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertThrows(RuntimeException.class, () -> IOOf.narrowK(raiseError).unsafeRunSync()),
-        () -> assertEquals("not an error", IOOf.narrowK(handleError).unsafeRunSync()),
-        () -> assertThrows(RuntimeException.class, () -> IOOf.narrowK(ensureError).unsafeRunSync()),
-        () -> assertEquals("is not ok", IOOf.narrowK(ensureOk).unsafeRunSync()));
+        () -> assertThrows(RuntimeException.class, () -> raiseError.fix(toIO()).unsafeRunSync()),
+        () -> assertEquals("not an error", handleError.fix(toIO()).unsafeRunSync()),
+        () -> assertThrows(RuntimeException.class, () -> ensureError.fix(toIO()).unsafeRunSync()),
+        () -> assertEquals("is not ok", ensureOk.fix(toIO()).unsafeRunSync()));
   }
 
   @Test

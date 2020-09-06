@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.effect;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.Task.pure;
 import static com.github.tonivade.purefun.effect.Task.task;
 import static com.github.tonivade.purefun.effect.Task.unit;
@@ -139,7 +140,7 @@ public class TaskTest {
 
     Kind<Future_, Integer> future = parseInt("0").foldMap(monadDefer);
 
-    assertEquals(Try.success(0), future.fix(FutureOf::narrowK).await());
+    assertEquals(Try.success(0), future.fix(toFuture()).await());
   }
 
   @Test
@@ -148,7 +149,7 @@ public class TaskTest {
 
     Kind<Future_, Integer> future = parseInt("jdjd").foldMap(monadDefer);
 
-    assertEquals(NumberFormatException.class, future.fix(FutureOf::narrowK).await().getCause().getClass());
+    assertEquals(NumberFormatException.class, future.fix(toFuture()).await().getCause().getClass());
   }
 
   @Test

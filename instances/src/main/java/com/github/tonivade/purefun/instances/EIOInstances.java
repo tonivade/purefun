@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
 import java.time.Duration;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -24,6 +25,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Timer;
 
   @SuppressWarnings("unchecked")
 public interface EIOInstances {
@@ -46,6 +48,10 @@ public interface EIOInstances {
 
   static MonadThrow<Kind<EIO_, Throwable>> monadThrow() {
     return EIOMonadThrow.INSTANCE;
+  }
+  
+  static Timer<Kind<EIO_, Throwable>> timer() {
+    return EIOTimer.INSTANCE;
   }
 
   static MonadDefer<Kind<EIO_, Throwable>> monadDefer() {
@@ -107,7 +113,7 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<Kind<EIO_, E>> {
   default <A, B> EIO<E, B>
           flatMap(Kind<Kind<EIO_, E>, A> value,
                   Function1<A, ? extends Kind<Kind<EIO_, E>, B>> map) {
-    return EIOOf.narrowK(value).flatMap(map.andThen(EIOOf::narrowK));
+    return value.fix(toEIO()).flatMap(map.andThen(EIOOf::narrowK));
   }
 }
 
@@ -156,17 +162,22 @@ interface EIOBracket extends Bracket<Kind<EIO_, Throwable>> {
           bracket(Kind<Kind<EIO_, Throwable>, A> acquire,
                   Function1<A, ? extends Kind<Kind<EIO_, Throwable>, B>> use,
                   Consumer1<A> release) {
-    return EIO.bracket(acquire.fix(EIOOf::narrowK), use.andThen(EIOOf::narrowK), release);
+    return EIO.bracket(acquire.fix(toEIO()), use.andThen(EIOOf::narrowK), release);
   }
 }
 
-interface EIOMonadDefer
-    extends MonadDefer<Kind<EIO_, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket {
+interface EIOTimer extends Timer<Kind<EIO_, Throwable>> {
 
-  EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
+  EIOTimer INSTANCE = new EIOTimer() {};
 
   @Override
   default EIO<Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<Throwable>toEIO();
   }
+}
+
+interface EIOMonadDefer
+    extends MonadDefer<Kind<EIO_, Throwable>>, EIOMonadThrow, EIODefer, EIOBracket, EIOTimer {
+
+  EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
 }
