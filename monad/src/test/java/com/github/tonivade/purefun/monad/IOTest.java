@@ -59,6 +59,30 @@ public class IOTest {
             pure.flatMap(string -> IO.task(() -> string.split(" "))).unsafeRunSync()),
         () -> assertEquals(Integer.valueOf(100), pure.andThen(IO.task(() -> 100)).unsafeRunSync()));
   }
+  
+  @Test
+  public void asyncSuccess() {
+    IO<String> async = IO.async(callback -> {
+      Thread.sleep(100);
+      callback.accept(Try.success("1"));
+    });
+    
+    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    
+    assertEquals("1", foldMap.get());
+  }
+  
+  @Test
+  public void asyncFailure() {
+    IO<String> async = IO.async(callback -> {
+      Thread.sleep(100);
+      callback.accept(Try.failure());
+    });
+    
+    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+   
+    assertThrows(NoSuchElementException.class, foldMap::get);
+  }
 
   @Test
   public void echo() {
@@ -79,7 +103,7 @@ public class IOTest {
     IO<ImmutableList<String>> program = currentThreadIO();
 
     Try<ImmutableList<String>> result =
-        program.foldMap(FutureInstances.monadDefer())
+        program.foldMap(FutureInstances.async())
             .fix(toFuture()).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
@@ -90,7 +114,7 @@ public class IOTest {
     IO<ImmutableList<String>> program = currentThreadIO();
 
     Par<ImmutableList<String>> result =
-        program.foldMap(ParInstances.monadDefer())
+        program.foldMap(ParInstances.async())
           .fix(toPar());
 
     assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
@@ -113,7 +137,7 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.monadDefer()).fix(toFuture());
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.async()).fix(toFuture());
 
     assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
@@ -237,7 +261,7 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix(toFuture());
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.async()).fix(toFuture());
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());

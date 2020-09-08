@@ -12,7 +12,6 @@ import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
 import static com.github.tonivade.purefun.effect.TaskOf.toTask;
 import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import static com.github.tonivade.purefun.effect.ZIOOf.toZIO;
-import static com.github.tonivade.purefun.instances.FutureInstances.monadDefer;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -40,6 +39,7 @@ import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.StreamInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
@@ -295,8 +295,8 @@ public class StreamTest {
 
   @Test
   public void readFileAsync() {
-    Future<String> license = pureReadFileIO("../LICENSE").foldMap(monadDefer()).fix(toFuture());
-    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(monadDefer()).fix(toFuture());
+    Future<String> license = pureReadFileIO("../LICENSE").foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(FutureInstances.async()).fix(toFuture());
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
         () -> assertEquals("--- file not found ---", notFound.await().get()));

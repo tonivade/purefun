@@ -154,7 +154,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> from(Executor executor, Callable<T> callable) {
-    return async(executor, callable::call);
+    return task(executor, callable::call);
   }
 
   static <T> Future<T> from(java.util.concurrent.Future<T> future) {
@@ -162,15 +162,15 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> from(Executor executor, java.util.concurrent.Future<T> future) {
-    return async(executor, future::get);
+    return task(executor, future::get);
   }
 
-  static <T> Future<T> async(Producer<T> task) {
-    return async(DEFAULT_EXECUTOR, task);
+  static <T> Future<T> task(Producer<T> task) {
+    return task(DEFAULT_EXECUTOR, task);
   }
 
-  static <T> Future<T> async(Executor executor, Producer<T> task) {
-    return FutureImpl.async(executor, task.liftTry());
+  static <T> Future<T> task(Executor executor, Producer<T> task) {
+    return FutureImpl.task(executor, task.liftTry());
   }
 
   static Future<Unit> exec(CheckedRunnable task) {
@@ -178,7 +178,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static Future<Unit> exec(Executor executor, CheckedRunnable task) {
-    return async(executor, () -> { task.run(); return unit(); });
+    return task(executor, () -> { task.run(); return unit(); });
   }
 
   static <T> Future<T> delay(Duration timeout, Producer<T> producer) {
@@ -186,7 +186,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> delay(Executor executor, Duration timeout, Producer<T> producer) {
-    return sleep(executor, timeout).flatMap(x -> async(executor, producer));
+    return sleep(executor, timeout).flatMap(x -> task(executor, producer));
   }
 
   static Future<Unit> sleep(Duration delay) {
@@ -202,7 +202,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> defer(Executor executor, Producer<Future<T>> producer) {
-    return async(executor, producer::get).flatMap(identity());
+    return task(executor, producer::get).flatMap(identity());
   }
 
   static <T extends AutoCloseable, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use) {
@@ -232,6 +232,14 @@ public interface Future<T> extends FutureOf<T> {
   
   static <T, V> Future<Tuple2<T, V>> tuple(Future<T> fa, Future<V> fb) {
     return map2(fa, fb, Tuple2::of);
+  }
+
+  static <T> Future<T> async(Consumer1<Consumer1<Try<T>>> consumer) {
+    return async(DEFAULT_EXECUTOR, consumer);
+  }
+
+  static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
+    return FutureImpl.async(executor, consumer);
   }
 }
 
@@ -294,12 +302,12 @@ final class FutureImpl<T> implements SealedFuture<T> {
 
   @Override
   public <R> Future<R> map(Function1<T, R> mapper) {
-    return transform(executor, this, value -> value.map(mapper));
+    return transform(executor, value -> value.map(mapper));
   }
 
   @Override
   public <R> Future<R> flatMap(Function1<T, Future<R>> mapper) {
-    return chain(executor, this, value -> value.fold(e -> Future.failure(executor, e), mapper));
+    return chain(executor, value -> value.fold(e -> Future.failure(executor, e), mapper));
   }
 
   @Override
@@ -317,22 +325,22 @@ final class FutureImpl<T> implements SealedFuture<T> {
 
   @Override
   public Future<T> filter(Matcher1<T> matcher) {
-    return transform(executor, this, value -> value.filter(matcher));
+    return transform(executor, value -> value.filter(matcher));
   }
 
   @Override
   public Future<T> orElse(Future<T> other) {
-    return chain(executor, this, value -> value.fold(cons(other), t -> Future.success(executor, t)));
+    return chain(executor, value -> value.fold(cons(other), t -> Future.success(executor, t)));
   }
 
   @Override
   public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
-    return transform(executor, this, value -> value.recoverWith(type, mapper));
+    return transform(executor, value -> value.recoverWith(type, mapper));
   }
 
   @Override
   public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
-    return transform(executor, this, value -> Try.success(value.fold(failureMapper, successMapper)));
+    return transform(executor, value -> Try.success(value.fold(failureMapper, successMapper)));
   }
 
   @Override
@@ -349,31 +357,29 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return promise;
   }
 
+  private <R> Future<R> transform(Executor executor, Function1<Try<T>, Try<R>> mapper) {
+    checkNonNull(executor);
+    checkNonNull(mapper);
+    return new FutureImpl<>(executor,
+        (p, c) ->
+          promise.onComplete(value -> p.tryComplete(mapper.apply(value))), this::cancel);
+  }
+
+  private <R> Future<R> chain(Executor executor, Function1<Try<T>, Future<R>> mapper) {
+    checkNonNull(executor);
+    checkNonNull(mapper);
+    return new FutureImpl<>(executor,
+        (p, c) ->
+          promise.onComplete(value -> mapper.apply(value).onComplete(p::tryComplete)), this::cancel);
+  }
+
   protected static <T> Future<T> sync(Executor executor, Try<T> result) {
     checkNonNull(executor);
     checkNonNull(result);
-    return new FutureImpl<>(executor, (promise, cancel) -> promise.tryComplete(result));
+    return new FutureImpl<>(executor, (p, c) -> p.tryComplete(result));
   }
 
-  protected static <T, R> Future<R> transform(Executor executor, Future<T> current, Function1<Try<T>, Try<R>> mapper) {
-    checkNonNull(executor);
-    checkNonNull(current);
-    checkNonNull(mapper);
-    return new FutureImpl<>(executor,
-        (promise, cancellable) ->
-          current.onComplete(value -> promise.tryComplete(mapper.apply(value))), current::cancel);
-  }
-
-  protected static <T, R> Future<R> chain(Executor executor, Future<T> current, Function1<Try<T>, Future<R>> mapper) {
-    checkNonNull(executor);
-    checkNonNull(current);
-    checkNonNull(mapper);
-    return new FutureImpl<>(executor,
-        (promise, cancellable) ->
-          current.onComplete(value -> mapper.apply(value).onComplete(promise::tryComplete)), current::cancel);
-  }
-
-  protected static <T> Future<T> async(Executor executor, Producer<Try<T>> producer) {
+  protected static <T> Future<T> task(Executor executor, Producer<Try<T>> producer) {
     checkNonNull(executor);
     checkNonNull(producer);
     return new FutureImpl<>(executor,
@@ -384,10 +390,16 @@ final class FutureImpl<T> implements SealedFuture<T> {
           }));
   }
 
+  protected static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
+    checkNonNull(executor);
+    checkNonNull(consumer);
+    return new FutureImpl<>(executor, (p, c) -> executor.execute(() -> consumer.accept(p::tryComplete)));
+  }
+
   protected static <T> Future<T> from(Executor executor, Promise<T> promise) {
     checkNonNull(executor);
     checkNonNull(promise);
-    return new FutureImpl<>(executor, (current, cancel) -> promise.onComplete(current::tryComplete));
+    return new FutureImpl<>(executor, (p, c) -> promise.onComplete(p::tryComplete));
   }
 
   protected static Future<Unit> sleep(Executor executor, Duration delay) {
@@ -402,10 +414,9 @@ final class FutureImpl<T> implements SealedFuture<T> {
     checkNonNull(use);
     checkNonNull(release);
     return new FutureImpl<>(executor,
-        (promise, cancellable) ->
-            acquire.onComplete(
+        (p, c) -> acquire.onComplete(
                 resource -> resource.fold(e -> Future.failure(executor, e), use)
-                  .onComplete(promise::tryComplete)
+                  .onComplete(p::tryComplete)
                   .onComplete(result -> resource.onSuccess(release))));
   }
 }

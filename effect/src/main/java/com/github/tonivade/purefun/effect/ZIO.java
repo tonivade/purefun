@@ -44,7 +44,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   default Future<Either<E, A>> toFuture(Executor executor, R env) {
-    return Future.async(executor, () -> provide(env));
+    return Future.task(executor, () -> provide(env));
   }
 
   default void provideAsync(R env, Consumer1<Try<Either<E, A>>> callback) {

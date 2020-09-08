@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Try;
 
 @HigherKind
 @FunctionalInterface
@@ -76,7 +77,7 @@ public interface Par<T> extends ParOf<T> {
   }
 
   static <T> Par<T> task(Producer<T> producer) {
-    return executor -> Future.async(executor, producer);
+    return executor -> Future.task(executor, producer);
   }
 
   static <T> Par<T> defer(Producer<Par<T>> producer) {
@@ -85,6 +86,11 @@ public interface Par<T> extends ParOf<T> {
 
   static Par<Unit> run(CheckedRunnable runnable) {
     return executor -> Future.exec(executor, runnable);
+  }
+
+  static <T> Par<T> async(Consumer1<Consumer1<Try<T>>> consumer) {
+    // TODO Auto-generated method stub
+    return executor -> Future.async(executor, consumer);
   }
 
   static Par<Unit> sleep(Duration delay) {

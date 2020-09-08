@@ -64,7 +64,7 @@ public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
   }
 
   default Function1<A, Future<R>> liftFuture() {
-    return value -> Future.async(() -> apply(value));
+    return value -> Future.task(() -> apply(value));
   }
 
   default Function1<A, Either<Throwable, R>> liftEither() {

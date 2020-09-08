@@ -133,7 +133,7 @@ public class FutureTest {
   public void flatMap() {
     Future<String> future = Future.success("Hello world!");
 
-    Future<String> result = future.flatMap(string -> Future.async(string::toUpperCase));
+    Future<String> result = future.flatMap(string -> Future.task(string::toUpperCase));
 
     assertEquals(Try.success("HELLO WORLD!"), result.await());
   }
@@ -142,7 +142,7 @@ public class FutureTest {
   public void flatMapFailure() {
     RuntimeException error = new RuntimeException();
 
-    Future<String> result = Future.<String>failure(error).flatMap(string -> Future.async(string::toUpperCase));
+    Future<String> result = Future.<String>failure(error).flatMap(string -> Future.task(string::toUpperCase));
 
     assertEquals(Try.failure(error), result.await());
   }

@@ -16,7 +16,9 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -61,6 +63,14 @@ public interface FutureInstances {
 
   static MonadDefer<Future_> monadDefer(Executor executor) {
     return FutureMonadDefer.instance(checkNonNull(executor));
+  }
+
+  static Async<Future_> async() {
+    return async(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Async<Future_> async(Executor executor) {
+    return FutureAsync.instance(checkNonNull(executor));
   }
 }
 
@@ -164,5 +174,17 @@ interface FutureMonadDefer extends MonadDefer<Future_>, FutureMonadThrow, Future
   @Override
   default Kind<Future_, Unit> sleep(Duration duration) {
     return Future.sleep(executor(), duration);
+  }
+}
+
+interface FutureAsync extends Async<Future_>, FutureMonadDefer {
+
+  static FutureAsync instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  @Override
+  default <A> Kind<Future_, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+    return Future.async(executor(), consumer);
   }
 }
