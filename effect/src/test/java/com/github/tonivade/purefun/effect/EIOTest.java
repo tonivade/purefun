@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.effect;
 
+import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.effect.EIO.pure;
 import static com.github.tonivade.purefun.effect.EIO.raiseError;
 import static com.github.tonivade.purefun.effect.EIO.task;
@@ -31,12 +32,12 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.instances.IOInstances;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @ExtendWith(MockitoExtension.class)
 public class EIOTest {
@@ -169,20 +170,20 @@ public class EIOTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
+    Async<Par_> async = ParInstances.async();
 
-    Kind<IO_, Integer> future = parseInt("0").foldMap(monadDefer);
+    Kind<Par_, Integer> future = parseInt("0").foldMap(async);
 
-    assertEquals(0, future.fix(toIO()).unsafeRunSync());
+    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
+    Async<Par_> async = ParInstances.async();
 
-    Kind<IO_, Integer> future = parseInt("jkdf").foldMap(monadDefer);
+    Kind<Par_, Integer> future = parseInt("jkdf").foldMap(async);
 
-    assertThrows(NumberFormatException.class, () -> future.fix(toIO()).unsafeRunSync());
+    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
   }
 
   @Test

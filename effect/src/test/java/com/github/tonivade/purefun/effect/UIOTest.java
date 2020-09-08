@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.effect;
 
+import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.effect.UIO.pure;
 import static com.github.tonivade.purefun.effect.UIO.raiseError;
 import static com.github.tonivade.purefun.effect.UIO.task;
@@ -17,25 +18,28 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.instances.IOInstances;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @ExtendWith(MockitoExtension.class)
 public class UIOTest {
@@ -121,20 +125,20 @@ public class UIOTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
+    Async<Par_> async = ParInstances.async();
 
-    Kind<IO_, Integer> future = parseInt("0").foldMap(monadDefer);
+    Kind<Par_, Integer> future = parseInt("0").foldMap(async);
 
-    assertEquals(0, future.fix(toIO()).unsafeRunSync());
+    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
+    Async<Par_> async = ParInstances.async();
 
-    Kind<IO_, Integer> future = parseInt("jkdf").foldMap(monadDefer);
+    Kind<Par_, Integer> future = parseInt("skjdsf").foldMap(async);
 
-    assertThrows(NumberFormatException.class, future.fix(toIO())::unsafeRunSync);
+    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
   }
 
   @Test

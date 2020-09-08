@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -29,10 +30,11 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind(sealed = true)
 public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
@@ -55,7 +57,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     toFuture(executor, env).onComplete(callback);
   }
 
-  <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad);
+  <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad);
 
   default ZIO<R, A, E> swap() {
     return new Swap<>(this);
@@ -268,6 +270,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   static <R, A> ZIO<R, Throwable, A> task(Producer<A> task) {
     return new Attempt<>(task);
   }
+  
+  static <R, A> ZIO<R, Throwable, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+    return new AsyncTask<>(consumer);
+  }
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
     return new Failure<>(error);
@@ -311,7 +317,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       return monad.pure(value);
     }
 
@@ -339,7 +345,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
     
     @Override
-    public <F extends Witness> Kind<F, C> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, C> foldMap(R env, Async<F> monad) {
       return monad.map2(left.foldMap(env, monad), right.foldMap(env, monad), mapper);
     }
     
@@ -363,7 +369,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       return monad.raiseError(wrap(error));
     }
 
@@ -405,7 +411,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <X extends Witness> Kind<X, B> foldMap(R env, MonadDefer<X> monad) {
+    public <X extends Witness> Kind<X, B> foldMap(R env, Async<X> monad) {
       Kind<X, A> foldMap = current.get().foldMap(env, monad);
       Kind<X, Either<Throwable, A>> attempt = monad.attempt(foldMap);
       Kind<X, ZIO<R, F, B>> map =
@@ -442,7 +448,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       Kind<F, Either<E, A>> later = monad.later(task::get);
       return monad.flatMap(later, either -> either.fold(error -> monad.raiseError(wrap(error)), monad::<A>pure));
     }
@@ -472,7 +478,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       return monad.defer(() -> lazy.get().foldMap(env, monad));
     }
 
@@ -500,7 +506,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, E> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, E> foldMap(R env, Async<F> monad) {
       return monad.flatMap(monad.attempt(current.foldMap(env, monad)), 
           either -> either.fold(
               error -> monad.pure(unwrap(error)), value -> monad.raiseError(wrap(value))));
@@ -509,6 +515,32 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     public String toString() {
       return "Swap(" + current + ")";
+    }
+  }
+
+  final class AsyncTask<R, A> implements SealedZIO<R, Throwable, A> {
+
+    private final Consumer1<Consumer1<Try<A>>> consumer;
+
+    protected AsyncTask(Consumer1<Consumer1<Try<A>>> consumer) {
+      this.consumer = checkNonNull(consumer);
+    }
+
+    @Override
+    public Either<Throwable, A> provide(R env) {
+      Promise<A> make = Promise.make();
+      consumer.accept(make::tryComplete);
+      return make.get().toEither();
+    }
+
+    @Override
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
+      return monad.async(consumer);
+    }
+
+    @Override
+    public String toString() {
+      return "Async(?)";
     }
   }
 
@@ -526,7 +558,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       return monad.later(current);
     }
 
@@ -550,7 +582,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       return monad.defer(() -> provide(env).fold(monad::<A>raiseError, monad::<A>pure));
     }
 
@@ -574,7 +606,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
       Kind<F, ZIO<R, E, A>> later = monad.later(() -> function.apply(env));
       return monad.flatMap(later, zio -> zio.foldMap(env, monad));
     }
@@ -604,7 +636,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <X extends Witness> Kind<X, B> foldMap(R env, MonadDefer<X> monad) {
+    public <X extends Witness> Kind<X, B> foldMap(R env, Async<X> monad) {
       Kind<X, A> foldMap = current.foldMap(env, monad);
       Kind<X, Either<Throwable, A>> attempt = monad.attempt(foldMap);
       Kind<X, ZIO<R, F, B>> map = monad.map(attempt, 
@@ -639,7 +671,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
     
     @Override
-    public <F extends Witness> Kind<F, Either<C, B>> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, Either<C, B>> foldMap(R env, Async<F> monad) {
       return current.foldM(
           error -> orElse.apply(error, Option.<B>none()).map(Either::<C, B>left),
           a -> schedule.initial().<E>toZIO().flatMap(s -> loop(a, s)))
@@ -701,7 +733,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, Either<B, A>> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, Either<B, A>> foldMap(R env, Async<F> monad) {
       ZIO<R, E, S> zio = schedule.initial().<E>toZIO();
       return monad.flatMap(zio.foldMap(env, monad), s -> loop(s).foldMap(env, monad));
     }
@@ -760,7 +792,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, Unit> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, Unit> foldMap(R env, Async<F> monad) {
       return monad.sleep(duration);
     }
 
@@ -786,7 +818,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
     
     @Override
-    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(R env, Async<F> monad) {
       return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::<Tuple2<Duration, A>>pure));
     }
     
@@ -818,7 +850,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <F extends Witness> Kind<F, B> foldMap(R env, MonadDefer<F> monad) {
+    public <F extends Witness> Kind<F, B> foldMap(R env, Async<F> monad) {
       return monad.bracket(acquire.foldMap(env, monad),
                            use.andThen(zio -> zio.foldMap(env, monad)),
                            release);

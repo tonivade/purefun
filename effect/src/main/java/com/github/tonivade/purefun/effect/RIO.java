@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
 public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
@@ -74,7 +74,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
-  public <F extends Witness> Kind<F, A> foldMap(R env, MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
     return instance.foldMap(env, monad);
   }
 

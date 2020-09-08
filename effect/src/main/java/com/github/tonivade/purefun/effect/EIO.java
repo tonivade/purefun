@@ -8,24 +8,26 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
 import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
 public final class EIO<E, A> implements EIOOf<E, A> {
@@ -67,7 +69,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  public <F extends Witness> Kind<F, A> foldMap(MonadDefer<F> monad) {
+  public <F extends Witness> Kind<F, A> foldMap(Async<F> monad) {
     return instance.foldMap(nothing(), monad);
   }
 

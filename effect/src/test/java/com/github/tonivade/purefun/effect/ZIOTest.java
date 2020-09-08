@@ -7,21 +7,24 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
+import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
@@ -29,13 +32,13 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.FutureInstances;
-import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @ExtendWith(MockitoExtension.class)
 public class ZIOTest {
@@ -159,7 +162,7 @@ public class ZIOTest {
                     .andThen(currentThread))));
 
     ImmutableList<String> result =
-        program.foldMap(FutureInstances.monadDefer())
+        program.foldMap(FutureInstances.async())
             .fix(toFuture())
             .await().get();
 
@@ -178,20 +181,20 @@ public class ZIOTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
+    Async<Par_> async = ParInstances.async();
 
-    Kind<IO_, Integer> future = parseInt("0").foldMap(nothing(), monadDefer);
+    Kind<Par_, Integer> future = parseInt("0").foldMap(nothing(), async);
 
-    assertEquals(0, future.fix(toIO()).unsafeRunSync());
+    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<IO_> monadDefer = IOInstances.monadDefer();
+    Async<Par_> async = ParInstances.async();
 
-    Kind<IO_, Integer> future = parseInt("jkdf").foldMap(nothing(), monadDefer);
+    Kind<Par_, Integer> future = parseInt("kjsdf").foldMap(nothing(), async);
 
-    assertThrows(NumberFormatException.class, () -> future.fix(toIO()).unsafeRunSync());
+    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
   }
 
   @Test
@@ -229,7 +232,7 @@ public class ZIOTest {
         Either.right("OK"));
 
     Future<String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3)
-      .foldMap(nothing(), FutureInstances.monadDefer()).fix(toFuture());
+      .foldMap(nothing(), FutureInstances.async()).fix(toFuture());
 
     assertEquals("OK", provide.get());
     verify(computation, times(4)).get();
@@ -250,7 +253,7 @@ public class ZIOTest {
     when(computation.get()).thenReturn(Either.right("hola"));
 
     Future<String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3)
-      .foldMap(nothing(), FutureInstances.monadDefer()).fix(toFuture());
+      .foldMap(nothing(), FutureInstances.async()).fix(toFuture());
 
     assertEquals("hola", provide.get());
     verify(computation, times(4)).get();
@@ -295,7 +298,7 @@ public class ZIOTest {
   public void stackSafety() {
     UIO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.monadDefer()).fix(toFuture());
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.async()).fix(toFuture());
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());

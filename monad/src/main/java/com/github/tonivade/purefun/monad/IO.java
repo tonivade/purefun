@@ -388,7 +388,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public String toString() {
-      return "Task(?)";
+      return "Async(?)";
     }
   }
 

@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -40,11 +41,11 @@ public interface Try<T> extends TryOf<T> {
   }
 
   static <T> Try<T> failure(String message) {
-    return failure(new Exception(message));
+    return failure(new RuntimeException(message));
   }
 
   static <T> Try<T> failure() {
-    return failure(new Exception());
+    return failure(new RuntimeException());
   }
 
   static <T> Try<T> failure(Throwable error) {
@@ -161,6 +162,10 @@ public interface Try<T> extends TryOf<T> {
     return fold(producer.asFunction(), identity());
   }
 
+  default T getOrElseThrow() {
+    return get();
+  }
+
   default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
     if (isSuccess()) {
       return get();
@@ -236,7 +241,7 @@ public interface Try<T> extends TryOf<T> {
     }
   }
 
-  final class Failure<T> implements SealedTry<T>, Serializable {
+  final class Failure<T> implements SealedTry<T>, Serializable, Recoverable {
 
     private static final long serialVersionUID = -8155444386075553318L;
 
@@ -261,7 +266,7 @@ public interface Try<T> extends TryOf<T> {
 
     @Override
     public T get() {
-      throw new NoSuchElementException("failure doesn't have any value");
+      return sneakyThrow(cause);
     }
 
     @Override

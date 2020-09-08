@@ -16,24 +16,26 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
+import com.github.tonivade.purefun.typeclasses.Async;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskTest {
@@ -136,18 +138,18 @@ public class TaskTest {
 
   @Test
   public void foldMapRight() {
-    MonadDefer<Future_> monadDefer = FutureInstances.monadDefer();
+    Async<Future_> async = FutureInstances.async();
 
-    Kind<Future_, Integer> future = parseInt("0").foldMap(monadDefer);
+    Kind<Future_, Integer> future = parseInt("0").foldMap(async);
 
     assertEquals(Try.success(0), future.fix(toFuture()).await());
   }
 
   @Test
   public void foldMapLeft() {
-    MonadDefer<Future_> monadDefer = FutureInstances.monadDefer();
+    Async<Future_> async = FutureInstances.async();
 
-    Kind<Future_, Integer> future = parseInt("jdjd").foldMap(monadDefer);
+    Kind<Future_, Integer> future = parseInt("jdjd").foldMap(async);
 
     assertEquals(NumberFormatException.class, future.fix(toFuture()).await().getCause().getClass());
   }

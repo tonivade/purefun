@@ -76,12 +76,12 @@ public class IOTest {
   public void asyncFailure() {
     IO<String> async = IO.async(callback -> {
       Thread.sleep(100);
-      callback.accept(Try.failure());
+      callback.accept(Try.failure(new UnsupportedOperationException()));
     });
     
     Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
    
-    assertThrows(NoSuchElementException.class, foldMap::get);
+    assertThrows(UnsupportedOperationException.class, foldMap::get);
   }
 
   @Test

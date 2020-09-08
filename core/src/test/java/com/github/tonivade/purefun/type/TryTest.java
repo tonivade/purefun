@@ -146,6 +146,7 @@ public class TryTest {
         () -> assertEquals(singletonList("Hola mundo"), success.stream().collect(toList())),
         () -> assertThrows(NoSuchElementException.class, success::getCause),
         () -> assertEquals("Hola mundo", success.getOrElseNull()),
+        () -> assertEquals("Hola mundo", success.getOrElseThrow()),
         () -> {
           AtomicReference<String> ref = new AtomicReference<>();
           success.onSuccess(ref::set);
@@ -160,19 +161,20 @@ public class TryTest {
 
   @Test
   public void failure() {
-    Try<String> failure = Try.failure("error");
+    Try<String> failure = Try.failure(new UnsupportedOperationException("error"));
 
     assertAll(
         () -> assertFalse(failure.isSuccess()),
         () -> assertTrue(failure.isFailure()),
-        () -> assertEquals("Failure(java.lang.Exception: error)", failure.toString()),
+        () -> assertEquals("Failure(java.lang.UnsupportedOperationException: error)", failure.toString()),
         () -> assertEquals(Try.failure("error"), Try.failure("error")),
         () -> assertEquals(Option.none(), failure.toOption()),
         () -> assertEquals(Validation.invalid("error"), failure.toValidation(Throwable::getMessage)),
         () -> assertEquals(Either.left(failure.getCause()), failure.toEither()),
         () -> assertEquals("error", failure.getCause().getMessage()),
         () -> assertEquals(emptyList(), failure.stream().collect(toList())),
-        () -> assertThrows(NoSuchElementException.class, failure::get),
+        () -> assertThrows(UnsupportedOperationException.class, failure::get),
+        () -> assertThrows(UnsupportedOperationException.class, failure::getOrElseThrow),
         () -> assertNull(failure.getOrElseNull()),
         () -> {
           AtomicReference<Throwable> ref = new AtomicReference<>();

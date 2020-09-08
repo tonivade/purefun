@@ -12,7 +12,6 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.time.Duration;
-import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -97,7 +96,7 @@ public interface Future<T> extends FutureOf<T> {
   Future<T> orElse(Future<T> other);
 
   default T get() {
-    return getOrElseThrow(NoSuchElementException::new);
+    return getOrElseThrow();
   }
 
   default T getOrElse(T value) {
@@ -106,6 +105,10 @@ public interface Future<T> extends FutureOf<T> {
 
   default T getOrElse(Producer<T> value) {
     return await().getOrElse(value);
+  }
+
+  default T getOrElseThrow() {
+    return await().getOrElseThrow();
   }
 
   default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
@@ -302,12 +305,12 @@ final class FutureImpl<T> implements SealedFuture<T> {
 
   @Override
   public <R> Future<R> map(Function1<T, R> mapper) {
-    return transform(executor, value -> value.map(mapper));
+    return transform(value -> value.map(mapper));
   }
 
   @Override
   public <R> Future<R> flatMap(Function1<T, Future<R>> mapper) {
-    return chain(executor, value -> value.fold(e -> Future.failure(executor, e), mapper));
+    return chain(value -> value.fold(e -> Future.failure(executor, e), mapper));
   }
 
   @Override
@@ -325,22 +328,22 @@ final class FutureImpl<T> implements SealedFuture<T> {
 
   @Override
   public Future<T> filter(Matcher1<T> matcher) {
-    return transform(executor, value -> value.filter(matcher));
+    return transform(value -> value.filter(matcher));
   }
 
   @Override
   public Future<T> orElse(Future<T> other) {
-    return chain(executor, value -> value.fold(cons(other), t -> Future.success(executor, t)));
+    return chain(value -> value.fold(cons(other), t -> Future.success(executor, t)));
   }
 
   @Override
   public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
-    return transform(executor, value -> value.recoverWith(type, mapper));
+    return transform(value -> value.recoverWith(type, mapper));
   }
 
   @Override
   public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
-    return transform(executor, value -> Try.success(value.fold(failureMapper, successMapper)));
+    return transform(value -> Try.success(value.fold(failureMapper, successMapper)));
   }
 
   @Override
@@ -357,15 +360,14 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return promise;
   }
 
-  private <R> Future<R> transform(Executor executor, Function1<Try<T>, Try<R>> mapper) {
-    checkNonNull(executor);
+  private <R> Future<R> transform(Function1<Try<T>, Try<R>> mapper) {
     checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (p, c) ->
           promise.onComplete(value -> p.tryComplete(mapper.apply(value))), this::cancel);
   }
 
-  private <R> Future<R> chain(Executor executor, Function1<Try<T>, Future<R>> mapper) {
+  private <R> Future<R> chain(Function1<Try<T>, Future<R>> mapper) {
     checkNonNull(executor);
     checkNonNull(mapper);
     return new FutureImpl<>(executor,

@@ -130,6 +130,13 @@ public interface Option<T> extends OptionOf<T> {
     return fold(producer, identity());
   }
 
+  default T getOrElseThrow() {
+    if (isEmpty()) {
+      throw new NoSuchElementException();
+    }
+    return get();
+  }
+
   default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
     if (isEmpty()) {
       throw producer.get();

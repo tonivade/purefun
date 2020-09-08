@@ -57,7 +57,7 @@ public class MonadErrorTest {
     Kind<Try_, String> recover =
         monadError.recover(Try.<String>failure("error"), PartialFunction1.of(always(), Throwable::toString));
 
-    assertEquals(Try.success("java.lang.Exception: error"), recover);
+    assertEquals(Try.success("java.lang.RuntimeException: error"), recover);
   }
 
   @Test
