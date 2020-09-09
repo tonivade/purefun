@@ -8,7 +8,7 @@ import java.time.Duration;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function3;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
@@ -33,16 +33,15 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
   }
   
   default <A> Kind<F, Tuple2<Duration, A>> timed(Kind<F, A> value) {
-    return summarized(value, currentNanos(), 
-        (t1, a, t2) -> Tuple.of(Duration.ofNanos(t2 - t1), a));
+    return summarized(value, currentNanos(), (t1, t2) -> Duration.ofNanos(t2 - t1));
   }
   
-  default <A, B, C> Kind<F, C> summarized(Kind<F, A> value, Kind<F, B> summary, Function3<B, A, B, C> combinator) {
+  default <A, B, C> Kind<F, Tuple2<C, A>> summarized(Kind<F, A> value, Kind<F, B> summary, Function2<B, B, C> combinator) {
     return For.with(this)
       .then(summary)
       .then(value)
       .then(summary)
-      .apply(combinator);
+      .apply((b1, a, b2) -> Tuple.of(combinator.apply(b1, b2), a));
   }
 
   default <A> Reference<F, A> ref(A value) {
