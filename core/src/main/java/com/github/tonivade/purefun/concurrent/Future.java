@@ -205,7 +205,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> defer(Executor executor, Producer<Future<T>> producer) {
-    return task(executor, producer::get).flatMap(identity());
+    return async(executor, consumer -> producer.get().onComplete(consumer));
   }
 
   static <T extends AutoCloseable, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use) {
