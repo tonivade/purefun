@@ -212,6 +212,10 @@ public final class EIO<E, A> implements EIOOf<E, A> {
   public static <A> EIO<Throwable, A> task(Producer<A> task) {
     return new EIO<>(ZIO.task(task));
   }
+  
+  public static <A> EIO<Throwable, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+    return new EIO<>(ZIO.async(consumer));
+  }
 
   public static <E, A> EIO<E, A> raiseError(E error) {
     return new EIO<>(ZIO.raiseError(error));

@@ -227,6 +227,10 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
   public static <R, A> RIO<R, A> task(Producer<A> task) {
     return new RIO<>(ZIO.task(task));
   }
+  
+  public static <R, A> RIO<R, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+    return new RIO<>(ZIO.async(consumer));
+  }
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, A> acquire, Function1<A, RIO<R, B>> use) {
     return new RIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));

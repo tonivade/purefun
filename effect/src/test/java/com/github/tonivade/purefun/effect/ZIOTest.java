@@ -148,6 +148,30 @@ public class ZIOTest {
     assertEquals(Either.right("value"), bracket.provide(nothing()));
     verify(resultSet).close();
   }
+  
+  @Test
+  public void asyncSuccess() {
+    UIO<String> async = UIO.async(callback -> {
+      Thread.sleep(100);
+      callback.accept(Try.success("1"));
+    });
+    
+    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    
+    assertEquals("1", foldMap.get());
+  }
+  
+  @Test
+  public void asyncFailure() {
+    UIO<String> async = UIO.async(callback -> {
+      Thread.sleep(100);
+      callback.accept(Try.failure(new UnsupportedOperationException()));
+    });
+    
+    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+   
+    assertThrows(UnsupportedOperationException.class, foldMap::get);
+  }
 
   @Test
   public void safeRunAsync() {

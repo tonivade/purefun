@@ -220,6 +220,10 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
   public static <R, A> URIO<R, A> task(Producer<A> task) {
     return fold(ZIO.task(task));
   }
+  
+  public static <R, A> URIO<R, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+    return fold(ZIO.async(consumer));
+  }
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(URIO<R, A> acquire, Function1<A, URIO<R, B>> use) {
     return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance)));

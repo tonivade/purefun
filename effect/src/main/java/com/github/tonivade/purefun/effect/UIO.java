@@ -219,6 +219,10 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
   public static <A> UIO<A> task(Producer<A> task) {
     return fold(ZIO.task(task));
   }
+  
+  public static <A> UIO<A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+    return fold(ZIO.async(consumer));
+  }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(UIO<A> acquire, Function1<A, UIO<B>> use) {
     return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance)));
