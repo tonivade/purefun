@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -23,7 +24,6 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
-import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface TaskInstances {
 
@@ -45,10 +45,6 @@ public interface TaskInstances {
 
   static MonadThrow<Task_> monadThrow() {
     return TaskMonadThrow.INSTANCE;
-  }
-  
-  static Timer<Task_> timer() {
-    return TaskTimer.INSTANCE;
   }
 
   static MonadDefer<Task_> monadDefer() {
@@ -146,7 +142,7 @@ interface TaskDefer extends Defer<Task_> {
   }
 }
 
-interface TaskBracket extends Bracket<Task_, Throwable> {
+interface TaskBracket extends TaskMonadError, Bracket<Task_, Throwable> {
 
   @Override
   default <A, B> Task<B>
@@ -157,18 +153,13 @@ interface TaskBracket extends Bracket<Task_, Throwable> {
   }
 }
 
-interface TaskTimer extends Timer<Task_> {
-  
-  TaskTimer INSTANCE = new TaskTimer() {};
+interface TaskMonadDefer
+    extends MonadDefer<Task_>, TaskDefer, TaskBracket {
+
+  TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
 
   @Override
   default Task<Unit> sleep(Duration duration) {
     return Task.sleep(duration);
   }
-}
-
-interface TaskMonadDefer
-    extends MonadDefer<Task_>, TaskMonadThrow, TaskDefer, TaskBracket, TaskTimer {
-
-  TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
 }

@@ -13,4 +13,6 @@ import com.github.tonivade.purefun.Witness;
 public interface Timer<F extends Witness> {
 
   Kind<F, Unit> sleep(Duration duration);
+  
+  Kind<F, Long> currentNanos();
 }

@@ -5,7 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -22,7 +24,6 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
-import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface UIOInstances {
 
@@ -44,10 +45,6 @@ public interface UIOInstances {
 
   static MonadThrow<UIO_> monadThrow() {
     return UIOMonadThrow.INSTANCE;
-  }
-
-  static Timer<UIO_> timer() {
-    return UIOTimer.INSTANCE;
   }
 
   static MonadDefer<UIO_> monadDefer() {
@@ -127,7 +124,7 @@ interface UIODefer extends Defer<UIO_> {
   }
 }
 
-interface UIOBracket extends Bracket<UIO_, Throwable> {
+interface UIOBracket extends UIOMonadError, Bracket<UIO_, Throwable> {
 
   @Override
   default <A, B> UIO<B>
@@ -138,18 +135,13 @@ interface UIOBracket extends Bracket<UIO_, Throwable> {
   }
 }
 
-interface UIOTimer extends Timer<UIO_> {
-  
-  UIOTimer INSTANCE = new UIOTimer() {};
+interface UIOMonadDefer
+    extends MonadDefer<UIO_>, UIODefer, UIOBracket {
+
+  UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
 
   @Override
   default UIO<Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
   }
-}
-
-interface UIOMonadDefer
-    extends MonadDefer<UIO_>, UIOMonadThrow, UIODefer, UIOBracket, UIOTimer {
-
-  UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
 }

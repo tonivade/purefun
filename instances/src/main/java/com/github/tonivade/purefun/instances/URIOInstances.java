@@ -5,7 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.effect.URIOOf.toURIO;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -24,7 +26,6 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
-import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
 public interface URIOInstances {
@@ -43,10 +44,6 @@ public interface URIOInstances {
 
   static <R> MonadThrow<Kind<URIO_, R>> monadThrow() {
     return URIOMonadThrow.INSTANCE;
-  }
-  
-  static <R> Timer<Kind<URIO_, R>> timer() {
-   return URIOTimer.INSTANCE;
   }
 
   static <R> MonadDefer<Kind<URIO_, R>> monadDefer() {
@@ -142,7 +139,7 @@ interface URIODefer<R> extends Defer<Kind<URIO_, R>> {
   }
 }
 
-interface URIOBracket<R> extends Bracket<Kind<URIO_, R>, Throwable> {
+interface URIOBracket<R> extends URIOMonadError<R>, Bracket<Kind<URIO_, R>, Throwable> {
 
   @Override
   default <A, B> URIO<R, B>
@@ -153,22 +150,16 @@ interface URIOBracket<R> extends Bracket<Kind<URIO_, R>, Throwable> {
   }
 }
 
-interface URIOTimer<R> extends Timer<Kind<URIO_, R>> {
-  
+interface URIOMonadDefer<R>
+    extends MonadDefer<Kind<URIO_, R>>, URIODefer<R>, URIOBracket<R> {
+
   @SuppressWarnings("rawtypes")
-  URIOTimer INSTANCE = new URIOTimer() {};
+  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
 
   @Override
   default URIO<R, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R>toURIO();
   }
-}
-
-interface URIOMonadDefer<R>
-    extends MonadDefer<Kind<URIO_, R>>, URIOMonadThrow<R>, URIODefer<R>, URIOBracket<R>, URIOTimer<R> {
-
-  @SuppressWarnings("rawtypes")
-  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
 }
 
 final class ConsoleURIO<R> implements Console<Kind<URIO_, R>> {

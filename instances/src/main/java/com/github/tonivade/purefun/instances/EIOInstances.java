@@ -5,7 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -23,7 +25,6 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
-import com.github.tonivade.purefun.typeclasses.Timer;
 
   @SuppressWarnings("unchecked")
 public interface EIOInstances {
@@ -46,10 +47,6 @@ public interface EIOInstances {
 
   static MonadThrow<Kind<EIO_, Throwable>> monadThrow() {
     return EIOMonadThrow.INSTANCE;
-  }
-  
-  static Timer<Kind<EIO_, Throwable>> timer() {
-    return EIOTimer.INSTANCE;
   }
 
   static MonadDefer<Kind<EIO_, Throwable>> monadDefer() {
@@ -141,7 +138,7 @@ interface EIODefer<E> extends Defer<Kind<EIO_, E>> {
   }
 }
 
-interface EIOBracket<E> extends Bracket<Kind<EIO_, E>, E> {
+interface EIOBracket<E> extends EIOMonadError<E>, Bracket<Kind<EIO_, E>, E> {
 
   @Override
   default <A, B> EIO<E, B>
@@ -152,18 +149,13 @@ interface EIOBracket<E> extends Bracket<Kind<EIO_, E>, E> {
   }
 }
 
-interface EIOTimer extends Timer<Kind<EIO_, Throwable>> {
+interface EIOMonadDefer
+    extends MonadDefer<Kind<EIO_, Throwable>>, EIODefer<Throwable>, EIOBracket<Throwable> {
 
-  EIOTimer INSTANCE = new EIOTimer() {};
+  EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
 
   @Override
   default EIO<Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<Throwable>toEIO();
   }
-}
-
-interface EIOMonadDefer
-    extends MonadDefer<Kind<EIO_, Throwable>>, EIOMonadThrow, EIODefer<Throwable>, EIOBracket<Throwable>, EIOTimer {
-
-  EIOMonadDefer INSTANCE = new EIOMonadDefer() {};
 }

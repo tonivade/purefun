@@ -819,7 +819,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(R env, Async<F> monad) {
-      return monad.defer(() -> provide(env).fold(e -> monad.raiseError(wrap(e)), monad::<Tuple2<Duration, A>>pure));
+      return monad.timed(current.foldMap(env, monad));
     }
     
     @Override

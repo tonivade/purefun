@@ -110,11 +110,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   default IO<Tuple2<Duration, T>> timed() {
-    return IO.task(() -> {
-      long start = System.nanoTime();
-      T result = IOModule.evaluate(this);
-      return Tuple.of(Duration.ofNanos(System.nanoTime() - start), result);
-    });
+    return new Timed<>(this);
   }
 
   default IO<T> repeat() {
@@ -482,6 +478,32 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     @Override
     public String toString() {
       return "Bracket(" + acquire + ", ?, ?)";
+    }
+  }
+  
+  final class Timed<A> implements SealedIO<Tuple2<Duration, A>> {
+    
+    private final IO<A> current;
+
+    protected Timed(IO<A> current) {
+      this.current = checkNonNull(current);
+    }
+    
+    @Override
+    public Tuple2<Duration, A> unsafeRunSync() {
+      long start = System.nanoTime();
+      A result = IOModule.evaluate(current);
+      return Tuple.of(Duration.ofNanos(System.nanoTime() - start), result);
+    }
+    
+    @Override
+    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(Async<F> monad) {
+      return monad.timed(current.foldMap(monad));
+    }
+    
+    @Override
+    public String toString() {
+      return "Timed(" + current + ')';
     }
   }
 

@@ -108,7 +108,7 @@ interface IODefer extends Defer<IO_> {
   }
 }
 
-interface IOBracket extends Bracket<IO_, Throwable> {
+interface IOBracket extends IOMonadError, Bracket<IO_, Throwable> {
 
   @Override
   default <A, B> IO<B> bracket(Kind<IO_, A> acquire, Function1<A, ? extends Kind<IO_, B>> use, Consumer1<A> release) {
@@ -116,19 +116,14 @@ interface IOBracket extends Bracket<IO_, Throwable> {
   }
 }
 
-interface IOTimer extends Timer<IO_> {
-  
-  IOTimer INSTANCE = new IOTimer() {};
+interface IOMonadDefer extends MonadDefer<IO_>, IODefer, IOBracket {
+
+  IOMonadDefer INSTANCE = new IOMonadDefer() {};
 
   @Override
   default IO<Unit> sleep(Duration duration) {
     return IO.sleep(duration);
   }
-}
-
-interface IOMonadDefer extends MonadDefer<IO_>, IOMonadError, IODefer, IOBracket, IOTimer {
-
-  IOMonadDefer INSTANCE = new IOMonadDefer() {};
 }
 
 final class ConsoleIO implements Console<IO_> {

@@ -24,7 +24,6 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
-import com.github.tonivade.purefun.typeclasses.Timer;
 
 @SuppressWarnings("unchecked")
 public interface RIOInstances {
@@ -43,10 +42,6 @@ public interface RIOInstances {
 
   static <R> MonadThrow<Kind<RIO_, R>> monadThrow() {
     return RIOMonadThrow.INSTANCE;
-  }
-  
-  static <R> Timer<Kind<RIO_, R>> timer() {
-   return RIOTimer.INSTANCE;
   }
 
   static <R> MonadDefer<Kind<RIO_, R>> monadDefer() {
@@ -142,7 +137,7 @@ interface RIODefer<R> extends Defer<Kind<RIO_, R>> {
   }
 }
 
-interface RIOBracket<R> extends Bracket<Kind<RIO_, R>, Throwable> {
+interface RIOBracket<R> extends RIOMonadError<R>, Bracket<Kind<RIO_, R>, Throwable> {
 
   @Override
   default <A, B> RIO<R, B>
@@ -153,22 +148,16 @@ interface RIOBracket<R> extends Bracket<Kind<RIO_, R>, Throwable> {
   }
 }
 
-interface RIOTimer<R> extends Timer<Kind<RIO_, R>> {
-  
+interface RIOMonadDefer<R>
+    extends MonadDefer<Kind<RIO_, R>>, RIODefer<R>, RIOBracket<R> {
+
   @SuppressWarnings("rawtypes")
-  RIOTimer INSTANCE = new RIOTimer() {};
+  RIOMonadDefer INSTANCE = new RIOMonadDefer<Object>() {};
 
   @Override
   default RIO<R, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R>toRIO();
   }
-}
-
-interface RIOMonadDefer<R>
-    extends MonadDefer<Kind<RIO_, R>>, RIOMonadThrow<R>, RIODefer<R>, RIOBracket<R>, RIOTimer<R> {
-
-  @SuppressWarnings("rawtypes")
-  RIOMonadDefer INSTANCE = new RIOMonadDefer<Object>() {};
 }
 
 final class ConsoleRIO<R> implements Console<Kind<RIO_, R>> {
