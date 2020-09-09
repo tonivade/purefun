@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -60,6 +61,10 @@ public interface Option<T> extends OptionOf<T> {
 
   static <T> Option<T> from(Optional<T> optional) {
     return optional.map(Option::some).orElseGet(Option::none);
+  }
+
+  static <A, B, Z> Option<Z> map2(Option<A> optionA, Option<B> optionB, Function2<A, B, Z> mapper) {
+    return optionA.flatMap(a -> optionB.map(b -> mapper.apply(a, b)));
   }
 
   boolean isPresent();

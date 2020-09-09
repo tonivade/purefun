@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
@@ -62,6 +63,10 @@ public interface Try<T> extends TryOf<T> {
 
   static <R> Try<R> fromEither(Either<Throwable, R> value) {
     return value.fold(Try::failure, Try::success);
+  }
+
+  static <A, B, Z> Try<Z> map2(Try<A> tryA, Try<B> tryB, Function2<A, B, Z> mapper) {
+    return tryA.flatMap(a -> tryB.map(b -> mapper.apply(a, b)));
   }
 
   Throwable getCause();

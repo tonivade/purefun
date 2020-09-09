@@ -257,7 +257,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
     this(executor, callback, noop());
   }
 
-  protected FutureImpl(Executor executor, Callback<T> callback, Consumer1<Boolean> propagate) {
+  private FutureImpl(Executor executor, Callback<T> callback, Consumer1<Boolean> propagate) {
     this.executor = checkNonNull(executor);
     this.propagate = checkNonNull(propagate);
     this.promise = Promise.make(executor);
@@ -323,7 +323,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
     checkNonNull(apply);
     return new FutureImpl<>(executor, 
         (p, c) -> promise.onComplete(try1 -> apply.onComplete(
-            try2 -> p.tryComplete(try1.flatMap(t -> try2.map(f -> f.apply(t)))))), this::cancel);
+            try2 -> p.tryComplete(Try.map2(try1, try2, (t, f) -> f.apply(t))))), this::cancel);
   }
 
   @Override
@@ -385,17 +385,20 @@ final class FutureImpl<T> implements SealedFuture<T> {
     checkNonNull(executor);
     checkNonNull(producer);
     return new FutureImpl<>(executor,
-        (promise, cancellable) ->
-          executor.execute(() -> {
-            cancellable.updateThread();
-            promise.tryComplete(producer.get());
+        (p, c) -> executor.execute(() -> {
+            c.updateThread();
+            p.tryComplete(producer.get());
           }));
   }
 
   protected static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
-    return new FutureImpl<>(executor, (p, c) -> executor.execute(() -> consumer.accept(p::tryComplete)));
+    return new FutureImpl<>(executor, 
+        (p, c) -> executor.execute(() -> {
+            c.updateThread();
+            consumer.accept(p::tryComplete);
+          }));
   }
 
   protected static <T> Future<T> from(Executor executor, Promise<T> promise) {
@@ -407,7 +410,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
   protected static Future<Unit> sleep(Executor executor, Duration delay) {
     checkNonNull(executor);
     checkNonNull(delay);
-    return from(executor, Delayed.sleep(executor, delay));
+    return from(executor, FutureModule.sleep(executor, delay));
   }
 
   protected static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
@@ -423,15 +426,15 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 }
 
-final class Delayed {
+interface FutureModule {
 
-  private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(0);
+  ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(0);
 
-  protected static Promise<Unit> sleep(Executor executor, Duration delay) {
+  static Promise<Unit> sleep(Executor executor, Duration delay) {
     return Promise.from(executor, supplyAsync(Unit::unit, delayedExecutor(delay, executor)));
   }
 
-  private static Executor delayedExecutor(Duration delay, Executor executor) {
+  static Executor delayedExecutor(Duration delay, Executor executor) {
     return task -> SCHEDULER.schedule(() -> executor.execute(task), delay.toMillis(), TimeUnit.MILLISECONDS);
   }
 }

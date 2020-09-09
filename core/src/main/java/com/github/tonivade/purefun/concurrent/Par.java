@@ -89,7 +89,6 @@ public interface Par<T> extends ParOf<T> {
   }
 
   static <T> Par<T> async(Consumer1<Consumer1<Try<T>>> consumer) {
-    // TODO Auto-generated method stub
     return executor -> Future.async(executor, consumer);
   }
 
