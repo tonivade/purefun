@@ -489,6 +489,8 @@ With higher kinded types simulation we can implement typeclases.
                             MonadThrow  Bracket
                                   \      /
                         Defer -- MonadDefer -- Timer
+                                     |
+                                   Async
 ```
 
 ### Functor
@@ -772,6 +774,16 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
   default <A> Kind<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
   }
+}
+```
+
+### Async
+
+```java
+public interface Async<F extends Witness> extends MonadDefer<F> {
+  
+  <A> Kind<F, A> async(Consumer1<Consumer1<Try<A>>> consumer);
+
 }
 ```
 
