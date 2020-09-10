@@ -41,7 +41,7 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
       .then(summary)
       .then(value)
       .then(summary)
-      .apply((b1, a, b2) -> Tuple.of(combinator.apply(b1, b2), a));
+      .yield((b1, a, b2) -> Tuple.of(combinator.apply(b1, b2), a));
   }
 
   default <A> Reference<F, A> ref(A value) {
