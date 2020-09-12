@@ -4,14 +4,17 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.data.Sequence.emptyList;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Function3;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.data.Sequence;
 
 public interface Applicative<F extends Witness> extends Functor<F> {
 
@@ -53,6 +56,10 @@ public interface Applicative<F extends Witness> extends Functor<F> {
 
   default <A, B> Kind<F, B> last(Kind<F, A> fa, Kind<F, B> fb) {
     return mapN(fa, fb, (a, b) -> b);
+  }
+
+  default <T> Kind<F, Sequence<T>> traverse(Sequence<Kind<F, ? extends T>> list) {
+    return list.foldLeft(pure(emptyList()), (xs, a) -> mapN(xs, a, (l, e) -> l.append(e)));
   }
 
   static <F extends Witness, G extends Witness> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {

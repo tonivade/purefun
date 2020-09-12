@@ -128,6 +128,18 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
     }
     return array;
   }
+  
+  static <E> ImmutableArray<E> emptyArray() {
+    return ImmutableArray.empty();
+  }
+  
+  static <E> ImmutableList<E> emptyList() {
+    return ImmutableList.empty();
+  }
+  
+  static <E> ImmutableSet<E> emptySet() {
+    return ImmutableSet.empty();
+  }
 
   @SafeVarargs
   static <E> ImmutableArray<E> arrayOf(E... elements) {
