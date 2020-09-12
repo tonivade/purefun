@@ -11,9 +11,6 @@ import static com.github.tonivade.purefun.Precondition.check;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Precondition.checkPositive;
 import static com.github.tonivade.purefun.type.Validation.mapN;
-import static com.github.tonivade.purefun.type.Validation.mapN;
-import static com.github.tonivade.purefun.type.Validation.mapN;
-import static com.github.tonivade.purefun.type.Validation.mapN;
 
 import java.util.regex.Pattern;
 
