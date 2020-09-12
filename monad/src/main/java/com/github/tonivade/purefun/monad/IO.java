@@ -253,7 +253,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     
     @Override
     public <F extends Witness> Kind<F, C> foldMap(Async<F> monad) {
-      return monad.map2(left.foldMap(monad), right.foldMap(monad), mapper);
+      return monad.mapN(left.foldMap(monad), right.foldMap(monad), mapper);
     }
     
     @Override

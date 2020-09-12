@@ -188,7 +188,7 @@ interface SequenceTraverse extends Traverse<Sequence_>, SequenceFoldable {
       Function1<T, ? extends Kind<G, R>> mapper) {
     return SequenceOf.narrowK(value).foldRight(
       applicative.pure(ImmutableList.<R>empty()),
-      (a, acc) -> applicative.map2(mapper.apply(a), acc,
+      (a, acc) -> applicative.mapN(mapper.apply(a), acc,
         (e, seq) -> Sequence.listOf(e).appendAll(SequenceOf.narrowK(seq))));
   }
 }

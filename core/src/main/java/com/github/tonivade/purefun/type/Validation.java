@@ -173,35 +173,35 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
         either -> either.fold(t -> apply.map(f -> f.apply(t)), Validation::valid));
   }
 
-  static <E, T1, T2, R> Validation<Result<E>, R> map2(Validation<E, T1> validation1,
+  static <E, T1, T2, R> Validation<Result<E>, R> mapN(Validation<E, T1> validation1,
                                                       Validation<E, T2> validation2,
                                                       Function2<T1, T2, R> mapper) {
     return validation2.ap(validation1.ap(valid(mapper.curried())));
   }
 
-  static <E, T1, T2, T3, R> Validation<Result<E>, R> map3(Validation<E, T1> validation1,
+  static <E, T1, T2, T3, R> Validation<Result<E>, R> mapN(Validation<E, T1> validation1,
                                                           Validation<E, T2> validation2,
                                                           Validation<E, T3> validation3,
                                                           Function3<T1, T2, T3, R> mapper) {
-    return validation3.ap(map2(validation1, validation2, (t1, t2) -> mapper.curried().apply(t1).apply(t2)));
+    return validation3.ap(mapN(validation1, validation2, (t1, t2) -> mapper.curried().apply(t1).apply(t2)));
   }
 
-  static <E, T1, T2, T3, T4, R> Validation<Result<E>, R> map4(Validation<E, T1> validation1,
+  static <E, T1, T2, T3, T4, R> Validation<Result<E>, R> mapN(Validation<E, T1> validation1,
                                                               Validation<E, T2> validation2,
                                                               Validation<E, T3> validation3,
                                                               Validation<E, T4> validation4,
                                                               Function4<T1, T2, T3, T4, R> mapper) {
-    return validation4.ap(map3(validation1, validation2, validation3,
+    return validation4.ap(mapN(validation1, validation2, validation3,
         (t1, t2, t3) -> mapper.curried().apply(t1).apply(t2).apply(t3)));
   }
 
-  static <E, T1, T2, T3, T4, T5, R> Validation<Result<E>, R> map5(Validation<E, T1> validation1,
+  static <E, T1, T2, T3, T4, T5, R> Validation<Result<E>, R> mapN(Validation<E, T1> validation1,
                                                                   Validation<E, T2> validation2,
                                                                   Validation<E, T3> validation3,
                                                                   Validation<E, T4> validation4,
                                                                   Validation<E, T5> validation5,
                                                                   Function5<T1, T2, T3, T4, T5, R> mapper) {
-    return validation5.ap(map4(validation1, validation2, validation3, validation4,
+    return validation5.ap(mapN(validation1, validation2, validation3, validation4,
         (t1, t2, t3, t4) -> mapper.curried().apply(t1).apply(t2).apply(t3).apply(t4)));
   }
 

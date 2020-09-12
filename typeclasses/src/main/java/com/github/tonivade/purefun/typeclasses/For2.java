@@ -32,7 +32,7 @@ public final class For2<F extends Witness, A, B> extends AbstractFor<F, A, B> {
   public <R> Kind<F, R> apply(Function2<A, B, R> combinator) {
     Kind<F, A> fa = value1.get();
     Kind<F, B> fb = monad.flatMap(fa, value);
-    return monad.map2(fa, fb, combinator);
+    return monad.mapN(fa, fb, combinator);
   }
 
   public <R> Kind<F, R> yield(Function2<A, B, R> combine) {

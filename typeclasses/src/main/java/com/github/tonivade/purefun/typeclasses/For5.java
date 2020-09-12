@@ -43,7 +43,7 @@ public final class For5<F extends Witness, A, B, C, D, E> extends AbstractFor<F,
     Kind<F, C> fc = monad.flatMap(fb, value3);
     Kind<F, D> fd = monad.flatMap(fc, value4);
     Kind<F, E> fe = monad.flatMap(fd, value);
-    return monad.map5(fa, fb, fc, fd, fe, combine);
+    return monad.mapN(fa, fb, fc, fd, fe, combine);
   }
 
   public <R> Kind<F, R> yield(Function5<A, B, C, D, E, R> combine) {

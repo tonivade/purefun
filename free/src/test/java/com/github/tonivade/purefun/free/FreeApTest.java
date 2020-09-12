@@ -54,7 +54,7 @@ public class FreeApTest {
   @Test
   public void lift() {
     FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
-        applicative.map5(
+        applicative.mapN(
             DSL.readInt(2),
             DSL.readBoolean(false),
             DSL.readDouble(2.1),
@@ -71,7 +71,7 @@ public class FreeApTest {
   @Test
   public void pure() {
     FreeAp<DSL_, Tuple5<Integer, String, Double, Boolean, Unit>> tuple =
-        applicative.map5(
+        applicative.mapN(
             applicative.pure(1),
             applicative.pure("string"),
             applicative.pure(1.1),
@@ -99,7 +99,7 @@ public class FreeApTest {
   @Test
   public void analyze() {
     FreeAp<DSL_, Tuple5<Integer, Boolean, Double, String, Unit>> tuple =
-        applicative.map5(
+        applicative.mapN(
             DSL.readInt(2),
             DSL.readBoolean(false),
             DSL.readDouble(2.1),

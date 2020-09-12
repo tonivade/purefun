@@ -25,34 +25,34 @@ public interface Applicative<F extends Witness> extends Functor<F> {
   }
 
   default <A, B> Kind<F, Tuple2<A, B>> tuple(Kind<F, A> fa, Kind<F, B> fb) {
-    return map2(fa, fb, Tuple2::of);
+    return mapN(fa, fb, Tuple2::of);
   }
 
-  default <A, B, R> Kind<F, R> map2(Kind<F, A> fa, Kind<F, B> fb, Function2<A, B, R> mapper) {
+  default <A, B, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Function2<A, B, R> mapper) {
     return ap(fb, map(fa, mapper.curried()));
   }
 
-  default <A, B, C, R> Kind<F, R> map3(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc,
+  default <A, B, C, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc,
       Function3<A, B, C, R> mapper) {
-    return ap(fc, map2(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
+    return ap(fc, mapN(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
   }
 
-  default <A, B, C, D, R> Kind<F, R> map4(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc, Kind<F, D> fd,
+  default <A, B, C, D, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc, Kind<F, D> fd,
       Function4<A, B, C, D, R> mapper) {
-    return ap(fd, map3(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
+    return ap(fd, mapN(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
   }
 
-  default <A, B, C, D, E, R> Kind<F, R> map5(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc, Kind<F, D> fd,
+  default <A, B, C, D, E, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc, Kind<F, D> fd,
       Kind<F, E> fe, Function5<A, B, C, D, E, R> mapper) {
-    return ap(fe, map4(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
+    return ap(fe, mapN(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
 
   default <A, B> Kind<F, A> first(Kind<F, A> fa, Kind<F, B> fb) {
-    return map2(fa, fb, (a, b) -> a);
+    return mapN(fa, fb, (a, b) -> a);
   }
 
   default <A, B> Kind<F, B> last(Kind<F, A> fa, Kind<F, B> fb) {
-    return map2(fa, fb, (a, b) -> b);
+    return mapN(fa, fb, (a, b) -> b);
   }
 
   static <F extends Witness, G extends Witness> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {

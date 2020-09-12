@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.type.Validation.map2;
+import static com.github.tonivade.purefun.type.Validation.mapN;
 import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEqual;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqual;
@@ -43,7 +43,7 @@ public final class Range implements Iterable<Integer>, Serializable {
   }
 
   public boolean contains(int value) {
-    return map2(
+    return mapN(
         requireGreaterThanOrEqual(value, begin),
         requireLowerThan(value, end), Tuple::of).isValid();
   }
@@ -89,7 +89,7 @@ public final class Range implements Iterable<Integer>, Serializable {
   }
 
   public static Range of(int begin, int end) {
-    return map2(
+    return mapN(
         requireLowerThanOrEqual(begin, end),
         requireGreaterThanOrEqual(end, begin), Range::new).getOrElseThrow();
   }

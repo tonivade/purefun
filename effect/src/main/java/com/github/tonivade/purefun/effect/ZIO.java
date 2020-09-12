@@ -346,7 +346,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     
     @Override
     public <F extends Witness> Kind<F, C> foldMap(R env, Async<F> monad) {
-      return monad.map2(left.foldMap(env, monad), right.foldMap(env, monad), mapper);
+      return monad.mapN(left.foldMap(env, monad), right.foldMap(env, monad), mapper);
     }
     
     @Override

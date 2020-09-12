@@ -148,11 +148,11 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
 
     default <A, B, R> Stream<F, R> zipWith(Stream<F, A> s1, Stream<F, B> s2, Function2<A, B, R> combinator) {
       return new Suspend<>(monadDefer(), monadDefer().defer(
-        () -> monadDefer().map2(s1.split(), s2.split(),
+        () -> monadDefer().mapN(s1.split(), s2.split(),
           (op1, op2) -> {
             Option<Stream<F, R>> result = StreamModule.map2(op1, op2,
               (t1, t2) -> {
-                Kind<F, R> head = monadDefer().map2(t1.get1(), t2.get1(), combinator);
+                Kind<F, R> head = monadDefer().mapN(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
                 return new Cons<>(monadDefer(), head, tail);
               });
@@ -171,7 +171,7 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
 
     default <A> Stream<F, A> merge(Stream<F, A> s1, Stream<F, A> s2) {
       return new Suspend<>(monadDefer(), monadDefer().defer(
-        () -> monadDefer().map2(s1.split(), s2.split(),
+        () -> monadDefer().mapN(s1.split(), s2.split(),
           (opt1, opt2) -> {
             Option<Stream<F, A>> result = StreamModule.map2(opt1, opt2,
               (t1, t2) -> {

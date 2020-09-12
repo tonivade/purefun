@@ -40,7 +40,7 @@ public class ApplicativeTest {
   @Test
   public void map5Some() {
     Kind<Option_, Integer> map5 =
-        OptionInstances.applicative().map5(
+        OptionInstances.applicative().mapN(
             Option.some(1),
             Option.some(2),
             Option.some(3),
@@ -53,7 +53,7 @@ public class ApplicativeTest {
   @Test
   public void map5None() {
     Kind<Option_, Integer> map5 =
-        OptionInstances.applicative().map5(
+        OptionInstances.applicative().mapN(
             Option.some(1),
             Option.some(2),
             Option.some(3),

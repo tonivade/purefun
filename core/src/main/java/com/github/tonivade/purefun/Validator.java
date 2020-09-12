@@ -10,10 +10,10 @@ import static com.github.tonivade.purefun.Matcher1.not;
 import static com.github.tonivade.purefun.Precondition.check;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Precondition.checkPositive;
-import static com.github.tonivade.purefun.type.Validation.map2;
-import static com.github.tonivade.purefun.type.Validation.map3;
-import static com.github.tonivade.purefun.type.Validation.map4;
-import static com.github.tonivade.purefun.type.Validation.map5;
+import static com.github.tonivade.purefun.type.Validation.mapN;
+import static com.github.tonivade.purefun.type.Validation.mapN;
+import static com.github.tonivade.purefun.type.Validation.mapN;
+import static com.github.tonivade.purefun.type.Validation.mapN;
 
 import java.util.regex.Pattern;
 
@@ -62,7 +62,7 @@ public interface Validator<E, T> {
     checkNonNull(v1);
     checkNonNull(v2);
     checkNonNull(reduce);
-    return value -> map2(
+    return value -> mapN(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
         Function2.cons(value))
@@ -83,7 +83,7 @@ public interface Validator<E, T> {
     checkNonNull(v2);
     checkNonNull(v3);
     checkNonNull(reduce);
-    return value -> map3(
+    return value -> mapN(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
         v3.validate(value.get3()),
@@ -108,7 +108,7 @@ public interface Validator<E, T> {
     checkNonNull(v3);
     checkNonNull(v4);
     checkNonNull(reduce);
-    return value -> map4(
+    return value -> mapN(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
         v3.validate(value.get3()),
@@ -137,7 +137,7 @@ public interface Validator<E, T> {
     checkNonNull(v4);
     checkNonNull(v5);
     checkNonNull(reduce);
-    return value -> map5(
+    return value -> mapN(
         v1.validate(value.get1()),
         v2.validate(value.get2()),
         v3.validate(value.get3()),
@@ -158,7 +158,7 @@ public interface Validator<E, T> {
     checkNonNull(v1);
     checkNonNull(v2);
     checkNonNull(reduce);
-    return value -> map2(
+    return value -> mapN(
         v1.validate(value),
         v2.validate(value),
         Function2.cons(value))
