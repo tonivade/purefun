@@ -148,7 +148,7 @@ interface TryTraverse extends Traverse<Try_>, TryFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Try_, R>> traverse(
       Applicative<G> applicative, Kind<Try_, T> value,
-      Function1<T, ? extends Kind<G, R>> mapper) {
+      Function1<T, Kind<G, ? extends R>> mapper) {
     return TryOf.narrowK(value).fold(
         t -> applicative.pure(Try.<R>failure(t)),
         t -> applicative.map(mapper.apply(t), x -> Try.success(x)));

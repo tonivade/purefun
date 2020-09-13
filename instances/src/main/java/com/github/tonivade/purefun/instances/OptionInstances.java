@@ -179,7 +179,7 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Option_, R>> traverse(
       Applicative<G> applicative, Kind<Option_, T> value,
-      Function1<T, ? extends Kind<G, R>> mapper) {
+      Function1<T, Kind<G, ? extends R>> mapper) {
     return OptionOf.narrowK(value).fold(
         () -> applicative.pure(Option.<R>none()),
         t -> applicative.map(mapper.apply(t), x -> Option.some(x)));

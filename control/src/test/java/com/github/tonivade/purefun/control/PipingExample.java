@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
@@ -50,7 +51,8 @@ public class PipingExample {
   public void program() {
     ConsoleExecutor executor = new ConsoleExecutor();
 
-    executor.run(() -> pipe(this::consumer, this::producer).run());
+    Producer<Unit> program = () -> pipe(this::consumer, this::producer).run();
+    executor.run(program);
 
     assertEquals("1\n2\n3\n", executor.getOutput());
   }

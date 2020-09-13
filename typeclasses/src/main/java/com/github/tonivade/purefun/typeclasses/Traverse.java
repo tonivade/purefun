@@ -15,10 +15,10 @@ import com.github.tonivade.purefun.type.Id_;
 public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
 
   <G extends Witness, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
-      Function1<T, ? extends Kind<G, R>> mapper);
+      Function1<T, Kind<G, ? extends R>> mapper);
 
   default <G extends Witness, T> Kind<G, Kind<F, T>> sequence(Applicative<G> applicative,
-      Kind<F, Kind<G, T>> value) {
+      Kind<F, Kind<G, ? extends T>> value) {
     return traverse(applicative, value, identity());
   }
 

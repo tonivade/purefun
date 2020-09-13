@@ -172,7 +172,7 @@ interface EitherTraverse<L> extends Traverse<Kind<Either_, L>>, EitherFoldable<L
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Kind<Either_, L>, R>> traverse(
       Applicative<G> applicative, Kind<Kind<Either_, L>, T> value,
-      Function1<T, ? extends Kind<G, R>> mapper) {
+      Function1<T, Kind<G, ? extends R>> mapper) {
     return EitherOf.narrowK(value).fold(
       l -> applicative.pure(Either.<L, R>left(l)),
       t -> applicative.map(mapper.apply(t), r -> Either.<L, R>right(r)));

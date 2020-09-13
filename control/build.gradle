@@ -7,4 +7,5 @@ dependencies {
   testAnnotationProcessor project(':kind:processor')
   testImplementation project(':instances')
   testImplementation project(':monad')
+  testImplementation project(':effect')
 }

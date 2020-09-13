@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.data.SequenceOf.toSequence;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -185,10 +187,10 @@ interface SequenceTraverse extends Traverse<Sequence_>, SequenceFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Sequence_, R>> traverse(
       Applicative<G> applicative, Kind<Sequence_, T> value,
-      Function1<T, ? extends Kind<G, R>> mapper) {
-    return SequenceOf.narrowK(value).foldRight(
-      applicative.pure(ImmutableList.<R>empty()),
-      (a, acc) -> applicative.mapN(mapper.apply(a), acc,
-        (e, seq) -> Sequence.listOf(e).appendAll(SequenceOf.narrowK(seq))));
+      Function1<T, Kind<G, ? extends R>> mapper) {
+    return value.fix(toSequence()).foldLeft(
+      applicative.pure(Sequence.<R>emptyList()),
+      (acc, a) -> applicative.mapN(mapper.apply(a), acc, 
+          (e, seq) -> seq.fix(toSequence()).append(e)));
   }
 }
