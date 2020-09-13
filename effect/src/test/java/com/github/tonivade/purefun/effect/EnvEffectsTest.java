@@ -4,17 +4,17 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
-import com.github.tonivade.purefun.effect.util.ZConsole;
-import org.junit.jupiter.api.Test;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.util.ZConsole;
+import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 public class EnvEffectsTest {
 
@@ -22,7 +22,7 @@ public class EnvEffectsTest {
   public void programLive() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(IO.task(() -> echo().provide(ZConsole.live())));
+    executor.run(echo()).apply(ZConsole.live());
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }

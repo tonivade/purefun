@@ -9,13 +9,14 @@ import static com.github.tonivade.purefun.control.ConsOf.toCons;
 import static com.github.tonivade.purefun.control.ProdOf.toProd;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 public class PipingExample {
@@ -49,7 +50,7 @@ public class PipingExample {
   public void program() {
     ConsoleExecutor executor = new ConsoleExecutor();
 
-    executor.run(IO.exec(() -> pipe(this::consumer, this::producer).run()));
+    executor.run(() -> pipe(this::consumer, this::producer).run());
 
     assertEquals("1\n2\n3\n", executor.getOutput());
   }

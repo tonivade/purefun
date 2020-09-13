@@ -45,11 +45,9 @@ public class FreeTest {
     Kind<IO_, Unit> foldMap =
         echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
-    IO<Unit> echoIO = foldMap.fix(toIO());
-
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(echoIO);
+    executor.run(foldMap.fix(toIO()));
 
     assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());
   }
