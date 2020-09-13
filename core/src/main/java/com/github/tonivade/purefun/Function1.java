@@ -113,6 +113,10 @@ public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
     return ignore -> cons;
   }
 
+  static <A, T> Function1<A, T> cons(Producer<? extends T> cons) {
+    return ignore -> cons.get();
+  }
+
   static <X extends Throwable, A, T> Function1<A, T> fail(Producer<? extends X> supplier) {
     return ignore -> { throw supplier.get(); };
   }

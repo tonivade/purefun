@@ -19,7 +19,6 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 /**
@@ -90,47 +89,49 @@ public interface Either<L, R> extends EitherOf<L, R> {
     return right(getLeft());
   }
 
-  default <T, U> Either<T, U> bimap(Function1<L, T> leftMapper, Function1<R, U> rightMapper) {
+  default <T, U> Either<T, U> bimap(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends U> rightMapper) {
     if (isRight()) {
       return right(rightMapper.apply(getRight()));
     }
     return left(leftMapper.apply(getLeft()));
   }
 
-  default <T> Either<L, T> map(Function1<R, T> map) {
+  default <T> Either<L, T> map(Function1<? super R, ? extends T> map) {
     return bimap(identity(), map);
   }
 
-  default <T> Either<T, R> mapLeft(Function1<L, T> map) {
+  default <T> Either<T, R> mapLeft(Function1<? super L, ? extends T> map) {
     return bimap(map, identity());
   }
 
-  default <T> Either<L, T> flatMap(Function1<R, Either<L, T>> map) {
+  @SuppressWarnings("unchecked")
+  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Either<L, ? extends T>> map) {
     if (isRight()) {
-      return map.apply(getRight());
+      return (Either<L, T>) map.apply(getRight());
     }
-    return left(getLeft());
+    return (Either<L, T>) this;
   }
 
-  default <T> Either<T, R> flatMapLeft(Function1<L, Either<T, R>> map) {
+  @SuppressWarnings("unchecked")
+  default <T> Either<T, R> flatMapLeft(Function1<? super L, ? extends  Either<? extends T, R>> map) {
     if (isLeft()) {
-      return map.apply(getLeft());
+      return (Either<T, R>) map.apply(getLeft());
     }
-    return right(getRight());
+    return (Either<T, R>) this;
   }
 
-  default Option<Either<L, R>> filter(Matcher1<R> matcher) {
+  default Option<Either<L, R>> filter(Matcher1<? super R> matcher) {
     if (isRight() && matcher.match(getRight())) {
       return Option.some(this);
     }
     return Option.none();
   }
 
-  default Option<Either<L, R>> filterNot(Matcher1<R> matcher) {
+  default Option<Either<L, R>> filterNot(Matcher1<? super R> matcher) {
     return filter(matcher.negate());
   }
 
-  default Either<L, R> filterOrElse(Matcher1<R> matcher, Producer<Either<L, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Either<L, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;
     }
@@ -152,11 +153,11 @@ public interface Either<L, R> extends EitherOf<L, R> {
     return getOrElse(Producer.cons(null));
   }
 
-  default R getOrElse(Producer<R> orElse) {
+  default R getOrElse(Producer<? extends R> orElse) {
     return fold(orElse.asFunction(), identity());
   }
 
-  default <T> T fold(Function1<L, T> leftMapper, Function1<R, T> rightMapper) {
+  default <T> T fold(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends T> rightMapper) {
     if (isRight()) {
       return rightMapper.apply(getRight());
     }
@@ -164,15 +165,15 @@ public interface Either<L, R> extends EitherOf<L, R> {
   }
 
   default Stream<R> stream() {
-    return fold(cons(Stream.empty()), Stream::of);
+    return fold(cons(Stream::empty), Stream::of);
   }
 
   default Sequence<R> sequence() {
-    return fold(cons(ImmutableList.empty()), ImmutableList::of);
+    return fold(cons(Sequence::emptyList), Sequence::listOf);
   }
 
   default Option<R> toOption() {
-    return fold(cons(Option.none()), Option::some);
+    return fold(cons(Option::none), Option::some);
   }
 
   default Validation<L, R> toValidation() {
@@ -183,7 +184,7 @@ public interface Either<L, R> extends EitherOf<L, R> {
     return either.fold(identity(), identity());
   }
 
-  static <L, A, B, Z> Either<L, Z> map2(Either<L, A> eitherA, Either<L, B> eitherB, Function2<A, B, Z> mapper) {
+  static <L, A, B, Z> Either<L, Z> map2(Either<L, A> eitherA, Either<L, B> eitherB, Function2<? super A, ? super B, ? extends Z> mapper) {
     return eitherA.flatMap(a -> eitherB.map(b -> mapper.apply(a, b)));
   }
 

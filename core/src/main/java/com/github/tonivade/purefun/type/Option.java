@@ -22,7 +22,6 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 
 /**
@@ -51,7 +50,7 @@ public interface Option<T> extends OptionOf<T> {
     return nonNull(value) ? some(value) : none();
   }
 
-  static <T> Option<T> of(Producer<T> producer) {
+  static <T> Option<T> of(Producer<? extends T> producer) {
     T value = producer.get();
     if (nonNull(value)) {
       return some(value);
@@ -63,7 +62,7 @@ public interface Option<T> extends OptionOf<T> {
     return optional.map(Option::some).orElseGet(Option::none);
   }
 
-  static <A, B, Z> Option<Z> map2(Option<A> optionA, Option<B> optionB, Function2<A, B, Z> mapper) {
+  static <A, B, Z> Option<Z> map2(Option<A> optionA, Option<B> optionB, Function2<? super A, ? super B, ? extends Z> mapper) {
     return optionA.flatMap(a -> optionB.map(b -> mapper.apply(a, b)));
   }
 
@@ -77,21 +76,22 @@ public interface Option<T> extends OptionOf<T> {
    */
   T get();
 
-  default <R> Option<R> map(Function1<T, R> mapper) {
+  default <R> Option<R> map(Function1<? super T, ? extends R> mapper) {
     if (isPresent()) {
       return some(mapper.apply(get()));
     }
     return none();
   }
 
-  default <R> Option<R> flatMap(Function1<T, Option<R>> map) {
+  @SuppressWarnings("unchecked")
+  default <R> Option<R> flatMap(Function1<? super T, ? extends Option<? extends R>> map) {
     if (isPresent()) {
-      return map.apply(get());
+      return (Option<R>) map.apply(get());
     }
     return none();
   }
 
-  default Option<T> ifPresent(Consumer1<T> consumer) {
+  default Option<T> ifPresent(Consumer1<? super T> consumer) {
     if (isPresent()) {
       consumer.accept(get());
     }
@@ -105,14 +105,14 @@ public interface Option<T> extends OptionOf<T> {
     return this;
   }
 
-  default Option<T> filter(Matcher1<T> matcher) {
+  default Option<T> filter(Matcher1<? super T> matcher) {
     if (isPresent() && matcher.match(get())) {
       return this;
     }
     return none();
   }
 
-  default Option<T> filterNot(Matcher1<T> matcher) {
+  default Option<T> filterNot(Matcher1<? super T> matcher) {
     return filter(matcher.negate());
   }
 
@@ -131,7 +131,7 @@ public interface Option<T> extends OptionOf<T> {
     return getOrElse(cons(null));
   }
 
-  default T getOrElse(Producer<T> producer) {
+  default T getOrElse(Producer<? extends T> producer) {
     return fold(producer, identity());
   }
 
@@ -142,14 +142,14 @@ public interface Option<T> extends OptionOf<T> {
     return get();
   }
 
-  default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
+  default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
     if (isEmpty()) {
       throw producer.get();
     }
     return get();
   }
 
-  default <U> U fold(Producer<U> orElse, Function1<T, U> mapper) {
+  default <U> U fold(Producer<? extends U> orElse, Function1<? super T, ? extends U> mapper) {
     if (isPresent()) {
       return mapper.apply(get());
     }
@@ -161,7 +161,7 @@ public interface Option<T> extends OptionOf<T> {
   }
 
   default Sequence<T> sequence() {
-    return fold(ImmutableList::empty, ImmutableList::of);
+    return fold(Sequence::emptyList, Sequence::listOf);
   }
 
   default Optional<T> toOptional() {

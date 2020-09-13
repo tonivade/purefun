@@ -30,12 +30,13 @@ public final class Id<T> implements IdOf<T>, Serializable {
     this.value = checkNonNull(value);
   }
 
-  public <R> Id<R> map(Function1<T, R> map) {
-    return map.andThen(Id::of).apply(value);
+  public <R> Id<R> map(Function1<? super T, ? extends R> map) {
+    return flatMap(map.andThen(Id::of));
   }
 
-  public <R> Id<R> flatMap(Function1<T, Id<R>> map) {
-    return map.apply(value);
+  @SuppressWarnings("unchecked")
+  public <R> Id<R> flatMap(Function1<? super T, ? extends Id<? extends R>> map) {
+    return (Id<R>) map.apply(value);
   }
 
   public T get() {
