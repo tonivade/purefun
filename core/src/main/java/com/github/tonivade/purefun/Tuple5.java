@@ -59,35 +59,35 @@ public final class Tuple5<A, B, C, D, E> implements Tuple, Serializable {
     return Sequence.listOf(value1, value2, value3, value4, value5);
   }
 
-  public <R> Tuple5<R, B, C, D, E> map1(Function1<A, R> mapper) {
+  public <R> Tuple5<R, B, C, D, E> map1(Function1<? super A, ? extends R> mapper) {
     return Tuple5.of(mapper.apply(value1), value2, value3, value4, value5);
   }
 
-  public <R> Tuple5<A, R, C, D, E> map2(Function1<B, R> mapper) {
+  public <R> Tuple5<A, R, C, D, E> map2(Function1<? super B, ? extends R> mapper) {
     return Tuple5.of(value1, mapper.apply(value2), value3, value4, value5);
   }
 
-  public <R> Tuple5<A, B, R, D, E> map3(Function1<C, R> mapper) {
+  public <R> Tuple5<A, B, R, D, E> map3(Function1<? super C, ? extends R> mapper) {
     return Tuple5.of(value1, value2, mapper.apply(value3), value4, value5);
   }
 
-  public <R> Tuple5<A, B, C, R, E> map4(Function1<D, R> mapper) {
+  public <R> Tuple5<A, B, C, R, E> map4(Function1<? super D, ? extends R> mapper) {
     return Tuple5.of(value1, value2, value3, mapper.apply(value4), value5);
   }
 
-  public <R> Tuple5<A, B, C, D, R> map5(Function1<E, R> mapper) {
+  public <R> Tuple5<A, B, C, D, R> map5(Function1<? super E, ? extends R> mapper) {
     return Tuple5.of(value1, value2, value3, value4, mapper.apply(value5));
   }
 
-  public <F, G, H, I, J> Tuple5<F, G, H, I, J> map(Function1<A, F> map1,
-                                                   Function1<B, G> map2,
-                                                   Function1<C, H> map3,
-                                                   Function1<D, I> map4,
-                                                   Function1<E, J> map5) {
+  public <F, G, H, I, J> Tuple5<F, G, H, I, J> map(Function1<? super A, ? extends F> map1,
+                                                   Function1<? super B, ? extends G> map2,
+                                                   Function1<? super C, ? extends H> map3,
+                                                   Function1<? super D, ? extends I> map4,
+                                                   Function1<? super E, ? extends J> map5) {
     return Tuple5.of(map1.apply(value1), map2.apply(value2), map3.apply(value3), map4.apply(value4), map5.apply(value5));
   }
 
-  public <R> R applyTo(Function5<A, B, C, D, E, R> function) {
+  public <R> R applyTo(Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> function) {
     return function.apply(value1, value2, value3, value4, value5);
   }
 

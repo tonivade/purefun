@@ -40,23 +40,23 @@ public interface Tuple {
     return Tuple2.of(entry.getKey(), entry.getValue());
   }
 
-  static <A, T> Function1<Tuple1<A>, T> applyTo(Function1<A, T> function) {
+  static <A, T> Function1<Tuple1<A>, T> applyTo(Function1<? super A, ? extends T> function) {
     return tuple -> tuple.applyTo(function);
   }
 
-  static <A, B, T> Function1<Tuple2<A, B>, T> applyTo(Function2<A, B, T> function) {
+  static <A, B, T> Function1<Tuple2<A, B>, T> applyTo(Function2<? super A, ? super B, ? extends T> function) {
     return tuple -> tuple.applyTo(function);
   }
 
-  static <A, B, C, T> Function1<Tuple3<A, B, C>, T> applyTo(Function3<A, B, C, T> function) {
+  static <A, B, C, T> Function1<Tuple3<A, B, C>, T> applyTo(Function3<? super A, ? super B, ? super C, ? extends T> function) {
     return tuple -> tuple.applyTo(function);
   }
 
-  static <A, B, C, D, T> Function1<Tuple4<A, B, C, D>, T> applyTo(Function4<A, B, C, D, T> function) {
+  static <A, B, C, D, T> Function1<Tuple4<A, B, C, D>, T> applyTo(Function4<? super A, ? super B, ? super C, ? super D, ? extends T> function) {
     return tuple -> tuple.applyTo(function);
   }
 
-  static <A, B, C, D, E, T> Function1<Tuple5<A, B, C, D, E>, T> applyTo(Function5<A, B, C, D, E, T> function) {
+  static <A, B, C, D, E, T> Function1<Tuple5<A, B, C, D, E>, T> applyTo(Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends T> function) {
     return tuple -> tuple.applyTo(function);
   }
 }

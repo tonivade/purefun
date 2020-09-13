@@ -13,9 +13,9 @@ import java.util.Map;
 final class MemoizedFunction<T, R> implements Function1<T, R> {
 
   private final Map<T, R> cache = synchronizedMap(new HashMap<>());
-  private final Function1<T, R> function;
+  private final Function1<? super T, ? extends R> function;
 
-  MemoizedFunction(Function1<T, R> function) {
+  MemoizedFunction(Function1<? super T, ? extends R> function) {
     this.function = checkNonNull(function);
   }
 

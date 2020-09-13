@@ -16,7 +16,9 @@ public interface PartialFunction2<A, B, R> {
     return (a, b) -> isDefinedAt(a, b) ? Option.some(apply(a, b)) : Option.none();
   }
 
-  static <A, B, R> PartialFunction2<A, B, R> of(Matcher2<A, B> isDefined, Function2<A, B, R> apply) {
+  static <A, B, R> PartialFunction2<A, B, R> of(
+      Matcher2<? super A, ? super B> isDefined, 
+      Function2<? super A, ? super B, ? extends R> apply) {
     return new PartialFunction2<A, B, R>() {
 
       @Override

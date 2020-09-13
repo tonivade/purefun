@@ -45,23 +45,23 @@ public final class Tuple3<A, B, C> implements Tuple, Serializable {
     return Sequence.listOf(value1, value2, value3);
   }
 
-  public <R> Tuple3<R, B, C> map1(Function1<A, R> mapper) {
+  public <R> Tuple3<R, B, C> map1(Function1<? super A, ? extends R> mapper) {
     return Tuple3.of(mapper.apply(value1), value2, value3);
   }
 
-  public <R> Tuple3<A, R, C> map2(Function1<B, R> mapper) {
+  public <R> Tuple3<A, R, C> map2(Function1<? super B, ? extends R> mapper) {
     return Tuple3.of(value1, mapper.apply(value2), value3);
   }
 
-  public <R> Tuple3<A, B, R> map3(Function1<C, R> mapper) {
+  public <R> Tuple3<A, B, R> map3(Function1<? super C, ? extends R> mapper) {
     return Tuple3.of(value1, value2, mapper.apply(value3));
   }
 
-  public <D, E, F> Tuple3<D, E, F> map(Function1<A, D> map1, Function1<B, E> map2, Function1<C, F> map3) {
+  public <D, E, F> Tuple3<D, E, F> map(Function1<? super A, ? extends D> map1, Function1<? super B, ? extends E> map2, Function1<? super C, ? extends F> map3) {
     return Tuple3.of(map1.apply(value1), map2.apply(value2), map3.apply(value3));
   }
 
-  public <R> R applyTo(Function3<A, B, C, R> function) {
+  public <R> R applyTo(Function3<? super A, ? super B, ? super C, ? extends R> function) {
     return function.apply(value1, value2, value3);
   }
 

@@ -52,30 +52,30 @@ public final class Tuple4<A, B, C, D> implements Tuple, Serializable {
     return Sequence.listOf(value1, value2, value3, value4);
   }
 
-  public <R> Tuple4<R, B, C, D> map1(Function1<A, R> mapper) {
+  public <R> Tuple4<R, B, C, D> map1(Function1<? super A, ? extends R> mapper) {
     return Tuple4.of(mapper.apply(value1), value2, value3, value4);
   }
 
-  public <R> Tuple4<A, R, C, D> map2(Function1<B, R> mapper) {
+  public <R> Tuple4<A, R, C, D> map2(Function1<? super B, ? extends R> mapper) {
     return Tuple4.of(value1, mapper.apply(value2), value3, value4);
   }
 
-  public <R> Tuple4<A, B, R, D> map3(Function1<C, R> mapper) {
+  public <R> Tuple4<A, B, R, D> map3(Function1<? super C, ? extends R> mapper) {
     return Tuple4.of(value1, value2, mapper.apply(value3), value4);
   }
 
-  public <R> Tuple4<A, B, C, R> map4(Function1<D, R> mapper) {
+  public <R> Tuple4<A, B, C, R> map4(Function1<? super D, ? extends R> mapper) {
     return Tuple4.of(value1, value2, value3, mapper.apply(value4));
   }
 
-  public <E, F, G, H> Tuple4<E, F, G, H> map(Function1<A, E> map1,
-                                             Function1<B, F> map2,
-                                             Function1<C, G> map3,
-                                             Function1<D, H> map4) {
+  public <E, F, G, H> Tuple4<E, F, G, H> map(Function1<? super A, ? extends E> map1,
+                                             Function1<? super B, ? extends F> map2,
+                                             Function1<? super C, ? extends G> map3,
+                                             Function1<? super D, ? extends H> map4) {
     return Tuple4.of(map1.apply(value1), map2.apply(value2), map3.apply(value3), map4.apply(value4));
   }
 
-  public <R> R applyTo(Function4<A, B, C, D, R> function) {
+  public <R> R applyTo(Function4<? super A, ? super B, ? super C, ? super D, ? extends R> function) {
     return function.apply(value1, value2, value3, value4);
   }
 

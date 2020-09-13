@@ -28,7 +28,7 @@ public interface Consumer1<A> extends Recoverable {
     return value -> { accept(value); return unit(); };
   }
 
-  default Consumer1<A> andThen(Consumer1<A> after) {
+  default Consumer1<A> andThen(Consumer1<? super A> after) {
     return value -> { accept(value); after.accept(value); };
   }
 
@@ -36,8 +36,9 @@ public interface Consumer1<A> extends Recoverable {
     return value -> { accept(value); return value; };
   }
 
-  static <A> Consumer1<A> of(Consumer1<A> reference) {
-    return reference;
+  @SuppressWarnings("unchecked")
+  static <A> Consumer1<A> of(Consumer1<? super A> reference) {
+    return (Consumer1<A>) reference;
   }
 
   static <A> Consumer1<A> noop() {

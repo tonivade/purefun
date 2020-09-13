@@ -36,12 +36,12 @@ public interface Function5<A, B, C, D, E, R> extends Recoverable {
     return tuple -> apply(tuple.get1(), tuple.get2(), tuple.get3(), tuple.get4(), tuple.get5());
   }
 
-  default <F> Function5<A, B, C, D, E, F> andThen(Function1<R, F> after) {
+  default <F> Function5<A, B, C, D, E, F> andThen(Function1<? super R, ? extends F> after) {
     return (a, b, c, d, e) -> after.apply(apply(a, b, c, d, e));
   }
 
-  default <F> Function1<F, R> compose(Function1<F, A> beforeT1, Function1<F, B> beforeT2,
-      Function1<F, C> beforeT3, Function1<F, D> beforeT4, Function1<F, E> beforeT5) {
+  default <F> Function1<F, R> compose(Function1<? super F, ? extends A> beforeT1, Function1<? super F, ? extends B> beforeT2,
+      Function1<? super F, ? extends C> beforeT3, Function1<? super F, ? extends D> beforeT4, Function1<? super F, ? extends E> beforeT5) {
     return value -> apply(beforeT1.apply(value), beforeT2.apply(value),
         beforeT3.apply(value), beforeT4.apply(value), beforeT5.apply(value));
   }

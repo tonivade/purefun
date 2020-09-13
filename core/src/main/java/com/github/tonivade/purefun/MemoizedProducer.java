@@ -14,9 +14,9 @@ import java.util.Map;
 final class MemoizedProducer<T> implements Producer<T> {
 
   private final Map<Unit, T> cache = synchronizedMap(new HashMap<>(1));
-  private final Function1<Unit, T> function;
+  private final Function1<Unit, ? extends T> function;
 
-  MemoizedProducer(Producer<T> producer) {
+  MemoizedProducer(Producer<? extends T> producer) {
     this.function = checkNonNull(producer).asFunction();
   }
 

@@ -20,7 +20,7 @@ public interface CheckedRunnable extends Recoverable {
     return () -> { run(); next.run(); };
   }
 
-  default Runnable recover(Consumer1<Throwable> mapper) {
+  default Runnable recover(Consumer1<? super Throwable> mapper) {
     return () -> {
       try {
         run();
@@ -34,7 +34,7 @@ public interface CheckedRunnable extends Recoverable {
     return recover(this::sneakyThrow);
   }
 
-  static <X extends Throwable> CheckedRunnable failure(Producer<X> supplier) {
+  static <X extends Throwable> CheckedRunnable failure(Producer<? extends X> supplier) {
     return () -> { throw supplier.get(); };
   }
 

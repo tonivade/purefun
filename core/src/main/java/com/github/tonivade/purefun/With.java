@@ -22,27 +22,27 @@ public final class With<A> {
     return value;
   }
 
-  public void end(Consumer1<A> consumer) {
+  public void end(Consumer1<? super A> consumer) {
      consumer.accept(value);
   }
 
-  public <R> With<R> then(Function1<A, R> function) {
+  public <R> With<R> then(Function1<? super A, ? extends R> function) {
     return with(function.apply(value));
   }
 
-  public <B, R> With<R> then(Function2<A, B, R> function, B b) {
+  public <B, R> With<R> then(Function2<? super A, ? super B, ? extends R> function, B b) {
     return with(function.apply(value, b));
   }
 
-  public <B, C, R> With<R> then(Function3<A, B, C, R> function, B b, C c) {
+  public <B, C, R> With<R> then(Function3<? super A, ? super B, ? super C, ? extends R> function, B b, C c) {
     return with(function.apply(value, b, c));
   }
 
-  public <B, C, D, R> With<R> then(Function4<A, B, C, D, R> function, B b, C c, D d) {
+  public <B, C, D, R> With<R> then(Function4<? super A, ? super B, ? super C, ? super D, ? extends R> function, B b, C c, D d) {
     return with(function.apply(value, b, c, d));
   }
 
-  public <B, C, D, E, R> With<R> then(Function5<A, B, C, D, E, R> function, B b, C c, D d, E e) {
+  public <B, C, D, E, R> With<R> then(Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> function, B b, C c, D d, E e) {
     return with(function.apply(value, b, c, d, e));
   }
 

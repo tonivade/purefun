@@ -35,15 +35,15 @@ public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
 
   R run(A value) throws Throwable;
 
-  default <B> Function1<A, B> andThen(Function1<R, B> after) {
+  default <B> Function1<A, B> andThen(Function1<? super R, ? extends B> after) {
     return value -> after.apply(apply(value));
   }
 
-  default <B> Function1<B, R> compose(Function1<B, A> before) {
+  default <B> Function1<B, R> compose(Function1<? super B, ? extends A> before) {
     return value -> apply(before.apply(value));
   }
 
-  default <B> Function1<A, B> flatMap(Function1<R, Function1<A, B>> after) {
+  default <B> Function1<A, B> flatMap(Function1<? super R, ? extends Function1<? super A, ? extends B>> after) {
     return value -> after.apply(apply(value)).apply(value);
   }
 
@@ -91,7 +91,7 @@ public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
     return new MemoizedFunction<>(this);
   }
 
-  default PartialFunction1<A, R> partial(Matcher1<A> isDefined) {
+  default PartialFunction1<A, R> partial(Matcher1<? super A> isDefined) {
     return new PartialFunction1<A, R>() {
       @Override
       public boolean isDefinedAt(A value) {
@@ -113,11 +113,12 @@ public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
     return ignore -> cons;
   }
 
-  static <X extends Throwable, A, T> Function1<A, T> fail(Producer<X> supplier) {
+  static <X extends Throwable, A, T> Function1<A, T> fail(Producer<? extends X> supplier) {
     return ignore -> { throw supplier.get(); };
   }
 
-  static <A, R> Function1<A, R> of(Function1<A, R> reference) {
-    return reference;
+  @SuppressWarnings("unchecked")
+  static <A, R> Function1<A, R> of(Function1<? super A, ? extends R> reference) {
+    return (Function1<A, R>) reference;
   }
 }

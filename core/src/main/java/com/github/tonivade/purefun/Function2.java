@@ -37,11 +37,11 @@ public interface Function2<A, B, R> extends Recoverable {
     return tuple -> apply(tuple.get1(), tuple.get2());
   }
 
-  default <C> Function2<A, B, C> andThen(Function1<R, C> after) {
+  default <C> Function2<A, B, C> andThen(Function1<? super R, ? extends C> after) {
     return (a, b) -> after.apply(apply(a, b));
   }
 
-  default <C> Function1<C, R> compose(Function1<C, A> beforeT, Function1<C, B> beforeV) {
+  default <C> Function1<C, R> compose(Function1<? super C, ? extends A> beforeT, Function1<? super C, ? extends B> beforeV) {
     return value -> apply(beforeT.apply(value), beforeV.apply(value));
   }
 
@@ -61,11 +61,12 @@ public interface Function2<A, B, R> extends Recoverable {
     return (a, b) -> new MemoizedFunction<>(tupled()).apply(Tuple.of(a, b));
   }
 
-  static <A, B, R> Function2<A, B, R> of(Function2<A, B, R> reference) {
-    return reference;
+  @SuppressWarnings("unchecked")
+  static <A, B, R> Function2<A, B, R> of(Function2<? super A, ? super B, ? extends R> reference) {
+    return (Function2<A, B, R>) reference;
   }
 
-  static <A, B, R> Function2<A, B, R> uncurried(Function1<A, Function1<B, R>> function) {
+  static <A, B, R> Function2<A, B, R> uncurried(Function1<? super A, ? extends Function1<? super B, ? extends R>> function) {
     return (a, b) -> function.apply(a).apply(b);
   }
 

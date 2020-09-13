@@ -116,7 +116,7 @@ public interface Precondition {
     require(precondition, message.andThen(IllegalArgumentException::new));
   }
 
-  static <X extends RuntimeException> void require(Precondition precondition, Producer<X> exception) {
+  static <X extends RuntimeException> void require(Precondition precondition, Producer<? extends X> exception) {
     if (!precondition.apply()) {
       throw exception.get();
     }

@@ -30,14 +30,15 @@ public interface Eq<T> {
   }
 
   static Eq<Throwable> throwable() {
-    return comparing(Throwable::getMessage).and(comparingArray(Throwable::getStackTrace));
+    return comparing(Throwable::getMessage)
+        .and(comparingArray(Throwable::getStackTrace));
   }
 
-  static <T, V> Eq<T> comparing(Function1<T, V> getter) {
+  static <T, V> Eq<T> comparing(Function1<? super T, ? extends V> getter) {
     return (a, b) -> Objects.equals(getter.apply(a), getter.apply(b));
   }
 
-  static <T, V> Eq<T> comparingArray(Function1<T, V[]> getter) {
+  static <T, V> Eq<T> comparingArray(Function1<? super T, ? extends V[]> getter) {
     return (a, b) -> Arrays.deepEquals(getter.apply(a), getter.apply(b));
   }
 }

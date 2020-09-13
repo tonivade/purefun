@@ -31,15 +31,15 @@ public interface Producer<T> extends ProducerOf<T>, Recoverable {
     return value -> run();
   }
 
-  default <R> Producer<R> andThen(Function1<T, R> after) {
+  default <R> Producer<R> andThen(Function1<? super T, ? extends R> after) {
     return map(after);
   }
 
-  default <R> Producer<R> map(Function1<T, R> after) {
+  default <R> Producer<R> map(Function1<? super T, ? extends R> after) {
     return () -> after.apply(get());
   }
 
-  default <R> Producer<R> flatMap(Function1<T, Producer<R>> after) {
+  default <R> Producer<R> flatMap(Function1<? super T, ? extends Producer<? extends R>> after) {
     return () -> after.apply(get()).get();
   }
 
@@ -63,11 +63,12 @@ public interface Producer<T> extends ProducerOf<T>, Recoverable {
     return () -> value;
   }
 
-  static <A, X extends Throwable> Producer<A> failure(Producer<X> supplier) {
+  static <A, X extends Throwable> Producer<A> failure(Producer<? extends X> supplier) {
     return () -> { throw supplier.get(); };
   }
 
-  static <T> Producer<T> of(Producer<T> reference) {
-    return reference;
+  @SuppressWarnings("unchecked")
+  static <T> Producer<T> of(Producer<? extends T> reference) {
+    return (Producer<T>) reference;
   }
 }

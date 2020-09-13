@@ -38,15 +38,15 @@ public final class Tuple2<A, B> implements Tuple, Tuple2Of<A, B>, Serializable {
     return Sequence.listOf(value1, value2);
   }
 
-  public <C> Tuple2<C, B> map1(Function1<A, C> mapper) {
+  public <C> Tuple2<C, B> map1(Function1<? super A, ? extends C> mapper) {
     return map(mapper, Function1.identity());
   }
 
-  public <C> Tuple2<A, C> map2(Function1<B, C> mapper) {
+  public <C> Tuple2<A, C> map2(Function1<? super B, ? extends C> mapper) {
     return map(Function1.identity(), mapper);
   }
 
-  public <C, D> Tuple2<C, D> map(Function1<A, C> mapper1, Function1<B, D> mapper2) {
+  public <C, D> Tuple2<C, D> map(Function1<? super A, ? extends C> mapper1, Function1<? super B, ? extends D> mapper2) {
     return Tuple2.of(mapper1.apply(value1), mapper2.apply(value2));
   }
 
@@ -54,7 +54,7 @@ public final class Tuple2<A, B> implements Tuple, Tuple2Of<A, B>, Serializable {
     return new Tuple2<>(value1, value2);
   }
 
-  public <R> R applyTo(Function2<A, B, R> function) {
+  public <R> R applyTo(Function2<? super A, ? super B, ? extends R> function) {
     return function.apply(value1, value2);
   }
 

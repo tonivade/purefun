@@ -26,7 +26,7 @@ public interface Consumer3<A, B, C> extends Recoverable {
 
   void run(A value1, B value2, C value3) throws Throwable;
 
-  default Consumer3<A, B, C> andThen(Consumer3<A, B, C> after) {
+  default Consumer3<A, B, C> andThen(Consumer3<? super A, ? super B, ? super C> after) {
     return (value1, value2, value3) -> { accept(value1, value2, value3); after.accept(value1, value2, value3); };
   }
 
@@ -34,7 +34,8 @@ public interface Consumer3<A, B, C> extends Recoverable {
     return (value1, value2, value3) -> { accept(value1, value2, value3); return unit(); };
   }
 
-  static <A, B, C> Consumer3<A, B, C> of(Consumer3<A, B, C> reference) {
-    return reference;
+  @SuppressWarnings("unchecked")
+  static <A, B, C> Consumer3<A, B, C> of(Consumer3<? super A, ? super B, ? super C> reference) {
+    return (Consumer3<A, B, C>) reference;
   }
 }

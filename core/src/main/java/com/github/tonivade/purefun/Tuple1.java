@@ -30,7 +30,7 @@ public final class Tuple1<A> implements Tuple, Tuple1Of<A>, Serializable {
     return Sequence.listOf(value1);
   }
 
-  public <B> Tuple1<B> map(Function1<A, B> mapper) {
+  public <B> Tuple1<B> map(Function1<? super A, ? extends B> mapper) {
     return new Tuple1<>(mapper.apply(value1));
   }
 
@@ -38,7 +38,7 @@ public final class Tuple1<A> implements Tuple, Tuple1Of<A>, Serializable {
     return new Tuple1<>(value1);
   }
 
-  public <R> R applyTo(Function1<A, R> function) {
+  public <R> R applyTo(Function1<? super A, ? extends R> function) {
     return function.apply(value1);
   }
 

@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.Objects.nonNull;
 
 import java.util.Objects;
@@ -26,11 +27,11 @@ public interface Matcher1<A> extends Recoverable {
     return this::match;
   }
 
-  default Matcher1<A> and(Matcher1<A> other) {
+  default Matcher1<A> and(Matcher1<? super A> other) {
     return value -> match(value) && other.match(value);
   }
 
-  default Matcher1<A> or(Matcher1<A> other) {
+  default Matcher1<A> or(Matcher1<? super A> other) {
     return value -> match(value) || other.match(value);
   }
 
@@ -38,8 +39,9 @@ public interface Matcher1<A> extends Recoverable {
     return value -> !match(value);
   }
 
-  static <A> Matcher1<A> not(Matcher1<A> matcher) {
-    return matcher.negate();
+  @SuppressWarnings("unchecked")
+  static <A> Matcher1<A> not(Matcher1<? super A> matcher) {
+    return (Matcher1<A>) matcher.negate();
   }
 
   static <A> Matcher1<A> never() {
@@ -57,18 +59,18 @@ public interface Matcher1<A> extends Recoverable {
   // XXX: when I change Class<?> for Class<? extends T>
   // javac complains about this, it cannot infer type parameters but inside eclipse works fine
   static <A> Matcher1<A> instanceOf(Class<?> type) {
-    Objects.requireNonNull(type);
+    checkNonNull(type);
     return value -> nonNull(value) && type.isAssignableFrom(value.getClass());
   }
 
   static <A> Matcher1<A> is(A other) {
-    Objects.requireNonNull(other);
+    checkNonNull(other);
     return value -> Objects.equals(value, other);
   }
 
   @SafeVarargs
   static <A> Matcher1<A> isIn(A... values) {
-    Objects.requireNonNull(values);
+    checkNonNull(values);
     return target -> Stream.of(values).anyMatch(value -> Objects.equals(target, value));
   }
 
@@ -81,14 +83,14 @@ public interface Matcher1<A> extends Recoverable {
   }
 
   @SafeVarargs
-  static <A> Matcher1<A> allOf(Matcher1<A>... matchers) {
-    Objects.requireNonNull(matchers);
+  static <A> Matcher1<A> allOf(Matcher1<? super A>... matchers) {
+    checkNonNull(matchers);
     return target -> Stream.of(matchers).allMatch(matcher -> matcher.match(target));
   }
 
   @SafeVarargs
-  static <A> Matcher1<A> anyOf(Matcher1<A>... matchers) {
-    Objects.requireNonNull(matchers);
+  static <A> Matcher1<A> anyOf(Matcher1<? super A>... matchers) {
+    checkNonNull(matchers);
     return target -> Stream.of(matchers).anyMatch(matcher -> matcher.match(target));
   }
 

@@ -16,7 +16,9 @@ public interface PartialFunction3<A, B, C, R> {
     return (a, b, c) -> isDefinedAt(a, b, c) ? Option.some(apply(a, b, c)) : Option.none();
   }
 
-  static <A, B, C, R> PartialFunction3<A, B, C, R> of(Matcher3<A, B, C> matcher, PartialFunction3<A, B, C, R> apply) {
+  static <A, B, C, R> PartialFunction3<A, B, C, R> of(
+      Matcher3<? super A, ? super B, ? super C> matcher, 
+      PartialFunction3<? super A, ? super B, ? super C, ? extends R> apply) {
     return new PartialFunction3<A, B, C, R>() {
 
       @Override
