@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.type.IdOf.toId;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -126,7 +128,8 @@ interface IdTraverse extends Traverse<Id_>, IdFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Id_, R>> traverse(
       Applicative<G> applicative, Kind<Id_, T> value,
-      Function1<T, Kind<G, ? extends R>> mapper) {
-    return applicative.map(mapper.apply(IdOf.narrowK(value).get()), a -> Id.of(a));
+      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+    Kind<G, ? extends R> apply = mapper.apply(value.fix(toId()).get());
+    return applicative.map(apply, a -> Id.of(a));
   }
 }

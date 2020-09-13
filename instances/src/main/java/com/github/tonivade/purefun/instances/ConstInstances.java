@@ -119,7 +119,7 @@ interface ConstTraverse<T> extends Traverse<Kind<Const_, T>>, ConstFoldable<T> {
 
   @Override
   default <G extends Witness, A, B> Kind<G, Kind<Kind<Const_, T>, B>> traverse(
-      Applicative<G> applicative, Kind<Kind<Const_, T>, A> value, Function1<A, Kind<G, ? extends B>> mapper) {
+      Applicative<G> applicative, Kind<Kind<Const_, T>, A> value, Function1<A, ? extends Kind<G, ? extends B>> mapper) {
     return applicative.pure(value.fix(ConstOf::narrowK).<B>retag());
   }
 }

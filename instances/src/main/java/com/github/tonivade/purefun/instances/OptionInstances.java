@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.type.OptionOf.toOption;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -179,10 +181,13 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Option_, R>> traverse(
       Applicative<G> applicative, Kind<Option_, T> value,
-      Function1<T, Kind<G, ? extends R>> mapper) {
-    return OptionOf.narrowK(value).fold(
-        () -> applicative.pure(Option.<R>none()),
-        t -> applicative.map(mapper.apply(t), x -> Option.some(x)));
+      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+    return value.fix(toOption()).fold(
+        () -> applicative.pure(Option.<R>none().kind()),
+        t -> {
+          Kind<G, ? extends R> apply = mapper.apply(t);
+          return applicative.map(apply, Option::some);
+        });
   }
 }
 

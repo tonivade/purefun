@@ -80,7 +80,7 @@ interface ComposedTraverse<F extends Witness, G extends Witness> extends Travers
 
   @Override
   default <H extends Witness, T, R> Kind<H, Kind<Nested<F, G>, R>> traverse(Applicative<H> applicative,
-      Kind<Nested<F, G>, T> value, Function1<T, Kind<H, ? extends R>> mapper) {
+      Kind<Nested<F, G>, T> value, Function1<T, ? extends Kind<H, ? extends R>> mapper) {
     return applicative.map(
         f().traverse(applicative, unnest(value), ga -> g().traverse(applicative, ga, mapper)),
         Nested::nest);
