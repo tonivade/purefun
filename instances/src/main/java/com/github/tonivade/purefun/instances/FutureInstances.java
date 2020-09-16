@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
+
 import java.time.Duration;
 import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.Consumer1;
@@ -80,7 +82,7 @@ interface FutureFunctor extends Functor<Future_> {
 
   @Override
   default <T, R> Kind<Future_, R> map(Kind<Future_, T> value, Function1<T, R> mapper) {
-    return FutureOf.narrowK(value).map(mapper);
+    return value.fix(toFuture()).map(mapper);
   }
 }
 
@@ -104,7 +106,7 @@ interface FutureApplicative extends FuturePure {
 
   @Override
   default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<T, R>> apply) {
-    return FutureOf.narrowK(value).flatMap(t -> FutureOf.narrowK(apply).map(f -> f.apply(t)));
+    return value.fix(toFuture()).ap(apply.fix(toFuture()));
   }
 }
 
@@ -117,7 +119,7 @@ interface FutureMonad extends FuturePure, Monad<Future_> {
   @Override
   default <T, R> Kind<Future_, R> flatMap(Kind<Future_, T> value,
       Function1<T, ? extends Kind<Future_, R>> map) {
-    return FutureOf.narrowK(value).flatMap(map.andThen(FutureOf::narrowK));
+    return value.fix(toFuture()).flatMap(map.andThen(FutureOf::narrowK));
   }
 
   /**
@@ -144,7 +146,7 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {
   @Override
   default <A> Kind<Future_, A> handleErrorWith(Kind<Future_, A> value,
       Function1<Throwable, ? extends Kind<Future_, A>> handler) {
-    return FutureOf.narrowK(value).fold(handler.andThen(FutureOf::narrowK),
+    return value.fix(toFuture()).fold(handler.andThen(FutureOf::narrowK),
                                       success -> Future.success(executor(), success)).flatMap(identity());
   }
 }
@@ -161,7 +163,7 @@ interface FutureBracket extends Bracket<Future_, Throwable>, ExecutorHolder {
 
   @Override
   default <A, B> Kind<Future_, B> bracket(Kind<Future_, A> acquire, Function1<A, ? extends Kind<Future_, B>> use, Consumer1<A> release) {
-    return Future.bracket(executor(), FutureOf.narrowK(acquire), use.andThen(FutureOf::narrowK), release);
+    return Future.bracket(executor(), acquire.fix(toFuture()), use.andThen(FutureOf::narrowK), release);
   }
 }
 
