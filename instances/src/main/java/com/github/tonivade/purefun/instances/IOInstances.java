@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -28,6 +29,10 @@ public interface IOInstances {
 
   static Functor<IO_> functor() {
     return IOFunctor.INSTANCE;
+  }
+
+  static Applicative<IO_> applicative() {
+    return IOApplicative.INSTANCE;
   }
 
   static Monad<IO_> monad() {
@@ -65,14 +70,27 @@ interface IOFunctor extends Functor<IO_> {
   }
 }
 
-interface IOMonad extends Monad<IO_> {
-
-  IOMonad INSTANCE = new IOMonad() {};
+interface IOPure extends Applicative<IO_> {
 
   @Override
   default <T> IO<T> pure(T value) {
     return IO.pure(value);
   }
+}
+
+interface IOApplicative extends IOPure, Applicative<IO_> {
+
+  IOApplicative INSTANCE = new IOApplicative() {};
+
+  @Override
+  default <T, R> IO<R> ap(Kind<IO_, T> value, Kind<IO_, Function1<T, R>> apply) {
+    return value.fix(toIO()).ap(apply.fix(toIO()));
+  }
+}
+
+interface IOMonad extends Monad<IO_>, IOPure {
+
+  IOMonad INSTANCE = new IOMonad() {};
 
   @Override
   default <T, R> IO<R> flatMap(Kind<IO_, T> value, Function1<T, ? extends Kind<IO_, R>> map) {

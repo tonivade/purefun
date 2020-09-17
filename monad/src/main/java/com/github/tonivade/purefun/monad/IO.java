@@ -72,7 +72,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   default <R> IO<R> ap(IO<Function1<T, R>> apply) {
-    return apply.flatMap(this::map);
+    return new Apply<>(this, apply);
   }
 
   default IO<Try<T>> attempt() {
@@ -203,7 +203,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   static <A, B, C> IO<C> map2(IO<A> fa, IO<B> fb, Function2<A, B, C> mapper) {
-    return new Zip<>(fa, fb, mapper);
+    return fb.ap(fa.map(mapper.curried()));
   }
 
   static <A, B> IO<Tuple2<A, B>> tuple(IO<A> fa, IO<B> fb) {
@@ -234,31 +234,29 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
   }
 
-  final class Zip<A, B, C> implements SealedIO<C> {
+  final class Apply<A, B> implements SealedIO<B> {
     
-    private final IO<A> left;
-    private final IO<B> right;
-    private final Function2<A, B, C> mapper;
+    private final IO<A> value;
+    private final IO<Function1<A, B>> apply;
 
-    protected Zip(IO<A> left, IO<B> right, Function2<A, B, C> mapper) {
-      this.left = checkNonNull(left);
-      this.right = checkNonNull(right);
-      this.mapper = checkNonNull(mapper);
+    protected Apply(IO<A> value, IO<Function1<A, B>> apply) {
+      this.value = checkNonNull(value);
+      this.apply = checkNonNull(apply);
     }
 
     @Override
-    public C unsafeRunSync() {
-      return IOModule.evaluate(left.flatMap(a -> right.map(b -> mapper.apply(a, b))));
+    public B unsafeRunSync() {
+      return IOModule.evaluate(value.flatMap(a -> apply.map(map -> map.apply(a))));
     }
     
     @Override
-    public <F extends Witness> Kind<F, C> foldMap(Async<F> monad) {
-      return monad.mapN(left.foldMap(monad), right.foldMap(monad), mapper);
+    public <F extends Witness> Kind<F, B> foldMap(Async<F> monad) {
+      return monad.ap(value.foldMap(monad), apply.foldMap(monad));
     }
     
     @Override
     public String toString() {
-      return "Zip(" + left + "," + right + "?)";
+      return "Apply(" + value + ", ?)";
     }
   }
 
