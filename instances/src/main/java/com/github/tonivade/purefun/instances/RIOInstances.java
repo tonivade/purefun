@@ -82,7 +82,7 @@ interface RIOApplicative<R> extends RIOPure<R> {
   default <A, B> RIO<R, B>
           ap(Kind<Kind<RIO_, R>, A> value,
              Kind<Kind<RIO_, R>, Function1<A, B>> apply) {
-    return RIOOf.narrowK(apply).flatMap(map -> RIOOf.narrowK(value).map(map));
+    return value.fix(toRIO()).ap(apply.fix(toRIO()));
   }
 }
 

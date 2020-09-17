@@ -88,7 +88,7 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
   default <A, B> ZIO<R, E, B>
           ap(Kind<Kind<Kind<ZIO_, R>, E>, A> value,
              Kind<Kind<Kind<ZIO_, R>, E>, Function1<A, B>> apply) {
-    return ZIOOf.narrowK(apply).flatMap(map -> ZIOOf.narrowK(value).map(map));
+    return value.fix(toZIO()).ap(apply.fix(toZIO()));
   }
 }
 

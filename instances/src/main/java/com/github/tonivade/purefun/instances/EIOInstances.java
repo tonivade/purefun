@@ -83,7 +83,7 @@ interface EIOApplicative<E> extends EIOPure<E> {
   default <A, B> EIO<E, B>
           ap(Kind<Kind<EIO_, E>, A> value,
              Kind<Kind<EIO_, E>, Function1<A, B>> apply) {
-    return EIOOf.narrowK(apply).flatMap(map -> EIOOf.narrowK(value).map(map));
+    return value.fix(toEIO()).ap(apply.fix(toEIO()));
   }
 }
 

@@ -101,6 +101,10 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.andThen(next.instance));
   }
 
+  public <B> EIO<E, B> ap(EIO<E, Function1<A, B>> apply) {
+    return new EIO<>(instance.ap(apply.toZIO()));
+  }
+
   public <B, F> EIO<F, B> foldM(Function1<E, EIO<F, B>> mapError, Function1<A, EIO<F, B>> map) {
     return new EIO<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
   }

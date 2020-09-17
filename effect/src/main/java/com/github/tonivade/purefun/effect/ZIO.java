@@ -91,6 +91,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return flatMap(ignore -> next);
   }
 
+  default <B> ZIO<R, E, B> ap(ZIO<R, E, Function1<A, B>> apply) {
+    return new Apply<>(this, apply);
+  }
+
   default <F, B> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
     return new FoldM<>(this, mapError, map);
   }
@@ -240,7 +244,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<A, B, C> mapper) {
-    return new Zip<>(za, zb, mapper);
+    return zb.ap(za.map(mapper.curried()));
   }
 
   static <R, E, A> ZIO<R, E, A> absorb(ZIO<R, E, Either<E, A>> value) {
@@ -327,31 +331,29 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
   }
 
-  final class Zip<R, E, A, B, C> implements SealedZIO<R, E, C> {
+  final class Apply<R, E, A, B> implements SealedZIO<R, E, B> {
     
-    private final ZIO<R, E, A> left;
-    private final ZIO<R, E, B> right;
-    private final Function2<A, B, C> mapper;
+    private final ZIO<R, E, A> value;
+    private final ZIO<R, E, Function1<A, B>> apply;
 
-    protected Zip(ZIO<R, E, A> left, ZIO<R, E, B> right, Function2<A, B, C> mapper) {
-      this.left = checkNonNull(left);
-      this.right = checkNonNull(right);
-      this.mapper = checkNonNull(mapper);
+    protected Apply(ZIO<R, E, A> value, ZIO<R, E, Function1<A, B>> apply) {
+      this.value = checkNonNull(value);
+      this.apply = checkNonNull(apply);
     }
 
     @Override
-    public Either<E, C> provide(R env) {
-      return ZIOModule.evaluate(env, left.flatMap(a -> right.map(b -> mapper.apply(a, b))));
+    public Either<E, B> provide(R env) {
+      return ZIOModule.evaluate(env, value.flatMap(a -> apply.map(map -> map.apply(a))));
     }
     
     @Override
-    public <F extends Witness> Kind<F, C> foldMap(R env, Async<F> monad) {
-      return monad.mapN(left.foldMap(env, monad), right.foldMap(env, monad), mapper);
+    public <F extends Witness> Kind<F, B> foldMap(R env, Async<F> monad) {
+      return monad.ap(value.foldMap(env, monad), apply.foldMap(env, monad));
     }
     
     @Override
     public String toString() {
-      return "Zip(" + left + "," + right + "?)";
+      return "Apply(" + value + ", ?)";
     }
   }
 

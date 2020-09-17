@@ -94,6 +94,10 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
   public <B> URIO<R, B> andThen(URIO<R, B> next) {
     return new URIO<>(instance.andThen(next.instance));
   }
+  
+  public <B> URIO<R, B> ap(URIO<R, Function1<A, B>> apply) {
+    return new URIO<>(instance.ap(apply.toZIO()));
+  }
 
   public URIO<R, A> recover(Function1<Throwable, A> mapError) {
     return redeem(mapError, identity());

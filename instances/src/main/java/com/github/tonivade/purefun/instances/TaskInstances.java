@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.effect.TaskOf.toTask;
+
 import java.time.Duration;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -91,7 +93,7 @@ interface TaskApplicative extends TaskPure {
   default <A, B> Task<B>
           ap(Kind<Task_, A> value,
              Kind<Task_, Function1<A, B>> apply) {
-    return TaskOf.narrowK(apply).flatMap(map -> TaskOf.narrowK(value).map(map));
+    return value.fix(toTask()).ap(apply.fix(toTask()));
   }
 }
 

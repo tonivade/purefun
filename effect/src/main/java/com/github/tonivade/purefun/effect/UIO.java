@@ -106,6 +106,10 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return new UIO<>(instance.andThen(next.instance));
   }
 
+  public <B> UIO<B> ap(UIO<Function1<A, B>> apply) {
+    return new UIO<>(instance.ap(apply.toZIO()));
+  }
+
   public UIO<A> recover(Function1<Throwable, A> mapError) {
     return redeem(mapError, identity());
   }

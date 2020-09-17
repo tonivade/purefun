@@ -90,6 +90,10 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(instance.andThen(next.instance));
   }
 
+  public <B> RIO<R, B> ap(RIO<R, Function1<A, B>> apply) {
+    return new RIO<>(instance.ap(apply.toZIO()));
+  }
+
   public URIO<R, A> recover(Function1<Throwable, A> mapError) {
     return fold(mapError, identity());
   }

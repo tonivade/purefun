@@ -76,7 +76,7 @@ interface UIOApplicative extends UIOPure {
 
   @Override
   default <A, B> UIO<B> ap(Kind<UIO_, A> value, Kind<UIO_, Function1<A, B>> apply) {
-    return UIOOf.narrowK(apply).flatMap(map -> UIOOf.narrowK(value).map(map));
+    return value.fix(toUIO()).ap(apply.fix(toUIO()));
   }
 }
 

@@ -84,7 +84,7 @@ interface URIOApplicative<R> extends URIOPure<R> {
   default <A, B> URIO<R, B>
           ap(Kind<Kind<URIO_, R>, A> value,
              Kind<Kind<URIO_, R>, Function1<A, B>> apply) {
-    return URIOOf.narrowK(apply).flatMap(map -> URIOOf.narrowK(value).map(map));
+    return value.fix(toURIO()).ap(apply.fix(toURIO()));
   }
 }
 

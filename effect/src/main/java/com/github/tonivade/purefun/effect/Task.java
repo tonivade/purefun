@@ -96,6 +96,10 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.andThen(next.instance));
   }
 
+  public <B> Task<B> ap(Task<Function1<A, B>> apply) {
+    return new Task<>(instance.ap(apply.toZIO()));
+  }
+
   public <B> Task<B> foldM(Function1<Throwable, Task<B>> mapError, Function1<A, Task<B>> map) {
     return new Task<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
   }
