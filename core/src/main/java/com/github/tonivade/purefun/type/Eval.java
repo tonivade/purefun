@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Producer.failure;
 import static com.github.tonivade.purefun.Unit.unit;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -35,37 +36,37 @@ public interface Eval<A> extends EvalOf<A> {
 
   A value();
 
-  default <R> Eval<R> map(Function1<A, R> map) {
+  default <R> Eval<R> map(Function1<? super A, ? extends R> map) {
     return flatMap(value -> now(map.apply(value)));
   }
 
-  <R> Eval<R> flatMap(Function1<A, Eval<R>> map);
+  <R> Eval<R> flatMap(Function1<? super A, ? extends Eval<? extends R>> map);
 
   static <T> Eval<T> now(T value) {
     return new Done<>(cons(value));
   }
 
-  static <T> Eval<T> later(Producer<T> later) {
+  static <T> Eval<T> later(Producer<? extends T> later) {
     return new Done<>(later.memoized());
   }
 
-  static <T> Eval<T> always(Producer<T> always) {
+  static <T> Eval<T> always(Producer<? extends T> always) {
     return new Done<>(always);
   }
 
-  static <T> Eval<T> defer(Producer<Eval<T>> eval) {
+  static <T> Eval<T> defer(Producer<? extends Eval<? extends T>> eval) {
     return new Defer<>(eval);
   }
 
   static <T> Eval<T> raiseError(Throwable error) {
-    return new Done<>(() -> { throw error; });
+    return new Done<>(failure(cons(error)));
   }
 
   final class Done<A> implements SealedEval<A> {
 
-    private final Producer<A> producer;
+    private final Producer<? extends A> producer;
 
-    protected Done(Producer<A> producer) {
+    protected Done(Producer<? extends A> producer) {
       this.producer = checkNonNull(producer);
     }
 
@@ -75,7 +76,7 @@ public interface Eval<A> extends EvalOf<A> {
     }
 
     @Override
-    public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
+    public <R> Eval<R> flatMap(Function1<? super A, ? extends Eval<? extends R>> map) {
       return new FlatMapped<>(cons(this), map::apply);
     }
 
@@ -87,9 +88,9 @@ public interface Eval<A> extends EvalOf<A> {
 
   final class Defer<A> implements SealedEval<A> {
 
-    private final Producer<Eval<A>> deferred;
+    private final Producer<? extends Eval<? extends A>> deferred;
 
-    protected Defer(Producer<Eval<A>> deferred) {
+    protected Defer(Producer<? extends Eval<? extends A>> deferred) {
       this.deferred = checkNonNull(deferred);
     }
 
@@ -99,12 +100,13 @@ public interface Eval<A> extends EvalOf<A> {
     }
 
     @Override
-    public <R> Eval<R> flatMap(Function1<A, Eval<R>> map) {
+    public <R> Eval<R> flatMap(Function1<? super A, ? extends Eval<? extends R>> map) {
       return new FlatMapped<>(deferred::get, map::apply);
     }
 
+    @SuppressWarnings("unchecked")
     protected Eval<A> next() {
-      return deferred.get();
+      return (Eval<A>) deferred.get();
     }
 
     @Override
@@ -115,10 +117,10 @@ public interface Eval<A> extends EvalOf<A> {
 
   final class FlatMapped<A, B> implements SealedEval<B> {
 
-    private final Producer<Eval<A>> start;
-    private final Function1<A, Eval<B>> run;
+    private final Producer<? extends Eval<? extends A>> start;
+    private final Function1<? super A, ? extends Eval<? extends B>> run;
 
-    protected FlatMapped(Producer<Eval<A>> start, Function1<A, Eval<B>> run) {
+    protected FlatMapped(Producer<? extends Eval<? extends A>> start, Function1<? super A, ? extends Eval<? extends B>> run) {
       this.start = checkNonNull(start);
       this.run = checkNonNull(run);
     }
@@ -130,16 +132,18 @@ public interface Eval<A> extends EvalOf<A> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> Eval<R> flatMap(Function1<B, Eval<R>> map) {
+    public <R> Eval<R> flatMap(Function1<? super B, ? extends Eval<? extends R>> map) {
       return new FlatMapped<>(() -> (Eval<B>) start(), b -> new FlatMapped<>(() -> run((A) b), map::apply));
     }
 
+    @SuppressWarnings("unchecked")
     protected Eval<A> start() {
-      return start.get();
+      return (Eval<A>) start.get();
     }
 
+    @SuppressWarnings("unchecked")
     protected Eval<B> run(A value) {
-      return run.apply(value);
+      return (Eval<B>) run.apply(value);
     }
 
     @Override

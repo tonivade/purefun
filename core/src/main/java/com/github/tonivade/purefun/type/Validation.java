@@ -74,39 +74,42 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
    */
   E getError();
 
-  default <R> Validation<E, R> map(Function1<T, R> mapper) {
+  @SuppressWarnings("unchecked")
+  default <R> Validation<E, R> map(Function1<? super T, ? extends R> mapper) {
     if (isValid()) {
       return valid(mapper.apply(get()));
     }
-    return invalid(getError());
+    return (Validation<E, R>) this;
   }
 
-  default <U> Validation<U, T> mapError(Function1<E, U> mapper) {
+  @SuppressWarnings("unchecked")
+  default <U> Validation<U, T> mapError(Function1<? super E, ? extends U> mapper) {
     if (isInvalid()) {
       return invalid(mapper.apply(getError()));
     }
-    return valid(get());
+    return (Validation<U, T>) this;
   }
 
-  default <R> Validation<E, R> flatMap(Function1<T, Validation<E, R>> mapper) {
+  @SuppressWarnings("unchecked")
+  default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Validation<E, ? extends R>> mapper) {
     if (isValid()) {
-      return mapper.apply(get());
+      return (Validation<E, R>) mapper.apply(get());
     }
-    return invalid(getError());
+    return (Validation<E, R>) this;
   }
 
-  default Option<Validation<E, T>> filter(Matcher1<T> matcher) {
+  default Option<Validation<E, T>> filter(Matcher1<? super T> matcher) {
     if (isInvalid() || matcher.match(get())) {
       return Option.some(this);
     }
     return Option.none();
   }
 
-  default Option<Validation<E, T>> filterNot(Matcher1<T> matcher) {
+  default Option<Validation<E, T>> filterNot(Matcher1<? super T> matcher) {
     return filter(matcher.negate());
   }
 
-  default Validation<E, T> filterOrElse(Matcher1<T> matcher, Producer<Validation<E, T>> orElse) {
+  default Validation<E, T> filterOrElse(Matcher1<? super T> matcher, Producer<Validation<E, T>> orElse) {
     if (isInvalid() || matcher.match(get())) {
       return this;
     }
@@ -128,7 +131,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     return getOrElse(Producer.cons(null));
   }
 
-  default T getOrElse(Producer<T> orElse) {
+  default T getOrElse(Producer<? extends T> orElse) {
     return fold(orElse.asFunction(), identity());
   }
 
@@ -136,21 +139,21 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     return getOrElseThrow(error -> new IllegalArgumentException(error.toString()));
   }
 
-  default <X extends Throwable> T getOrElseThrow(Function1<E, X> mapper) throws X {
+  default <X extends Throwable> T getOrElseThrow(Function1<? super E, ? extends X> mapper) throws X {
     if (isInvalid()) {
       throw mapper.apply(getError());
     }
     return get();
   }
 
-  default <U> U fold(Function1<E, U> invalidMap, Function1<T, U> validMap) {
+  default <U> U fold(Function1<? super E, ? extends U> invalidMap, Function1<? super T, ? extends U> validMap) {
     if (isValid()) {
       return validMap.apply(get());
     }
     return invalidMap.apply(getError());
   }
 
-  default <R> Validation<Result<E>, R> ap(Validation<Result<E>, Function1<T, R>> other) {
+  default <R> Validation<Result<E>, R> ap(Validation<Result<E>, Function1<? super T, ? extends R>> other) {
     if (this.isValid() && other.isValid()) {
       return valid(other.get().apply(get()));
     }
@@ -175,14 +178,14 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
 
   static <E, T1, T2, R> Validation<Result<E>, R> mapN(Validation<E, T1> validation1,
                                                       Validation<E, T2> validation2,
-                                                      Function2<T1, T2, R> mapper) {
+                                                      Function2<? super T1, ? super T2, ? extends R> mapper) {
     return validation2.ap(validation1.ap(valid(mapper.curried())));
   }
 
   static <E, T1, T2, T3, R> Validation<Result<E>, R> mapN(Validation<E, T1> validation1,
                                                           Validation<E, T2> validation2,
                                                           Validation<E, T3> validation3,
-                                                          Function3<T1, T2, T3, R> mapper) {
+                                                          Function3<? super T1, ? super T2, ? super T3, ? extends R> mapper) {
     return validation3.ap(mapN(validation1, validation2, (t1, t2) -> mapper.curried().apply(t1).apply(t2)));
   }
 
@@ -190,7 +193,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
                                                               Validation<E, T2> validation2,
                                                               Validation<E, T3> validation3,
                                                               Validation<E, T4> validation4,
-                                                              Function4<T1, T2, T3, T4, R> mapper) {
+                                                              Function4<? super T1, ? super T2, ? super T3, ? super T4, ? extends R> mapper) {
     return validation4.ap(mapN(validation1, validation2, validation3,
         (t1, t2, t3) -> mapper.curried().apply(t1).apply(t2).apply(t3)));
   }
@@ -200,7 +203,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
                                                                   Validation<E, T3> validation3,
                                                                   Validation<E, T4> validation4,
                                                                   Validation<E, T5> validation5,
-                                                                  Function5<T1, T2, T3, T4, T5, R> mapper) {
+                                                                  Function5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? extends R> mapper) {
     return validation5.ap(mapN(validation1, validation2, validation3, validation4,
         (t1, t2, t3, t4) -> mapper.curried().apply(t1).apply(t2).apply(t3).apply(t4)));
   }

@@ -22,12 +22,12 @@ public interface Validator<E, T> {
 
   Validation<E, T> validate(T value);
 
-  default <F> Validator<F, T> mapError(Function1<E, F> mapper) {
+  default <F> Validator<F, T> mapError(Function1<? super E, ? extends F> mapper) {
     checkNonNull(mapper);
     return value -> validate(value).mapError(mapper);
   }
 
-  default <R> Validator<E, R> compose(Function1<R, T> getter) {
+  default <R> Validator<E, R> compose(Function1<? super R, ? extends T> getter) {
     checkNonNull(getter);
     return value -> validate(getter.apply(value)).map(Function1.cons(value));
   }
@@ -42,7 +42,7 @@ public interface Validator<E, T> {
     return combine(this, other);
   }
 
-  static <E, T> Validator<E, T> from(Matcher1<T> matcher, Producer<E> error) {
+  static <E, T> Validator<E, T> from(Matcher1<? super T> matcher, Producer<? extends E> error) {
     checkNonNull(matcher);
     checkNonNull(error);
     return value -> matcher.match(value) ? Validation.valid(value) : Validation.invalid(error.get());
