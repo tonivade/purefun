@@ -31,42 +31,42 @@ public interface ImmutableSet<E> extends Sequence<E> {
   @Override
   ImmutableSet<E> remove(E element);
   @Override
-  ImmutableSet<E> appendAll(Sequence<E> other);
+  ImmutableSet<E> appendAll(Sequence<? extends E> other);
   @Override
-  ImmutableSet<E> removeAll(Sequence<E> other);
+  ImmutableSet<E> removeAll(Sequence<? extends E> other);
 
   @Override
   ImmutableSet<E> reverse();
 
-  ImmutableSet<E> union(ImmutableSet<E> other);
-  ImmutableSet<E> intersection(ImmutableSet<E> other);
-  ImmutableSet<E> difference(ImmutableSet<E> other);
+  ImmutableSet<E> union(ImmutableSet<? extends E> other);
+  ImmutableSet<E> intersection(ImmutableSet<? extends E> other);
+  ImmutableSet<E> difference(ImmutableSet<? extends E> other);
 
   @Override
-  default <R> ImmutableSet<R> map(Function1<E, R> mapper) {
+  default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
     return ImmutableSet.from(stream().map(mapper::apply));
   }
 
   @Override
-  default <R> ImmutableSet<R> flatMap(Function1<E, Sequence<R>> mapper) {
+  default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
     return ImmutableSet.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
   }
 
   @Override
-  default ImmutableSet<E> filter(Matcher1<E> matcher) {
+  default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
     return ImmutableSet.from(stream().filter(matcher::match));
   }
 
   @Override
-  default ImmutableSet<E> filterNot(Matcher1<E> matcher) {
+  default ImmutableSet<E> filterNot(Matcher1<? super E> matcher) {
     return filter(matcher.negate());
   }
 
-  static <T> ImmutableSet<T> from(Iterable<T> iterable) {
+  static <T> ImmutableSet<T> from(Iterable<? extends T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }
 
-  static <T> ImmutableSet<T> from(Stream<T> stream) {
+  static <T> ImmutableSet<T> from(Stream<? extends T> stream) {
     return new JavaBasedImmutableSet<>(stream.collect(Collectors.toSet()));
   }
 
@@ -126,33 +126,33 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableSet<E> appendAll(Sequence<E> other) {
+    public ImmutableSet<E> appendAll(Sequence<? extends E> other) {
       Set<E> newSet = toSet();
       newSet.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
-    public ImmutableSet<E> removeAll(Sequence<E> other) {
+    public ImmutableSet<E> removeAll(Sequence<? extends E> other) {
       Set<E> newSet = toSet();
       newSet.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
-    public ImmutableSet<E> union(ImmutableSet<E> other) {
+    public ImmutableSet<E> union(ImmutableSet<? extends E> other) {
       return appendAll(other);
     }
 
     @Override
-    public ImmutableSet<E> intersection(ImmutableSet<E> other) {
+    public ImmutableSet<E> intersection(ImmutableSet<? extends E> other) {
       Set<E> newSet = toSet();
       newSet.retainAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
-    public ImmutableSet<E> difference(ImmutableSet<E> other) {
+    public ImmutableSet<E> difference(ImmutableSet<? extends E> other) {
       Set<E> newSet = toSet();
       newSet.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableSet<>(newSet);

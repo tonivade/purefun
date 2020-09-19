@@ -33,9 +33,9 @@ public interface ImmutableTree<E> extends Sequence<E> {
   @Override
   ImmutableTree<E> remove(E element);
   @Override
-  ImmutableTree<E> appendAll(Sequence<E> other);
+  ImmutableTree<E> appendAll(Sequence<? extends E> other);
   @Override
-  ImmutableTree<E> removeAll(Sequence<E> other);
+  ImmutableTree<E> removeAll(Sequence<? extends E> other);
 
   @Override
   ImmutableTree<E> reverse();
@@ -50,30 +50,30 @@ public interface ImmutableTree<E> extends Sequence<E> {
   Option<E> floor(E value);
 
   @Override
-  default <R> ImmutableTree<R> map(Function1<E, R> mapper) {
+  default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
     return ImmutableTree.from(stream().map(mapper::apply));
   }
 
   @Override
-  default <R> ImmutableTree<R> flatMap(Function1<E, Sequence<R>> mapper) {
+  default <R> ImmutableTree<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
     return ImmutableTree.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
   }
 
   @Override
-  default ImmutableTree<E> filter(Matcher1<E> matcher) {
+  default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
     return ImmutableTree.from(stream().filter(matcher::match));
   }
 
   @Override
-  default ImmutableTree<E> filterNot(Matcher1<E> matcher) {
+  default ImmutableTree<E> filterNot(Matcher1<? super E> matcher) {
     return filter(matcher.negate());
   }
 
-  static <T> ImmutableTree<T> from(Iterable<T> iterable) {
+  static <T> ImmutableTree<T> from(Iterable<? extends T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }
 
-  static <T> ImmutableTree<T> from(Stream<T> stream) {
+  static <T> ImmutableTree<T> from(Stream<? extends T> stream) {
     return new JavaBasedImmutableTree<>(stream.collect(toCollection(TreeSet::new)));
   }
 
@@ -133,14 +133,14 @@ public interface ImmutableTree<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableTree<E> appendAll(Sequence<E> other) {
+    public ImmutableTree<E> appendAll(Sequence<? extends E> other) {
       NavigableSet<E> newSet = toNavigableSet();
       newSet.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableTree<>(newSet);
     }
 
     @Override
-    public ImmutableTree<E> removeAll(Sequence<E> other) {
+    public ImmutableTree<E> removeAll(Sequence<? extends E> other) {
       NavigableSet<E> newSet = toNavigableSet();
       newSet.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableTree<>(newSet);

@@ -56,7 +56,7 @@ public final class Range implements Iterable<Integer>, Serializable {
     return map(identity());
   }
 
-  public <T> Sequence<T> map(Function1<Integer, T> map) {
+  public <T> Sequence<T> map(Function1<? super Integer, ? extends T> map) {
     return ImmutableArray.from(intStream().boxed()).map(map);
   }
 

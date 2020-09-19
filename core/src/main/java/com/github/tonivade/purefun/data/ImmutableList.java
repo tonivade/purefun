@@ -34,13 +34,13 @@ public interface ImmutableList<E> extends Sequence<E> {
   @Override
   ImmutableList<E> remove(E element);
   @Override
-  ImmutableList<E> appendAll(Sequence<E> other);
+  ImmutableList<E> appendAll(Sequence<? extends E> other);
   @Override
-  ImmutableList<E> removeAll(Sequence<E> other);
+  ImmutableList<E> removeAll(Sequence<? extends E> other);
 
   @Override
   ImmutableList<E> reverse();
-  ImmutableList<E> sort(Comparator<E> comparator);
+  ImmutableList<E> sort(Comparator<? super E> comparator);
 
   default Option<E> head() {
     return Option.from(stream().findFirst());
@@ -55,30 +55,30 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableList<R> map(Function1<E, R> mapper) {
+  default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
     return ImmutableList.from(stream().map(mapper::apply));
   }
 
   @Override
-  default <R> ImmutableList<R> flatMap(Function1<E, Sequence<R>> mapper) {
+  default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
     return ImmutableList.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
   }
 
   @Override
-  default ImmutableList<E> filter(Matcher1<E> matcher) {
+  default ImmutableList<E> filter(Matcher1<? super E> matcher) {
     return ImmutableList.from(stream().filter(matcher::match));
   }
 
   @Override
-  default ImmutableList<E> filterNot(Matcher1<E> matcher) {
+  default ImmutableList<E> filterNot(Matcher1<? super E> matcher) {
     return filter(matcher.negate());
   }
 
-  static <T> ImmutableList<T> from(Iterable<T> iterable) {
+  static <T> ImmutableList<T> from(Iterable<? extends T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }
 
-  static <T> ImmutableList<T> from(Stream<T> stream) {
+  static <T> ImmutableList<T> from(Stream<? extends T> stream) {
     return new JavaBasedImmutableList<>(stream.collect(Collectors.toList()));
   }
 
@@ -126,7 +126,7 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableList<E> sort(Comparator<E> comparator) {
+    public ImmutableList<E> sort(Comparator<? super E> comparator) {
       List<E> newList = toList();
       newList.sort(comparator);
       return new JavaBasedImmutableList<>(newList);
@@ -147,14 +147,14 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableList<E> appendAll(Sequence<E> other) {
+    public ImmutableList<E> appendAll(Sequence<? extends E> other) {
       List<E> newList = toList();
       newList.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
-    public ImmutableList<E> removeAll(Sequence<E> other) {
+    public ImmutableList<E> removeAll(Sequence<? extends E> other) {
       List<E> newList = toList();
       newList.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableList<>(newList);

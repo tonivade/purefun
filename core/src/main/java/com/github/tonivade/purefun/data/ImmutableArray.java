@@ -33,49 +33,49 @@ public interface ImmutableArray<E> extends Sequence<E> {
   @Override
   ImmutableArray<E> remove(E element);
   @Override
-  ImmutableArray<E> appendAll(Sequence<E> other);
+  ImmutableArray<E> appendAll(Sequence<? extends E> other);
   @Override
-  ImmutableArray<E> removeAll(Sequence<E> other);
+  ImmutableArray<E> removeAll(Sequence<? extends E> other);
 
   @Override
   ImmutableArray<E> reverse();
-  ImmutableArray<E> sort(Comparator<E> comparator);
+  ImmutableArray<E> sort(Comparator<? super E> comparator);
 
   E get(int position);
   ImmutableArray<E> remove(int position);
   ImmutableArray<E> replace(int position, E element);
   ImmutableArray<E> insert(int position, E element);
-  ImmutableArray<E> insertAll(int position, Sequence<E> elements);
+  ImmutableArray<E> insertAll(int position, Sequence<? extends E> elements);
 
   default ImmutableArray<E> drop(int n) {
     return ImmutableArray.from(stream().skip(n));
   }
 
   @Override
-  default <R> ImmutableArray<R> map(Function1<E, R> mapper) {
+  default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
     return ImmutableArray.from(stream().map(mapper::apply));
   }
 
   @Override
-  default <R> ImmutableArray<R> flatMap(Function1<E, Sequence<R>> mapper) {
+  default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
     return ImmutableArray.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
   }
 
   @Override
-  default ImmutableArray<E> filter(Matcher1<E> matcher) {
+  default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
     return ImmutableArray.from(stream().filter(matcher::match));
   }
 
   @Override
-  default ImmutableArray<E> filterNot(Matcher1<E> matcher) {
+  default ImmutableArray<E> filterNot(Matcher1<? super E> matcher) {
     return filter(matcher.negate());
   }
 
-  static <T> ImmutableArray<T> from(Iterable<T> iterable) {
+  static <T> ImmutableArray<T> from(Iterable<? extends T> iterable) {
     return from(Sequence.asStream(iterable.iterator()));
   }
 
-  static <T> ImmutableArray<T> from(Stream<T> stream) {
+  static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
     return new JavaBasedImmutableArray<>(stream.collect(Collectors.toList()));
   }
 
@@ -123,7 +123,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableArray<E> sort(Comparator<E> comparator) {
+    public ImmutableArray<E> sort(Comparator<? super E> comparator) {
       List<E> list = toList();
       list.sort(comparator);
       return new JavaBasedImmutableArray<>(list);
@@ -149,14 +149,14 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableArray<E> appendAll(Sequence<E> other) {
+    public ImmutableArray<E> appendAll(Sequence<? extends E> other) {
       List<E> list = toList();
       list.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableArray<>(list);
     }
 
     @Override
-    public ImmutableArray<E> removeAll(Sequence<E> other) {
+    public ImmutableArray<E> removeAll(Sequence<? extends E> other) {
       List<E> list = toList();
       list.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableArray<>(list);
@@ -189,7 +189,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableArray<E> insertAll(int position, Sequence<E> elements) {
+    public ImmutableArray<E> insertAll(int position, Sequence<? extends E> elements) {
       List<E> list = toList();
       list.addAll(position, new SequenceCollection<>(elements));
       return new JavaBasedImmutableArray<>(list);

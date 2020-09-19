@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,9 +32,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
   ImmutableMap<K, V> put(K key, V value);
 
-  default ImmutableMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
-    return ImmutableMap.from(entries().appendAll(other));
-  }
+  ImmutableMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other);
 
   ImmutableMap<K, V> remove(K key);
   Option<V> get(K key);
@@ -51,27 +50,27 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return entries().iterator();
   }
 
-  default void forEach(Consumer2<K, V> consumer) {
+  default void forEach(Consumer2<? super K, ? super V> consumer) {
     entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
   }
 
-  default <A, B> ImmutableMap<A, B> map(Function1<K, A> keyMapper, Function1<V, B> valueMapper) {
+  default <A, B> ImmutableMap<A, B> map(Function1<? super K, ? extends A> keyMapper, Function1<? super V, ? extends B> valueMapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map(keyMapper, valueMapper)));
   }
 
-  default <A> ImmutableMap<A, V> mapKeys(Function1<K, A> mapper) {
+  default <A> ImmutableMap<A, V> mapKeys(Function1<? super K, ? extends A> mapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map1(mapper)));
   }
 
-  default <A> ImmutableMap<K, A> mapValues(Function1<V, A> mapper) {
+  default <A> ImmutableMap<K, A> mapValues(Function1<? super V, ? extends A> mapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map2(mapper)));
   }
 
-  default ImmutableMap<K, V> filterKeys(Matcher1<K> filter) {
+  default ImmutableMap<K, V> filterKeys(Matcher1<? super K> filter) {
     return ImmutableMap.from(entries().filter(tuple -> filter.match(tuple.get1())));
   }
 
-  default ImmutableMap<K, V> filterValues(Matcher1<V> filter) {
+  default ImmutableMap<K, V> filterValues(Matcher1<? super V> filter) {
     return ImmutableMap.from(entries().filter(tuple -> filter.match(tuple.get2())));
   }
 
@@ -86,7 +85,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return put(key, value);
   }
 
-  default V getOrDefault(K key, Producer<V> supplier) {
+  default V getOrDefault(K key, Producer<? extends V> supplier) {
     return get(key).getOrElse(supplier);
   }
 
@@ -95,7 +94,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   }
 
   @SafeVarargs
-  static <K, V> ImmutableMap<K, V> of(Tuple2<K, V> ... entries) {
+  static <K, V> ImmutableMap<K, V> of(Tuple2<? extends K, ? extends V> ... entries) {
     return from(ImmutableSet.of(entries));
   }
 
@@ -103,21 +102,26 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return Tuple2.of(key, value);
   }
 
-  static <K, V> ImmutableMap<K, V> from(Map<K, V> map) {
-    return new JavaBasedImmutableMap<>(map);
+  static <K, V> ImmutableMap<K, V> from(Map<? extends K, ? extends V> map) {
+    return from(map.entrySet());
   }
 
   static <K, V> ImmutableMap<K,V> empty() {
     return new JavaBasedImmutableMap<>(emptyMap());
   }
 
-  static <K, V> ImmutableMap<K, V> from(Stream<Tuple2<K, V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(Stream<? extends Tuple2<? extends K, ? extends V>> entries) {
     return from(ImmutableSet.from(entries));
   }
 
-  static <K, V> ImmutableMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(ImmutableSet<? extends Tuple2<? extends K, ? extends V>> entries) {
     return new JavaBasedImmutableMap<>(entries.stream()
         .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2)));
+  }
+
+  static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<? extends K, ? extends V>> entries) {
+    return new JavaBasedImmutableMap<>(entries.stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
   static <K, V> Builder<K, V> builder() {
@@ -167,6 +171,13 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public ImmutableMap<K, V> put(K key, V value) {
       Map<K, V> newMap = toMap();
       newMap.put(key, value);
+      return new JavaBasedImmutableMap<>(newMap);
+    }
+    
+    @Override
+    public ImmutableMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
+      Map<K, V> newMap = toMap();
+      newMap.putAll(other.toMap());
       return new JavaBasedImmutableMap<>(newMap);
     }
 

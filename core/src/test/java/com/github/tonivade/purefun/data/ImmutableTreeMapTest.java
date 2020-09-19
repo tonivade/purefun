@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.data.ImmutableTreeMap.entry;
-import static com.github.tonivade.purefun.data.Sequence.setOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,8 +57,8 @@ public class ImmutableTreeMapTest {
               () -> assertEquals(Option.some("a"), treeMap.ceilingKey("a")),
               () -> assertEquals(Option.some("c"), treeMap.ceilingKey("c")),
               () -> assertEquals(ImmutableTreeMap.of(entry("a", "aaa"), entry("b", "bbb"), entry("c", "ccc")),
-                                 ImmutableTreeMap.of(entry("a", "aaa")).putAll(setOf(entry("b", "bbb"),
-                                                                                     entry("c", "ccc")))),
+                                 ImmutableTreeMap.of(entry("a", "aaa")).putAll(ImmutableMap.of(entry("b", "bbb"),
+                                                                                               entry("c", "ccc")))),
               () -> assertEquals(treeMap, ImmutableTreeMap.builder().put("a", "aaa").put("b", "bbb").put("c", "ccc").build())
               );
   }

@@ -32,7 +32,7 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
 
   boolean contains(E element);
 
-  default boolean containsAll(Sequence<E> elements) {
+  default boolean containsAll(Sequence<? extends E> elements) {
     for (E e : elements) {
       if (!contains(e)) {
         return false;
@@ -43,27 +43,29 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
 
   Sequence<E> append(E element);
   Sequence<E> remove(E element);
-  Sequence<E> appendAll(Sequence<E> other);
-  Sequence<E> removeAll(Sequence<E> other);
+  Sequence<E> appendAll(Sequence<? extends E> other);
+  Sequence<E> removeAll(Sequence<? extends E> other);
 
   Sequence<E> reverse();
 
-  <R> Sequence<R> map(Function1<E, R> mapper);
+  <R> Sequence<R> map(Function1<? super E, ? extends R> mapper);
 
-  <R> Sequence<R> flatMap(Function1<E, Sequence<R>> mapper);
+  <R> Sequence<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper);
 
-  Sequence<E> filter(Matcher1<E> matcher);
+  Sequence<E> filter(Matcher1<? super E> matcher);
 
-  Sequence<E> filterNot(Matcher1<E> matcher);
+  Sequence<E> filterNot(Matcher1<? super E> matcher);
 
   default Option<E> reduce(Operator2<E> operator) {
     return Option.from(stream().reduce(operator::apply));
   }
 
+  // TODO
   default E fold(E initial, Operator2<E> operator) {
     return stream().reduce(initial, operator::apply);
   }
 
+  // TODO
   default <U> U foldLeft(U initial, Function2<U, E, U> combinator) {
     U accumulator = initial;
     for (E element : this) {
@@ -72,6 +74,7 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
     return accumulator;
   }
 
+  // TODO
   default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
@@ -84,12 +87,14 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
     return stream().map(Object::toString).collect(joining(separator, prefix, suffix));
   }
 
-  default <R> Sequence<R> collect(PartialFunction1<E, R> function) {
+  default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
     return filter(function::isDefinedAt).map(function::apply);
   }
 
-  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<E, G> selector) {
-    return ImmutableMap.from(stream().collect(groupingBy(selector::apply))).mapValues(ImmutableList::from);
+  @SuppressWarnings("unchecked")
+  default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
+    return (ImmutableMap<G, ImmutableList<E>>) 
+        ImmutableMap.from(stream().collect(groupingBy(selector::apply))).mapValues(ImmutableList::from);
   }
 
   default ImmutableList<E> asList() {

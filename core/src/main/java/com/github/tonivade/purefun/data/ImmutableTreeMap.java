@@ -34,9 +34,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   ImmutableTreeMap<K, V> put(K key, V value);
 
   @Override
-  default ImmutableTreeMap<K, V> putAll(ImmutableSet<Tuple2<K, V>> other) {
-    return ImmutableTreeMap.from(entries().appendAll(other));
-  }
+  ImmutableTreeMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other);
 
   @Override
   ImmutableTreeMap<K, V> remove(K key);
@@ -78,27 +76,27 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   @Override
-  default <A, B> ImmutableTreeMap<A, B> map(Function1<K, A> keyMapper, Function1<V, B> valueMapper) {
+  default <A, B> ImmutableTreeMap<A, B> map(Function1<? super K, ? extends A> keyMapper, Function1<? super V, ? extends B> valueMapper) {
     return ImmutableTreeMap.from(entries().map(tuple -> tuple.map(keyMapper, valueMapper)));
   }
 
   @Override
-  default <A> ImmutableTreeMap<A, V> mapKeys(Function1<K, A> mapper) {
+  default <A> ImmutableTreeMap<A, V> mapKeys(Function1<? super K, ? extends A> mapper) {
     return ImmutableTreeMap.from(entries().map(tuple -> tuple.map1(mapper)));
   }
 
   @Override
-  default <A> ImmutableTreeMap<K, A> mapValues(Function1<V, A> mapper) {
+  default <A> ImmutableTreeMap<K, A> mapValues(Function1<? super V, ? extends A> mapper) {
     return ImmutableTreeMap.from(entries().map(tuple -> tuple.map2(mapper)));
   }
 
   @Override
-  default ImmutableTreeMap<K, V> filterKeys(Matcher1<K> filter) {
+  default ImmutableTreeMap<K, V> filterKeys(Matcher1<? super K> filter) {
     return ImmutableTreeMap.from(entries().filter(tuple -> filter.match(tuple.get1())));
   }
 
   @Override
-  default ImmutableTreeMap<K, V> filterValues(Matcher1<V> filter) {
+  default ImmutableTreeMap<K, V> filterValues(Matcher1<? super V> filter) {
     return ImmutableTreeMap.from(entries().filter(tuple -> filter.match(tuple.get2())));
   }
 
@@ -111,7 +109,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   @Override
-  default V getOrDefault(K key, Producer<V> supplier) {
+  default V getOrDefault(K key, Producer<? extends V> supplier) {
     return get(key).getOrElse(supplier);
   }
 
@@ -193,6 +191,13 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     public ImmutableTreeMap<K, V> put(K key, V value) {
       NavigableMap<K, V> newMap = toNavigableMap();
       newMap.put(key, value);
+      return new JavaBasedImmutableTreeMap<>(newMap);
+    }
+    
+    @Override
+    public ImmutableTreeMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
+      NavigableMap<K, V> newMap = toNavigableMap();
+      newMap.putAll(other.toMap());
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
 

@@ -31,22 +31,22 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public <R> NonEmptyList<R> map(Function1<E, R> mapper) {
+  public <R> NonEmptyList<R> map(Function1<? super E, ? extends R> mapper) {
     return of(value.map(mapper));
   }
 
   @Override
-  public <R> NonEmptyList<R> flatMap(Function1<E, Sequence<R>> mapper) {
+  public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
     return of(value.flatMap(mapper));
   }
 
   @Override
-  public ImmutableList<E> filter(Matcher1<E> matcher) {
+  public ImmutableList<E> filter(Matcher1<? super E> matcher) {
     return value.filter(matcher);
   }
 
   @Override
-  public ImmutableList<E> filterNot(Matcher1<E> matcher) {
+  public ImmutableList<E> filterNot(Matcher1<? super E> matcher) {
     return filter(matcher.negate());
   }
 
@@ -81,12 +81,12 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public NonEmptyList<E> appendAll(Sequence<E> other) {
+  public NonEmptyList<E> appendAll(Sequence<? extends E> other) {
     return of(value.appendAll(other));
   }
 
   @Override
-  public ImmutableList<E> removeAll(Sequence<E> other) {
+  public ImmutableList<E> removeAll(Sequence<? extends E> other) {
     return of(value.removeAll(other));
   }
 
@@ -96,7 +96,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public NonEmptyList<E> sort(Comparator<E> comparator) {
+  public NonEmptyList<E> sort(Comparator<? super E> comparator) {
     return of(value.sort(comparator));
   }
 
