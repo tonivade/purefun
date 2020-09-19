@@ -49,11 +49,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return Future.task(executor, this::unsafeRunSync);
   }
 
-  default void safeRunAsync(Consumer1<Try<T>> callback) {
+  default void safeRunAsync(Consumer1<? super Try<? extends T>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
-  default void safeRunAsync(Executor executor, Consumer1<Try<T>> callback) {
+  default void safeRunAsync(Executor executor, Consumer1<? super Try<? extends T>> callback) {
     toFuture(executor).onComplete(callback);
   }
 

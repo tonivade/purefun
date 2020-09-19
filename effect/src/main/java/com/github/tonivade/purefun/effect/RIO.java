@@ -66,11 +66,11 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return instance.toFuture(executor, env).map(Try::fromEither);
   }
 
-  public void safeRunAsync(Executor executor, R env, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(executor, env, result -> callback.accept(flatAbsorb(result)));
   }
 
-  public void safeRunAsync(R env, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
@@ -249,7 +249,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return (RIO<R, Unit>) UNIT;
   }
 
-  private Try<A> flatAbsorb(Try<Either<Throwable, A>> result) {
+  private Try<A> flatAbsorb(Try<? extends Either<Throwable, A>> result) {
     return result.map(Try::fromEither).flatMap(identity());
   }
 }

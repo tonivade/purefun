@@ -144,14 +144,14 @@ public class IOTest {
   }
 
   @Test
-  public void safeRunAsyncSuccess(@Mock Consumer1<Try<String>> callback) {
+  public void safeRunAsyncSuccess(@Mock Consumer1<? super Try<? extends String>> callback) {
     IO.pure("hola").safeRunAsync(callback);
 
     verify(callback, timeout(1000)).accept(Try.success("hola"));
   }
 
   @Test
-  public void unsafeRunAsyncFailure(@Mock Consumer1<Try<String>> callback) {
+  public void unsafeRunAsyncFailure(@Mock Consumer1<? super Try<? extends String>> callback) {
     RuntimeException error = new RuntimeException();
 
     IO.<String>raiseError(error).safeRunAsync(callback);

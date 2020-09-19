@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class FutureTest {
 
   @Test
-  public void onCompleteSuccess(@Mock Consumer1<Try<String>> tryConsumer) {
+  public void onCompleteSuccess(@Mock Consumer1<? super Try<? extends String>> tryConsumer) {
     Future<String> future = Future.success("Hello World!");
 
     future.onComplete(tryConsumer).await();
@@ -54,7 +54,7 @@ public class FutureTest {
   }
 
   @Test
-  public void onCompleteFailure(@Mock Consumer1<Try<String>> tryConsumer) {
+  public void onCompleteFailure(@Mock Consumer1<? super Try<? extends String>> tryConsumer) {
     UnsupportedOperationException error = new UnsupportedOperationException();
     Future<String> future = Future.failure(error);
 

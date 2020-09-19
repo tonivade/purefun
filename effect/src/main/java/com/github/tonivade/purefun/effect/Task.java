@@ -72,11 +72,11 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return instance.toFuture(executor, nothing()).map(Try::fromEither);
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(executor, nothing(), result -> callback.accept(flatAbsorb(result)));
   }
 
-  public void safeRunAsync(Consumer1<Try<A>> callback) {
+  public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
@@ -242,7 +242,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return UNIT;
   }
 
-  private Try<A> flatAbsorb(Try<Either<Throwable, A>> result) {
+  private Try<A> flatAbsorb(Try<? extends Either<Throwable, A>> result) {
     return result.map(Try::fromEither).flatMap(identity());
   }
 }

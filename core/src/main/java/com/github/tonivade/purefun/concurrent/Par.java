@@ -32,39 +32,41 @@ public interface Par<T> extends ParOf<T> {
     return apply(executor).toPromise();
   }
 
-  default <R> Par<R> map(Function1<T, R> mapper) {
+  default <R> Par<R> map(Function1<? super T, ? extends R> mapper) {
     return executor -> apply(executor).map(mapper);
   }
 
-  default <R> Par<R> flatMap(Function1<T, Par<R>> mapper) {
+  default <R> Par<R> flatMap(Function1<? super T, ? extends Par<? extends R>> mapper) {
     return executor -> apply(executor).flatMap(value -> mapper.apply(value).apply(executor));
   }
 
+  // TODO
   default <R> Par<R> andThen(Par<R> next) {
     return map2(this, next, second());
   }
 
+  // TODO
   default <R> Par<R> ap(Par<Function1<T, R>> apply) {
     return executor -> apply(executor).ap(apply.apply(executor));
   }
 
-  default Par<T> filter(Matcher1<T> matcher) {
+  default Par<T> filter(Matcher1<? super T> matcher) {
     return executor -> apply(executor).filter(matcher);
   }
 
-  default Par<T> filterNot(Matcher1<T> matcher) {
+  default Par<T> filterNot(Matcher1<? super T> matcher) {
     return executor -> apply(executor).filterNot(matcher);
   }
 
-  default Par<T> recover(Function1<Throwable, T> recover) {
+  default Par<T> recover(Function1<? super Throwable, ? extends T> recover) {
     return fold(recover, identity());
   }
 
-  default <X extends Throwable> Par<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
+  default <X extends Throwable> Par<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
     return executor -> apply(executor).recoverWith(type, mapper);
   }
 
-  default <R> Par<R> fold(Function1<Throwable, R> failureMapper, Function1<T, R> successmapper) {
+  default <R> Par<R> fold(Function1<? super Throwable, ? extends R> failureMapper, Function1<? super T, ? extends R> successmapper) {
     return executor -> apply(executor).fold(failureMapper, successmapper);
   }
 
@@ -76,10 +78,11 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.failure(executor, error);
   }
 
-  static <T> Par<T> task(Producer<T> producer) {
+  static <T> Par<T> task(Producer<? extends T> producer) {
     return executor -> Future.task(executor, producer);
   }
 
+  // TODO:
   static <T> Par<T> defer(Producer<Par<T>> producer) {
     return executor -> Future.defer(executor, () -> producer.get().apply(executor));
   }
@@ -96,7 +99,7 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.sleep(executor, delay);
   }
 
-  static <A, B> Par<B> bracket(Par<A> acquire, Function1<A, Par<B>> use, Consumer1<A> release) {
+  static <A, B> Par<B> bracket(Par<? extends A> acquire, Function1<? super A, ? extends Par<? extends B>> use, Consumer1<? super A> release) {
     return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
   }
 

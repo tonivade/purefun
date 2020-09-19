@@ -75,21 +75,22 @@ public interface Future<T> extends FutureOf<T> {
   boolean isCompleted();
   boolean isCancelled();
 
-  Future<T> onSuccess(Consumer1<T> callback);
-  Future<T> onFailure(Consumer1<Throwable> callback);
-  Future<T> onComplete(Consumer1<Try<T>> callback);
+  Future<T> onSuccess(Consumer1<? super T> callback);
+  Future<T> onFailure(Consumer1<? super Throwable> callback);
+  Future<T> onComplete(Consumer1<? super Try<? extends T>> callback);
 
-  <R> Future<R> map(Function1<T, R> mapper);
+  <R> Future<R> map(Function1<? super T, ? extends R> mapper);
 
-  <R> Future<R> flatMap(Function1<T, Future<R>> mapper);
+  <R> Future<R> flatMap(Function1<? super T, ? extends Future<? extends R>> mapper);
 
-  <R> Future<R> andThen(Future<R> next);
+  <R> Future<R> andThen(Future<? extends R> next);
 
+  // TODO
   <R> Future<R> ap(Future<Function1<T, R>> apply);
 
-  Future<T> filter(Matcher1<T> matcher);
+  Future<T> filter(Matcher1<? super T> matcher);
 
-  default Future<T> filterNot(Matcher1<T> matcher) {
+  default Future<T> filterNot(Matcher1<? super T> matcher) {
     return filter(matcher.negate());
   }
 
@@ -103,7 +104,7 @@ public interface Future<T> extends FutureOf<T> {
     return getOrElse(Producer.cons(value));
   }
 
-  default T getOrElse(Producer<T> value) {
+  default T getOrElse(Producer<? extends T> value) {
     return await().getOrElse(value);
   }
 
@@ -111,7 +112,7 @@ public interface Future<T> extends FutureOf<T> {
     return await().getOrElseThrow();
   }
 
-  default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
+  default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
     return await().getOrElseThrow(producer);
   }
 
@@ -119,13 +120,13 @@ public interface Future<T> extends FutureOf<T> {
     return await().getCause();
   }
 
-  default Future<T> recover(Function1<Throwable, T> mapper) {
+  default Future<T> recover(Function1<? super Throwable, ? extends T> mapper) {
     return fold(mapper, identity());
   }
 
-  <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper);
+  <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper);
 
-  <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper);
+  <U> Future<U> fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper);
 
   default CompletableFuture<T> toCompletableFuture() {
     CompletableFuture<T> completableFuture = new CompletableFuture<>();
@@ -152,27 +153,27 @@ public interface Future<T> extends FutureOf<T> {
     return FutureImpl.sync(executor, Try.failure(error));
   }
 
-  static <T> Future<T> from(Callable<T> callable) {
+  static <T> Future<T> from(Callable<? extends T> callable) {
     return from(DEFAULT_EXECUTOR, callable);
   }
 
-  static <T> Future<T> from(Executor executor, Callable<T> callable) {
+  static <T> Future<T> from(Executor executor, Callable<? extends T> callable) {
     return task(executor, callable::call);
   }
 
-  static <T> Future<T> from(java.util.concurrent.Future<T> future) {
+  static <T> Future<T> from(java.util.concurrent.Future<? extends T> future) {
     return from(DEFAULT_EXECUTOR, future);
   }
 
-  static <T> Future<T> from(Executor executor, java.util.concurrent.Future<T> future) {
+  static <T> Future<T> from(Executor executor, java.util.concurrent.Future<? extends T> future) {
     return task(executor, future::get);
   }
 
-  static <T> Future<T> task(Producer<T> task) {
+  static <T> Future<T> task(Producer<? extends T> task) {
     return task(DEFAULT_EXECUTOR, task);
   }
 
-  static <T> Future<T> task(Executor executor, Producer<T> task) {
+  static <T> Future<T> task(Executor executor, Producer<? extends T> task) {
     return FutureImpl.task(executor, task.liftTry());
   }
 
@@ -184,11 +185,11 @@ public interface Future<T> extends FutureOf<T> {
     return task(executor, () -> { task.run(); return unit(); });
   }
 
-  static <T> Future<T> delay(Duration timeout, Producer<T> producer) {
+  static <T> Future<T> delay(Duration timeout, Producer<? extends T> producer) {
     return delay(DEFAULT_EXECUTOR, timeout, producer);
   }
 
-  static <T> Future<T> delay(Executor executor, Duration timeout, Producer<T> producer) {
+  static <T> Future<T> delay(Executor executor, Duration timeout, Producer<? extends T> producer) {
     return sleep(executor, timeout).flatMap(x -> task(executor, producer));
   }
 
@@ -204,31 +205,34 @@ public interface Future<T> extends FutureOf<T> {
     return defer(DEFAULT_EXECUTOR, producer);
   }
 
+  // TODO:
   static <T> Future<T> defer(Executor executor, Producer<Future<T>> producer) {
-    return async(executor, consumer -> producer.get().onComplete(consumer));
+    return task(executor, producer::get).flatMap(identity());
   }
 
   static <T extends AutoCloseable, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use) {
     return bracket(DEFAULT_EXECUTOR, acquire, use);
   }
 
-  static <T extends AutoCloseable, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use) {
+  static <T extends AutoCloseable, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use) {
     return FutureImpl.bracket(executor, acquire, use, AutoCloseable::close);
   }
 
-  static <T, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+  static <T, R> Future<R> bracket(Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
     return bracket(DEFAULT_EXECUTOR, acquire, use, release);
   }
 
-  static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+  static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
     return FutureImpl.bracket(executor, acquire, use, release);
   }
 
+  // TODO
   static <A> Future<Sequence<A>> traverse(Sequence<Future<A>> sequence) {
     return sequence.foldLeft(success(ImmutableList.empty()), 
         (Future<Sequence<A>> xs, Future<A> a) -> map2(xs, a, Sequence::append));
   }
   
+  // TODO
   static <T, V, R> Future<R> map2(Future<T> fa, Future<V> fb, Function2<T, V, R> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
@@ -237,10 +241,12 @@ public interface Future<T> extends FutureOf<T> {
     return map2(fa, fb, Tuple2::of);
   }
 
+  // TODO
   static <T> Future<T> async(Consumer1<Consumer1<Try<T>>> consumer) {
     return async(DEFAULT_EXECUTOR, consumer);
   }
 
+  // TODO
   static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
     return FutureImpl.async(executor, consumer);
   }
@@ -266,19 +272,19 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   @Override
-  public Future<T> onComplete(Consumer1<Try<T>> consumer) {
+  public Future<T> onComplete(Consumer1<? super Try<? extends T>> consumer) {
     promise.onComplete(consumer);
     return this;
   }
 
   @Override
-  public Future<T> onSuccess(Consumer1<T> consumer) {
+  public Future<T> onSuccess(Consumer1<? super T> consumer) {
     promise.onSuccess(consumer);
     return this;
   }
 
   @Override
-  public Future<T> onFailure(Consumer1<Throwable> consumer) {
+  public Future<T> onFailure(Consumer1<? super Throwable> consumer) {
     promise.onFailure(consumer);
     return this;
   }
@@ -304,21 +310,22 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   @Override
-  public <R> Future<R> map(Function1<T, R> mapper) {
+  public <R> Future<R> map(Function1<? super T, ? extends R> mapper) {
     return transform(value -> value.map(mapper));
   }
 
   @Override
-  public <R> Future<R> flatMap(Function1<T, Future<R>> mapper) {
+  public <R> Future<R> flatMap(Function1<? super T, ? extends Future<? extends R>> mapper) {
     return chain(value -> value.fold(e -> Future.failure(executor, e), mapper));
   }
 
   @Override
-  public <R> Future<R> andThen(Future<R> next) {
+  public <R> Future<R> andThen(Future<? extends R> next) {
     return flatMap(ignore -> next);
   }
   
   @Override
+  // TODO
   public <R> Future<R> ap(Future<Function1<T, R>> apply) {
     checkNonNull(apply);
     return new FutureImpl<>(executor, 
@@ -327,7 +334,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   @Override
-  public Future<T> filter(Matcher1<T> matcher) {
+  public Future<T> filter(Matcher1<? super T> matcher) {
     return transform(value -> value.filter(matcher));
   }
 
@@ -336,13 +343,14 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return chain(value -> value.fold(cons(other), t -> Future.success(executor, t)));
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
-    return transform(value -> value.recoverWith(type, mapper));
+  public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
+    return transform(value -> ((Try<T>) value).recoverWith(type, mapper));
   }
 
   @Override
-  public <U> Future<U> fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
+  public <U> Future<U> fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
     return transform(value -> Try.success(value.fold(failureMapper, successMapper)));
   }
 
@@ -360,14 +368,14 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return promise;
   }
 
-  private <R> Future<R> transform(Function1<Try<T>, Try<R>> mapper) {
+  private <R> Future<R> transform(Function1<? super Try<? extends T>, ? extends Try<? extends R>> mapper) {
     checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (p, c) ->
           promise.onComplete(value -> p.tryComplete(mapper.apply(value))), this::cancel);
   }
 
-  private <R> Future<R> chain(Function1<Try<T>, Future<R>> mapper) {
+  private <R> Future<R> chain(Function1<? super Try<? extends T>, ? extends Future<? extends R>> mapper) {
     checkNonNull(executor);
     checkNonNull(mapper);
     return new FutureImpl<>(executor,
@@ -375,13 +383,13 @@ final class FutureImpl<T> implements SealedFuture<T> {
           promise.onComplete(value -> mapper.apply(value).onComplete(p::tryComplete)), this::cancel);
   }
 
-  protected static <T> Future<T> sync(Executor executor, Try<T> result) {
+  protected static <T> Future<T> sync(Executor executor, Try<? extends T> result) {
     checkNonNull(executor);
     checkNonNull(result);
     return new FutureImpl<>(executor, (p, c) -> p.tryComplete(result));
   }
 
-  protected static <T> Future<T> task(Executor executor, Producer<Try<T>> producer) {
+  protected static <T> Future<T> task(Executor executor, Producer<? extends Try<? extends T>> producer) {
     checkNonNull(executor);
     checkNonNull(producer);
     return new FutureImpl<>(executor,
@@ -391,6 +399,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
           }));
   }
 
+  // TODO
   protected static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
@@ -401,7 +410,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
           }));
   }
 
-  protected static <T> Future<T> from(Executor executor, Promise<T> promise) {
+  protected static <T> Future<T> from(Executor executor, Promise<? extends T> promise) {
     checkNonNull(executor);
     checkNonNull(promise);
     return new FutureImpl<>(executor, (p, c) -> promise.onComplete(p::tryComplete));
@@ -413,14 +422,14 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return from(executor, FutureModule.sleep(executor, delay));
   }
 
-  protected static <T, R> Future<R> bracket(Executor executor, Future<T> acquire, Function1<T, Future<R>> use, Consumer1<T> release) {
+  protected static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
     checkNonNull(executor);
     checkNonNull(acquire);
     checkNonNull(use);
     checkNonNull(release);
     return new FutureImpl<>(executor,
         (p, c) -> acquire.onComplete(
-                resource -> resource.fold(e -> Future.failure(executor, e), use)
+                resource -> resource.fold(e -> Future.<R>failure(executor, e), use)
                   .onComplete(p::tryComplete)
                   .onComplete(result -> resource.onSuccess(release))));
   }

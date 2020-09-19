@@ -53,7 +53,7 @@ public interface Try<T> extends TryOf<T> {
     return new Failure<>(error);
   }
 
-  static <T> Try<T> of(Producer<T> supplier) {
+  static <T> Try<T> of(Producer<? extends T> supplier) {
     try {
       return success(supplier.get());
     } catch (Throwable error) {
@@ -61,11 +61,11 @@ public interface Try<T> extends TryOf<T> {
     }
   }
 
-  static <R> Try<R> fromEither(Either<Throwable, R> value) {
+  static <R> Try<R> fromEither(Either<? extends Throwable, ? extends R> value) {
     return value.fold(Try::failure, Try::success);
   }
 
-  static <A, B, Z> Try<Z> map2(Try<A> tryA, Try<B> tryB, Function2<A, B, Z> mapper) {
+  static <A, B, Z> Try<Z> map2(Try<A> tryA, Try<B> tryB, Function2<? super A, ? super B, ? extends Z> mapper) {
     return tryA.flatMap(a -> tryB.map(b -> mapper.apply(a, b)));
   }
 
@@ -80,35 +80,37 @@ public interface Try<T> extends TryOf<T> {
    */
   T get();
 
-  default <R> Try<R> map(Function1<T, R> mapper) {
+  @SuppressWarnings("unchecked")
+  default <R> Try<R> map(Function1<? super T, ? extends R> mapper) {
     if (isSuccess()) {
       return success(mapper.apply(get()));
     }
-    return failure(getCause());
+    return (Try<R>) this;
   }
 
-  default <R> Try<R> flatMap(Function1<T, Try<R>> mapper) {
+  @SuppressWarnings("unchecked")
+  default <R> Try<R> flatMap(Function1<? super T, ? extends Try<? extends R>> mapper) {
     if (isSuccess()) {
-      return mapper.apply(get());
+      return (Try<R>) mapper.apply(get());
     }
-    return failure(getCause());
+    return (Try<R>) this;
   }
 
-  default Try<T> onFailure(Consumer1<Throwable> consumer) {
+  default Try<T> onFailure(Consumer1<? super Throwable> consumer) {
     if (isFailure()) {
       consumer.accept(getCause());
     }
     return this;
   }
 
-  default Try<T> onSuccess(Consumer1<T> consumer) {
+  default Try<T> onSuccess(Consumer1<? super T> consumer) {
     if (isSuccess()) {
       consumer.accept(get());
     }
     return this;
   }
 
-  default Try<T> recover(Function1<Throwable, T> mapper) {
+  default Try<T> recover(Function1<? super Throwable, ? extends T> mapper) {
     if (isFailure()) {
       return Try.of(() -> mapper.apply(getCause()));
     }
@@ -116,7 +118,7 @@ public interface Try<T> extends TryOf<T> {
   }
 
   @SuppressWarnings("unchecked")
-  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<X, T> mapper) {
+  default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
     if (isFailure()) {
       Throwable cause = getCause();
       if (type.isAssignableFrom(cause.getClass())) {
@@ -126,22 +128,23 @@ public interface Try<T> extends TryOf<T> {
     return this;
   }
 
-  default Try<T> filter(Matcher1<T> matcher) {
+  default Try<T> filter(Matcher1<? super T> matcher) {
     return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
   }
 
-  default Try<T> filterNot(Matcher1<T> matcher) {
+  default Try<T> filterNot(Matcher1<? super T> matcher) {
     return filter(matcher.negate());
   }
 
-  default Try<T> filterOrElse(Matcher1<T> matcher, Producer<Try<T>> producer) {
+  @SuppressWarnings("unchecked")
+  default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Try<? extends T>> producer) {
     if (isFailure() || matcher.match(get())) {
       return this;
     }
-    return producer.get();
+    return (Try<T>) producer.get();
   }
 
-  default <U> U fold(Function1<Throwable, U> failureMapper, Function1<T, U> successMapper) {
+  default <U> U fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
     if (isSuccess()) {
       return successMapper.apply(get());
     }
@@ -163,7 +166,7 @@ public interface Try<T> extends TryOf<T> {
     return getOrElse(Producer.cons(null));
   }
 
-  default T getOrElse(Producer<T> producer) {
+  default T getOrElse(Producer<? extends T> producer) {
     return fold(producer.asFunction(), identity());
   }
 
@@ -171,7 +174,7 @@ public interface Try<T> extends TryOf<T> {
     return get();
   }
 
-  default <X extends Throwable> T getOrElseThrow(Producer<X> producer) throws X {
+  default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
     if (isSuccess()) {
       return get();
     }
@@ -194,7 +197,7 @@ public interface Try<T> extends TryOf<T> {
     return fold(Either::left, Either::right);
   }
 
-  default <E> Validation<E, T> toValidation(Function1<Throwable, E> map) {
+  default <E> Validation<E, T> toValidation(Function1<? super Throwable, ? extends E> map) {
     return fold(map.andThen(Validation::invalid), Validation::valid);
   }
 

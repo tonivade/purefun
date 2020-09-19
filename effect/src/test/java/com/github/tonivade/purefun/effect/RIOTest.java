@@ -109,14 +109,14 @@ public class RIOTest {
   }
 
   @Test
-  public void asyncRight(@Mock Consumer1<Try<Integer>> callback) {
+  public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("1").safeRunAsync(nothing(), callback);
 
     verify(callback, timeout(1000)).accept(Try.success(1));
   }
 
   @Test
-  public void asyncLeft(@Mock Consumer1<Try<Integer>> callback) {
+  public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("kjsdf").safeRunAsync(nothing(), callback);
 
     verify(callback, timeout(100)).accept(captor.capture());

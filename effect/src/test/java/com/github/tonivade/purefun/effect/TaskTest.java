@@ -111,14 +111,14 @@ public class TaskTest {
   }
 
   @Test
-  public void asyncRight(@Mock Consumer1<Try<Integer>> callback) {
+  public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("1").safeRunAsync(callback);
 
     verify(callback, timeout(100)).accept(Try.success(1));
   }
 
   @Test
-  public void asyncLeft(@Mock Consumer1<Try<Integer>> callback) {
+  public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(100)).accept(captor.capture());

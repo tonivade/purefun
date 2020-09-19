@@ -24,9 +24,9 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 @HigherKind(sealed = true)
 public interface Promise<T> extends PromiseOf<T> {
 
-  boolean tryComplete(Try<T> value);
+  boolean tryComplete(Try<? extends T> value);
 
-  default Promise<T> complete(Try<T> value) {
+  default Promise<T> complete(Try<? extends T> value) {
     if (tryComplete(value)) {
       return this;
     } else throw new IllegalStateException("promise already completed");
@@ -40,17 +40,17 @@ public interface Promise<T> extends PromiseOf<T> {
     return complete(Try.failure(error));
   }
 
-  Promise<T> onComplete(Consumer1<Try<T>> consumer);
+  Promise<T> onComplete(Consumer1<? super Try<? extends T>> consumer);
 
-  default Promise<T> onSuccess(Consumer1<T> consumer) {
+  default Promise<T> onSuccess(Consumer1<? super T> consumer) {
     return onComplete(value -> value.onSuccess(consumer));
   }
 
-  default Promise<T> onFailure(Consumer1<Throwable> consumer) {
+  default Promise<T> onFailure(Consumer1<? super Throwable> consumer) {
     return onComplete(value -> value.onFailure(consumer));
   }
   
-  <R> Promise<R> map(Function1<T, R> mapper);
+  <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
 
   Try<T> get();
   Try<T> get(Duration timeout);
@@ -85,8 +85,8 @@ public interface Promise<T> extends PromiseOf<T> {
 final class PromiseImpl<T> implements SealedPromise<T> {
 
   private final State state = new State();
-  private final Queue<Consumer1<Try<T>>> consumers = new LinkedList<>();
-  private final AtomicReference<Try<T>> reference = new AtomicReference<>();
+  private final Queue<Consumer1<? super Try<? extends T>>> consumers = new LinkedList<>();
+  private final AtomicReference<Try<? extends T>> reference = new AtomicReference<>();
 
   private final Executor executor;
 
@@ -95,7 +95,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   }
 
   @Override
-  public boolean tryComplete(Try<T> value) {
+  public boolean tryComplete(Try<? extends T> value) {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {
@@ -109,6 +109,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
     return false;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Try<T> get() {
     if (isEmpty()) {
@@ -123,9 +124,10 @@ final class PromiseImpl<T> implements SealedPromise<T> {
         }
       }
     }
-    return checkNonNull(reference.get());
+    return (Try<T>) checkNonNull(reference.get());
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Try<T> get(Duration timeout) {
     if (isEmpty()) {
@@ -140,7 +142,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
         }
       }
     }
-    return Option.of(reference::get).getOrElse(Try.failure(new TimeoutException()));
+    return (Try<T>) Option.of(reference::get).getOrElse(Try.failure(new TimeoutException()));
   }
 
   @Override
@@ -151,20 +153,21 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   }
 
   @Override
-  public Promise<T> onComplete(Consumer1<Try<T>> consumer) {
+  public Promise<T> onComplete(Consumer1<? super Try<? extends T>> consumer) {
     current(consumer).ifPresent(consumer);
     return this;
   }
   
   @Override
-  public <R> Promise<R> map(Function1<T, R> mapper) {
+  public <R> Promise<R> map(Function1<? super T, ? extends R> mapper) {
     Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> other.tryComplete(value.map(mapper)));
     return other;
   }
 
-  private Option<Try<T>> current(Consumer1<Try<T>> consumer) {
-    Try<T> current = reference.get();
+  @SuppressWarnings("unchecked")
+  private Option<Try<T>> current(Consumer1<? super Try<? extends T>> consumer) {
+    Try<? extends T> current = reference.get();
     if (isNull(current)) {
       synchronized (state) {
         current = reference.get();
@@ -173,15 +176,15 @@ final class PromiseImpl<T> implements SealedPromise<T> {
         }
       }
     }
-    return Option.of(current);
+    return Option.of((Try<T>) current);
   }
 
-  private void setValue(Try<T> value) {
+  private void setValue(Try<? extends T> value) {
     reference.set(value);
     consumers.forEach(consumer -> submit(value, consumer));
   }
 
-  private void submit(Try<T> value, Consumer1<Try<T>> consumer) {
+  private void submit(Try<? extends T> value, Consumer1<? super Try<? extends T>> consumer) {
     executor.execute(() -> consumer.accept(value));
   }
 

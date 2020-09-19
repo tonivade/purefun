@@ -61,11 +61,11 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return instance.toFuture(executor, nothing());
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<Try<Either<E, A>>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     instance.provideAsync(executor, nothing(), callback);
   }
 
-  public void safeRunAsync(Consumer1<Try<Either<E, A>>> callback) {
+  public void safeRunAsync(Consumer1<? super Try<? extends Either<E, A>>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 

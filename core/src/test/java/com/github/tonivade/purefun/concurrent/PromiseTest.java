@@ -59,7 +59,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void onCompleteBefore(@Mock Consumer1<Try<String>> consumer) {
+  public void onCompleteBefore(@Mock Consumer1<? super Try<? extends String>> consumer) {
     Try<String> value = Try.success("hola mundo!");
     Promise<String> promise = Promise.make();
 
@@ -70,7 +70,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void onCompleteAfter(@Mock Consumer1<Try<String>> consumer) {
+  public void onCompleteAfter(@Mock Consumer1<? super Try<? extends String>> consumer) {
     Try<String> value = Try.success("hola mundo!");
     Promise<String> promise = Promise.make();
 

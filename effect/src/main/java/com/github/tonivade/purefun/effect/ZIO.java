@@ -49,11 +49,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return Future.task(executor, () -> provide(env));
   }
 
-  default void provideAsync(R env, Consumer1<Try<Either<E, A>>> callback) {
+  default void provideAsync(R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
-  default void provideAsync(Executor executor, R env, Consumer1<Try<Either<E, A>>> callback) {
+  default void provideAsync(Executor executor, R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     toFuture(executor, env).onComplete(callback);
   }
 
