@@ -94,12 +94,15 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return instance.foldMap(nothing(), monad);
   }
 
-  public <B> UIO<B> map(Function1<A, B> map) {
+  public <B> UIO<B> map(Function1<? super A, ? extends B> map) {
     return new UIO<>(instance.map(map));
   }
 
-  public <B> UIO<B> flatMap(Function1<A, UIO<B>> map) {
-    return new UIO<>(instance.flatMap(x -> map.apply(x).instance));
+  public <B> UIO<B> flatMap(Function1<? super A, ? extends UIO<? extends B>> map) {
+    return new UIO<>(instance.flatMap(x -> {
+      UIO<? extends B> apply = map.apply(x);
+      return apply.instance;
+    }));
   }
 
   public <B> UIO<B> andThen(UIO<B> next) {

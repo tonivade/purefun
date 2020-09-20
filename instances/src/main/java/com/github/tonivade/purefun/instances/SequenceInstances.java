@@ -125,7 +125,7 @@ interface SequenceFunctor extends Functor<Sequence_> {
   SequenceFunctor INSTANCE = new SequenceFunctor() {};
 
   @Override
-  default <T, R> Kind<Sequence_, R> map(Kind<Sequence_, T> value, Function1<T, R> map) {
+  default <T, R> Kind<Sequence_, R> map(Kind<Sequence_, T> value, Function1<? super T, ? extends R> map) {
     return SequenceOf.narrowK(value).map(map);
   }
 }
@@ -187,7 +187,7 @@ interface SequenceTraverse extends Traverse<Sequence_>, SequenceFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Sequence_, R>> traverse(
       Applicative<G> applicative, Kind<Sequence_, T> value,
-      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+      Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return value.fix(toSequence()).foldLeft(
       applicative.pure(Sequence.<R>emptyList()),
       (acc, a) -> {

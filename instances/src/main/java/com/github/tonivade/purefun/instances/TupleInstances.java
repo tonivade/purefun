@@ -30,7 +30,7 @@ interface Tuple1Functor extends Functor<Tuple1_> {
   Tuple1Functor INSTANCE = new Tuple1Functor() {};
 
   @Override
-  default <T, R> Kind<Tuple1_, R> map(Kind<Tuple1_, T> value, Function1<T, R> map) {
+  default <T, R> Kind<Tuple1_, R> map(Kind<Tuple1_, T> value, Function1<? super T, ? extends R> map) {
     return value.fix(Tuple1Of::narrowK).map(map);
   }
 }

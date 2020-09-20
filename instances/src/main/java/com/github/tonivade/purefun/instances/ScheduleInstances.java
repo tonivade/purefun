@@ -27,7 +27,7 @@ interface ScheduleFunctor<F extends Witness, A> extends Functor<Kind<Kind<Schedu
   ScheduleFunctor INSTANCE = new ScheduleFunctor() {};
   
   @Override
-  default <T, R> Schedule<F, A, R> map(Kind<Kind<Kind<Schedule_, F>, A>, T> value, Function1<T, R> mapper) {
+  default <T, R> Schedule<F, A, R> map(Kind<Kind<Kind<Schedule_, F>, A>, T> value, Function1<? super T, ? extends R> mapper) {
     return value.fix(toSchedule()).map(mapper);
   }
 }

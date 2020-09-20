@@ -103,7 +103,7 @@ final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> map(Function1<T, R> mapper) {
+  public <R> Stream<F, R> map(Function1<? super T, ? extends R> mapper) {
     return lazyMap(s -> s.map(mapper));
   }
 

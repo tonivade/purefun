@@ -73,27 +73,33 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return instance.foldMap(nothing(), monad);
   }
 
-  public <B> EIO<E, B> map(Function1<A, B> map) {
+  public <B> EIO<E, B> map(Function1<? super A, ? extends B> map) {
     return new EIO<>(instance.map(map));
   }
 
-  public <B> EIO<E, B> flatMap(Function1<A, EIO<E, B>> map) {
-    return new EIO<>(instance.flatMap(value -> map.apply(value).instance));
+  public <B> EIO<E, B> flatMap(Function1<? super A, ? extends EIO<E, ? extends B>> map) {
+    return new EIO<>(instance.flatMap(value -> {
+      EIO<E, ? extends B> apply = map.apply(value);
+      return apply.instance;
+    }));
   }
 
   public EIO<A, E> swap() {
     return new EIO<>(instance.swap());
   }
 
-  public <B> EIO<B, A> mapError(Function1<E, B> map) {
+  public <B> EIO<B, A> mapError(Function1<? super E, ? extends B> map) {
     return new EIO<>(instance.mapError(map));
   }
 
-  public <F> EIO<F, A> flatMapError(Function1<E, EIO<F, A>> map) {
-    return new EIO<>(instance.flatMapError(error -> map.apply(error).instance));
+  public <F> EIO<F, A> flatMapError(Function1<? super E, ? extends EIO<F, ? extends A>> map) {
+    return new EIO<>(instance.flatMapError(error -> {
+      EIO<F, ? extends A> apply = map.apply(error);
+      return apply.instance;
+    }));
   }
 
-  public <B, F> EIO<F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
+  public <B, F> EIO<F, B> bimap(Function1<? super E, ? extends F> mapError, Function1<? super A, ? extends B> map) {
     return new EIO<>(instance.bimap(mapError, map));
   }
 

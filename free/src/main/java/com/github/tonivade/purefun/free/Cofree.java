@@ -6,14 +6,14 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.type.EvalOf.toEval;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Eval_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -46,14 +46,15 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
   }
 
   public Cofree<F, A> run() {
-    return of(functor, head, Eval.now(transformTail(Cofree::run).value()));
+    Eval<Kind<F, Cofree<F, A>>> transformTail = transformTail(Cofree::run);
+    return of(functor, head, Eval.now(transformTail.value()));
   }
 
-  public <B> Cofree<F, B> map(Function1<A, B> mapper) {
+  public <B> Cofree<F, B> map(Function1<? super A, ? extends B> mapper) {
     return transform(mapper, c -> c.map(mapper));
   }
 
-  public <B> Cofree<F, B> coflatMap(Function1<Cofree<F, A>, B> mapper) {
+  public <B> Cofree<F, B> coflatMap(Function1<? super Cofree<F, ? extends A>, ? extends B> mapper) {
     return of(functor, mapper.apply(this), transformTail(c -> c.coflatMap(mapper)));
   }
 
@@ -75,16 +76,17 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
     return reduce(applicative, traverse, String::valueOf, join);
   }
 
-  public <B> Cofree<F, B> transform(Function1<A, B> headMap, Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
+  public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
     return of(functor, transformHead(headMap), transformTail(tailMap));
   }
 
-  private <B> B transformHead(Function1<A, B> headMap) {
+  private <B> B transformHead(Function1<? super A, ? extends B> headMap) {
     return headMap.apply(head);
   }
 
-  private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(Function1<Cofree<F, A>, Cofree<F, B>> tailMap) {
-    return tail.map(t -> functor.map(t, tailMap));
+  @SuppressWarnings("unchecked")
+  private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
+    return tail.map(t -> functor.map(t, tailMap.andThen(x -> (Cofree<F, B>) x)));
   }
 
   public static <F extends Witness, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Kind<F, A>> unfold) {

@@ -83,7 +83,7 @@ interface OptionFunctor extends Functor<Option_> {
   OptionFunctor INSTANCE = new OptionFunctor() {};
 
   @Override
-  default <T, R> Kind<Option_, R> map(Kind<Option_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Option_, R> map(Kind<Option_, T> value, Function1<? super T, ? extends R> mapper) {
     return OptionOf.narrowK(value).map(mapper);
   }
 }
@@ -181,7 +181,7 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Option_, R>> traverse(
       Applicative<G> applicative, Kind<Option_, T> value,
-      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+      Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return value.fix(toOption()).fold(
         () -> applicative.pure(Option.<R>none().kind()),
         t -> {

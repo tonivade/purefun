@@ -58,7 +58,7 @@ interface IdFunctor extends Functor<Id_> {
   IdFunctor INSTANCE = new IdFunctor() {};
 
   @Override
-  default <T, R> Kind<Id_, R> map(Kind<Id_, T> value, Function1<T, R> map) {
+  default <T, R> Kind<Id_, R> map(Kind<Id_, T> value, Function1<? super T, ? extends R> map) {
     return IdOf.narrowK(value).map(map);
   }
 }
@@ -96,7 +96,7 @@ interface IdComonad extends IdFunctor, Comonad<Id_> {
   IdComonad INSTANCE = new IdComonad() {};
 
   @Override
-  default <A, B> Kind<Id_, B> coflatMap(Kind<Id_, A> value, Function1<Kind<Id_, A>, B> map) {
+  default <A, B> Kind<Id_, B> coflatMap(Kind<Id_, A> value, Function1<? super Kind<Id_, ? extends A>, ? extends B> map) {
     return Id.of(map.apply(value));
   }
 
@@ -128,7 +128,7 @@ interface IdTraverse extends Traverse<Id_>, IdFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Id_, R>> traverse(
       Applicative<G> applicative, Kind<Id_, T> value,
-      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+      Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     Kind<G, ? extends R> apply = mapper.apply(value.fix(toId()).get());
     return applicative.map(apply, a -> Id.of(a));
   }

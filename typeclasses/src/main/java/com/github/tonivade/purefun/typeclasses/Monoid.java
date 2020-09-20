@@ -49,8 +49,8 @@ interface MonoidInvariant extends Invariant<Monoid_> {
 
   @Override
   default <A, B> Kind<Monoid_, B> imap(Kind<Monoid_, A> value,
-                                           Function1<A, B> map,
-                                           Function1<B, A> comap) {
+                                       Function1<? super A, ? extends B> map,
+                                       Function1<? super B, ? extends A> comap) {
     return new Monoid<B>() {
 
       @Override

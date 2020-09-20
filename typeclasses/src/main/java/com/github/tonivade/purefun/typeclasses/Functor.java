@@ -10,14 +10,14 @@ import com.github.tonivade.purefun.Witness;
 
 public interface Functor<F extends Witness> extends Invariant<F> {
 
-  <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map);
+  <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map);
 
-  default <A, B> Function1<Kind<F, A>, Kind<F, B>> lift(Function1<A, B> function) {
+  default <A, B> Function1<Kind<F, A>, Kind<F, B>> lift(Function1<? super A, ? extends B> function) {
     return fa -> map(fa, function);
   }
 
   @Override
-  default <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<A, B> map, Function1<B, A> comap) {
+  default <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap) {
     return map(value, map);
   }
 

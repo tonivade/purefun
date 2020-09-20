@@ -77,7 +77,7 @@ interface EitherFunctor<L> extends Functor<Kind<Either_, L>> {
   EitherFunctor INSTANCE = new EitherFunctor() {};
 
   @Override
-  default <T, R> Either<L, R> map(Kind<Kind<Either_, L>, T> value, Function1<T, R> map) {
+  default <T, R> Either<L, R> map(Kind<Kind<Either_, L>, T> value, Function1<? super T, ? extends R> map) {
     return EitherOf.narrowK(value).map(map);
   }
 }
@@ -172,7 +172,7 @@ interface EitherTraverse<L> extends Traverse<Kind<Either_, L>>, EitherFoldable<L
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Kind<Either_, L>, R>> traverse(
       Applicative<G> applicative, Kind<Kind<Either_, L>, T> value,
-      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+      Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return EitherOf.narrowK(value).fold(
       l -> applicative.pure(Either.<L, R>left(l).kind()),
       t -> {

@@ -19,9 +19,11 @@ public interface Applicative<F extends Witness> extends Functor<F> {
 
   <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<T, R>> apply);
 
+  @SuppressWarnings("unchecked")
   @Override
-  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map) {
-    return ap(value, pure(map));
+  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map) {
+    // TODO: 
+    return ap(value, pure((Function1<T, R>) map));
   }
 
   default <A, B> Kind<F, Tuple2<A, B>> tuple(Kind<F, A> fa, Kind<F, B> fb) {

@@ -78,12 +78,15 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return instance.foldMap(env, monad);
   }
 
-  public <B> RIO<R, B> map(Function1<A, B> map) {
+  public <B> RIO<R, B> map(Function1<? super A, ? extends B> map) {
     return new RIO<>(instance.map(map));
   }
 
-  public <B> RIO<R, B> flatMap(Function1<A, RIO<R, B>> map) {
-    return new RIO<>(instance.flatMap(x -> map.apply(x).instance));
+  public <B> RIO<R, B> flatMap(Function1<? super A, ? extends RIO<R, ? extends B>> map) {
+    return new RIO<>(instance.flatMap(x -> {
+      RIO<R, ? extends B> apply = map.apply(x);
+      return apply.instance;
+    }));
   }
 
   public <B> RIO<R, B> andThen(RIO<R, B> next) {

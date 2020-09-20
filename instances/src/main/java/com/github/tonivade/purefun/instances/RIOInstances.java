@@ -60,7 +60,7 @@ interface RIOFunctor<R> extends Functor<Kind<RIO_, R>> {
 
   @Override
   default <A, B> RIO<R, B>
-          map(Kind<Kind<RIO_, R>, A> value, Function1<A, B> map) {
+          map(Kind<Kind<RIO_, R>, A> value, Function1<? super A, ? extends B> map) {
     return RIOOf.narrowK(value).map(map);
   }
 }

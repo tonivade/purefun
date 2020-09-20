@@ -59,11 +59,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   <F extends Witness> Kind<F, T> foldMap(Async<F> monad);
 
-  default <R> IO<R> map(Function1<T, R> map) {
+  default <R> IO<R> map(Function1<? super T, ? extends R> map) {
     return flatMap(map.andThen(IO::pure));
   }
 
-  default <R> IO<R> flatMap(Function1<T, IO<R>> map) {
+  default <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
     return new FlatMapped<>(Producer.cons(this), map);
   }
 
@@ -263,9 +263,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   final class FlatMapped<T, R> implements SealedIO<R> {
 
     private final Producer<IO<T>> current;
-    private final Function1<T, IO<R>> next;
+    private final Function1<? super T, ? extends IO<? extends R>> next;
 
-    protected FlatMapped(Producer<IO<T>> current, Function1<T, IO<R>> next) {
+    protected FlatMapped(Producer<IO<T>> current, Function1<? super T, ? extends IO<? extends R>> next) {
       this.current = checkNonNull(current);
       this.next = checkNonNull(next);
     }
@@ -275,14 +275,18 @@ public interface IO<T> extends IOOf<T>, Recoverable {
       return IOModule.evaluate(this);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
-      return monad.flatMap(current.get().foldMap(monad), next.andThen(io -> io.foldMap(monad)));
+      // TODO:
+      Kind<F, T> foldMap = current.get().foldMap(monad);
+      Function1<T, Kind<F, R>> andThen = (Function1<T, Kind<F, R>>) next.andThen((IO<? extends R> io) -> (Kind<F, R>) io.foldMap(monad));
+      return monad.flatMap(foldMap, andThen);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R1> IO<R1> flatMap(Function1<R, IO<R1>> map) {
+    public <R1> IO<R1> flatMap(Function1<? super R, ? extends IO<? extends R1>> map) {
       return new FlatMapped<>(() -> (IO<R>) start(), r -> new FlatMapped<>(() -> run((T) r), map::apply));
     }
 
@@ -295,8 +299,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
       return current.get();
     }
 
+    @SuppressWarnings("unchecked")
     protected IO<R> run(T value) {
-      return next.apply(value);
+      return (IO<R>) next.apply(value);
     }
   }
 
@@ -320,13 +325,13 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> map(Function1<T, R> map) {
+    public <R> IO<R> map(Function1<? super T, ? extends R> map) {
       return (IO<R>) this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<T, IO<R>> map) {
+    public <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
       return (IO<R>) this;
     }
 
@@ -400,7 +405,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <R> IO<R> flatMap(Function1<T, IO<R>> map) {
+    public <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
       return new FlatMapped<>(lazy::get, map::apply);
     }
 

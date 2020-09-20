@@ -83,12 +83,15 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return instance.foldMap(env, monad);
   }
 
-  public <B> URIO<R, B> map(Function1<A, B> map) {
+  public <B> URIO<R, B> map(Function1<? super A, ? extends B> map) {
     return new URIO<>(instance.map(map));
   }
 
-  public <B> URIO<R, B> flatMap(Function1<A, URIO<R, B>> map) {
-    return new URIO<>(instance.flatMap(x -> map.apply(x).instance));
+  public <B> URIO<R, B> flatMap(Function1<? super A, ? extends URIO<R, ? extends B>> map) {
+    return new URIO<>(instance.flatMap(x -> {
+      URIO<R, ? extends B> apply = map.apply(x);
+      return apply.instance;
+    }));
   }
 
   public <B> URIO<R, B> andThen(URIO<R, B> next) {

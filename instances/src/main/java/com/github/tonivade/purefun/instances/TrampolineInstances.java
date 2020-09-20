@@ -39,7 +39,7 @@ interface TrampolineFunctor extends Functor<Trampoline_> {
   TrampolineFunctor INSTANCE = new TrampolineFunctor() {};
 
   @Override
-  default <T, R> Kind<Trampoline_, R> map(Kind<Trampoline_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Trampoline_, R> map(Kind<Trampoline_, T> value, Function1<? super T, ? extends R> mapper) {
     return TrampolineOf.narrowK(value).map(mapper);
   }
 }

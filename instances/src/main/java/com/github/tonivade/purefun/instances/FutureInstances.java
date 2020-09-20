@@ -81,7 +81,7 @@ interface FutureFunctor extends Functor<Future_> {
   FutureFunctor INSTANCE = new FutureFunctor() {};
 
   @Override
-  default <T, R> Kind<Future_, R> map(Kind<Future_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Future_, R> map(Kind<Future_, T> value, Function1<? super T, ? extends R> mapper) {
     return value.fix(toFuture()).map(mapper);
   }
 }

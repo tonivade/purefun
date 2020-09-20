@@ -66,7 +66,7 @@ interface ParFunctor extends Functor<Par_> {
   ParFunctor INSTANCE = new ParFunctor() {};
 
   @Override
-  default <T, R> Par<R> map(Kind<Par_, T> value, Function1<T, R> mapper) {
+  default <T, R> Par<R> map(Kind<Par_, T> value, Function1<? super T, ? extends R> mapper) {
     return value.fix(ParOf::narrowK).map(mapper);
   }
 }

@@ -70,7 +70,7 @@ interface TryFunctor extends Functor<Try_> {
   TryFunctor INSTANCE = new TryFunctor() {};
 
   @Override
-  default <T, R> Kind<Try_, R> map(Kind<Try_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Try_, R> map(Kind<Try_, T> value, Function1<? super T, ? extends R> mapper) {
     return TryOf.narrowK(value).map(mapper);
   }
 }
@@ -148,7 +148,7 @@ interface TryTraverse extends Traverse<Try_>, TryFoldable {
   @Override
   default <G extends Witness, T, R> Kind<G, Kind<Try_, R>> traverse(
       Applicative<G> applicative, Kind<Try_, T> value,
-      Function1<T, ? extends Kind<G, ? extends R>> mapper) {
+      Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return TryOf.narrowK(value).fold(
         t -> applicative.pure(Try.<R>failure(t).kind()),
         t -> {

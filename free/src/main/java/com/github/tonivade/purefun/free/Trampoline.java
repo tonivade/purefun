@@ -20,7 +20,7 @@ public interface Trampoline<T> extends TrampolineOf<T> {
 
   T get();
 
-  default <R> Trampoline<R> map(Function1<T, R> map) {
+  default <R> Trampoline<R> map(Function1<? super T, ? extends R> map) {
     return TrampolineModule.resume(this)
         .fold(next -> more(() -> next.map(map)),
               value -> done(map.apply(value)));

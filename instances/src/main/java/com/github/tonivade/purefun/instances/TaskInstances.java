@@ -71,8 +71,7 @@ interface TaskFunctor extends Functor<Task_> {
   TaskFunctor INSTANCE = new TaskFunctor() {};
 
   @Override
-  default <A, B> Task<B>
-          map(Kind<Task_, A> value, Function1<A, B> map) {
+  default <A, B> Task<B> map(Kind<Task_, A> value, Function1<? super A, ? extends B> map) {
     return TaskOf.narrowK(value).map(map);
   }
 }

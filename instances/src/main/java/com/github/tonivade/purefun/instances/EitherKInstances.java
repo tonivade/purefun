@@ -4,6 +4,8 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.free.EitherKOf.toEitherK;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -73,7 +75,7 @@ interface EitherKFunctor<F extends Witness, G extends Witness> extends Functor<K
 
   @Override
   default <T, R> EitherK<F, G, R> map(
-      Kind<Kind<Kind<EitherK_, F>, G>, T> value, Function1<T, R> map) {
+      Kind<Kind<Kind<EitherK_, F>, G>, T> value, Function1<? super T, ? extends R> map) {
     return value.fix(EitherKOf::narrowK).map(f(), g(), map);
   }
 }
@@ -96,8 +98,8 @@ interface EitherKContravariant<F extends Witness, G extends Witness>
 
   @Override
   default <A, B> EitherK<F, G, B> contramap(
-      Kind<Kind<Kind<EitherK_, F>, G>, A> value, Function1<B, A> map) {
-    return value.fix(EitherKOf::narrowK).contramap(f(), g(), map);
+      Kind<Kind<Kind<EitherK_, F>, G>, A> value, Function1<? super B, ? extends A> map) {
+    return value.fix(toEitherK()).contramap(f(), g(), map);
   }
 }
 
@@ -121,7 +123,7 @@ interface EitherKComonad<F extends Witness, G extends Witness>
   @Override
   default <A, B> EitherK<F, G, B> coflatMap(
       Kind<Kind<Kind<EitherK_, F>, G>, A> value,
-      Function1<Kind<Kind<Kind<EitherK_, F>, G>, A>, B> map) {
+      Function1<? super Kind<Kind<Kind<EitherK_, F>, G>, ? extends A>, ? extends B> map) {
     return value.fix(EitherKOf::narrowK).coflatMap(f(), g(), eitherK -> map.apply(eitherK));
   }
 

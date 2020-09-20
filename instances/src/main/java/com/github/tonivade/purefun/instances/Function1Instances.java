@@ -47,7 +47,7 @@ interface Function1Functor<T> extends Functor<Kind<Function1_, T>> {
   Function1Functor INSTANCE = new Function1Functor() {};
 
   @Override
-  default <A, R> Function1<T, R> map(Kind<Kind<Function1_, T>, A> value, Function1<A, R> map) {
+  default <A, R> Function1<T, R> map(Kind<Kind<Function1_, T>, A> value, Function1<? super A, ? extends R> map) {
     Function1<T, A> function = value.fix(Function1Of::narrowK);
     return function.andThen(map);
   }
@@ -92,7 +92,7 @@ interface Function1Contravariant<R> extends Contravariant<Conested<Function1_, R
   Function1Contravariant INSTANCE = new Function1Contravariant() {};
 
   @Override
-  default <A, B> Kind<Conested<Function1_, R>, B> contramap(Kind<Conested<Function1_, R>, A> value, Function1<B, A> map) {
+  default <A, B> Kind<Conested<Function1_, R>, B> contramap(Kind<Conested<Function1_, R>, A> value, Function1<? super B, ? extends A> map) {
     Function1<A, R> function = counnest(value).fix(Function1Of::narrowK);
     return conest(function.compose(map));
   }

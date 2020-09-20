@@ -55,7 +55,7 @@ interface EvalFunctor extends Functor<Eval_> {
   EvalFunctor INSTANCE = new EvalFunctor() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> map(Kind<Eval_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Eval_, R> map(Kind<Eval_, T> value, Function1<? super T, ? extends R> mapper) {
     return EvalOf.narrowK(value).map(mapper);
   }
 }
@@ -115,7 +115,7 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval_> {
   EvalComonad INSTANCE = new EvalComonad() {};
 
   @Override
-  default <A, B> Kind<Eval_, B> coflatMap(Kind<Eval_, A> value, Function1<Kind<Eval_, A>, B> map) {
+  default <A, B> Kind<Eval_, B> coflatMap(Kind<Eval_, A> value, Function1<? super Kind<Eval_, ? extends A>, ? extends B> map) {
     return Eval.later(() -> map.apply(value));
   }
 

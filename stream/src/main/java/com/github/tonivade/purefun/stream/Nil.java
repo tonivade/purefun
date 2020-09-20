@@ -100,7 +100,7 @@ final class Nil<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> map(Function1<T, R> map) {
+  public <R> Stream<F, R> map(Function1<? super T, ? extends R> map) {
     return new Nil<>(monad);
   }
 

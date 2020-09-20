@@ -44,7 +44,7 @@ public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
   
   Timer<F> timer();
 
-  <C> Schedule<F, A, C> map(Function1<B, C> mapper);
+  <C> Schedule<F, A, C> map(Function1<? super B, ? extends C> mapper);
 
   <C> Schedule<F, C, B> contramap(Function1<C, A> comap);
 
@@ -252,7 +252,7 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements SealedSchedul
   }
 
   @Override
-  public <C> Schedule<F, A, C> map(Function1<B, C> mapper) {
+  public <C> Schedule<F, A, C> map(Function1<? super B, ? extends C> mapper) {
     return ScheduleImpl.of(
       monad,
       timer,

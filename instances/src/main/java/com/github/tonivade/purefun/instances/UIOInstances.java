@@ -57,7 +57,7 @@ interface UIOFunctor extends Functor<UIO_> {
   UIOFunctor INSTANCE = new UIOFunctor() {};
 
   @Override
-  default <A, B> UIO<B> map(Kind<UIO_, A> value, Function1<A, B> map) {
+  default <A, B> UIO<B> map(Kind<UIO_, A> value, Function1<? super A, ? extends B> map) {
     return UIOOf.narrowK(value).map(map);
   }
 }

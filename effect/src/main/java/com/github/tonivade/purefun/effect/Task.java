@@ -84,12 +84,15 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return instance.foldMap(nothing(), monad);
   }
 
-  public <B> Task<B> map(Function1<A, B> map) {
+  public <B> Task<B> map(Function1<? super A, ? extends B> map) {
     return flatMap(lift(map));
   }
 
-  public <B> Task<B> flatMap(Function1<A, Task<B>> map) {
-    return new Task<>(instance.flatMap(value -> map.apply(value).instance));
+  public <B> Task<B> flatMap(Function1<? super A, ? extends Task<? extends B>> map) {
+    return new Task<>(instance.flatMap(value -> {
+      Task<? extends B> apply = map.apply(value);
+      return apply.instance;
+    }));
   }
 
   public <B> Task<B> andThen(Task<B> next) {

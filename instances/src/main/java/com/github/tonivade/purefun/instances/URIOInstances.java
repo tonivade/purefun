@@ -61,8 +61,7 @@ interface URIOFunctor<R> extends Functor<Kind<URIO_, R>> {
   URIOFunctor INSTANCE = new URIOFunctor() {};
 
   @Override
-  default <A, B> URIO<R, B>
-          map(Kind<Kind<URIO_, R>, A> value, Function1<A, B> map) {
+  default <A, B> URIO<R, B> map(Kind<Kind<URIO_, R>, A> value, Function1<? super A, ? extends B> map) {
     return URIOOf.narrowK(value).map(map);
   }
 }

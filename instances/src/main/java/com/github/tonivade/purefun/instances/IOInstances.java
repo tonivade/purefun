@@ -65,7 +65,7 @@ interface IOFunctor extends Functor<IO_> {
   IOFunctor INSTANCE = new IOFunctor() {};
 
   @Override
-  default <T, R> Kind<IO_, R> map(Kind<IO_, T> value, Function1<T, R> map) {
+  default <T, R> Kind<IO_, R> map(Kind<IO_, T> value, Function1<? super T, ? extends R> map) {
     return value.fix(toIO()).map(map);
   }
 }

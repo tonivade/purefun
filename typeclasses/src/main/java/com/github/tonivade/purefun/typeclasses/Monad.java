@@ -30,9 +30,12 @@ public interface Monad<F extends Witness> extends Selective<F> {
     return flatMap(value, identity());
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map) {
-    return flatMap(value, map.andThen(this::<R>pure));
+  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map) {
+    // TODO:
+    Function1<T, ? extends Kind<F, R>> andThen = (Function1<T, ? extends Kind<F, R>>) map.andThen(this::<R>pure);
+    return flatMap(value, andThen);
   }
 
   @Override

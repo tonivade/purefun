@@ -31,8 +31,8 @@ public class ComonadLaws {
   }
 
   private static <F extends Witness, A, B> void mapCoflatMapCoherence(Comonad<F> comonad,
-                                                                   Kind<F, A> value,
-                                                                   Function1<A, B> f) {
+                                                                      Kind<F, A> value,
+                                                                      Function1<? super A, ? extends B> f) {
     assertEquals(
         comonad.map(value, f),
         comonad.coflatMap(value, f.compose(comonad::extract)),
@@ -45,7 +45,7 @@ public class ComonadLaws {
 
   private static <F extends Witness, A, B> void comonadRightIdentity(Comonad<F> comonad,
                                                                   Kind<F, A> value,
-                                                                  Function1<Kind<F, A>, B> f) {
+                                                                  Function1<? super Kind<F, ? extends A>, ? extends B> f) {
     assertEquals(
         comonad.extract(comonad.coflatMap(value, f)),
         f.apply(value),

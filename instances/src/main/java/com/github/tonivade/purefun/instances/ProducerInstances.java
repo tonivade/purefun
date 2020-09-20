@@ -38,7 +38,7 @@ interface ProducerFunctor extends Functor<Producer_> {
   ProducerFunctor INSTANCE = new ProducerFunctor() {};
 
   @Override
-  default <T, R> Kind<Producer_, R> map(Kind<Producer_, T> value, Function1<T, R> mapper) {
+  default <T, R> Kind<Producer_, R> map(Kind<Producer_, T> value, Function1<? super T, ? extends R> mapper) {
     return value.fix(ProducerOf::<T>narrowK).map(mapper);
   }
 }
@@ -76,7 +76,7 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer_> {
   ProducerComonad INSTANCE = new ProducerComonad() {};
 
   @Override
-  default <A, B> Kind<Producer_, B> coflatMap(Kind<Producer_, A> value, Function1<Kind<Producer_, A>, B> map) {
+  default <A, B> Kind<Producer_, B> coflatMap(Kind<Producer_, A> value, Function1<? super Kind<Producer_, ? extends A>, ? extends B> map) {
     return Producer.cons(map.apply(value));
   }
 

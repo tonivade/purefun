@@ -70,7 +70,7 @@ interface ValidationFunctor<E> extends Functor<Kind<Validation_, E>> {
   ValidationFunctor INSTANCE = new ValidationFunctor() {};
 
   @Override
-  default <T, R> Validation<E, R> map(Kind<Kind<Validation_, E>, T> value, Function1<T, R> map) {
+  default <T, R> Validation<E, R> map(Kind<Kind<Validation_, E>, T> value, Function1<? super T, ? extends R> map) {
     return ValidationOf.narrowK(value).map(map);
   }
 }

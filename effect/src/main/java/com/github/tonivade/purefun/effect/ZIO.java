@@ -63,27 +63,29 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Swap<>(this);
   }
 
-  default <B> ZIO<R, E, B> map(Function1<A, B> map) {
+  default <B> ZIO<R, E, B> map(Function1<? super A, ? extends B> map) {
     return flatMap(map.andThen(ZIO::pure));
   }
 
-  default <B> ZIO<R, B, A> mapError(Function1<E, B> map) {
+  default <B> ZIO<R, B, A> mapError(Function1<? super E, ? extends B> map) {
     return flatMapError(map.andThen(ZIO::raiseError));
   }
 
-  default <B, F> ZIO<R, F, B> bimap(Function1<E, F> mapError, Function1<A, B> map) {
+  default <B, F> ZIO<R, F, B> bimap(Function1<? super E, ? extends F> mapError, Function1<? super A, ? extends B> map) {
     return biflatMap(mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
   }
 
-  default <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
+  default <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends ZIO<R, E, ? extends B>> map) {
     return biflatMap(ZIO::<R, E, B>raiseError, map);
   }
 
-  default <F> ZIO<R, F, A> flatMapError(Function1<E, ZIO<R, F, A>> map) {
+  default <F> ZIO<R, F, A> flatMapError(Function1<? super E, ? extends ZIO<R, F, ? extends A>> map) {
     return biflatMap(map, ZIO::<R, F, A>pure);
   }
 
-  default <F, B> ZIO<R, F, B> biflatMap(Function1<E, ZIO<R, F, B>> left, Function1<A, ZIO<R, F, B>> right) {
+  default <F, B> ZIO<R, F, B> biflatMap(
+      Function1<? super E, ? extends ZIO<R, F, ? extends B>> left, 
+      Function1<? super A, ? extends ZIO<R, F, ? extends B>> right) {
     return new FlatMapped<>(cons(this), left, right);
   }
 
@@ -384,12 +386,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   final class FlatMapped<R, E, A, F, B> implements SealedZIO<R, F, B> {
 
     private final Producer<ZIO<R, E, A>> current;
-    private final Function1<E, ZIO<R, F, B>> nextError;
-    private final Function1<A, ZIO<R, F, B>> next;
+    private final Function1<? super E, ? extends ZIO<R, F, ? extends B>> nextError;
+    private final Function1<? super A, ? extends ZIO<R, F, ? extends B>> next;
 
     protected FlatMapped(Producer<ZIO<R, E, A>> current,
-                         Function1<E, ZIO<R, F, B>> nextError,
-                         Function1<A, ZIO<R, F, B>> next) {
+                         Function1<? super E, ? extends ZIO<R, F, ? extends B>> nextError,
+                         Function1<? super A, ? extends ZIO<R, F, ? extends B>> next) {
       this.current = checkNonNull(current);
       this.nextError = checkNonNull(nextError);
       this.next = checkNonNull(next);
@@ -402,7 +404,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <F1, B1> ZIO<R, F1, B1> biflatMap(Function1<F, ZIO<R, F1, B1>> left, Function1<B, ZIO<R, F1, B1>> right) {
+    public <F1, B1> ZIO<R, F1, B1> biflatMap(
+        Function1<? super F, ? extends ZIO<R, F1, ? extends B1>> left, 
+        Function1<? super B, ? extends ZIO<R, F1, ? extends B1>> right) {
       return new FlatMapped<>(
           () -> (ZIO<R, F, B>) start(),
           f -> new FlatMapped<>(
@@ -412,13 +416,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <X extends Witness> Kind<X, B> foldMap(R env, Async<X> monad) {
       Kind<X, A> foldMap = current.get().foldMap(env, monad);
       Kind<X, Either<Throwable, A>> attempt = monad.attempt(foldMap);
       Kind<X, ZIO<R, F, B>> map =
           monad.map(attempt, 
-              either -> either.bimap(error -> nextError.apply(unwrap(error)), next).fold(identity(), identity()));
+              either -> (ZIO<R, F, B>) either.bimap(error -> nextError.apply(unwrap(error)), next).fold(identity(), identity()));
       return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 
@@ -431,8 +436,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       return current.get();
     }
 
+    @SuppressWarnings("unchecked")
     protected ZIO<R, F, B> run(Either<E, A> value) {
-      return value.bimap(nextError, next).fold(identity(), identity());
+      return (ZIO<R, F, B>) value.bimap(nextError, next).fold(identity(), identity());
     }
   }
 
@@ -475,7 +481,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <B> ZIO<R, E, B> flatMap(Function1<A, ZIO<R, E, B>> map) {
+    public <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends ZIO<R, E, ? extends B>> map) {
       return new FlatMapped<>(lazy::get, ZIO::raiseError, map::apply);
     }
 

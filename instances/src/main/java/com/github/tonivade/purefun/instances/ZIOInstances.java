@@ -65,8 +65,7 @@ interface ZIOFunctor<R, E> extends Functor<Kind<Kind<ZIO_, R>, E>> {
   ZIOFunctor INSTANCE = new ZIOFunctor() {};
 
   @Override
-  default <A, B> ZIO<R, E, B>
-          map(Kind<Kind<Kind<ZIO_, R>, E>, A> value, Function1<A, B> map) {
+  default <A, B> ZIO<R, E, B> map(Kind<Kind<Kind<ZIO_, R>, E>, A> value, Function1<? super A, ? extends B> map) {
     return ZIOOf.narrowK(value).map(map);
   }
 }

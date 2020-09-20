@@ -61,7 +61,7 @@ interface EIOFunctor<E> extends Functor<Kind<EIO_, E>> {
 
   @Override
   default <A, B> EIO<E, B>
-          map(Kind<Kind<EIO_, E>, A> value, Function1<A, B> map) {
+          map(Kind<Kind<EIO_, E>, A> value, Function1<? super A, ? extends B> map) {
     return EIOOf.narrowK(value).map(map);
   }
 }

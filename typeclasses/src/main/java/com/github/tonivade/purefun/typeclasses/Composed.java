@@ -19,7 +19,7 @@ interface ComposedFunctor<F extends Witness, G extends Witness> extends Functor<
   Functor<G> g();
 
   @Override
-  default <T, R> Kind<Nested<F, G>, R> map(Kind<Nested<F, G>, T> value, Function1<T, R> map) {
+  default <T, R> Kind<Nested<F, G>, R> map(Kind<Nested<F, G>, T> value, Function1<? super T, ? extends R> map) {
     return nest(f().map(unnest(value), ga -> g().map(ga, map)));
   }
 }
@@ -80,7 +80,7 @@ interface ComposedTraverse<F extends Witness, G extends Witness> extends Travers
 
   @Override
   default <H extends Witness, T, R> Kind<H, Kind<Nested<F, G>, R>> traverse(Applicative<H> applicative,
-      Kind<Nested<F, G>, T> value, Function1<T, ? extends Kind<H, ? extends R>> mapper) {
+      Kind<Nested<F, G>, T> value, Function1<? super T, ? extends Kind<H, ? extends R>> mapper) {
     return applicative.map(
         f().traverse(applicative, unnest(value), ga -> g().traverse(applicative, ga, mapper)),
         Nested::nest);
@@ -110,8 +110,8 @@ interface ComposedInvariant<F extends Witness, G extends Witness> extends Invari
 
   @Override
   default <A, B> Kind<Nested<F, G>, B> imap(Kind<Nested<F, G>, A> value,
-                                               Function1<A, B> map,
-                                               Function1<B, A> comap) {
+                                            Function1<? super A, ? extends B> map,
+                                            Function1<? super B, ? extends A> comap) {
     Function1<Kind<G, A>, Kind<G, B>> map2 = ga -> g().imap(ga, map, comap);
     Function1<Kind<G, B>, Kind<G, A>> comap2 = gb -> g().imap(gb, comap, map);
     return nest(f().imap(unnest(value), map2, comap2));
@@ -125,8 +125,8 @@ interface ComposedInvariantCovariant<F extends Witness, G extends Witness> exten
 
   @Override
   default <A, B> Kind<Nested<F, G>, B> imap(Kind<Nested<F, G>, A> value,
-                                               Function1<A, B> map,
-                                               Function1<B, A> comap) {
+                                            Function1<? super A, ? extends B> map,
+                                            Function1<? super B, ? extends A> comap) {
     Function1<Kind<G, A>, Kind<G, B>> map2 = ga -> g().map(ga, map);
     Function1<Kind<G, B>, Kind<G, A>> comap2 = gb -> g().map(gb, comap);
     return nest(f().imap(unnest(value), map2, comap2));
@@ -140,8 +140,8 @@ interface ComposedInvariantContravariant<F extends Witness, G extends Witness> e
 
   @Override
   default <A, B> Kind<Nested<F, G>, B> imap(Kind<Nested<F, G>, A> value,
-                                               Function1<A, B> map,
-                                               Function1<B, A> comap) {
+                                            Function1<? super A, ? extends B> map,
+                                            Function1<? super B, ? extends A> comap) {
     Function1<Kind<G, A>, Kind<G, B>> map2 = ga -> g().contramap(ga, comap);
     Function1<Kind<G, B>, Kind<G, A>> comap2 = gb -> g().contramap(gb, map);
     return nest(f().imap(unnest(value), map2, comap2));
@@ -154,7 +154,7 @@ interface ComposedCovariantContravariant<F extends Witness, G extends Witness> e
   Contravariant<G> g();
 
   @Override
-  default <A, B> Kind<Nested<F, G>, B> contramap(Kind<Nested<F, G>, A> value, Function1<B, A> map) {
+  default <A, B> Kind<Nested<F, G>, B> contramap(Kind<Nested<F, G>, A> value, Function1<? super B, ? extends A> map) {
     return nest(f().map(unnest(value), ga -> g().contramap(ga, map)));
   }
 }
@@ -165,7 +165,7 @@ interface ComposedContravariant<F extends Witness, G extends Witness> extends Fu
   Contravariant<G> g();
 
   @Override
-  default <A, B> Kind<Nested<F, G>, B> map(Kind<Nested<F, G>, A> value, Function1<A, B> map) {
+  default <A, B> Kind<Nested<F, G>, B> map(Kind<Nested<F, G>, A> value, Function1<? super A, ? extends B> map) {
     return nest(f().contramap(unnest(value), gb -> g().contramap(gb, map)));
   }
 }
@@ -176,7 +176,7 @@ interface ComposedContravariantCovariant<F extends Witness, G extends Witness> e
   Functor<G> g();
 
   @Override
-  default <A, B> Kind<Nested<F, G>, B> contramap(Kind<Nested<F, G>, A> value, Function1<B, A> map) {
+  default <A, B> Kind<Nested<F, G>, B> contramap(Kind<Nested<F, G>, A> value, Function1<? super B, ? extends A> map) {
     return nest(f().contramap(unnest(value), gb -> g().map(gb, map)));
   }
 }

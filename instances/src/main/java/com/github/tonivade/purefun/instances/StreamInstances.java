@@ -68,7 +68,7 @@ interface StreamFunctor<F extends Witness> extends Functor<Kind<Stream_, F>> {
   StreamFunctor INSTANCE = new StreamFunctor() {};
 
   @Override
-  default <T, R> Stream<F, R> map(Kind<Kind<Stream_, F>, T> value, Function1<T, R> mapper) {
+  default <T, R> Stream<F, R> map(Kind<Kind<Stream_, F>, T> value, Function1<? super T, ? extends R> mapper) {
     return StreamOf.narrowK(value).map(mapper);
   }
 }
