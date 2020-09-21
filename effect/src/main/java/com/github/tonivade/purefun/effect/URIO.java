@@ -236,12 +236,16 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return fold(ZIO.async(consumer));
   }
 
-  public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(URIO<R, A> acquire, Function1<A, URIO<R, B>> use) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance)));
+  public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(
+      URIO<R, ? extends A> acquire, Function1<? super A, ? extends URIO<R, ? extends B>> use) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance)));
   }
 
-  public static <R, A, B> URIO<R, B> bracket(URIO<R, A> acquire, Function1<A, URIO<R, B>> use, Consumer1<A> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance), release));
+  public static <R, A, B> URIO<R, B> bracket(URIO<R, ? extends A> acquire, 
+      Function1<? super A, ? extends URIO<R, ? extends B>> use, Consumer1<? super A> release) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release));
   }
 
   @SuppressWarnings("unchecked")

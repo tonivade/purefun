@@ -135,7 +135,9 @@ interface ParBracket extends Bracket<Par_, Throwable> {
 
   @Override
   default <A, B> Par<B> bracket(
-      Kind<Par_, A> acquire, Function1<A, ? extends Kind<Par_, B>> use, Consumer1<A> release) {
+      Kind<Par_, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<Par_, ? extends B>> use, 
+      Consumer1<? super A> release) {
     return Par.bracket(ParOf.narrowK(acquire), use.andThen(ParOf::narrowK), release);
   }
 }

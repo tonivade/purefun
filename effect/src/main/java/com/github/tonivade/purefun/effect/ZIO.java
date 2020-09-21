@@ -293,14 +293,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Sleep<>(delay);
   }
 
-  static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, A> acquire,
-                                                                 Function1<A, ZIO<R, E, B>> use) {
+  static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
+                                                                 Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
     return new Bracket<>(acquire, use, AutoCloseable::close);
   }
 
-  static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, A> acquire,
-                                           Function1<A, ZIO<R, E, B>> use,
-                                           Consumer1<A> release) {
+  static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
+                                           Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
+                                           Consumer1<? super A> release) {
     return new Bracket<>(acquire, use, release);
   }
 
@@ -841,13 +841,13 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Bracket<R, E, A, B> implements SealedZIO<R, E, B> {
 
-    private final ZIO<R, E, A> acquire;
-    private final Function1<A, ZIO<R, E, B>> use;
-    private final Consumer1<A> release;
+    private final ZIO<R, E, ? extends A> acquire;
+    private final Function1<? super A, ? extends ZIO<R, E, ? extends B>> use;
+    private final Consumer1<? super A> release;
 
-    protected Bracket(ZIO<R, E, A> acquire,
-                    Function1<A, ZIO<R, E, B>> use,
-                    Consumer1<A> release) {
+    protected Bracket(ZIO<R, E, ? extends A> acquire,
+                      Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
+                      Consumer1<? super A> release) {
       this.acquire = checkNonNull(acquire);
       this.use = checkNonNull(use);
       this.release = checkNonNull(release);
@@ -925,16 +925,16 @@ interface ZIOModule {
 
 final class ZIOResource<E, A> implements AutoCloseable {
 
-  private final Either<E, A> resource;
-  private final Consumer1<A> release;
+  private final Either<E, ? extends A> resource;
+  private final Consumer1<? super A> release;
 
-  ZIOResource(Either<E, A> resource, Consumer1<A> release) {
+  ZIOResource(Either<E, ? extends A> resource, Consumer1<? super A> release) {
     this.resource = checkNonNull(resource);
     this.release = checkNonNull(release);
   }
 
-  public <R, B> ZIO<R, E, B> apply(Function1<A, ZIO<R, E, B>> use) {
-    return resource.map(use).fold(ZIO::raiseError, identity());
+  public <R, B> ZIO<R, E, B> apply(Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
+    return resource.map(use.andThen(ZIOOf::<R, E, B>narrowK)).fold(ZIO::raiseError, identity());
   }
 
   @Override

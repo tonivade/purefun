@@ -239,7 +239,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
   }
 
-  public static <E, A, B> EIO<E, B> bracket(EIO<E, A> acquire, Function1<A, EIO<E, B>> use, Consumer1<A> release) {
+  public static <E, A, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, Function1<? super A, EIO<E, ? extends B>> use, Consumer1<? super A> release) {
     return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
   }
 

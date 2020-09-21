@@ -243,12 +243,16 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(ZIO.async(consumer));
   }
 
-  public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, A> acquire, Function1<A, RIO<R, B>> use) {
-    return new RIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
+  public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
+      Function1<? super A, ? extends RIO<R, ? extends B>> use) {
+    return new RIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(RIOOf::narrowK).apply(resource).instance));
   }
 
-  public static <R, A, B> RIO<R, B> bracket(RIO<R, A> acquire, Function1<A, RIO<R, B>> use, Consumer1<A> release) {
-    return new RIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
+  public static <R, A, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
+      Function1<? super A, ? extends RIO<R, ? extends B>> use, Consumer1<? super A> release) {
+    return new RIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release));
   }
 
   @SuppressWarnings("unchecked")

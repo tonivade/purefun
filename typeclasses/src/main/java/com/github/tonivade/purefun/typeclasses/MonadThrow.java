@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.type.Try;
 
 public interface MonadThrow<F extends Witness> extends MonadError<F, Throwable> {
 
-  default <A> Kind<F, A> fromTry(Try<A> value) {
+  default <A> Kind<F, A> fromTry(Try<? extends A> value) {
     return fromEither(value.toEither());
   }
 }

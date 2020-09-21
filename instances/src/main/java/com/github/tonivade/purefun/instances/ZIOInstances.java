@@ -146,9 +146,9 @@ interface ZIOBracket<R, E> extends ZIOMonadError<R, E>, Bracket<Kind<Kind<ZIO_, 
 
   @Override
   default <A, B> ZIO<R, E, B>
-          bracket(Kind<Kind<Kind<ZIO_, R>, E>, A> acquire,
-                  Function1<A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, B>> use,
-                  Consumer1<A> release) {
+          bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
+                  Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use,
+                  Consumer1<? super A> release) {
     return ZIO.bracket(acquire.fix(toZIO()), use.andThen(ZIOOf::narrowK), release);
   }
 }

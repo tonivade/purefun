@@ -235,12 +235,16 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return fold(ZIO.async(consumer));
   }
 
-  public static <A extends AutoCloseable, B> UIO<B> bracket(UIO<A> acquire, Function1<A, UIO<B>> use) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance)));
+  public static <A extends AutoCloseable, B> UIO<B> bracket(
+      UIO<? extends A> acquire, Function1<? super A, ? extends UIO<? extends B>> use) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance)));
   }
 
-  public static <A, B> UIO<B> bracket(UIO<A> acquire, Function1<A, UIO<B>> use, Consumer1<A> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), resource -> ZIO.redeem(use.apply(resource).instance), release));
+  public static <A, B> UIO<B> bracket(UIO<? extends A> acquire, 
+      Function1<? super A, ? extends UIO<? extends B>> use, Consumer1<? super A> release) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release));
   }
 
   public static UIO<Unit> unit() {

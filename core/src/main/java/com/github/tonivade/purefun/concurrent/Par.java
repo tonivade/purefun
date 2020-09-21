@@ -97,7 +97,8 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.sleep(executor, delay);
   }
 
-  static <A, B> Par<B> bracket(Par<? extends A> acquire, Function1<? super A, ? extends Par<? extends B>> use, Consumer1<? super A> release) {
+  static <A, B> Par<B> bracket(Par<? extends A> acquire, 
+      Function1<? super A, ? extends Par<? extends B>> use, Consumer1<? super A> release) {
     return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
   }
 

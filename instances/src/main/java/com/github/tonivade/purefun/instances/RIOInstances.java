@@ -141,9 +141,9 @@ interface RIOBracket<R> extends RIOMonadError<R>, Bracket<Kind<RIO_, R>, Throwab
 
   @Override
   default <A, B> RIO<R, B>
-          bracket(Kind<Kind<RIO_, R>, A> acquire,
-                  Function1<A, ? extends Kind<Kind<RIO_, R>, B>> use,
-                  Consumer1<A> release) {
+          bracket(Kind<Kind<RIO_, R>, ? extends A> acquire,
+                  Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use,
+                  Consumer1<? super A> release) {
     return RIO.bracket(acquire.fix(toRIO()), use.andThen(RIOOf::narrowK), release);
   }
 }

@@ -149,15 +149,15 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
   Bracket<F, Throwable> monadF();
 
   @Override
-  default <A, B> OptionT<F, B> bracket(Kind<Kind<OptionT_, F>, A> acquire,
-                                       Function1<A, ? extends Kind<Kind<OptionT_, F>, B>> use,
-                                       Consumer1<A> release) {
+  default <A, B> OptionT<F, B> bracket(Kind<Kind<OptionT_, F>, ? extends A> acquire,
+                                       Function1<? super A, ? extends Kind<Kind<OptionT_, F>, ? extends B>> use,
+                                       Consumer1<? super A> release) {
     Kind<F, Option<B>> bracket =
         monadF().bracket(
-            acquire.fix(OptionTOf::narrowK).value(),
+            acquire.fix(OptionTOf::<F, A>narrowK).value(),
             option -> option.fold(
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
-                value -> use.andThen(OptionTOf::narrowK).apply(value).value()),
+                value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
             option -> option.fold(Unit::unit, release.asFunction()));
     return OptionT.of(monadF(), bracket);
   }

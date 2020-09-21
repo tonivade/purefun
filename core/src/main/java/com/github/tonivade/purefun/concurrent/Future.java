@@ -125,7 +125,9 @@ public interface Future<T> extends FutureOf<T> {
 
   <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper);
 
-  <U> Future<U> fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper);
+  <U> Future<U> fold(
+      Function1<? super Throwable, ? extends U> failureMapper, 
+      Function1<? super T, ? extends U> successMapper);
 
   default CompletableFuture<T> toCompletableFuture() {
     CompletableFuture<T> completableFuture = new CompletableFuture<>();
@@ -213,15 +215,22 @@ public interface Future<T> extends FutureOf<T> {
     return bracket(DEFAULT_EXECUTOR, acquire, use);
   }
 
-  static <T extends AutoCloseable, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use) {
+  static <T extends AutoCloseable, R> Future<R> bracket(Executor executor, 
+      Future<? extends T> acquire, 
+      Function1<? super T, ? extends Future<? extends R>> use) {
     return FutureImpl.bracket(executor, acquire, use, AutoCloseable::close);
   }
 
-  static <T, R> Future<R> bracket(Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
+  static <T, R> Future<R> bracket(Future<? extends T> acquire, 
+      Function1<? super T, ? extends Future<? extends R>> use, 
+      Consumer1<? super T> release) {
     return bracket(DEFAULT_EXECUTOR, acquire, use, release);
   }
 
-  static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
+  static <T, R> Future<R> bracket(Executor executor, 
+      Future<? extends T> acquire, 
+      Function1<? super T, ? extends Future<? extends R>> use, 
+      Consumer1<? super T> release) {
     return FutureImpl.bracket(executor, acquire, use, release);
   }
 

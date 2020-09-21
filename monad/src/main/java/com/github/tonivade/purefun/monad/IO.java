@@ -185,7 +185,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return IOModule.UNIT;
   }
 
-  static <T, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
+  static <T, R> IO<R> bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
     return new Bracket<>(acquire, use, release);
   }
 
@@ -452,11 +452,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class Bracket<T, R> implements SealedIO<R> {
 
-    private final IO<T> acquire;
-    private final Function1<T, IO<R>> use;
-    private final Consumer1<T> release;
+    private final IO<? extends T> acquire;
+    private final Function1<? super T, ? extends IO<? extends R>> use;
+    private final Consumer1<? super T> release;
 
-    protected Bracket(IO<T> acquire, Function1<T, IO<R>> use, Consumer1<T> release) {
+    protected Bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
       this.acquire = checkNonNull(acquire);
       this.use = checkNonNull(use);
       this.release = checkNonNull(release);
@@ -593,15 +593,15 @@ interface IOModule {
 final class IOResource<T> implements AutoCloseable {
 
   private final T resource;
-  private final Consumer1<T> release;
+  private final Consumer1<? super T> release;
 
-  IOResource(T resource, Consumer1<T> release) {
+  IOResource(T resource, Consumer1<? super T> release) {
     this.resource = checkNonNull(resource);
     this.release = checkNonNull(release);
   }
 
-  public <R> IO<R> apply(Function1<T, IO<R>> use) {
-    return use.apply(resource);
+  public <R> IO<R> apply(Function1<? super T, ? extends IO<? extends R>> use) {
+    return use.andThen(IOOf::<R>narrowK).apply(resource);
   }
 
   @Override

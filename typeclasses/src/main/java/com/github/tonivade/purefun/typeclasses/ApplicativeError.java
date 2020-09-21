@@ -32,7 +32,7 @@ public interface ApplicativeError<F extends Witness, E> extends Applicative<F> {
     return handleErrorWith(map(value, Either::right), e -> pure(Either.left(e)));
   }
 
-  default <A> Kind<F, A> fromEither(Either<E, A> value) {
+  default <A> Kind<F, A> fromEither(Either<E, ? extends A> value) {
     return value.fold(this::raiseError, this::<A>pure);
   }
 }

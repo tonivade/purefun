@@ -24,7 +24,7 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
     return later(System::nanoTime);
   }
 
-  default <A> Kind<F, A> later(Producer<A> later) {
+  default <A> Kind<F, A> later(Producer<? extends A> later) {
     return defer(() -> Try.of(later::get).fold(this::<A>raiseError, this::<A>pure));
   }
 
@@ -36,7 +36,8 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
     return summarized(value, currentNanos(), (t1, t2) -> Duration.ofNanos(t2 - t1));
   }
   
-  default <A, B, C> Kind<F, Tuple2<C, A>> summarized(Kind<F, A> value, Kind<F, B> summary, Function2<B, B, C> combinator) {
+  default <A, B, C> Kind<F, Tuple2<C, A>> summarized(Kind<F, A> value, Kind<F, B> summary, 
+      Function2<? super B, ? super B, ? extends C> combinator) {
     return For.with(this)
       .then(summary)
       .then(value)

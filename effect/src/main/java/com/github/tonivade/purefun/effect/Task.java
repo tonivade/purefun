@@ -237,12 +237,12 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(ZIO.raiseError(error));
   }
 
-  public static <A extends AutoCloseable, B> Task<B> bracket(Task<A> acquire, Function1<A, Task<B>> use) {
-    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
+  public static <A extends AutoCloseable, B> Task<B> bracket(Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use) {
+    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance));
   }
 
-  public static <A, B> Task<B> bracket(Task<A> acquire, Function1<A, Task<B>> use, Consumer1<A> release) {
-    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
+  public static <A, B> Task<B> bracket(Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use, Consumer1<? super A> release) {
+    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
   }
 
   public static Task<Unit> unit() {

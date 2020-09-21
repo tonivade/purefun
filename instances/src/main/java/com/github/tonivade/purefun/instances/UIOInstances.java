@@ -128,9 +128,9 @@ interface UIOBracket extends UIOMonadError, Bracket<UIO_, Throwable> {
 
   @Override
   default <A, B> UIO<B>
-          bracket(Kind<UIO_, A> acquire,
-                  Function1<A, ? extends Kind<UIO_, B>> use,
-                  Consumer1<A> release) {
+          bracket(Kind<UIO_, ? extends A> acquire,
+                  Function1<? super A, ? extends Kind<UIO_, ? extends B>> use,
+                  Consumer1<? super A> release) {
     return UIO.bracket(acquire.fix(toUIO()), use.andThen(UIOOf::narrowK), release);
   }
 }

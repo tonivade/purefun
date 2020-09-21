@@ -129,7 +129,8 @@ interface IODefer extends Defer<IO_> {
 interface IOBracket extends IOMonadError, Bracket<IO_, Throwable> {
 
   @Override
-  default <A, B> IO<B> bracket(Kind<IO_, A> acquire, Function1<A, ? extends Kind<IO_, B>> use, Consumer1<A> release) {
+  default <A, B> IO<B> bracket(Kind<IO_, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<IO_, ? extends B>> use, Consumer1<? super A> release) {
     return IO.bracket(acquire.fix(toIO()), use.andThen(IOOf::narrowK), release::accept);
   }
 }

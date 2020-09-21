@@ -162,7 +162,8 @@ interface FutureDefer extends Defer<Future_>, ExecutorHolder {
 interface FutureBracket extends Bracket<Future_, Throwable>, ExecutorHolder {
 
   @Override
-  default <A, B> Kind<Future_, B> bracket(Kind<Future_, A> acquire, Function1<A, ? extends Kind<Future_, B>> use, Consumer1<A> release) {
+  default <A, B> Kind<Future_, B> bracket(Kind<Future_, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<Future_, ? extends B>> use, Consumer1<? super A> release) {
     return Future.bracket(executor(), acquire.fix(toFuture()), use.andThen(FutureOf::narrowK), release);
   }
 }
