@@ -117,9 +117,9 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Kind<Kind<ZIO_,
   @Override
   default <A> ZIO<R, E, A>
           handleErrorWith(Kind<Kind<Kind<ZIO_, R>, E>, A> value,
-                          Function1<E, ? extends Kind<Kind<Kind<ZIO_, R>, E>, A>> handler) {
+                          Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<E, ZIO<R, E, A>> mapError = handler.andThen(ZIOOf::narrowK);
+    Function1<? super E, ZIO<R, E, A>> mapError = handler.andThen(ZIOOf::narrowK);
     Function1<A, ZIO<R, E, A>> map = ZIO::pure;
     ZIO<R, E, A> zio = ZIOOf.narrowK(value);
     return zio.foldM(mapError, map);

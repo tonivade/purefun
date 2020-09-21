@@ -120,9 +120,9 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
   @Override
   default <A> Task<A>
           handleErrorWith(Kind<Task_, A> value,
-                          Function1<Throwable, ? extends Kind<Task_, A>> handler) {
+                          Function1<? super Throwable, ? extends Kind<Task_, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
+    Function1<? super Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
     Function1<A, Task<A>> map = Task::pure;
     Task<A> task = TaskOf.narrowK(value);
     return task.foldM(mapError, map);

@@ -99,11 +99,11 @@ interface EitherTMonadErrorFromMonad<F extends Witness, E>
 
   @Override
   default <A> EitherT<F, E, A> handleErrorWith(Kind<Kind<Kind<EitherT_, F>, E>, A> value,
-      Function1<E, ? extends Kind<Kind<Kind<EitherT_, F>, E>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<Kind<EitherT_, F>, E>, ? extends A>> handler) {
     return EitherT.of(monadF(),
-        monadF().flatMap(EitherTOf.narrowK(value).value(),
+        monadF().flatMap(EitherTOf.<F, E, A>narrowK(value).value(),
             either -> either.fold(
-                e -> handler.andThen(EitherTOf::narrowK).apply(e).value(),
+                e -> handler.andThen(EitherTOf::<F, E, A>narrowK).apply(e).value(),
                 a -> monadF().pure(Either.<E, A>right(a)))));
   }
 }
@@ -126,10 +126,10 @@ interface EitherTMonadErrorFromMonadError<F extends Witness, E>
 
   @Override
   default <A> EitherT<F, E, A> handleErrorWith(Kind<Kind<Kind<EitherT_, F>, E>, A> value,
-      Function1<E, ? extends Kind<Kind<Kind<EitherT_, F>, E>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<Kind<EitherT_, F>, E>, ? extends A>> handler) {
     return EitherT.of(monadF(),
-                      monadF().handleErrorWith(EitherTOf.narrowK(value).value(),
-                                               error -> handler.andThen(EitherTOf::narrowK).apply(error).value()));
+                      monadF().handleErrorWith(EitherTOf.<F, E, A>narrowK(value).value(),
+                                               error -> handler.andThen(EitherTOf::<F, E, A>narrowK).apply(error).value()));
   }
 }
 

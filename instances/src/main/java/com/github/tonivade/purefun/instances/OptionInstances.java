@@ -153,7 +153,7 @@ interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
 
   @Override
   default <A> Kind<Option_, A> handleErrorWith(Kind<Option_, A> value,
-      Function1<Unit, ? extends Kind<Option_, A>> handler) {
+      Function1<? super Unit, ? extends Kind<Option_, ? extends A>> handler) {
     return OptionOf.narrowK(value).fold(() -> OptionOf.narrowK(handler.apply(unit())), this::pure);
   }
 }

@@ -92,11 +92,11 @@ interface OptionTMonadErrorFromMonad<F extends Witness>
 
   @Override
   default <A> OptionT<F, A> handleErrorWith(Kind<Kind<OptionT_, F>, A> value,
-      Function1<Unit, ? extends Kind<Kind<OptionT_, F>, A>> handler) {
+      Function1<? super Unit, ? extends Kind<Kind<OptionT_, F>, ? extends A>> handler) {
     return OptionT.of(monadF(),
-        monadF().flatMap(OptionTOf.narrowK(value).value(),
+        monadF().flatMap(OptionTOf.<F, A>narrowK(value).value(),
             option -> option.fold(
-              () -> handler.andThen(OptionTOf::narrowK).apply(unit()).value(),
+              () -> handler.andThen(OptionTOf::<F, A>narrowK).apply(unit()).value(),
               a -> monadF().pure(Option.some(a)))));
   }
 }
@@ -118,10 +118,10 @@ interface OptionTMonadErrorFromMonadError<F extends Witness, E>
 
   @Override
   default <A> OptionT<F, A> handleErrorWith(Kind<Kind<OptionT_, F>, A> value,
-      Function1<E, ? extends Kind<Kind<OptionT_, F>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<OptionT_, F>, ? extends A>> handler) {
     return OptionT.of(monadF(),
       monadF().handleErrorWith(
-        OptionTOf.narrowK(value).value(), error -> handler.andThen(OptionTOf::narrowK).apply(error).value()));
+        OptionTOf.<F, A>narrowK(value).value(), error -> handler.andThen(OptionTOf::<F, A>narrowK).apply(error).value()));
   }
 }
 

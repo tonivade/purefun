@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.transformer.WriterTOf.toWriterT;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
@@ -126,9 +128,9 @@ interface WriterTMonadError<F extends Witness, L, E>
   @Override
   default <A> WriterT<F, L, A> handleErrorWith(
       Kind<Kind<Kind<WriterT_, F>, L>, A> value,
-      Function1<E, ? extends Kind<Kind<Kind<WriterT_, F>, L>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<Kind<WriterT_, F>, L>, ? extends A>> handler) {
     return WriterT.writer(monoid(), monadF(),
-        monadF().handleErrorWith(value.fix(WriterTOf::narrowK).value(),
-            error -> handler.apply(error).fix(WriterTOf::narrowK).value()));
+        monadF().handleErrorWith(value.fix(toWriterT()).value(),
+            error -> handler.apply(error).fix(WriterTOf::<F, L, A>narrowK).value()));
   }
 }

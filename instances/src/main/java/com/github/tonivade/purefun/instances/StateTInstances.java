@@ -75,11 +75,11 @@ interface StateTMonadError<F extends Witness, S, E> extends MonadError<Kind<Kind
   @Override
   default <A> StateT<F, S, A> handleErrorWith(
       Kind<Kind<Kind<StateT_, F>, S>, A> value,
-      Function1<E, ? extends Kind<Kind<Kind<StateT_, F>, S>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<Kind<StateT_, F>, S>, ? extends A>> handler) {
     StateT<F, S, A> stateT = value.fix(StateTOf::narrowK);
     return StateT.<F, S, A>state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
-            error -> handler.apply(error).fix(StateTOf::narrowK).run(state)));
+            error -> handler.apply(error).fix(StateTOf::<F, S, A>narrowK).run(state)));
   }
 }
 

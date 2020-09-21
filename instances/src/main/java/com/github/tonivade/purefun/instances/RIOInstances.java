@@ -112,9 +112,9 @@ interface RIOMonadError<R> extends RIOMonad<R>, MonadError<Kind<RIO_, R>, Throwa
   @Override
   default <A> RIO<R, A>
           handleErrorWith(Kind<Kind<RIO_, R>, A> value,
-                          Function1<Throwable, ? extends Kind<Kind<RIO_, R>, A>> handler) {
+                          Function1<? super Throwable, ? extends Kind<Kind<RIO_, R>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<Throwable, RIO<R, A>> mapError = handler.andThen(RIOOf::narrowK);
+    Function1<? super Throwable, RIO<R, A>> mapError = handler.andThen(RIOOf::narrowK);
     Function1<A, RIO<R, A>> map = RIO::pure;
     RIO<R, A> urio = RIOOf.narrowK(value);
     return urio.foldM(mapError, map);

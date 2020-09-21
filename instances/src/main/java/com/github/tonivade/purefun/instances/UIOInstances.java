@@ -102,8 +102,8 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   @Override
   default <A> UIO<A>
           handleErrorWith(Kind<UIO_, A> value,
-                          Function1<Throwable, ? extends Kind<UIO_, A>> handler) {
-    Function1<Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
+                          Function1<? super Throwable, ? extends Kind<UIO_, ? extends A>> handler) {
+    Function1<? super Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIOOf.narrowK(value);
     return uio.redeemWith(mapError, map);

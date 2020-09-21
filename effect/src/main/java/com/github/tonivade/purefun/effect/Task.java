@@ -103,8 +103,12 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.ap(apply.toZIO()));
   }
 
-  public <B> Task<B> foldM(Function1<Throwable, Task<B>> mapError, Function1<A, Task<B>> map) {
-    return new Task<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
+  public <B> Task<B> foldM(
+      Function1<? super Throwable, ? extends Task<? extends B>> mapError, 
+      Function1<? super A, ? extends Task<? extends B>> map) {
+    return new Task<>(instance.foldM(
+        error -> mapError.andThen(TaskOf::narrowK).apply(error).instance, 
+        value -> map.andThen(TaskOf::narrowK).apply(value).instance));
   }
 
   public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<A, B> map) {

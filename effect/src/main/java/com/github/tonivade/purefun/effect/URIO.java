@@ -120,8 +120,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return redeemWith(mapError.andThen(URIO::pure), map.andThen(URIO::pure));
   }
 
-  public <B> URIO<R, B> redeemWith(Function1<Throwable, URIO<R, B>> mapError, Function1<A, URIO<R, B>> map) {
-    return new URIO<>(ZIO.redeem(instance).foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
+  public <B> URIO<R, B> redeemWith(
+      Function1<? super Throwable, ? extends URIO<R, ? extends B>> mapError, 
+      Function1<? super A, ? extends URIO<R, ? extends B>> map) {
+    return new URIO<>(ZIO.redeem(instance).foldM(
+        error -> mapError.andThen(URIOOf::narrowK).apply(error).instance, 
+        value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
   
   public <B> URIO<R, Tuple2<A, B>> zip(URIO<R, B> other) {

@@ -115,7 +115,7 @@ interface TryMonadError extends TryMonad, MonadError<Try_, Throwable> {
 
   @Override
   default <A> Kind<Try_, A> handleErrorWith(Kind<Try_, A> value,
-      Function1<Throwable, ? extends Kind<Try_, A>> handler) {
+      Function1<? super Throwable, ? extends Kind<Try_, ? extends A>> handler) {
     return TryOf.narrowK(value).fold(handler.andThen(TryOf::narrowK), Try::success);
   }
 }

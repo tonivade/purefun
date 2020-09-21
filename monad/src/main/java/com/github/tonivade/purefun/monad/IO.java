@@ -67,7 +67,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return new FlatMapped<>(Producer.cons(this), map);
   }
 
-  default <R> IO<R> andThen(IO<R> after) {
+  default <R> IO<R> andThen(IO<? extends R> after) {
     return flatMap(ignore -> after);
   }
 
@@ -83,24 +83,24 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return attempt().map(Try::toEither);
   }
 
-  default <L, R> IO<Either<L, R>> either(Function1<Throwable, L> mapError, Function1<T, R> mapper) {
+  default <L, R> IO<Either<L, R>> either(Function1<? super Throwable, ? extends L> mapError, Function1<? super T, ? extends R> mapper) {
     return either().map(either -> either.bimap(mapError, mapper));
   }
 
-  default <R> IO<R> redeem(Function1<Throwable, R> mapError, Function1<T, R> mapper) {
+  default <R> IO<R> redeem(Function1<? super Throwable, ? extends R> mapError, Function1<? super T, ? extends R> mapper) {
     return attempt().map(try_ -> try_.fold(mapError, mapper));
   }
 
-  default <R> IO<R> redeemWith(Function1<Throwable, IO<R>> mapError, Function1<T, IO<R>> mapper) {
+  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends IO<? extends R>> mapError, Function1<? super T, ? extends IO<? extends R>> mapper) {
     return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
   }
 
-  default IO<T> recover(Function1<Throwable, T> mapError) {
+  default IO<T> recover(Function1<? super Throwable, ? extends T> mapError) {
     return redeem(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<X, T> function) {
+  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);

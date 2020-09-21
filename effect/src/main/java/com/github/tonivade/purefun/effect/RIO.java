@@ -115,8 +115,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new URIO<>(instance.foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure)));
   }
 
-  public <B> RIO<R, B> foldM(Function1<Throwable, RIO<R, B>> mapError, Function1<A, RIO<R, B>> map) {
-    return new RIO<>(instance.foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
+  public <B> RIO<R, B> foldM(
+      Function1<? super Throwable, ? extends RIO<R, ? extends B>> mapError, 
+      Function1<? super A, ? extends RIO<R, ? extends B>> map) {
+    return new RIO<>(instance.foldM(
+        error -> mapError.andThen(RIOOf::narrowK).apply(error).instance, 
+        value -> map.andThen(RIOOf::narrowK).apply(value).instance));
   }
 
   public RIO<R, A> orElse(RIO<R, A> other) {

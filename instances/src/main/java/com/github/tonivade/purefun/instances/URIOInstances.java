@@ -113,9 +113,9 @@ interface URIOMonadError<R> extends URIOMonad<R>, MonadError<Kind<URIO_, R>, Thr
   @Override
   default <A> URIO<R, A>
           handleErrorWith(Kind<Kind<URIO_, R>, A> value,
-                          Function1<Throwable, ? extends Kind<Kind<URIO_, R>, A>> handler) {
+                          Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<Throwable, URIO<R, A>> mapError = handler.andThen(URIOOf::narrowK);
+    Function1<? super Throwable, URIO<R, A>> mapError = handler.andThen(URIOOf::narrowK);
     Function1<A, URIO<R, A>> map = URIO::pure;
     URIO<R, A> urio = URIOOf.narrowK(value);
     return urio.redeemWith(mapError, map);

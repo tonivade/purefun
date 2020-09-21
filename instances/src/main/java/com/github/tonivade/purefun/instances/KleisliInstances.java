@@ -75,7 +75,7 @@ interface KleisliMonadError<F extends Witness, R, E> extends MonadError<Kind<Kin
   @Override
   default <A> Kleisli<F, R, A> handleErrorWith(
       Kind<Kind<Kind<Kleisli_, F>, R>, A> value,
-      Function1<E, ? extends Kind<Kind<Kind<Kleisli_, F>, R>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<Kind<Kleisli_, F>, R>, ? extends A>> handler) {
     Kleisli<F, R, A> kleisli = value.fix(KleisliOf::narrowK);
     return Kleisli.<F, R, A>of(monadF(),
         reader -> monadF().handleErrorWith(kleisli.run(reader),

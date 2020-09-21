@@ -108,7 +108,7 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
   }
 
   @Override
-  default <A> IO<A> handleErrorWith(Kind<IO_, A> value, Function1<Throwable, ? extends Kind<IO_, A>> handler) {
+  default <A> IO<A> handleErrorWith(Kind<IO_, A> value, Function1<? super Throwable, ? extends Kind<IO_, ? extends A>> handler) {
     return IOOf.narrowK(value).redeemWith(handler.andThen(IOOf::narrowK), IO::pure);
   }
 }

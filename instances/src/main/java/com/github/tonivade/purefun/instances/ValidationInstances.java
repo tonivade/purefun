@@ -159,7 +159,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Kind<Va
 
   @Override
   default <A> Validation<E, A> handleErrorWith(Kind<Kind<Validation_, E>, A> value,
-      Function1<E, ? extends Kind<Kind<Validation_, E>, A>> handler) {
+      Function1<? super E, ? extends Kind<Kind<Validation_, E>, ? extends A>> handler) {
     return ValidationOf.narrowK(value).fold(handler.andThen(ValidationOf::narrowK), Validation::<E, A>valid);
   }
 }

@@ -97,7 +97,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Apply<>(this, apply);
   }
 
-  default <F, B> ZIO<R, F, B> foldM(Function1<E, ZIO<R, F, B>> mapError, Function1<A, ZIO<R, F, B>> map) {
+  default <F, B> ZIO<R, F, B> foldM(Function1<? super E, ? extends ZIO<R, F, ? extends B>> mapError, Function1<? super A, ? extends ZIO<R, F, ? extends B>> map) {
     return new FoldM<>(this, mapError, map);
   }
 
@@ -626,10 +626,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   final class FoldM<R, E, A, F, B> implements SealedZIO<R, F, B> {
 
     private final ZIO<R, E, A> current;
-    private final Function1<E, ZIO<R, F, B>> nextError;
-    private final Function1<A, ZIO<R, F, B>> next;
+    private final Function1<? super E, ? extends ZIO<R, F, ? extends B>> nextError;
+    private final Function1<? super A, ? extends ZIO<R, F, ? extends B>> next;
 
-    protected FoldM(ZIO<R, E, A> current, Function1<E, ZIO<R, F, B>> nextError, Function1<A, ZIO<R, F, B>> next) {
+    protected FoldM(ZIO<R, E, A> current, 
+        Function1<? super E, ? extends ZIO<R, F, ? extends B>> nextError, 
+            Function1<? super A, ? extends ZIO<R, F, ? extends B>> next) {
       this.current = checkNonNull(current);
       this.nextError = checkNonNull(nextError);
       this.next = checkNonNull(next);
@@ -637,7 +639,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<F, B> provide(R env) {
-      ZIO<R, F, B> fold = ZIOModule.evaluate(env, current).fold(nextError, next);
+      ZIO<R, F, B> fold = 
+          ZIOModule.evaluate(env, current).fold(nextError.andThen(ZIOOf::narrowK), next.andThen(ZIOOf::narrowK));
       return ZIOModule.evaluate(env, fold);
     }
 
@@ -646,7 +649,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       Kind<X, A> foldMap = current.foldMap(env, monad);
       Kind<X, Either<Throwable, A>> attempt = monad.attempt(foldMap);
       Kind<X, ZIO<R, F, B>> map = monad.map(attempt, 
-          either -> either.fold(error -> nextError.apply(unwrap(error)), next::apply));
+          either -> either.fold(
+              error -> nextError.andThen(ZIOOf::<R, F, B>narrowK).apply(unwrap(error)), 
+              next.andThen(ZIOOf::<R, F, B>narrowK)));
       return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 

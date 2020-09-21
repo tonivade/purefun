@@ -113,9 +113,9 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Kind<EIO_, E>, E> {
   @Override
   default <A> EIO<E, A>
           handleErrorWith(Kind<Kind<EIO_,  E>, A> value,
-                          Function1<E, ? extends Kind<Kind<EIO_, E>, A>> handler) {
+                          Function1<? super E, ? extends Kind<Kind<EIO_, E>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<E, EIO<E, A>> mapError = handler.andThen(EIOOf::narrowK);
+    Function1<? super E, EIO<E, A>> mapError = handler.andThen(EIOOf::narrowK);
     Function1<A, EIO<E, A>> map = EIO::pure;
     EIO<E, A> eio = EIOOf.narrowK(value);
     return eio.foldM(mapError, map);

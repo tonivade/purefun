@@ -113,12 +113,12 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return new UIO<>(instance.ap(apply.toZIO()));
   }
 
-  public UIO<A> recover(Function1<Throwable, A> mapError) {
+  public UIO<A> recover(Function1<? super Throwable, ? extends A> mapError) {
     return redeem(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> UIO<A> recoverWith(Class<X> type, Function1<X, A> function) {
+  public <X extends Throwable> UIO<A> recoverWith(Class<X> type, Function1<? super X, ? extends A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -127,12 +127,16 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     });
   }
 
-  public <B> UIO<B> redeem(Function1<Throwable, B> mapError, Function1<A, B> map) {
+  public <B> UIO<B> redeem(Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return redeemWith(mapError.andThen(UIO::pure), map.andThen(UIO::pure));
   }
 
-  public <B> UIO<B> redeemWith(Function1<Throwable, UIO<B>> mapError, Function1<A, UIO<B>> map) {
-    return new UIO<>(ZIO.redeem(instance).foldM(error -> mapError.apply(error).instance, x -> map.apply(x).instance));
+  public <B> UIO<B> redeemWith(
+      Function1<? super Throwable, ? extends UIO<? extends B>> mapError, 
+      Function1<? super A, ? extends UIO<? extends B>> map) {
+    return new UIO<>(ZIO.redeem(instance).foldM(
+        error -> mapError.andThen(UIOOf::narrowK).apply(error).instance, 
+        value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
   
   public <B> UIO<Tuple2<A, B>> zip(UIO<B> other) {

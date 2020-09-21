@@ -118,7 +118,7 @@ interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
 
   @Override
   default <A> Par<A> handleErrorWith(Kind<Par_, A> value,
-                                                Function1<Throwable, ? extends Kind<Par_, A>> handler) {
+                                     Function1<? super Throwable, ? extends Kind<Par_, ? extends A>> handler) {
     return ParOf.narrowK(value).fold(handler.andThen(ParOf::narrowK), Par::success).flatMap(identity());
   }
 }

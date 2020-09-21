@@ -137,7 +137,7 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Kind<Either_, L
 
   @Override
   default <A> Either<L, A> handleErrorWith(Kind<Kind<Either_, L>, A> value,
-      Function1<L, ? extends Kind<Kind<Either_, L>, A>> handler) {
+      Function1<? super L, ? extends Kind<Kind<Either_, L>, ? extends A>> handler) {
     return EitherOf.narrowK(value).fold(handler.andThen(EitherOf::narrowK), Either::<L, A>right);
   }
 }

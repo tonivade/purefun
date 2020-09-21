@@ -111,8 +111,12 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.ap(apply.toZIO()));
   }
 
-  public <B, F> EIO<F, B> foldM(Function1<E, EIO<F, B>> mapError, Function1<A, EIO<F, B>> map) {
-    return new EIO<>(instance.foldM(error -> mapError.apply(error).instance, value -> map.apply(value).instance));
+  public <B, F> EIO<F, B> foldM(
+      Function1<? super E, ? extends EIO<F, ? extends B>> mapError, 
+      Function1<? super A, ? extends EIO<F, ? extends B>> map) {
+    return new EIO<>(instance.foldM(
+        error -> mapError.andThen(EIOOf::narrowK).apply(error).instance, 
+        value -> map.andThen(EIOOf::narrowK).apply(value).instance));
   }
 
   public <B> UIO<B> fold(Function1<E, B> mapError, Function1<A, B> map) {
