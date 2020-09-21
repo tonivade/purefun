@@ -171,7 +171,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
   }
 
   static <E, T, R> Validation<E, R> select(Validation<E, Either<T, R>> validation,
-                                           Validation<E, Function1<T, R>> apply) {
+                                           Validation<E, Function1<? super T, ? extends R>> apply) {
     return validation.fold(Validation::invalid,
         either -> either.fold(t -> apply.map(f -> f.apply(t)), Validation::valid));
   }

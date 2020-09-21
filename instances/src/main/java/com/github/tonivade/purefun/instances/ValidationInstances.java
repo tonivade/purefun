@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.type.ValidationOf.toValidation;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -128,8 +130,8 @@ interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Kin
 
   @Override
   default <A, B> Validation<E, B> select(Kind<Kind<Validation_, E>, Either<A, B>> value,
-                                                    Kind<Kind<Validation_, E>, Function1<A, B>> apply) {
-    return Validation.select(value.fix(ValidationOf::narrowK), apply.fix(ValidationOf::narrowK));
+                                         Kind<Kind<Validation_, E>, Function1<? super A, ? extends B>> apply) {
+    return Validation.select(value.fix(toValidation()), apply.fix(toValidation()));
   }
 }
 

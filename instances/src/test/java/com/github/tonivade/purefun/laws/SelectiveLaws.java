@@ -47,20 +47,21 @@ public class SelectiveLaws {
   }
 
   private static <F extends Witness, A, B, C> void selectiveAssociativity(Selective<F> selective,
-                                                                       Kind<F, Either<A, B>> value,
-                                                                       Function1<A, B> f,
-                                                                       Function2<C, A, B> g) {
-    Kind<F, Either<C, Function1<A, B>>> y = selective.pure(Either.right(f));
-    Kind<F, Function1<C, Function1<A, B>>> z = selective.pure(g.curried());
+                                                                          Kind<F, Either<A, B>> value,
+                                                                          Function1<A, B> f,
+                                                                          Function2<C, A, B> g) {
+    Kind<F, Either<C, Function1<? super A, ? extends B>>> y = selective.pure(Either.right(f));
+    Kind<F, Function1<? super C, ? extends Function1<? super A, ? extends B>>> z = selective.pure(g.curried());
 
     Kind<F, Either<A, Either<Tuple2<C, A>, B>>> p =
         selective.map(value, either -> either.map(Either::right));
-    Kind<F, Function1<A, Either<Tuple2<C, A>, B>>> q =
+    Kind<F, Function1<? super A, ? extends Either<Tuple2<C, A>, B>>> q =
         selective.map(y, either -> a -> either.bimap(c -> Tuple.of(c, a), ff -> ff.apply(a)));
-    Kind<F, Function1<Tuple2<C, A>, B>> r =
-        selective.map(z, ff -> Function2.uncurried(ff).tupled());
+    Kind<F, Function1<? super Tuple2<C, A>, ? extends B>> r =
+        selective.map(z, ff -> Function2.<C, A, B>uncurried(ff).tupled());
     Kind<F, B> select = selective.select(selective.select(p, q), r);
 
-    assertEquals(selective.select(value, selective.select(y, z)), select, "selective associativity");
+    Kind<F, Function1<? super A, ? extends B>> select2 = selective.select(y, z);
+    assertEquals(selective.select(value, select2), select, "selective associativity");
   }
 }

@@ -17,13 +17,13 @@ import static com.github.tonivade.purefun.type.Eval.TRUE;
 
 public interface Selective<F extends Witness> extends Applicative<F> {
 
-  <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<A, B>> apply);
+  <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<? super A, ? extends B>> apply);
 
   default <A, B, C> Kind<F, C> branch(Kind<F, Either<A, B>> value,
-                                         Kind<F, Function1<A, C>> applyA,
-                                         Kind<F, Function1<B, C>> applyB) {
+                                      Kind<F, Function1<? super A, ? extends C>> applyA,
+                                      Kind<F, Function1<? super B, ? extends C>> applyB) {
     Kind<F, Either<A, Either<B, C>>> abc = map(value, either -> either.map(Either::left));
-    Kind<F, Function1<A, Either<B, C>>> fabc = map(applyA, fb -> fb.andThen(Either::right));
+    Kind<F, Function1<? super A, ? extends Either<B, C>>> fabc = map(applyA, fb -> fb.andThen(Either::right));
     return select(select(abc, fabc), applyB);
   }
 
@@ -46,13 +46,13 @@ public interface Selective<F extends Witness> extends Applicative<F> {
 
   default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable,
                                                              Kind<G, A> values,
-                                                             Function1<A, Kind<F, Boolean>> condition) {
+                                                             Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, FALSE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> orS(b, condition.apply(a))));
   }
 
   default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable,
                                                              Kind<G, A> values,
-                                                             Function1<A, Kind<F, Boolean>> condition) {
+                                                             Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, TRUE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> andS(b, condition.apply(a))));
   }
 }

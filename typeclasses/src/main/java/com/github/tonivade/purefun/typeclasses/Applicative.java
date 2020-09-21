@@ -48,11 +48,11 @@ public interface Applicative<F extends Witness> extends Functor<F> {
   }
 
   default <A, B> Kind<F, A> first(Kind<F, A> fa, Kind<F, B> fb) {
-    return mapN(fa, fb, (a, b) -> a);
+    return mapN(fa, fb, Function2.first());
   }
 
   default <A, B> Kind<F, B> last(Kind<F, A> fa, Kind<F, B> fb) {
-    return mapN(fa, fb, (a, b) -> b);
+    return mapN(fa, fb, Function2.second());
   }
 
   static <F extends Witness, G extends Witness> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {

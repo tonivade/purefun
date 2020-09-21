@@ -26,7 +26,7 @@ public interface Monad<F extends Witness> extends Selective<F> {
     return flatMap(value, ignore -> next.get());
   }
   
-  default <T> Kind<F, T> flatten(Kind<F, Kind<F, T>> value) {
+  default <T> Kind<F, T> flatten(Kind<F, Kind<F, ? extends T>> value) {
     return flatMap(value, identity());
   }
 
@@ -41,7 +41,7 @@ public interface Monad<F extends Witness> extends Selective<F> {
   }
 
   @Override
-  default <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<A, B>> apply) {
+  default <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<? super A, ? extends B>> apply) {
     return flatMap(value, either -> either.fold(a -> map(apply, map -> map.apply(a)), this::<B>pure));
   }
 }
