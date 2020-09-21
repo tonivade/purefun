@@ -104,9 +104,9 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Kind<V
 
   @Override
   default <T, R> Validation<E, R> ap(Kind<Kind<Validation_, E>, T> value,
-                                     Kind<Kind<Validation_, E>, Function1<T, R>> apply) {
+                                     Kind<Kind<Validation_, E>, Function1<? super T, ? extends R>> apply) {
     Validation<E, T> validation = value.fix(ValidationOf::narrowK);
-    Validation<E, Function1<T, R>> validationF = apply.fix(ValidationOf::narrowK);
+    Validation<E, Function1<? super T, ? extends R>> validationF = apply.fix(ValidationOf::narrowK);
 
     if (validation.isValid() && validationF.isValid()) {
       return Validation.<E, R>valid(validationF.get().apply(validation.get()));
@@ -140,7 +140,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Kind<Validation_, 
 
   @Override
   default <T, R> Validation<E, R> flatMap(Kind<Kind<Validation_, E>, T> value,
-      Function1<T, ? extends Kind<Kind<Validation_, E>, R>> map) {
+      Function1<? super T, ? extends Kind<Kind<Validation_, E>, ? extends R>> map) {
     return ValidationOf.narrowK(value).flatMap(map.andThen(ValidationOf::narrowK));
   }
 }

@@ -21,7 +21,7 @@ public interface Control<T> extends ControlOf<T> {
     return Result.trampoline(apply(MetaCont.returnCont()));
   }
 
-  default <R> Control<R> map(Function1<T, R> mapper) {
+  default <R> Control<R> map(Function1<? super T, ? extends R> mapper) {
     return new Control<R>() {
       @Override
       public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
@@ -30,7 +30,7 @@ public interface Control<T> extends ControlOf<T> {
     };
   }
 
-  default <R> Control<R> flatMap(Function1<T, Control<R>> mapper) {
+  default <R> Control<R> flatMap(Function1<? super T, ? extends Control<? extends R>> mapper) {
     return new Control<R>() {
       @Override
       public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
@@ -161,12 +161,11 @@ public interface Control<T> extends ControlOf<T> {
     }
 
     @Override
-    public <R> Control<R> map(Function1<T, R> mapper) {
+    public <R> Control<R> map(Function1<? super T, ? extends R> mapper) {
       return new Pure<>(() -> mapper.apply(value.get()));
     }
   }
 
-  @SuppressWarnings("unchecked")
   final class Failure<T> implements Control<T> {
 
     private final Throwable error;
@@ -181,12 +180,14 @@ public interface Control<T> extends ControlOf<T> {
     }
 
     @Override
-    public <R> Control<R> map(Function1<T, R> mapper) {
+    @SuppressWarnings("unchecked")
+    public <R> Control<R> map(Function1<? super T, ? extends R> mapper) {
       return (Control<R>) this;
     }
 
     @Override
-    public <R> Control<R> flatMap(Function1<T, Control<R>> mapper) {
+    @SuppressWarnings("unchecked")
+    public <R> Control<R> flatMap(Function1<? super T, ? extends Control<? extends R>> mapper) {
       return (Control<R>) this;
     }
   }

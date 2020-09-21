@@ -73,7 +73,7 @@ interface OptionTMonad<F extends Witness> extends Monad<Kind<OptionT_, F>> {
 
   @Override
   default <T, R> OptionT<F, R> flatMap(Kind<Kind<OptionT_, F>, T> value,
-      Function1<T, ? extends Kind<Kind<OptionT_, F>, R>> map) {
+      Function1<? super T, ? extends Kind<Kind<OptionT_, F>, ? extends R>> map) {
     return OptionTOf.narrowK(value).flatMap(map.andThen(OptionTOf::narrowK));
   }
 }

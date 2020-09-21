@@ -88,7 +88,7 @@ interface TryApplicative extends TryPure {
   TryApplicative INSTANCE = new TryApplicative() {};
 
   @Override
-  default <T, R> Kind<Try_, R> ap(Kind<Try_, T> value, Kind<Try_, Function1<T, R>> apply) {
+  default <T, R> Kind<Try_, R> ap(Kind<Try_, T> value, Kind<Try_, Function1<? super T, ? extends R>> apply) {
     return TryOf.narrowK(value).flatMap(t -> TryOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -99,7 +99,7 @@ interface TryMonad extends TryPure, Monad<Try_> {
 
   @Override
   default <T, R> Kind<Try_, R> flatMap(Kind<Try_, T> value,
-      Function1<T, ? extends Kind<Try_, R>> map) {
+      Function1<? super T, ? extends Kind<Try_, ? extends R>> map) {
     return TryOf.narrowK(value).flatMap(map.andThen(TryOf::narrowK));
   }
 }

@@ -82,7 +82,7 @@ interface URIOApplicative<R> extends URIOPure<R> {
   @Override
   default <A, B> URIO<R, B>
           ap(Kind<Kind<URIO_, R>, A> value,
-             Kind<Kind<URIO_, R>, Function1<A, B>> apply) {
+             Kind<Kind<URIO_, R>, Function1<? super A, ? extends B>> apply) {
     return value.fix(toURIO()).ap(apply.fix(toURIO()));
   }
 }
@@ -95,7 +95,7 @@ interface URIOMonad<R> extends URIOPure<R>, Monad<Kind<URIO_, R>> {
   @Override
   default <A, B> URIO<R, B>
           flatMap(Kind<Kind<URIO_, R>, A> value,
-                  Function1<A, ? extends Kind<Kind<URIO_, R>, B>> map) {
+                  Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
     return value.fix(toURIO()).flatMap(map.andThen(URIOOf::narrowK));
   }
 }

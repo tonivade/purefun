@@ -40,13 +40,11 @@ public interface Par<T> extends ParOf<T> {
     return executor -> apply(executor).flatMap(value -> mapper.apply(value).apply(executor));
   }
 
-  // TODO
-  default <R> Par<R> andThen(Par<R> next) {
+  default <R> Par<R> andThen(Par<? extends R> next) {
     return map2(this, next, second());
   }
 
-  // TODO
-  default <R> Par<R> ap(Par<Function1<T, R>> apply) {
+  default <R> Par<R> ap(Par<Function1<? super T, ? extends R>> apply) {
     return executor -> apply(executor).ap(apply.apply(executor));
   }
 
@@ -103,7 +101,7 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
   }
 
-  static <A, B, C> Par<C> map2(Par<A> parA, Par<B> parB, Function2<A, B, C> mapper) {
+  static <A, B, C> Par<C> map2(Par<A> parA, Par<B> parB, Function2<? super A, ? super B, ? extends C> mapper) {
     return parB.ap(parA.map(mapper.curried()));
   }
 

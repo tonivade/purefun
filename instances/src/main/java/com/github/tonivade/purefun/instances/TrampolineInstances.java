@@ -57,7 +57,8 @@ interface TrampolineApplicative extends TrampolinePure {
   TrampolineApplicative INSTANCE = new TrampolineApplicative() {};
 
   @Override
-  default <T, R> Kind<Trampoline_, R> ap(Kind<Trampoline_, T> value, Kind<Trampoline_, Function1<T, R>> apply) {
+  default <T, R> Kind<Trampoline_, R> ap(Kind<Trampoline_, T> value, 
+      Kind<Trampoline_, Function1<? super T, ? extends R>> apply) {
     return TrampolineOf.narrowK(value).flatMap(t -> TrampolineOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -68,7 +69,7 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline_> {
 
   @Override
   default <T, R> Kind<Trampoline_, R> flatMap(Kind<Trampoline_, T> value,
-      Function1<T, ? extends Kind<Trampoline_, R>> map) {
+      Function1<? super T, ? extends Kind<Trampoline_, ? extends R>> map) {
     return TrampolineOf.narrowK(value).flatMap(map.andThen(TrampolineOf::narrowK));
   }
 }

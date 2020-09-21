@@ -98,7 +98,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return new URIO<>(instance.andThen(next.instance));
   }
   
-  public <B> URIO<R, B> ap(URIO<R, Function1<A, B>> apply) {
+  public <B> URIO<R, B> ap(URIO<R, Function1<? super A, ? extends B>> apply) {
     return new URIO<>(instance.ap(apply.toZIO()));
   }
 

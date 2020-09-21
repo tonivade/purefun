@@ -56,7 +56,7 @@ interface ProducerApplicative extends ProducerPure {
   ProducerApplicative INSTANCE = new ProducerApplicative() {};
 
   @Override
-  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, T> value, Kind<Producer_, Function1<T, R>> apply) {
+  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, T> value, Kind<Producer_, Function1<? super T, ? extends R>> apply) {
     return ProducerOf.narrowK(value).flatMap(t -> ProducerOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -66,7 +66,7 @@ interface ProducerMonad extends ProducerPure, Monad<Producer_> {
   ProducerMonad INSTANCE = new ProducerMonad() {};
 
   @Override
-  default <T, R> Kind<Producer_, R> flatMap(Kind<Producer_, T> value, Function1<T, ? extends Kind<Producer_, R>> mapper) {
+  default <T, R> Kind<Producer_, R> flatMap(Kind<Producer_, T> value, Function1<? super T, ? extends Kind<Producer_, ? extends R>> mapper) {
     return value.fix(ProducerOf::narrowK).flatMap(mapper.andThen(ProducerOf::narrowK));
   }
 }

@@ -9,6 +9,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 
 import java.time.Duration;
 import java.util.LinkedList;
@@ -109,7 +110,6 @@ final class PromiseImpl<T> implements SealedPromise<T> {
     return false;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public Try<T> get() {
     if (isEmpty()) {
@@ -124,10 +124,9 @@ final class PromiseImpl<T> implements SealedPromise<T> {
         }
       }
     }
-    return (Try<T>) checkNonNull(reference.get());
+    return TryOf.narrowK(checkNonNull(reference.get()));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public Try<T> get(Duration timeout) {
     if (isEmpty()) {
@@ -142,7 +141,8 @@ final class PromiseImpl<T> implements SealedPromise<T> {
         }
       }
     }
-    return (Try<T>) Option.of(reference::get).getOrElse(Try.failure(new TimeoutException()));
+    Option<Try<T>> option = Option.of(reference::get).map(TryOf::narrowK);
+    return option.getOrElse(Try.<T>failure(new TimeoutException()));
   }
 
   @Override
@@ -165,7 +165,6 @@ final class PromiseImpl<T> implements SealedPromise<T> {
     return other;
   }
 
-  @SuppressWarnings("unchecked")
   private Option<Try<T>> current(Consumer1<? super Try<? extends T>> consumer) {
     Try<? extends T> current = reference.get();
     if (isNull(current)) {
@@ -176,7 +175,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
         }
       }
     }
-    return Option.of((Try<T>) current);
+    return Option.of(TryOf.narrowK(current));
   }
 
   private void setValue(Try<? extends T> value) {

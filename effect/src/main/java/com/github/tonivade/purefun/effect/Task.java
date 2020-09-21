@@ -99,7 +99,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.andThen(next.instance));
   }
 
-  public <B> Task<B> ap(Task<Function1<A, B>> apply) {
+  public <B> Task<B> ap(Task<Function1<? super A, ? extends B>> apply) {
     return new Task<>(instance.ap(apply.toZIO()));
   }
 

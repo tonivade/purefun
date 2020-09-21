@@ -23,12 +23,12 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
   Monad<F> monad();
   Kind<F, Option<T>> value();
 
-  default <R> OptionT<F, R> map(Function1<T, R> map) {
+  default <R> OptionT<F, R> map(Function1<? super T, ? extends R> map) {
     return OptionT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
-  default <R> OptionT<F, R> flatMap(Function1<T, OptionT<F, R>> map) {
-    return OptionT.of(monad(), flatMapF(v -> map.apply(v).value()));
+  default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends OptionT<F, ? extends R>> map) {
+    return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>narrowK).apply(v).value()));
   }
 
   default <R> Kind<F, R> fold(Producer<R> orElse, Function1<T, R> map) {
@@ -88,7 +88,7 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
     return lift(monad, Option.none());
   }
 
-  default <R> Kind<F, Option<R>> flatMapF(Function1<T, Kind<F, Option<R>>> map) {
+  default <R> Kind<F, Option<R>> flatMapF(Function1<? super T, ? extends Kind<F, ? extends Option<R>>> map) {
    return monad().flatMap(value(), v -> v.fold(cons(monad().pure(Option.none())), map));
   }
 }

@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.type.Either;
 
 public interface Monad<F extends Witness> extends Selective<F> {
 
-  <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<T, ? extends Kind<F, R>> map);
+  <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
 
   // XXX: this method in not stack safe. In fact, now I don't really know how to do it stack safe
   // without real tail recursion optimization
@@ -30,16 +30,13 @@ public interface Monad<F extends Witness> extends Selective<F> {
     return flatMap(value, identity());
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map) {
-    // TODO:
-    Function1<T, ? extends Kind<F, R>> andThen = (Function1<T, ? extends Kind<F, R>>) map.andThen(this::<R>pure);
-    return flatMap(value, andThen);
+    return flatMap(value, map.andThen(this::<R>pure));
   }
 
   @Override
-  default <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<T, R>> apply) {
+  default <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<? super T, ? extends R>> apply) {
     return flatMap(apply, map -> map(value, map));
   }
 

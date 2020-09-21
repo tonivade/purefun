@@ -46,8 +46,8 @@ public class AlternativeLaws {
                                                                  Function1<A, B> f,
                                                                  Function1<A, B> g) {
     Kind<F, A> fa = instance.pure(a);
-    Kind<F, Function1<A, B>> ff = instance.pure(f);
-    Kind<F, Function1<A, B>> fg = instance.pure(g);
+    Kind<F, Function1<? super A, ? extends B>> ff = instance.pure(f);
+    Kind<F, Function1<? super A, ? extends B>> fg = instance.pure(g);
     assertEquals(
         instance.ap(fa, instance.combineK(ff, fg)),
         instance.combineK(instance.ap(fa, ff), instance.ap(fa, fg)),

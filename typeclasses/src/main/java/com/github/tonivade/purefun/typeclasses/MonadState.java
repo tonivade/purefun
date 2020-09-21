@@ -61,7 +61,7 @@ class ReferenceMonadState<F extends Witness, S> implements MonadState<F, S> {
   }
 
   @Override
-  public <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<T, ? extends Kind<F, R>> map) {
+  public <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map) {
     return monad.flatMap(value, map);
   }
 }

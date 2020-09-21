@@ -107,7 +107,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.andThen(next.instance));
   }
 
-  public <B> EIO<E, B> ap(EIO<E, Function1<A, B>> apply) {
+  public <B> EIO<E, B> ap(EIO<E, Function1<? super A, ? extends B>> apply) {
     return new EIO<>(instance.ap(apply.toZIO()));
   }
 

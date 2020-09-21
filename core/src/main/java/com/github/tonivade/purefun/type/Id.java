@@ -34,9 +34,8 @@ public final class Id<T> implements IdOf<T>, Serializable {
     return flatMap(map.andThen(Id::of));
   }
 
-  @SuppressWarnings("unchecked")
   public <R> Id<R> flatMap(Function1<? super T, ? extends Id<? extends R>> map) {
-    return (Id<R>) map.apply(value);
+    return map.andThen(IdOf::<R>narrowK).apply(value);
   }
 
   public T get() {

@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.Consumer1.noop;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
@@ -31,6 +30,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 
 /**
  * <p>This type is an abstraction of a computation executed in another thread. To run the computation an {@code Executor}
@@ -85,8 +85,7 @@ public interface Future<T> extends FutureOf<T> {
 
   <R> Future<R> andThen(Future<? extends R> next);
 
-  // TODO
-  <R> Future<R> ap(Future<Function1<T, R>> apply);
+  <R> Future<R> ap(Future<Function1<? super T, ? extends R>> apply);
 
   Future<T> filter(Matcher1<? super T> matcher);
 
@@ -232,8 +231,7 @@ public interface Future<T> extends FutureOf<T> {
         (Future<Sequence<A>> xs, Future<A> a) -> map2(xs, a, Sequence::append));
   }
   
-  // TODO
-  static <T, V, R> Future<R> map2(Future<T> fa, Future<V> fb, Function2<T, V, R> mapper) {
+  static <T, V, R> Future<R> map2(Future<T> fa, Future<V> fb, Function2<? super T, ? super V, ? extends R> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
   
@@ -255,15 +253,15 @@ public interface Future<T> extends FutureOf<T> {
 final class FutureImpl<T> implements SealedFuture<T> {
 
   private final Executor executor;
-  private final Consumer1<Boolean> propagate;
+  private final Propagate propagate;
   private final Promise<T> promise;
   private final Cancellable<T> cancellable;
 
   private FutureImpl(Executor executor, Callback<T> callback) {
-    this(executor, callback, noop());
+    this(executor, callback, Propagate.noPropagate());
   }
 
-  private FutureImpl(Executor executor, Callback<T> callback, Consumer1<Boolean> propagate) {
+  private FutureImpl(Executor executor, Callback<T> callback, Propagate propagate) {
     this.executor = checkNonNull(executor);
     this.propagate = checkNonNull(propagate);
     this.promise = Promise.make(executor);
@@ -325,8 +323,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
   
   @Override
-  // TODO
-  public <R> Future<R> ap(Future<Function1<T, R>> apply) {
+  public <R> Future<R> ap(Future<Function1<? super T, ? extends R>> apply) {
     checkNonNull(apply);
     return new FutureImpl<>(executor, 
         (p, c) -> promise.onComplete(try1 -> apply.onComplete(
@@ -343,10 +340,12 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return chain(value -> value.fold(cons(other), t -> Future.success(executor, t)));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
-    return transform(value -> ((Try<T>) value).recoverWith(type, mapper));
+    return transform(value -> {
+      Try<T> try1 = TryOf.narrowK(value);
+      return try1.recoverWith(type, mapper);
+    });
   }
 
   @Override
@@ -451,4 +450,13 @@ interface FutureModule {
 interface Callback<T> {
   
   void accept(Promise<T> promise, Cancellable<T> cancellable);
+}
+
+interface Propagate {
+
+  void accept(boolean value);
+
+  static Propagate noPropagate() {
+    return value -> {};
+  }
 }

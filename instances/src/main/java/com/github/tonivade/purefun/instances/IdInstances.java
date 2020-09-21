@@ -76,7 +76,7 @@ interface IdApplicative extends IdPure {
   IdApplicative INSTANCE = new IdApplicative() {};
 
   @Override
-  default <T, R> Kind<Id_, R> ap(Kind<Id_, T> value, Kind<Id_, Function1<T, R>> apply) {
+  default <T, R> Kind<Id_, R> ap(Kind<Id_, T> value, Kind<Id_, Function1<? super T, ? extends R>> apply) {
     return IdOf.narrowK(value).flatMap(t -> IdOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -86,7 +86,7 @@ interface IdMonad extends IdPure, Monad<Id_> {
   IdMonad INSTANCE = new IdMonad() {};
 
   @Override
-  default <T, R> Kind<Id_, R> flatMap(Kind<Id_, T> value, Function1<T, ? extends Kind<Id_, R>> map) {
+  default <T, R> Kind<Id_, R> flatMap(Kind<Id_, T> value, Function1<? super T, ? extends Kind<Id_, ? extends R>> map) {
     return IdOf.narrowK(value).flatMap(map.andThen(IdOf::narrowK));
   }
 }

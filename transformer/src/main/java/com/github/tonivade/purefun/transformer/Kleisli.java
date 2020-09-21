@@ -17,11 +17,11 @@ public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
   Monad<F> monad();
   Kind<F, A> run(Z value);
 
-  default <R> Kleisli<F, Z, R> map(Function1<A, R> map) {
+  default <R> Kleisli<F, Z, R> map(Function1<? super A, ? extends R> map) {
     return Kleisli.of(monad(), value -> monad().map(run(value), map));
   }
 
-  default <R> Kleisli<F, Z, R> flatMap(Function1<A, Kleisli<F, Z, R>> map) {
+  default <R> Kleisli<F, Z, R> flatMap(Function1<? super A, ? extends Kleisli<F, Z, ? extends R>> map) {
     return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.apply(a).run(value)));
   }
 

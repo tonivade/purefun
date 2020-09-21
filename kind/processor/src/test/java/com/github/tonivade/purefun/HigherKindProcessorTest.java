@@ -44,7 +44,8 @@ public class HigherKindProcessorTest {
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A> extends Kind<Foo_, A> {",
 
-        "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
+        "@SuppressWarnings(\"unchecked\")",
+        "static <A> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
@@ -82,7 +83,8 @@ public class HigherKindProcessorTest {
         
         "SealedFoo<A> youShallNotPass();",
 
-        "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
+        "@SuppressWarnings(\"unchecked\")",
+        "static <A> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
@@ -120,7 +122,8 @@ public class HigherKindProcessorTest {
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A> extends Kind<Foo_, A> {",
 
-        "static <A> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
+        "@SuppressWarnings(\"unchecked\")",
+        "static <A> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
@@ -164,7 +167,8 @@ public class HigherKindProcessorTest {
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A extends java.lang.String> extends Kind<Foo_, A> {",
 
-        "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo_, A> hkt) {",
+        "@SuppressWarnings(\"unchecked\")",
+        "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
@@ -216,7 +220,8 @@ public class HigherKindProcessorTest {
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A, B> extends Kind<Kind<Foo_, A>, B> {",
 
-        "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo_, A>, B> hkt) {",
+        "@SuppressWarnings(\"unchecked\")",
+        "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo_, A>, ? extends B> hkt) {",
         "return (Foo<A, B>) hkt;",
         "}",
         
@@ -252,7 +257,8 @@ public class HigherKindProcessorTest {
         "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
         "public interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo_, A>, B>, C> {",
 
-        "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo_, A>, B>, C> hkt) {",
+        "@SuppressWarnings(\"unchecked\")",
+        "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo_, A>, B>, ? extends C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
         "}",
         

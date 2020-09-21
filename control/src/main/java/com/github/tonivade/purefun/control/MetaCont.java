@@ -21,12 +21,12 @@ interface MetaCont<A, B> {
 
   <R> Tuple2<MetaCont<A, R>, MetaCont<R, B>> splitAt(Marker.Cont<R> cont);
 
-  default <R> MetaCont<R, B> map(Function1<R, A> mapper) {
+  default <R> MetaCont<R, B> map(Function1<? super R, ? extends A> mapper) {
     return flatMap(x -> Control.later(() -> mapper.apply(x)));
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  default <R> MetaCont<R, B> flatMap(Function1<R, Control<A>> mapper) {
+  default <R> MetaCont<R, B> flatMap(Function1<? super R, ? extends Control<? extends A>> mapper) {
     Function1<?, Control<?>> f = (Function1) mapper;
     return new Frames<>(NonEmptyList.of(f), this);
   }
@@ -113,7 +113,7 @@ interface MetaCont<A, B> {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R> MetaCont<R, C> flatMap(Function1<R, Control<A>> mapper) {
+    public <R> MetaCont<R, C> flatMap(Function1<? super R, ? extends Control<? extends A>> mapper) {
       NonEmptyList<Function1<?, Control<?>>> list = NonEmptyList.of((Function1) mapper);
       return new Frames<>(list.appendAll(frames), tail);
     }

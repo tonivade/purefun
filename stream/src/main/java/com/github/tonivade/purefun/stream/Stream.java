@@ -60,7 +60,7 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
   <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator);
 
   <R> Stream<F, R> map(Function1<? super T, ? extends R> map);
-  <R> Stream<F, R> flatMap(Function1<T, Stream<F, R>> map);
+  <R> Stream<F, R> flatMap(Function1<? super T, ? extends Stream<F, ? extends R>> map);
   <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper);
 
   Stream<F, T> repeat();

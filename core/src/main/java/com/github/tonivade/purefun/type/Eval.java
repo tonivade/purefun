@@ -131,19 +131,18 @@ public interface Eval<A> extends EvalOf<A> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("cast")
     public <R> Eval<R> flatMap(Function1<? super B, ? extends Eval<? extends R>> map) {
-      return new FlatMapped<>(() -> (Eval<B>) start(), b -> new FlatMapped<>(() -> run((A) b), map::apply));
+      return new FlatMapped<>(() -> start(), b -> new FlatMapped<>(() -> run((A) b), map::apply));
     }
 
-    @SuppressWarnings("unchecked")
     protected Eval<A> start() {
-      return (Eval<A>) start.get();
+      return EvalOf.narrowK(start.get());
     }
 
-    @SuppressWarnings("unchecked")
     protected Eval<B> run(A value) {
-      return (Eval<B>) run.apply(value);
+      Function1<? super A, Eval<B>> andThen = run.andThen(EvalOf::narrowK);
+      return andThen.apply(value);
     }
 
     @Override

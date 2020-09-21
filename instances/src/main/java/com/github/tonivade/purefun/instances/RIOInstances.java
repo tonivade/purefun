@@ -81,7 +81,7 @@ interface RIOApplicative<R> extends RIOPure<R> {
   @Override
   default <A, B> RIO<R, B>
           ap(Kind<Kind<RIO_, R>, A> value,
-             Kind<Kind<RIO_, R>, Function1<A, B>> apply) {
+             Kind<Kind<RIO_, R>, Function1<? super A, ? extends B>> apply) {
     return value.fix(toRIO()).ap(apply.fix(toRIO()));
   }
 }
@@ -94,7 +94,7 @@ interface RIOMonad<R> extends RIOPure<R>, Monad<Kind<RIO_, R>> {
   @Override
   default <A, B> RIO<R, B>
           flatMap(Kind<Kind<RIO_, R>, A> value,
-                  Function1<A, ? extends Kind<Kind<RIO_, R>, B>> map) {
+                  Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> map) {
     return value.fix(toRIO()).flatMap(map.andThen(RIOOf::narrowK));
   }
 }

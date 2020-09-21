@@ -84,9 +84,8 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
     return headMap.apply(head);
   }
 
-  @SuppressWarnings("unchecked")
   private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
-    return tail.map(t -> functor.map(t, tailMap.andThen(x -> (Cofree<F, B>) x)));
+    return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::narrowK)));
   }
 
   public static <F extends Witness, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Kind<F, A>> unfold) {

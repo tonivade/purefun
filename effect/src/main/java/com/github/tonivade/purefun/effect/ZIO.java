@@ -93,7 +93,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return flatMap(ignore -> next);
   }
 
-  default <B> ZIO<R, E, B> ap(ZIO<R, E, Function1<A, B>> apply) {
+  default <B> ZIO<R, E, B> ap(ZIO<R, E, Function1<? super A, ? extends B>> apply) {
     return new Apply<>(this, apply);
   }
 
@@ -245,7 +245,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return access(identity());
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<A, B, C> mapper) {
+  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<? super A, ? super B, ? extends C> mapper) {
     return zb.ap(za.map(mapper.curried()));
   }
 
@@ -336,9 +336,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   final class Apply<R, E, A, B> implements SealedZIO<R, E, B> {
     
     private final ZIO<R, E, A> value;
-    private final ZIO<R, E, Function1<A, B>> apply;
+    private final ZIO<R, E, Function1<? super A, ? extends B>> apply;
 
-    protected Apply(ZIO<R, E, A> value, ZIO<R, E, Function1<A, B>> apply) {
+    protected Apply(ZIO<R, E, A> value, ZIO<R, E, Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
@@ -416,14 +416,13 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       );
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <X extends Witness> Kind<X, B> foldMap(R env, Async<X> monad) {
       Kind<X, A> foldMap = current.get().foldMap(env, monad);
       Kind<X, Either<Throwable, A>> attempt = monad.attempt(foldMap);
       Kind<X, ZIO<R, F, B>> map =
           monad.map(attempt, 
-              either -> (ZIO<R, F, B>) either.bimap(error -> nextError.apply(unwrap(error)), next).fold(identity(), identity()));
+              either -> ZIOOf.narrowK(either.bimap(error -> nextError.apply(unwrap(error)), next).fold(identity(), identity())));
       return monad.flatMap(map, zio -> zio.foldMap(env, monad));
     }
 
@@ -436,9 +435,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
       return current.get();
     }
 
-    @SuppressWarnings("unchecked")
     protected ZIO<R, F, B> run(Either<E, A> value) {
-      return (ZIO<R, F, B>) value.bimap(nextError, next).fold(identity(), identity());
+      return ZIOOf.narrowK(value.bimap(nextError, next).fold(identity(), identity()));
     }
   }
 

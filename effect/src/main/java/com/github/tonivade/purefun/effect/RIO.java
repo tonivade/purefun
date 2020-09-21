@@ -93,7 +93,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(instance.andThen(next.instance));
   }
 
-  public <B> RIO<R, B> ap(RIO<R, Function1<A, B>> apply) {
+  public <B> RIO<R, B> ap(RIO<R, Function1<? super A, ? extends B>> apply) {
     return new RIO<>(instance.ap(apply.toZIO()));
   }
 

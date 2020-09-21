@@ -24,11 +24,11 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
 
   private FreeAp() {}
 
-  public abstract <B> FreeAp<F, B> map(Function1<A, B> mapper);
+  public abstract <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
 
-  public <B> FreeAp<F, B> ap(FreeAp<F, Function1<A, B>> apply) {
+  public <B> FreeAp<F, B> ap(FreeAp<F, Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure) {
-      Pure<F, Function1<A, B>> pure = (Pure<F, Function1<A, B>>) apply;
+      Pure<F, Function1<? super A, ? extends B>> pure = (Pure<F, Function1<? super A, ? extends B>>) apply;
       return map(pure.value);
     }
     return apply(this, apply);
@@ -116,7 +116,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
     return new FreeAp.Lift<>(value);
   }
 
-  public static <F extends Witness, T, R> FreeAp<F, R> apply(FreeAp<F, T> value, FreeAp<F, Function1<T, R>> mapper) {
+  public static <F extends Witness, T, R> FreeAp<F, R> apply(FreeAp<F, ? extends T> value, FreeAp<F, Function1<? super T, ? extends R>> mapper) {
     return new FreeAp.Apply<>(value, mapper);
   }
 
@@ -154,7 +154,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
     }
 
     @Override
-    public <B> FreeAp<F, B> map(Function1<A, B> mapper) {
+    public <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
       return pure(mapper.apply(value));
     }
 
@@ -173,7 +173,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
     }
 
     @Override
-    public <B> FreeAp<F, B> map(Function1<A, B> mapper) {
+    public <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
       return apply(this, pure(mapper));
     }
 
@@ -185,16 +185,16 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
 
   private static final class Apply<F extends Witness, A, B> extends FreeAp<F, B> {
 
-    private final FreeAp<F, A> value;
-    private final FreeAp<F, Function1<A, B>> apply;
+    private final FreeAp<F, ? extends A> value;
+    private final FreeAp<F, Function1<? super A, ? extends B>> apply;
 
-    private Apply(FreeAp<F, A> value, FreeAp<F, Function1<A, B>> apply) {
+    private Apply(FreeAp<F, ? extends A> value, FreeAp<F, Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
 
     @Override
-    public <C> FreeAp<F, C> map(Function1<B, C> mapper) {
+    public <C> FreeAp<F, C> map(Function1<? super B, ? extends C> mapper) {
       return apply(this, pure(mapper));
     }
 
@@ -228,10 +228,8 @@ interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F
 
   @Override
   default <T, R> FreeAp<F, R> ap(
-      Kind<Kind<FreeAp_, F>, T> value, Kind<Kind<FreeAp_, F>, Function1<T, R>> apply) {
-    FreeAp<F, T> freeAp = value.fix(toFreeAp());
-    FreeAp<F, Function1<T, R>> apply1 = apply.fix(toFreeAp());
-    return FreeAp.apply(freeAp, apply1);
+      Kind<Kind<FreeAp_, F>, T> value, Kind<Kind<FreeAp_, F>, Function1<? super T, ? extends R>> apply) {
+    return FreeAp.apply(value.fix(toFreeAp()), apply.fix(toFreeAp()));
   }
 }
 

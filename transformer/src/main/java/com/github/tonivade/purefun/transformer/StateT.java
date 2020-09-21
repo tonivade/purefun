@@ -28,14 +28,14 @@ public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A> {
     return monad().map(run(state), Tuple2::get2);
   }
 
-  default <R> StateT<F, S, R> map(Function1<A, R> map) {
+  default <R> StateT<F, S, R> map(Function1<? super A, ? extends R> map) {
     return flatMap(value -> pure(monad(), map.apply(value)));
   }
 
-  default <R> StateT<F, S, R> flatMap(Function1<A, StateT<F, S, R>> map) {
+  default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends StateT<F, S, ? extends R>> map) {
     return state(monad(), state -> {
       Kind<F, Tuple2<S, A>> newState = run(state);
-      return monad().flatMap(newState, state2 -> map.apply(state2.get2()).run(state2.get1()));
+      return monad().flatMap(newState, state2 -> map.andThen(StateTOf::<F, S, R>narrowK).apply(state2.get2()).run(state2.get1()));
     });
   }
 

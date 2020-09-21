@@ -20,14 +20,15 @@ public interface State<S, A> extends StateOf<S, A> {
 
   Tuple2<S, A> run(S state);
 
-  default <R> State<S, R> map(Function1<A, R> mapper) {
+  default <R> State<S, R> map(Function1<? super A, ? extends R> mapper) {
     return flatMap(value -> pure(mapper.apply(value)));
   }
 
-  default <R> State<S, R> flatMap(Function1<A, State<S, R>> mapper) {
+  default <R> State<S, R> flatMap(Function1<? super A, ? extends State<S, ? extends R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
-      return mapper.apply(run.get2()).run(run.get1());
+      State<S, R> narrowK = StateOf.narrowK(mapper.apply(run.get2()));
+      return narrowK.run(run.get1());
     };
   }
 

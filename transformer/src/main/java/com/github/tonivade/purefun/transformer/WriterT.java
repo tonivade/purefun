@@ -32,11 +32,11 @@ public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
     return monad().map(value(), Tuple2::get1);
   }
 
-  default <R> WriterT<F, L, R> map(Function1<A, R> mapper) {
+  default <R> WriterT<F, L, R> map(Function1<? super A, ? extends R> mapper) {
     return bimap(monoid(), identity(), mapper);
   }
 
-  default <V> WriterT<F, V, A> mapLog(Monoid<V> monoidV, Function1<L, V> mapper) {
+  default <V> WriterT<F, V, A> mapLog(Monoid<V> monoidV, Function1<? super L, ? extends V> mapper) {
     return bimap(monoidV, mapper, identity());
   }
 
@@ -53,7 +53,7 @@ public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
     return bimap(monoid(), cons(monoid().zero()), identity());
   }
 
-  default <V, R> WriterT<F, V, R> bimap(Monoid<V> monoidV, Function1<L, V> mapper1, Function1<A, R> mapper2) {
+  default <V, R> WriterT<F, V, R> bimap(Monoid<V> monoidV, Function1<? super L, ? extends V> mapper1, Function1<? super A, ? extends R> mapper2) {
     return writer(monoidV, monad(), monad().map(value(), tuple -> tuple.map(mapper1, mapper2)));
   }
 
@@ -61,7 +61,7 @@ public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
     return writer(monoid(), monadG, functionK.apply(value()));
   }
 
-  default <R> WriterT<F, L, R> flatMap(Function1<A, WriterT<F, L, R>> mapper) {
+  default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends WriterT<F, L, ? extends R>> mapper) {
     return writer(monoid(), monad(),
         monad().flatMap(value(),
             current -> monad().map(mapper.apply(current.get2()).value(),

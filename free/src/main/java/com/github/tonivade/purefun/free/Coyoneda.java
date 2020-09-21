@@ -14,10 +14,10 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 @HigherKind
 public final class Coyoneda<F extends Witness, A, B> implements CoyonedaOf<F, A, B> {
 
-  private final Kind<F, A> value;
-  private final Function1<A, B> map;
+  private final Kind<F, ? extends A> value;
+  private final Function1<? super A, ? extends B> map;
 
-  private Coyoneda(Kind<F, A> value, Function1<A, B> map) {
+  private Coyoneda(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map) {
     this.value = checkNonNull(value);
     this.map = checkNonNull(map);
   }
@@ -26,11 +26,11 @@ public final class Coyoneda<F extends Witness, A, B> implements CoyonedaOf<F, A,
     return functor.map(value, map);
   }
 
-  public <C> Coyoneda<F, A, C> map(Function1<B, C> next) {
+  public <C> Coyoneda<F, A, C> map(Function1<? super B, ? extends C> next) {
     return new Coyoneda<>(value, map.andThen(next));
   }
 
-  public static <F extends Witness, A, B> Coyoneda<F, A, B> of(Kind<F, A> value, Function1<A, B> map) {
+  public static <F extends Witness, A, B> Coyoneda<F, A, B> of(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map) {
     return new Coyoneda<>(value, map);
   }
 }

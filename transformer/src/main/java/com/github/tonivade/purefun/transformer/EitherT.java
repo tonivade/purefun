@@ -25,12 +25,12 @@ public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R> {
   Monad<F> monad();
   Kind<F, Either<L, R>> value();
 
-  default <V> EitherT<F, L, V> map(Function1<R, V> map) {
+  default <V> EitherT<F, L, V> map(Function1<? super R, ? extends V> map) {
     return EitherT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
-  default <V> EitherT<F, L, V> flatMap(Function1<R, EitherT<F, L, V>> map) {
-    return EitherT.of(monad(), flatMapF(v -> map.apply(v).value()));
+  default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends EitherT<F, L, ? extends V>> map) {
+    return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>narrowK).apply(v).value()));
   }
 
   default <T, V> EitherT<F, T, V> bimap(Function1<L, T> leftMapper, Function1<R, V> rightMapper) {
@@ -122,7 +122,7 @@ public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R> {
     return lift(monad, value.toEither());
   }
 
-  default <V> Kind<F, Either<L, V>> flatMapF(Function1<R, Kind<F, Either<L, V>>> map) {
+  default <V> Kind<F, Either<L, V>> flatMapF(Function1<? super R, ? extends Kind<F, ? extends Either<L, V>>> map) {
    return monad().flatMap(value(), v -> v.fold(left -> monad().pure(Either.left(left)), map));
   }
 }

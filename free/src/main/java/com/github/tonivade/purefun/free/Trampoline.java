@@ -26,9 +26,9 @@ public interface Trampoline<T> extends TrampolineOf<T> {
               value -> done(map.apply(value)));
   }
 
-  default <R> Trampoline<R> flatMap(Function1<T, Trampoline<R>> map) {
+  default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Trampoline<? extends R>> map) {
     return TrampolineModule.resume(this)
-        .fold(next -> more(() -> next.flatMap(map)), map::apply);
+        .fold(next -> more(() -> next.flatMap(map)), map.andThen(TrampolineOf::narrowK));
   }
 
   default <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {

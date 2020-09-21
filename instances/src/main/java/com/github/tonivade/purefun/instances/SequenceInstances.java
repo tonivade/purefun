@@ -143,7 +143,7 @@ interface SequenceApplicative extends SequencePure, Applicative<Sequence_> {
   SequenceApplicative INSTANCE = new SequenceApplicative() {};
 
   @Override
-  default <T, R> Kind<Sequence_, R> ap(Kind<Sequence_, T> value, Kind<Sequence_, Function1<T, R>> apply) {
+  default <T, R> Kind<Sequence_, R> ap(Kind<Sequence_, T> value, Kind<Sequence_, Function1<? super T, ? extends R>> apply) {
     return SequenceOf.narrowK(apply).flatMap(map -> SequenceOf.narrowK(value).map(map));
   }
 }
@@ -153,7 +153,7 @@ interface SequenceMonad extends SequencePure, Monad<Sequence_> {
   SequenceMonad INSTANCE = new SequenceMonad() {};
 
   @Override
-  default <T, R> Kind<Sequence_, R> flatMap(Kind<Sequence_, T> value, Function1<T, ? extends Kind<Sequence_, R>> map) {
+  default <T, R> Kind<Sequence_, R> flatMap(Kind<Sequence_, T> value, Function1<? super T, ? extends Kind<Sequence_, ? extends R>> map) {
     return SequenceOf.narrowK(value).flatMap(map.andThen(SequenceOf::narrowK));
   }
 }

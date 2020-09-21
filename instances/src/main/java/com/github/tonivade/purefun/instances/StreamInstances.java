@@ -91,7 +91,7 @@ interface StreamMonad<F extends Witness> extends Monad<Kind<Stream_, F>>, Stream
 
   @Override
   default <T, R> Stream<F, R> flatMap(Kind<Kind<Stream_, F>, T> value,
-      Function1<T, ? extends Kind<Kind<Stream_, F>, R>> mapper) {
+      Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> mapper) {
     return StreamOf.narrowK(value).flatMap(mapper.andThen(StreamOf::narrowK));
   }
 }

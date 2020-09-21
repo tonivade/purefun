@@ -117,6 +117,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void generate1(PrintWriter writer, boolean sealed, String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<" + kindName + ", A>";
+    String higher1Wildcard = "Kind<" + kindName + ", ? extends A>";
     String aType = type("A", list.get(0));
     String typeParams = "<" + aType + ">";
     String typeOfNameWithParams = typeOfName + typeParams;
@@ -135,7 +136,7 @@ public class HigherKindProcessor extends AbstractProcessor {
       sealedMethod(writer, className, "<A>");
     }
     writer.println();
-    narrowK1(writer, className, aType, higher1);
+    narrowK1(writer, className, aType, higher1Wildcard);
     toTypeOf1(writer, className, aType, higher1, typeOfName);
     writer.println(END);
     if (sealed) {
@@ -147,6 +148,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void generate2(PrintWriter writer, boolean sealed, String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<Kind<" + kindName + ", A>, B>";
+    String higher1Wildcard = "Kind<Kind<" + kindName + ", A>, ? extends B>";
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
     String typeParams = "<" + aType + ", " + bType + ">";
@@ -167,7 +169,7 @@ public class HigherKindProcessor extends AbstractProcessor {
       sealedMethod(writer, className, "<A, B>");
     }
     writer.println();
-    narrowK2(writer, className, aType, bType, higher1);
+    narrowK2(writer, className, aType, bType, higher1Wildcard);
     toTypeOf2(writer, className, aType, bType, higher1, typeOfName);
     writer.println(END);
     if (sealed) {
@@ -179,6 +181,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void generate3(PrintWriter writer, boolean sealed, String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<Kind<Kind<" + kindName + ", A>, B>, C>";
+    String higher1Wildcard = "Kind<Kind<Kind<" + kindName + ", A>, B>, ? extends C>";
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
     String cType = type("C", list.get(2));
@@ -200,7 +203,7 @@ public class HigherKindProcessor extends AbstractProcessor {
       sealedMethod(writer, className, "<A, B, C>");
     }
     writer.println();
-    narrowK3(writer, className, aType, bType, cType, higher1);
+    narrowK3(writer, className, aType, bType, cType, higher1Wildcard);
     toTypeOf3(writer, className, aType, bType, cType, higher1, typeOfName);
     writer.println(END);
     if (sealed) {
@@ -243,6 +246,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
   
   private void narrowK(PrintWriter writer, String types, String returnType, String param) {
+    writer.println("  @SuppressWarnings(\"unchecked\")");
     writer.println("  static " + types + " " + returnType + " narrowK(" + param + " hkt) {");
     writer.println("    return (" + returnType + ") hkt;");
     writer.println("  }");

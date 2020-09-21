@@ -17,35 +17,33 @@ public interface Applicative<F extends Witness> extends Functor<F> {
 
   <T> Kind<F, T> pure(T value);
 
-  <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<T, R>> apply);
+  <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<? super T, ? extends R>> apply);
 
-  @SuppressWarnings("unchecked")
   @Override
   default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map) {
-    // TODO: 
-    return ap(value, pure((Function1<T, R>) map));
+    return ap(value, pure(map));
   }
 
   default <A, B> Kind<F, Tuple2<A, B>> tuple(Kind<F, A> fa, Kind<F, B> fb) {
     return mapN(fa, fb, Tuple2::of);
   }
 
-  default <A, B, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Function2<A, B, R> mapper) {
+  default <A, B, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Function2<? super A, ? super B, ? extends R> mapper) {
     return ap(fb, map(fa, mapper.curried()));
   }
 
   default <A, B, C, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc,
-      Function3<A, B, C, R> mapper) {
+      Function3<? super A, ? super B, ? super C, ? extends R> mapper) {
     return ap(fc, mapN(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
   }
 
   default <A, B, C, D, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc, Kind<F, D> fd,
-      Function4<A, B, C, D, R> mapper) {
+      Function4<? super A, ? super B, ? super C, ? super D, ? extends R> mapper) {
     return ap(fd, mapN(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
   }
 
   default <A, B, C, D, E, R> Kind<F, R> mapN(Kind<F, A> fa, Kind<F, B> fb, Kind<F, C> fc, Kind<F, D> fd,
-      Kind<F, E> fe, Function5<A, B, C, D, E, R> mapper) {
+      Kind<F, E> fe, Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> mapper) {
     return ap(fe, mapN(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
 

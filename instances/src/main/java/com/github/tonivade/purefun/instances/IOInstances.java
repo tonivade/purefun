@@ -83,7 +83,7 @@ interface IOApplicative extends IOPure, Applicative<IO_> {
   IOApplicative INSTANCE = new IOApplicative() {};
 
   @Override
-  default <T, R> IO<R> ap(Kind<IO_, T> value, Kind<IO_, Function1<T, R>> apply) {
+  default <T, R> IO<R> ap(Kind<IO_, T> value, Kind<IO_, Function1<? super T, ? extends R>> apply) {
     return value.fix(toIO()).ap(apply.fix(toIO()));
   }
 }
@@ -93,7 +93,7 @@ interface IOMonad extends Monad<IO_>, IOPure {
   IOMonad INSTANCE = new IOMonad() {};
 
   @Override
-  default <T, R> IO<R> flatMap(Kind<IO_, T> value, Function1<T, ? extends Kind<IO_, R>> map) {
+  default <T, R> IO<R> flatMap(Kind<IO_, T> value, Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
     return value.fix(toIO()).flatMap(map.andThen(IOOf::narrowK));
   }
 }

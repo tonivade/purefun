@@ -105,7 +105,7 @@ interface FutureApplicative extends FuturePure {
   }
 
   @Override
-  default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<T, R>> apply) {
+  default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<? super T, ? extends R>> apply) {
     return value.fix(toFuture()).ap(apply.fix(toFuture()));
   }
 }
@@ -118,7 +118,7 @@ interface FutureMonad extends FuturePure, Monad<Future_> {
 
   @Override
   default <T, R> Kind<Future_, R> flatMap(Kind<Future_, T> value,
-      Function1<T, ? extends Kind<Future_, R>> map) {
+      Function1<? super T, ? extends Kind<Future_, ? extends R>> map) {
     return value.fix(toFuture()).flatMap(map.andThen(FutureOf::narrowK));
   }
 
@@ -127,7 +127,7 @@ interface FutureMonad extends FuturePure, Monad<Future_> {
    * applicative version of the ap method
    */
   @Override
-  default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<T, R>> apply) {
+  default <T, R> Kind<Future_, R> ap(Kind<Future_, T> value, Kind<Future_, Function1<? super T, ? extends R>> apply) {
     return FutureInstances.applicative().ap(value, apply);
   }
 }

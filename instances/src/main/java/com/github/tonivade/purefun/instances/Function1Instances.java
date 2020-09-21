@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1Of.toFunction1;
 import static com.github.tonivade.purefun.typeclasses.Conested.conest;
 import static com.github.tonivade.purefun.typeclasses.Conested.counnest;
 import com.github.tonivade.purefun.Function1;
@@ -67,10 +68,9 @@ interface Function1Applicative<T> extends Function1Pure<T> {
   Function1Applicative INSTANCE = new Function1Applicative() {};
 
   @Override
-  default <A, R> Function1<T, R> ap(Kind<Kind<Function1_, T>, A> value, Kind<Kind<Function1_, T>, Function1<A, R>> apply) {
-    Function1<T, A> function = value.fix(Function1Of::narrowK);
-    Function1<T, Function1<A, R>> map = apply.fix(Function1Of::narrowK);
-    return function.flatMap(a -> map.andThen(f -> f.apply(a)));
+  default <A, R> Function1<T, R> ap(Kind<Kind<Function1_, T>, A> value, Kind<Kind<Function1_, T>, Function1<? super A, ? extends R>> apply) {
+    return value.fix(toFunction1())
+        .flatMap(a -> apply.fix(toFunction1()).andThen(Function1Of::narrowK).andThen(f -> f.apply(a)));
   }
 }
 
@@ -80,7 +80,7 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Kind<Function1_, T>>
   Function1Monad INSTANCE = new Function1Monad() {};
 
   @Override
-  default <A, R> Function1<T, R> flatMap(Kind<Kind<Function1_, T>, A> value, Function1<A, ? extends Kind<Kind<Function1_, T>, R>> map) {
+  default <A, R> Function1<T, R> flatMap(Kind<Kind<Function1_, T>, A> value, Function1<? super A, ? extends Kind<Kind<Function1_, T>, ? extends R>> map) {
     Function1<T, A> function = value.fix(Function1Of::narrowK);
     return function.flatMap(map.andThen(Function1Of::narrowK));
   }

@@ -46,10 +46,10 @@ public class SelectiveTest {
         Validation.<Sequence<String>, Integer>valid(1);
     Kind<Kind<Validation_, Sequence<String>>, Integer> invalidValue =
         Validation.<Sequence<String>, Integer>invalid(listOf("error 1"));
-    Kind<Kind<Validation_, Sequence<String>>, Function1<Integer, String>> apply =
-        Validation.<Sequence<String>, Function1<Integer, String>>valid(Function1.of(String::valueOf));
-    Kind<Kind<Validation_, Sequence<String>>, Function1<Integer, String>> invalidApply =
-        Validation.<Sequence<String>, Function1<Integer, String>>invalid(listOf("error 2"));
+    Kind<Kind<Validation_, Sequence<String>>, Function1<? super Integer, ? extends String>> apply =
+        Validation.<Sequence<String>, Function1<? super Integer, ? extends String>>valid(Function1.of(String::valueOf));
+    Kind<Kind<Validation_, Sequence<String>>, Function1<? super Integer, ? extends String>> invalidApply =
+        Validation.<Sequence<String>, Function1<? super Integer, ? extends String>>invalid(listOf("error 2"));
 
     assertEquals(Validation.valid("1"), selective.ap(validValue, apply).fix(toValidation()));
     assertEquals(Validation.invalid(listOf("error 1", "error 2")), selective.ap(invalidValue, invalidApply).fix(toValidation()));

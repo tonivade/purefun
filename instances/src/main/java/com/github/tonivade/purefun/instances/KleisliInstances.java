@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
@@ -51,8 +53,8 @@ interface KleisliMonad<F extends Witness, Z> extends Monad<Kind<Kind<Kleisli_, F
 
   @Override
   default <T, R> Kleisli<F, Z, R> flatMap(Kind<Kind<Kind<Kleisli_, F>, Z>, T> value,
-      Function1<T, ? extends Kind<Kind<Kind<Kleisli_, F>, Z>, R>> map) {
-    return KleisliOf.narrowK(value).flatMap(map.andThen(KleisliOf::narrowK));
+      Function1<? super T, ? extends Kind<Kind<Kind<Kleisli_, F>, Z>, ? extends R>> map) {
+    return value.fix(toKleisli()).flatMap(map.andThen(KleisliOf::narrowK));
   }
 }
 

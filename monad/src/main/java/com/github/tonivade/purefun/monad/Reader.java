@@ -13,11 +13,11 @@ public interface Reader<R, A> extends ReaderOf<R, A> {
 
   A eval(R reader);
 
-  default <B> Reader<R, B> map(Function1<A, B> mapper) {
+  default <B> Reader<R, B> map(Function1<? super A, ? extends B> mapper) {
     return reader -> mapper.apply(eval(reader));
   }
 
-  default <B> Reader<R, B> flatMap(Function1<A, Reader<R, B>> mapper) {
+  default <B> Reader<R, B> flatMap(Function1<? super A, ? extends Reader<R, ? extends B>> mapper) {
     return reader -> mapper.apply(eval(reader)).eval(reader);
   }
 

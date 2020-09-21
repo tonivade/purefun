@@ -82,7 +82,7 @@ interface EIOApplicative<E> extends EIOPure<E> {
   @Override
   default <A, B> EIO<E, B>
           ap(Kind<Kind<EIO_, E>, A> value,
-             Kind<Kind<EIO_, E>, Function1<A, B>> apply) {
+             Kind<Kind<EIO_, E>, Function1<? super A, ? extends B>> apply) {
     return value.fix(toEIO()).ap(apply.fix(toEIO()));
   }
 }
@@ -95,7 +95,7 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<Kind<EIO_, E>> {
   @Override
   default <A, B> EIO<E, B>
           flatMap(Kind<Kind<EIO_, E>, A> value,
-                  Function1<A, ? extends Kind<Kind<EIO_, E>, B>> map) {
+                  Function1<? super A, ? extends Kind<Kind<EIO_, E>, ? extends B>> map) {
     return value.fix(toEIO()).flatMap(map.andThen(EIOOf::narrowK));
   }
 }

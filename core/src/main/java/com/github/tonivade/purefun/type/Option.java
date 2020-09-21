@@ -83,10 +83,9 @@ public interface Option<T> extends OptionOf<T> {
     return none();
   }
 
-  @SuppressWarnings("unchecked")
   default <R> Option<R> flatMap(Function1<? super T, ? extends Option<? extends R>> map) {
     if (isPresent()) {
-      return (Option<R>) map.apply(get());
+      return map.andThen(OptionOf::<R>narrowK).apply(get());
     }
     return none();
   }

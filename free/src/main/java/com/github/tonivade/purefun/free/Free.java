@@ -28,7 +28,7 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
     return new Pure<>(value);
   }
 
-  public static <F extends Witness, T> Free<F, T> liftF(Kind<F, T> value) {
+  public static <F extends Witness, T> Free<F, T> liftF(Kind<F, ? extends T> value) {
     return new Suspend<>(value);
   }
 
@@ -36,7 +36,7 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
     return liftF(inject.inject(value));
   }
 
-  public static <F extends Witness, T> Free<F, T> defer(Producer<Free<F, T>> value) {
+  public static <F extends Witness, T> Free<F, T> defer(Producer<? extends Free<F, ? extends T>> value) {
     Free<F, Unit> pure = pure(unit());
     return pure.flatMap(ignore -> value.get());
   }
@@ -55,11 +55,11 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
     };
   }
 
-  public <R> Free<F, R> map(Function1<A, R> map) {
+  public <R> Free<F, R> map(Function1<? super A, ? extends R> map) {
     return flatMap(map.andThen(Free::pure));
   }
 
-  public abstract <R> Free<F, R> flatMap(Function1<A, Free<F, R>> map);
+  public abstract <R> Free<F, R> flatMap(Function1<? super A, ? extends Free<F, ? extends R>> map);
 
   public abstract Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor);
 
@@ -84,7 +84,7 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
     }
 
     @Override
-    public <B> Free<F, B> flatMap(Function1<A, Free<F, B>> map) {
+    public <B> Free<F, B> flatMap(Function1<? super A, ? extends Free<F, ? extends B>> map) {
       return new FlatMapped<>(this, map);
     }
 
@@ -106,14 +106,14 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
 
   public static final class Suspend<F extends Witness, A> extends Free<F, A> {
 
-    private final Kind<F, A> value;
+    private final Kind<F, ? extends A> value;
 
-    private Suspend(Kind<F, A> value) {
+    private Suspend(Kind<F, ? extends A> value) {
       this.value = checkNonNull(value);
     }
 
     @Override
-    public <B> Free<F, B> flatMap(Function1<A, Free<F, B>> map) {
+    public <B> Free<F, B> flatMap(Function1<? super A, ? extends Free<F, ? extends B>> map) {
       return new FlatMapped<>(this, map);
     }
 
@@ -135,16 +135,16 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
 
   public static final class FlatMapped<F extends Witness, X, A, B> extends Free<F, B> {
 
-    private final Free<F, A> value;
-    private final Function1<A, Free<F, B>> next;
+    private final Free<F, ? extends A> value;
+    private final Function1<? super A, ? extends Free<F, ? extends B>> next;
 
-    private FlatMapped(Free<F, A> value, Function1<A, Free<F, B>> next) {
+    private FlatMapped(Free<F, ? extends A> value, Function1<? super A, ? extends Free<F, ? extends B>> next) {
       this.value = checkNonNull(value);
       this.next = checkNonNull(next);
     }
 
     @Override
-    public <C> Free<F, C> flatMap(Function1<B, Free<F, C>> map) {
+    public <C> Free<F, C> flatMap(Function1<? super B, ? extends Free<F, ? extends C>> map) {
       return new FlatMapped<>(value, free -> new FlatMapped<>(next.apply(free), map));
     }
 
@@ -153,11 +153,13 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
     public Either<Kind<F, Free<F, B>>, B> resume(Functor<F> functor) {
       if (value instanceof Free.Suspend) {
         Free.Suspend<F, A> suspend = (Free.Suspend<F, A>) value;
-        return Either.left(functor.map(suspend.value, next));
+        Kind<F, Free<F, B>> map = functor.map(suspend.value, next.andThen(x -> (Free<F, B>) x));
+        return Either.left(map);
       }
       if (value instanceof Free.Pure) {
         Free.Pure<F, A> pure = (Free.Pure<F, A>) value;
-        return next.apply(pure.value).resume(functor);
+        Free<F, B> apply = (Free<F, B>) next.apply(pure.value);
+        return apply.resume(functor);
       }
       Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;
       return flatMapped.value.flatMap(x -> flatMapped.next.apply(x).flatMap(next)).resume(functor);
@@ -172,14 +174,18 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
       }
       if (value instanceof Pure) {
         Free.Pure<F, A> pure = (Free.Pure<F, A>) value;
-        return next.apply(pure.value).step();
+        Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
+        return andThen.apply(pure.value).step();
       }
       return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected <G extends Witness> Kind<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
-      return monad.map(value.foldMap(monad, interpreter), next.andThen(Either::left));
+      Kind<G, A> foldMap = (Kind<G, A>) value.foldMap(monad, interpreter);
+      Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
+      return monad.map(foldMap, andThen.andThen(Either::left));
     }
   }
 }
@@ -196,8 +202,7 @@ interface FreeMonad<F extends Witness> extends Monad<Kind<Free_, F>> {
 
   @Override
   default <T, R> Free<F, R> flatMap(
-      Kind<Kind<Free_, F>, T> value, Function1<T, ? extends Kind<Kind<Free_, F>, R>> map) {
-    Free<F, T> free = value.fix(toFree());
-    return free.flatMap(map.andThen(FreeOf::narrowK));
+      Kind<Kind<Free_, F>, T> value, Function1<? super T, ? extends Kind<Kind<Free_, F>, ? extends R>> map) {
+    return value.fix(toFree()).flatMap(map.andThen(FreeOf::narrowK));
   }
 }

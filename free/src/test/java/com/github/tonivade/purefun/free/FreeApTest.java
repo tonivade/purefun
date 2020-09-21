@@ -42,7 +42,7 @@ public class FreeApTest {
   @Test
   public void ap() {
     FreeAp<DSL_, Integer> freeAp = FreeAp.lift(new ReadInt(123));
-    FreeAp<DSL_, Function1<Integer, String>> apply = FreeAp.pure(Object::toString);
+    FreeAp<DSL_, Function1<? super Integer, ? extends String>> apply = FreeAp.pure(Object::toString);
 
     Id<Integer> foldMap = freeAp.ap(apply)
         .map(String::length)

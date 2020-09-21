@@ -71,7 +71,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return flatMap(ignore -> after);
   }
 
-  default <R> IO<R> ap(IO<Function1<T, R>> apply) {
+  default <R> IO<R> ap(IO<Function1<? super T, ? extends R>> apply) {
     return new Apply<>(this, apply);
   }
 
@@ -237,9 +237,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   final class Apply<A, B> implements SealedIO<B> {
     
     private final IO<A> value;
-    private final IO<Function1<A, B>> apply;
+    private final IO<Function1<? super A, ? extends B>> apply;
 
-    protected Apply(IO<A> value, IO<Function1<A, B>> apply) {
+    protected Apply(IO<A> value, IO<Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
@@ -275,19 +275,15 @@ public interface IO<T> extends IOOf<T>, Recoverable {
       return IOModule.evaluate(this);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
-      // TODO:
-      Kind<F, T> foldMap = current.get().foldMap(monad);
-      Function1<T, Kind<F, R>> andThen = (Function1<T, Kind<F, R>>) next.andThen((IO<? extends R> io) -> (Kind<F, R>) io.foldMap(monad));
-      return monad.flatMap(foldMap, andThen);
+      return monad.flatMap(current.get().foldMap(monad), next.andThen(io -> io.foldMap(monad)));
     }
 
+    @SuppressWarnings("cast")
     @Override
-    @SuppressWarnings("unchecked")
     public <R1> IO<R1> flatMap(Function1<? super R, ? extends IO<? extends R1>> map) {
-      return new FlatMapped<>(() -> (IO<R>) start(), r -> new FlatMapped<>(() -> run((T) r), map::apply));
+      return new FlatMapped<>(() -> start(), r -> new FlatMapped<>(() -> run((T) r), map::apply));
     }
 
     @Override
@@ -299,9 +295,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
       return current.get();
     }
 
-    @SuppressWarnings("unchecked")
     protected IO<R> run(T value) {
-      return (IO<R>) next.apply(value);
+      Function1<? super T, IO<R>> andThen = next.andThen(IOOf::narrowK);
+      return andThen.apply(value);
     }
   }
 

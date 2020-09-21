@@ -108,7 +108,7 @@ interface EitherApplicative<L> extends EitherPure<L> {
 
   @Override
   default <T, R> Either<L, R> ap(Kind<Kind<Either_, L>, T> value,
-      Kind<Kind<Either_, L>, Function1<T, R>> apply) {
+      Kind<Kind<Either_, L>, Function1<? super T, ? extends R>> apply) {
     return EitherOf.narrowK(value).flatMap(t -> EitherOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -120,7 +120,7 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Kind<Either_, L>> {
 
   @Override
   default <T, R> Either<L, R> flatMap(Kind<Kind<Either_, L>, T> value,
-      Function1<T, ? extends Kind<Kind<Either_, L>, R>> map) {
+      Function1<? super T, ? extends Kind<Kind<Either_, L>, ? extends R>> map) {
     return EitherOf.narrowK(value).flatMap(map.andThen(EitherOf::narrowK));
   }
 }

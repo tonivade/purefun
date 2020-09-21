@@ -109,7 +109,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return new UIO<>(instance.andThen(next.instance));
   }
 
-  public <B> UIO<B> ap(UIO<Function1<A, B>> apply) {
+  public <B> UIO<B> ap(UIO<Function1<? super A, ? extends B>> apply) {
     return new UIO<>(instance.ap(apply.toZIO()));
   }
 

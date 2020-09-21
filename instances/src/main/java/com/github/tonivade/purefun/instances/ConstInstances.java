@@ -77,7 +77,7 @@ interface ConstApplicative<T> extends Applicative<Kind<Const_, T>> {
 
   @Override
   default <A, B> Const<T, B> ap(
-      Kind<Kind<Const_, T>, A> value, Kind<Kind<Const_, T>, Function1<A, B>> apply) {
+      Kind<Kind<Const_, T>, A> value, Kind<Kind<Const_, T>, Function1<? super A, ? extends B>> apply) {
     return Const.<T, B>of(monoid().combine(
             apply.fix(ConstOf::narrowK).<B>retag().get(),
             value.fix(ConstOf::narrowK).<B>retag().get()));
