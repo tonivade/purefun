@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.type.Either;
 
 public interface Monad<F extends Witness> extends Selective<F> {
 
-  <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
+  <T, R> Kind<F, R> flatMap(Kind<F, ? extends T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
 
   // XXX: this method in not stack safe. In fact, now I don't really know how to do it stack safe
   // without real tail recursion optimization
@@ -22,7 +22,7 @@ public interface Monad<F extends Witness> extends Selective<F> {
     return flatMap(map.apply(value), either -> either.fold(left -> tailRecM(left, map), this::<R>pure));
   }
 
-  default <T, R> Kind<F, R> andThen(Kind<F, T> value, Producer<? extends Kind<F, R>> next) {
+  default <T, R> Kind<F, R> andThen(Kind<F, ? extends T> value, Producer<? extends Kind<F, ? extends R>> next) {
     return flatMap(value, ignore -> next.get());
   }
   
@@ -31,12 +31,12 @@ public interface Monad<F extends Witness> extends Selective<F> {
   }
 
   @Override
-  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
     return flatMap(value, map.andThen(this::<R>pure));
   }
 
   @Override
-  default <T, R> Kind<F, R> ap(Kind<F, T> value, Kind<F, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<F, R> ap(Kind<F, ? extends T> value, Kind<F, Function1<? super T, ? extends R>> apply) {
     return flatMap(apply, map -> map(value, map));
   }
 

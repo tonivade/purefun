@@ -51,7 +51,7 @@ interface StateTMonad<F extends Witness, S> extends Monad<Kind<Kind<StateT_, F>,
   }
 
   @Override
-  default <T, R> StateT<F, S, R> flatMap(Kind<Kind<Kind<StateT_, F>, S>, T> value,
+  default <T, R> StateT<F, S, R> flatMap(Kind<Kind<Kind<StateT_, F>, S>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Kind<StateT_, F>, S>, ? extends R>> map) {
     return StateTOf.narrowK(value).flatMap(map.andThen(StateTOf::narrowK));
   }

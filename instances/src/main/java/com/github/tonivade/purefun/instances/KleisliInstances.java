@@ -52,7 +52,7 @@ interface KleisliMonad<F extends Witness, Z> extends Monad<Kind<Kind<Kleisli_, F
   }
 
   @Override
-  default <T, R> Kleisli<F, Z, R> flatMap(Kind<Kind<Kind<Kleisli_, F>, Z>, T> value,
+  default <T, R> Kleisli<F, Z, R> flatMap(Kind<Kind<Kind<Kleisli_, F>, Z>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Kind<Kleisli_, F>, Z>, ? extends R>> map) {
     return value.fix(toKleisli()).flatMap(map.andThen(KleisliOf::narrowK));
   }

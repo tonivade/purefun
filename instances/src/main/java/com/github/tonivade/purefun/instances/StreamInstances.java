@@ -68,7 +68,7 @@ interface StreamFunctor<F extends Witness> extends Functor<Kind<Stream_, F>> {
   StreamFunctor INSTANCE = new StreamFunctor() {};
 
   @Override
-  default <T, R> Stream<F, R> map(Kind<Kind<Stream_, F>, T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Stream<F, R> map(Kind<Kind<Stream_, F>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return StreamOf.narrowK(value).map(mapper);
   }
 }
@@ -90,7 +90,7 @@ interface StreamMonad<F extends Witness> extends Monad<Kind<Stream_, F>>, Stream
   }
 
   @Override
-  default <T, R> Stream<F, R> flatMap(Kind<Kind<Stream_, F>, T> value,
+  default <T, R> Stream<F, R> flatMap(Kind<Kind<Stream_, F>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> mapper) {
     return StreamOf.narrowK(value).flatMap(mapper.andThen(StreamOf::narrowK));
   }

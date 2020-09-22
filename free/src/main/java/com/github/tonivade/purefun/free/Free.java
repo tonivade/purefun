@@ -202,7 +202,7 @@ interface FreeMonad<F extends Witness> extends Monad<Kind<Free_, F>> {
 
   @Override
   default <T, R> Free<F, R> flatMap(
-      Kind<Kind<Free_, F>, T> value, Function1<? super T, ? extends Kind<Kind<Free_, F>, ? extends R>> map) {
+      Kind<Kind<Free_, F>, ? extends T> value, Function1<? super T, ? extends Kind<Kind<Free_, F>, ? extends R>> map) {
     return value.fix(toFree()).flatMap(map.andThen(FreeOf::narrowK));
   }
 }

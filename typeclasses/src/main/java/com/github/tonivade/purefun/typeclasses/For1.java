@@ -18,7 +18,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 
 public final class For1<F extends Witness, A> extends AbstractFor<F, Unit, A> {
 
-  protected For1(Monad<F> monad, Producer<Kind<F, A>> value) {
+  protected For1(Monad<F> monad, Producer<Kind<F, ? extends A>> value) {
     super(monad, value.asFunction());
   }
 
@@ -26,11 +26,11 @@ public final class For1<F extends Witness, A> extends AbstractFor<F, Unit, A> {
     return apply(Tuple::of);
   }
 
-  public <R> Kind<F, R> apply(Function1<A, R> combinator) {
+  public <R> Kind<F, R> apply(Function1<? super A, ? extends R> combinator) {
     return monad.map(value.apply(unit()), combinator);
   }
 
-  public <R> For2<F, A, R> map(Function1<A, R> mapper) {
+  public <R> For2<F, A, R> map(Function1<? super A, ? extends R> mapper) {
     return flatMap(mapper.andThen(monad::<R>pure));
   }
 
@@ -38,15 +38,15 @@ public final class For1<F extends Witness, A> extends AbstractFor<F, Unit, A> {
     return then(monad.pure(next));
   }
 
-  public <R> For2<F, A, R> then(Kind<F, R> next) {
+  public <R> For2<F, A, R> then(Kind<F, ? extends R> next) {
     return andThen(cons(next));
   }
 
-  public <R> For2<F, A, R> andThen(Producer<? extends Kind<F, R>> producer) {
+  public <R> For2<F, A, R> andThen(Producer<? extends Kind<F, ? extends R>> producer) {
     return flatMap(producer.asFunction());
   }
 
-  public <R> For2<F, A, R> flatMap(Function1<A, ? extends Kind<F, R>> mapper) {
+  public <R> For2<F, A, R> flatMap(Function1<? super A, ? extends Kind<F, ? extends R>> mapper) {
     return new For2<>(monad, () -> value.apply(unit()), mapper);
   }
 

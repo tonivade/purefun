@@ -83,7 +83,7 @@ interface OptionFunctor extends Functor<Option_> {
   OptionFunctor INSTANCE = new OptionFunctor() {};
 
   @Override
-  default <T, R> Kind<Option_, R> map(Kind<Option_, T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Kind<Option_, R> map(Kind<Option_, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return OptionOf.narrowK(value).map(mapper);
   }
 }
@@ -101,7 +101,7 @@ interface OptionApplicative extends OptionPure {
   OptionApplicative INSTANCE = new OptionApplicative() {};
 
   @Override
-  default <T, R> Kind<Option_, R> ap(Kind<Option_, T> value, Kind<Option_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Option_, R> ap(Kind<Option_, ? extends T> value, Kind<Option_, Function1<? super T, ? extends R>> apply) {
     return value.fix(toOption()).flatMap(t -> OptionOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -111,7 +111,7 @@ interface OptionMonad extends OptionPure, Monad<Option_> {
   OptionMonad INSTANCE = new OptionMonad() {};
 
   @Override
-  default <T, R> Kind<Option_, R> flatMap(Kind<Option_, T> value,
+  default <T, R> Kind<Option_, R> flatMap(Kind<Option_, ? extends T> value,
       Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
     return value.fix(toOption()).flatMap(map.andThen(OptionOf::narrowK));
   }

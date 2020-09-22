@@ -184,7 +184,9 @@ public interface Either<L, R> extends EitherOf<L, R> {
     return either.fold(identity(), identity());
   }
 
-  static <L, A, B, Z> Either<L, Z> map2(Either<L, A> eitherA, Either<L, B> eitherB, Function2<? super A, ? super B, ? extends Z> mapper) {
+  static <L, A, B, Z> Either<L, Z> map2(
+      Either<L, ? extends A> eitherA, Either<L, ? extends B> eitherB, 
+      Function2<? super A, ? super B, ? extends Z> mapper) {
     return eitherA.flatMap(a -> eitherB.map(b -> mapper.apply(a, b)));
   }
 

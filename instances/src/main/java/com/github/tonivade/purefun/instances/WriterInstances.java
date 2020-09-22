@@ -34,7 +34,7 @@ interface WriterMonad<L> extends Monad<Kind<Writer_, L>> {
   }
 
   @Override
-  default <T, R> Writer<L, R> flatMap(Kind<Kind<Writer_, L>, T> value,
+  default <T, R> Writer<L, R> flatMap(Kind<Kind<Writer_, L>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Writer_, L>, ? extends R>> map) {
     return WriterOf.narrowK(value).flatMap(map.andThen(WriterOf::narrowK));
   }

@@ -71,7 +71,7 @@ interface TaskFunctor extends Functor<Task_> {
   TaskFunctor INSTANCE = new TaskFunctor() {};
 
   @Override
-  default <A, B> Task<B> map(Kind<Task_, A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> Task<B> map(Kind<Task_, ? extends A> value, Function1<? super A, ? extends B> map) {
     return TaskOf.narrowK(value).map(map);
   }
 }
@@ -90,9 +90,9 @@ interface TaskApplicative extends TaskPure {
 
   @Override
   default <A, B> Task<B>
-          ap(Kind<Task_, A> value,
+          ap(Kind<Task_, ? extends A> value,
              Kind<Task_, Function1<? super A, ? extends B>> apply) {
-    return value.fix(toTask()).ap(apply.fix(toTask()));
+    return value.fix(TaskOf::<A>narrowK).ap(apply.fix(toTask()));
   }
 }
 
@@ -102,7 +102,7 @@ interface TaskMonad extends TaskPure, Monad<Task_> {
 
   @Override
   default <A, B> Task<B>
-          flatMap(Kind<Task_, A> value,
+          flatMap(Kind<Task_, ? extends A> value,
                   Function1<? super A, ? extends Kind<Task_, ? extends B>> map) {
     return TaskOf.narrowK(value).flatMap(map.andThen(TaskOf::narrowK));
   }

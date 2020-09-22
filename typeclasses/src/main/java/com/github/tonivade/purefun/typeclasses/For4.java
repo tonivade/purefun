@@ -16,15 +16,15 @@ import com.github.tonivade.purefun.Tuple4;
 
 public final class For4<F extends Witness, A, B, C, D> extends AbstractFor<F, C, D> {
 
-  private final Producer<? extends Kind<F, A>> value1;
-  private final Function1<A, ? extends Kind<F, B>> value2;
-  private final Function1<B, ? extends Kind<F, C>> value3;
+  private final Producer<? extends Kind<F, ? extends A>> value1;
+  private final Function1<? super A, ? extends Kind<F, ? extends B>> value2;
+  private final Function1<? super B, ? extends Kind<F, ? extends C>> value3;
 
   protected For4(Monad<F> monad,
-                 Producer<? extends Kind<F, A>> value1,
-                 Function1<A, ? extends Kind<F, B>> value2,
-                 Function1<B, ? extends Kind<F, C>> value3,
-                 Function1<C, ? extends Kind<F, D>> value4) {
+                 Producer<? extends Kind<F, ? extends A>> value1,
+                 Function1<? super A, ? extends Kind<F, ? extends B>> value2,
+                 Function1<? super B, ? extends Kind<F, ? extends C>> value3,
+                 Function1<? super C, ? extends Kind<F, ? extends D>> value4) {
     super(monad, value4);
     this.value1 = checkNonNull(value1);
     this.value2 = checkNonNull(value2);
@@ -35,8 +35,8 @@ public final class For4<F extends Witness, A, B, C, D> extends AbstractFor<F, C,
     return apply(Tuple4::of);
   }
 
-  public <R> Kind<F, R> apply(Function4<A, B, C, D, R> combine) {
-    Kind<F, A> fa = value1.get();
+  public <R> Kind<F, R> apply(Function4<? super A, ? super B, ? super C, ? super D, ? extends R> combine) {
+    Kind<F, ? extends A> fa = value1.get();
     Kind<F, B> fb = monad.flatMap(fa, value2);
     Kind<F, C> fc = monad.flatMap(fb, value3);
     Kind<F, D> fd = monad.flatMap(fc, value);

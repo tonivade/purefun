@@ -10,10 +10,10 @@ import com.github.tonivade.purefun.Witness;
 
 public interface Contravariant<F extends Witness> extends Invariant<F> {
 
-  <A, B> Kind<F, B> contramap(Kind<F, A> value, Function1<? super B, ? extends A> map);
+  <A, B> Kind<F, B> contramap(Kind<F, ? extends A> value, Function1<? super B, ? extends A> map);
 
   @Override
-  default <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap) {
+  default <A, B> Kind<F, B> imap(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap) {
     return contramap(value, comap);
   }
 

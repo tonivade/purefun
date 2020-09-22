@@ -79,7 +79,7 @@ interface EitherTMonad<F extends Witness, L> extends Monad<Kind<Kind<EitherT_, F
   }
 
   @Override
-  default <T, R> EitherT<F, L, R> flatMap(Kind<Kind<Kind<EitherT_, F>, L>, T> value,
+  default <T, R> EitherT<F, L, R> flatMap(Kind<Kind<Kind<EitherT_, F>, L>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Kind<EitherT_, F>, L>, ? extends R>> map) {
     return EitherTOf.narrowK(value).flatMap(map.andThen(EitherTOf::narrowK));
   }

@@ -31,7 +31,7 @@ public final class For<F extends Witness> {
     return For.with(monad, next);
   }
 
-  public <T> For1<F, T> andThen(Producer<? extends Kind<F, T>> next) {
+  public <T> For1<F, T> andThen(Producer<? extends Kind<F, ? extends T>> next) {
     return For.with(monad, monad.andThen(monad.pure(unit()), next));
   }
 
@@ -39,7 +39,7 @@ public final class For<F extends Witness> {
     return new For<>(monad);
   }
 
-  public static <F extends Witness, T> For1<F, T> with(Monad<F> monad, Kind<F, T> value1) {
+  public static <F extends Witness, T> For1<F, T> with(Monad<F> monad, Kind<F, ? extends T> value1) {
     return new For1<>(monad, cons(value1));
   }
 }
@@ -47,9 +47,9 @@ public final class For<F extends Witness> {
 abstract class AbstractFor<F extends Witness, A, B> {
 
   protected final Monad<F> monad;
-  protected final Function1<A, ? extends Kind<F, B>> value;
+  protected final Function1<? super A, ? extends Kind<F, ? extends B>> value;
 
-  protected AbstractFor(Monad<F> monad, Function1<A, ? extends Kind<F, B>> value) {
+  protected AbstractFor(Monad<F> monad, Function1<? super A, ? extends Kind<F, ? extends B>> value) {
     this.monad = checkNonNull(monad);
     this.value = checkNonNull(value);
   }
@@ -60,7 +60,7 @@ abstract class AbstractFor<F extends Witness, A, B> {
     return fixer.apply(run());
   }
 
-  public void end(Consumer1<Kind<F, B>> consumer) {
+  public void end(Consumer1<? super Kind<F, B>> consumer) {
     consumer.accept(run());
   }
 

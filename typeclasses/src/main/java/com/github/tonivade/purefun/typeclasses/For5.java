@@ -15,17 +15,17 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public final class For5<F extends Witness, A, B, C, D, E> extends AbstractFor<F, D, E> {
 
-  private final Producer<? extends Kind<F, A>> value1;
-  private final Function1<A, ? extends Kind<F, B>> value2;
-  private final Function1<B, ? extends Kind<F, C>> value3;
-  private final Function1<C, ? extends Kind<F, D>> value4;
+  private final Producer<? extends Kind<F, ? extends A>> value1;
+  private final Function1<? super A, ? extends Kind<F, ? extends B>> value2;
+  private final Function1<? super B, ? extends Kind<F, ? extends C>> value3;
+  private final Function1<? super C, ? extends Kind<F, ? extends D>> value4;
 
   protected For5(Monad<F> monad,
-                 Producer<? extends Kind<F, A>> value1,
-                 Function1<A, ? extends Kind<F, B>> value2,
-                 Function1<B, ? extends Kind<F, C>> value3,
-                 Function1<C, ? extends Kind<F, D>> value4,
-                 Function1<D, ? extends Kind<F, E>> value5) {
+                 Producer<? extends Kind<F, ? extends A>> value1,
+                 Function1<? super A, ? extends Kind<F, ? extends B>> value2,
+                 Function1<? super B, ? extends Kind<F, ? extends C>> value3,
+                 Function1<? super C, ? extends Kind<F, ? extends D>> value4,
+                 Function1<? super D, ? extends Kind<F, ? extends E>> value5) {
     super(monad, value5);
     this.value1 = checkNonNull(value1);
     this.value2 = checkNonNull(value2);
@@ -38,7 +38,7 @@ public final class For5<F extends Witness, A, B, C, D, E> extends AbstractFor<F,
   }
 
   public <R> Kind<F, R> apply(Function5<A, B, C, D, E, R> combine) {
-    Kind<F, A> fa = value1.get();
+    Kind<F, ? extends A> fa = value1.get();
     Kind<F, B> fb = monad.flatMap(fa, value2);
     Kind<F, C> fc = monad.flatMap(fb, value3);
     Kind<F, D> fd = monad.flatMap(fc, value4);

@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.Witness;
 
 public interface Invariant<F extends Witness> {
 
-  <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap);
+  <A, B> Kind<F, B> imap(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap);
 
   static <F extends Witness, G extends Witness> Invariant<Nested<F, G>> compose(Invariant<F> f, Invariant<G> g) {
     return new ComposedInvariant<F, G>() {

@@ -66,7 +66,7 @@ interface ParFunctor extends Functor<Par_> {
   ParFunctor INSTANCE = new ParFunctor() {};
 
   @Override
-  default <T, R> Par<R> map(Kind<Par_, T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Par<R> map(Kind<Par_, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return value.fix(ParOf::narrowK).map(mapper);
   }
 }
@@ -83,8 +83,8 @@ interface PureApplicative extends ParPure {
   PureApplicative INSTANCE = new PureApplicative() {};
 
   @Override
-  default <T, R> Par<R> ap(Kind<Par_, T> value, Kind<Par_, Function1<? super T, ? extends R>> apply) {
-    return value.fix(ParOf::narrowK).ap(apply.fix(ParOf::narrowK));
+  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value, Kind<Par_, Function1<? super T, ? extends R>> apply) {
+    return value.fix(ParOf::<T>narrowK).ap(apply.fix(ParOf::narrowK));
   }
 }
 
@@ -93,7 +93,7 @@ interface ParMonad extends ParPure, Monad<Par_> {
   ParMonad INSTANCE = new ParMonad() {};
 
   @Override
-  default <T, R> Par<R> flatMap(Kind<Par_, T> value, Function1<? super T, ? extends Kind<Par_, ? extends R>> map) {
+  default <T, R> Par<R> flatMap(Kind<Par_, ? extends T> value, Function1<? super T, ? extends Kind<Par_, ? extends R>> map) {
     return value.fix(ParOf::narrowK).flatMap(x -> map.apply(x).fix(ParOf::narrowK));
   }
 
@@ -102,7 +102,7 @@ interface ParMonad extends ParPure, Monad<Par_> {
    * applicative version of the ap method
    */
   @Override
-  default <T, R> Par<R> ap(Kind<Par_, T> value, Kind<Par_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value, Kind<Par_, Function1<? super T, ? extends R>> apply) {
     return ParInstances.applicative().ap(value, apply).fix(ParOf::narrowK);
   }
 }

@@ -31,7 +31,7 @@ interface CofreeFunctor<F extends Witness> extends Functor<Kind<Cofree_, F>> {
   CofreeFunctor INSTANCE = new CofreeFunctor() {};
 
   @Override
-  default <T, R> Cofree<F, R> map(Kind<Kind<Cofree_, F>, T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Cofree<F, R> map(Kind<Kind<Cofree_, F>, ? extends T> value, Function1<? super T, ? extends R> map) {
     return value.fix(CofreeOf::narrowK).map(map);
   }
 }

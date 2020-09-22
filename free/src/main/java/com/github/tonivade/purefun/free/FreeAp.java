@@ -228,7 +228,7 @@ interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F
 
   @Override
   default <T, R> FreeAp<F, R> ap(
-      Kind<Kind<FreeAp_, F>, T> value, Kind<Kind<FreeAp_, F>, Function1<? super T, ? extends R>> apply) {
+      Kind<Kind<FreeAp_, F>, ? extends T> value, Kind<Kind<FreeAp_, F>, Function1<? super T, ? extends R>> apply) {
     return FreeAp.apply(value.fix(toFreeAp()), apply.fix(toFreeAp()));
   }
 }

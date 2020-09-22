@@ -65,7 +65,7 @@ interface ZIOFunctor<R, E> extends Functor<Kind<Kind<ZIO_, R>, E>> {
   ZIOFunctor INSTANCE = new ZIOFunctor() {};
 
   @Override
-  default <A, B> ZIO<R, E, B> map(Kind<Kind<Kind<ZIO_, R>, E>, A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> ZIO<R, E, B> map(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> value, Function1<? super A, ? extends B> map) {
     return ZIOOf.narrowK(value).map(map);
   }
 }
@@ -85,9 +85,9 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
 
   @Override
   default <A, B> ZIO<R, E, B>
-          ap(Kind<Kind<Kind<ZIO_, R>, E>, A> value,
+          ap(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> value,
              Kind<Kind<Kind<ZIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
-    return value.fix(toZIO()).ap(apply.fix(toZIO()));
+    return value.fix(ZIOOf::<R, E, A>narrowK).ap(apply.fix(toZIO()));
   }
 }
 
@@ -98,7 +98,7 @@ interface ZIOMonad<R, E> extends ZIOPure<R, E>, Monad<Kind<Kind<ZIO_, R>, E>> {
 
   @Override
   default <A, B> ZIO<R, E, B>
-          flatMap(Kind<Kind<Kind<ZIO_, R>, E>, A> value,
+          flatMap(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> value,
                   Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> map) {
     return value.fix(toZIO()).flatMap(map.andThen(ZIOOf::narrowK));
   }

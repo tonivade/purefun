@@ -46,10 +46,11 @@ public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
 
   <C> Schedule<F, A, C> map(Function1<? super B, ? extends C> mapper);
 
-  <C> Schedule<F, C, B> contramap(Function1<C, A> comap);
+  <C> Schedule<F, C, B> contramap(Function1<? super C, ? extends A> comap);
 
-  default <C, D> Schedule<F, C, D> dimap(Function1<C, A> comap, Function1<B, D> map) {
-    return contramap(comap).map(map);
+  default <C, D> Schedule<F, C, D> dimap(Function1<? super C, ? extends A> comap, Function1<? super B, ? extends D> map) {
+    Schedule<F, C, B> contramap = contramap(comap);
+    return contramap.map(map);
   }
 
   default <C> Schedule<F, A, C> as(C value) {
@@ -82,11 +83,11 @@ public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
     return this.<Sequence<B>>fold(ImmutableList.<B>empty(), Sequence::append);
   }
 
-  default <Z> Schedule<F, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
+  default <Z> Schedule<F, A, Z> fold(Z zero, Function2<? super Z, ? super B, ? extends Z> next) {
     return foldM(zero, (z, b) -> monad().pure(next.andThen(Either::<Unit, Z>right).apply(z, b)));
   }
 
-  <Z> Schedule<F, A, Z> foldM(Z zero, Function2<Z, B, Kind<F, Either<Unit, Z>>> next);
+  <Z> Schedule<F, A, Z> foldM(Z zero, Function2<? super Z, ? super B, ? extends Kind<F, Either<Unit, ? extends Z>>> next);
 
   default Schedule<F, A, B> addDelay(Function1<B, Duration> map) {
     return addDelayM(map.andThen(monad()::pure));
@@ -262,7 +263,7 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements SealedSchedul
   }
 
   @Override
-  public <C> Schedule<F, C, B> contramap(Function1<C, A> comap) {
+  public <C> Schedule<F, C, B> contramap(Function1<? super C, ? extends A> comap) {
     return ScheduleImpl.of(
       monad,
       timer,
@@ -293,15 +294,15 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements SealedSchedul
   }
 
   @Override
-  public <Z> Schedule<F, A, Z> foldM(Z zero, Function2<Z, B, Kind<F, Either<Unit, Z>>> next) {
+  public <Z> Schedule<F, A, Z> foldM(Z zero, Function2<? super Z, ? super B, ? extends Kind<F, Either<Unit, ? extends Z>>> next) {
     return ScheduleImpl.of(
       monad,
       timer,
       monad.map(initial(), s -> Tuple.of(s, zero)), 
       (a, sz) -> {
         Kind<F, Either<Unit, S>> update = update(a, sz.get1());
-        Kind<F, Either<Unit, Z>> other = next.apply(sz.get2(), extract(a, sz.get1()));
-        return monad.mapN(update, other, (x, y) -> Either.map2(x, y, Tuple::of));
+        Kind<F, Either<Unit, ? extends Z>> other = next.apply(sz.get2(), extract(a, sz.get1()));
+        return monad.mapN(update, other, (x, y) -> Either.<Unit, S, Z, Tuple2<S, Z>>map2(x, y, Tuple::of));
       }, 
       (a, sz) -> sz.get2());
   }

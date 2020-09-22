@@ -48,7 +48,7 @@ interface MonoidInvariant extends Invariant<Monoid_> {
   MonoidInvariant INSTANCE = new MonoidInvariant() { };
 
   @Override
-  default <A, B> Kind<Monoid_, B> imap(Kind<Monoid_, A> value,
+  default <A, B> Kind<Monoid_, B> imap(Kind<Monoid_, ? extends A> value,
                                        Function1<? super A, ? extends B> map,
                                        Function1<? super B, ? extends A> comap) {
     return new Monoid<B>() {
@@ -60,7 +60,7 @@ interface MonoidInvariant extends Invariant<Monoid_> {
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix(toMonoid()).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.fix(MonoidOf::<A>narrowK).combine(comap.apply(t1), comap.apply(t2)));
       }
     };
   }

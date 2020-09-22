@@ -57,7 +57,7 @@ interface UIOFunctor extends Functor<UIO_> {
   UIOFunctor INSTANCE = new UIOFunctor() {};
 
   @Override
-  default <A, B> UIO<B> map(Kind<UIO_, A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> UIO<B> map(Kind<UIO_, ? extends A> value, Function1<? super A, ? extends B> map) {
     return UIOOf.narrowK(value).map(map);
   }
 }
@@ -75,8 +75,9 @@ interface UIOApplicative extends UIOPure {
   UIOApplicative INSTANCE = new UIOApplicative() {};
 
   @Override
-  default <A, B> UIO<B> ap(Kind<UIO_, A> value, Kind<UIO_, Function1<? super A, ? extends B>> apply) {
-    return value.fix(toUIO()).ap(apply.fix(toUIO()));
+  default <A, B> UIO<B> ap(Kind<UIO_, ? extends A> value, Kind<UIO_, 
+      Function1<? super A, ? extends B>> apply) {
+    return value.fix(UIOOf::<A>narrowK).ap(apply.fix(toUIO()));
   }
 }
 
@@ -85,7 +86,8 @@ interface UIOMonad extends UIOPure, Monad<UIO_> {
   UIOMonad INSTANCE = new UIOMonad() {};
 
   @Override
-  default <A, B> UIO<B> flatMap(Kind<UIO_, A> value, Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
+  default <A, B> UIO<B> flatMap(Kind<UIO_, ? extends A> value, 
+      Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
     return value.fix(toUIO()).flatMap(map.andThen(UIOOf::narrowK));
   }
 }

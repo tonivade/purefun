@@ -25,7 +25,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
   }
 
   @Override
-  default <T, R> Kind<F, R> map(Kind<F, T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
     Kind<Id_, Kind<F, R>> traverse = traverse(IdApplicative.INSTANCE, value, t -> Id.of(map.apply(t)));
     return traverse.fix(toId()).get();
   }
@@ -52,7 +52,7 @@ interface IdApplicative extends Applicative<Id_> {
   }
 
   @Override
-  default <T, R> Id<R> ap(Kind<Id_, T> value, Kind<Id_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Id<R> ap(Kind<Id_, ? extends T> value, Kind<Id_, Function1<? super T, ? extends R>> apply) {
     return IdOf.narrowK(value).flatMap(t -> IdOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

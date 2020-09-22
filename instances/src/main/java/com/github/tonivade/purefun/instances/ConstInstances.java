@@ -57,7 +57,7 @@ interface ConstFunctor<T> extends Functor<Kind<Const_, T>> {
   ConstFunctor INSTANCE = new ConstFunctor() {};
 
   @Override
-  default <A, B> Kind<Kind<Const_, T>, B> map(Kind<Kind<Const_, T>, A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> Kind<Kind<Const_, T>, B> map(Kind<Kind<Const_, T>, ? extends A> value, Function1<? super A, ? extends B> map) {
     return value.fix(ConstOf::narrowK).<B>retag();
   }
 }
@@ -77,7 +77,7 @@ interface ConstApplicative<T> extends Applicative<Kind<Const_, T>> {
 
   @Override
   default <A, B> Const<T, B> ap(
-      Kind<Kind<Const_, T>, A> value, Kind<Kind<Const_, T>, Function1<? super A, ? extends B>> apply) {
+      Kind<Kind<Const_, T>, ? extends A> value, Kind<Kind<Const_, T>, Function1<? super A, ? extends B>> apply) {
     return Const.<T, B>of(monoid().combine(
             apply.fix(ConstOf::narrowK).<B>retag().get(),
             value.fix(ConstOf::narrowK).<B>retag().get()));
@@ -90,7 +90,7 @@ interface ConstContravariant<T> extends Contravariant<Kind<Const_, T>> {
   ConstContravariant INSTANCE = new ConstContravariant() {};
 
   @Override
-  default <A, B> Const<T, B> contramap(Kind<Kind<Const_, T>, A> value, Function1<? super B, ? extends A> map) {
+  default <A, B> Const<T, B> contramap(Kind<Kind<Const_, T>, ? extends A> value, Function1<? super B, ? extends A> map) {
     return value.fix(ConstOf::narrowK).<B>retag();
   }
 }

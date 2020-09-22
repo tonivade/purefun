@@ -61,7 +61,8 @@ interface URIOFunctor<R> extends Functor<Kind<URIO_, R>> {
   URIOFunctor INSTANCE = new URIOFunctor() {};
 
   @Override
-  default <A, B> URIO<R, B> map(Kind<Kind<URIO_, R>, A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> URIO<R, B> map(Kind<Kind<URIO_, R>, ? extends A> value, 
+      Function1<? super A, ? extends B> map) {
     return URIOOf.narrowK(value).map(map);
   }
 }
@@ -81,9 +82,9 @@ interface URIOApplicative<R> extends URIOPure<R> {
 
   @Override
   default <A, B> URIO<R, B>
-          ap(Kind<Kind<URIO_, R>, A> value,
+          ap(Kind<Kind<URIO_, R>, ? extends A> value,
              Kind<Kind<URIO_, R>, Function1<? super A, ? extends B>> apply) {
-    return value.fix(toURIO()).ap(apply.fix(toURIO()));
+    return value.fix(URIOOf::<R, A>narrowK).ap(apply.fix(toURIO()));
   }
 }
 
@@ -94,7 +95,7 @@ interface URIOMonad<R> extends URIOPure<R>, Monad<Kind<URIO_, R>> {
 
   @Override
   default <A, B> URIO<R, B>
-          flatMap(Kind<Kind<URIO_, R>, A> value,
+          flatMap(Kind<Kind<URIO_, R>, ? extends A> value,
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
     return value.fix(toURIO()).flatMap(map.andThen(URIOOf::narrowK));
   }

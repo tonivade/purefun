@@ -31,9 +31,7 @@ interface ControlMonad extends Monad<Control_> {
 
   @Override
   default <T, R> Control<R> flatMap(
-      Kind<Control_, T> value, Function1<? super T, ? extends Kind<Control_, ? extends R>> map) {
-    Control<T> fix = value.fix(toControl());
-    Function1<? super T, Control<? extends R>> andThen = map.andThen(ControlOf::narrowK);
-    return fix.flatMap(andThen);
+      Kind<Control_, ? extends T> value, Function1<? super T, ? extends Kind<Control_, ? extends R>> map) {
+    return value.fix(toControl()).flatMap(map.andThen(ControlOf::narrowK));
   }
 }

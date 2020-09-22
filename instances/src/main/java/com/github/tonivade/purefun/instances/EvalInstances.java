@@ -55,7 +55,7 @@ interface EvalFunctor extends Functor<Eval_> {
   EvalFunctor INSTANCE = new EvalFunctor() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> map(Kind<Eval_, T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Kind<Eval_, R> map(Kind<Eval_, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return EvalOf.narrowK(value).map(mapper);
   }
 }
@@ -73,7 +73,7 @@ interface EvalApplicative extends EvalPure {
   EvalApplicative INSTANCE = new EvalApplicative() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, T> value, Kind<Eval_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, ? extends T> value, Kind<Eval_, Function1<? super T, ? extends R>> apply) {
     return EvalOf.narrowK(value).flatMap(t -> EvalOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }
@@ -83,7 +83,7 @@ interface EvalMonad extends EvalPure, Monad<Eval_> {
   EvalMonad INSTANCE = new EvalMonad() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> flatMap(Kind<Eval_, T> value, Function1<? super T, ? extends Kind<Eval_, ? extends R>> map) {
+  default <T, R> Kind<Eval_, R> flatMap(Kind<Eval_, ? extends T> value, Function1<? super T, ? extends Kind<Eval_, ? extends R>> map) {
     return EvalOf.narrowK(value).flatMap(map.andThen(EvalOf::<R>narrowK));
   }
 }
