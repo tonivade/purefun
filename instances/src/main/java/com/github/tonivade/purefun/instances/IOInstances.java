@@ -121,7 +121,7 @@ interface IOMonadThrow extends MonadThrow<IO_>, IOMonadError {
 interface IODefer extends Defer<IO_> {
 
   @Override
-  default <A> IO<A> defer(Producer<Kind<IO_, A>> defer) {
+  default <A> IO<A> defer(Producer<? extends Kind<IO_, ? extends A>> defer) {
     return IO.suspend(defer.map(IOOf::narrowK));
   }
 }

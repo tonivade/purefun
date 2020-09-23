@@ -107,8 +107,7 @@ interface Function1Profunctor extends Profunctor<Function1_> {
   Function1Profunctor INSTANCE = new Function1Profunctor() {};
 
   @Override
-  default <A, B, C, D> Function1<C, D> dimap(Kind<Kind<Function1_, A>, B> value, Function1<C, A> contramap, Function1<B, D> map) {
-    Function1<A, B> function = value.fix(Function1Of::narrowK);
-    return function.compose(contramap).andThen(map);
+  default <A, B, C, D> Function1<C, D> dimap(Kind<Kind<Function1_, A>, ? extends B> value, Function1<? super C, ? extends A> contramap, Function1<? super B, ? extends D> map) {
+    return value.fix(Function1Of::<A, B>narrowK).dimap(contramap, map);
   }
 }

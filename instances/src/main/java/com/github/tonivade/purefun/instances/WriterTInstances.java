@@ -85,8 +85,8 @@ interface WriterTMonadWriter<F extends Witness, L>
   }
 
   @Override
-  default <A> WriterT<F, L, Tuple2<L, A>> listen(Kind<Kind<Kind<WriterT_, F>, L>, A> value) {
-    return value.fix(WriterTOf::narrowK).listen();
+  default <A> WriterT<F, L, Tuple2<L, A>> listen(Kind<Kind<Kind<WriterT_, F>, L>, ? extends A> value) {
+    return value.fix(WriterTOf::<F, L, A>narrowK).listen();
   }
 
   @Override

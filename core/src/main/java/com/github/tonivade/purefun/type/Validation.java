@@ -89,6 +89,11 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     }
     return (Validation<U, T>) this;
   }
+  
+  default <U, R>  Validation<U, R> bimap(Function1<? super E, ? extends U> error, Function1<? super T, ? extends R> mapper) {
+    Validation<U, T> mapError = mapError(error);
+    return mapError.map(mapper);
+  }
 
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Validation<E, ? extends R>> mapper) {

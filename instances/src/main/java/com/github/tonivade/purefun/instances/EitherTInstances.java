@@ -156,8 +156,8 @@ interface EitherTDefer<F extends Witness, E> extends Defer<Kind<Kind<EitherT_, F
   MonadDefer<F> monadF();
 
   @Override
-  default <A> EitherT<F, E, A> defer(Producer<Kind<Kind<Kind<EitherT_, F>, E>, A>> defer) {
-    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherTOf::narrowK).get().value()));
+  default <A> EitherT<F, E, A> defer(Producer<? extends Kind<Kind<Kind<EitherT_, F>, E>, ? extends A>> defer) {
+    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherTOf::<F, E, A>narrowK).get().value()));
   }
 }
 

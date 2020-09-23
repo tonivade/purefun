@@ -38,7 +38,7 @@ interface ScheduleProfunctor<F extends Witness> extends Profunctor<Kind<Schedule
   ScheduleProfunctor INSTANCE = new ScheduleProfunctor() {};
   
   @Override
-  default <A, B, C, D> Schedule<F, C, D> dimap(Kind<Kind<Kind<Schedule_, F>, A>, B> value, Function1<C, A> contramap, Function1<B, D> map) {
+  default <A, B, C, D> Schedule<F, C, D> dimap(Kind<Kind<Kind<Schedule_, F>, A>, ? extends B> value, Function1<? super C, ? extends A> contramap, Function1<? super B, ? extends D> map) {
     return value.fix(toSchedule()).dimap(contramap, map);
   }
 }

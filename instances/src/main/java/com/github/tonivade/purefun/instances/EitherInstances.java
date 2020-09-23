@@ -88,9 +88,9 @@ interface EitherBifunctor extends Bifunctor<Either_> {
   EitherBifunctor INSTANCE = new EitherBifunctor() {};
 
   @Override
-  default <A, B, C, D> Either<C, D> bimap(Kind<Kind<Either_, A>, B> value,
-      Function1<A, C> leftMap, Function1<B, D> rightMap) {
-    return EitherOf.narrowK(value).mapLeft(leftMap).map(rightMap);
+  default <A, B, C, D> Either<C, D> bimap(Kind<Kind<Either_, A>, ? extends B> value,
+      Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap) {
+    return EitherOf.narrowK(value).bimap(leftMap, rightMap);
   }
 }
 

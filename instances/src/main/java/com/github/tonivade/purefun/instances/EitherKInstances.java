@@ -121,13 +121,13 @@ interface EitherKComonad<F extends Witness, G extends Witness>
 
   @Override
   default <A, B> EitherK<F, G, B> coflatMap(
-      Kind<Kind<Kind<EitherK_, F>, G>, A> value,
+      Kind<Kind<Kind<EitherK_, F>, G>, ? extends A> value,
       Function1<? super Kind<Kind<Kind<EitherK_, F>, G>, ? extends A>, ? extends B> map) {
     return value.fix(EitherKOf::narrowK).coflatMap(f(), g(), eitherK -> map.apply(eitherK));
   }
 
   @Override
-  default <A> A extract(Kind<Kind<Kind<EitherK_, F>, G>, A> value) {
+  default <A> A extract(Kind<Kind<Kind<EitherK_, F>, G>, ? extends A> value) {
     return value.fix(EitherKOf::narrowK).extract(f(), g());
   }
 }
@@ -142,7 +142,7 @@ interface EitherKInjectKRight<F extends Witness, G extends Witness, R extends Wi
   InjectK<F, R> inject();
 
   @Override
-  default  <T> EitherK<G, R, T> inject(Kind<F, T> value) {
+  default  <T> EitherK<G, R, T> inject(Kind<F, ? extends T> value) {
     return EitherK.<G, R, T>right(inject().inject(value));
   }
 }
@@ -153,7 +153,7 @@ interface EitherKInjectKLeft<F extends Witness, G extends Witness> extends Injec
   EitherKInjectKLeft INSTANCE = new EitherKInjectKLeft() {};
 
   @Override
-  default  <T> EitherK<F, G, T> inject(Kind<F, T> value) {
-    return EitherK.<F, G, T>left(value);
+  default  <T> EitherK<F, G, T> inject(Kind<F, ? extends T> value) {
+    return EitherK.<F, G, T>left(Kind.narrowK(value));
   }
 }

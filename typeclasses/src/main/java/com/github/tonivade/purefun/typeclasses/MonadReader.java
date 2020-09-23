@@ -12,7 +12,7 @@ public interface MonadReader<F extends Witness, R> extends Monad<F> {
 
   Kind<F, R> ask();
 
-  default <A> Kind<F, A> reader(Function1<R, A> mapper) {
+  default <A> Kind<F, A> reader(Function1<? super R, ? extends A> mapper) {
     return map(ask(), mapper);
   }
 }

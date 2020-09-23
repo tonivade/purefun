@@ -133,8 +133,8 @@ interface EIODefer<E> extends Defer<Kind<EIO_, E>> {
 
   @Override
   default <A> EIO<E, A>
-          defer(Producer<Kind<Kind<EIO_, E>, A>> defer) {
-    return EIO.defer(() -> defer.map(EIOOf::narrowK).get());
+          defer(Producer<? extends Kind<Kind<EIO_, E>, ? extends A>> defer) {
+    return EIO.defer(() -> defer.map(EIOOf::<E, A>narrowK).get());
   }
 }
 

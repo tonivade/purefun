@@ -134,8 +134,8 @@ interface URIODefer<R> extends Defer<Kind<URIO_, R>> {
 
   @Override
   default <A> URIO<R, A>
-          defer(Producer<Kind<Kind<URIO_, R>, A>> defer) {
-    return URIO.defer(() -> defer.map(URIOOf::narrowK).get());
+          defer(Producer<? extends Kind<Kind<URIO_, R>, ? extends A>> defer) {
+    return URIO.defer(() -> defer.map(URIOOf::<R, A>narrowK).get());
   }
 }
 

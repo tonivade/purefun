@@ -97,12 +97,12 @@ interface IdComonad extends IdFunctor, Comonad<Id_> {
   IdComonad INSTANCE = new IdComonad() {};
 
   @Override
-  default <A, B> Kind<Id_, B> coflatMap(Kind<Id_, A> value, Function1<? super Kind<Id_, ? extends A>, ? extends B> map) {
+  default <A, B> Kind<Id_, B> coflatMap(Kind<Id_, ? extends A> value, Function1<? super Kind<Id_, ? extends A>, ? extends B> map) {
     return Id.of(map.apply(value));
   }
 
   @Override
-  default <A> A extract(Kind<Id_, A> value) {
+  default <A> A extract(Kind<Id_, ? extends A> value) {
     return IdOf.narrowK(value).get();
   }
 }

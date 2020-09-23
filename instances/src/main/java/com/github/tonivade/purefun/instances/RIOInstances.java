@@ -132,8 +132,8 @@ interface RIODefer<R> extends Defer<Kind<RIO_, R>> {
 
   @Override
   default <A> RIO<R, A>
-          defer(Producer<Kind<Kind<RIO_, R>, A>> defer) {
-    return RIO.defer(() -> defer.map(RIOOf::narrowK).get());
+          defer(Producer<? extends Kind<Kind<RIO_, R>, ? extends A>> defer) {
+    return RIO.defer(() -> defer.map(RIOOf::<R, A>narrowK).get());
   }
 }
 

@@ -137,8 +137,8 @@ interface ZIODefer<R, E> extends Defer<Kind<Kind<ZIO_, R>, E>> {
 
   @Override
   default <A> ZIO<R, E, A>
-          defer(Producer<Kind<Kind<Kind<ZIO_, R>, E>, A>> defer) {
-    return ZIO.defer(() -> defer.map(ZIOOf::narrowK).get());
+          defer(Producer<? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> defer) {
+    return ZIO.defer(() -> defer.map(ZIOOf::<R, E, A>narrowK).get());
   }
 }
 

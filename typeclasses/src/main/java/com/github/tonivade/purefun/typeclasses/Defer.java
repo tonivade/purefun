@@ -10,5 +10,5 @@ import com.github.tonivade.purefun.Producer;
 
 public interface Defer<F extends Witness> {
 
-  <A> Kind<F, A> defer(Producer<Kind<F, A>> defer);
+  <A> Kind<F, A> defer(Producer<? extends Kind<F, ? extends A>> defer);
 }

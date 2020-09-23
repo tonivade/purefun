@@ -121,8 +121,8 @@ interface UIODefer extends Defer<UIO_> {
 
   @Override
   default <A> UIO<A>
-          defer(Producer<Kind<UIO_, A>> defer) {
-    return UIO.defer(() -> defer.map(UIOOf::narrowK).get());
+          defer(Producer<? extends Kind<UIO_, ? extends A>> defer) {
+    return UIO.defer(() -> defer.map(UIOOf::<A>narrowK).get());
   }
 }
 

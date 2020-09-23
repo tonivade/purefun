@@ -22,11 +22,11 @@ public interface MonadState<F extends Witness, S> extends Monad<F> {
     return flatMap(get(), s -> set(mapper.apply(s)));
   }
 
-  default <A> Kind<F, A> inspect(Function1<S, A> mapper) {
+  default <A> Kind<F, A> inspect(Function1<? super S, ? extends A> mapper) {
     return map(get(), mapper);
   }
 
-  default <A> Kind<F, A> state(Function1<S, Tuple2<S, A>> mapper) {
+  default <A> Kind<F, A> state(Function1<? super S, ? extends Tuple2<S, ? extends A>> mapper) {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
   }
 

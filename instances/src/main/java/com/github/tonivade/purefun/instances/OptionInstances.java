@@ -198,7 +198,7 @@ interface OptionSemigroupal extends Semigroupal<Option_> {
   OptionSemigroupal INSTANCE = new OptionSemigroupal() {};
 
   @Override
-  default <A, B> Kind<Option_, Tuple2<A, B>> product(Kind<Option_, A> fa, Kind<Option_, B> fb) {
+  default <A, B> Kind<Option_, Tuple2<A, B>> product(Kind<Option_, ? extends A> fa, Kind<Option_, ? extends B> fb) {
     return OptionOf.narrowK(fa).flatMap(a -> OptionOf.narrowK(fb).map(b -> Tuple.of(a, b)));
   }
 }

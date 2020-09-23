@@ -83,9 +83,9 @@ interface ValidationBifunctor extends Bifunctor<Validation_> {
   ValidationBifunctor INSTANCE = new ValidationBifunctor() {};
 
   @Override
-  default <A, B, C, D> Validation<C, D> bimap(Kind<Kind<Validation_, A>, B> value,
-      Function1<A, C> leftMap, Function1<B, D> rightMap) {
-    return ValidationOf.narrowK(value).mapError(leftMap).map(rightMap);
+  default <A, B, C, D> Validation<C, D> bimap(Kind<Kind<Validation_, A>, ? extends B> value,
+      Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap) {
+    return ValidationOf.narrowK(value).bimap(leftMap, rightMap);
   }
 }
 

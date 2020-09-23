@@ -42,6 +42,11 @@ public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
   default <B> Function1<B, R> compose(Function1<? super B, ? extends A> before) {
     return value -> apply(before.apply(value));
   }
+  
+  default <B, Z> Function1<B, Z> dimap(Function1<? super B, ? extends A> before, Function1<? super R, ? extends Z> after) {
+    Function1<B, R> compose = compose(before);
+    return compose.andThen(after);
+  }
 
   default <B> Function1<A, B> flatMap(Function1<? super R, ? extends Function1<? super A, ? extends B>> after) {
     return value -> after.apply(apply(value)).apply(value);

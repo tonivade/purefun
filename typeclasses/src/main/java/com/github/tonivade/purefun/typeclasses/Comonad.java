@@ -10,12 +10,11 @@ import com.github.tonivade.purefun.Witness;
 
 public interface Comonad<F extends Witness> extends Functor<F> {
 
-  <A, B> Kind<F, B> coflatMap(Kind<F, A> value, Function1<? super Kind<F, ? extends A>, ? extends B> map);
+  <A, B> Kind<F, B> coflatMap(Kind<F, ? extends A> value, Function1<? super Kind<F, ? extends A>, ? extends B> map);
 
-  <A> A extract(Kind<F, A> value);
+  <A> A extract(Kind<F, ? extends A> value);
 
-  @SuppressWarnings("unchecked")
-  default <A> Kind<F, Kind<F, A>> coflatten(Kind<F, A> value) {
-    return coflatMap(value, x -> (Kind<F, A>) x);
+  default <A> Kind<F, Kind<F, A>> coflatten(Kind<F, ? extends A> value) {
+    return coflatMap(value, Kind::narrowK);
   }
 }

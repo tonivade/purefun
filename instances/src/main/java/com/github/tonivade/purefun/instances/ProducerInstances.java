@@ -76,12 +76,12 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer_> {
   ProducerComonad INSTANCE = new ProducerComonad() {};
 
   @Override
-  default <A, B> Kind<Producer_, B> coflatMap(Kind<Producer_, A> value, Function1<? super Kind<Producer_, ? extends A>, ? extends B> map) {
+  default <A, B> Kind<Producer_, B> coflatMap(Kind<Producer_, ? extends A> value, Function1<? super Kind<Producer_, ? extends A>, ? extends B> map) {
     return Producer.cons(map.apply(value));
   }
 
   @Override
-  default <A> A extract(Kind<Producer_, A> value) {
+  default <A> A extract(Kind<Producer_, ? extends A> value) {
     return value.fix(ProducerOf::narrowK).get();
   }
 }

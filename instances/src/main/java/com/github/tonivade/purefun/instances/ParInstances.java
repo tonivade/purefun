@@ -126,8 +126,8 @@ interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
 interface ParDefer extends Defer<Par_> {
 
   @Override
-  default <A> Par<A> defer(Producer<Kind<Par_, A>> defer) {
-    return Par.defer(defer.map(ParOf::narrowK)::get);
+  default <A> Par<A> defer(Producer<? extends Kind<Par_, ? extends A>> defer) {
+    return Par.defer(defer.map(ParOf::<A>narrowK)::get);
   }
 }
 

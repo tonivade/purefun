@@ -138,8 +138,8 @@ interface TaskDefer extends Defer<Task_> {
 
   @Override
   default <A> Task<A>
-          defer(Producer<Kind<Task_, A>> defer) {
-    return Task.defer(() -> defer.map(TaskOf::narrowK).get());
+          defer(Producer<? extends Kind<Task_, ? extends A>> defer) {
+    return Task.defer(() -> defer.map(TaskOf::<A>narrowK).get());
   }
 }
 

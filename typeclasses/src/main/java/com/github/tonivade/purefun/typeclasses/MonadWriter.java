@@ -17,18 +17,19 @@ import com.github.tonivade.purefun.Unit;
 public interface MonadWriter<F extends Witness, W> extends Monad<F> {
 
   <A> Kind<F, A> writer(Tuple2<W, A> value);
-  <A> Kind<F, Tuple2<W, A>> listen(Kind<F, A> value);
+  <A> Kind<F, Tuple2<W, A>> listen(Kind<F, ? extends A> value);
   <A> Kind<F, A> pass(Kind<F, Tuple2<Operator1<W>, A>> value);
 
   default Kind<F, Unit> tell(W writer) {
     return writer(Tuple.of(writer, unit()));
   }
 
-  default <A, B> Kind<F, Tuple2<B, A>> listens(Kind<F, A> value, Function1<W, B> mapper) {
-    return map(listen(value), tuple -> tuple.map1(mapper));
+  default <A, B> Kind<F, Tuple2<B, A>> listens(Kind<F, ? extends A> value, Function1<? super W, ? extends B> mapper) {
+    Kind<F, Tuple2<W, A>> listen = listen(value);
+    return map(listen, tuple -> tuple.map1(mapper));
   }
 
-  default <A> Kind<F, A> censor(Kind<F, A> value, Operator1<W> mapper) {
+  default <A> Kind<F, A> censor(Kind<F, ? extends A> value, Operator1<W> mapper) {
     return flatMap(listen(value), tuple -> writer(tuple.map1(mapper)));
   }
 }

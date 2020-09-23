@@ -154,8 +154,8 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {
 interface FutureDefer extends Defer<Future_>, ExecutorHolder {
 
   @Override
-  default <A> Kind<Future_, A> defer(Producer<Kind<Future_, A>> defer) {
-    return Future.defer(executor(), defer.map(FutureOf::narrowK)::get);
+  default <A> Kind<Future_, A> defer(Producer<? extends Kind<Future_, ? extends A>> defer) {
+    return Future.defer(executor(), defer.map(FutureOf::<A>narrowK)::get);
   }
 }
 

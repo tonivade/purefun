@@ -139,8 +139,8 @@ interface OptionTDefer<F extends Witness> extends Defer<Kind<OptionT_, F>> {
   MonadDefer<F> monadF();
 
   @Override
-  default <A> OptionT<F, A> defer(Producer<Kind<Kind<OptionT_, F>, A>> defer) {
-    return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionTOf::narrowK).get().value()));
+  default <A> OptionT<F, A> defer(Producer<? extends Kind<Kind<OptionT_, F>, ? extends A>> defer) {
+    return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionTOf::<F, A>narrowK).get().value()));
   }
 }
 

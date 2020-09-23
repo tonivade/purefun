@@ -11,13 +11,16 @@ import com.github.tonivade.purefun.Witness;
 
 public interface Bifunctor<F extends Witness> {
 
-  <A, B, C, D> Kind<Kind<F, C>, D> bimap(Kind<Kind<F, A>, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
+  <A, B, C, D> Kind<Kind<F, C>, D> bimap(Kind<Kind<F, A>, ? extends B> value, 
+      Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap);
 
-  default <A, B, C> Kind<Kind<F, A>, C> map(Kind<Kind<F, A>, B> value, Function1<B, C> map) {
+  default <A, B, C> Kind<Kind<F, A>, C> map(Kind<Kind<F, A>, ? extends B> value, 
+      Function1<? super B, ? extends C> map) {
     return bimap(value, identity(), map);
   }
 
-  default <A, B, C> Kind<Kind<F, C>, B> leftMap(Kind<Kind<F, A>, B> value, Function1<A, C> map) {
+  default <A, B, C> Kind<Kind<F, C>, B> leftMap(Kind<Kind<F, A>, ? extends B> value, 
+      Function1<? super A, ? extends C> map) {
     return bimap(value, map, identity());
   }
 }

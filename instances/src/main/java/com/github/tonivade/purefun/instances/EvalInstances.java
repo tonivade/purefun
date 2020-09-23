@@ -115,12 +115,12 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval_> {
   EvalComonad INSTANCE = new EvalComonad() {};
 
   @Override
-  default <A, B> Kind<Eval_, B> coflatMap(Kind<Eval_, A> value, Function1<? super Kind<Eval_, ? extends A>, ? extends B> map) {
+  default <A, B> Kind<Eval_, B> coflatMap(Kind<Eval_, ? extends A> value, Function1<? super Kind<Eval_, ? extends A>, ? extends B> map) {
     return Eval.later(() -> map.apply(value));
   }
 
   @Override
-  default <A> A extract(Kind<Eval_, A> value) {
+  default <A> A extract(Kind<Eval_, ? extends A> value) {
     return EvalOf.narrowK(value).value();
   }
 }
@@ -130,7 +130,7 @@ interface EvalDefer extends Defer<Eval_> {
   EvalDefer INSTANCE = new EvalDefer() {};
 
   @Override
-  default <A> Kind<Eval_, A> defer(Producer<Kind<Eval_, A>> defer) {
+  default <A> Kind<Eval_, A> defer(Producer<? extends Kind<Eval_, ? extends A>> defer) {
     return Eval.defer(defer.map(EvalOf::narrowK));
   }
 }

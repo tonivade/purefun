@@ -40,9 +40,9 @@ interface Tuple2Bifunctor extends Bifunctor<Tuple2_> {
   Tuple2Bifunctor INSTANCE = new Tuple2Bifunctor() {};
 
   @Override
-  default <A, B, C, D> Tuple2<C, D> bimap(Kind<Kind<Tuple2_, A>, B> value,
-                                          Function1<A, C> leftMap,
-                                          Function1<B, D> rightMap) {
+  default <A, B, C, D> Tuple2<C, D> bimap(Kind<Kind<Tuple2_, A>, ? extends B> value,
+                                          Function1<? super A, ? extends C> leftMap,
+                                          Function1<? super B, ? extends D> rightMap) {
     return value.fix(Tuple2Of::narrowK).map(leftMap, rightMap);
   }
 }
