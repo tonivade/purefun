@@ -31,7 +31,7 @@ public interface Selective<F extends Witness> extends Applicative<F> {
     return select(SelectiveModule.selector(this, condition), map(apply, Function1::cons));
   }
 
-  default <A> Kind<F, A> ifS(Kind<F, Boolean> condition, Kind<F, A> left, Kind<F, A> right) {
+  default <A> Kind<F, A> ifS(Kind<F, Boolean> condition, Kind<F, ? extends A> left, Kind<F, ? extends A> right) {
     return branch(SelectiveModule.selector(this, condition), 
         map(left, Function1::cons), map(right, Function1::cons));
   }
@@ -45,13 +45,13 @@ public interface Selective<F extends Witness> extends Applicative<F> {
   }
 
   default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable,
-                                                             Kind<G, A> values,
+                                                             Kind<G, ? extends A> values,
                                                              Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, FALSE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> orS(b, condition.apply(a))));
   }
 
   default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable,
-                                                             Kind<G, A> values,
+                                                             Kind<G, ? extends A> values,
                                                              Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, TRUE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> andS(b, condition.apply(a))));
   }
