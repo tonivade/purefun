@@ -16,6 +16,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.data.SequenceOf;
 import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -170,13 +171,15 @@ interface SequenceFoldable extends Foldable<Sequence_> {
   SequenceFoldable INSTANCE = new SequenceFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Kind<Sequence_, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Sequence_, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
     return SequenceOf.narrowK(value).foldLeft(initial, mapper);
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Sequence_, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
-    return SequenceOf.narrowK(value).foldRight(initial, mapper);
+  default <A, B> Eval<B> foldRight(Kind<Sequence_, ? extends A> value, Eval<? extends B> initial, 
+      Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
+    Eval<? extends B> foldRight = SequenceOf.narrowK(value).foldRight(initial, mapper);
+    return EvalOf.narrowK(foldRight);
   }
 }
 

@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.cons;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -11,6 +13,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
@@ -130,14 +133,16 @@ interface TryFoldable extends Foldable<Try_> {
   TryFoldable INSTANCE = new TryFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Kind<Try_, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Try_, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
     return TryOf.narrowK(value).fold(t -> initial, a -> mapper.apply(initial, a));
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Try_, A> value, Eval<B> initial,
-      Function2<A, Eval<B>, Eval<B>> mapper) {
-    return TryOf.narrowK(value).fold(t -> initial, a -> mapper.apply(a, initial));
+  default <A, B> Eval<B> foldRight(Kind<Try_, ? extends A> value, Eval<? extends B> initial,
+      Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
+    return TryOf.<A>narrowK(value).fold(
+        cons(initial).andThen(EvalOf::<B>narrowK), 
+        a -> mapper.andThen(EvalOf::<B>narrowK).apply(a, initial));
   }
 }
 

@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -153,14 +154,16 @@ interface EitherFoldable<L> extends Foldable<Kind<Either_, L>> {
   EitherFoldable INSTANCE = new EitherFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Kind<Kind<Either_, L>, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Kind<Either_, L>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
     return EitherOf.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Kind<Either_, L>, A> value, Eval<B> initial,
-      Function2<A, Eval<B>, Eval<B>> mapper) {
-    return EitherOf.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
+  default <A, B> Eval<B> foldRight(Kind<Kind<Either_, L>, ? extends A> value, Eval<? extends B> initial,
+      Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
+    return EitherOf.<L, A>narrowK(value).fold(
+        cons(initial).andThen(EvalOf::<B>narrowK), 
+        a -> mapper.andThen(EvalOf::<B>narrowK).apply(a, initial));
   }
 }
 

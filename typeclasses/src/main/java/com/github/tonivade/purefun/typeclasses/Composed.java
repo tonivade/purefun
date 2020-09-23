@@ -93,12 +93,15 @@ interface ComposedFoldable<F extends Witness, G extends Witness> extends Foldabl
   Foldable<G> g();
 
   @Override
-  default <A, B> B foldLeft(Kind<Nested<F, G>, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Nested<F, G>, ? extends A> value, B initial, 
+      Function2<? super B, ? super A, ? extends B> mapper) {
     return f().foldLeft(unnest(value), initial, (a, b) -> g().foldLeft(b, a, mapper));
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Nested<F, G>, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
+  default <A, B> Eval<B> foldRight(
+      Kind<Nested<F, G>, ? extends A> value, Eval<? extends B> initial, 
+      Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
     return f().foldRight(unnest(value), initial, (a, lb) -> g().foldRight(a, lb, mapper));
   }
 }

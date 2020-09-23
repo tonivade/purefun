@@ -64,7 +64,7 @@ public class FoldableTest {
 
     assertAll(
         () -> assertEquals("abc", instance.foldLeft(listOf("a", "b", "c"), "", String::concat)),
-        () -> assertEquals("abc", instance.foldRight(listOf("a", "b", "c"), now(""), (a, lb) -> lb.map(b -> a + b)).value()),
+        () -> assertEquals("abc", instance.<String, String>foldRight(listOf("a", "b", "c"), now(""), (a, lb) -> lb.map(b -> a + b)).value()),
         () -> assertEquals("abc", instance.fold(Monoid.string(), listOf("a", "b", "c"))),
         () -> assertEquals("ABC", instance.foldMap(Monoid.string(), listOf("a", "b", "c"), String::toUpperCase)),
         () -> assertEquals(Option.some("abc"), instance.reduce(listOf("a", "b", "c"), String::concat)),
@@ -78,8 +78,8 @@ public class FoldableTest {
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Either.<Throwable, String>left(new Error()), empty(), ImmutableList::append)),
         () -> assertEquals(listOf("hola!"), instance.foldLeft(Either.<Throwable, String>right("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Either.<Throwable, String>left(new Error()), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Either.<Throwable, String>right("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(empty(), instance.<String, ImmutableList<String>>foldRight(Either.<Throwable, String>left(new Error()), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.<String, ImmutableList<String>>foldRight(Either.<Throwable, String>right("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
         () -> assertEquals("", instance.fold(Monoid.string(), Either.<Throwable, String>left(new Error()))),
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Either.<Throwable, String>right("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Either.<Throwable, String>left(new Error()), String::concat)),
@@ -97,8 +97,8 @@ public class FoldableTest {
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Option.<String>none(), empty(), ImmutableList::append)),
         () -> assertEquals(listOf("hola!"), instance.foldLeft(Option.some("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Option.<String>none(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Option.some("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(empty(), instance.<String, ImmutableList<String>>foldRight(Option.<String>none(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.<String, ImmutableList<String>>foldRight(Option.some("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
         () -> assertEquals("", instance.fold(Monoid.string(), Option.<String>none())),
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Option.some("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Option.<String>none(), String::concat)),
@@ -116,8 +116,8 @@ public class FoldableTest {
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Try.<String>failure(), empty(), ImmutableList::append)),
         () -> assertEquals(listOf("hola!"), instance.foldLeft(Try.success("hola!"), empty(), ImmutableList::append)),
-        () -> assertEquals(empty(), instance.foldRight(Try.<String>failure(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
-        () -> assertEquals(listOf("hola!"), instance.foldRight(Try.success("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(empty(), instance.<String, ImmutableList<String>>foldRight(Try.<String>failure(), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
+        () -> assertEquals(listOf("hola!"), instance.<String, ImmutableList<String>>foldRight(Try.success("hola!"), now(empty()), (a, lb) -> lb.map(b -> b.append(a))).value()),
         () -> assertEquals("", instance.fold(Monoid.string(), Try.<String>failure())),
         () -> assertEquals("hola!", instance.fold(Monoid.string(), Try.success("hola!"))),
         () -> assertEquals(Option.none(), instance.reduce(Try.<String>failure(), String::concat)),

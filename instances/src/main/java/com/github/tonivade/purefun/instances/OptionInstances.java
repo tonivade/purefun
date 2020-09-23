@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
@@ -163,14 +164,15 @@ interface OptionFoldable extends Foldable<Option_> {
   OptionFoldable INSTANCE = new OptionFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Kind<Option_, A> value, B initial, Function2<B, A, B> mapper) {
+  default <A, B> B foldLeft(Kind<Option_, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
     return OptionOf.narrowK(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Option_, A> value, Eval<B> initial,
-      Function2<A, Eval<B>, Eval<B>> mapper) {
-    return OptionOf.narrowK(value).fold(cons(initial), a -> mapper.apply(a, initial));
+  default <A, B> Eval<B> foldRight(Kind<Option_, ? extends A> value, Eval<? extends B> initial,
+      Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
+    return OptionOf.<A>narrowK(value).fold(
+        cons(initial).andThen(EvalOf::<B>narrowK), a -> mapper.andThen(EvalOf::<B>narrowK).apply(a, initial));
   }
 }
 

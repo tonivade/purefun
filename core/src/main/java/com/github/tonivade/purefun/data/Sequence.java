@@ -66,7 +66,7 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
   }
 
   // TODO
-  default <U> U foldLeft(U initial, Function2<U, E, U> combinator) {
+  default <U> U foldLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
     U accumulator = initial;
     for (E element : this) {
       accumulator = combinator.apply(accumulator, element);
@@ -75,7 +75,7 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
   }
 
   // TODO
-  default <U> U foldRight(U initial, Function2<E, U, U> combinator) {
+  default <U> U foldRight(U initial, Function2<? super E, ? super U, ? extends U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
 

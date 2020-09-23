@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Id_;
@@ -111,13 +112,13 @@ interface IdFoldable extends Foldable<Id_> {
   IdFoldable INSTANCE = new IdFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Kind<Id_, A> value, B initial, Function2<B, A, B> mapper) {
-    return mapper.apply(initial, IdOf.narrowK(value).get());
+  default <A, B> B foldLeft(Kind<Id_, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
+    return mapper.apply(initial, value.fix(toId()).get());
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Id_, A> value, Eval<B> initial, Function2<A, Eval<B>, Eval<B>> mapper) {
-    return mapper.apply(IdOf.narrowK(value).get(), initial);
+  default <A, B> Eval<B> foldRight(Kind<Id_, ? extends A> value, Eval<? extends B> initial, Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
+    return EvalOf.narrowK(mapper.apply(value.fix(toId()).get(), initial));
   }
 }
 

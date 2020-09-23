@@ -7,10 +7,11 @@ package com.github.tonivade.purefun.laws;
 import static com.github.tonivade.purefun.type.Eval.now;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
@@ -52,10 +53,10 @@ public class FoldableLaws {
   }
 
   private static <F extends Witness, A, B> void foldLeftConsistentWithFoldMap(Foldable<F> instance,
-                                                                           Monoid<B> monoid,
-                                                                           B initial,
-                                                                           Kind<F, A> value,
-                                                                           Function1<A, B> mapper) {
+                                                                              Monoid<B> monoid,
+                                                                              B initial,
+                                                                              Kind<F, ? extends A> value,
+                                                                              Function1<? super A, ? extends B> mapper) {
     assertEquals(
         instance.foldLeft(value, initial, (b, a) -> monoid.combine(b, mapper.apply(a))),
         instance.foldMap(monoid, value, mapper),
@@ -63,12 +64,12 @@ public class FoldableLaws {
   }
 
   private static <F extends Witness, A, B> void foldRightConsistentWithFoldMap(Foldable<F> instance,
-                                                                            Monoid<B> monoid,
-                                                                            B initial,
-                                                                            Kind<F, A> value,
-                                                                            Function1<A, B> mapper) {
+                                                                               Monoid<B> monoid,
+                                                                               B initial,
+                                                                               Kind<F, ? extends A> value,
+                                                                               Function1<? super A, ? extends B> mapper) {
     assertEquals(
-        instance.foldRight(value, now(initial), (a, lb) -> lb.map(b -> monoid.combine(mapper.apply(a), b))).value(),
+        instance.<A, B>foldRight(value, now(initial), (a, lb) -> lb.map(b -> monoid.combine(mapper.apply(a), b))).value(),
         instance.foldMap(monoid, value, mapper),
         "foldRight consistent with foldMap");
   }
