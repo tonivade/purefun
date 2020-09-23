@@ -277,7 +277,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Attempt<>(task);
   }
   
-  static <R, A> ZIO<R, Throwable, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  static <R, A> ZIO<R, Throwable, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new AsyncTask<>(consumer);
   }
 
@@ -526,9 +526,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class AsyncTask<R, A> implements SealedZIO<R, Throwable, A> {
 
-    private final Consumer1<Consumer1<Try<A>>> consumer;
+    private final Consumer1<Consumer1<? super Try<? extends A>>> consumer;
 
-    protected AsyncTask(Consumer1<Consumer1<Try<A>>> consumer) {
+    protected AsyncTask(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
       this.consumer = checkNonNull(consumer);
     }
 

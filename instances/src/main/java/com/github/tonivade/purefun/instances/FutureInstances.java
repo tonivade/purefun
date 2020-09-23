@@ -187,7 +187,7 @@ interface FutureAsync extends Async<Future_>, FutureMonadDefer {
   }
   
   @Override
-  default <A> Kind<Future_, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  default <A> Kind<Future_, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return Future.async(executor(), consumer);
   }
 }

@@ -11,6 +11,6 @@ import com.github.tonivade.purefun.type.Try;
 
 public interface Async<F extends Witness> extends MonadDefer<F> {
   
-  <A> Kind<F, A> async(Consumer1<Consumer1<Try<A>>> consumer);
+  <A> Kind<F, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer);
 
 }

@@ -239,7 +239,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(ZIO.task(task));
   }
   
-  public static <R, A> RIO<R, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  public static <R, A> RIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new RIO<>(ZIO.async(consumer));
   }
 

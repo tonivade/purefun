@@ -60,12 +60,14 @@ public interface Par<T> extends ParOf<T> {
     return fold(recover, identity());
   }
 
-  default <X extends Throwable> Par<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
+  default <X extends Throwable> Par<T> recoverWith(Class<X> type, 
+      Function1<? super X, ? extends T> mapper) {
     return executor -> apply(executor).recoverWith(type, mapper);
   }
 
-  default <R> Par<R> fold(Function1<? super Throwable, ? extends R> failureMapper, Function1<? super T, ? extends R> successmapper) {
-    return executor -> apply(executor).fold(failureMapper, successmapper);
+  default <R> Par<R> fold(Function1<? super Throwable, ? extends R> failureMapper, 
+      Function1<? super T, ? extends R> successMapper) {
+    return executor -> apply(executor).fold(failureMapper, successMapper);
   }
 
   static <T> Par<T> success(T value) {
@@ -80,8 +82,7 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.task(executor, producer);
   }
 
-  // TODO:
-  static <T> Par<T> defer(Producer<Par<T>> producer) {
+  static <T> Par<T> defer(Producer<? extends Par<? extends T>> producer) {
     return executor -> Future.defer(executor, () -> producer.get().apply(executor));
   }
 
@@ -89,7 +90,7 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.exec(executor, runnable);
   }
 
-  static <T> Par<T> async(Consumer1<Consumer1<Try<T>>> consumer) {
+  static <T> Par<T> async(Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     return executor -> Future.async(executor, consumer);
   }
 
@@ -102,11 +103,12 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
   }
 
-  static <A, B, C> Par<C> map2(Par<A> parA, Par<B> parB, Function2<? super A, ? super B, ? extends C> mapper) {
+  static <A, B, C> Par<C> map2(Par<? extends A> parA, Par<? extends B> parB, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return parB.ap(parA.map(mapper.curried()));
   }
 
-  static <A, B> Par<Tuple2<A, B>> tuple(Par<A> parA, Par<B> parB) {
+  static <A, B> Par<Tuple2<A, B>> tuple(Par<? extends A> parA, Par<? extends B> parB) {
     return map2(parA, parB, Tuple::of);
   }
 

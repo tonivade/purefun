@@ -157,7 +157,7 @@ interface ParAsync extends Async<Par_>, ParMonadDefer {
   ParAsync INSTANCE = new ParAsync() {};
   
   @Override
-  default <A> Kind<Par_, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  default <A> Kind<Par_, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return Par.async(consumer);
   }
 }

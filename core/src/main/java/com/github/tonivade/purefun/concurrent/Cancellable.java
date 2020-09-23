@@ -66,6 +66,7 @@ final class CancellableImpl<T> implements Cancellable<T> {
     private void interrupt() {
       if (nonNull(thread)) {
         thread.interrupt();
+        thread = null;
       }
     }
   }

@@ -65,7 +65,6 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
     return stream().reduce(initial, operator::apply);
   }
 
-  // TODO
   default <U> U foldLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
     U accumulator = initial;
     for (E element : this) {
@@ -74,7 +73,6 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
     return accumulator;
   }
 
-  // TODO
   default <U> U foldRight(U initial, Function2<? super E, ? super U, ? extends U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }

@@ -202,16 +202,16 @@ public interface Future<T> extends FutureOf<T> {
     return FutureImpl.sleep(executor, delay);
   }
 
-  static <T> Future<T> defer(Producer<Future<T>> producer) {
+  static <T> Future<T> defer(Producer<? extends Future<? extends T>> producer) {
     return defer(DEFAULT_EXECUTOR, producer);
   }
 
-  // TODO:
-  static <T> Future<T> defer(Executor executor, Producer<Future<T>> producer) {
-    return task(executor, producer::get).flatMap(identity());
+  static <T> Future<T> defer(Executor executor, Producer<? extends Future<? extends T>> producer) {
+    return async(executor, consumer -> producer.get().onComplete(consumer));
   }
 
-  static <T extends AutoCloseable, R> Future<R> bracket(Future<T> acquire, Function1<T, Future<R>> use) {
+  static <T extends AutoCloseable, R> Future<R> bracket(Future<? extends T> acquire, 
+      Function1<? super T, ? extends Future<? extends R>> use) {
     return bracket(DEFAULT_EXECUTOR, acquire, use);
   }
 
@@ -248,13 +248,11 @@ public interface Future<T> extends FutureOf<T> {
     return map2(fa, fb, Tuple2::of);
   }
 
-  // TODO
-  static <T> Future<T> async(Consumer1<Consumer1<Try<T>>> consumer) {
+  static <T> Future<T> async(Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     return async(DEFAULT_EXECUTOR, consumer);
   }
 
-  // TODO
-  static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
+  static <T> Future<T> async(Executor executor, Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     return FutureImpl.async(executor, consumer);
   }
 }
@@ -407,8 +405,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
           }));
   }
 
-  // TODO
-  protected static <T> Future<T> async(Executor executor, Consumer1<Consumer1<Try<T>>> consumer) {
+  protected static <T> Future<T> async(Executor executor, Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
     return new FutureImpl<>(executor, 

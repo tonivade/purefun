@@ -231,7 +231,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return fold(ZIO.task(task));
   }
   
-  public static <A> UIO<A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(consumer));
   }
 

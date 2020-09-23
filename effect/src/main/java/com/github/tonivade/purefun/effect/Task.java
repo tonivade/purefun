@@ -229,7 +229,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(ZIO.task(task));
   }
   
-  public static <A> Task<A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  public static <A> Task<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new Task<>(ZIO.async(consumer));
   }
 

@@ -232,7 +232,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return fold(ZIO.task(task));
   }
   
-  public static <R, A> URIO<R, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  public static <R, A> URIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(consumer));
   }
 

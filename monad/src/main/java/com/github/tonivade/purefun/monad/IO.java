@@ -177,7 +177,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return new SyncTask<>(producer);
   }
 
-  static <T> IO<T> async(Consumer1<Consumer1<Try<T>>> callback) {
+  static <T> IO<T> async(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
     return new AsyncTask<>(callback);
   }
 
@@ -185,11 +185,13 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return IOModule.UNIT;
   }
 
-  static <T, R> IO<R> bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
+  static <T, R> IO<R> bracket(IO<? extends T> acquire, 
+      Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
     return new Bracket<>(acquire, use, release);
   }
 
-  static <T extends AutoCloseable, R> IO<R> bracket(IO<T> acquire, Function1<T, IO<R>> use) {
+  static <T extends AutoCloseable, R> IO<R> bracket(IO<? extends T> acquire, 
+      Function1<? super T, ? extends IO<? extends R>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
@@ -363,9 +365,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class AsyncTask<T> implements SealedIO<T> {
 
-    private final Consumer1<Consumer1<Try<T>>> callback;
+    private final Consumer1<Consumer1<? super Try<? extends T>>> callback;
 
-    protected AsyncTask(Consumer1<Consumer1<Try<T>>> callback) {
+    protected AsyncTask(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
       this.callback = checkNonNull(callback);
     }
 

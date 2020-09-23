@@ -227,7 +227,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(ZIO.task(task));
   }
   
-  public static <A> EIO<Throwable, A> async(Consumer1<Consumer1<Try<A>>> consumer) {
+  public static <A> EIO<Throwable, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new EIO<>(ZIO.async(consumer));
   }
 
