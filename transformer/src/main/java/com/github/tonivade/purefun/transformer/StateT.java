@@ -84,9 +84,9 @@ public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A> {
         (StateT<F, S, Sequence<A>> xs, StateT<F, S, A> a) -> map2(xs, a, Sequence::append));
   }
 
-  static <F extends Witness, S, A, B, C> StateT<F, S, C> map2(StateT<F, S, A> sa,
-                                                              StateT<F, S, B> sb,
-                                                              Function2<A, B, C> mapper) {
+  static <F extends Witness, S, A, B, C> StateT<F, S, C> map2(StateT<F, S, ? extends A> sa,
+                                                              StateT<F, S, ? extends B> sb,
+                                                              Function2<? super A, ? super B, ? extends C> mapper) {
     return sa.flatMap(a -> sb.map(b -> mapper.curried().apply(a).apply(b)));
   }
 

@@ -29,11 +29,11 @@ public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
     return Kleisli.of(monad(), value -> monad().flatMap(run(value), other::run));
   }
 
-  default <X> Kleisli<F, X, A> local(Function1<X, Z> map) {
+  default <X> Kleisli<F, X, A> local(Function1<? super X, ? extends Z> map) {
     return Kleisli.of(monad(), map.andThen(this::run)::apply);
   }
 
-  static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<A, B> map) {
+  static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<? super A, ? extends B> map) {
     return Kleisli.of(monad, map.andThen(monad::<B>pure)::apply);
   }
 
@@ -45,7 +45,8 @@ public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
     return Kleisli.of(monad, a -> monad.pure(value));
   }
 
-  static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, Function1<A, Kind<F, B>> run) {
+  static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, 
+      Function1<? super A, ? extends Kind<F, ? extends B>> run) {
     checkNonNull(monad);
     checkNonNull(run);
     return new SealedKleisli<F, A, B>() {
@@ -54,7 +55,7 @@ public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A> {
       public Monad<F> monad() { return monad; }
 
       @Override
-      public Kind<F, B> run(A value) { return run.apply(value); }
+      public Kind<F, B> run(A value) { return run.andThen(Kind::<F, B>narrowK).apply(value); }
     };
   }
 }

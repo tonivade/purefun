@@ -53,7 +53,8 @@ public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
     return bimap(monoid(), cons(monoid().zero()), identity());
   }
 
-  default <V, R> WriterT<F, V, R> bimap(Monoid<V> monoidV, Function1<? super L, ? extends V> mapper1, Function1<? super A, ? extends R> mapper2) {
+  default <V, R> WriterT<F, V, R> bimap(Monoid<V> monoidV, 
+      Function1<? super L, ? extends V> mapper1, Function1<? super A, ? extends R> mapper2) {
     return writer(monoidV, monad(), monad().map(value(), tuple -> tuple.map(mapper1, mapper2)));
   }
 

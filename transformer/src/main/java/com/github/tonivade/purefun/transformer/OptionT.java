@@ -31,7 +31,7 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
     return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>narrowK).apply(v).value()));
   }
 
-  default <R> Kind<F, R> fold(Producer<R> orElse, Function1<T, R> map) {
+  default <R> Kind<F, R> fold(Producer<? extends R> orElse, Function1<? super T, ? extends R> map) {
     return monad().map(value(), v -> v.fold(orElse, map));
   }
 
@@ -51,15 +51,15 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
     return getOrElse(cons(orElse));
   }
 
-  default Kind<F, T> getOrElse(Producer<T> orElse) {
+  default Kind<F, T> getOrElse(Producer<? extends T> orElse) {
     return fold(orElse, identity());
   }
 
-  default OptionT<F, T> filter(Matcher1<T> filter) {
+  default OptionT<F, T> filter(Matcher1<? super T> filter) {
     return OptionT.of(monad(), monad().map(value(), v -> v.filter(filter)));
   }
 
-  default OptionT<F, T> filterNot(Matcher1<T> matcher) {
+  default OptionT<F, T> filterNot(Matcher1<? super T> matcher) {
     return filter(matcher.negate());
   }
 

@@ -33,15 +33,15 @@ public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R> {
     return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>narrowK).apply(v).value()));
   }
 
-  default <T, V> EitherT<F, T, V> bimap(Function1<L, T> leftMapper, Function1<R, V> rightMapper) {
+  default <T, V> EitherT<F, T, V> bimap(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends V> rightMapper) {
     return EitherT.of(monad(), monad().map(value(), v -> v.bimap(leftMapper, rightMapper)));
   }
 
-  default <T> EitherT<F, T, R> mapLeft(Function1<L, T> leftMapper) {
+  default <T> EitherT<F, T, R> mapLeft(Function1<? super L, ? extends T> leftMapper) {
     return EitherT.of(monad(), monad().map(value(), v -> v.mapLeft(leftMapper)));
   }
 
-  default <V> Kind<F, V> fold(Function1<L, V> leftMapper, Function1<R, V> rightMapper) {
+  default <V> Kind<F, V> fold(Function1<? super L, ? extends V> leftMapper, Function1<? super R, ? extends V> rightMapper) {
     return monad().map(value(), v -> v.fold(leftMapper, rightMapper));
   }
 
@@ -81,7 +81,7 @@ public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R> {
     return getOrElse(cons(orElse));
   }
 
-  default Kind<F, R> getOrElse(Producer<R> orElse) {
+  default Kind<F, R> getOrElse(Producer<? extends R> orElse) {
     return fold(left -> orElse.get(), identity());
   }
 
