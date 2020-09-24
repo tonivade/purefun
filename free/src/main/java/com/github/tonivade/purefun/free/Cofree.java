@@ -76,7 +76,8 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
     return reduce(applicative, traverse, String::valueOf, join);
   }
 
-  public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
+  public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, 
+      Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
     return of(functor, transformHead(headMap), transformTail(tailMap));
   }
 
@@ -84,7 +85,8 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
     return headMap.apply(head);
   }
 
-  private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
+  private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(
+      Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
     return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::narrowK)));
   }
 

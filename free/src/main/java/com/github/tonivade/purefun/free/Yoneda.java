@@ -15,16 +15,16 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 @FunctionalInterface
 public interface Yoneda<F extends Witness, A> extends YonedaOf<F, A> {
 
-  <B> Kind<F, B> apply(Function1<A, B> map);
+  <B> Kind<F, B> apply(Function1<? super A, ? extends B> map);
 
   default Kind<F, A> lower() {
     return apply(identity());
   }
 
-  default <B> Yoneda<F, B> map(Function1<A, B> outer) {
+  default <B> Yoneda<F, B> map(Function1<? super A, ? extends B> outer) {
     return new Yoneda<F, B>() {
       @Override
-      public <C> Kind<F, C> apply(Function1<B, C> inner) {
+      public <C> Kind<F, C> apply(Function1<? super B, ? extends C> inner) {
         return Yoneda.this.apply(outer.andThen(inner));
       }
     };
@@ -33,7 +33,7 @@ public interface Yoneda<F extends Witness, A> extends YonedaOf<F, A> {
   static <F extends Witness, A> Yoneda<F, A> of(Kind<F, A> value, Functor<F> functor) {
     return new Yoneda<F, A>() {
       @Override
-      public <B> Kind<F, B> apply(Function1<A, B> map) {
+      public <B> Kind<F, B> apply(Function1<? super A, ? extends B> map) {
         return functor.map(value, map);
       }
     };

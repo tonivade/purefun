@@ -39,7 +39,7 @@ public interface Control<T> extends ControlOf<T> {
     };
   }
 
-  default <R> Control<R> andThen(Control<R> next) {
+  default <R> Control<R> andThen(Control<? extends R> next) {
     return flatMap(ignore -> next);
   }
 

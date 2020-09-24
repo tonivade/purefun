@@ -49,7 +49,8 @@ public final class EitherK<F extends Witness, G extends Witness, T> implements E
   }
 
   public <R> EitherK<F, G, R> coflatMap(
-      Comonad<F> comonadF, Comonad<G> comonadG, Function1<? super EitherK<F, G, ? extends T>, ? extends R> mapper) {
+      Comonad<F> comonadF, Comonad<G> comonadG, 
+      Function1<? super EitherK<F, G, ? extends T>, ? extends R> mapper) {
     return new EitherK<>(either.bimap(
         a -> comonadF.coflatMap(a, x -> mapper.apply(left(x))),
         a -> comonadG.coflatMap(a, x -> mapper.apply(right(x)))
@@ -60,7 +61,8 @@ public final class EitherK<F extends Witness, G extends Witness, T> implements E
     return either.fold(comonadF::extract, comonadG::extract);
   }
 
-  public <R> EitherK<F, G, R> contramap(Contravariant<F> contravariantF, Contravariant<G> contravariantG, Function1<? super R, ? extends T> contramap) {
+  public <R> EitherK<F, G, R> contramap(Contravariant<F> contravariantF, 
+      Contravariant<G> contravariantG, Function1<? super R, ? extends T> contramap) {
     return new EitherK<>(either.bimap(
         x -> contravariantF.contramap(x, contramap),
         x -> contravariantG.contramap(x, contramap))
