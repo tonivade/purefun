@@ -21,13 +21,13 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
+  @SuppressWarnings("unchecked")
 public interface ConstInstances {
 
   static <T, A> Eq<Kind<Kind<Const_, T>, A>> eq(Eq<T> eq) {
     return (a, b) -> eq.eqv(a.fix(ConstOf::narrowK).get(), a.fix(ConstOf::narrowK).get());
   }
 
-  @SuppressWarnings("unchecked")
   static <T> Functor<Kind<Const_, T>> functor() {
     return ConstFunctor.INSTANCE;
   }
@@ -36,17 +36,14 @@ public interface ConstInstances {
     return ConstApplicative.instance(monoid);
   }
 
-  @SuppressWarnings("unchecked")
   static <T> Foldable<Kind<Const_, T>> foldable() {
     return ConstFoldable.INSTANCE;
   }
 
-  @SuppressWarnings("unchecked")
   static <T> Traverse<Kind<Const_, T>> traverse() {
     return ConstTraverse.INSTANCE;
   }
 
-  @SuppressWarnings("unchecked")
   static <T> Contravariant<Kind<Const_, T>> contravariant() {
     return ConstContravariant.INSTANCE;
   }
