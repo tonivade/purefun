@@ -21,7 +21,7 @@ public interface Reader<R, A> extends ReaderOf<R, A> {
     return reader -> mapper.apply(eval(reader)).eval(reader);
   }
 
-  default <B> Reader<R, B> andThen(Reader<R, B> next) {
+  default <B> Reader<R, B> andThen(Reader<R, ? extends B> next) {
     return flatMap(ignore -> next);
   }
 
@@ -33,7 +33,7 @@ public interface Reader<R, A> extends ReaderOf<R, A> {
     return reader -> value;
   }
 
-  static <R, A> Reader<R, A> reader(Function1<R, A> run) {
+  static <R, A> Reader<R, A> reader(Function1<? super R, ? extends A> run) {
     return run::apply;
   }
 }

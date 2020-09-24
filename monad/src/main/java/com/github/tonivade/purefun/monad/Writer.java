@@ -42,12 +42,14 @@ public interface Writer<L, A> extends WriterOf<L, A> {
     return mapLog(monoid(), cons(monoid().zero()));
   }
 
-  default <V, R> Writer<V, R> bimap(Monoid<V> monoidV, Function1<? super L, ? extends V> mapper1, Function1<? super A, ? extends R> mapper2) {
+  default <V, R> Writer<V, R> bimap(Monoid<V> monoidV,
+                                    Function1<? super L, ? extends V> mapper1,
+                                    Function1<? super A, ? extends R> mapper2) {
     return writer(monoidV, value().map(mapper1, mapper2));
   }
 
   default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Writer<L, ? extends B>> mapper) {
-    Writer<L, B> apply = WriterOf.narrowK(mapper.apply(value().get2()));
+    Writer<L, B> apply = mapper.andThen(WriterOf::<L, B>narrowK).apply(value().get2());
     Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
   }

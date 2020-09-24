@@ -52,12 +52,12 @@ public class StateTest {
   }
 
   @Test
-  public void compose() {
+  public void traverse() {
     State<Unit, String> sa = State.pure("a");
     State<Unit, String> sb = State.pure("b");
     State<Unit, String> sc = State.pure("c");
 
-    Tuple2<Unit, Sequence<String>> result = State.compose(listOf(sa, sb, sc)).run(unit());
+    Tuple2<Unit, Sequence<String>> result = State.traverse(listOf(sa, sb, sc)).run(unit());
 
     assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), result);
   }

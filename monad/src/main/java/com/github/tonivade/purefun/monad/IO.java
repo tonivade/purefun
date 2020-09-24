@@ -83,15 +83,18 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return attempt().map(Try::toEither);
   }
 
-  default <L, R> IO<Either<L, R>> either(Function1<? super Throwable, ? extends L> mapError, Function1<? super T, ? extends R> mapper) {
+  default <L, R> IO<Either<L, R>> either(Function1<? super Throwable, ? extends L> mapError,
+                                         Function1<? super T, ? extends R> mapper) {
     return either().map(either -> either.bimap(mapError, mapper));
   }
 
-  default <R> IO<R> redeem(Function1<? super Throwable, ? extends R> mapError, Function1<? super T, ? extends R> mapper) {
+  default <R> IO<R> redeem(Function1<? super Throwable, ? extends R> mapError,
+                           Function1<? super T, ? extends R> mapper) {
     return attempt().map(try_ -> try_.fold(mapError, mapper));
   }
 
-  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends IO<? extends R>> mapError, Function1<? super T, ? extends IO<? extends R>> mapper) {
+  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends IO<? extends R>> mapError,
+                               Function1<? super T, ? extends IO<? extends R>> mapper) {
     return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
   }
 
@@ -153,11 +156,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return new Failure<>(error);
   }
 
-  static <T> IO<T> delay(Producer<T> lazy) {
+  static <T> IO<T> delay(Producer<? extends T> lazy) {
     return suspend(lazy.map(IO::pure));
   }
 
-  static <T> IO<T> suspend(Producer<IO<T>> lazy) {
+  static <T> IO<T> suspend(Producer<? extends IO<? extends T>> lazy) {
     return new Suspend<>(lazy);
   }
 
@@ -170,10 +173,10 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   static IO<Unit> exec(CheckedRunnable task) {
-    return task(() -> { task.run(); return Unit.unit(); });
+    return task(task.asProducer());
   }
 
-  static <T> IO<T> task(Producer<T> producer) {
+  static <T> IO<T> task(Producer<? extends T> producer) {
     return new SyncTask<>(producer);
   }
 
@@ -204,11 +207,12 @@ public interface IO<T> extends IOOf<T>, Recoverable {
         (IO<Sequence<A>> xs, IO<A> a) -> map2(xs, a, Sequence::append));
   }
 
-  static <A, B, C> IO<C> map2(IO<A> fa, IO<B> fb, Function2<A, B, C> mapper) {
+  static <A, B, C> IO<C> map2(IO<? extends A> fa, IO<? extends B> fb,
+                              Function2<? super A, ? super B, ? extends C> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
 
-  static <A, B> IO<Tuple2<A, B>> tuple(IO<A> fa, IO<B> fb) {
+  static <A, B> IO<Tuple2<A, B>> tuple(IO<? extends A> fa, IO<? extends B> fb) {
     return map2(fa, fb, Tuple::of);
   }
 
@@ -238,10 +242,10 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class Apply<A, B> implements SealedIO<B> {
     
-    private final IO<A> value;
+    private final IO<? extends A> value;
     private final IO<Function1<? super A, ? extends B>> apply;
 
-    protected Apply(IO<A> value, IO<Function1<? super A, ? extends B>> apply) {
+    protected Apply(IO<? extends A> value, IO<Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
@@ -264,10 +268,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class FlatMapped<T, R> implements SealedIO<R> {
 
-    private final Producer<IO<T>> current;
+    private final Producer<? extends IO<? extends T>> current;
     private final Function1<? super T, ? extends IO<? extends R>> next;
 
-    protected FlatMapped(Producer<IO<T>> current, Function1<? super T, ? extends IO<? extends R>> next) {
+    protected FlatMapped(Producer<? extends IO<? extends T>> current,
+                         Function1<? super T, ? extends IO<? extends R>> next) {
       this.current = checkNonNull(current);
       this.next = checkNonNull(next);
     }
@@ -294,7 +299,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     protected IO<T> start() {
-      return current.get();
+      return current.andThen(IOOf::<T>narrowK).get();
     }
 
     protected IO<R> run(T value) {
@@ -341,9 +346,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class SyncTask<T> implements SealedIO<T> {
 
-    private final Producer<T> task;
+    private final Producer<? extends T> task;
 
-    protected SyncTask(Producer<T> task) {
+    protected SyncTask(Producer<? extends T> task) {
       this.task = checkNonNull(task);
     }
 
@@ -391,9 +396,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class Suspend<T> implements SealedIO<T> {
 
-    private final Producer<IO<T>> lazy;
+    private final Producer<? extends IO<? extends T>> lazy;
 
-    protected Suspend(Producer<IO<T>> lazy) {
+    protected Suspend(Producer<? extends IO<? extends T>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -418,7 +423,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     protected IO<T> next() {
-      return lazy.get();
+      return lazy.andThen(IOOf::<T>narrowK).get();
     }
   }
 
