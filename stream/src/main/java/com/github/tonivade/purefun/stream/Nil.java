@@ -45,57 +45,59 @@ final class Nil<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> filter(Matcher1<T> matcher) {
+  public Stream<F, T> filter(Matcher1<? super T> matcher) {
     return this;
   }
 
   @Override
-  public Stream<F, T> takeWhile(Matcher1<T> matcher) {
+  public Stream<F, T> takeWhile(Matcher1<? super T> matcher) {
     return this;
   }
 
   @Override
-  public Stream<F, T> dropWhile(Matcher1<T> matcher) {
+  public Stream<F, T> dropWhile(Matcher1<? super T> matcher) {
     return this;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public Stream<F, T> concat(Stream<F, T> other) {
-    return other;
+  public Stream<F, T> concat(Stream<F, ? extends T> other) {
+    return (Stream<F, T>) other;
   }
 
   @Override
-  public Stream<F, T> append(Kind<F, T> other) {
-    return new Cons<>(monad, other, this);
+  public Stream<F, T> append(Kind<F, ? extends T> other) {
+    return new Cons<>(monad, Kind.<F, T>narrowK(other), this);
   }
 
   @Override
-  public Stream<F, T> prepend(Kind<F, T> other) {
+  public Stream<F, T> prepend(Kind<F, ? extends T> other) {
     return append(other);
   }
 
   @Override
-  public <R> Stream<F, R> collect(PartialFunction1<T, R> partial) {
+  public <R> Stream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
     return new Nil<>(monad);
   }
 
   @Override
-  public <R> Kind<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
+  public <R> Kind<F, R> foldLeft(R begin, Function2<? super R, ? super T, ? extends R> combinator) {
     return monad.pure(begin);
   }
 
   @Override
-  public <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator) {
-    return begin;
+  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+      Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator) {
+    return Kind.narrowK(begin);
   }
 
   @Override
-  public Kind<F, Boolean> exists(Matcher1<T> matcher) {
+  public Kind<F, Boolean> exists(Matcher1<? super T> matcher) {
     return monad.pure(false);
   }
 
   @Override
-  public Kind<F, Boolean> forall(Matcher1<T> matcher) {
+  public Kind<F, Boolean> forall(Matcher1<? super T> matcher) {
     return monad.pure(true);
   }
 
@@ -105,7 +107,7 @@ final class Nil<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper) {
+  public <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
     return new Nil<>(monad);
   }
 
@@ -120,7 +122,7 @@ final class Nil<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> intersperse(Kind<F, T> value) {
+  public Stream<F, T> intersperse(Kind<F, ? extends T> value) {
     return this;
   }
 }

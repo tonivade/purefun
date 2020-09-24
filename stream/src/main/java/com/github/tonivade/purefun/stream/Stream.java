@@ -40,34 +40,35 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
   Kind<F, Option<T>> headOption();
   Kind<F, Option<Tuple2<Kind<F, T>, Stream<F, T>>>> split();
 
-  Stream<F, T> concat(Stream<F, T> other);
-  Stream<F, T> append(Kind<F, T> other);
-  Stream<F, T> prepend(Kind<F, T> other);
+  Stream<F, T> concat(Stream<F, ? extends T> other);
+  Stream<F, T> append(Kind<F, ? extends T> other);
+  Stream<F, T> prepend(Kind<F, ? extends T> other);
 
   Stream<F, T> take(int n);
   Stream<F, T> drop(int n);
 
-  Stream<F, T> filter(Matcher1<T> matcher);
-  Stream<F, T> takeWhile(Matcher1<T> matcher);
-  Stream<F, T> dropWhile(Matcher1<T> matcher);
+  Stream<F, T> filter(Matcher1<? super T> matcher);
+  Stream<F, T> takeWhile(Matcher1<? super T> matcher);
+  Stream<F, T> dropWhile(Matcher1<? super T> matcher);
 
-  default Stream<F, T> filterNot(Matcher1<T> matcher) {
+  default Stream<F, T> filterNot(Matcher1<? super T> matcher) {
     return filter(matcher.negate());
   }
 
-  <R> Stream<F, R> collect(PartialFunction1<T, R> partial);
-  <R> Kind<F, R> foldLeft(R begin, Function2<R, T, R> combinator);
-  <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator);
+  <R> Stream<F, R> collect(PartialFunction1<? super T, ? extends R> partial);
+  <R> Kind<F, R> foldLeft(R begin, Function2<? super R, ? super T, ? extends R> combinator);
+  <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+      Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator);
 
   <R> Stream<F, R> map(Function1<? super T, ? extends R> map);
   <R> Stream<F, R> flatMap(Function1<? super T, ? extends Stream<F, ? extends R>> map);
-  <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper);
+  <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper);
 
   Stream<F, T> repeat();
-  Stream<F, T> intersperse(Kind<F, T> value);
+  Stream<F, T> intersperse(Kind<F, ? extends T> value);
 
-  Kind<F, Boolean> exists(Matcher1<T> matcher);
-  Kind<F, Boolean> forall(Matcher1<T> matcher);
+  Kind<F, Boolean> exists(Matcher1<? super T> matcher);
+  Kind<F, Boolean> forall(Matcher1<? super T> matcher);
 
   default <G extends Witness, R> Stream<G, R> through(Function1<Stream<F, T>, Stream<G, R>> function) {
     return function.apply(this);
@@ -110,31 +111,33 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
       return eval(monadDefer().pure(value));
     }
 
-    default <T> Stream<F, T> cons(T head, Stream<F, T> tail) {
+    default <T> Stream<F, T> cons(T head, Stream<F, ? extends T> tail) {
       return pure(head).concat(tail);
     }
 
-    default <T> Stream<F, T> suspend(Producer<Stream<F, T>> lazy) {
-      return new Suspend<>(monadDefer(), monadDefer().defer(lazy.map(monadDefer()::<Stream<F, T>>pure)));
+    default <T> Stream<F, T> suspend(Producer<? extends Stream<F, ? extends T>> lazy) {
+      return new Suspend<>(monadDefer(), 
+          monadDefer().defer(
+              lazy.andThen(com.github.tonivade.purefun.stream.StreamOf::<F, T>narrowK).map(monadDefer()::<Stream<F, T>>pure)));
     }
 
-    default <T> Stream<F, T> eval(Kind<F, T> value) {
-      return new Cons<>(monadDefer(), value, empty());
+    default <T> Stream<F, T> eval(Kind<F, ? extends T> value) {
+      return new Cons<>(monadDefer(), Kind.narrowK(value), empty());
     }
 
-    default <T> Stream<F, T> from(Iterable<T> iterable) {
+    default <T> Stream<F, T> from(Iterable<? extends T> iterable) {
       return from(asStream(iterable.iterator()));
     }
 
-    default <T> Stream<F, T> from(java.util.stream.Stream<T> stream) {
+    default <T> Stream<F, T> from(java.util.stream.Stream<? extends T> stream) {
       return from(ImmutableList.from(stream));
     }
 
-    default <T> Stream<F, T> from(Sequence<T> sequence) {
+    default <T> Stream<F, T> from(Sequence<? extends T> sequence) {
       return sequence.foldLeft(empty(), (acc, a) -> acc.append(monadDefer().pure(a)));
     }
 
-    default <T, S> Stream<F, T> unfold(S seed, Function1<S, Option<Tuple2<T, S>>> function) {
+    default <T, S> Stream<F, T> unfold(S seed, Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
       return suspend(() -> StreamModule.unfold(this, seed, function));
     }
 
@@ -142,15 +145,16 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
       return cons(seed, suspend(() -> iterate(generator.apply(seed), generator)));
     }
 
-    default <T> Stream<F, T> iterate(Producer<T> generator) {
+    default <T> Stream<F, T> iterate(Producer<? extends T> generator) {
       return unfold(unit(), unit -> Option.of(generator).map(next -> Tuple.of(next, unit)));
     }
 
-    default <A, B, R> Stream<F, R> zipWith(Stream<F, A> s1, Stream<F, B> s2, Function2<A, B, R> combinator) {
+    default <A, B, R> Stream<F, R> zipWith(Stream<F, ? extends A> s1, Stream<F, ? extends B> s2, 
+        Function2<? super A, ? super B, ? extends R> combinator) {
       return new Suspend<>(monadDefer(), monadDefer().defer(
         () -> monadDefer().mapN(s1.split(), s2.split(),
           (op1, op2) -> {
-            Option<Stream<F, R>> result = StreamModule.map2(op1, op2,
+            Option<Stream<F, R>> result = Option.map2(op1, op2,
               (t1, t2) -> {
                 Kind<F, R> head = monadDefer().mapN(t1.get1(), t2.get1(), combinator);
                 Stream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
@@ -161,19 +165,20 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
         ));
     }
 
-    default <A, B> Stream<F, Tuple2<A, B>> zip(Stream<F, A> s1, Stream<F, B> s2) {
+    default <A, B> Stream<F, Tuple2<A, B>> zip(Stream<F, ? extends A> s1, Stream<F, ? extends B> s2) {
       return zipWith(s1, s2, Tuple2::of);
     }
 
-    default <A> Stream<F, Tuple2<A, Integer>> zipWithIndex(Stream<F, A> stream) {
+    default <A> Stream<F, Tuple2<A, Integer>> zipWithIndex(Stream<F, ? extends A> stream) {
       return zip(stream, iterate(0, x -> x + 1));
     }
 
+    // TODO: generics
     default <A> Stream<F, A> merge(Stream<F, A> s1, Stream<F, A> s2) {
       return new Suspend<>(monadDefer(), monadDefer().defer(
         () -> monadDefer().mapN(s1.split(), s2.split(),
           (opt1, opt2) -> {
-            Option<Stream<F, A>> result = StreamModule.map2(opt1, opt2,
+            Option<Stream<F, A>> result = Option.map2(opt1, opt2,
               (t1, t2) -> {
                 Kind<F, A> head = t1.get1();
                 Stream<F, A> tail = eval(t2.get1()).concat(merge(t1.get2(), t2.get2()));
@@ -188,14 +193,10 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
 
 interface StreamModule {
 
-  static <A, B, C> Option<C> map2(Option<A> fa, Option<B> fb, Function2<A, B, C> combiner) {
-    return fa.flatMap(a -> fb.map(b -> combiner.apply(a, b)));
-  }
-
   static <F extends Witness, T, S> Stream<F, T> unfold(Stream.StreamOf<F> streamOf, S seed,
-                                                    Function1<S, Option<Tuple2<T, S>>> function) {
+                                                       Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
     return function.apply(seed)
-      .map(tuple -> streamOf.cons(tuple.get1(), streamOf.suspend(() -> unfold(streamOf, tuple.get2(), function))))
+      .map(tuple -> streamOf.cons(tuple.get1(), streamOf.<T>suspend(() -> unfold(streamOf, tuple.get2(), function))))
       .getOrElse(streamOf::empty);
   }
 }

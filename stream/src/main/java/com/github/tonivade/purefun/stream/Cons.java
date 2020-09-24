@@ -41,18 +41,18 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> concat(Stream<F, T> other) {
+  public Stream<F, T> concat(Stream<F, ? extends T> other) {
     return suspend(() -> cons(head, tail.concat(other)));
   }
 
   @Override
-  public Stream<F, T> append(Kind<F, T> other) {
+  public Stream<F, T> append(Kind<F, ? extends T> other) {
     return suspend(() -> cons(head, tail.append(other)));
   }
 
   @Override
-  public Stream<F, T> prepend(Kind<F, T> other) {
-    return suspend(() -> cons(other, tail.prepend(head)));
+  public Stream<F, T> prepend(Kind<F, ? extends T> other) {
+    return suspend(() -> cons(Kind.narrowK(other), tail.prepend(head)));
   }
 
   @Override
@@ -66,49 +66,50 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> takeWhile(Matcher1<T> matcher) {
+  public Stream<F, T> takeWhile(Matcher1<? super T> matcher) {
     return suspendF(() -> monad.map(head,
         t -> matcher.match(t) ? cons(head, tail.takeWhile(matcher)) : empty()));
   }
 
   @Override
-  public Stream<F, T> dropWhile(Matcher1<T> matcher) {
+  public Stream<F, T> dropWhile(Matcher1<? super T> matcher) {
     return suspendF(() ->
             monad.map(head, t -> matcher.match(t) ?
                 tail.dropWhile(matcher) : this));
   }
 
   @Override
-  public Stream<F, T> filter(Matcher1<T> matcher) {
+  public Stream<F, T> filter(Matcher1<? super T> matcher) {
     return suspendF(() ->
             monad.map(head, t -> matcher.match(t) ?
                 cons(head, tail.filter(matcher)) : tail.filter(matcher)));
   }
 
   @Override
-  public <R> Stream<F, R> collect(PartialFunction1<T, R> partial) {
+  public <R> Stream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
     return suspendF(() ->
             monad.map(head, t -> partial.isDefinedAt(t) ?
                 cons(monad.map(head, partial::apply), tail.collect(partial)) : tail.collect(partial)));
   }
 
   @Override
-  public <R> Kind<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
+  public <R> Kind<F, R> foldLeft(R begin, Function2<? super R, ? super T, ? extends R> combinator) {
     return monad.flatMap(head, h -> tail.foldLeft(combinator.apply(begin, h), combinator));
   }
 
   @Override
-  public <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator) {
+  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+      Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator) {
     return monad.flatMap(head, h -> tail.foldRight(combinator.apply(h, begin), combinator));
   }
 
   @Override
-  public Kind<F, Boolean> exists(Matcher1<T> matcher) {
+  public Kind<F, Boolean> exists(Matcher1<? super T> matcher) {
     return foldRight(monad.pure(false), (t, acc) -> matcher.match(t) ? monad.pure(true) : acc);
   }
 
   @Override
-  public Kind<F, Boolean> forall(Matcher1<T> matcher) {
+  public Kind<F, Boolean> forall(Matcher1<? super T> matcher) {
     return foldRight(monad.pure(true), (t, acc) -> matcher.match(t) ? acc : monad.pure(false));
   }
 
@@ -118,7 +119,7 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper) {
+  public <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
     return suspend(() -> cons(monad.flatMap(head, mapper), suspend(() -> tail.mapEval(mapper))));
   }
 
@@ -136,8 +137,8 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> intersperse(Kind<F, T> value) {
-    return suspend(() -> cons(head, suspend(() -> cons(value, tail.intersperse(value)))));
+  public Stream<F, T> intersperse(Kind<F, ? extends T> value) {
+    return suspend(() -> cons(head, suspend(() -> cons(Kind.narrowK(value), tail.intersperse(value)))));
   }
 
   private <R> Stream<F, R> cons(Kind<F, R> h, Stream<F, R> t) {

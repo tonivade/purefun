@@ -38,17 +38,17 @@ final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> concat(Stream<F, T> other) {
+  public Stream<F, T> concat(Stream<F, ? extends T> other) {
     return lazyMap(s -> s.concat(other));
   }
 
   @Override
-  public Stream<F, T> append(Kind<F, T> other) {
+  public Stream<F, T> append(Kind<F, ? extends T> other) {
     return lazyMap(s -> s.append(other));
   }
 
   @Override
-  public Stream<F, T> prepend(Kind<F, T> other) {
+  public Stream<F, T> prepend(Kind<F, ? extends T> other) {
     return lazyMap(s -> s.prepend(other));
   }
 
@@ -63,42 +63,43 @@ final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> takeWhile(Matcher1<T> matcher) {
+  public Stream<F, T> takeWhile(Matcher1<? super T> matcher) {
     return lazyMap(s -> s.takeWhile(matcher));
   }
 
   @Override
-  public Stream<F, T> dropWhile(Matcher1<T> matcher) {
+  public Stream<F, T> dropWhile(Matcher1<? super T> matcher) {
     return lazyMap(s -> s.dropWhile(matcher));
   }
 
   @Override
-  public Stream<F, T> filter(Matcher1<T> matcher) {
+  public Stream<F, T> filter(Matcher1<? super T> matcher) {
     return lazyMap(s -> s.filter(matcher));
   }
 
   @Override
-  public <R> Stream<F, R> collect(PartialFunction1<T, R> partial) {
+  public <R> Stream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
     return lazyMap(s -> s.collect(partial));
   }
 
   @Override
-  public <R> Kind<F, R> foldLeft(R begin, Function2<R, T, R> combinator) {
+  public <R> Kind<F, R> foldLeft(R begin, Function2<? super R, ? super T, ? extends R> combinator) {
     return monad.flatMap(evalStream, s -> s.foldLeft(begin, combinator));
   }
 
   @Override
-  public <R> Kind<F, R> foldRight(Kind<F, R> begin, Function2<T, Kind<F, R>, Kind<F, R>> combinator) {
+  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+      Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator) {
     return monad.flatMap(evalStream, s -> s.foldRight(begin, combinator));
   }
 
   @Override
-  public Kind<F, Boolean> exists(Matcher1<T> matcher) {
+  public Kind<F, Boolean> exists(Matcher1<? super T> matcher) {
     return monad.flatMap(evalStream, s -> s.exists(matcher));
   }
 
   @Override
-  public Kind<F, Boolean> forall(Matcher1<T> matcher) {
+  public Kind<F, Boolean> forall(Matcher1<? super T> matcher) {
     return monad.flatMap(evalStream, s -> s.forall(matcher));
   }
 
@@ -108,7 +109,7 @@ final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> mapEval(Function1<T, Kind<F, R>> mapper) {
+  public <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
     return suspend(() -> monad.map(evalStream, s -> s.mapEval(mapper)));
   }
 
@@ -123,7 +124,7 @@ final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Stream<F, T> intersperse(Kind<F, T> value) {
+  public Stream<F, T> intersperse(Kind<F, ? extends T> value) {
     return lazyMap(s -> s.intersperse(value));
   }
 
