@@ -144,7 +144,8 @@ interface SequenceApplicative extends SequencePure, Applicative<Sequence_> {
   SequenceApplicative INSTANCE = new SequenceApplicative() {};
 
   @Override
-  default <T, R> Kind<Sequence_, R> ap(Kind<Sequence_, ? extends T> value, Kind<Sequence_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Sequence_, R> ap(Kind<Sequence_, ? extends T> value, 
+      Kind<Sequence_, ? extends Function1<? super T, ? extends R>> apply) {
     return SequenceOf.narrowK(apply).flatMap(map -> SequenceOf.narrowK(value).map(map));
   }
 }

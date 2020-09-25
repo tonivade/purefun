@@ -70,9 +70,9 @@ interface Function1Applicative<T> extends Function1Pure<T> {
 
   @Override
   default <A, R> Function1<T, R> ap(Kind<Kind<Function1_, T>, ? extends A> value, 
-      Kind<Kind<Function1_, T>, Function1<? super A, ? extends R>> apply) {
+      Kind<Kind<Function1_, T>, ? extends Function1<? super A, ? extends R>> apply) {
     return value.fix(toFunction1())
-        .flatMap(a -> apply.fix(toFunction1()).andThen(Function1Of::narrowK).andThen(f -> f.apply(a)));
+        .flatMap(a -> apply.fix(Function1Of::narrowK).andThen(f -> f.apply(a)));
   }
 }
 

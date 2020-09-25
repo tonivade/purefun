@@ -56,7 +56,8 @@ interface ProducerApplicative extends ProducerPure {
   ProducerApplicative INSTANCE = new ProducerApplicative() {};
 
   @Override
-  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, ? extends T> value, Kind<Producer_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, ? extends T> value, 
+      Kind<Producer_, ? extends Function1<? super T, ? extends R>> apply) {
     return ProducerOf.narrowK(value).flatMap(t -> ProducerOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

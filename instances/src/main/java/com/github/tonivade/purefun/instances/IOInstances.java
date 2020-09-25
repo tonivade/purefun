@@ -83,8 +83,9 @@ interface IOApplicative extends IOPure, Applicative<IO_> {
   IOApplicative INSTANCE = new IOApplicative() {};
 
   @Override
-  default <T, R> IO<R> ap(Kind<IO_, ? extends T> value, Kind<IO_, Function1<? super T, ? extends R>> apply) {
-    return value.fix(IOOf::<T>narrowK).ap(apply.fix(toIO()));
+  default <T, R> IO<R> ap(Kind<IO_, ? extends T> value, 
+      Kind<IO_, ? extends Function1<? super T, ? extends R>> apply) {
+    return value.fix(IOOf::<T>narrowK).ap(apply.fix(IOOf::narrowK));
   }
 }
 

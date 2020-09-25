@@ -83,8 +83,8 @@ interface URIOApplicative<R> extends URIOPure<R> {
   @Override
   default <A, B> URIO<R, B>
           ap(Kind<Kind<URIO_, R>, ? extends A> value,
-             Kind<Kind<URIO_, R>, Function1<? super A, ? extends B>> apply) {
-    return value.fix(URIOOf::<R, A>narrowK).ap(apply.fix(toURIO()));
+             Kind<Kind<URIO_, R>, ? extends Function1<? super A, ? extends B>> apply) {
+    return value.fix(URIOOf::<R, A>narrowK).ap(apply.fix(URIOOf::narrowK));
   }
 }
 

@@ -91,7 +91,8 @@ interface TryApplicative extends TryPure {
   TryApplicative INSTANCE = new TryApplicative() {};
 
   @Override
-  default <T, R> Kind<Try_, R> ap(Kind<Try_, ? extends T> value, Kind<Try_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Try_, R> ap(Kind<Try_, ? extends T> value, 
+      Kind<Try_, ? extends Function1<? super T, ? extends R>> apply) {
     return TryOf.narrowK(value).flatMap(t -> TryOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

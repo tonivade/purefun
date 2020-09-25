@@ -59,7 +59,7 @@ interface TrampolineApplicative extends TrampolinePure {
 
   @Override
   default <T, R> Kind<Trampoline_, R> ap(Kind<Trampoline_, ? extends T> value, 
-      Kind<Trampoline_, Function1<? super T, ? extends R>> apply) {
+      Kind<Trampoline_, ? extends Function1<? super T, ? extends R>> apply) {
     return TrampolineOf.narrowK(value).flatMap(t -> TrampolineOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

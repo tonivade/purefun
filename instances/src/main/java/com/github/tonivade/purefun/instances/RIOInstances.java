@@ -81,8 +81,8 @@ interface RIOApplicative<R> extends RIOPure<R> {
   @Override
   default <A, B> RIO<R, B>
           ap(Kind<Kind<RIO_, R>, ? extends A> value,
-             Kind<Kind<RIO_, R>, Function1<? super A, ? extends B>> apply) {
-    return value.fix(RIOOf::<R, A>narrowK).ap(apply.fix(toRIO()));
+             Kind<Kind<RIO_, R>, ? extends Function1<? super A, ? extends B>> apply) {
+    return value.fix(RIOOf::<R, A>narrowK).ap(apply.fix(RIOOf::narrowK));
   }
 }
 

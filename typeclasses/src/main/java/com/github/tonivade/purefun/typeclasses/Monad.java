@@ -36,7 +36,7 @@ public interface Monad<F extends Witness> extends Selective<F> {
   }
 
   @Override
-  default <T, R> Kind<F, R> ap(Kind<F, ? extends T> value, Kind<F, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<F, R> ap(Kind<F, ? extends T> value, Kind<F, ? extends Function1<? super T, ? extends R>> apply) {
     return flatMap(apply, map -> map(value, map));
   }
 

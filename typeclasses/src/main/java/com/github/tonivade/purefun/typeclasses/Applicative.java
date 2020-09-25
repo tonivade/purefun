@@ -17,7 +17,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
 
   <T> Kind<F, T> pure(T value);
 
-  <T, R> Kind<F, R> ap(Kind<F, ? extends T> value, Kind<F, Function1<? super T, ? extends R>> apply);
+  <T, R> Kind<F, R> ap(Kind<F, ? extends T> value, Kind<F, ? extends Function1<? super T, ? extends R>> apply);
 
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {

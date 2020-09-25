@@ -212,72 +212,9 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
   }
 
-  private void sealedType(PrintWriter writer, String className, String typeParams, String params) {
-    writer.println("interface Sealed" + className + typeParams + " extends " + className + params + " {");
-    writer.println("  default Sealed" + className + params + " youShallNotPass() {");
-    writer.println("    throw new UnsupportedOperationException();");
-    writer.println("  }");
-    writer.println(END);
-  }
-
-  private void sealedMethod(PrintWriter writer, String className, String types) {
-    writer.println("  Sealed" + className + types + " youShallNotPass();");
-  }
-
   private JavaFileObject createFile(String packageName, String className) throws IOException {
     String qualifiedName = packageName != null ? packageName + "." + className : className;
     return processingEnv.getFiler().createSourceFile(qualifiedName);
-  }
-
-  private String privateConstructor(String witnessName) {
-    return "  private " + witnessName + "() {}";
-  }
-
-  private void narrowK1(PrintWriter writer, String className, String aType, String hkt) {
-    narrowK(writer, "<" + aType + ">", className + "<A>", hkt);
-  }
-
-  private void narrowK2(PrintWriter writer, String className, String aType, String bType, String hkt) {
-    narrowK(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt);
-  }
-
-  private void narrowK3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt) {
-    narrowK(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
-  }
-  
-  private void narrowK(PrintWriter writer, String types, String returnType, String param) {
-    writer.println("  @SuppressWarnings(\"unchecked\")");
-    writer.println("  static " + types + " " + returnType + " narrowK(" + param + " hkt) {");
-    writer.println("    return (" + returnType + ") hkt;");
-    writer.println("  }");
-    writer.println();
-  }
-  
-  private void toTypeOf1(PrintWriter writer, String className, String aType, String hkt, String typeOf) {
-    toTypeOf(writer, "<" + aType + ">", className + "<A>", hkt, typeOf, className);
-  }
-  
-  private void toTypeOf2(PrintWriter writer, String className, String aType, String bType, String hkt, String typeOf) {
-    toTypeOf(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt, typeOf, className);
-  }
-  
-  private void toTypeOf3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt, String typeOf) {
-    toTypeOf(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt, typeOf, className);
-  }
-
-  private void toTypeOf(PrintWriter writer, String types, String returnType, String param, String typeOf, String type) {
-    writer.println("  static " + types + " Fixer<" + param + ", " + returnType + "> to" + type + "() {");
-    writer.println("    return " + typeOf + "::narrowK;");
-    writer.println("  }");
-    writer.println();
-  }
-
-  private String witnessClass(String kindName) {
-    return "public final class " + kindName + " implements Witness {";
-  }
-
-  private String typeOfClass(String typeOfName, String type) {
-    return "public interface " + typeOfName + " extends " + type + " {";
   }
 
   private String generated() {
@@ -287,23 +224,86 @@ public class HigherKindProcessor extends AbstractProcessor {
     return JAVAX_ANNOTATION_PROCESSING_GENERATED;
   }
 
-  private String type(String name, TypeParameterElement type1) {
+  private static void sealedType(PrintWriter writer, String className, String typeParams, String params) {
+    writer.println("interface Sealed" + className + typeParams + " extends " + className + params + " {");
+    writer.println("  default Sealed" + className + params + " youShallNotPass() {");
+    writer.println("    throw new UnsupportedOperationException();");
+    writer.println("  }");
+    writer.println(END);
+  }
+
+  private static void sealedMethod(PrintWriter writer, String className, String types) {
+    writer.println("  Sealed" + className + types + " youShallNotPass();");
+  }
+
+  private static String privateConstructor(String witnessName) {
+    return "  private " + witnessName + "() {}";
+  }
+
+  private static void narrowK1(PrintWriter writer, String className, String aType, String hkt) {
+    narrowK(writer, "<" + aType + ">", className + "<A>", hkt);
+  }
+
+  private static void narrowK2(PrintWriter writer, String className, String aType, String bType, String hkt) {
+    narrowK(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt);
+  }
+
+  private static void narrowK3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt) {
+    narrowK(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
+  }
+  
+  private static void narrowK(PrintWriter writer, String types, String returnType, String param) {
+    writer.println("  @SuppressWarnings(\"unchecked\")");
+    writer.println("  static " + types + " " + returnType + " narrowK(" + param + " hkt) {");
+    writer.println("    return (" + returnType + ") hkt;");
+    writer.println("  }");
+    writer.println();
+  }
+  
+  private static void toTypeOf1(PrintWriter writer, String className, String aType, String hkt, String typeOf) {
+    toTypeOf(writer, "<" + aType + ">", className + "<A>", hkt, typeOf, className);
+  }
+  
+  private static void toTypeOf2(PrintWriter writer, String className, String aType, String bType, String hkt, String typeOf) {
+    toTypeOf(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt, typeOf, className);
+  }
+  
+  private static void toTypeOf3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt, String typeOf) {
+    toTypeOf(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt, typeOf, className);
+  }
+
+  private static void toTypeOf(PrintWriter writer, String types, String returnType, String param, String typeOf, String type) {
+    writer.println("  static " + types + " Fixer<" + param + ", " + returnType + "> to" + type + "() {");
+    writer.println("    return " + typeOf + "::narrowK;");
+    writer.println("  }");
+    writer.println();
+  }
+
+  private static String witnessClass(String kindName) {
+    return "public final class " + kindName + " implements Witness {";
+  }
+
+  private static String typeOfClass(String typeOfName, String type) {
+    return "public interface " + typeOfName + " extends " + type + " {";
+  }
+
+  private static String type(String name, TypeParameterElement type1) {
     String bounds = bounds(type1);
     return !bounds.isEmpty() ? name + " extends " + bounds : name;
   }
 
-  private String bounds(TypeParameterElement typeParameterElement) {
+  private static String bounds(TypeParameterElement typeParameterElement) {
     return typeParameterElement.getBounds().stream()
       .map(Object::toString)
       .filter(type -> !type.equals(Object.class.getName()))
       .collect(joining(","));
   }
 
-  private String packageName(String packageName) {
+  private static String packageName(String packageName) {
     return "package " + packageName + ";";
   }
 
-  private String import_(String className) {
+  private static String import_(String className) {
     return "import " + className + ";";
   }
 }

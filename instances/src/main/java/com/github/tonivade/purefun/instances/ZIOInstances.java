@@ -86,8 +86,8 @@ interface ZIOApplicative<R, E> extends ZIOPure<R, E> {
   @Override
   default <A, B> ZIO<R, E, B>
           ap(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> value,
-             Kind<Kind<Kind<ZIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
-    return value.fix(ZIOOf::<R, E, A>narrowK).ap(apply.fix(toZIO()));
+             Kind<Kind<Kind<ZIO_, R>, E>, ? extends Function1<? super A, ? extends B>> apply) {
+    return value.fix(ZIOOf::<R, E, A>narrowK).ap(apply.fix(ZIOOf::narrowK));
   }
 }
 

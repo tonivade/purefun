@@ -52,7 +52,8 @@ interface IdApplicative extends Applicative<Id_> {
   }
 
   @Override
-  default <T, R> Id<R> ap(Kind<Id_, ? extends T> value, Kind<Id_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Id<R> ap(Kind<Id_, ? extends T> value, 
+      Kind<Id_, ? extends Function1<? super T, ? extends R>> apply) {
     return IdOf.narrowK(value).flatMap(t -> IdOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

@@ -73,7 +73,8 @@ interface EvalApplicative extends EvalPure {
   EvalApplicative INSTANCE = new EvalApplicative() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, ? extends T> value, Kind<Eval_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, ? extends T> value, 
+      Kind<Eval_, ? extends Function1<? super T, ? extends R>> apply) {
     return EvalOf.narrowK(value).flatMap(t -> EvalOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

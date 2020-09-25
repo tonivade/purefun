@@ -57,7 +57,7 @@ interface ComposedApplicative<F extends Witness, G extends Witness> extends Appl
 
   @Override
   default <T, R> Kind<Nested<F, G>, R> ap(Kind<Nested<F, G>, ? extends T> value,
-      Kind<Nested<F, G>, Function1<? super T, ? extends R>> apply) {
+      Kind<Nested<F, G>, ? extends Function1<? super T, ? extends R>> apply) {
     return nest(f().ap(unnest(value), f().map(unnest(apply), gfa -> ga -> g().ap(ga, gfa))));
   }
 }

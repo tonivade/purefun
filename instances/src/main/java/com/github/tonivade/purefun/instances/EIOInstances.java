@@ -82,8 +82,8 @@ interface EIOApplicative<E> extends EIOPure<E> {
   @Override
   default <A, B> EIO<E, B>
           ap(Kind<Kind<EIO_, E>, ? extends A> value,
-             Kind<Kind<EIO_, E>, Function1<? super A, ? extends B>> apply) {
-    return value.fix(EIOOf::<E, A>narrowK).ap(apply.fix(toEIO()));
+             Kind<Kind<EIO_, E>, ? extends Function1<? super A, ? extends B>> apply) {
+    return value.fix(EIOOf::<E, A>narrowK).ap(apply.fix(EIOOf::narrowK));
   }
 }
 

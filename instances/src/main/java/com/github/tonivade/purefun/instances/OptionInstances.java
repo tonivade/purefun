@@ -102,7 +102,8 @@ interface OptionApplicative extends OptionPure {
   OptionApplicative INSTANCE = new OptionApplicative() {};
 
   @Override
-  default <T, R> Kind<Option_, R> ap(Kind<Option_, ? extends T> value, Kind<Option_, Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<Option_, R> ap(Kind<Option_, ? extends T> value, 
+      Kind<Option_, ? extends Function1<? super T, ? extends R>> apply) {
     return value.fix(toOption()).flatMap(t -> OptionOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

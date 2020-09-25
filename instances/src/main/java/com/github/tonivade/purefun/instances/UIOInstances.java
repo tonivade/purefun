@@ -75,9 +75,9 @@ interface UIOApplicative extends UIOPure {
   UIOApplicative INSTANCE = new UIOApplicative() {};
 
   @Override
-  default <A, B> UIO<B> ap(Kind<UIO_, ? extends A> value, Kind<UIO_, 
-      Function1<? super A, ? extends B>> apply) {
-    return value.fix(UIOOf::<A>narrowK).ap(apply.fix(toUIO()));
+  default <A, B> UIO<B> ap(Kind<UIO_, ? extends A> value, 
+      Kind<UIO_, ? extends Function1<? super A, ? extends B>> apply) {
+    return value.fix(UIOOf::<A>narrowK).ap(apply.fix(UIOOf::narrowK));
   }
 }
 
