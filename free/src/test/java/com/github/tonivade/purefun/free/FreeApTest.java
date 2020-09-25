@@ -5,11 +5,12 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.free.DSLOf.toDSL;
 import static com.github.tonivade.purefun.free.FreeApOf.toFreeAp;
 import static com.github.tonivade.purefun.type.IdOf.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;

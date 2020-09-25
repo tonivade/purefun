@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.instances.OptionInstances.functor;
+import static com.github.tonivade.purefun.type.Option.some;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,7 @@ public class YonedaTest {
 
   @Test
   public void yoneda() {
-    Yoneda<Option_, String> yoneda = Yoneda.of(Option.some("string"), functor());
+    Yoneda<Option_, String> yoneda = Yoneda.of(some("string"), functor());
 
     Yoneda<Option_, String> result = yoneda.map(concat).map(concat);
 
