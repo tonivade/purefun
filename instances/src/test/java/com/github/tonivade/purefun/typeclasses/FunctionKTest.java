@@ -40,14 +40,14 @@ public class FunctionKTest {
 
 class OptionToTry implements FunctionK<Option_, Try_> {
   @Override
-  public <X> Kind<Try_, X> apply(Kind<Option_, X> from) {
-    return OptionOf.narrowK(from).map(Try::success).getOrElse(Try::failure);
+  public <X> Kind<Try_, X> apply(Kind<Option_, ? extends X> from) {
+    return OptionOf.<X>narrowK(from).map(Try::success).getOrElse(Try::failure);
   }
 }
 
 class TryToOption implements FunctionK<Try_, Option_> {
   @Override
-  public <X> Kind<Option_, X> apply(Kind<Try_, X> from) {
-    return TryOf.narrowK(from).toOption();
+  public <X> Kind<Option_, X> apply(Kind<Try_, ? extends X> from) {
+    return TryOf.<X>narrowK(from).toOption();
   }
 }

@@ -4,18 +4,17 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static com.github.tonivade.purefun.free.ConsoleAlgOf.toConsoleAlg;
-import static com.github.tonivade.purefun.free.EitherKOf.toEitherK;
-import static com.github.tonivade.purefun.free.EmailAlgOf.toEmailAlg;
 import static com.github.tonivade.purefun.instances.EitherKInstances.injectEitherKLeft;
 import static com.github.tonivade.purefun.instances.EitherKInstances.injectEitherKRight;
+import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static com.github.tonivade.purefun.typeclasses.InjectK.injectReflexive;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Console;
@@ -53,12 +52,12 @@ public class FreeAlgTest {
     final Console<IO_> console = IOInstances.console();
     return new FunctionK<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, IO_>() {
       @Override
-      public <T> Kind<IO_, T> apply(Kind<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, T> from) {
-        return from.fix(toEitherK()).foldK(
+      public <T> Kind<IO_, T> apply(Kind<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, ? extends T> from) {
+        return from.fix(EitherKOf::<ConsoleAlg_, EmailAlg_, T>narrowK).foldK(
           new FunctionK<ConsoleAlg_, IO_>() {
             @Override
-            public <X> Kind<IO_, X> apply(Kind<ConsoleAlg_, X> kind) {
-              ConsoleAlg<X> consoleAlg = kind.fix(toConsoleAlg());
+            public <X> Kind<IO_, X> apply(Kind<ConsoleAlg_, ? extends X> kind) {
+              ConsoleAlg<X> consoleAlg = kind.fix(ConsoleAlgOf::narrowK);
               if (consoleAlg instanceof ConsoleAlg.ReadLine) {
                 return (Kind<IO_, X>) console.readln();
               }
@@ -71,8 +70,8 @@ public class FreeAlgTest {
           },
             new FunctionK<EmailAlg_, IO_>() {
               @Override
-              public <X> Kind<IO_, X> apply(Kind<EmailAlg_, X> kind) {
-                EmailAlg<X> emailAlg = kind.fix(toEmailAlg());
+              public <X> Kind<IO_, X> apply(Kind<EmailAlg_, ? extends X> kind) {
+                EmailAlg<X> emailAlg = kind.fix(EmailAlgOf::narrowK);
                 if (emailAlg instanceof EmailAlg.SendEmail) {
                   EmailAlg.SendEmail sendEmail = (EmailAlg.SendEmail) emailAlg;
                   return (Kind<IO_, X>) console.println(

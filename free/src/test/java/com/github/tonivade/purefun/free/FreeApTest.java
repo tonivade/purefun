@@ -120,9 +120,8 @@ public class FreeApTest {
   private FunctionK<DSL_, Id_> idTransform() {
     return new FunctionK<DSL_, Id_>() {
       @Override
-      public <T> Kind<Id_, T> apply(Kind<DSL_, T> from) {
-        DSL<T> dsl = from.fix(toDSL());
-        return Id.of(dsl.value());
+      public <T> Kind<Id_, T> apply(Kind<DSL_, ? extends T> from) {
+        return Id.of(from.fix(DSLOf::<T>narrowK).value());
       }
     };
   }
@@ -130,8 +129,8 @@ public class FreeApTest {
   private FunctionK<DSL_, Kind<Const_, String>> constTransform() {
     return new FunctionK<DSL_, Kind<Const_, String>>() {
       @Override
-      public <T> Const<String, T> apply(Kind<DSL_, T> from) {
-        DSL<T> dsl = from.fix(toDSL());
+      public <T> Const<String, T> apply(Kind<DSL_, ? extends T> from) {
+        DSL<T> dsl = from.fix(DSLOf::<T>narrowK);
         return Const.<String, T>of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n");
       }
     };

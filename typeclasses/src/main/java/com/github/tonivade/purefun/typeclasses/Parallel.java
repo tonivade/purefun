@@ -37,7 +37,6 @@ public interface Parallel<F extends Witness, G extends Witness> {
   
   default <A, B, R> Kind<F, R> parMapN(Kind<F, ? extends A> fa, Kind<F, ? extends B> fb, 
       Function2<? super A, ? super B, ? extends R> mapper) {
-    
     return Kind.narrowK(sequential(applicative().mapN(parallel(fa), parallel(fb), mapper)));
   }
   
@@ -57,6 +56,23 @@ public interface Parallel<F extends Witness, G extends Witness> {
       Kind<F, ? extends A> fa, Kind<F, ? extends B> fb, Kind<F, ? extends C> fc, Kind<F, ? extends D> fd, Kind<F, ? extends E> fe,
       Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> mapper) {
     return Kind.narrowK(sequential(applicative().mapN(parallel(fa), parallel(fb), parallel(fc), parallel(fd), parallel(fe), mapper)));
+  }
+  
+  static <F extends Witness, G extends Witness> Parallel<F, G> of(
+      Monad<F> monad, Applicative<G> applicative, FunctionK<F, G> to, FunctionK<G, F> from) {
+    return new Parallel<F, G>() {
+      @Override
+      public Applicative<G> applicative() { return applicative; }
+      
+      @Override
+      public Monad<F> monad() { return monad; }
+      
+      @Override
+      public <A> Kind<F, A> sequential(Kind<G, ? extends A> value) { return from.apply(value); }
+      
+      @Override
+      public <A> Kind<G, A> parallel(Kind<F, ? extends A> value) { return to.apply(value); }
+    };
   }
   
   static <F extends Witness> Parallel<F, F> identity(Monad<F> monad) {

@@ -9,13 +9,13 @@ import com.github.tonivade.purefun.Witness;
 
 public interface FunctionK<F extends Witness, G extends Witness> {
 
-  <T> Kind<G, T> apply(Kind<F, T> from);
+  <T> Kind<G, T> apply(Kind<F, ? extends T> from);
 
   default <B extends Witness> FunctionK<B, G> compose(FunctionK<B, F> before) {
     final FunctionK<F, G> self = this;
     return new FunctionK<B, G>() {
       @Override
-      public <T> Kind<G, T> apply(Kind<B, T> from) {
+      public <T> Kind<G, T> apply(Kind<B, ? extends T> from) {
         return self.apply(before.apply(from));
       }
     };
@@ -25,7 +25,7 @@ public interface FunctionK<F extends Witness, G extends Witness> {
     final FunctionK<F, G> self = this;
     return new FunctionK<F, A>() {
       @Override
-      public <T> Kind<A, T> apply(Kind<F, T> from) {
+      public <T> Kind<A, T> apply(Kind<F, ? extends T> from) {
         return after.apply(self.apply(from));
       }
     };
@@ -34,8 +34,8 @@ public interface FunctionK<F extends Witness, G extends Witness> {
   static <F extends Witness> FunctionK<F, F> identity() {
     return new FunctionK<F, F>() {
       @Override
-      public <T> Kind<F, T> apply(Kind<F, T> from) {
-        return from;
+      public <T> Kind<F, T> apply(Kind<F, ? extends T> from) {
+        return Kind.narrowK(from);
       }
     };
   }

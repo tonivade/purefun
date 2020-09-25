@@ -153,7 +153,7 @@ public class OptionTTest {
 class IOToTryFunctionK implements FunctionK<IO_, Try_> {
 
   @Override
-  public <T> Kind<Try_, T> apply(Kind<IO_, T> from) {
+  public <T> Kind<Try_, T> apply(Kind<IO_, ? extends T> from) {
     return Try.of(from.fix(toIO())::unsafeRunSync);
   }
 }

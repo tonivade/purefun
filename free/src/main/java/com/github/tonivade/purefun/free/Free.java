@@ -49,7 +49,7 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<Free_, G>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<F, Kind<Free_, G>>() {
       @Override
-      public <T> Free<G, T> apply(Kind<F, T> from) {
+      public <T> Free<G, T> apply(Kind<F, ? extends T> from) {
         return liftF(functionK.apply(from));
       }
     };

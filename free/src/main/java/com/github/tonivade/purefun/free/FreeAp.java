@@ -124,7 +124,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<F, Kind<FreeAp_, G>>() {
       @Override
-      public <T> FreeAp<G, T> apply(Kind<F, T> from) {
+      public <T> FreeAp<G, T> apply(Kind<F, ? extends T> from) {
         return lift(functionK.apply(from));
       }
     };

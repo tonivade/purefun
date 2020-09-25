@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static com.github.tonivade.purefun.type.OptionOf.toOption;
-import static com.github.tonivade.purefun.type.TryOf.toTry;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,8 +21,10 @@ import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Option_;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
@@ -103,8 +103,8 @@ class EitherKTest {
 
     EitherK<Option_, Option_, String> result = eitherK.mapK(new FunctionK<Try_, Option_>() {
       @Override
-      public <T> Kind<Option_, T> apply(Kind<Try_, T> from) {
-        return from.fix(toTry()).toOption();
+      public <T> Kind<Option_, T> apply(Kind<Try_, ? extends T> from) {
+        return from.fix(TryOf::<T>narrowK).toOption();
       }
     });
 
@@ -117,8 +117,8 @@ class EitherKTest {
 
     EitherK<Try_, Try_, String> result = eitherK.mapLeftK(new FunctionK<Option_, Try_>() {
       @Override
-      public <T> Kind<Try_, T> apply(Kind<Option_, T> from) {
-        return from.fix(toOption()).fold(Try::<T>failure, Try::success);
+      public <T> Kind<Try_, T> apply(Kind<Option_, ? extends T> from) {
+        return from.fix(OptionOf::<T>narrowK).fold(Try::<T>failure, Try::success);
       }
     });
 
