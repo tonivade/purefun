@@ -121,7 +121,7 @@ public class TaskTest {
   public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("kjsdf").safeRunAsync(callback);
 
-    verify(callback, timeout(100)).accept(captor.capture());
+    verify(callback, timeout(500)).accept(captor.capture());
 
     assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
   }

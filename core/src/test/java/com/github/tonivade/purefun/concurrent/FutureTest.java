@@ -270,7 +270,7 @@ public class FutureTest {
     });
 
     assertEquals(Try.success("hello"), async.await());
-    verify(effect, timeout(100)).get();
+    verify(effect, timeout(500)).get();
   }
 
   @Test
