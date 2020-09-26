@@ -106,8 +106,8 @@ interface SequenceSemigroupK extends SemigroupK<Sequence_> {
   SequenceSemigroupK INSTANCE = new SequenceSemigroupK() {};
 
   @Override
-  default <T> Kind<Sequence_, T> combineK(Kind<Sequence_, T> t1, Kind<Sequence_, T> t2) {
-    return SequenceOf.narrowK(t1).appendAll(SequenceOf.narrowK(t2));
+  default <T> Kind<Sequence_, T> combineK(Kind<Sequence_, ? extends T> t1, Kind<Sequence_, ? extends T> t2) {
+    return SequenceOf.<T>narrowK(t1).appendAll(SequenceOf.narrowK(t2));
   }
 }
 

@@ -124,7 +124,7 @@ interface OptionSemigroupK extends SemigroupK<Option_> {
   OptionSemigroupK INSTANCE = new OptionSemigroupK() {};
 
   @Override
-  default <T> Kind<Option_, T> combineK(Kind<Option_, T> t1, Kind<Option_, T> t2) {
+  default <T> Kind<Option_, T> combineK(Kind<Option_, ? extends T> t1, Kind<Option_, ? extends T> t2) {
     return OptionOf.narrowK(t1).fold(cons(OptionOf.narrowK(t2)), Option::some);
   }
 }

@@ -9,5 +9,5 @@ import com.github.tonivade.purefun.Witness;
 
 public interface SemigroupK<F extends Witness> {
 
-  <T> Kind<F, T> combineK(Kind<F, T> t1, Kind<F, T> t2);
+  <T> Kind<F, T> combineK(Kind<F, ? extends T> t1, Kind<F, ? extends T> t2);
 }

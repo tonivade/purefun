@@ -29,7 +29,8 @@ interface ComposedSemigroupK<F extends Witness, G extends Witness> extends Semig
   SemigroupK<F> f();
 
   @Override
-  default <T> Kind<Nested<F, G>, T> combineK(Kind<Nested<F, G>, T> t1, Kind<Nested<F, G>, T> t2) {
+  default <T> Kind<Nested<F, G>, T> combineK(
+      Kind<Nested<F, G>, ? extends T> t1, Kind<Nested<F, G>, ? extends T> t2) {
     return nest(f().combineK(unnest(t1), unnest(t2)));
   }
 }
