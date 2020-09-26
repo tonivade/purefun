@@ -181,6 +181,10 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   static <T> IO<T> async(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
+    return asyncF(callback.asFunction().andThen(IO::pure));
+  }
+
+  static <T> IO<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
     return new AsyncTask<>(callback);
   }
 
@@ -370,22 +374,22 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class AsyncTask<T> implements SealedIO<T> {
 
-    private final Consumer1<Consumer1<? super Try<? extends T>>> callback;
+    private final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
 
-    protected AsyncTask(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
+    protected AsyncTask(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
       this.callback = checkNonNull(callback);
     }
 
     @Override
     public T unsafeRunSync() {
       Promise<T> make = Promise.make();
-      callback.accept(make::tryComplete);
+      callback.apply(make::tryComplete).unsafeRunSync();
       return make.get().get();
     }
 
     @Override
     public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
-      return monad.async(callback);
+      return monad.asyncF(c -> callback.apply(c).foldMap(monad));
     }
 
     @Override

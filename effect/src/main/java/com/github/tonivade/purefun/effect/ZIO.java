@@ -278,6 +278,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
   
   static <R, A> ZIO<R, Throwable, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
+    return asyncF(consumer.asFunction().andThen(UIO::pure));
+  }
+  
+  static <R, A> ZIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
     return new AsyncTask<>(consumer);
   }
 
@@ -526,22 +530,22 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class AsyncTask<R, A> implements SealedZIO<R, Throwable, A> {
 
-    private final Consumer1<Consumer1<? super Try<? extends A>>> consumer;
+    private final Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer;
 
-    protected AsyncTask(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
+    protected AsyncTask(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
       this.consumer = checkNonNull(consumer);
     }
 
     @Override
     public Either<Throwable, A> provide(R env) {
       Promise<A> make = Promise.make();
-      consumer.accept(make::tryComplete);
+      consumer.apply(make::tryComplete).unsafeRunSync();
       return make.get().toEither();
     }
 
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
-      return monad.async(consumer);
+      return monad.async(c -> consumer.apply(c).foldMap(monad));
     }
 
     @Override

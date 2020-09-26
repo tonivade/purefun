@@ -234,6 +234,10 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
   public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(consumer));
   }
+  
+  public static <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
+    return fold(ZIO.asyncF(consumer));
+  }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(
       UIO<? extends A> acquire, Function1<? super A, ? extends UIO<? extends B>> use) {

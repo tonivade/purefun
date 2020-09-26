@@ -242,6 +242,10 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
   public static <R, A> RIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new RIO<>(ZIO.async(consumer));
   }
+  
+  public static <R, A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
+    return new RIO<>(ZIO.asyncF(consumer));
+  }
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
       Function1<? super A, ? extends RIO<R, ? extends B>> use) {

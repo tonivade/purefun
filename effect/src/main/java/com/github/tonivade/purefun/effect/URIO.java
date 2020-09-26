@@ -235,6 +235,10 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
   public static <R, A> URIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(consumer));
   }
+  
+  public static <R, A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
+    return fold(ZIO.asyncF(consumer));
+  }
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(
       URIO<R, ? extends A> acquire, Function1<? super A, ? extends URIO<R, ? extends B>> use) {

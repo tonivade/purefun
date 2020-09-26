@@ -12,8 +12,10 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Try;
 
 public interface Async<F extends Witness> extends MonadDefer<F> {
-  
-  <A> Kind<F, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer);
 
   <A> Kind<F, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<F, Unit>> consumer);
+  
+  default <A> Kind<F, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
+    return asyncF(consumer.asFunction().andThen(this::pure));
+  }
 }

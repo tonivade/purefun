@@ -230,6 +230,10 @@ public final class EIO<E, A> implements EIOOf<E, A> {
   public static <A> EIO<Throwable, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new EIO<>(ZIO.async(consumer));
   }
+  
+  public static <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
+    return new EIO<>(ZIO.asyncF(consumer));
+  }
 
   public static <E, A> EIO<E, A> raiseError(E error) {
     return new EIO<>(ZIO.raiseError(error));
