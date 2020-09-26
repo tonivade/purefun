@@ -207,7 +207,15 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> defer(Executor executor, Producer<? extends Future<? extends T>> producer) {
-    return async(executor, consumer -> producer.get().onComplete(consumer));
+    return task(executor, producer::get).flatMap(identity());
+  }
+
+  static <T> Future<T> later(Producer<? extends T> producer) {
+    return later(DEFAULT_EXECUTOR, producer);
+  }
+
+  static <T> Future<T> later(Executor executor, Producer<? extends T> producer) {
+    return task(executor, producer::get);
   }
 
   static <T extends AutoCloseable, R> Future<R> bracket(Future<? extends T> acquire, 
@@ -253,6 +261,14 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> async(Executor executor, Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
+    return FutureImpl.async(executor, consumer.asFunction().andThen(Future::success));
+  }
+
+  static <T> Future<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, Future<Unit>> consumer) {
+    return asyncF(DEFAULT_EXECUTOR, consumer);
+  }
+
+  static <T> Future<T> asyncF(Executor executor, Function1<Consumer1<? super Try<? extends T>>, Future<Unit>> consumer) {
     return FutureImpl.async(executor, consumer);
   }
 }
@@ -405,14 +421,15 @@ final class FutureImpl<T> implements SealedFuture<T> {
           }));
   }
 
-  protected static <T> Future<T> async(Executor executor, Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
+  protected static <T> Future<T> async(Executor executor, 
+      Function1<Consumer1<? super Try<? extends T>>, Future<Unit>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
     return new FutureImpl<>(executor, 
-        (p, c) -> executor.execute(() -> {
-            c.updateThread();
-            consumer.accept(p::tryComplete);
-          }));
+        (p, c) -> Future.defer(executor, () -> {
+          c.updateThread();
+          return consumer.apply(p::tryComplete);
+        }));
   }
 
   protected static <T> Future<T> from(Executor executor, Promise<? extends T> promise) {
@@ -427,7 +444,8 @@ final class FutureImpl<T> implements SealedFuture<T> {
     return from(executor, FutureModule.sleep(executor, delay));
   }
 
-  protected static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
+  protected static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, 
+      Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
     checkNonNull(executor);
     checkNonNull(acquire);
     checkNonNull(use);

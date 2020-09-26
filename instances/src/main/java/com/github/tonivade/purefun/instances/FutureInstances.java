@@ -192,4 +192,9 @@ interface FutureAsync extends Async<Future_>, FutureMonadDefer {
   default <A> Kind<Future_, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return Future.async(executor(), consumer);
   }
+  
+  @Override
+  default <A> Kind<Future_, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Future_, Unit>> consumer) {
+    return Future.asyncF(executor(), consumer.andThen(FutureOf::narrowK));
+  }
 }

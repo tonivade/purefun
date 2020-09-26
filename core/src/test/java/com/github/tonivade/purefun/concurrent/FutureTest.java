@@ -4,14 +4,17 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.type.Try;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.Producer.failure;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,17 +28,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Producer.failure;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.type.Try;
 
 @ExtendWith(MockitoExtension.class)
 public class FutureTest {
@@ -259,6 +260,24 @@ public class FutureTest {
 
     long elapsedTime = System.currentTimeMillis() - start;
     assertTrue(1000 - elapsedTime < 100, () -> "it should wait for almost 1 sec, but it was " + elapsedTime);
+  }
+
+  @Test
+  public void asyncF(@Mock Producer<Unit> effect) {
+    Future<String> async = Future.asyncF(callback -> { 
+      callback.accept(Try.success("hello")); 
+      return Future.later(effect); 
+    });
+
+    assertEquals(Try.success("hello"), async.await());
+    verify(effect, timeout(100)).get();
+  }
+
+  @Test
+  public void async() {
+    Future<String> async = Future.async(callback -> callback.accept(Try.success("hello")));
+
+    assertEquals(Try.success("hello"), async.await());
   }
 
   @Test

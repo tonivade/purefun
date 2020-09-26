@@ -162,4 +162,9 @@ interface ParAsync extends Async<Par_>, ParMonadDefer {
   default <A> Kind<Par_, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return Par.async(consumer);
   }
+  
+  @Override
+  default <A> Kind<Par_, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Par_, Unit>> consumer) {
+    return Par.asyncF(consumer.andThen(ParOf::narrowK));
+  }
 }

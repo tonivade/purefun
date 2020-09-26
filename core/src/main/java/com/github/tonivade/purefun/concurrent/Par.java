@@ -86,12 +86,20 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.defer(executor, () -> producer.get().apply(executor));
   }
 
+  static <T> Par<T> later(Producer<? extends T> producer) {
+    return executor -> Future.later(executor, () -> producer.get());
+  }
+
   static Par<Unit> run(CheckedRunnable runnable) {
     return executor -> Future.exec(executor, runnable);
   }
 
   static <T> Par<T> async(Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     return executor -> Future.async(executor, consumer);
+  }
+
+  static <T> Par<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, Par<Unit>> consumer) {
+    return executor -> Future.asyncF(executor, c -> consumer.apply(c).apply(executor));
   }
 
   static Par<Unit> sleep(Duration delay) {
