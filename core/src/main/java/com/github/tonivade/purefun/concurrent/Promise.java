@@ -66,19 +66,15 @@ public interface Promise<T> extends PromiseOf<T> {
     return new PromiseImpl<>(executor);
   }
 
-  static <T> Promise<T> from(CompletableFuture<T> future) {
+  static <T> Promise<T> from(CompletableFuture<? extends T> future) {
     return from(Future.DEFAULT_EXECUTOR, future);
   }
 
-  static <T> Promise<T> from(Executor executor, CompletableFuture<T> future) {
+  static <T> Promise<T> from(Executor executor, CompletableFuture<? extends T> future) {
     Promise<T> promise = make(executor);
-    future.whenCompleteAsync((unit, error) -> {
-      if (unit != null) {
-        promise.tryComplete(Try.success(unit));
-      } else {
-        promise.tryComplete(Try.failure(error));
-      }
-    }, executor);
+    future.whenCompleteAsync(
+        (value, error) -> promise.tryComplete(
+            value != null ? Try.success(value) : Try.failure(error)), executor);
     return promise;
   }
 }

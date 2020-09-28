@@ -11,7 +11,7 @@ import java.util.concurrent.CancellationException;
 
 import com.github.tonivade.purefun.type.Try;
 
-public interface Cancellable<T> {
+public interface Cancellable {
   
   void updateThread();
   
@@ -19,17 +19,17 @@ public interface Cancellable<T> {
 
   boolean isCancelled();
   
-  static <T> Cancellable<T> from(Promise<T> promise) {
-    return new CancellableImpl<>(promise);
+  static Cancellable from(Promise<?> promise) {
+    return new CancellableImpl(promise);
   }
 }
 
-final class CancellableImpl<T> implements Cancellable<T> {
+final class CancellableImpl implements Cancellable {
   
   private final State state = new State();
-  private final Promise<T> promise;
+  private final Promise<?> promise;
   
-  public CancellableImpl(Promise<T> promise) {
+  public CancellableImpl(Promise<?> promise) {
     this.promise = checkNonNull(promise);
   }
 

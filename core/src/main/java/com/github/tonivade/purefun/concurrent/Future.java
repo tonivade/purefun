@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.concurrent;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Unit.unit;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.time.Duration;
@@ -42,10 +41,12 @@ import com.github.tonivade.purefun.type.TryOf;
  * <ul>
  *   <li>Future.success(value): returns a future that returns successfully with the given value.</li>
  *   <li>Future.failure(error): returns a future that returns an error with the given error.</li>
- *   <li>Future.async(computation): returns a future that eventually will execute the given computation.</li>
+ *   <li>Future.task(computation): returns a future that eventually will execute the given computation.</li>
+ *   <li>Future.async(consumer): returns a future that eventually will consume the result of a computation.</li>
  *   <li>Future.exec(runnable): returns a future that eventually will execute the given runnable.</li>
  *   <li>Future.delay(duration, computation): returns a future that eventually will execute the given computation, but after waiting the given duration.</li>
  *   <li>Future.defer(computation): returns a future that eventually will execute the given computation that returns another Future.</li>
+ *   <li>Future.later(computation): returns a future that eventually will execute the given computation that returns another value.</li>
  *   <li>Future.bracket(acquire, usage, release): returns a future that eventually will acquire a resource, then use it, and finally release it.</li>
  * </ul>
  *
@@ -93,7 +94,7 @@ public interface Future<T> extends FutureOf<T> {
     return filter(matcher.negate());
   }
 
-  Future<T> orElse(Future<T> other);
+  Future<T> orElse(Future<? extends T> other);
 
   default T get() {
     return getOrElseThrow();
@@ -170,6 +171,22 @@ public interface Future<T> extends FutureOf<T> {
     return task(executor, future::get);
   }
 
+  static <T> Future<T> from(CompletableFuture<? extends T> future) {
+    return from(DEFAULT_EXECUTOR, future);
+  }
+
+  static <T> Future<T> from(Executor executor, CompletableFuture<? extends T> future) {
+    return from(executor, Promise.from(future));
+  }
+
+  static <T> Future<T> from(Promise<? extends T> promise) {
+    return from(DEFAULT_EXECUTOR, promise);
+  }
+
+  static <T> Future<T> from(Executor executor, Promise<? extends T> promise) {
+    return FutureImpl.from(executor, promise);
+  }
+
   static <T> Future<T> task(Producer<? extends T> task) {
     return task(DEFAULT_EXECUTOR, task);
   }
@@ -183,7 +200,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static Future<Unit> exec(Executor executor, CheckedRunnable task) {
-    return task(executor, () -> { task.run(); return unit(); });
+    return task(executor, task.asProducer());
   }
 
   static <T> Future<T> delay(Duration timeout, Producer<? extends T> producer) {
@@ -191,7 +208,7 @@ public interface Future<T> extends FutureOf<T> {
   }
 
   static <T> Future<T> delay(Executor executor, Duration timeout, Producer<? extends T> producer) {
-    return sleep(executor, timeout).flatMap(x -> task(executor, producer));
+    return sleep(executor, timeout).flatMap(ignore -> task(executor, producer));
   }
 
   static Future<Unit> sleep(Duration delay) {
@@ -278,10 +295,10 @@ final class FutureImpl<T> implements SealedFuture<T> {
   private final Executor executor;
   private final Propagate propagate;
   private final Promise<T> promise;
-  private final Cancellable<T> cancellable;
+  private final Cancellable cancellable;
 
   private FutureImpl(Executor executor, Callback<T> callback) {
-    this(executor, callback, Propagate.noPropagate());
+    this(executor, callback, Propagate.noop());
   }
 
   private FutureImpl(Executor executor, Callback<T> callback, Propagate propagate) {
@@ -359,7 +376,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   @Override
-  public Future<T> orElse(Future<T> other) {
+  public Future<T> orElse(Future<? extends T> other) {
     return chain(value -> value.fold(cons(other), t -> Future.success(executor, t)));
   }
 
@@ -473,14 +490,14 @@ interface FutureModule {
 
 interface Callback<T> {
   
-  void accept(Promise<T> promise, Cancellable<T> cancellable);
+  void accept(Promise<T> promise, Cancellable cancellable);
 }
 
 interface Propagate {
 
   void accept(boolean value);
 
-  static Propagate noPropagate() {
-    return value -> {};
+  static Propagate noop() {
+    return Consumer1.noop()::accept;
   }
 }
