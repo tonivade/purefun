@@ -61,11 +61,11 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return instance.toFuture(executor, nothing());
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends Either<E, A>>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
     instance.provideAsync(executor, nothing(), callback);
   }
 
-  public void safeRunAsync(Consumer1<? super Try<? extends Either<E, A>>> callback) {
+  public void safeRunAsync(Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
@@ -103,7 +103,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.bimap(mapError, map));
   }
 
-  public <B> EIO<E, B> andThen(EIO<E, B> next) {
+  public <B> EIO<E, B> andThen(EIO<E, ? extends B> next) {
     return new EIO<>(instance.andThen(next.instance));
   }
 
@@ -119,31 +119,32 @@ public final class EIO<E, A> implements EIOOf<E, A> {
         value -> map.andThen(EIOOf::narrowK).apply(value).instance));
   }
 
-  public <B> UIO<B> fold(Function1<E, B> mapError, Function1<A, B> map) {
+  public <B> UIO<B> fold(Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return new UIO<>(instance.fold(mapError, map));
   }
 
-  public UIO<A> recover(Function1<E, A> mapError) {
+  public UIO<A> recover(Function1<? super E, ? extends A> mapError) {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public EIO<E, A> orElse(EIO<E, A> other) {
+  public EIO<E, A> orElse(EIO<E, ? extends A> other) {
     return new EIO<>(instance.orElse(other.instance));
   }
   
-  public <B> EIO<E, Tuple2<A, B>> zip(EIO<E, B> other) {
+  public <B> EIO<E, Tuple2<A, B>> zip(EIO<E, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> EIO<E, A> zipLeft(EIO<E, B> other) {
+  public <B> EIO<E, A> zipLeft(EIO<E, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> EIO<E, B> zipRight(EIO<E, B> other) {
+  public <B> EIO<E, B> zipRight(EIO<E, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> EIO<E, C> zipWith(EIO<E, B> other, Function2<A, B, C> mapper) {
+  public <B, C> EIO<E, C> zipWith(EIO<E, ? extends B> other, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other, mapper);
   }
 
@@ -195,7 +196,8 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.refineOrDie(type));
   }
 
-  public static <E, A, B, C> EIO<E, C> map2(EIO<E, A> za, EIO<E, B> zb, Function2<A, B, C> mapper) {
+  public static <E, A, B, C> EIO<E, C> map2(EIO<E, ? extends A> za, EIO<E, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return new EIO<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
@@ -203,11 +205,11 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(ZIO.absorb(value.instance));
   }
 
-  public static <A, B> Function1<A, EIO<Throwable, B>> lift(Function1<A, B> function) {
+  public static <A, B> Function1<A, EIO<Throwable, B>> lift(Function1<? super A, ? extends B> function) {
     return ZIO.<Nothing, A, B>lift(function).andThen(EIO::new);
   }
 
-  public static <E, A> EIO<E, A> fromEither(Producer<Either<E, A>> task) {
+  public static <E, A> EIO<E, A> fromEither(Producer<Either<E, ? extends A>> task) {
     return new EIO<>(ZIO.fromEither(task));
   }
 
@@ -219,11 +221,11 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(ZIO.pure(value));
   }
 
-  public static <E, A> EIO<E, A> defer(Producer<EIO<E, A>> lazy) {
+  public static <E, A> EIO<E, A> defer(Producer<EIO<E, ? extends A>> lazy) {
     return new EIO<>(ZIO.defer(() -> lazy.get().instance));
   }
 
-  public static <A> EIO<Throwable, A> task(Producer<A> task) {
+  public static <A> EIO<Throwable, A> task(Producer<? extends A> task) {
     return new EIO<>(ZIO.task(task));
   }
   
@@ -239,12 +241,16 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(ZIO.raiseError(error));
   }
 
-  public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(EIO<E, A> acquire, Function1<A, EIO<E, B>> use) {
-    return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance));
+  public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, 
+      Function1<? super A, ? extends EIO<E, ? extends B>> use) {
+    return new EIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(EIOOf::<E, B>narrowK).apply(resource).instance));
   }
 
-  public static <E, A, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, Function1<? super A, EIO<E, ? extends B>> use, Consumer1<? super A> release) {
-    return new EIO<>(ZIO.bracket(acquire.instance, resource -> use.apply(resource).instance, release));
+  public static <E, A, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, 
+      Function1<? super A, ? extends EIO<E, ? extends B>> use, Consumer1<? super A> release) {
+    return new EIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(EIOOf::<E, B>narrowK).apply(resource).instance, release));
   }
 
   @SuppressWarnings("unchecked")

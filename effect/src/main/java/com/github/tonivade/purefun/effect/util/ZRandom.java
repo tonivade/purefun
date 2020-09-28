@@ -4,51 +4,49 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.ZIO;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static java.util.stream.Collectors.joining;
 
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static java.util.stream.Collectors.joining;
+import com.github.tonivade.purefun.effect.URIO;
 
 public interface ZRandom {
 
   <R extends ZRandom> ZRandom.Service<R> random();
 
-  static <R extends ZRandom> ZIO<R, Nothing, Integer> nextInt() {
-    return ZIO.accessM(env -> env.<R>random().nextInt());
+  static <R extends ZRandom> URIO<R, Integer> nextInt() {
+    return URIO.accessM(env -> env.<R>random().nextInt());
   }
 
-  static <R extends ZRandom> ZIO<R, Nothing, Long> nextLong() {
-    return ZIO.accessM(env -> env.<R>random().nextLong());
+  static <R extends ZRandom> URIO<R, Long> nextLong() {
+    return URIO.accessM(env -> env.<R>random().nextLong());
   }
 
-  static <R extends ZRandom> ZIO<R, Nothing, Float> nextFloat() {
-    return ZIO.accessM(env -> env.<R>random().nextFloat());
+  static <R extends ZRandom> URIO<R, Float> nextFloat() {
+    return URIO.accessM(env -> env.<R>random().nextFloat());
   }
 
-  static <R extends ZRandom> ZIO<R, Nothing, Double> nextDouble() {
-    return ZIO.accessM(env -> env.<R>random().nextDouble());
+  static <R extends ZRandom> URIO<R, Double> nextDouble() {
+    return URIO.accessM(env -> env.<R>random().nextDouble());
   }
 
-  static <R extends ZRandom> ZIO<R, Nothing, Character> nextChar() {
-    return ZIO.accessM(env -> env.<R>random().nextChar());
+  static <R extends ZRandom> URIO<R, Character> nextChar() {
+    return URIO.accessM(env -> env.<R>random().nextChar());
   }
 
-  static <R extends ZRandom> ZIO<R, Nothing, String> nextString(int length) {
-    return ZIO.accessM(env -> env.<R>random().nextString(length));
+  static <R extends ZRandom> URIO<R, String> nextString(int length) {
+    return URIO.accessM(env -> env.<R>random().nextString(length));
   }
 
   interface Service<R extends ZRandom> {
-    ZIO<R, Nothing, Integer> nextInt();
-    ZIO<R, Nothing, Long> nextLong();
-    ZIO<R, Nothing, Float> nextFloat();
-    ZIO<R, Nothing, Double> nextDouble();
-    ZIO<R, Nothing, Character> nextChar();
-    ZIO<R, Nothing, String> nextString(int length);
+    URIO<R, Integer> nextInt();
+    URIO<R, Long> nextLong();
+    URIO<R, Float> nextFloat();
+    URIO<R, Double> nextDouble();
+    URIO<R, Character> nextChar();
+    URIO<R, String> nextString(int length);
   }
 
   static ZRandom live() {
@@ -75,33 +73,33 @@ class ZRandomImpl implements ZRandom {
     return new ZRandom.Service<R>() {
 
       @Override
-      public ZIO<R, Nothing, Integer> nextInt() {
-        return UIO.task(random::nextInt).toZIO();
+      public URIO<R, Integer> nextInt() {
+        return URIO.task(random::nextInt);
       }
 
       @Override
-      public ZIO<R, Nothing, Long> nextLong() {
-        return UIO.task(random::nextLong).toZIO();
+      public URIO<R, Long> nextLong() {
+        return URIO.task(random::nextLong);
       }
 
       @Override
-      public ZIO<R, Nothing, Float> nextFloat() {
-        return UIO.task(random::nextFloat).toZIO();
+      public URIO<R, Float> nextFloat() {
+        return URIO.task(random::nextFloat);
       }
 
       @Override
-      public ZIO<R, Nothing, Double> nextDouble() {
-        return UIO.task(random::nextDouble).toZIO();
+      public URIO<R, Double> nextDouble() {
+        return URIO.task(random::nextDouble);
       }
 
       @Override
-      public ZIO<R, Nothing, Character> nextChar() {
-        return UIO.task(this::randomChar).toZIO();
+      public URIO<R, Character> nextChar() {
+        return URIO.task(this::randomChar);
       }
 
       @Override
-      public ZIO<R, Nothing, String> nextString(int length) {
-        return UIO.task(() -> randomString(length)).toZIO();
+      public URIO<R, String> nextString(int length) {
+        return URIO.task(() -> randomString(length));
       }
 
       private Character randomChar() {

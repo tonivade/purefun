@@ -23,6 +23,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.Function1;
@@ -222,7 +223,7 @@ public class ZIOTest {
   }
 
   @Test
-  public void retryError(@Mock Producer<Either<Throwable, String>> computation) {
+  public void retryError(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     when(computation.get()).thenReturn(Either.left(new UnsupportedOperationException()));
 
     Either<Throwable, String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3).provide(nothing());
@@ -231,14 +232,13 @@ public class ZIOTest {
     verify(computation, times(4)).get();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  public void retrySuccess(@Mock Producer<Either<Throwable, String>> computation) {
-    when(computation.get()).thenReturn(
-        Either.left(new UnsupportedOperationException()),
-        Either.left(new UnsupportedOperationException()),
-        Either.left(new UnsupportedOperationException()),
-        Either.right("OK"));
+  public void retrySuccess(@Mock Producer<Either<Throwable, ? extends String>> computation) {
+    Mockito.<Either<Throwable, ? extends String>>when(computation.get())
+        .thenReturn(Either.left(new UnsupportedOperationException()))
+        .thenReturn(Either.left(new UnsupportedOperationException()))
+        .thenReturn(Either.left(new UnsupportedOperationException()))
+        .thenReturn(Either.right("OK"));
 
     Either<Throwable, String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3).provide(nothing());
 
@@ -246,14 +246,13 @@ public class ZIOTest {
     verify(computation, times(4)).get();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  public void retrySuccessFuture(@Mock Producer<Either<Throwable, String>> computation) {
-    when(computation.get()).thenReturn(
-        Either.left(new UnsupportedOperationException()),
-        Either.left(new UnsupportedOperationException()),
-        Either.left(new UnsupportedOperationException()),
-        Either.right("OK"));
+  public void retrySuccessFuture(@Mock Producer<Either<Throwable, ? extends String>> computation) {
+    Mockito.<Either<Throwable, ? extends String>>when(computation.get())
+        .thenReturn(Either.left(new UnsupportedOperationException()))
+        .thenReturn(Either.left(new UnsupportedOperationException()))
+        .thenReturn(Either.left(new UnsupportedOperationException()))
+        .thenReturn(Either.right("OK"));
 
     Future<String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3)
       .foldMap(nothing(), FutureInstances.async()).fix(toFuture());
@@ -263,8 +262,8 @@ public class ZIOTest {
   }
 
   @Test
-  public void repeatSuccess(@Mock Producer<Either<Throwable, String>> computation) {
-    when(computation.get()).thenReturn(Either.right("hola"));
+  public void repeatSuccess(@Mock Producer<Either<Throwable, ? extends String>> computation) {
+    Mockito.<Either<Throwable, ? extends String>>when(computation.get()).thenReturn(Either.right("hola"));
 
     Either<Throwable, String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3).provide(nothing());
 
@@ -273,8 +272,8 @@ public class ZIOTest {
   }
 
   @Test
-  public void repeatSuccessFuture(@Mock Producer<Either<Throwable, String>> computation) {
-    when(computation.get()).thenReturn(Either.right("hola"));
+  public void repeatSuccessFuture(@Mock Producer<Either<Throwable, ? extends String>> computation) {
+    Mockito.<Either<Throwable, ? extends String>>when(computation.get()).thenReturn(Either.right("hola"));
 
     Future<String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3)
       .foldMap(nothing(), FutureInstances.async()).fix(toFuture());
@@ -283,14 +282,13 @@ public class ZIOTest {
     verify(computation, times(4)).get();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  public void repeatFailure(@Mock Producer<Either<Throwable, String>> computation) {
-    when(computation.get()).thenReturn(
-        Either.right("hola"),
-        Either.right("hola"),
-        Either.right("hola"),
-        Either.left(new UnsupportedOperationException()));
+  public void repeatFailure(@Mock Producer<Either<Throwable, ? extends String>> computation) {
+    Mockito.<Either<Throwable, ? extends String>>when(computation.get())
+        .thenReturn(Either.right("hola"))
+        .thenReturn(Either.right("hola"))
+        .thenReturn(Either.right("hola"))
+        .thenReturn(Either.left(new UnsupportedOperationException()));
 
     Either<Throwable, String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3).provide(nothing());
 

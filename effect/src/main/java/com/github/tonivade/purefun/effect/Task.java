@@ -95,7 +95,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     }));
   }
 
-  public <B> Task<B> andThen(Task<B> next) {
+  public <B> Task<B> andThen(Task<? extends B> next) {
     return new Task<>(instance.andThen(next.instance));
   }
 
@@ -111,12 +111,13 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
         value -> map.andThen(TaskOf::narrowK).apply(value).instance));
   }
 
-  public <B> UIO<B> fold(Function1<Throwable, B> mapError, Function1<A, B> map) {
+  public <B> UIO<B> fold(
+      Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return new UIO<>(instance.fold(mapError, map));
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> UIO<A> recoverWith(Class<X> type, Function1<X, A> function) {
+  public <X extends Throwable> UIO<A> recoverWith(Class<X> type, Function1<? super X, ? extends A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -125,27 +126,28 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     });
   }
 
-  public UIO<A> recover(Function1<Throwable, A> mapError) {
+  public UIO<A> recover(Function1<? super Throwable, ? extends A> mapError) {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public Task<A> orElse(Task<A> other) {
+  public Task<A> orElse(Task<? extends A> other) {
     return new Task<>(instance.orElse(other.instance));
   }
   
-  public <B> Task<Tuple2<A, B>> zip(Task<B> other) {
+  public <B> Task<Tuple2<A, B>> zip(Task<? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> Task<A> zipLeft(Task<B> other) {
+  public <B> Task<A> zipLeft(Task<? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> Task<B> zipRight(Task<B> other) {
+  public <B> Task<B> zipRight(Task<? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> Task<C> zipWith(Task<B> other, Function2<A, B, C> mapper) {
+  public <B, C> Task<C> zipWith(Task<? extends B> other, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other, mapper);
   }
 
@@ -193,7 +195,8 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.timed());
   }
 
-  public static <A, B, C> Task<C> map2(Task<A> za, Task<B> zb, Function2<A, B, C> mapper) {
+  public static <A, B, C> Task<C> map2(Task<? extends A> za, Task<? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return new Task<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
@@ -201,11 +204,11 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(ZIO.absorb(value.instance));
   }
 
-  public static <A, B> Function1<A, Task<B>> lift(Function1<A, B> function) {
+  public static <A, B> Function1<A, Task<B>> lift(Function1<? super A, ? extends B> function) {
     return ZIO.<Nothing, A, B>lift(function).andThen(Task::new);
   }
 
-  public static <A> Task<A> fromEither(Producer<Either<Throwable, A>> task) {
+  public static <A> Task<A> fromEither(Producer<Either<Throwable, ? extends A>> task) {
     return new Task<>(ZIO.fromEither(task));
   }
 
@@ -221,11 +224,11 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(ZIO.pure(value));
   }
 
-  public static <A> Task<A> defer(Producer<Task<A>> lazy) {
+  public static <A> Task<A> defer(Producer<Task<? extends A>> lazy) {
     return new Task<>(ZIO.defer(() -> lazy.get().instance));
   }
 
-  public static <A> Task<A> task(Producer<A> task) {
+  public static <A> Task<A> task(Producer<? extends A> task) {
     return new Task<>(ZIO.task(task));
   }
   
@@ -241,11 +244,13 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(ZIO.raiseError(error));
   }
 
-  public static <A extends AutoCloseable, B> Task<B> bracket(Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use) {
+  public static <A extends AutoCloseable, B> Task<B> bracket(
+      Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use) {
     return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance));
   }
 
-  public static <A, B> Task<B> bracket(Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use, Consumer1<? super A> release) {
+  public static <A, B> Task<B> bracket(
+      Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use, Consumer1<? super A> release) {
     return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
   }
 
@@ -253,7 +258,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return UNIT;
   }
 
-  private Try<A> flatAbsorb(Try<? extends Either<Throwable, A>> result) {
+  private Try<A> flatAbsorb(Try<? extends Either<Throwable, ? extends A>> result) {
     return result.map(Try::fromEither).flatMap(identity());
   }
 }

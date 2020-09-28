@@ -71,11 +71,11 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return instance.toFuture(executor, env).map(Either::get);
   }
 
-  public void safeRunAsync(Executor executor, R env, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(executor, env, result -> callback.accept(result.map(Either::get)));
   }
 
-  public void safeRunAsync(R env, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
@@ -94,7 +94,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     }));
   }
 
-  public <B> URIO<R, B> andThen(URIO<R, B> next) {
+  public <B> URIO<R, B> andThen(URIO<R, ? extends B> next) {
     return new URIO<>(instance.andThen(next.instance));
   }
   
@@ -102,12 +102,13 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return new URIO<>(instance.ap(apply.toZIO()));
   }
 
-  public URIO<R, A> recover(Function1<Throwable, A> mapError) {
+  public URIO<R, A> recover(Function1<? super Throwable, ? extends A> mapError) {
     return redeem(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> URIO<R, A> recoverWith(Class<X> type, Function1<X, A> function) {
+  public <X extends Throwable> URIO<R, A> recoverWith(Class<X> type, 
+      Function1<? super X, ? extends A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -116,7 +117,8 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     });
   }
 
-  public <B> URIO<R, B> redeem(Function1<Throwable, B> mapError, Function1<A, B> map) {
+  public <B> URIO<R, B> redeem(
+      Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return redeemWith(mapError.andThen(URIO::pure), map.andThen(URIO::pure));
   }
 
@@ -128,19 +130,20 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
         value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
   
-  public <B> URIO<R, Tuple2<A, B>> zip(URIO<R, B> other) {
+  public <B> URIO<R, Tuple2<A, B>> zip(URIO<R, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> URIO<R, A> zipLeft(URIO<R, B> other) {
+  public <B> URIO<R, A> zipLeft(URIO<R, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> URIO<R, B> zipRight(URIO<R, B> other) {
+  public <B> URIO<R, B> zipRight(URIO<R, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> URIO<R, C> zipWith(URIO<R, B> other, Function2<A, B, C> mapper) {
+  public <B, C> URIO<R, C> zipWith(URIO<R, ? extends B> other, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other, mapper);
   }
 
@@ -188,11 +191,11 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return new URIO<>(instance.timed());
   }
 
-  public static <R, A> URIO<R, A> accessM(Function1<R, URIO<R, A>> map) {
+  public static <R, A> URIO<R, A> accessM(Function1<? super R, ? extends URIO<R, ? extends A>> map) {
     return new URIO<>(ZIO.accessM(map.andThen(URIO::toZIO)));
   }
 
-  public static <R, A> URIO<R, A> access(Function1<R, A> map) {
+  public static <R, A> URIO<R, A> access(Function1<? super R, ? extends A> map) {
     return accessM(map.andThen(URIO::pure));
   }
 
@@ -200,11 +203,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return access(identity());
   }
 
-  public static <R, A, B, C> URIO<R, C> map2(URIO<R, A> za, URIO<R, B> zb, Function2<A, B, C> mapper) {
+  public static <R, A, B, C> URIO<R, C> map2(URIO<R, ? extends A> za, URIO<R, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return new URIO<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
-  public static <R, A, B> Function1<A, URIO<R, B>> lift(Function1<A, B> function) {
+  public static <R, A, B> Function1<A, URIO<R, B>> lift(Function1<? super A, ? extends B> function) {
     return value -> task(() -> function.apply(value));
   }
 
@@ -224,11 +228,11 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return new URIO<>(ZIO.fromEither(() -> { throw throwable; }));
   }
 
-  public static <R, A> URIO<R, A> defer(Producer<URIO<R, A>> lazy) {
+  public static <R, A> URIO<R, A> defer(Producer<URIO<R, ? extends A>> lazy) {
     return new URIO<>(ZIO.defer(() -> lazy.get().instance));
   }
 
-  public static <R, A> URIO<R, A> task(Producer<A> task) {
+  public static <R, A> URIO<R, A> task(Producer<? extends A> task) {
     return fold(ZIO.task(task));
   }
   

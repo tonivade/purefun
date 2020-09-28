@@ -32,12 +32,12 @@ public class EnvEffectsTest {
     Queue<String> input = new LinkedList<>(asList("Toni"));
     Queue<String> output = new LinkedList<>();
 
-    echo().provide(ZConsole.test(input, output));
+    echo().safeRunSync(ZConsole.test(input, output));
 
     assertEquals(asList("what's your name?", "Hello Toni"), output);
   }
 
-  private ZIO<ZConsole, Throwable, Unit> echo() {
+  private RIO<ZConsole, Unit> echo() {
     return ZConsole.println("what's your name?")
         .andThen(ZConsole.readln())
         .flatMap(name -> ZConsole.println("Hello " + name));

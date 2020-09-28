@@ -82,11 +82,11 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return instance.toFuture(executor, nothing()).map(Either::get);
   }
 
-  public void safeRunAsync(Executor executor, Consumer1<Try<A>> callback) {
+  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(executor, nothing(), result -> callback.accept(result.map(Either::get)));
   }
 
-  public void safeRunAsync(Consumer1<Try<A>> callback) {
+  public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
     safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
   }
 
@@ -105,7 +105,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     }));
   }
 
-  public <B> UIO<B> andThen(UIO<B> next) {
+  public <B> UIO<B> andThen(UIO<? extends B> next) {
     return new UIO<>(instance.andThen(next.instance));
   }
 
@@ -127,7 +127,8 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     });
   }
 
-  public <B> UIO<B> redeem(Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
+  public <B> UIO<B> redeem(
+      Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return redeemWith(mapError.andThen(UIO::pure), map.andThen(UIO::pure));
   }
 
@@ -139,19 +140,20 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
   
-  public <B> UIO<Tuple2<A, B>> zip(UIO<B> other) {
+  public <B> UIO<Tuple2<A, B>> zip(UIO<? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> UIO<A> zipLeft(UIO<B> other) {
+  public <B> UIO<A> zipLeft(UIO<? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> UIO<B> zipRight(UIO<B> other) {
+  public <B> UIO<B> zipRight(UIO<? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> UIO<C> zipWith(UIO<B> other, Function2<A, B, C> mapper) {
+  public <B, C> UIO<C> zipWith(UIO<? extends B> other, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other, mapper);
   }
 
@@ -199,11 +201,12 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return new UIO<>(instance.timed());
   }
 
-  public static <A, B, C> UIO<C> map2(UIO<A> za, UIO<B> zb, Function2<A, B, C> mapper) {
+  public static <A, B, C> UIO<C> map2(UIO<? extends A> za, UIO<? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return new UIO<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
-  public static <A, B> Function1<A, UIO<B>> lift(Function1<A, B> function) {
+  public static <A, B> Function1<A, UIO<B>> lift(Function1<? super A, ? extends B> function) {
     return value -> task(() -> function.apply(value));
   }
 
@@ -223,11 +226,11 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return new UIO<>(ZIO.fromEither(() -> { throw throwable; }));
   }
 
-  public static <A> UIO<A> defer(Producer<UIO<A>> lazy) {
+  public static <A> UIO<A> defer(Producer<UIO<? extends A>> lazy) {
     return new UIO<>(ZIO.defer(() -> lazy.get().instance));
   }
 
-  public static <A> UIO<A> task(Producer<A> task) {
+  public static <A> UIO<A> task(Producer<? extends A> task) {
     return fold(ZIO.task(task));
   }
   

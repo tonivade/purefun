@@ -32,6 +32,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
@@ -49,11 +50,13 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return Future.task(executor, () -> provide(env));
   }
 
-  default void provideAsync(R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
+  default void provideAsync(R env, 
+      Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
     provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
-  default void provideAsync(Executor executor, R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
+  default void provideAsync(Executor executor, R env, 
+      Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
     toFuture(executor, env).onComplete(callback);
   }
 
@@ -89,7 +92,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new FlatMapped<>(cons(this), left, right);
   }
 
-  default <B> ZIO<R, E, B> andThen(ZIO<R, E, B> next) {
+  default <B> ZIO<R, E, B> andThen(ZIO<R, E, ? extends B> next) {
     return flatMap(ignore -> next);
   }
 
@@ -97,35 +100,39 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Apply<>(this, apply);
   }
 
-  default <F, B> ZIO<R, F, B> foldM(Function1<? super E, ? extends ZIO<R, F, ? extends B>> mapError, Function1<? super A, ? extends ZIO<R, F, ? extends B>> map) {
+  default <F, B> ZIO<R, F, B> foldM(
+      Function1<? super E, ? extends ZIO<R, F, ? extends B>> mapError, 
+      Function1<? super A, ? extends ZIO<R, F, ? extends B>> map) {
     return new FoldM<>(this, mapError, map);
   }
 
-  default <B> ZIO<R, Nothing, B> fold(Function1<E, B> mapError, Function1<A, B> map) {
+  default <B> ZIO<R, Nothing, B> fold(
+      Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure));
   }
 
-  default ZIO<R, Nothing, A> recover(Function1<E, A> mapError) {
+  default ZIO<R, Nothing, A> recover(Function1<? super E, ? extends A> mapError) {
     return fold(mapError, identity());
   }
 
-  default ZIO<R, E, A> orElse(ZIO<R, E, A> other) {
+  default ZIO<R, E, A> orElse(ZIO<R, E, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
-  default <B> ZIO<R, E, Tuple2<A, B>> zip(ZIO<R, E, B> other) {
+  default <B> ZIO<R, E, Tuple2<A, B>> zip(ZIO<R, E, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  default <B> ZIO<R, E, A> zipLeft(ZIO<R, E, B> other) {
+  default <B> ZIO<R, E, A> zipLeft(ZIO<R, E, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  default <B> ZIO<R, E, B> zipRight(ZIO<R, E, B> other) {
+  default <B> ZIO<R, E, B> zipRight(ZIO<R, E, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  default <B, C> ZIO<R, E, C> zipWith(ZIO<R, E, B> other, Function2<A, B, C> mapper) {
+  default <B, C> ZIO<R, E, C> zipWith(ZIO<R, E, ? extends B> other, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other, mapper);
   }
 
@@ -217,27 +224,22 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
   
   default RIO<R, A> toRIO() {
-    return new RIO<>(mapError(error -> {
-      if (error instanceof Throwable) {
-        return (Throwable) error;
-      }
-      throw new ClassCastException(error.getClass() + " is not throwable");
-    }));
+    return new RIO<>(refineOrDie(Throwable.class));
   }
   
   default Managed<R, E, A> toManaged() {
     return Managed.pure(this);
   }
   
-  default Managed<R, E, A> toManaged(Consumer1<A> release) {
+  default Managed<R, E, A> toManaged(Consumer1<? super A> release) {
     return Managed.from(this, release);
   }
 
-  static <R, E, A> ZIO<R, E, A> accessM(Function1<R, ZIO<R, E, A>> map) {
+  static <R, E, A> ZIO<R, E, A> accessM(Function1<? super R, ? extends ZIO<R, E, ? extends A>> map) {
     return new AccessM<>(map);
   }
 
-  static <R, E, A> ZIO<R, E, A> access(Function1<R, A> map) {
+  static <R, E, A> ZIO<R, E, A> access(Function1<? super R, ? extends A> map) {
     return accessM(map.andThen(ZIO::pure));
   }
 
@@ -245,7 +247,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return access(identity());
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, A> za, ZIO<R, E, B> zb, Function2<? super A, ? super B, ? extends C> mapper) {
+  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return zb.ap(za.map(mapper.curried()));
   }
 
@@ -253,11 +256,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return value.flatMap(either -> either.fold(ZIO::raiseError, ZIO::pure));
   }
 
-  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<A, B> function) {
+  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<? super A, ? extends B> function) {
     return value -> task(() -> function.apply(value));
   }
 
-  static <R, E, A> ZIO<R, E, A> fromEither(Producer<Either<E, A>> task) {
+  static <R, E, A> ZIO<R, E, A> fromEither(Producer<Either<E, ? extends A>> task) {
     return new Task<>(task);
   }
 
@@ -269,11 +272,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Pure<>(value);
   }
 
-  static <R, E, A> ZIO<R, E, A> defer(Producer<ZIO<R, E, A>> lazy) {
+  static <R, E, A> ZIO<R, E, A> defer(Producer<ZIO<R, E, ? extends A>> lazy) {
     return new Suspend<>(lazy);
   }
 
-  static <R, A> ZIO<R, Throwable, A> task(Producer<A> task) {
+  static <R, A> ZIO<R, Throwable, A> task(Producer<? extends A> task) {
     return new Attempt<>(task);
   }
   
@@ -289,7 +292,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Failure<>(error);
   }
 
-  static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, A> value) {
+  static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, ? extends A> value) {
     return new Redeem<>(value);
   }
 
@@ -446,20 +449,20 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Task<R, E, A> implements SealedZIO<R, E, A> {
 
-    private final Producer<Either<E, A>> task;
+    private final Producer<Either<E, ? extends A>> task;
 
-    protected Task(Producer<Either<E, A>> task) {
+    protected Task(Producer<Either<E, ? extends A>> task) {
       this.task = checkNonNull(task);
     }
 
     @Override
     public Either<E, A> provide(R env) {
-      return task.get();
+      return EitherOf.narrowK(task.get());
     }
 
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
-      Kind<F, Either<E, A>> later = monad.later(task::get);
+      Kind<F, Either<E, ? extends A>> later = monad.later(task::get);
       return monad.flatMap(later, either -> either.fold(error -> monad.raiseError(wrap(error)), monad::<A>pure));
     }
 
@@ -471,9 +474,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Suspend<R, E, A> implements SealedZIO<R, E, A> {
 
-    private final Producer<ZIO<R, E, A>> lazy;
+    private final Producer<ZIO<R, E, ? extends A>> lazy;
 
-    protected Suspend(Producer<ZIO<R, E, A>> lazy) {
+    protected Suspend(Producer<ZIO<R, E, ? extends A>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -493,7 +496,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     protected ZIO<R, E, A> next() {
-      return lazy.get();
+      return lazy.andThen(ZIOOf::<R, E, A>narrowK).get();
     }
 
     @Override
@@ -556,15 +559,15 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Attempt<R, A> implements SealedZIO<R, Throwable, A> {
 
-    private final Producer<A> current;
+    private final Producer<? extends A> current;
 
-    protected Attempt(Producer<A> current) {
+    protected Attempt(Producer<? extends A> current) {
       this.current = checkNonNull(current);
     }
 
     @Override
     public Either<Throwable, A> provide(R env) {
-      return Try.of(current).toEither();
+      return Try.<A>of(current).toEither();
     }
 
     @Override
@@ -580,15 +583,15 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class Redeem<R, A> implements SealedZIO<R, Throwable, A> {
 
-    private final ZIO<R, Nothing, A> current;
+    private final ZIO<R, Nothing, ? extends A> current;
 
-    protected Redeem(ZIO<R, Nothing, A> current) {
+    protected Redeem(ZIO<R, Nothing, ? extends A> current) {
       this.current = checkNonNull(current);
     }
 
     @Override
     public Either<Throwable, A> provide(R env) {
-      return Try.of(() -> ZIOModule.evaluate(env, current).get()).toEither();
+      return Try.<A>of(() -> ZIOModule.evaluate(env, current).get()).toEither();
     }
 
     @Override
@@ -604,9 +607,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   final class AccessM<R, E, A> implements SealedZIO<R, E, A> {
 
-    private final Function1<R, ZIO<R, E, A>> function;
+    private final Function1<? super R, ? extends ZIO<R, E, ? extends A>> function;
 
-    protected AccessM(Function1<R, ZIO<R, E, A>> function) {
+    protected AccessM(Function1<? super R, ? extends ZIO<R, E, ? extends A>> function) {
       this.function = checkNonNull(function);
     }
 
@@ -617,7 +620,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
-      Kind<F, ZIO<R, E, A>> later = monad.later(() -> function.apply(env));
+      Kind<F, ZIO<R, E, ? extends A>> later = monad.later(() -> function.apply(env));
       return monad.flatMap(later, zio -> zio.foldMap(env, monad));
     }
 
@@ -643,9 +646,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<F, B> provide(R env) {
-      ZIO<R, F, B> fold = 
-          ZIOModule.evaluate(env, current).fold(nextError.andThen(ZIOOf::narrowK), next.andThen(ZIOOf::narrowK));
-      return ZIOModule.evaluate(env, fold);
+      return ZIOModule.evaluate(env, ZIOModule.evaluate(env, current).fold(nextError, next));
     }
 
     @Override
@@ -902,9 +903,9 @@ interface ZIOModule {
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  static <R, E, A> Either<E, A> evaluate(R env, ZIO<R, E, A> self) {
+  static <R, E, A> Either<E, A> evaluate(R env, ZIO<R, E, ? extends A> self) {
     Deque<Function1<Either, ZIO>> stack = new LinkedList<>();
-    ZIO<R, E, A> current = self;
+    ZIO<R, E, ? extends A> current = self;
     while (true) {
       if (current instanceof ZIO.FlatMapped) {
         ZIO.FlatMapped currentFlatMapped = (ZIO.FlatMapped) current;
@@ -923,7 +924,7 @@ interface ZIOModule {
         break;
       }
     }
-    return current.provide(env);
+    return EitherOf.narrowK(current.provide(env));
   }
 }
 

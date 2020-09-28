@@ -4,34 +4,32 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.ZIO;
-
 import java.time.Duration;
 import java.time.OffsetDateTime;
+
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.URIO;
 
 public interface ZClock {
 
   <R extends ZClock> ZClock.Service<R> clock();
 
-  static <R extends ZClock> ZIO<R, Nothing, Long> currentTime() {
-    return ZIO.accessM(env -> env.<R>clock().currentTime());
+  static <R extends ZClock> URIO<R, Long> currentTime() {
+    return URIO.accessM(env -> env.<R>clock().currentTime());
   }
 
-  static <R extends ZClock> ZIO<R, Nothing, OffsetDateTime> currentDateTime() {
-    return ZIO.accessM(env -> env.<R>clock().currentDateTime());
+  static <R extends ZClock> URIO<R, OffsetDateTime> currentDateTime() {
+    return URIO.accessM(env -> env.<R>clock().currentDateTime());
   }
 
-  static <R extends ZClock> ZIO<R, Nothing, Unit> sleep(Duration duration) {
-    return ZIO.accessM(env -> env.<R>clock().sleep(duration));
+  static <R extends ZClock> URIO<R, Unit> sleep(Duration duration) {
+    return URIO.accessM(env -> env.<R>clock().sleep(duration));
   }
 
   interface Service<R extends ZClock> {
-    ZIO<R, Nothing, Long> currentTime();
-    ZIO<R, Nothing, OffsetDateTime> currentDateTime();
-    ZIO<R, Nothing, Unit> sleep(Duration duration);
+    URIO<R, Long> currentTime();
+    URIO<R, OffsetDateTime> currentDateTime();
+    URIO<R, Unit> sleep(Duration duration);
   }
 
   static ZClock live() {
@@ -41,18 +39,18 @@ public interface ZClock {
         return new Service<R>() {
 
           @Override
-          public ZIO<R, Nothing, Long> currentTime() {
-            return UIO.task(System::currentTimeMillis).toZIO();
+          public URIO<R, Long> currentTime() {
+            return URIO.task(System::currentTimeMillis);
           }
 
           @Override
-          public ZIO<R, Nothing, OffsetDateTime> currentDateTime() {
-            return UIO.task(OffsetDateTime::now).toZIO();
+          public URIO<R, OffsetDateTime> currentDateTime() {
+            return URIO.task(OffsetDateTime::now);
           }
 
           @Override
-          public ZIO<R, Nothing, Unit> sleep(Duration duration) {
-            return UIO.exec(() -> Thread.sleep(duration.toMillis())).toZIO();
+          public URIO<R, Unit> sleep(Duration duration) {
+            return URIO.exec(() -> Thread.sleep(duration.toMillis()));
           }
         };
       }

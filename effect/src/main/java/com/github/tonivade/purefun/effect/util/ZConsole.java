@@ -4,30 +4,30 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.effect.ZIO;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Queue;
 
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.effect.RIO;
+
 public interface ZConsole {
 
   <R extends ZConsole> ZConsole.Service<R> console();
 
-  static <R extends ZConsole> ZIO<R, Throwable, String> readln() {
-    return ZIO.accessM(env -> env.<R>console().readln());
+  static <R extends ZConsole> RIO<R, String> readln() {
+    return RIO.accessM(env -> env.<R>console().readln());
   }
 
-  static <R extends ZConsole> ZIO<R, Throwable, Unit> println(String text) {
-    return ZIO.accessM(env -> env.<R>console().println(text));
+  static <R extends ZConsole> RIO<R, Unit> println(String text) {
+    return RIO.accessM(env -> env.<R>console().println(text));
   }
 
   interface Service<R extends ZConsole> {
-    ZIO<R, Throwable, String> readln();
+    RIO<R, String> readln();
 
-    ZIO<R, Throwable, Unit> println(String text);
+    RIO<R, Unit> println(String text);
   }
 
   static ZConsole test(final Queue<String> input, final Queue<String> output) {
@@ -38,13 +38,13 @@ public interface ZConsole {
         return new ZConsole.Service<R>() {
 
           @Override
-          public ZIO<R, Throwable, String> readln() {
-            return ZIO.task(input::poll);
+          public RIO<R, String> readln() {
+            return RIO.task(input::poll);
           }
 
           @Override
-          public ZIO<R, Throwable, Unit> println(String text) {
-            return ZIO.exec(() -> output.offer(text));
+          public RIO<R, Unit> println(String text) {
+            return RIO.exec(() -> output.offer(text));
           }
         };
       }
@@ -59,13 +59,13 @@ public interface ZConsole {
         return new ZConsole.Service<R>() {
 
           @Override
-          public ZIO<R, Throwable, String> readln() {
-            return ZIO.task(() -> reader().readLine());
+          public RIO<R, String> readln() {
+            return RIO.task(() -> reader().readLine());
           }
 
           @Override
-          public ZIO<R, Throwable, Unit> println(String text) {
-            return ZIO.exec(() -> writer().println(text));
+          public RIO<R, Unit> println(String text) {
+            return RIO.exec(() -> writer().println(text));
           }
 
           private BufferedReader reader() {

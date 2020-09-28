@@ -89,7 +89,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     }));
   }
 
-  public <B> RIO<R, B> andThen(RIO<R, B> next) {
+  public <B> RIO<R, B> andThen(RIO<R, ? extends B> next) {
     return new RIO<>(instance.andThen(next.instance));
   }
 
@@ -97,12 +97,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(instance.ap(apply.toZIO()));
   }
 
-  public URIO<R, A> recover(Function1<Throwable, A> mapError) {
+  public URIO<R, A> recover(Function1<? super Throwable, ? extends A> mapError) {
     return fold(mapError, identity());
   }
 
   @SuppressWarnings("unchecked")
-  public <X extends Throwable> URIO<R, A> recoverWith(Class<X> type, Function1<X, A> function) {
+  public <X extends Throwable> URIO<R, A> recoverWith(Class<X> type, Function1<? super X, ? extends A> function) {
     return recover(cause -> {
       if (type.isAssignableFrom(cause.getClass())) {
         return function.apply((X) cause);
@@ -111,7 +111,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     });
   }
 
-  public <B> URIO<R, B> fold(Function1<Throwable, B> mapError, Function1<A, B> map) {
+  public <B> URIO<R, B> fold(
+      Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
     return new URIO<>(instance.foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure)));
   }
 
@@ -123,23 +124,24 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
         value -> map.andThen(RIOOf::narrowK).apply(value).instance));
   }
 
-  public RIO<R, A> orElse(RIO<R, A> other) {
+  public RIO<R, A> orElse(RIO<R, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
-  public <B> RIO<R, Tuple2<A, B>> zip(RIO<R, B> other) {
+  public <B> RIO<R, Tuple2<A, B>> zip(RIO<R, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> RIO<R, A> zipLeft(RIO<R, B> other) {
+  public <B> RIO<R, A> zipLeft(RIO<R, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> RIO<R, B> zipRight(RIO<R, B> other) {
+  public <B> RIO<R, B> zipRight(RIO<R, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> RIO<R, C> zipWith(RIO<R, B> other, Function2<A, B, C> mapper) {
+  public <B, C> RIO<R, C> zipWith(RIO<R, ? extends B> other, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other, mapper);
   }
 
@@ -187,11 +189,11 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(instance.timed());
   }
 
-  public static <R, A> RIO<R, A> accessM(Function1<R, RIO<R, A>> map) {
+  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends RIO<R, ? extends A>> map) {
     return new RIO<>(ZIO.accessM(map.andThen(RIO::toZIO)));
   }
 
-  public static <R, A> RIO<R, A> access(Function1<R, A> map) {
+  public static <R, A> RIO<R, A> access(Function1<? super R, ? extends A> map) {
     return accessM(map.andThen(RIO::pure));
   }
 
@@ -203,7 +205,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(ZIO.absorb(value.instance));
   }
 
-  public static <R, A, B, C> RIO<R, C> map2(RIO<R, A> za, RIO<R, B> zb, Function2<A, B, C> mapper) {
+  public static <R, A, B, C> RIO<R, C> map2(RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
     return new RIO<>(ZIO.map2(za.instance, zb.instance, mapper));
   }
 
@@ -211,11 +214,11 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(ZIO.sleep(delay));
   }
 
-  public static <R, A, B> Function1<A, RIO<R, B>> lift(Function1<A, B> function) {
+  public static <R, A, B> Function1<A, RIO<R, B>> lift(Function1<? super A, ? extends B> function) {
     return value -> task(() -> function.apply(value));
   }
 
-  public static <R, A> RIO<R, A> fromEither(Producer<Either<Throwable, A>> task) {
+  public static <R, A> RIO<R, A> fromEither(Producer<Either<Throwable, ? extends A>> task) {
     return new RIO<>(ZIO.fromEither(task));
   }
 
@@ -231,11 +234,11 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(ZIO.raiseError(throwable));
   }
 
-  public static <R, A> RIO<R, A> defer(Producer<RIO<R, A>> lazy) {
+  public static <R, A> RIO<R, A> defer(Producer<RIO<R, ? extends A>> lazy) {
     return new RIO<>(ZIO.defer(() -> lazy.get().instance));
   }
 
-  public static <R, A> RIO<R, A> task(Producer<A> task) {
+  public static <R, A> RIO<R, A> task(Producer<? extends A> task) {
     return new RIO<>(ZIO.task(task));
   }
   
@@ -264,7 +267,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return (RIO<R, Unit>) UNIT;
   }
 
-  private Try<A> flatAbsorb(Try<? extends Either<Throwable, A>> result) {
+  private Try<A> flatAbsorb(Try<? extends Either<Throwable, ? extends A>> result) {
     return result.map(Try::fromEither).flatMap(identity());
   }
 }

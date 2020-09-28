@@ -24,12 +24,13 @@ import com.github.tonivade.purefun.type.Either;
 @HigherKind(sealed = true)
 public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
-  <C> Schedule<R, A, C> map(Function1<B, C> mapper);
+  <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper);
 
-  <C> Schedule<R, C, B> contramap(Function1<C, A> comap);
+  <C> Schedule<R, C, B> contramap(Function1<? super C, ? extends A> comap);
 
-  default <C, D> Schedule<R, C, D> dimap(Function1<C, A> comap, Function1<B, D> map) {
-    return contramap(comap).map(map);
+  default <C, D> Schedule<R, C, D> dimap(
+      Function1<? super C, ? extends A> comap, Function1<? super B, ? extends D> map) {
+    return this.<C>contramap(comap).map(map);
   }
 
   default <C> Schedule<R, A, C> as(C value) {
@@ -204,7 +205,7 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   public abstract URIO<R, S> initial();
 
   @Override
-  public <C> Schedule<R, A, C> map(Function1<B, C> mapper) {
+  public <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper) {
     return ScheduleImpl.of(
       initial(), 
       this::update, 
@@ -212,7 +213,7 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   }
 
   @Override
-  public <C> Schedule<R, C, B> contramap(Function1<C, A> comap) {
+  public <C> Schedule<R, C, B> contramap(Function1<? super C, ? extends A> comap) {
     return ScheduleImpl.of(
       initial(), 
       (c, s) -> update(comap.apply(c), s), 
