@@ -1,0 +1,43 @@
+package com.github.tonivade.purefun.typeclasses;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.FutureOf;
+import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.instances.FutureInstances;
+import com.github.tonivade.purefun.type.Either;
+
+public class ConcurrentTest {
+
+  @Test
+  public void raceA() {
+    Concurrent<Future_> concurrent = FutureInstances.concurrent();
+    
+    Kind<Future_, Either<Integer, String>> race = concurrent.race(
+        Future.delay(Duration.ofMillis(10), () -> 10),
+        Future.delay(Duration.ofMillis(100), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.fix(FutureOf.toFuture()).await().getOrElseThrow();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    Concurrent<Future_> concurrent = FutureInstances.concurrent();
+    
+    Kind<Future_, Either<Integer, String>> race = concurrent.race(
+        Future.delay(Duration.ofMillis(100), () -> 10),
+        Future.delay(Duration.ofMillis(10), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.fix(FutureOf.toFuture()).await().getOrElseThrow();
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+}
