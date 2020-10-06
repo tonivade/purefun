@@ -344,12 +344,12 @@ final class FutureImpl<T> implements SealedFuture<T> {
 
   @Override
   public Try<T> await() {
-    return promise.get();
+    return promise.await();
   }
 
   @Override
   public Try<T> await(Duration timeout) {
-    return promise.get(timeout);
+    return promise.await(timeout);
   }
 
   @Override
@@ -372,7 +372,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
     checkNonNull(apply);
     return new FutureImpl<>(executor, 
         (p, c) -> promise.onComplete(try1 -> apply.onComplete(
-            try2 -> p.tryComplete(Try.map2(try1, try2, (t, f) -> f.apply(t))))), this::cancel);
+            try2 -> p.tryComplete(Try.map2(try2, try1, Function1::apply)))), this::cancel);
   }
 
   @Override

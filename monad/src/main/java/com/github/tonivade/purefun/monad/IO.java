@@ -31,6 +31,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 
 @HigherKind(sealed = true)
 public interface IO<T> extends IOOf<T>, Recoverable {
@@ -58,6 +59,14 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   <F extends Witness> Kind<F, T> foldMap(Async<F> monad);
+  
+  default IO<FiberIO<T>> fork() {
+    return fork(Future.DEFAULT_EXECUTOR);
+  }
+  
+  default IO<FiberIO<T>> fork(Executor executor) {
+    return IO.pure(new FiberIO<>(executor, this));
+  }
 
   default <R> IO<R> map(Function1<? super T, ? extends R> map) {
     return flatMap(map.andThen(IO::pure));
@@ -382,9 +391,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public T unsafeRunSync() {
-      Promise<T> make = Promise.make();
-      callback.apply(make::tryComplete).unsafeRunSync();
-      return make.get().get();
+      Promise<T> promise = Promise.make();
+      IOModule.evaluate(callback.apply(promise::tryComplete));
+      return promise.await().getOrElseThrow();
     }
 
     @Override
@@ -538,6 +547,33 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     @Override
     public String toString() {
       return "Attempt(" + current + ")";
+    }
+  }
+  
+  static class FiberIO<T> implements Fiber<IO_, T> {
+    
+    private final Executor executor;
+    private final IO<T> value;
+    
+    private FiberIO(Executor executor, IO<T> value) {
+      this.executor = checkNonNull(executor);
+      this.value = checkNonNull(value);
+    }
+
+    @Override
+    public IO<T> join() {
+      return IO.async(consumer -> value.safeRunAsync(executor, consumer));
+    }
+    
+    @Override
+    public IO<Unit> cancel() {
+      // TODO: don't know how to do it
+      return IO.unit();
+    }
+    
+    @Override
+    public String toString() {
+      return "Fiber(?)";
     }
   }
 }

@@ -11,12 +11,13 @@ import com.github.tonivade.purefun.type.Either;
 
 public interface Concurrent<F extends Witness> extends Async<F> {
   
-  <A> Kind<F, Fiber<F, A>> fork(Kind<F, A> value);
+  <A> Kind<F, ? extends Fiber<F, A>> fork(Kind<F, A> value);
   
   <A, B> Kind<F, Either<Tuple2<A, Fiber<F, B>>, Tuple2<Fiber<F, A>, B>>> racePair(Kind<F, A> fa, Kind<F, B> fb);
   
   default <A> Resource<F, Kind<F, A>> background(Kind<F, A> acquire) {
-    return Resource.from(this, fork(acquire), Fiber::cancel).map(Fiber::join);
+    Resource<F, ? extends Fiber<F, A>> from = Resource.from(this, fork(acquire), Fiber::cancel);
+    return from.map(Fiber::join);
   }
 
   default <A, B> Kind<F, Either<A, B>> race(Kind<F, A> fa, Kind<F, B> fb) {

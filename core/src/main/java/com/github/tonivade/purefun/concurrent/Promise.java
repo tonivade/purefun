@@ -53,8 +53,8 @@ public interface Promise<T> extends PromiseOf<T> {
   
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
 
-  Try<T> get();
-  Try<T> get(Duration timeout);
+  Try<T> await();
+  Try<T> await(Duration timeout);
 
   boolean isCompleted();
 
@@ -107,7 +107,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   }
 
   @Override
-  public Try<T> get() {
+  public Try<T> await() {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {
@@ -124,7 +124,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   }
 
   @Override
-  public Try<T> get(Duration timeout) {
+  public Try<T> await(Duration timeout) {
     if (isEmpty()) {
       synchronized (state) {
         if (isEmpty()) {

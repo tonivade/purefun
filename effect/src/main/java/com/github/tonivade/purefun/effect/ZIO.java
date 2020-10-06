@@ -541,9 +541,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
     @Override
     public Either<Throwable, A> provide(R env) {
-      Promise<A> make = Promise.make();
-      consumer.apply(make::tryComplete).unsafeRunSync();
-      return make.get().toEither();
+      Promise<A> promise = Promise.make();
+      ZIOModule.evaluate(env, consumer.apply(promise::tryComplete).toZIO());
+      return promise.await().toEither();
     }
 
     @Override
