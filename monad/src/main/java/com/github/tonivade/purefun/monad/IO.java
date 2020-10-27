@@ -382,9 +382,9 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public T unsafeRunSync() {
-      Promise<T> make = Promise.make();
-      callback.apply(make::tryComplete).unsafeRunSync();
-      return make.get().get();
+      Promise<T> promise = Promise.make();
+      IOModule.evaluate(callback.apply(promise::tryComplete));
+      return promise.await().getOrElseThrow();
     }
 
     @Override

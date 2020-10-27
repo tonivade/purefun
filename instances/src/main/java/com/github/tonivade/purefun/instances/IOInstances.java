@@ -5,7 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -14,7 +16,9 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -143,6 +147,16 @@ interface IOMonadDefer extends MonadDefer<IO_>, IODefer, IOBracket {
   @Override
   default IO<Unit> sleep(Duration duration) {
     return IO.sleep(duration);
+  }
+}
+
+interface IOAsync extends Async<IO_>, IOMonadDefer {
+
+  IOAsync INSTANCE = new IOAsync() {};
+  
+  @Override
+  default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO_, Unit>> consumer) {
+    return IO.asyncF(consumer.andThen(IOOf::narrowK));
   }
 }
 

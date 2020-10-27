@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -265,7 +266,8 @@ public interface Future<T> extends FutureOf<T> {
         (Future<Sequence<A>> xs, Future<A> a) -> map2(xs, a, Sequence::append));
   }
   
-  static <T, V, R> Future<R> map2(Future<T> fa, Future<V> fb, Function2<? super T, ? super V, ? extends R> mapper) {
+  static <T, V, R> Future<R> map2(Future<? extends T> fa, Future<? extends V> fb, 
+      Function2<? super T, ? super V, ? extends R> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
   
@@ -296,12 +298,15 @@ final class FutureImpl<T> implements SealedFuture<T> {
   private final Propagate propagate;
   private final Promise<T> promise;
   private final Cancellable cancellable;
+  
+  private final UUID uuid;
 
   private FutureImpl(Executor executor, Callback<T> callback) {
     this(executor, callback, Propagate.noop());
   }
 
   private FutureImpl(Executor executor, Callback<T> callback, Propagate propagate) {
+    this.uuid = UUID.randomUUID();
     this.executor = checkNonNull(executor);
     this.propagate = checkNonNull(propagate);
     this.promise = Promise.make(executor);
@@ -339,12 +344,12 @@ final class FutureImpl<T> implements SealedFuture<T> {
 
   @Override
   public Try<T> await() {
-    return promise.get();
+    return promise.await();
   }
 
   @Override
   public Try<T> await(Duration timeout) {
-    return promise.get(timeout);
+    return promise.await(timeout);
   }
 
   @Override
@@ -367,7 +372,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
     checkNonNull(apply);
     return new FutureImpl<>(executor, 
         (p, c) -> promise.onComplete(try1 -> apply.onComplete(
-            try2 -> p.tryComplete(Try.map2(try1, try2, (t, f) -> f.apply(t))))), this::cancel);
+            try2 -> p.tryComplete(Try.map2(try2, try1, Function1::apply)))), this::cancel);
   }
 
   @Override
@@ -389,7 +394,8 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   @Override
-  public <U> Future<U> fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
+  public <U> Future<U> fold(
+      Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
     return transform(value -> Try.success(value.fold(failureMapper, successMapper)));
   }
 
@@ -405,6 +411,11 @@ final class FutureImpl<T> implements SealedFuture<T> {
   @Override
   public Promise<T> toPromise() {
     return promise;
+  }
+  
+  @Override
+  public String toString() {
+    return "Future(" + uuid + ')';
   }
 
   private <R> Future<R> transform(Function1<? super Try<? extends T>, ? extends Try<? extends R>> mapper) {

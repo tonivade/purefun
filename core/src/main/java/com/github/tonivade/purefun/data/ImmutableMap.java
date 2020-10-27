@@ -5,15 +5,14 @@
 package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableMap;
-import static java.util.Collections.emptyMap;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Consumer2;
@@ -94,7 +93,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   }
 
   @SafeVarargs
-  static <K, V> ImmutableMap<K, V> of(Tuple2<? extends K, ? extends V> ... entries) {
+  static <K, V> ImmutableMap<K, V> of(Tuple2<K, V> ... entries) {
     return from(ImmutableSet.of(entries));
   }
 
@@ -102,26 +101,27 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return Tuple2.of(key, value);
   }
 
-  static <K, V> ImmutableMap<K, V> from(Map<? extends K, ? extends V> map) {
+  static <K, V> ImmutableMap<K, V> from(Map<K, V> map) {
     return from(map.entrySet());
   }
 
+  @SuppressWarnings("unchecked")
   static <K, V> ImmutableMap<K,V> empty() {
-    return new JavaBasedImmutableMap<>(emptyMap());
+    return (ImmutableMap<K, V>) JavaBasedImmutableMap.EMPTY;
   }
 
-  static <K, V> ImmutableMap<K, V> from(Stream<? extends Tuple2<? extends K, ? extends V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(Stream<? extends Tuple2<K, V>> entries) {
     return from(ImmutableSet.from(entries));
   }
 
-  static <K, V> ImmutableMap<K, V> from(ImmutableSet<? extends Tuple2<? extends K, ? extends V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(ImmutableSet<? extends Tuple2<K, V>> entries) {
     return new JavaBasedImmutableMap<>(entries.stream()
-        .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2)));
+        .collect(ImmutableTreeModule.toLinkedHashMap(Tuple2::get1, Tuple2::get2)));
   }
 
-  static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<? extends K, ? extends V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<K, V>> entries) {
     return new JavaBasedImmutableMap<>(entries.stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        .collect(ImmutableTreeModule.toLinkedHashMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
   static <K, V> Builder<K, V> builder() {
@@ -148,18 +148,20 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     private static final long serialVersionUID = -1236334562860351635L;
 
+    private static final ImmutableMap<?, ?> EMPTY = new JavaBasedImmutableMap<>(new LinkedHashMap<>());
+
     private static final Equal<JavaBasedImmutableMap<?, ?>> EQUAL = 
         Equal.<JavaBasedImmutableMap<?, ?>>of().comparing(a -> a.backend);
 
     private final Map<K, V> backend;
 
-    private JavaBasedImmutableMap(Map<K, V> backend) {
+    private JavaBasedImmutableMap(LinkedHashMap<K, V> backend) {
       this.backend = unmodifiableMap(backend);
     }
 
     @Override
     public Map<K, V> toMap() {
-      return new HashMap<>(backend);
+      return copy();
     }
 
     @Override
@@ -169,21 +171,21 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public ImmutableMap<K, V> put(K key, V value) {
-      Map<K, V> newMap = toMap();
+      LinkedHashMap<K, V> newMap = copy();
       newMap.put(key, value);
       return new JavaBasedImmutableMap<>(newMap);
     }
     
     @Override
     public ImmutableMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
-      Map<K, V> newMap = toMap();
+      LinkedHashMap<K, V> newMap = copy();
       newMap.putAll(other.toMap());
       return new JavaBasedImmutableMap<>(newMap);
     }
 
     @Override
     public ImmutableMap<K, V> remove(K key) {
-      Map<K, V> newMap = toMap();
+      LinkedHashMap<K, V> newMap = copy();
       newMap.remove(key);
       return new JavaBasedImmutableMap<>(newMap);
     }
@@ -195,7 +197,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
-      Map<K, V> newMap = toMap();
+      LinkedHashMap<K, V> newMap = copy();
       newMap.merge(key, value, merger::apply);
       return new JavaBasedImmutableMap<>(newMap);
     }
@@ -228,6 +230,10 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     @Override
     public String toString() {
       return "ImmutableMap(" + backend + ")";
+    }
+
+    private LinkedHashMap<K, V> copy() {
+      return new LinkedHashMap<>(backend);
     }
   }
 }

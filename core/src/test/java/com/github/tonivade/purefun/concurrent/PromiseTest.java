@@ -46,7 +46,7 @@ public class PromiseTest {
     Promise<String> promise = Promise.<String>make().succeeded(value);
 
     assertTrue(promise.isCompleted());
-    assertEquals(Try.success(value), promise.get());
+    assertEquals(Try.success(value), promise.await());
   }
 
   @Test
@@ -55,7 +55,7 @@ public class PromiseTest {
     Promise<String> promise = Promise.<String>make().failed(error);
 
     assertTrue(promise.isCompleted());
-    assertEquals(Try.failure(error), promise.get());
+    assertEquals(Try.failure(error), promise.await());
   }
 
   @Test
@@ -91,7 +91,7 @@ public class PromiseTest {
   public void getTimeout() {
     Promise<String> promise = Promise.make();
 
-    Try<String> result = promise.get(Duration.ofMillis(500));
+    Try<String> result = promise.await(Duration.ofMillis(500));
 
     assertTrue(result.isFailure());
     assertTrue(result.getCause() instanceof TimeoutException);
@@ -104,7 +104,7 @@ public class PromiseTest {
 
     executor.schedule(() -> promise.tryComplete(value), 500, TimeUnit.MILLISECONDS);
 
-    assertEquals(value, promise.get());
+    assertEquals(value, promise.await());
   }
 
   @Test
@@ -115,7 +115,7 @@ public class PromiseTest {
 
     executor.schedule(() -> promise.tryComplete(value), 500, TimeUnit.MILLISECONDS);
 
-    assertEquals(value.map(String::toUpperCase), map.get());
+    assertEquals(value.map(String::toUpperCase), map.await());
   }
 
   @Test
@@ -123,11 +123,11 @@ public class PromiseTest {
     Promise<String> promise = Promise.make();
     Promise<String> other = Promise.make();
 
-    Future<Unit> job = executor.submit(() -> { other.complete(promise.get()); return unit(); });
+    Future<Unit> job = executor.submit(() -> { other.complete(promise.await()); return unit(); });
     Thread.sleep(100);
     job.cancel(true);
 
-    Try<String> result = other.get();
+    Try<String> result = other.await();
     assertTrue(result.isFailure());
     assertTrue(result.getCause() instanceof InterruptedException);
   }
@@ -138,13 +138,13 @@ public class PromiseTest {
     Promise<String> other = Promise.make();
 
     Future<Unit> job = executor.submit(() -> {
-      other.complete(promise.get(Duration.ofMillis(500)));
+      other.complete(promise.await(Duration.ofMillis(500)));
       return unit();
     });
     Thread.sleep(100);
     job.cancel(true);
 
-    Try<String> result = other.get();
+    Try<String> result = other.await();
     assertTrue(result.isFailure());
     assertTrue(result.getCause() instanceof InterruptedException);
   }
@@ -153,7 +153,7 @@ public class PromiseTest {
   public void toFuture() {
     Promise<String> promise = Promise.<String>make().succeeded("hola mundo!");
 
-    Try<String> result = promise.get();
+    Try<String> result = promise.await();
 
     assertEquals(Try.success("hola mundo!"), result);
   }

@@ -5,14 +5,17 @@
 package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableNavigableMap;
-import static java.util.Collections.emptyNavigableMap;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -127,12 +130,13 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     return Tuple2.of(key, value);
   }
 
-  static <K, V> ImmutableTreeMap<K, V> from(NavigableMap<K, V> map) {
-    return new JavaBasedImmutableTreeMap<>(map);
+  static <K, V> ImmutableTreeMap<K, V> from(Map<K, V> map) {
+    return new JavaBasedImmutableTreeMap<>(new TreeMap<>(map));
   }
 
+  @SuppressWarnings("unchecked")
   static <K, V> ImmutableTreeMap<K, V> empty() {
-    return new JavaBasedImmutableTreeMap<>(emptyNavigableMap());
+    return (ImmutableTreeMap<K, V>) JavaBasedImmutableTreeMap.EMPTY;
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Stream<Tuple2<K, V>> entries) {
@@ -141,7 +145,12 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   static <K, V> ImmutableTreeMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
     return new JavaBasedImmutableTreeMap<>(entries.stream()
-        .collect(Collectors.toMap(Tuple2::get1, Tuple2::get2, ImmutableTreeModule.throwingMerge(), TreeMap::new)));
+        .collect(ImmutableTreeModule.toTreeMap(Tuple2::get1, Tuple2::get2)));
+  }
+
+  static <K, V> ImmutableTreeMap<K, V> from(Set<Map.Entry<K, V>> entries) {
+    return new JavaBasedImmutableTreeMap<>(entries.stream()
+        .collect(ImmutableTreeModule.toTreeMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
   static <K extends Comparable<?>, V> Builder<K, V> builder() {
@@ -168,12 +177,14 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     private static final long serialVersionUID = 8618845296089216532L;
 
+    private static final ImmutableTreeMap<?, ?> EMPTY = new JavaBasedImmutableTreeMap<>(new TreeMap<>());
+
     private static final Equal<JavaBasedImmutableTreeMap<?, ?>> EQUAL = 
         Equal.<JavaBasedImmutableTreeMap<?, ?>>of().comparing(a -> a.backend);
 
     private final NavigableMap<K, V> backend;
 
-    private JavaBasedImmutableTreeMap(NavigableMap<K, V> backend) {
+    private JavaBasedImmutableTreeMap(TreeMap<K, V> backend) {
       this.backend = unmodifiableNavigableMap(backend);
     }
 
@@ -184,26 +195,26 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public NavigableMap<K, V> toNavigableMap() {
-      return new TreeMap<>(backend);
+      return copy();
     }
 
     @Override
     public ImmutableTreeMap<K, V> put(K key, V value) {
-      NavigableMap<K, V> newMap = toNavigableMap();
+      TreeMap<K, V> newMap = copy();
       newMap.put(key, value);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
     
     @Override
     public ImmutableTreeMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
-      NavigableMap<K, V> newMap = toNavigableMap();
+      TreeMap<K, V> newMap = copy();
       newMap.putAll(other.toMap());
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
 
     @Override
     public ImmutableTreeMap<K, V> remove(K key) {
-      NavigableMap<K, V> newMap = toNavigableMap();
+      TreeMap<K, V> newMap = copy();
       newMap.remove(key);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
@@ -215,19 +226,19 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public ImmutableTreeMap<K, V> merge(K key, V value, Operator2<V> merger) {
-      NavigableMap<K, V> newMap = toNavigableMap();
+      TreeMap<K, V> newMap = copy();
       newMap.merge(key, value, merger::apply);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
 
     @Override
     public ImmutableTreeMap<K, V> headMap(K toKey) {
-      return new JavaBasedImmutableTreeMap<>(backend.headMap(toKey, false));
+      return new JavaBasedImmutableTreeMap<>(new TreeMap<>(backend.headMap(toKey, false)));
     }
 
     @Override
     public ImmutableTreeMap<K, V> tailMap(K fromKey) {
-      return new JavaBasedImmutableTreeMap<>(backend.tailMap(fromKey, false));
+      return new JavaBasedImmutableTreeMap<>(new TreeMap<>(backend.tailMap(fromKey, false)));
     }
 
     @Override
@@ -294,10 +305,26 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     public String toString() {
       return "ImmutableTreeMap(" + backend + ")";
     }
+
+    private TreeMap<K, V> copy() {
+      return new TreeMap<>(backend);
+    }
   }
 }
 
 interface ImmutableTreeModule {
+
+  static <T, K, V> Collector<T, ?, TreeMap<K, V>> toTreeMap(
+      Function<? super T, ? extends K> keyMapper,
+      Function<? super T, ? extends V> valueMapper) {
+    return Collectors.toMap(keyMapper, valueMapper, throwingMerge(), TreeMap::new);
+  }
+
+  static <T, K, V> Collector<T, ?, LinkedHashMap<K, V>> toLinkedHashMap(
+      Function<? super T, ? extends K> keyMapper,
+      Function<? super T, ? extends V> valueMapper) {
+    return Collectors.toMap(keyMapper, valueMapper, throwingMerge(), LinkedHashMap::new);
+  }
 
   static <V> BinaryOperator<V> throwingMerge() {
     return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
