@@ -130,7 +130,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     return Tuple2.of(key, value);
   }
 
-  static <K, V> ImmutableTreeMap<K, V> from(NavigableMap<K, V> map) {
+  static <K, V> ImmutableTreeMap<K, V> from(Map<K, V> map) {
     return new JavaBasedImmutableTreeMap<>(new TreeMap<>(map));
   }
 
