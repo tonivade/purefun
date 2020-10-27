@@ -4,13 +4,12 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.emptyNavigableSet;
+import static java.util.Collections.unmodifiableNavigableSet;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Objects;
@@ -82,8 +81,9 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return new JavaBasedImmutableTree<>(new TreeSet<>(Arrays.asList(elements)));
   }
 
+  @SuppressWarnings("unchecked")
   static <T> ImmutableTree<T> empty() {
-    return new JavaBasedImmutableTree<>(emptyNavigableSet());
+    return (ImmutableTree<T>) JavaBasedImmutableTree.EMPTY;
   }
 
   static <E> Collector<E, ?, ImmutableTree<E>> toImmutableTree() {
@@ -93,14 +93,16 @@ public interface ImmutableTree<E> extends Sequence<E> {
   final class JavaBasedImmutableTree<E> implements ImmutableTree<E>, Serializable {
 
     private static final long serialVersionUID = -328223831102407507L;
+    
+    private static final ImmutableTree<?> EMPTY = new JavaBasedImmutableTree<>(new TreeSet<>());
 
     private static final Equal<JavaBasedImmutableTree<?>> EQUAL = 
         Equal.<JavaBasedImmutableTree<?>>of().comparing(a -> a.backend);
 
     private final NavigableSet<E> backend;
 
-    private JavaBasedImmutableTree(Collection<E> backend) {
-      this.backend = new TreeSet<>(backend);
+    private JavaBasedImmutableTree(TreeSet<E> backend) {
+      this.backend = unmodifiableNavigableSet(backend);
     }
 
     @Override
@@ -120,28 +122,28 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public ImmutableTree<E> append(E element) {
-      NavigableSet<E> newSet = toNavigableSet();
+      TreeSet<E> newSet = copy();
       newSet.add(element);
       return new JavaBasedImmutableTree<>(newSet);
     }
 
     @Override
     public ImmutableTree<E> remove(E element) {
-      NavigableSet<E> newSet = toNavigableSet();
+      TreeSet<E> newSet = copy();
       newSet.remove(element);
       return new JavaBasedImmutableTree<>(newSet);
     }
 
     @Override
     public ImmutableTree<E> appendAll(Sequence<? extends E> other) {
-      NavigableSet<E> newSet = toNavigableSet();
+      TreeSet<E> newSet = copy();
       newSet.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableTree<>(newSet);
     }
 
     @Override
     public ImmutableTree<E> removeAll(Sequence<? extends E> other) {
-      NavigableSet<E> newSet = toNavigableSet();
+      TreeSet<E> newSet = copy();
       newSet.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableTree<>(newSet);
     }
@@ -158,12 +160,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public ImmutableTree<E> headTree(E toElement) {
-      return new JavaBasedImmutableTree<>(backend.headSet(toElement, false));
+      return new JavaBasedImmutableTree<>(new TreeSet<>(backend.headSet(toElement, false)));
     }
 
     @Override
     public ImmutableTree<E> tailTree(E fromElement) {
-      return new JavaBasedImmutableTree<>(backend.tailSet(fromElement, false));
+      return new JavaBasedImmutableTree<>(new TreeSet<>(backend.tailSet(fromElement, false)));
     }
 
     @Override
@@ -209,6 +211,10 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public String toString() {
       return "ImmutableTree(" + backend + ")";
+    }
+
+    private TreeSet<E> copy() {
+      return new TreeSet<>(backend);
     }
   }
 }

@@ -4,12 +4,12 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -79,33 +78,36 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   static <T> ImmutableList<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableList<>(stream.collect(Collectors.toList()));
+    return new JavaBasedImmutableList<>(stream.collect(toCollection(LinkedList::new)));
   }
 
   @SafeVarargs
   static <T> ImmutableList<T> of(T... elements) {
-    return new JavaBasedImmutableList<>(Arrays.asList(elements));
+    return from(Arrays.stream(elements));
   }
 
+  @SuppressWarnings("unchecked")
   static <T> ImmutableList<T> empty() {
-    return new JavaBasedImmutableList<>(emptyList());
+    return (ImmutableList<T>) JavaBasedImmutableList.EMPTY;
   }
 
   static <E> Collector<E, ?, ImmutableList<E>> toImmutableList() {
-    return collectingAndThen(Collectors.toList(), JavaBasedImmutableList::new);
+    return collectingAndThen(toCollection(LinkedList::new), JavaBasedImmutableList::new);
   }
 
   final class JavaBasedImmutableList<E> implements ImmutableList<E>, Serializable {
 
     private static final long serialVersionUID = -7468103369804662814L;
 
+    private static final ImmutableList<?> EMPTY = new JavaBasedImmutableList<>(new LinkedList<>());
+
     private static final Equal<JavaBasedImmutableList<?>> EQUAL = 
         Equal.<JavaBasedImmutableList<?>>of().comparing(a -> a.backend);
 
     private final List<E> backend;
 
-    private JavaBasedImmutableList(Collection<E> backend) {
-      this.backend = new LinkedList<>(backend);
+    private JavaBasedImmutableList(LinkedList<E> backend) {
+      this.backend = unmodifiableList(backend);
     }
 
     @Override
@@ -120,42 +122,42 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public ImmutableList<E> reverse() {
-      List<E> newList = toList();
+      LinkedList<E> newList = copy();
       Collections.reverse(newList);
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> sort(Comparator<? super E> comparator) {
-      List<E> newList = toList();
+      LinkedList<E> newList = copy();
       newList.sort(comparator);
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> append(E element) {
-      List<E> newList = toList();
+      LinkedList<E> newList = copy();
       newList.add(element);
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> remove(E element) {
-      List<E> newList = toList();
+      LinkedList<E> newList = copy();
       newList.remove(element);
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> appendAll(Sequence<? extends E> other) {
-      List<E> newList = toList();
+      LinkedList<E> newList = copy();
       newList.addAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> removeAll(Sequence<? extends E> other) {
-      List<E> newList = toList();
+      LinkedList<E> newList = copy();
       newList.removeAll(new SequenceCollection<>(other));
       return new JavaBasedImmutableList<>(newList);
     }
@@ -167,7 +169,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public List<E> toList() {
-      return new LinkedList<>(backend);
+      return copy();
     }
 
     @Override
@@ -183,6 +185,10 @@ public interface ImmutableList<E> extends Sequence<E> {
     @Override
     public String toString() {
       return "ImmutableList(" + backend + ")";
+    }
+
+    private LinkedList<E> copy() {
+      return new LinkedList<>(backend);
     }
   }
 }
