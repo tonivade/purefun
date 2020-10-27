@@ -4,12 +4,12 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableSet;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -92,8 +92,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     private final Set<E> backend;
 
-    private JavaBasedImmutableSet(Set<E> backend) {
-      this.backend = unmodifiableSet(backend);
+    private JavaBasedImmutableSet(Collection<E> backend) {
+      this.backend = new LinkedHashSet<>(backend);
     }
 
     @Override

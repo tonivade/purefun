@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableNavigableSet;
 import static java.util.Collections.emptyNavigableSet;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Objects;
@@ -99,8 +99,8 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     private final NavigableSet<E> backend;
 
-    private JavaBasedImmutableTree(NavigableSet<E> backend) {
-      this.backend = unmodifiableNavigableSet(backend);
+    private JavaBasedImmutableTree(Collection<E> backend) {
+      this.backend = new TreeSet<>(backend);
     }
 
     @Override

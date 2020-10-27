@@ -4,12 +4,12 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.emptyMap;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -154,12 +154,12 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     private final Map<K, V> backend;
 
     private JavaBasedImmutableMap(Map<K, V> backend) {
-      this.backend = unmodifiableMap(backend);
+      this.backend = new LinkedHashMap<>(backend);
     }
 
     @Override
     public Map<K, V> toMap() {
-      return new HashMap<>(backend);
+      return new LinkedHashMap<>(backend);
     }
 
     @Override

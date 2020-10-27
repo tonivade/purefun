@@ -24,7 +24,8 @@ public final class Range implements Iterable<Integer>, Serializable {
 
   private static final long serialVersionUID = 7923835507243835436L;
 
-  private static final Equal<Range> EQUAL = Equal.<Range>of().comparing(x -> x.begin).comparing(x -> x.end);
+  private static final Equal<Range> EQUAL = 
+      Equal.<Range>of().comparing(x -> x.begin).comparing(x -> x.end);
 
   private final int begin;
   private final int end;

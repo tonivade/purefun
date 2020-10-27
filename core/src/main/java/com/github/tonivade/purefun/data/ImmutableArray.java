@@ -5,12 +5,12 @@
 package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -101,8 +101,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     private final List<E> backend;
 
-    private JavaBasedImmutableArray(List<E> backend) {
-      this.backend = unmodifiableList(backend);
+    private JavaBasedImmutableArray(Collection<E> backend) {
+      this.backend = new ArrayList<>(backend);
     }
 
     @Override
