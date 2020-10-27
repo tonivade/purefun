@@ -5,25 +5,23 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
-import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
-import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -159,21 +157,6 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
   @Override
   default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO_, Unit>> consumer) {
     return IO.asyncF(consumer.andThen(IOOf::narrowK));
-  }
-}
-
-interface IOConcurrent extends Concurrent<IO_>, IOAsync {
-  
-  @Override
-  default <A> IO<? extends Fiber<IO_, A>> fork(Kind<IO_, A> value) {
-    return value.fix(toIO()).fork();
-  }
-  
-  @Override
-  default <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(
-      Kind<IO_, A> fa, Kind<IO_, B> fb) {
-    // TODO Auto-generated method stub
-    return null;
   }
 }
 
