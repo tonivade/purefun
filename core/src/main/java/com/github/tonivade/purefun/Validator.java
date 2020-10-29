@@ -352,36 +352,36 @@ public interface Validator<E, T> {
     return lowerThan(0, message);
   }
 
-  static Validator<String, Integer> greaterThan(int min) {
+  static <T extends Comparable<T>> Validator<String, T> greaterThan(T min) {
     return greaterThan(min, () -> "require greater than: " + min);
   }
 
-  static Validator<String, Integer> greaterThan(int min, Producer<String> message) {
-    return from(value -> value > min, message);
+  static <T extends Comparable<T>> Validator<String, T> greaterThan(T min, Producer<String> message) {
+    return from(value -> min.compareTo(value) < 0, message);
   }
 
-  static Validator<String, Integer> greaterThanOrEqual(int min) {
+  static <T extends Comparable<T>> Validator<String, T> greaterThanOrEqual(T min) {
     return greaterThanOrEqual(min, () -> "require greater than or equal to: " + min);
   }
 
-  static Validator<String, Integer> greaterThanOrEqual(int min, Producer<String> message) {
-    return from(value -> value >= min, message);
+  static <T extends Comparable<T>> Validator<String, T> greaterThanOrEqual(T min, Producer<String> message) {
+    return from(value -> min.compareTo(value) <= 0, message);
   }
 
-  static Validator<String, Integer> lowerThan(int max) {
+  static <T extends Comparable<T>> Validator<String, T> lowerThan(T max) {
     return lowerThan(max, () -> "require lower than: " + max);
   }
 
-  static Validator<String, Integer> lowerThan(int max, Producer<String> message) {
-    return from(value -> value < max, message);
+  static <T extends Comparable<T>> Validator<String, T> lowerThan(T max, Producer<String> message) {
+    return from(value -> value.compareTo(max) < 0, message);
   }
 
-  static Validator<String, Integer> lowerThanOrEqual(int max) {
+  static <T extends Comparable<T>> Validator<String, T> lowerThanOrEqual(T max) {
     return lowerThanOrEqual(max, () -> "require lower than: " + max);
   }
 
-  static Validator<String, Integer> lowerThanOrEqual(int max, Producer<String> message) {
-    return from(value -> value <= max, message);
+  static <T extends Comparable<T>> Validator<String, T> lowerThanOrEqual(T max, Producer<String> message) {
+    return from(value -> value.compareTo(max) <= 0, message);
   }
 
   static Validator<String, String> length(int min, int max) {
