@@ -110,6 +110,10 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return (ImmutableMap<K, V>) JavaBasedImmutableMap.EMPTY;
   }
 
+  static <K, V> ImmutableMap<K, V> from(Iterable<? extends Tuple2<K, V>> entries) {
+    return from(ImmutableSet.from(entries));
+  }
+
   static <K, V> ImmutableMap<K, V> from(Stream<? extends Tuple2<K, V>> entries) {
     return from(ImmutableSet.from(entries));
   }
