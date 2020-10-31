@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Validator.greaterThan;
 import static com.github.tonivade.purefun.Validator.greaterThanOrEqual;
 import static com.github.tonivade.purefun.Validator.lowerThan;
@@ -13,10 +14,12 @@ import static com.github.tonivade.purefun.Validator.nonEmpty;
 import static com.github.tonivade.purefun.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.Validator.positive;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -250,7 +253,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     private final T value;
 
     private Valid(T value) {
-      this.value = Objects.requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
