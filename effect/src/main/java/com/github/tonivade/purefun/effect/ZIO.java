@@ -257,7 +257,35 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
   }
 
   static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<? super A, ? extends B> function) {
-    return value -> task(() -> function.apply(value));
+    return value -> pure(function.apply(value));
+  }
+
+  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  static <R, E, A, B> Function1<A, ZIO<R, E, B>> liftEither(Function1<? super A, Either<E, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
+  static <R, A> ZIO<R, Throwable, A> fromOption(Option<? extends A> task) {
+    return fromOption(cons(task));
+  }
+
+  static <R, A> ZIO<R, Throwable, A> fromOption(Producer<Option<? extends A>> task) {
+    return fromEither(task.andThen(Option::toEither));
+  }
+
+  static <R, A> ZIO<R, Throwable, A> fromTry(Try<? extends A> task) {
+    return fromTry(cons(task));
+  }
+
+  static <R, A> ZIO<R, Throwable, A> fromTry(Producer<Try<? extends A>> task) {
+    return fromEither(task.andThen(Try::toEither));
   }
 
   static <R, E, A> ZIO<R, E, A> fromEither(Either<E, ? extends A> task) {

@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -208,6 +209,34 @@ public final class EIO<E, A> implements EIOOf<E, A> {
 
   public static <A, B> Function1<A, EIO<Throwable, B>> lift(Function1<? super A, ? extends B> function) {
     return ZIO.<Nothing, A, B>lift(function).andThen(EIO::new);
+  }
+
+  public static <A, B> Function1<A, EIO<Throwable, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, EIO<Throwable, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  public static <E, A, B> Function1<A, EIO<E, B>> liftEither(Function1<? super A, Either<E, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
+  public static <A> EIO<Throwable, A> fromOption(Option<? extends A> task) {
+    return fromOption(cons(task));
+  }
+
+  public static <A> EIO<Throwable, A> fromOption(Producer<Option<? extends A>> task) {
+    return new EIO<>(ZIO.fromOption(task));
+  }
+
+  public static <A> EIO<Throwable, A> fromTry(Try<? extends A> task) {
+    return fromTry(cons(task));
+  }
+
+  public static <A> EIO<Throwable, A> fromTry(Producer<Try<? extends A>> task) {
+    return new EIO<>(ZIO.fromTry(task));
   }
 
   public static <E, A> EIO<E, A> fromEither(Either<E, ? extends A> task) {

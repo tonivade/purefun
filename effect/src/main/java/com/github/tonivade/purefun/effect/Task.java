@@ -210,6 +210,18 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return ZIO.<Nothing, A, B>lift(function).andThen(Task::new);
   }
 
+  public static <A, B> Function1<A, Task<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, Task<B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, Task<B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
   public static <A> Task<A> fromOption(Option<? extends A> task) {
     return fromOption(cons(task));
   }

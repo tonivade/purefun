@@ -220,6 +220,18 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return value -> task(() -> function.apply(value));
   }
 
+  public static <R, A, B> Function1<A, RIO<R, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  public static <R, A, B> Function1<A, RIO<R, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  public static <R, A, B> Function1<A, RIO<R, B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
   public static <R, A> RIO<R, A> fromOption(Option<? extends A> task) {
     return fromOption(cons(task));
   }
@@ -233,7 +245,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
   }
 
   public static <R, A> RIO<R, A> fromTry(Producer<Try<? extends A>> task) {
-    return fromEither(task.andThen(Try::toEither));
+    return new RIO<>(ZIO.fromTry(task));
   }
 
   public static <R, A> RIO<R, A> fromEither(Either<Throwable, ? extends A> task) {
