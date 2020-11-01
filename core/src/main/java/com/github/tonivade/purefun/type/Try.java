@@ -53,6 +53,38 @@ public interface Try<T> extends TryOf<T> {
     return new Failure<>(error);
   }
 
+  static <T> Try<T> noSuchElementException() {
+    return failure(new NoSuchElementException());
+  }
+
+  static <T> Try<T> illegalArgumentException() {
+    return failure(new IllegalArgumentException());
+  }
+
+  static <T> Try<T> illegalStateException() {
+    return failure(new IllegalStateException());
+  }
+
+  static <T> Try<T> unsupportedOperationException() {
+    return failure(new UnsupportedOperationException());
+  }
+
+  static <T> Try<T> noSuchElementException(String cause) {
+    return failure(new NoSuchElementException(cause));
+  }
+
+  static <T> Try<T> illegalArgumentException(String cause) {
+    return failure(new IllegalArgumentException(cause));
+  }
+
+  static <T> Try<T> illegalStateException(String cause) {
+    return failure(new IllegalStateException(cause));
+  }
+
+  static <T> Try<T> unsupportedOperationException(String cause) {
+    return failure(new UnsupportedOperationException(cause));
+  }
+
   static <T> Try<T> of(Producer<? extends T> supplier) {
     try {
       return success(supplier.get());
@@ -129,7 +161,7 @@ public interface Try<T> extends TryOf<T> {
   }
 
   default Try<T> filter(Matcher1<? super T> matcher) {
-    return filterOrElse(matcher, () -> failure(new NoSuchElementException("filtered")));
+    return filterOrElse(matcher, () -> noSuchElementException("filtered"));
   }
 
   default Try<T> filterNot(Matcher1<? super T> matcher) {
