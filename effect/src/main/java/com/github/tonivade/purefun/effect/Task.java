@@ -28,6 +28,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -206,6 +207,14 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
 
   public static <A, B> Function1<A, Task<B>> lift(Function1<? super A, ? extends B> function) {
     return ZIO.<Nothing, A, B>lift(function).andThen(Task::new);
+  }
+
+  public static <A> Task<A> fromOption(Producer<Option<? extends A>> task) {
+    return fromEither(task.andThen(Option::toEither));
+  }
+
+  public static <A> Task<A> fromTry(Producer<Try<? extends A>> task) {
+    return fromEither(task.andThen(Try::toEither));
   }
 
   public static <A> Task<A> fromEither(Producer<Either<Throwable, ? extends A>> task) {

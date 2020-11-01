@@ -27,6 +27,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -216,6 +217,14 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
 
   public static <R, A, B> Function1<A, RIO<R, B>> lift(Function1<? super A, ? extends B> function) {
     return value -> task(() -> function.apply(value));
+  }
+
+  public static <R, A> RIO<R, A> fromOption(Producer<Option<? extends A>> task) {
+    return fromEither(task.andThen(Option::toEither));
+  }
+
+  public static <R, A> RIO<R, A> fromTry(Producer<Try<? extends A>> task) {
+    return fromEither(task.andThen(Try::toEither));
   }
 
   public static <R, A> RIO<R, A> fromEither(Producer<Either<Throwable, ? extends A>> task) {

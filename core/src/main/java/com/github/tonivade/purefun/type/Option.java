@@ -171,6 +171,10 @@ public interface Option<T> extends OptionOf<T> {
     return fold(() -> Either.left(new NoSuchElementException()), Either::right);
   }
 
+  default Try<T> toTry() {
+    return Try.fromEither(toEither());
+  }
+
   final class Some<T> implements SealedOption<T>, Serializable {
 
     private static final long serialVersionUID = 7757183287962895363L;
