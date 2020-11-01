@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Producer.cons;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
@@ -219,12 +220,24 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return value -> task(() -> function.apply(value));
   }
 
+  public static <R, A> RIO<R, A> fromOption(Option<? extends A> task) {
+    return fromOption(cons(task));
+  }
+
   public static <R, A> RIO<R, A> fromOption(Producer<Option<? extends A>> task) {
     return fromEither(task.andThen(Option::toEither));
   }
 
+  public static <R, A> RIO<R, A> fromTry(Try<? extends A> task) {
+    return fromTry(cons(task));
+  }
+
   public static <R, A> RIO<R, A> fromTry(Producer<Try<? extends A>> task) {
     return fromEither(task.andThen(Try::toEither));
+  }
+
+  public static <R, A> RIO<R, A> fromEither(Either<Throwable, ? extends A> task) {
+    return fromEither(cons(task));
   }
 
   public static <R, A> RIO<R, A> fromEither(Producer<Either<Throwable, ? extends A>> task) {

@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Producer.cons;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
@@ -209,12 +210,24 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return ZIO.<Nothing, A, B>lift(function).andThen(Task::new);
   }
 
+  public static <A> Task<A> fromOption(Option<? extends A> task) {
+    return fromOption(cons(task));
+  }
+
   public static <A> Task<A> fromOption(Producer<Option<? extends A>> task) {
     return fromEither(task.andThen(Option::toEither));
   }
 
+  public static <A> Task<A> fromTry(Try<? extends A> task) {
+    return fromTry(cons(task));
+  }
+
   public static <A> Task<A> fromTry(Producer<Try<? extends A>> task) {
     return fromEither(task.andThen(Try::toEither));
+  }
+
+  public static <A> Task<A> fromEither(Either<Throwable, ? extends A> task) {
+    return fromEither(cons(task));
   }
 
   public static <A> Task<A> fromEither(Producer<Either<Throwable, ? extends A>> task) {

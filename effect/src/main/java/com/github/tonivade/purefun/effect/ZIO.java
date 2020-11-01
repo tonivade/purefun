@@ -260,6 +260,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return value -> task(() -> function.apply(value));
   }
 
+  static <R, E, A> ZIO<R, E, A> fromEither(Either<E, ? extends A> task) {
+    return fromEither(cons(task));
+  }
+
   static <R, E, A> ZIO<R, E, A> fromEither(Producer<Either<E, ? extends A>> task) {
     return new Task<>(task);
   }

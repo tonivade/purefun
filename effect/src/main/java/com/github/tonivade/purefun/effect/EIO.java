@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Producer.cons;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
@@ -207,6 +208,10 @@ public final class EIO<E, A> implements EIOOf<E, A> {
 
   public static <A, B> Function1<A, EIO<Throwable, B>> lift(Function1<? super A, ? extends B> function) {
     return ZIO.<Nothing, A, B>lift(function).andThen(EIO::new);
+  }
+
+  public static <E, A> EIO<E, A> fromEither(Either<E, ? extends A> task) {
+    return fromEither(cons(task));
   }
 
   public static <E, A> EIO<E, A> fromEither(Producer<Either<E, ? extends A>> task) {
