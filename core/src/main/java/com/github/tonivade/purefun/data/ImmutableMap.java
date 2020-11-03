@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -13,6 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Consumer2;
@@ -53,7 +58,9 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
   }
 
-  default <A, B> ImmutableMap<A, B> map(Function1<? super K, ? extends A> keyMapper, Function1<? super V, ? extends B> valueMapper) {
+  default <A, B> ImmutableMap<A, B> map(
+      Function1<? super K, ? extends A> keyMapper, 
+      Function1<? super V, ? extends B> valueMapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map(keyMapper, valueMapper)));
   }
 
@@ -126,6 +133,13 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<K, V>> entries) {
     return new JavaBasedImmutableMap<>(entries.stream()
         .collect(ImmutableTreeModule.toLinkedHashMap(Map.Entry::getKey, Map.Entry::getValue)));
+  }
+
+  static <T, K, V> Collector<T, ?, ImmutableMap<K, V>> toImmutableMap(
+      Function1<? super T, ? extends K> keyMapper, Function1<? super T, ? extends V> valueMapper) {
+    Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap = 
+        ImmutableTreeModule.toLinkedHashMap(keyMapper, valueMapper);
+    return collectingAndThen(toLinkedHashMap, JavaBasedImmutableMap::new);
   }
 
   static <K, V> Builder<K, V> builder() {
@@ -239,5 +253,24 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     private LinkedHashMap<K, V> copy() {
       return new LinkedHashMap<>(backend);
     }
+  }
+}
+
+interface ImmutableTreeModule {
+
+  static <T, K, V> Collector<T, ?, ? extends TreeMap<K, V>> toTreeMap(
+      Function1<? super T, ? extends K> keyMapper,
+      Function1<? super T, ? extends V> valueMapper) {
+    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), TreeMap::new);
+  }
+
+  static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
+      Function1<? super T, ? extends K> keyMapper,
+      Function1<? super T, ? extends V> valueMapper) {
+    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), LinkedHashMap::new);
+  }
+
+  static <V> BinaryOperator<V> throwingMerge() {
+    return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
   }
 }

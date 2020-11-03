@@ -5,18 +5,15 @@
 package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableNavigableMap;
+import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -151,6 +148,13 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   static <K, V> ImmutableTreeMap<K, V> from(Set<Map.Entry<K, V>> entries) {
     return new JavaBasedImmutableTreeMap<>(entries.stream()
         .collect(ImmutableTreeModule.toTreeMap(Map.Entry::getKey, Map.Entry::getValue)));
+  }
+
+  static <T, K, V> Collector<T, ?, ImmutableTreeMap<K, V>> toImmutableTreeMap(
+      Function1<? super T, ? extends K> keyMapper, Function1<? super T, ? extends V> valueMapper) {
+    Collector<T, ?, ? extends TreeMap<K, V>> toLinkedHashMap = 
+        ImmutableTreeModule.toTreeMap(keyMapper, valueMapper);
+    return collectingAndThen(toLinkedHashMap, JavaBasedImmutableTreeMap::new);
   }
 
   static <K extends Comparable<?>, V> Builder<K, V> builder() {
@@ -309,24 +313,5 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     private TreeMap<K, V> copy() {
       return new TreeMap<>(backend);
     }
-  }
-}
-
-interface ImmutableTreeModule {
-
-  static <T, K, V> Collector<T, ?, TreeMap<K, V>> toTreeMap(
-      Function<? super T, ? extends K> keyMapper,
-      Function<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper, valueMapper, throwingMerge(), TreeMap::new);
-  }
-
-  static <T, K, V> Collector<T, ?, LinkedHashMap<K, V>> toLinkedHashMap(
-      Function<? super T, ? extends K> keyMapper,
-      Function<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper, valueMapper, throwingMerge(), LinkedHashMap::new);
-  }
-
-  static <V> BinaryOperator<V> throwingMerge() {
-    return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
   }
 }
