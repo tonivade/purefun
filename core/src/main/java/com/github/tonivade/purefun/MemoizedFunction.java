@@ -4,15 +4,14 @@
  */
 package com.github.tonivade.purefun;
 
-import static java.util.Collections.synchronizedMap;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class MemoizedFunction<T, R> implements Function1<T, R> {
 
-  private final Map<T, R> cache = synchronizedMap(new HashMap<>());
+  private final Map<T, R> cache = new ConcurrentHashMap<>();
   private final Function1<? super T, ? extends R> function;
 
   MemoizedFunction(Function1<? super T, ? extends R> function) {

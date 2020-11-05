@@ -4,16 +4,15 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Collections.synchronizedMap;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Unit.unit;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class MemoizedProducer<T> implements Producer<T> {
 
-  private final Map<Unit, T> cache = synchronizedMap(new HashMap<>(1));
+  private final Map<Unit, T> cache = new ConcurrentHashMap<>();
   private final Function1<Unit, ? extends T> function;
 
   MemoizedProducer(Producer<? extends T> producer) {
