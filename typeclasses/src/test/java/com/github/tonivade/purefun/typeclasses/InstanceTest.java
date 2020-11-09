@@ -51,7 +51,19 @@ public class InstanceTest {
   }
   
   @Test
-  public void notFound() {
-    assertThrows(InstanceNotFoundException.class, () -> Instance.monadError(Id.class));
+  public void notFoundSimple() {
+    InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> Instance.monadError(Id.class));
+    
+    assertEquals("instance of type MonadError for type com.github.tonivade.purefun.type.Id", exception.getMessage());
+  }
+  
+  @Test
+  public void notFoundComplex() {
+    Instance<Kind<Either_, String>> instance = new Instance<Kind<Either_, String>>(){};
+
+    InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> instance.monadDefer());
+    
+    assertEquals("instance of type MonadDefer for type com.github.tonivade.purefun.Kind<com.github.tonivade.purefun.type.Either_, java.lang.String>", 
+        exception.getMessage());
   }
 }

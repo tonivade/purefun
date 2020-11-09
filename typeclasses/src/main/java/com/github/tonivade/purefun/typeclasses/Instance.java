@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.Witness;
 
 public abstract class Instance<F extends Witness> {
   
-  private final Class<?> kindType;
+  private final Class<? extends Witness> kindType;
   private final Type type;
   
   protected Instance(Class<F> clazz) {
@@ -24,6 +24,14 @@ public abstract class Instance<F extends Witness> {
     Type genericSuperType = getClass().getGenericSuperclass();
     this.type = genericType(genericSuperType);
     this.kindType = kindType(type);
+  }
+
+  public Class<? extends Witness> getKindType() {
+    return kindType;
+  }
+
+  public Type getType() {
+    return type;
   }
 
   public Functor<F> functor() {
@@ -52,35 +60,6 @@ public abstract class Instance<F extends Witness> {
 
   public Traverse<F> traverse() {
     return load(this, "Traverse");
-  }
-  
-  private static Type genericType(Type type) {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
-      return parameterizedType.getActualTypeArguments()[0];
-    }
-    throw new UnsupportedOperationException();
-  }
-
-  private static Class<?> kindType(Type type) {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
-      if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
-        return kindType(parameterizedType.getActualTypeArguments()[0]);
-      }
-      if (parameterizedType.getActualTypeArguments()[0] instanceof Class) {
-        return (Class<?>) parameterizedType.getActualTypeArguments()[0];
-      }
-    }
-    throw new UnsupportedOperationException(type.getTypeName());
-  }
-
-  public Class<?> getKindType() {
-    return kindType;
-  }
-
-  public Type getType() {
-    return type;
   }
 
   public static <F extends Witness> Functor<F> functor(Class<F> type) {
@@ -111,10 +90,37 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.traverse();
   }
 
+  protected String instanceName(String typeClass) {
+    return "com.github.tonivade.purefun.instances." 
+        + kindType.getSimpleName().replace("_", "") + typeClass;
+  }
+  
+  private static Type genericType(Type type) {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      return parameterizedType.getActualTypeArguments()[0];
+    }
+    throw new UnsupportedOperationException("not supported " + type.getTypeName());
+  }
+
   @SuppressWarnings("unchecked")
-  private static <F extends Witness, T> T load(Instance<F> type, String typeClass) {
+  private static Class<? extends Witness> kindType(Type type) {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
+        return kindType(parameterizedType.getActualTypeArguments()[0]);
+      }
+      if (parameterizedType.getActualTypeArguments()[0] instanceof Class) {
+        return (Class<? extends Witness>) parameterizedType.getActualTypeArguments()[0];
+      }
+    }
+    throw new UnsupportedOperationException("not supported " + type.getTypeName());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <F extends Witness, T> T load(Instance<F> instance, String typeClass) {
     try {
-      Class<?> forName = Class.forName("com.github.tonivade.purefun.instances." + type.getKindType().getSimpleName().replace("_", "") + typeClass);
+      Class<?> forName = Class.forName(instance.instanceName(typeClass));
       Field declaredField = forName.getDeclaredField("INSTANCE");
       declaredField.setAccessible(true);
       return (T) declaredField.get(null);
@@ -123,7 +129,7 @@ public abstract class Instance<F extends Witness> {
         | IllegalAccessException 
         | NoSuchFieldException 
         | SecurityException e) {
-      throw new InstanceNotFoundException(type.getType(), typeClass, e);
+      throw new InstanceNotFoundException(instance.getType(), typeClass, e);
     }
   }
 }
