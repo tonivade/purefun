@@ -8,16 +8,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-import javax.tools.Diagnostic.Kind;
-
 import com.github.tonivade.purefun.Witness;
 
-public abstract class Instance<T> {
+public abstract class Instance<F extends Witness> {
   
   private final Class<?> kindType;
   private final Type type;
   
-  protected Instance(Class<T> clazz) {
+  protected Instance(Class<F> clazz) {
     this.kindType = clazz;
     this.type = clazz;
   }
@@ -26,6 +24,34 @@ public abstract class Instance<T> {
     Type genericSuperType = getClass().getGenericSuperclass();
     this.type = genericType(genericSuperType);
     this.kindType = kindType(type);
+  }
+
+  public Functor<F> functor() {
+    return load(this, "Functor");
+  }
+
+  public Applicative<F> applicative() {
+    return load(this, "Applicative");
+  }
+
+  public Monad<F> monad() {
+    return load(this, "Monad");
+  }
+
+  public <E> MonadError<F, E> monadError() {
+    return load(this, "MonadError");
+  }
+
+  public MonadThrow<F> monadThrow() {
+    return load(this, "MonadThrow");
+  }
+
+  public MonadDefer<F> monadDefer() {
+    return load(this, "MonadDefer");
+  }
+
+  public Traverse<F> traverse() {
+    return load(this, "Traverse");
   }
   
   private static Type genericType(Type type) {
@@ -39,12 +65,14 @@ public abstract class Instance<T> {
   private static Class<?> kindType(Type type) {
     if (type instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) type;
-      if (parameterizedType.getActualTypeArguments()[0].equals(Kind.class)) {
+      if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
         return kindType(parameterizedType.getActualTypeArguments()[0]);
       }
-      return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+      if (parameterizedType.getActualTypeArguments()[0] instanceof Class) {
+        return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+      }
     }
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException(type.getTypeName());
   }
 
   public Class<?> getKindType() {
@@ -56,59 +84,31 @@ public abstract class Instance<T> {
   }
 
   public static <F extends Witness> Functor<F> functor(Class<F> type) {
-    return functor(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness> Functor<F> functor(Instance<F> instance) {
-    return load(instance, "Functor");
+    return new Instance<F>(type) {}.functor();
   }
 
   public static <F extends Witness> Applicative<F> applicative(Class<F> type) {
-    return applicative(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness> Applicative<F> applicative(Instance<F> instance) {
-    return load(instance, "Applicative");
+    return new Instance<F>(type) {}.applicative();
   }
 
   public static <F extends Witness> Monad<F> monad(Class<F> type) {
-    return monad(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness> Monad<F> monad(Instance<F> instance) {
-    return load(instance, "Monad");
+    return new Instance<F>(type) {}.monad();
   }
 
   public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type) {
-    return monadError(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness, E> MonadError<F, E> monadError(Instance<F> instance) {
-    return load(instance, "MonadError");
+    return new Instance<F>(type) {}.monadError();
   }
 
   public static <F extends Witness> MonadThrow<F> monadThrow(Class<F> type) {
-    return monadThrow(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness> MonadThrow<F> monadThrow(Instance<F> instance) {
-    return load(instance, "MonadThrow");
+    return new Instance<F>(type) {}.monadThrow();
   }
 
   public static <F extends Witness> MonadThrow<F> monadDefer(Class<F> type) {
-    return monadDefer(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness> MonadDefer<F> monadDefer(Instance<F> instance) {
-    return load(instance, "MonadDefer");
+    return new Instance<F>(type) {}.monadDefer();
   }
 
   public static <F extends Witness> Traverse<F> traverse(Class<F> type) {
-    return traverse(new Instance<F>(type) {});
-  }
-
-  public static <F extends Witness> Traverse<F> traverse(Instance<F> instance) {
-    return load(instance, "Traverse");
+    return new Instance<F>(type) {}.traverse();
   }
 
   @SuppressWarnings("unchecked")
