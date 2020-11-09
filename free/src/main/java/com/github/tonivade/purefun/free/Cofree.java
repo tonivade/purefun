@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.type.EvalOf.toEval;
-import static com.github.tonivade.purefun.typeclasses.Instances.applicative;
+import static com.github.tonivade.purefun.typeclasses.Instance.applicative;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;

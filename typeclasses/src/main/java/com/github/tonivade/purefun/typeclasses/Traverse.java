@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.type.IdOf.toId;
-import static com.github.tonivade.purefun.typeclasses.Instances.applicative;
+import static com.github.tonivade.purefun.typeclasses.Instance.applicative;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
