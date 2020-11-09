@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.type.Try_;
 public class TraverseTest {
 
   @Test
-  public void seuence() {
+  public void sequence() {
     Sequence<Option<String>> seq = listOf(Option.some("a"), Option.some("b"), Option.some("c"));
 
     Traverse<Sequence_> instance = SequenceInstances.traverse();
