@@ -6,12 +6,12 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.type.IdOf.toId;
+import static com.github.tonivade.purefun.typeclasses.Instance.applicative;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Id_;
 
 public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
@@ -26,7 +26,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
 
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
-    Kind<Id_, Kind<F, R>> traverse = traverse(IdApplicative.INSTANCE, value, t -> Id.of(map.apply(t)));
+    Kind<Id_, Kind<F, R>> traverse = traverse(applicative(Id_.class), value, t -> Id.of(map.apply(t)));
     return traverse.fix(toId()).get();
   }
 
@@ -39,21 +39,5 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
       @Override
       public Traverse<G> g() { return g; }
     };
-  }
-}
-
-interface IdApplicative extends Applicative<Id_> {
-
-  IdApplicative INSTANCE = new IdApplicative() {};
-
-  @Override
-  default <T> Id<T> pure(T value) {
-    return Id.of(value);
-  }
-
-  @Override
-  default <T, R> Id<R> ap(Kind<Id_, ? extends T> value, 
-      Kind<Id_, ? extends Function1<? super T, ? extends R>> apply) {
-    return IdOf.narrowK(value).flatMap(t -> IdOf.narrowK(apply).map(f -> f.apply(t)));
   }
 }

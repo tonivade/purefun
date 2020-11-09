@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.type.EvalOf.toEval;
+import static com.github.tonivade.purefun.typeclasses.Instance.applicative;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -15,7 +16,6 @@ import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Eval_;
-import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
@@ -58,22 +58,21 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
     return of(functor, mapper.apply(this), transformTail(c -> c.coflatMap(mapper)));
   }
 
-  // XXX: remove eval applicative instance parameter, if instances project is added then cyclic dependency problem
-  public <B> Eval<B> fold(Applicative<Eval_> applicative, Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
+  public <B> Eval<B> fold(Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
     Eval<Kind<F, B>> eval =
-        traverse.traverse(applicative, tailForced(), c -> c.fold(applicative, traverse, mapper))
+        traverse.traverse(applicative(Eval_.class), tailForced(), c -> c.fold(traverse, mapper))
             .fix(toEval());
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 
-  public <B> Eval<B> reduce(Applicative<Eval_> applicative, Traverse<F> traverse,
+  public <B> Eval<B> reduce(Traverse<F> traverse,
                             Function1<A, B> initial, Operator2<B> combine) {
-    return fold(applicative, traverse,
+    return fold(traverse,
         (a, fb) -> Eval.later(() -> traverse.fold(Monoid.of(initial.apply(a), combine), fb)));
   }
 
-  public Eval<String> reduceToString(Applicative<Eval_> applicative, Traverse<F> traverse, Operator2<String> join) {
-    return reduce(applicative, traverse, String::valueOf, join);
+  public Eval<String> reduceToString(Traverse<F> traverse, Operator2<String> join) {
+    return reduce(traverse, String::valueOf, join);
   }
 
   public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, 
