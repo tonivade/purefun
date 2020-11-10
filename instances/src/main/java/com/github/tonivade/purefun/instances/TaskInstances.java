@@ -4,13 +4,19 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
+import static com.github.tonivade.purefun.effect.TaskOf.toTask;
+import static com.github.tonivade.purefun.instances.FutureInstances.async;
+
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
@@ -24,6 +30,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 import com.github.tonivade.purefun.typeclasses.Reference;
 import com.github.tonivade.purefun.typeclasses.Resource;
+import com.github.tonivade.purefun.typeclasses.Runtime;
 
 public interface TaskInstances {
 
@@ -61,6 +68,10 @@ public interface TaskInstances {
   
   static <A> Resource<Task_, A> resource(Task<A> acquire, Consumer1<A> release) {
     return Resource.from(monadDefer(), acquire, release);
+  }
+  
+  static Runtime<Task_> runtime() {
+    return TaskRuntime.INSTANCE;
   }
 }
 
@@ -160,5 +171,20 @@ interface TaskMonadDefer
   @Override
   default Task<Unit> sleep(Duration duration) {
     return Task.sleep(duration);
+  }
+}
+
+interface TaskRuntime extends Runtime<Task_> {
+  
+  TaskRuntime INSTANCE = new TaskRuntime() {};
+
+  @Override
+  default <T> T run(Kind<Task_, T> value) {
+    return value.fix(toTask()).safeRunSync().getOrElseThrow();
+  }
+
+  @Override
+  default <T> Future<T> parRun(Kind<Task_, T> value, Executor executor) {
+    return value.fix(toTask()).foldMap(async(executor)).fix(toFuture());
   }
 }

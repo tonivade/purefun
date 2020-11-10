@@ -4,15 +4,19 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.ZIOOf.toZIO;
+import static com.github.tonivade.purefun.instances.FutureInstances.async;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIOOf;
@@ -26,6 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Runtime;
 
 @SuppressWarnings("unchecked")
 public interface ZIOInstances {
@@ -56,6 +61,10 @@ public interface ZIOInstances {
 
   static <R> Console<Kind<Kind<ZIO_, R>, Throwable>> console() {
     return ConsoleZIO.INSTANCE;
+  }
+  
+  static <R, E> Runtime<Kind<Kind<ZIO_, R>, E>> runtime(R env) {
+    return ZIORuntime.instance(env);
   }
 }
 
@@ -180,5 +189,24 @@ final class ConsoleZIO<R> implements Console<Kind<Kind<ZIO_, R>, Throwable>> {
   @Override
   public ZIO<R, Throwable, Unit> println(String text) {
     return ZIO.<R>exec(() -> console.println(text));
+  }
+}
+
+interface ZIORuntime<R, E> extends Runtime<Kind<Kind<ZIO_, R>, E>> {
+  
+  static <R, E> ZIORuntime<R, E> instance(R env) {
+    return () -> env;
+  }
+
+  R env();
+
+  @Override
+  default <T> T run(Kind<Kind<Kind<ZIO_, R>, E>, T> value) {
+    return value.fix(toZIO()).provide(env()).getRight();
+  }
+
+  @Override
+  default <T> Future<T> parRun(Kind<Kind<Kind<ZIO_, R>, E>, T> value, Executor executor) {
+    return value.fix(toZIO()).foldMap(env(), async(executor)).fix(toFuture());
   }
 }

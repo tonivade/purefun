@@ -4,15 +4,19 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.URIOOf.toURIO;
+import static com.github.tonivade.purefun.instances.FutureInstances.async;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.URIOOf;
@@ -26,6 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Runtime;
 
 @SuppressWarnings("unchecked")
 public interface URIOInstances {
@@ -52,6 +57,10 @@ public interface URIOInstances {
 
   static <R> Console<Kind<Kind<URIO_, R>, Throwable>> console() {
     return ConsoleURIO.INSTANCE;
+  }
+  
+  static <R> Runtime<Kind<URIO_, R>> runtime(R env) {
+    return URIORuntime.instance(env);
   }
 }
 
@@ -177,5 +186,24 @@ final class ConsoleURIO<R> implements Console<Kind<URIO_, R>> {
   @Override
   public URIO<R, Unit> println(String text) {
     return URIO.<R>exec(() -> console.println(text));
+  }
+}
+
+interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
+  
+  static <R> URIORuntime<R> instance(R env) {
+    return () -> env;
+  }
+
+  R env();
+
+  @Override
+  default <T> T run(Kind<Kind<URIO_, R>, T> value) {
+    return value.fix(toURIO()).safeRunSync(env()).getOrElseThrow();
+  }
+
+  @Override
+  default <T> Future<T> parRun(Kind<Kind<URIO_, R>, T> value, Executor executor) {
+    return value.fix(toURIO()).foldMap(env(), async(executor)).fix(toFuture());
   }
 }

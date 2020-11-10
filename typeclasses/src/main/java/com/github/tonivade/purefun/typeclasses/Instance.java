@@ -59,6 +59,14 @@ public abstract class Instance<F extends Witness> {
     return load(this, MonadDefer.class);
   }
 
+  public Runtime<F> runtime() {
+    return load(this, Runtime.class);
+  }
+
+  public Foldable<F> foldable() {
+    return load(this, Foldable.class);
+  }
+
   public Traverse<F> traverse() {
     return load(this, Traverse.class);
   }
@@ -83,8 +91,16 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.monadThrow();
   }
 
-  public static <F extends Witness> MonadThrow<F> monadDefer(Class<F> type) {
+  public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type) {
     return new Instance<F>(type) {}.monadDefer();
+  }
+
+  public static <F extends Witness> Runtime<F> runtime(Class<F> type) {
+    return new Instance<F>(type) {}.runtime();
+  }
+
+  public static <F extends Witness> Foldable<F> foldable(Class<F> type) {
+    return new Instance<F>(type) {}.foldable();
   }
 
   public static <F extends Witness> Traverse<F> traverse(Class<F> type) {

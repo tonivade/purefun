@@ -4,15 +4,19 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
+import static com.github.tonivade.purefun.instances.FutureInstances.async;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
@@ -27,6 +31,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Runtime;
 import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface IOInstances {
@@ -61,6 +66,10 @@ public interface IOInstances {
 
   static Console<IO_> console() {
     return ConsoleIO.INSTANCE;
+  }
+  
+  static Runtime<IO_> io() {
+    return IORuntime.INSTANCE;
   }
 }
 
@@ -174,5 +183,20 @@ final class ConsoleIO implements Console<IO_> {
   @Override
   public IO<Unit> println(String text) {
     return IO.exec(() -> console.println(text));
+  }
+}
+
+interface IORuntime extends Runtime<IO_> {
+  
+  IORuntime INSTANCE = new IORuntime() {};
+
+  @Override
+  default <T> T run(Kind<IO_, T> value) {
+    return value.fix(toIO()).unsafeRunSync();
+  }
+
+  @Override
+  default <T> Future<T> parRun(Kind<IO_, T> value, Executor executor) {
+    return value.fix(toIO()).foldMap(async(executor)).fix(toFuture());
   }
 }

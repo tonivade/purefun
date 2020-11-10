@@ -4,15 +4,19 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
+import static com.github.tonivade.purefun.instances.FutureInstances.async;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.EIO_;
@@ -25,8 +29,9 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Runtime;
 
-  @SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 public interface EIOInstances {
 
   static <E> Functor<Kind<EIO_, E>> functor() {
@@ -51,6 +56,10 @@ public interface EIOInstances {
 
   static MonadDefer<Kind<EIO_, Throwable>> monadDefer() {
     return EIOMonadDefer.INSTANCE;
+  }
+  
+  static <E> Runtime<Kind<EIO_, E>> runtime() {
+    return EIORuntime.INSTANCE;
   }
 }
 
@@ -157,5 +166,21 @@ interface EIOMonadDefer
   @Override
   default EIO<Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<Throwable>toEIO();
+  }
+}
+
+interface EIORuntime<E> extends Runtime<Kind<EIO_, E>> {
+  
+  @SuppressWarnings("rawtypes")
+  EIORuntime INSTANCE = new EIORuntime() {};
+
+  @Override
+  default <T> T run(Kind<Kind<EIO_, E>, T> value) {
+    return value.fix(toEIO()).safeRunSync().getRight();
+  }
+
+  @Override
+  default <T> Future<T> parRun(Kind<Kind<EIO_, E>, T> value, Executor executor) {
+    return value.fix(toEIO()).foldMap(async(executor)).fix(toFuture());
   }
 }

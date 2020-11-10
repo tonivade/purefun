@@ -4,15 +4,19 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
+import static com.github.tonivade.purefun.instances.FutureInstances.async;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
@@ -24,6 +28,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
+import com.github.tonivade.purefun.typeclasses.Runtime;
 
 public interface UIOInstances {
 
@@ -49,6 +54,10 @@ public interface UIOInstances {
 
   static MonadDefer<UIO_> monadDefer() {
     return UIOMonadDefer.INSTANCE;
+  }
+  
+  static Runtime<UIO_> runtime() {
+    return UIORuntime.INSTANCE;
   }
 }
 
@@ -145,5 +154,20 @@ interface UIOMonadDefer
   @Override
   default UIO<Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
+  }
+}
+
+interface UIORuntime extends Runtime<UIO_> {
+  
+  UIORuntime INSTANCE = new UIORuntime() {};
+
+  @Override
+  default <T> T run(Kind<UIO_, T> value) {
+    return value.fix(toUIO()).unsafeRunSync();
+  }
+
+  @Override
+  default <T> Future<T> parRun(Kind<UIO_, T> value, Executor executor) {
+    return value.fix(toUIO()).foldMap(async(executor)).fix(toFuture());
   }
 }
