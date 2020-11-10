@@ -11,6 +11,6 @@ public class InstanceNotFoundException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
   public InstanceNotFoundException(Type kind, Class<?> typeClass, Throwable cause) {
-    super("instance of type " + typeClass.getSimpleName() + " for type " + kind.getTypeName(), cause);
+    super("instance of type " + typeClass.getSimpleName() + " for type " + kind.getTypeName() + " not found", cause);
   }
 }

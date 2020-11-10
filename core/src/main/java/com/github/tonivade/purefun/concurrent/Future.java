@@ -82,6 +82,7 @@ public interface Future<T> extends FutureOf<T> {
   Future<T> onComplete(Consumer1<? super Try<? extends T>> callback);
 
   <R> Future<R> map(Function1<? super T, ? extends R> mapper);
+  Future<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper);
 
   <R> Future<R> flatMap(Function1<? super T, ? extends Future<? extends R>> mapper);
 
@@ -355,6 +356,11 @@ final class FutureImpl<T> implements SealedFuture<T> {
   @Override
   public <R> Future<R> map(Function1<? super T, ? extends R> mapper) {
     return transform(value -> value.map(mapper));
+  }
+  
+  @Override
+  public Future<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
+    return transform(value -> value.mapError(mapper));
   }
 
   @Override

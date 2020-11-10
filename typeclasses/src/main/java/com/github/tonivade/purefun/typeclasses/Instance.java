@@ -9,6 +9,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.type.Try;
 
 public abstract class Instance<F extends Witness> {
   
@@ -90,9 +91,9 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.traverse();
   }
 
-  protected String instanceName(String typeClass) {
+  protected String instanceName(Class<?> typeClass) {
     return "com.github.tonivade.purefun.instances." 
-        + kindType.getSimpleName().replace("_", "") + typeClass;
+        + kindType.getSimpleName().replace("_", "") + typeClass.getSimpleName();
   }
   
   private static Type genericType(Type type) {
@@ -117,19 +118,26 @@ public abstract class Instance<F extends Witness> {
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
   }
 
-  @SuppressWarnings("unchecked")
   private static <F extends Witness, T> T load(Instance<F> instance, Class<?> typeClass) {
-    try {
-      Class<?> forName = Class.forName(instance.instanceName(typeClass.getSimpleName()));
-      Field declaredField = forName.getDeclaredField("INSTANCE");
-      declaredField.setAccessible(true);
-      return (T) declaredField.get(null);
-    } catch (ClassNotFoundException 
-        | IllegalArgumentException 
-        | IllegalAccessException 
-        | NoSuchFieldException 
-        | SecurityException e) {
-      throw new InstanceNotFoundException(instance.getType(), typeClass, e);
-    }
+    return Try.of(() -> findClass(instance, typeClass))
+      .map(Instance::findField)
+      .map(Instance::<T>getInstance)
+      .mapError(error -> new InstanceNotFoundException(instance.getType(), typeClass, error))
+      .getOrElseThrow();
+  }
+
+  private static <F extends Witness> Class<?> findClass(Instance<F> instance, Class<?> typeClass)
+      throws ClassNotFoundException {
+    return Class.forName(instance.instanceName(typeClass));
+  }
+
+  private static Field findField(Class<?> forName) throws NoSuchFieldException {
+    return forName.getDeclaredField("INSTANCE");
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> T getInstance(Field declaredField) throws IllegalAccessException {
+    declaredField.setAccessible(true);
+    return (T) declaredField.get(null);
   }
 }

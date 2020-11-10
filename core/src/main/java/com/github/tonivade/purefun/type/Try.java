@@ -112,12 +112,15 @@ public interface Try<T> extends TryOf<T> {
    */
   T get();
 
-  @SuppressWarnings("unchecked")
   default <R> Try<R> map(Function1<? super T, ? extends R> mapper) {
-    if (isSuccess()) {
-      return success(mapper.apply(get()));
+    return flatMap(mapper.liftTry());
+  }
+
+  default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
+    if (isFailure()) {
+      return failure(mapper.apply(getCause()));
     }
-    return (Try<R>) this;
+    return this;
   }
 
   @SuppressWarnings("unchecked")

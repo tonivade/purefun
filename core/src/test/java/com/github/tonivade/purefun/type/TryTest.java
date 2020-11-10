@@ -33,10 +33,34 @@ public class TryTest {
   }
 
   @Test
+  public void mapThrowsException() {
+    Try<String> try1 = Try.success("Hola mundo").map(Function1.fail(UnsupportedOperationException::new));
+
+    assertTrue(try1.isFailure());
+  }
+
+  @Test
   public void mapFailure() {
     Try<String> try1 = Try.<String>failure("Hola mundo").map(toUpperCase);
 
     assertTrue(try1.isFailure());
+    assertEquals("Hola mundo", try1.getCause().getMessage());
+  }
+
+  @Test
+  public void mapErrorSuccess() {
+    Try<String> try1 = Try.success("Hola mundo").mapError(UnsupportedOperationException::new);
+
+    assertEquals(Try.success("Hola mundo"), try1);
+  }
+
+  @Test
+  public void mapErrorFailure() {
+    Try<String> try1 = Try.<String>failure("Hola mundo").mapError(UnsupportedOperationException::new);
+
+    assertTrue(try1.isFailure());
+    assertTrue(try1.getCause() instanceof UnsupportedOperationException);
+    assertEquals("Hola mundo", try1.getCause().getCause().getMessage());
   }
 
   @Test
