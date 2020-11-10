@@ -35,31 +35,31 @@ public abstract class Instance<F extends Witness> {
   }
 
   public Functor<F> functor() {
-    return load(this, "Functor");
+    return load(this, Functor.class);
   }
 
   public Applicative<F> applicative() {
-    return load(this, "Applicative");
+    return load(this, Applicative.class);
   }
 
   public Monad<F> monad() {
-    return load(this, "Monad");
+    return load(this, Monad.class);
   }
 
   public <E> MonadError<F, E> monadError() {
-    return load(this, "MonadError");
+    return load(this, MonadError.class);
   }
 
   public MonadThrow<F> monadThrow() {
-    return load(this, "MonadThrow");
+    return load(this, MonadThrow.class);
   }
 
   public MonadDefer<F> monadDefer() {
-    return load(this, "MonadDefer");
+    return load(this, MonadDefer.class);
   }
 
   public Traverse<F> traverse() {
-    return load(this, "Traverse");
+    return load(this, Traverse.class);
   }
 
   public static <F extends Witness> Functor<F> functor(Class<F> type) {
@@ -118,9 +118,9 @@ public abstract class Instance<F extends Witness> {
   }
 
   @SuppressWarnings("unchecked")
-  private static <F extends Witness, T> T load(Instance<F> instance, String typeClass) {
+  private static <F extends Witness, T> T load(Instance<F> instance, Class<?> typeClass) {
     try {
-      Class<?> forName = Class.forName(instance.instanceName(typeClass));
+      Class<?> forName = Class.forName(instance.instanceName(typeClass.getSimpleName()));
       Field declaredField = forName.getDeclaredField("INSTANCE");
       declaredField.setAccessible(true);
       return (T) declaredField.get(null);

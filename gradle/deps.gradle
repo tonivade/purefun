@@ -3,8 +3,8 @@ ext {
     junitEngine     : '5.7.0',
     junitPlatform   : '1.7.0',
     equalsVerifier  : '3.4.2',
-    mockito         : '3.5.13',
-    compileTesting  : '0.18'
+    mockito         : '3.6.0',
+    compileTesting  : '0.19'
   ]
   libs = [
     junitJupiter    : "org.junit.jupiter:junit-jupiter-engine:$versions.junitEngine",
