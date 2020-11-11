@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.control;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
-import static java.util.Objects.requireNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
@@ -77,8 +77,8 @@ public interface Control<T> extends ControlOf<T> {
     private final Function1<Function1<A, Control<R>>, Control<R>> cps;
 
     private Use(Marker.Cont<R> marker, Function1<Function1<A, Control<R>>, Control<R>> cps) {
-      this.marker = requireNonNull(marker);
-      this.cps = requireNonNull(cps);
+      this.marker = checkNonNull(marker);
+      this.cps = checkNonNull(cps);
     }
 
     @Override
@@ -100,8 +100,8 @@ public interface Control<T> extends ControlOf<T> {
     private final Function1<? super Marker.Cont<R>, Control<R>> control;
 
     private DelimitCont(Marker.Cont<R> marker, Function1<? super Marker.Cont<R>, Control<R>> control) {
-      this.marker = requireNonNull(marker);
-      this.control = requireNonNull(control);
+      this.marker = checkNonNull(marker);
+      this.control = checkNonNull(control);
     }
 
     @Override
@@ -116,8 +116,8 @@ public interface Control<T> extends ControlOf<T> {
     private final Control<R> control;
 
     private DelimitState(Marker.State<S> marker, Control<R> control) {
-      this.marker = requireNonNull(marker);
-      this.control = requireNonNull(control);
+      this.marker = checkNonNull(marker);
+      this.control = checkNonNull(control);
     }
 
     @Override
@@ -132,8 +132,8 @@ public interface Control<T> extends ControlOf<T> {
     private final Control<R> control;
 
     private DelimitCatch(Marker.Catch<R> marker, Control<R> control) {
-      this.marker = requireNonNull(marker);
-      this.control = requireNonNull(control);
+      this.marker = checkNonNull(marker);
+      this.control = checkNonNull(control);
     }
 
     @Override
@@ -147,7 +147,7 @@ public interface Control<T> extends ControlOf<T> {
     private final Producer<T> value;
 
     private Pure(Producer<T> value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -171,7 +171,7 @@ public interface Control<T> extends ControlOf<T> {
     private final Throwable error;
 
     private Failure(Throwable error) {
-      this.error = requireNonNull(error);
+      this.error = checkNonNull(error);
     }
 
     @Override

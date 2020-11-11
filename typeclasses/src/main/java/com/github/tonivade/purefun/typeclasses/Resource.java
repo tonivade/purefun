@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Consumer1.noop;
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
@@ -22,8 +22,8 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   private final Kind<F, Tuple2<T, Consumer1<? super T>>> resource;
   
   protected Resource(MonadDefer<F> monad, Kind<F, Tuple2<T, Consumer1<? super T>>> resource) {
-    this.monad = requireNonNull(monad);
-    this.resource = requireNonNull(resource);
+    this.monad = checkNonNull(monad);
+    this.resource = checkNonNull(resource);
   }
   
   public <R> Resource<F, R> map(Function1<? super T, ? extends R> mapper) {

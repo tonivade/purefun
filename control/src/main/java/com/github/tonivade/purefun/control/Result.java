@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Recoverable;
 
@@ -50,7 +50,7 @@ interface Result<T> {
     private final T value;
 
     private Value(T value) {
-      this.value = requireNonNull(value);
+      this.value = checkNonNull(value);
     }
 
     @Override
@@ -69,7 +69,7 @@ interface Result<T> {
     private final Throwable error;
 
     private Abort(Throwable error) {
-      this.error = requireNonNull(error);
+      this.error = checkNonNull(error);
     }
 
     @Override
@@ -89,8 +89,8 @@ interface Result<T> {
     private final MetaCont<R, T> continuation;
 
     private Computation(Control<R> control, MetaCont<R, T> continuation) {
-      this.control = requireNonNull(control);
-      this.continuation = requireNonNull(continuation);
+      this.control = checkNonNull(control);
+      this.continuation = checkNonNull(continuation);
     }
 
     @Override

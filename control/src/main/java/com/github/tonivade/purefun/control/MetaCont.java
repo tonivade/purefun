@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static java.util.Objects.requireNonNull;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Recoverable;
@@ -85,8 +85,8 @@ interface MetaCont<A, B> {
     private final MetaCont<B, C> tail;
 
     private Frames(NonEmptyList<Function1<?, Control<?>>> frames, MetaCont<B, C> tail) {
-      this.frames = requireNonNull(frames);
-      this.tail = requireNonNull(tail);
+      this.frames = checkNonNull(frames);
+      this.tail = checkNonNull(tail);
     }
 
     @Override
@@ -135,8 +135,8 @@ interface MetaCont<A, B> {
     private final MetaCont<R, A> tail;
 
     private Handler(Marker.Cont<R> marker, MetaCont<R, A> tail) {
-      this.marker = requireNonNull(marker);
-      this.tail = requireNonNull(tail);
+      this.marker = checkNonNull(marker);
+      this.tail = checkNonNull(tail);
     }
 
     @Override
@@ -178,8 +178,8 @@ interface MetaCont<A, B> {
     private final MetaCont<R, A> tail;
 
     private State(Marker.State<S> marker, MetaCont<R, A> tail) {
-      this.marker = requireNonNull(marker);
-      this.tail = requireNonNull(tail);
+      this.marker = checkNonNull(marker);
+      this.tail = checkNonNull(tail);
     }
 
     @Override
@@ -215,8 +215,8 @@ interface MetaCont<A, B> {
     private final MetaCont<R, A> tail;
 
     private Catch(Marker.Catch<R> marker, MetaCont<R, A> tail) {
-      this.marker = requireNonNull(marker);
-      this.tail = requireNonNull(tail);
+      this.marker = checkNonNull(marker);
+      this.tail = checkNonNull(tail);
     }
 
     @Override
@@ -256,9 +256,9 @@ interface MetaCont<A, B> {
     private final MetaCont<R, A> tail;
 
     private Captured(Marker.State<S> marker, S state, MetaCont<R, A> tail) {
-      this.marker = requireNonNull(marker);
-      this.state = requireNonNull(state);
-      this.tail = requireNonNull(tail);
+      this.marker = checkNonNull(marker);
+      this.state = checkNonNull(state);
+      this.tail = checkNonNull(tail);
     }
 
     @Override

@@ -4,12 +4,12 @@
  */
 package com.github.tonivade.purefun.control;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Unit.unit;
+
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableMap;
-
-import static com.github.tonivade.purefun.Unit.unit;
-import static java.util.Objects.requireNonNull;
 
 class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Object>> {
 
@@ -22,7 +22,7 @@ class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Obj
 
   @Override
   public void restore(ImmutableMap<Field<?>, Object> value) {
-    this.data = requireNonNull(value);
+    this.data = checkNonNull(value);
   }
 
   public <T> Field<T> field(T value) {
