@@ -47,6 +47,30 @@ public abstract class Instance<F extends Witness> {
     return load(this, Monad.class);
   }
 
+  public <R> MonadReader<F, R> monadReader() {
+    return load(this, MonadReader.class);
+  }
+
+  public <S> MonadState<F, S> monadState() {
+    return load(this, MonadState.class);
+  }
+
+  public <W> MonadWriter<F, W> monadWriter() {
+    return load(this, MonadWriter.class);
+  }
+
+  public Comonad<F> comonad() {
+    return load(this, Comonad.class);
+  }
+
+  public Selective<F> selective() {
+    return load(this, Selective.class);
+  }
+
+  public <E> ApplicativeError<F, E> applicativeError() {
+    return load(this, ApplicativeError.class);
+  }
+
   public <E> MonadError<F, E> monadError() {
     return load(this, MonadError.class);
   }
@@ -57,6 +81,14 @@ public abstract class Instance<F extends Witness> {
 
   public MonadDefer<F> monadDefer() {
     return load(this, MonadDefer.class);
+  }
+
+  public Async<F> async() {
+    return load(this, Async.class);
+  }
+
+  public Concurrent<F> concurrent() {
+    return load(this, Concurrent.class);
   }
 
   public Runtime<F> runtime() {
@@ -83,6 +115,30 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.monad();
   }
 
+  public static <F extends Witness, R> MonadReader<F, R> monadReader(Class<F> type) {
+    return new Instance<F>(type) {}.monadReader();
+  }
+
+  public static <F extends Witness, S> MonadState<F, S> monadState(Class<F> type) {
+    return new Instance<F>(type) {}.monadState();
+  }
+
+  public static <F extends Witness, W> MonadWriter<F, W> monadWriter(Class<F> type) {
+    return new Instance<F>(type) {}.monadWriter();
+  }
+
+  public static <F extends Witness> Comonad<F> comonad(Class<F> type) {
+    return new Instance<F>(type) {}.comonad();
+  }
+
+  public static <F extends Witness> Selective<F> selective(Class<F> type) {
+    return new Instance<F>(type) {}.selective();
+  }
+
+  public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(Class<F> type) {
+    return new Instance<F>(type) {}.applicativeError();
+  }
+
   public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type) {
     return new Instance<F>(type) {}.monadError();
   }
@@ -93,6 +149,14 @@ public abstract class Instance<F extends Witness> {
 
   public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type) {
     return new Instance<F>(type) {}.monadDefer();
+  }
+
+  public static <F extends Witness> Async<F> async(Class<F> type) {
+    return new Instance<F>(type) {}.async();
+  }
+
+  public static <F extends Witness> Concurrent<F> concurrent(Class<F> type) {
+    return new Instance<F>(type) {}.concurrent();
   }
 
   public static <F extends Witness> Runtime<F> runtime(Class<F> type) {
