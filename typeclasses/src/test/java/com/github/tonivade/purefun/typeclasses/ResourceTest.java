@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.typeclasses.Instance.monadDefer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
@@ -27,24 +28,30 @@ import com.github.tonivade.purefun.Witness;
 @ExtendWith(MockitoExtension.class)
 public abstract class ResourceTest<F extends Witness> {
   
-  protected abstract MonadDefer<F> monadDefer();
+  private final Class<F> type;
+  
+  protected ResourceTest(Class<F> type) {
+    this.type = type;
+  }
   
   protected <T extends AutoCloseable> Resource<F, T> makeResource(Kind<F, T> acquire) {
     return makeResource(acquire, AutoCloseable::close);
   }
 
   protected <T> Resource<F, T> makeResource(Kind<F, T> acquire, Consumer1<T> release) {
-    return monadDefer().resource(acquire, release);
+    return monadDefer(type).resource(acquire, release);
   }
   
-  protected abstract <T> T run(Kind<F, T> result);
+  protected <T> T run(Kind<F, T> result) {
+    return Instance.runtime(type).run(result);
+  }
   
   protected <T> Kind<F, T> pure(T value) {
-    return monadDefer().pure(value);
+    return monadDefer(type).pure(value);
   }
 
   protected <T> Kind<F, T> later(Producer<T> value) {
-    return monadDefer().later(value);
+    return monadDefer(type).later(value);
   }
 
   @Test

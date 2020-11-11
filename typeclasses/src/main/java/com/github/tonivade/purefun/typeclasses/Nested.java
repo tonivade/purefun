@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 
+@SuppressWarnings("unused")
 public interface Nested<F extends Witness, G extends Witness> extends Witness {
 
   @SuppressWarnings("unchecked")

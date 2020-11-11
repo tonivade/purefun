@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.typeclasses.Instance.monad;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
@@ -33,6 +34,10 @@ public final class For<F extends Witness> {
 
   public <T> For1<F, T> andThen(Producer<? extends Kind<F, ? extends T>> next) {
     return For.with(monad, monad.andThen(monad.pure(unit()), next));
+  }
+
+  public static <F extends Witness> For<F> with(Class<F> type) {
+    return new For<>(monad(type));
   }
 
   public static <F extends Witness> For<F> with(Monad<F> monad) {

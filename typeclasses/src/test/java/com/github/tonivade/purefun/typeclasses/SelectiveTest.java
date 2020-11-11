@@ -13,16 +13,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.monad.IO;
@@ -35,7 +36,7 @@ import com.github.tonivade.purefun.type.Validation_;
 @ExtendWith(MockitoExtension.class)
 public class SelectiveTest {
 
-  private final Selective<IO_> monad = IOInstances.monad();
+  private final Selective<IO_> monad = Instance.monad(IO_.class);
 
   @Test
   public void apply() {
@@ -75,8 +76,10 @@ public class SelectiveTest {
     Function1<String, Integer> parseInt = Integer::parseInt;
     Function1<String, Integer> countLetters = String::length;
 
-    Kind<IO_, Integer> left = monad.branch(monad.pure(Either.left("1")), monad.pure(parseInt), monad.pure(countLetters));
-    Kind<IO_, Integer> right = monad.branch(monad.pure(Either.right("asdfg")), monad.pure(parseInt), monad.pure(countLetters));
+    Kind<IO_, Integer> left = 
+        monad.branch(monad.pure(Either.left("1")), monad.pure(parseInt), monad.pure(countLetters));
+    Kind<IO_, Integer> right = 
+        monad.branch(monad.pure(Either.right("asdfg")), monad.pure(parseInt), monad.pure(countLetters));
 
     assertAll(
         () -> assertEquals(1, left.fix(toIO()).unsafeRunSync()),
