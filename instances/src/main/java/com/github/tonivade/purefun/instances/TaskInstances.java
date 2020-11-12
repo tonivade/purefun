@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -68,6 +69,10 @@ public interface TaskInstances {
   
   static <A> Resource<Task_, A> resource(Task<A> acquire, Consumer1<A> release) {
     return Resource.from(monadDefer(), acquire, release);
+  }
+  
+  static Console<Task_> console() {
+    return TaskConsole.INSTANCE;
   }
   
   static Runtime<Task_> runtime() {
@@ -127,9 +132,9 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
   }
 
   @Override
-  default <A> Task<A>
-          handleErrorWith(Kind<Task_, A> value,
-                          Function1<? super Throwable, ? extends Kind<Task_, ? extends A>> handler) {
+  default <A> Task<A> handleErrorWith(
+      Kind<Task_, A> value,
+      Function1<? super Throwable, ? extends Kind<Task_, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<? super Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
     Function1<A, Task<A>> map = Task::pure;
@@ -171,6 +176,23 @@ interface TaskMonadDefer
   @Override
   default Task<Unit> sleep(Duration duration) {
     return Task.sleep(duration);
+  }
+}
+
+final class TaskConsole implements Console<Task_> {
+
+  public static final TaskConsole INSTANCE = new TaskConsole();
+
+  private final SystemConsole console = new SystemConsole();
+
+  @Override
+  public Task<String> readln() {
+    return Task.task(console::readln);
+  }
+
+  @Override
+  public Task<Unit> println(String text) {
+    return Task.exec(() -> console.println(text));
   }
 }
 

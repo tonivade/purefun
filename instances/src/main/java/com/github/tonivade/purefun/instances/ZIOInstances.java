@@ -60,7 +60,7 @@ public interface ZIOInstances {
   }
 
   static <R> Console<Kind<Kind<ZIO_, R>, Throwable>> console() {
-    return ConsoleZIO.INSTANCE;
+    return ZIOConsole.INSTANCE;
   }
   
   static <R, E> Runtime<Kind<Kind<ZIO_, R>, E>> runtime(R env) {
@@ -74,7 +74,9 @@ interface ZIOFunctor<R, E> extends Functor<Kind<Kind<ZIO_, R>, E>> {
   ZIOFunctor INSTANCE = new ZIOFunctor() {};
 
   @Override
-  default <A, B> ZIO<R, E, B> map(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> ZIO<R, E, B> map(
+      Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> value, 
+      Function1<? super A, ? extends B> map) {
     return ZIOOf.narrowK(value).map(map);
   }
 }
@@ -124,9 +126,9 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Kind<Kind<ZIO_,
   }
 
   @Override
-  default <A> ZIO<R, E, A>
-          handleErrorWith(Kind<Kind<Kind<ZIO_, R>, E>, A> value,
-                          Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> handler) {
+  default <A> ZIO<R, E, A> handleErrorWith(
+      Kind<Kind<Kind<ZIO_, R>, E>, A> value,
+      Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<? super E, ZIO<R, E, A>> mapError = handler.andThen(ZIOOf::narrowK);
     Function1<A, ZIO<R, E, A>> map = ZIO::pure;
@@ -136,8 +138,7 @@ interface ZIOMonadError<R, E> extends ZIOMonad<R, E>, MonadError<Kind<Kind<ZIO_,
 }
 
 interface ZIOMonadThrow<R>
-    extends ZIOMonadError<R, Throwable>,
-            MonadThrow<Kind<Kind<ZIO_, R>, Throwable>> {
+    extends ZIOMonadError<R, Throwable>, MonadThrow<Kind<Kind<ZIO_, R>, Throwable>> {
   @SuppressWarnings("rawtypes")
   ZIOMonadThrow INSTANCE = new ZIOMonadThrow() {};
 }
@@ -174,10 +175,10 @@ interface ZIOMonadDefer<R>
   }
 }
 
-final class ConsoleZIO<R> implements Console<Kind<Kind<ZIO_, R>, Throwable>> {
+final class ZIOConsole<R> implements Console<Kind<Kind<ZIO_, R>, Throwable>> {
 
   @SuppressWarnings("rawtypes")
-  protected static final ConsoleZIO INSTANCE = new ConsoleZIO();
+  protected static final ZIOConsole INSTANCE = new ZIOConsole();
 
   private final SystemConsole console = new SystemConsole();
 

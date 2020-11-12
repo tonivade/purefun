@@ -65,7 +65,7 @@ public interface IOInstances {
   }
 
   static Console<IO_> console() {
-    return ConsoleIO.INSTANCE;
+    return IOConsole.INSTANCE;
   }
   
   static Runtime<IO_> runtime() {
@@ -107,7 +107,9 @@ interface IOMonad extends Monad<IO_>, IOPure {
   IOMonad INSTANCE = new IOMonad() {};
 
   @Override
-  default <T, R> IO<R> flatMap(Kind<IO_, ? extends T> value, Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
+  default <T, R> IO<R> flatMap(
+      Kind<IO_, ? extends T> value, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
     return value.fix(toIO()).flatMap(map.andThen(IOOf::narrowK));
   }
 }
@@ -122,7 +124,9 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
   }
 
   @Override
-  default <A> IO<A> handleErrorWith(Kind<IO_, A> value, Function1<? super Throwable, ? extends Kind<IO_, ? extends A>> handler) {
+  default <A> IO<A> handleErrorWith(
+      Kind<IO_, A> value, 
+      Function1<? super Throwable, ? extends Kind<IO_, ? extends A>> handler) {
     return IOOf.narrowK(value).redeemWith(handler.andThen(IOOf::narrowK), IO::pure);
   }
 }
@@ -169,9 +173,9 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
   }
 }
 
-final class ConsoleIO implements Console<IO_> {
+final class IOConsole implements Console<IO_> {
 
-  public static final ConsoleIO INSTANCE = new ConsoleIO();
+  public static final IOConsole INSTANCE = new IOConsole();
 
   private final SystemConsole console = new SystemConsole();
 

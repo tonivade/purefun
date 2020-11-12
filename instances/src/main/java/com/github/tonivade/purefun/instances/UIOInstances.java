@@ -22,6 +22,7 @@ import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -58,6 +59,10 @@ public interface UIOInstances {
   
   static Runtime<UIO_> runtime() {
     return UIORuntime.INSTANCE;
+  }
+  
+  static Console<UIO_> console() {
+    return UIOConsole.INSTANCE;
   }
 }
 
@@ -111,9 +116,9 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   }
 
   @Override
-  default <A> UIO<A>
-          handleErrorWith(Kind<UIO_, A> value,
-                          Function1<? super Throwable, ? extends Kind<UIO_, ? extends A>> handler) {
+  default <A> UIO<A> handleErrorWith(
+      Kind<UIO_, A> value,
+      Function1<? super Throwable, ? extends Kind<UIO_, ? extends A>> handler) {
     Function1<? super Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIOOf.narrowK(value);
@@ -154,6 +159,23 @@ interface UIOMonadDefer
   @Override
   default UIO<Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
+  }
+}
+
+final class UIOConsole implements Console<UIO_> {
+
+  public static final UIOConsole INSTANCE = new UIOConsole();
+
+  private final SystemConsole console = new SystemConsole();
+
+  @Override
+  public UIO<String> readln() {
+    return UIO.task(console::readln);
+  }
+
+  @Override
+  public UIO<Unit> println(String text) {
+    return UIO.exec(() -> console.println(text));
   }
 }
 

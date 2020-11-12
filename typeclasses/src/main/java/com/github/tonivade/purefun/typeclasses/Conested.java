@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 
+@SuppressWarnings("unused")
 public interface Conested<F extends Witness, A> extends Witness {
 
   @SuppressWarnings({"unchecked", "rawtypes"})

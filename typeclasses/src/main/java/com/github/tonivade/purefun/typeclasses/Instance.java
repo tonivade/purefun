@@ -102,6 +102,10 @@ public abstract class Instance<F extends Witness> {
     return load(this, Runtime.class);
   }
 
+  public Console<F> console() {
+    return load(this, Console.class);
+  }
+
   public Foldable<F> foldable() {
     return load(this, Foldable.class);
   }
@@ -174,6 +178,10 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.runtime();
   }
 
+  public static <F extends Witness> Console<F> console(Class<F> type) {
+    return new Instance<F>(type) {}.console();
+  }
+
   public static <F extends Witness> Foldable<F> foldable(Class<F> type) {
     return new Instance<F>(type) {}.foldable();
   }
@@ -230,7 +238,7 @@ public abstract class Instance<F extends Witness> {
 
   @SuppressWarnings("unchecked")
   private static <T> T getInstance(Method method) 
-      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+      throws IllegalAccessException, InvocationTargetException {
     return (T) method.invoke(null);
   }
 }

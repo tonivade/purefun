@@ -56,7 +56,7 @@ public interface RIOInstances {
   }
 
   static <R> Console<Kind<Kind<RIO_, R>, Throwable>> console() {
-    return ConsoleRIO.INSTANCE;
+    return RIOConsole.INSTANCE;
   }
   
   static <R> Runtime<Kind<RIO_, R>> runtime(R env) {
@@ -121,9 +121,9 @@ interface RIOMonadError<R> extends RIOMonad<R>, MonadError<Kind<RIO_, R>, Throwa
   }
 
   @Override
-  default <A> RIO<R, A>
-          handleErrorWith(Kind<Kind<RIO_, R>, A> value,
-                          Function1<? super Throwable, ? extends Kind<Kind<RIO_, R>, ? extends A>> handler) {
+  default <A> RIO<R, A> handleErrorWith(
+      Kind<Kind<RIO_, R>, A> value,
+      Function1<? super Throwable, ? extends Kind<Kind<RIO_, R>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<? super Throwable, RIO<R, A>> mapError = handler.andThen(RIOOf::narrowK);
     Function1<A, RIO<R, A>> map = RIO::pure;
@@ -171,10 +171,10 @@ interface RIOMonadDefer<R>
   }
 }
 
-final class ConsoleRIO<R> implements Console<Kind<RIO_, R>> {
+final class RIOConsole<R> implements Console<Kind<RIO_, R>> {
 
   @SuppressWarnings("rawtypes")
-  protected static final ConsoleRIO INSTANCE = new ConsoleRIO();
+  protected static final RIOConsole INSTANCE = new RIOConsole();
 
   private final SystemConsole console = new SystemConsole();
 

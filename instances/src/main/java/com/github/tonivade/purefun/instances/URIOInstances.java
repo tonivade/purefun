@@ -56,7 +56,7 @@ public interface URIOInstances {
   }
 
   static <R> Console<Kind<Kind<URIO_, R>, Throwable>> console() {
-    return ConsoleURIO.INSTANCE;
+    return URIOConsole.INSTANCE;
   }
   
   static <R> Runtime<Kind<URIO_, R>> runtime(R env) {
@@ -121,9 +121,9 @@ interface URIOMonadError<R> extends URIOMonad<R>, MonadError<Kind<URIO_, R>, Thr
   }
 
   @Override
-  default <A> URIO<R, A>
-          handleErrorWith(Kind<Kind<URIO_, R>, A> value,
-                          Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends A>> handler) {
+  default <A> URIO<R, A> handleErrorWith(
+      Kind<Kind<URIO_, R>, A> value,
+      Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<? super Throwable, URIO<R, A>> mapError = handler.andThen(URIOOf::narrowK);
     Function1<A, URIO<R, A>> map = URIO::pure;
@@ -171,10 +171,10 @@ interface URIOMonadDefer<R>
   }
 }
 
-final class ConsoleURIO<R> implements Console<Kind<URIO_, R>> {
+final class URIOConsole<R> implements Console<Kind<URIO_, R>> {
 
   @SuppressWarnings("rawtypes")
-  protected static final ConsoleURIO INSTANCE = new ConsoleURIO();
+  protected static final URIOConsole INSTANCE = new URIOConsole();
 
   private final SystemConsole console = new SystemConsole();
 

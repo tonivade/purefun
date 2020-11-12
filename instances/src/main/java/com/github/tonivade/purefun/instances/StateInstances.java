@@ -29,7 +29,7 @@ public interface StateInstances {
   }
 
   static Console<Kind<State_, ImmutableList<String>>> console() {
-    return ConsoleState.INSTANCE;
+    return StateConsole.INSTANCE;
   }
 }
 
@@ -66,9 +66,9 @@ interface StateMonadState<S> extends MonadState<Kind<State_, S>, S>, StateMonad<
   }
 }
 
-final class ConsoleState implements Console<Kind<State_, ImmutableList<String>>> {
+final class StateConsole implements Console<Kind<State_, ImmutableList<String>>> {
 
-  protected static final ConsoleState INSTANCE = new ConsoleState();
+  protected static final StateConsole INSTANCE = new StateConsole();
 
   @Override
   public State<ImmutableList<String>, String> readln() {

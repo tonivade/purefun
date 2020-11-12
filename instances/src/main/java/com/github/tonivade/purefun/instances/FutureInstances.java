@@ -160,7 +160,8 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {
   }
 
   @Override
-  default <A> Kind<Future_, A> handleErrorWith(Kind<Future_, A> value,
+  default <A> Kind<Future_, A> handleErrorWith(
+      Kind<Future_, A> value,
       Function1<? super Throwable, ? extends Kind<Future_, ? extends A>> handler) {
     return value.fix(toFuture()).fold(handler.andThen(FutureOf::narrowK),
                                       success -> Future.success(executor(), success)).flatMap(identity());
