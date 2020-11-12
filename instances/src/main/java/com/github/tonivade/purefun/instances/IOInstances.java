@@ -68,7 +68,7 @@ public interface IOInstances {
     return ConsoleIO.INSTANCE;
   }
   
-  static Runtime<IO_> io() {
+  static Runtime<IO_> runtime() {
     return IORuntime.INSTANCE;
   }
 }

@@ -4,7 +4,10 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import java.lang.reflect.Field;
+import static java.lang.Character.toLowerCase;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -37,6 +40,10 @@ public abstract class Instance<F extends Witness> {
 
   public Functor<F> functor() {
     return load(this, Functor.class);
+  }
+
+  public Bifunctor<F> bifunctor() {
+    return load(this, Bifunctor.class);
   }
 
   public Applicative<F> applicative() {
@@ -107,6 +114,10 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.functor();
   }
 
+  public static <F extends Witness> Bifunctor<F> bifunctor(Class<F> type) {
+    return new Instance<F>(type) {}.bifunctor();
+  }
+
   public static <F extends Witness> Applicative<F> applicative(Class<F> type) {
     return new Instance<F>(type) {}.applicative();
   }
@@ -171,9 +182,8 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.traverse();
   }
 
-  protected String instanceName(Class<?> typeClass) {
-    return "com.github.tonivade.purefun.instances." 
-        + kindType.getSimpleName().replace("_", "") + typeClass.getSimpleName();
+  protected String instanceName() {
+    return "com.github.tonivade.purefun.instances." + kindType.getSimpleName().replace("_", "Instances");
   }
   
   private static Type genericType(Type type) {
@@ -199,25 +209,28 @@ public abstract class Instance<F extends Witness> {
   }
 
   private static <F extends Witness, T> T load(Instance<F> instance, Class<?> typeClass) {
-    return Try.of(() -> findClass(instance, typeClass))
-      .map(Instance::findField)
+    return Try.of(() -> findClass(instance))
+      .map(clazz -> findMethod(clazz, typeClass))
       .map(Instance::<T>getInstance)
       .mapError(error -> new InstanceNotFoundException(instance.getType(), typeClass, error))
       .getOrElseThrow();
   }
 
-  private static <F extends Witness> Class<?> findClass(Instance<F> instance, Class<?> typeClass)
+  private static <F extends Witness> Class<?> findClass(Instance<F> instance)
       throws ClassNotFoundException {
-    return Class.forName(instance.instanceName(typeClass));
+    return Class.forName(instance.instanceName());
   }
 
-  private static Field findField(Class<?> forName) throws NoSuchFieldException {
-    return forName.getDeclaredField("INSTANCE");
+  private static Method findMethod(Class<?> instanceClass, Class<?> typeClass) 
+      throws NoSuchMethodException {
+    String simpleName = typeClass.getSimpleName();
+    String methodName = toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
+    return instanceClass.getDeclaredMethod(methodName);
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> T getInstance(Field declaredField) throws IllegalAccessException {
-    declaredField.setAccessible(true);
-    return (T) declaredField.get(null);
+  private static <T> T getInstance(Method method) 
+      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    return (T) method.invoke(null);
   }
 }
