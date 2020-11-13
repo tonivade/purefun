@@ -27,7 +27,6 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -79,11 +78,11 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
   }
 
   public Future<A> toFuture(Executor executor) {
-    return instance.toFuture(executor, nothing()).map(Either::get);
+    return instance.toFuture(executor, nothing());
   }
 
   public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, nothing(), result -> callback.accept(result.map(Either::get)));
+    instance.provideAsync(executor, nothing(), callback);
   }
 
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {

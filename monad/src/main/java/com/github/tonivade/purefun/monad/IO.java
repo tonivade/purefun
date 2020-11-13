@@ -25,12 +25,15 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.FutureOf;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
 public interface IO<T> extends IOOf<T>, Recoverable {
@@ -46,7 +49,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   }
 
   default Future<T> toFuture(Executor executor) {
-    return Future.task(executor, this::unsafeRunSync);
+    return foldMap(Instance.async(Future_.class, executor)).fix(FutureOf.toFuture());
   }
 
   default void safeRunAsync(Consumer1<? super Try<? extends T>> callback) {

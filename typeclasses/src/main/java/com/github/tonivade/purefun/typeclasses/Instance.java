@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Try;
@@ -94,6 +96,10 @@ public abstract class Instance<F extends Witness> {
     return load(this, Async.class);
   }
 
+  public Async<F> async(Executor executor) {
+    return load(this, Async.class, executor);
+  }
+
   public Concurrent<F> concurrent() {
     return load(this, Concurrent.class);
   }
@@ -170,6 +176,10 @@ public abstract class Instance<F extends Witness> {
     return new Instance<F>(type) {}.async();
   }
 
+  public static <F extends Witness> Async<F> async(Class<F> type, Executor executor) {
+    return new Instance<F>(type) {}.async(executor);
+  }
+
   public static <F extends Witness> Concurrent<F> concurrent(Class<F> type) {
     return new Instance<F>(type) {}.concurrent();
   }
@@ -216,10 +226,10 @@ public abstract class Instance<F extends Witness> {
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
   }
 
-  private static <F extends Witness, T> T load(Instance<F> instance, Class<?> typeClass) {
+  private static <F extends Witness, T> T load(Instance<F> instance, Class<?> typeClass, Object... args) {
     return Try.of(() -> findClass(instance))
-      .map(clazz -> findMethod(clazz, typeClass))
-      .map(Instance::<T>getInstance)
+      .map(clazz -> findMethod(clazz, typeClass, args))
+      .map(method -> Instance.<T>getInstance(method, args))
       .mapError(error -> new InstanceNotFoundException(instance.getType(), typeClass, error))
       .getOrElseThrow();
   }
@@ -229,16 +239,20 @@ public abstract class Instance<F extends Witness> {
     return Class.forName(instance.instanceName());
   }
 
-  private static Method findMethod(Class<?> instanceClass, Class<?> typeClass) 
+  private static Method findMethod(Class<?> instanceClass, Class<?> typeClass, Object... args) 
       throws NoSuchMethodException {
     String simpleName = typeClass.getSimpleName();
     String methodName = toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
-    return instanceClass.getDeclaredMethod(methodName);
+    return Arrays.stream(instanceClass.getDeclaredMethods())
+        .filter(m -> m.getName().equals(methodName))
+        .filter(m -> m.getParameterCount() == args.length)
+        .findFirst()
+        .orElseThrow(NoSuchMethodException::new);
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> T getInstance(Method method) 
+  private static <T> T getInstance(Method method, Object...args) 
       throws IllegalAccessException, InvocationTargetException {
-    return (T) method.invoke(null);
+    return (T) method.invoke(null, args);
   }
 }

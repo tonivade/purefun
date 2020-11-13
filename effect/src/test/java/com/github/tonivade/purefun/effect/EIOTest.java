@@ -43,7 +43,7 @@ import com.github.tonivade.purefun.typeclasses.Async;
 public class EIOTest {
 
   @Captor
-  private ArgumentCaptor<Try<Either<Throwable, Integer>>> captor;
+  private ArgumentCaptor<Try<Integer>> captor;
 
   @Test
   public void mapRight() {
@@ -143,19 +143,19 @@ public class EIOTest {
   }
 
   @Test
-  public void asyncRight(@Mock Consumer1<? super Try<? extends Either<Throwable, ? extends Integer>>> callback) {
+  public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("1").safeRunAsync(callback);
 
-    verify(callback, timeout(500)).accept(Try.success(Either.right(1)));
+    verify(callback, timeout(500)).accept(Try.success(1));
   }
 
   @Test
-  public void asyncLeft(@Mock Consumer1<? super Try<? extends Either<Throwable, ? extends Integer>>> callback) {
+  public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(500)).accept(captor.capture());
 
-    assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
+    assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
   }
 
   @Test

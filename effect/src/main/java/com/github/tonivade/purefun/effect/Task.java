@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
@@ -66,16 +65,16 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return Try.fromEither(instance.provide(nothing()));
   }
 
-  public Future<Try<A>> toFuture() {
+  public Future<A> toFuture() {
     return toFuture(Future.DEFAULT_EXECUTOR);
   }
 
-  public Future<Try<A>> toFuture(Executor executor) {
-    return instance.toFuture(executor, nothing()).map(Try::fromEither);
+  public Future<A> toFuture(Executor executor) {
+    return instance.toFuture(executor, nothing());
   }
 
   public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, nothing(), result -> callback.accept(flatAbsorb(result)));
+    instance.provideAsync(executor, nothing(), callback::accept);
   }
 
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
@@ -290,9 +289,5 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
 
   public static Task<Unit> unit() {
     return UNIT;
-  }
-
-  private Try<A> flatAbsorb(Try<? extends Either<Throwable, ? extends A>> result) {
-    return result.map(Try::fromEither).flatMap(identity());
   }
 }

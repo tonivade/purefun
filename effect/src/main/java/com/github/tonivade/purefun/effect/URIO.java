@@ -26,7 +26,6 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -68,11 +67,11 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
   }
 
   public Future<A> toFuture(Executor executor, R env) {
-    return instance.toFuture(executor, env).map(Either::get);
+    return instance.toFuture(executor, env);
   }
 
   public void safeRunAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, env, result -> callback.accept(result.map(Either::get)));
+    instance.provideAsync(executor, env, callback);
   }
 
   public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {

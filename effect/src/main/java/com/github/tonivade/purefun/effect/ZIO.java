@@ -30,33 +30,34 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.FutureOf;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
 public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   Either<E, A> provide(R env);
 
-  default Future<Either<E, A>> toFuture(R env) {
+  default Future<A> toFuture(R env) {
     return toFuture(Future.DEFAULT_EXECUTOR, env);
   }
 
-  default Future<Either<E, A>> toFuture(Executor executor, R env) {
-    return Future.task(executor, () -> provide(env));
+  default Future<A> toFuture(Executor executor, R env) {
+    return foldMap(env, Instance.async(Future_.class, executor)).fix(FutureOf.toFuture());
   }
 
-  default void provideAsync(R env, 
-      Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
+  default void provideAsync(R env, Consumer1<? super Try<? extends A>> callback) {
     provideAsync(Future.DEFAULT_EXECUTOR, env, callback);
   }
 
-  default void provideAsync(Executor executor, R env, 
-      Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
+  default void provideAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
     toFuture(executor, env).onComplete(callback);
   }
 
