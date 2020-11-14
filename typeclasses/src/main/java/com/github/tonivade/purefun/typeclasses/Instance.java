@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.data.Sequence.zip;
 import static java.lang.Character.toLowerCase;
 
 import java.lang.reflect.InvocationTargetException;
@@ -254,6 +256,7 @@ public abstract class Instance<F extends Witness> {
     return Arrays.stream(instanceClass.getDeclaredMethods())
         .filter(m -> m.getName().equals(methodName))
         .filter(m -> m.getParameterCount() == args.length)
+        .filter(m -> zip(listOf(m.getParameterTypes()), listOf(args)).allMatch(tuple -> tuple.applyTo(Class::isInstance)))
         .findFirst()
         .orElseThrow(NoSuchMethodException::new);
   }
