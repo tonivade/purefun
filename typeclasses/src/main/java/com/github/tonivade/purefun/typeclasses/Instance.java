@@ -52,6 +52,10 @@ public abstract class Instance<F extends Witness> {
     return load(this, Applicative.class);
   }
 
+  public <E> Applicative<F> applicative(Semigroup<E> semigroup) {
+    return load(this, Applicative.class, semigroup);
+  }
+
   public Monad<F> monad() {
     return load(this, Monad.class);
   }
@@ -130,6 +134,10 @@ public abstract class Instance<F extends Witness> {
 
   public static <F extends Witness> Applicative<F> applicative(Class<F> type) {
     return new Instance<F>(type) {}.applicative();
+  }
+
+  public static <F extends Witness, E> Applicative<F> applicative(Class<F> type, Semigroup<E> semigroup) {
+    return new Instance<F>(type) {}.applicative(semigroup);
   }
 
   public static <F extends Witness> Monad<F> monad(Class<F> type) {
