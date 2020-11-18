@@ -13,7 +13,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Try;
@@ -42,172 +41,156 @@ public abstract class Instance<F extends Witness> {
     return type;
   }
 
-  public Functor<F> functor() {
-    return load(this, Functor.class);
+  public Functor<F> functor(Object...params) {
+    return load(this, Functor.class, params);
   }
 
-  public Bifunctor<F> bifunctor() {
-    return load(this, Bifunctor.class);
+  public Bifunctor<F> bifunctor(Object...params) {
+    return load(this, Bifunctor.class, params);
   }
 
-  public Applicative<F> applicative() {
-    return load(this, Applicative.class);
+  public Applicative<F> applicative(Object...params) {
+    return load(this, Applicative.class, params);
   }
 
-  public <E> Applicative<F> applicative(Semigroup<E> semigroup) {
-    return load(this, Applicative.class, semigroup);
+  public Monad<F> monad(Object...params) {
+    return load(this, Monad.class, params);
   }
 
-  public Monad<F> monad() {
-    return load(this, Monad.class);
+  public <R> MonadReader<F, R> monadReader(Object...params) {
+    return load(this, MonadReader.class, params);
   }
 
-  public <R> MonadReader<F, R> monadReader() {
-    return load(this, MonadReader.class);
+  public <S> MonadState<F, S> monadState(Object...params) {
+    return load(this, MonadState.class, params);
   }
 
-  public <S> MonadState<F, S> monadState() {
-    return load(this, MonadState.class);
+  public <W> MonadWriter<F, W> monadWriter(Object...params) {
+    return load(this, MonadWriter.class, params);
   }
 
-  public <W> MonadWriter<F, W> monadWriter() {
-    return load(this, MonadWriter.class);
+  public Comonad<F> comonad(Object...params) {
+    return load(this, Comonad.class, params);
   }
 
-  public Comonad<F> comonad() {
-    return load(this, Comonad.class);
+  public Selective<F> selective(Object...params) {
+    return load(this, Selective.class, params);
   }
 
-  public Selective<F> selective() {
-    return load(this, Selective.class);
+  public <E> ApplicativeError<F, E> applicativeError(Object...params) {
+    return load(this, ApplicativeError.class, params);
   }
 
-  public <E> ApplicativeError<F, E> applicativeError() {
-    return load(this, ApplicativeError.class);
+  public <E> MonadError<F, E> monadError(Object...params) {
+    return load(this, MonadError.class, params);
   }
 
-  public <E> MonadError<F, E> monadError() {
-    return load(this, MonadError.class);
+  public MonadThrow<F> monadThrow(Object...params) {
+    return load(this, MonadThrow.class, params);
   }
 
-  public MonadThrow<F> monadThrow() {
-    return load(this, MonadThrow.class);
+  public MonadDefer<F> monadDefer(Object...params) {
+    return load(this, MonadDefer.class, params);
   }
 
-  public MonadDefer<F> monadDefer() {
-    return load(this, MonadDefer.class);
+  public Async<F> async(Object...params) {
+    return load(this, Async.class, params);
   }
 
-  public Async<F> async() {
-    return load(this, Async.class);
+  public Concurrent<F> concurrent(Object...params) {
+    return load(this, Concurrent.class, params);
   }
 
-  public Async<F> async(Executor executor) {
-    return load(this, Async.class, executor);
+  public Runtime<F> runtime(Object...params) {
+    return load(this, Runtime.class, params);
   }
 
-  public Concurrent<F> concurrent() {
-    return load(this, Concurrent.class);
+  public Console<F> console(Object...params) {
+    return load(this, Console.class, params);
   }
 
-  public Runtime<F> runtime() {
-    return load(this, Runtime.class);
+  public Foldable<F> foldable(Object...params) {
+    return load(this, Foldable.class, params);
   }
 
-  public Console<F> console() {
-    return load(this, Console.class);
+  public Traverse<F> traverse(Object...params) {
+    return load(this, Traverse.class, params);
   }
 
-  public Foldable<F> foldable() {
-    return load(this, Foldable.class);
+  public static <F extends Witness> Functor<F> functor(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.functor(params);
   }
 
-  public Traverse<F> traverse() {
-    return load(this, Traverse.class);
+  public static <F extends Witness> Bifunctor<F> bifunctor(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.bifunctor(params);
   }
 
-  public static <F extends Witness> Functor<F> functor(Class<F> type) {
-    return new Instance<F>(type) {}.functor();
+  public static <F extends Witness> Applicative<F> applicative(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.applicative(params);
   }
 
-  public static <F extends Witness> Bifunctor<F> bifunctor(Class<F> type) {
-    return new Instance<F>(type) {}.bifunctor();
+  public static <F extends Witness> Monad<F> monad(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monad(params);
   }
 
-  public static <F extends Witness> Applicative<F> applicative(Class<F> type) {
-    return new Instance<F>(type) {}.applicative();
+  public static <F extends Witness, R> MonadReader<F, R> monadReader(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monadReader(params);
   }
 
-  public static <F extends Witness, E> Applicative<F> applicative(Class<F> type, Semigroup<E> semigroup) {
-    return new Instance<F>(type) {}.applicative(semigroup);
+  public static <F extends Witness, S> MonadState<F, S> monadState(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monadState(params);
   }
 
-  public static <F extends Witness> Monad<F> monad(Class<F> type) {
-    return new Instance<F>(type) {}.monad();
+  public static <F extends Witness, W> MonadWriter<F, W> monadWriter(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monadWriter(params);
   }
 
-  public static <F extends Witness, R> MonadReader<F, R> monadReader(Class<F> type) {
-    return new Instance<F>(type) {}.monadReader();
+  public static <F extends Witness> Comonad<F> comonad(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.comonad(params);
   }
 
-  public static <F extends Witness, S> MonadState<F, S> monadState(Class<F> type) {
-    return new Instance<F>(type) {}.monadState();
+  public static <F extends Witness> Selective<F> selective(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.selective(params);
   }
 
-  public static <F extends Witness, W> MonadWriter<F, W> monadWriter(Class<F> type) {
-    return new Instance<F>(type) {}.monadWriter();
+  public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.applicativeError(params);
   }
 
-  public static <F extends Witness> Comonad<F> comonad(Class<F> type) {
-    return new Instance<F>(type) {}.comonad();
+  public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monadError(params);
   }
 
-  public static <F extends Witness> Selective<F> selective(Class<F> type) {
-    return new Instance<F>(type) {}.selective();
+  public static <F extends Witness> MonadThrow<F> monadThrow(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monadThrow(params);
   }
 
-  public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(Class<F> type) {
-    return new Instance<F>(type) {}.applicativeError();
+  public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.monadDefer(params);
   }
 
-  public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type) {
-    return new Instance<F>(type) {}.monadError();
+  public static <F extends Witness> Async<F> async(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.async(params);
   }
 
-  public static <F extends Witness> MonadThrow<F> monadThrow(Class<F> type) {
-    return new Instance<F>(type) {}.monadThrow();
+  public static <F extends Witness> Concurrent<F> concurrent(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.concurrent(params);
   }
 
-  public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type) {
-    return new Instance<F>(type) {}.monadDefer();
+  public static <F extends Witness> Runtime<F> runtime(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.runtime(params);
   }
 
-  public static <F extends Witness> Async<F> async(Class<F> type) {
-    return new Instance<F>(type) {}.async();
+  public static <F extends Witness> Console<F> console(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.console(params);
   }
 
-  public static <F extends Witness> Async<F> async(Class<F> type, Executor executor) {
-    return new Instance<F>(type) {}.async(executor);
+  public static <F extends Witness> Foldable<F> foldable(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.foldable(params);
   }
 
-  public static <F extends Witness> Concurrent<F> concurrent(Class<F> type) {
-    return new Instance<F>(type) {}.concurrent();
-  }
-
-  public static <F extends Witness> Runtime<F> runtime(Class<F> type) {
-    return new Instance<F>(type) {}.runtime();
-  }
-
-  public static <F extends Witness> Console<F> console(Class<F> type) {
-    return new Instance<F>(type) {}.console();
-  }
-
-  public static <F extends Witness> Foldable<F> foldable(Class<F> type) {
-    return new Instance<F>(type) {}.foldable();
-  }
-
-  public static <F extends Witness> Traverse<F> traverse(Class<F> type) {
-    return new Instance<F>(type) {}.traverse();
+  public static <F extends Witness> Traverse<F> traverse(Class<F> type, Object...params) {
+    return new Instance<F>(type) {}.traverse(params);
   }
 
   protected String instanceName() {
