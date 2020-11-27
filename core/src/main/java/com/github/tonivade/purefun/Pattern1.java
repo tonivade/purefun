@@ -25,6 +25,11 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
     return handler -> add(matcher, handler);
   }
 
+  @SuppressWarnings("unchecked")
+  public <T> ThenStep<Pattern1<A, R>, T, R> when(Class<T> type) {
+    return handler -> add(Matcher1.instanceOf(type), value -> handler.apply((T) value));
+  }
+
   public ThenStep<Pattern1<A, R>, A, R> otherwise() {
     return handler -> add(Matcher1.otherwise(), handler);
   }

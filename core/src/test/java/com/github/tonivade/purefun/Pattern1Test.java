@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.data.ImmutableArray;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.ImmutableSet;
-import com.github.tonivade.purefun.data.Sequence;
 
 public class Pattern1Test {
 
@@ -39,17 +38,13 @@ public class Pattern1Test {
 
   @Test
   public void instanceOfWithTypeParams() {
-    Matcher1<Sequence<?>> isList = Matcher1.instanceOf(ImmutableList.class);
-    Matcher1<Sequence<?>> isSet = Matcher1.instanceOf(ImmutableSet.class);
-    Matcher1<Sequence<?>> isArray = Matcher1.instanceOf(ImmutableArray.class);
-
-    Pattern1<Sequence<?>, String> pattern = Pattern1.<Sequence<?>, String>build()
-        .when(isList).returns("is a list")
-        .when(isSet).returns("is a set")
-        .when(isArray).returns("is an array")
+    Pattern1<Object, String> pattern = Pattern1.<Object, String>build()
+        .when(ImmutableList.class).then(list -> "is a list of size " + list.size())
+        .when(ImmutableSet.class).returns("is a set")
+        .when(ImmutableArray.class).returns("is an array")
         .otherwise().returns("something else");
 
-    assertAll(() -> assertEquals("is a list", pattern.apply(listOf("1"))),
+    assertAll(() -> assertEquals("is a list of size 1", pattern.apply(listOf("1"))),
               () -> assertEquals("is a set", pattern.apply(setOf("a"))),
               () -> assertEquals("is an array", pattern.apply(arrayOf("a"))),
               () -> assertEquals("something else", pattern.apply(null)));
