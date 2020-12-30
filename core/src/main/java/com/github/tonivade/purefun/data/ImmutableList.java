@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -17,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -78,7 +78,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   static <T> ImmutableList<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableList<>(stream.collect(toCollection(LinkedList::new)));
+    return new JavaBasedImmutableList<>(stream.collect(Collectors.toCollection(LinkedList::new)));
   }
 
   @SafeVarargs
@@ -92,7 +92,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   static <E> Collector<E, ?, ImmutableList<E>> toImmutableList() {
-    return collectingAndThen(toCollection(LinkedList::new), JavaBasedImmutableList::new);
+    return collectingAndThen(Collectors.toCollection(LinkedList::new), JavaBasedImmutableList::new);
   }
 
   final class JavaBasedImmutableList<E> implements ImmutableList<E>, Serializable {
@@ -151,14 +151,14 @@ public interface ImmutableList<E> extends Sequence<E> {
     @Override
     public ImmutableList<E> appendAll(Sequence<? extends E> other) {
       LinkedList<E> newList = copy();
-      newList.addAll(new SequenceCollection<>(other));
+      newList.addAll(other.toCollection());
       return new JavaBasedImmutableList<>(newList);
     }
 
     @Override
     public ImmutableList<E> removeAll(Sequence<? extends E> other) {
       LinkedList<E> newList = copy();
-      newList.removeAll(new SequenceCollection<>(other));
+      newList.removeAll(other.toCollection());
       return new JavaBasedImmutableList<>(newList);
     }
 

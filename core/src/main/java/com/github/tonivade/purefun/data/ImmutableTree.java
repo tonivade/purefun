@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableNavigableSet;
 import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -15,6 +14,7 @@ import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -73,7 +73,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableTree<>(stream.collect(toCollection(TreeSet::new)));
+    return new JavaBasedImmutableTree<>(stream.collect(Collectors.toCollection(TreeSet::new)));
   }
 
   @SafeVarargs
@@ -87,7 +87,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <E> Collector<E, ?, ImmutableTree<E>> toImmutableTree() {
-    return collectingAndThen(toCollection(TreeSet::new), JavaBasedImmutableTree::new);
+    return collectingAndThen(Collectors.toCollection(TreeSet::new), JavaBasedImmutableTree::new);
   }
 
   final class JavaBasedImmutableTree<E> implements ImmutableTree<E>, Serializable {
@@ -137,14 +137,14 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public ImmutableTree<E> appendAll(Sequence<? extends E> other) {
       TreeSet<E> newSet = copy();
-      newSet.addAll(new SequenceCollection<>(other));
+      newSet.addAll(other.toCollection());
       return new JavaBasedImmutableTree<>(newSet);
     }
 
     @Override
     public ImmutableTree<E> removeAll(Sequence<? extends E> other) {
       TreeSet<E> newSet = copy();
-      newSet.removeAll(new SequenceCollection<>(other));
+      newSet.removeAll(other.toCollection());
       return new JavaBasedImmutableTree<>(newSet);
     }
 

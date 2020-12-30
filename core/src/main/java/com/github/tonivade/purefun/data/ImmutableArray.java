@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -75,7 +75,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableArray<>(stream.collect(toCollection(ArrayList::new)));
+    return new JavaBasedImmutableArray<>(stream.collect(Collectors.toCollection(ArrayList::new)));
   }
 
   @SafeVarargs
@@ -89,7 +89,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <E> Collector<E, ?, ImmutableArray<E>> toImmutableArray() {
-    return collectingAndThen(toCollection(ArrayList::new), JavaBasedImmutableArray::new);
+    return collectingAndThen(Collectors.toCollection(ArrayList::new), JavaBasedImmutableArray::new);
   }
 
   final class JavaBasedImmutableArray<E> implements ImmutableArray<E>, Serializable {
@@ -153,14 +153,14 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> appendAll(Sequence<? extends E> other) {
       ArrayList<E> list = copy();
-      list.addAll(new SequenceCollection<>(other));
+      list.addAll(other.toCollection());
       return new JavaBasedImmutableArray<>(list);
     }
 
     @Override
     public ImmutableArray<E> removeAll(Sequence<? extends E> other) {
       ArrayList<E> list = copy();
-      list.removeAll(new SequenceCollection<>(other));
+      list.removeAll(other.toCollection());
       return new JavaBasedImmutableArray<>(list);
     }
 
@@ -193,7 +193,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> insertAll(int position, Sequence<? extends E> elements) {
       ArrayList<E> list = copy();
-      list.addAll(position, new SequenceCollection<>(elements));
+      list.addAll(position, elements.toCollection());
       return new JavaBasedImmutableArray<>(list);
     }
 

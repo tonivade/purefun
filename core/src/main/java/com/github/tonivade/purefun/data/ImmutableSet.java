@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -15,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -66,7 +66,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   static <T> ImmutableSet<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableSet<>(stream.collect(toCollection(LinkedHashSet::new)));
+    return new JavaBasedImmutableSet<>(stream.collect(Collectors.toCollection(LinkedHashSet::new)));
   }
 
   @SafeVarargs
@@ -80,7 +80,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   static <E> Collector<E, ?, ImmutableSet<E>> toImmutableSet() {
-    return collectingAndThen(toCollection(LinkedHashSet::new), JavaBasedImmutableSet::new);
+    return collectingAndThen(Collectors.toCollection(LinkedHashSet::new), JavaBasedImmutableSet::new);
   }
 
   final class JavaBasedImmutableSet<E> implements ImmutableSet<E>, Serializable {
@@ -130,14 +130,14 @@ public interface ImmutableSet<E> extends Sequence<E> {
     @Override
     public ImmutableSet<E> appendAll(Sequence<? extends E> other) {
       LinkedHashSet<E> newSet = copy();
-      newSet.addAll(new SequenceCollection<>(other));
+      newSet.addAll(other.toCollection());
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
     public ImmutableSet<E> removeAll(Sequence<? extends E> other) {
       LinkedHashSet<E> newSet = copy();
-      newSet.removeAll(new SequenceCollection<>(other));
+      newSet.removeAll(other.toCollection());
       return new JavaBasedImmutableSet<>(newSet);
     }
 
@@ -149,14 +149,14 @@ public interface ImmutableSet<E> extends Sequence<E> {
     @Override
     public ImmutableSet<E> intersection(ImmutableSet<? extends E> other) {
       LinkedHashSet<E> newSet = copy();
-      newSet.retainAll(new SequenceCollection<>(other));
+      newSet.retainAll(other.toCollection());
       return new JavaBasedImmutableSet<>(newSet);
     }
 
     @Override
     public ImmutableSet<E> difference(ImmutableSet<? extends E> other) {
       LinkedHashSet<E> newSet = copy();
-      newSet.removeAll(new SequenceCollection<>(other));
+      newSet.removeAll(other.toCollection());
       return new JavaBasedImmutableSet<>(newSet);
     }
 

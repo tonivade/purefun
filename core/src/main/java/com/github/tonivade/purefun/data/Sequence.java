@@ -55,6 +55,10 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
   Sequence<E> filter(Matcher1<? super E> matcher);
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
+  
+  default Collection<E> toCollection() {
+    return new SequenceCollection<>(this);
+  }
 
   default Option<E> reduce(Operator2<E> operator) {
     return Option.from(stream().reduce(operator::apply));
