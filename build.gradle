@@ -3,8 +3,8 @@ apply from: 'gradle/deps.gradle'
 buildscript {
   ext {
     nexusPlugin = '2.3.1'
-    sonarPlugin = '3.0'
-    aptPlugin = '3.25.0'
+    sonarPlugin = '3.1.1'
+    aptPlugin = '3.27.0'
   }
 
   repositories {
