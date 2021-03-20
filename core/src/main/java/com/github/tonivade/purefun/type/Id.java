@@ -10,6 +10,7 @@ import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 
 /**
  * <p>This is the identity monad. It only wraps the value and nothing more.</p>
@@ -34,7 +35,7 @@ public final class Id<T> implements IdOf<T>, Serializable {
     return flatMap(map.andThen(Id::of));
   }
 
-  public <R> Id<R> flatMap(Function1<? super T, ? extends Id<? extends R>> map) {
+  public <R> Id<R> flatMap(Function1<? super T, ? extends Kind<Id_, ? extends R>> map) {
     return map.andThen(IdOf::<R>narrowK).apply(value);
   }
 

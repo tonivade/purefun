@@ -20,6 +20,7 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
@@ -83,7 +84,7 @@ public interface Option<T> extends OptionOf<T> {
     return none();
   }
 
-  default <R> Option<R> flatMap(Function1<? super T, ? extends Option<? extends R>> map) {
+  default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
     if (isPresent()) {
       return map.andThen(OptionOf::<R>narrowK).apply(get());
     }

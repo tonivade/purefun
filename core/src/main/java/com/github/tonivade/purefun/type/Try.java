@@ -18,6 +18,7 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
@@ -124,9 +125,9 @@ public interface Try<T> extends TryOf<T> {
   }
 
   @SuppressWarnings("unchecked")
-  default <R> Try<R> flatMap(Function1<? super T, ? extends Try<? extends R>> mapper) {
+  default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try_, ? extends R>> mapper) {
     if (isSuccess()) {
-      return (Try<R>) mapper.apply(get());
+      return mapper.andThen(TryOf::<R>narrowK).apply(get());
     }
     return (Try<R>) this;
   }
@@ -171,12 +172,11 @@ public interface Try<T> extends TryOf<T> {
     return filter(matcher.negate());
   }
 
-  @SuppressWarnings("unchecked")
-  default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Try<? extends T>> producer) {
+  default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Try_, ? extends T>> producer) {
     if (isFailure() || matcher.match(get())) {
       return this;
     }
-    return (Try<T>) producer.get();
+    return producer.andThen(TryOf::<T>narrowK).get();
   }
 
   default <U> U fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
@@ -186,9 +186,9 @@ public interface Try<T> extends TryOf<T> {
     return failureMapper.apply(getCause());
   }
 
-  default Try<T> orElse(Try<T> orElse) {
+  default Try<T> orElse(Kind<Try_, T> orElse) {
     if (isFailure()) {
-      return orElse;
+      return (Try<T>) orElse;
     }
     return this;
   }

@@ -7,16 +7,15 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
@@ -105,15 +104,15 @@ public interface Either<L, R> extends EitherOf<L, R> {
   }
 
   @SuppressWarnings("unchecked")
-  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Either<L, ? extends T>> map) {
+  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Kind<Either_, L>, ? extends T>> map) {
     if (isRight()) {
-      return (Either<L, T>) map.apply(getRight());
+      return map.andThen(EitherOf::<L, T>narrowK).apply(getRight());
     }
     return (Either<L, T>) this;
   }
 
   @SuppressWarnings("unchecked")
-  default <T> Either<T, R> flatMapLeft(Function1<? super L, ? extends  Either<? extends T, R>> map) {
+  default <T> Either<T, R> flatMapLeft(Function1<? super L, ? extends Either<? extends T, R>> map) {
     if (isLeft()) {
       return (Either<T, R>) map.apply(getLeft());
     }
@@ -131,11 +130,11 @@ public interface Either<L, R> extends EitherOf<L, R> {
     return filter(matcher.negate());
   }
 
-  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Either<L, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Kind<Kind<Either_, L>, R>> orElse) {
     if (isLeft() || matcher.match(getRight())) {
       return this;
     }
-    return orElse.get();
+    return orElse.andThen(EitherOf::narrowK).get();
   }
 
   default Either<L, R> orElse(Either<L, R> orElse) {
