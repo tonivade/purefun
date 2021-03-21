@@ -11,6 +11,14 @@ package com.github.tonivade.purefun;
 public interface CheckedRunnable extends Recoverable {
 
   void run() throws Throwable;
+  
+  default void exec() {
+    try {
+      run();
+    } catch (Throwable e) {
+      sneakyThrow(e);
+    }
+  }
 
   default Producer<Unit> asProducer() {
     return () -> { run(); return Unit.unit(); };

@@ -11,37 +11,34 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 @ExtendWith(MockitoExtension.class)
-public class PromiseTest {
+class PromiseTest {
 
   private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
   @Test
-  public void notCompleted() {
+  void notCompleted() {
     Promise<String> promise = Promise.make();
 
     assertFalse(promise.isCompleted());
   }
 
   @Test
-  public void success() {
+  void success() {
     String value = "hola mundo!";
     Promise<String> promise = Promise.<String>make().succeeded(value);
 
@@ -50,7 +47,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void failure() {
+  void failure() {
     IllegalAccessException error = new IllegalAccessException();
     Promise<String> promise = Promise.<String>make().failed(error);
 
@@ -59,7 +56,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void onCompleteBefore(@Mock Consumer1<? super Try<? extends String>> consumer) {
+  void onCompleteBefore(@Mock Consumer1<? super Try<? extends String>> consumer) {
     Try<String> value = Try.success("hola mundo!");
     Promise<String> promise = Promise.make();
 
@@ -70,7 +67,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void onCompleteAfter(@Mock Consumer1<? super Try<? extends String>> consumer) {
+  void onCompleteAfter(@Mock Consumer1<? super Try<? extends String>> consumer) {
     Try<String> value = Try.success("hola mundo!");
     Promise<String> promise = Promise.make();
 
@@ -81,14 +78,14 @@ public class PromiseTest {
   }
 
   @Test
-  public void alreadyCompleted() {
+  void alreadyCompleted() {
     Promise<String> promise = Promise.<String>make().succeeded("hola mundo!");
 
     assertThrows(IllegalStateException.class, () -> promise.failed(new UnsupportedOperationException()));
   }
 
   @Test
-  public void getTimeout() {
+  void getTimeout() {
     Promise<String> promise = Promise.make();
 
     Try<String> result = promise.await(Duration.ofMillis(500));
@@ -98,7 +95,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void get() {
+  void get() {
     Promise<String> promise = Promise.make();
     Try<String> value = Try.success("hello world!");
 
@@ -108,7 +105,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void map() {
+  void map() {
     Promise<String> promise = Promise.make();
     Promise<String> map = promise.map(String::toUpperCase);
     Try<String> value = Try.success("hello world!");
@@ -119,7 +116,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void getInterrupted() throws InterruptedException {
+  void getInterrupted() throws InterruptedException {
     Promise<String> promise = Promise.make();
     Promise<String> other = Promise.make();
 
@@ -133,7 +130,7 @@ public class PromiseTest {
   }
 
   @Test
-  public void getInterruptedTimeout() throws InterruptedException {
+  void getInterruptedTimeout() throws InterruptedException {
     Promise<String> promise = Promise.make();
     Promise<String> other = Promise.make();
 
@@ -146,11 +143,11 @@ public class PromiseTest {
 
     Try<String> result = other.await();
     assertTrue(result.isFailure());
-    assertTrue(result.getCause() instanceof InterruptedException);
+    assertEquals(InterruptedException.class, result.getCause().getClass());
   }
 
   @Test
-  public void toFuture() {
+  void toFuture() {
     Promise<String> promise = Promise.<String>make().succeeded("hola mundo!");
 
     Try<String> result = promise.await();

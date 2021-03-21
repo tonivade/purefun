@@ -18,6 +18,7 @@ import java.util.stream.StreamSupport;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -50,7 +51,7 @@ public interface Sequence<E> extends SequenceOf<E>, Iterable<E> {
 
   <R> Sequence<R> map(Function1<? super E, ? extends R> mapper);
 
-  <R> Sequence<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper);
+  <R> Sequence<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper);
 
   Sequence<E> filter(Matcher1<? super E> matcher);
 

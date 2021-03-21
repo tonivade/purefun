@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
@@ -40,8 +41,8 @@ public interface Par<T> extends ParOf<T> {
     return executor -> apply(executor).map(mapper);
   }
 
-  default <R> Par<R> flatMap(Function1<? super T, ? extends Par<? extends R>> mapper) {
-    return executor -> apply(executor).flatMap(value -> mapper.apply(value).apply(executor));
+  default <R> Par<R> flatMap(Function1<? super T, ? extends Kind<Par_, ? extends R>> mapper) {
+    return executor -> apply(executor).flatMap(value -> mapper.andThen(ParOf::narrowK).apply(value).apply(executor));
   }
 
   default <R> Par<R> andThen(Par<? extends R> next) {
@@ -86,12 +87,12 @@ public interface Par<T> extends ParOf<T> {
     return executor -> Future.task(executor, producer);
   }
 
-  static <T> Par<T> defer(Producer<? extends Par<? extends T>> producer) {
-    return executor -> Future.defer(executor, () -> producer.get().apply(executor));
+  static <T> Par<T> defer(Producer<? extends Kind<Par_, ? extends T>> producer) {
+    return executor -> Future.defer(executor, () -> producer.andThen(ParOf::narrowK).get().apply(executor));
   }
 
   static <T> Par<T> later(Producer<? extends T> producer) {
-    return executor -> Future.later(executor, () -> producer.get());
+    return executor -> Future.later(executor, producer::get);
   }
 
   static Par<Unit> run(CheckedRunnable runnable) {
