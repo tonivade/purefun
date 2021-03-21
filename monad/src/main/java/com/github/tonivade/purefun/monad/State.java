@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.data.ImmutableList.empty;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
@@ -24,7 +25,7 @@ public interface State<S, A> extends StateOf<S, A> {
     return flatMap(value -> pure(mapper.apply(value)));
   }
 
-  default <R> State<S, R> flatMap(Function1<? super A, ? extends State<S, ? extends R>> mapper) {
+  default <R> State<S, R> flatMap(Function1<? super A, ? extends Kind<Kind<State_, S>, ? extends R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
       State<S, R> narrowK = mapper.andThen(StateOf::<S, R>narrowK).apply(run.get2());

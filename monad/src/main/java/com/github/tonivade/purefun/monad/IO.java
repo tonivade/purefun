@@ -66,15 +66,15 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return flatMap(map.andThen(IO::pure));
   }
 
-  default <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
+  default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
     return new FlatMapped<>(Producer.cons(this), map);
   }
 
-  default <R> IO<R> andThen(IO<? extends R> after) {
+  default <R> IO<R> andThen(Kind<IO_, ? extends R> after) {
     return flatMap(ignore -> after);
   }
 
-  default <R> IO<R> ap(IO<Function1<? super T, ? extends R>> apply) {
+  default <R> IO<R> ap(Kind<IO_, Function1<? super T, ? extends R>> apply) {
     return new Apply<>(this, apply);
   }
 
@@ -250,21 +250,21 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   final class Apply<A, B> implements SealedIO<B> {
     
     private final IO<? extends A> value;
-    private final IO<Function1<? super A, ? extends B>> apply;
+    private final Kind<IO_, Function1<? super A, ? extends B>> apply;
 
-    protected Apply(IO<? extends A> value, IO<Function1<? super A, ? extends B>> apply) {
+    protected Apply(IO<? extends A> value, Kind<IO_, Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
 
     @Override
     public B unsafeRunSync() {
-      return IOModule.evaluate(value.flatMap(a -> apply.map(map -> map.apply(a))));
+      return IOModule.evaluate(value.flatMap(a -> apply.fix(IOOf.toIO()).map(map -> map.apply(a))));
     }
     
     @Override
     public <F extends Witness> Kind<F, B> foldMap(Async<F> monad) {
-      return monad.ap(value.foldMap(monad), apply.foldMap(monad));
+      return monad.ap(value.foldMap(monad), apply.fix(IOOf.toIO()).foldMap(monad));
     }
     
     @Override
@@ -275,11 +275,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class FlatMapped<T, R> implements SealedIO<R> {
 
-    private final Producer<? extends IO<? extends T>> current;
-    private final Function1<? super T, ? extends IO<? extends R>> next;
+    private final Producer<? extends Kind<IO_, ? extends T>> current;
+    private final Function1<? super T, ? extends Kind<IO_, ? extends R>> next;
 
-    protected FlatMapped(Producer<? extends IO<? extends T>> current,
-                         Function1<? super T, ? extends IO<? extends R>> next) {
+    protected FlatMapped(Producer<? extends Kind<IO_, ? extends T>> current,
+                         Function1<? super T, ? extends Kind<IO_, ? extends R>> next) {
       this.current = checkNonNull(current);
       this.next = checkNonNull(next);
     }
@@ -291,13 +291,14 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
-      return monad.flatMap(current.get().foldMap(monad), next.andThen(io -> io.foldMap(monad)));
+      return monad.flatMap(
+        current.andThen(IOOf::<T>narrowK).get().foldMap(monad), 
+        next.andThen(IOOf::<R>narrowK).andThen(io -> io.foldMap(monad)));
     }
 
-    @SuppressWarnings("cast")
     @Override
-    public <R1> IO<R1> flatMap(Function1<? super R, ? extends IO<? extends R1>> map) {
-      return new FlatMapped<>(() -> start(), r -> new FlatMapped<>(() -> run((T) r), map::apply));
+    public <R1> IO<R1> flatMap(Function1<? super R, ? extends Kind<IO_, ? extends R1>> map) {
+      return new FlatMapped<>(this::start, r -> new FlatMapped<>(() -> run(r), map::apply));
     }
 
     @Override
@@ -341,7 +342,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
+    public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
       return (IO<R>) this;
     }
 
@@ -415,7 +416,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
+    public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
       return new FlatMapped<>(lazy::get, map::apply);
     }
 

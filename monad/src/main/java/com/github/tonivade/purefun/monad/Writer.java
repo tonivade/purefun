@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -48,7 +49,7 @@ public interface Writer<L, A> extends WriterOf<L, A> {
     return writer(monoidV, value().map(mapper1, mapper2));
   }
 
-  default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Writer<L, ? extends B>> mapper) {
+  default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Kind<Kind<Writer_, L>, ? extends B>> mapper) {
     Writer<L, B> apply = mapper.andThen(WriterOf::<L, B>narrowK).apply(value().get2());
     Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
