@@ -29,7 +29,7 @@ public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R> {
     return EitherT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
-  default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends EitherT<F, L, ? extends V>> map) {
+  default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends Kind<Kind<Kind<EitherT_, F>, L>, ? extends V>> map) {
     return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>narrowK).apply(v).value()));
   }
 

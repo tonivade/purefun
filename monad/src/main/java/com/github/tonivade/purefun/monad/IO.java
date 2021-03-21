@@ -96,8 +96,8 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return attempt().map(try_ -> try_.fold(mapError, mapper));
   }
 
-  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends IO<? extends R>> mapError,
-                               Function1<? super T, ? extends IO<? extends R>> mapper) {
+  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends Kind<IO_, ? extends R>> mapError,
+                               Function1<? super T, ? extends Kind<IO_, ? extends R>> mapper) {
     return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
   }
 

@@ -27,7 +27,7 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
     return OptionT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
-  default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends OptionT<F, ? extends R>> map) {
+  default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<OptionT_, F>, ? extends R>> map) {
     return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>narrowK).apply(v).value()));
   }
 

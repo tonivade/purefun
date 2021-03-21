@@ -62,10 +62,10 @@ public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A> {
     return writer(monoid(), monadG, functionK.apply(value()));
   }
 
-  default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends WriterT<F, L, ? extends R>> mapper) {
+  default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<WriterT_, F>, L>, ? extends R>> mapper) {
     return writer(monoid(), monad(),
         monad().flatMap(value(),
-            current -> monad().map(mapper.apply(current.get2()).value(),
+            current -> monad().map(mapper.andThen(WriterTOf::<F, L, R>narrowK).apply(current.get2()).value(),
                 other -> Tuple.of(monoid().combine(current.get1(), other.get1()), other.get2()))));
   }
 
