@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.util.stream.Stream;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
@@ -26,7 +27,7 @@ public interface Trampoline<T> extends TrampolineOf<T> {
               value -> done(map.apply(value)));
   }
 
-  default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Trampoline<? extends R>> map) {
+  default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline_, ? extends R>> map) {
     return TrampolineModule.resume(this)
         .fold(next -> more(() -> next.flatMap(map)), map.andThen(TrampolineOf::narrowK));
   }

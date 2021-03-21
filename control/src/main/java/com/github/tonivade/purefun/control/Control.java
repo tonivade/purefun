@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.Producer.cons;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 
@@ -30,7 +31,7 @@ public interface Control<T> extends ControlOf<T> {
     };
   }
 
-  default <R> Control<R> flatMap(Function1<? super T, ? extends Control<? extends R>> mapper) {
+  default <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
     return new Control<R>() {
       @Override
       public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
@@ -39,7 +40,7 @@ public interface Control<T> extends ControlOf<T> {
     };
   }
 
-  default <R> Control<R> andThen(Control<? extends R> next) {
+  default <R> Control<R> andThen(Kind<Control_, ? extends R> next) {
     return flatMap(ignore -> next);
   }
 
@@ -187,7 +188,7 @@ public interface Control<T> extends ControlOf<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> Control<R> flatMap(Function1<? super T, ? extends Control<? extends R>> mapper) {
+    public <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
       return (Control<R>) this;
     }
   }

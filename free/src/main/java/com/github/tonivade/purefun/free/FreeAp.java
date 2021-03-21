@@ -26,7 +26,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
 
   public abstract <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
 
-  public <B> FreeAp<F, B> ap(FreeAp<F, Function1<? super A, ? extends B>> apply) {
+  public <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure) {
       Pure<F, Function1<? super A, ? extends B>> pure = (Pure<F, Function1<? super A, ? extends B>>) apply;
       return map(pure.value);
@@ -69,7 +69,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
         do {
           Apply ap = (Apply) argF;
           argsF.addFirst(ap.value);
-          argF = ap.apply;
+          argF = (FreeAp) ap.apply;
         } while (argF instanceof Apply);
 
         int argc = argsF.size() - lengthInitial;
@@ -85,7 +85,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
           if (function.remaining > 1) {
             fns.addFirst(new CurriedFunction(res, function.remaining - 1));
           } else {
-            if (fns.size() > 0) {
+            if (!fns.isEmpty()) {
               do {
                 function = fns.pollFirst();
 
@@ -97,7 +97,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
               } while (function.remaining == 1 && fns.size() > 0);
             }
 
-            if (fns.size() == 0) {
+            if (fns.isEmpty()) {
               return res;
             }
           }
@@ -117,7 +117,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
   }
 
   public static <F extends Witness, T, R> FreeAp<F, R> apply(FreeAp<F, ? extends T> value, 
-      FreeAp<F, ? extends Function1<? super T, ? extends R>> mapper) {
+      Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> mapper) {
     return new FreeAp.Apply<>(value, mapper);
   }
 
@@ -187,11 +187,11 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
   private static final class Apply<F extends Witness, A, B> extends FreeAp<F, B> {
 
     private final FreeAp<F, ? extends A> value;
-    private final FreeAp<F, ? extends Function1<? super A, ? extends B>> apply;
+    private final Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply;
 
     private Apply(
         FreeAp<F, ? extends A> value, 
-        FreeAp<F, ? extends Function1<? super A, ? extends B>> apply) {
+        Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }

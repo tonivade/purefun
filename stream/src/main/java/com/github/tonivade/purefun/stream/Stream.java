@@ -61,7 +61,7 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
       Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator);
 
   <R> Stream<F, R> map(Function1<? super T, ? extends R> map);
-  <R> Stream<F, R> flatMap(Function1<? super T, ? extends Stream<F, ? extends R>> map);
+  <R> Stream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> map);
   <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper);
 
   Stream<F, T> repeat();
