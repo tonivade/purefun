@@ -911,6 +911,10 @@ public boolean equals(Object obj) {
 }
 ```
 
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/tonivade/purefun.svg)](https://starchart.cc/tonivade/purefun)
+
 ## License
 
 purefun is released under MIT license
