@@ -3,3 +3,9 @@
 build
 **/bin/
 .idea
+.project
+.classpath
+.settings
+.factorypath
+.apt_generated
+.apt_generated_tests

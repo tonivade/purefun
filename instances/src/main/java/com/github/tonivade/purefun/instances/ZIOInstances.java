@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIOOf;
@@ -209,5 +210,10 @@ interface ZIORuntime<R, E> extends Runtime<Kind<Kind<ZIO_, R>, E>> {
   @Override
   default <T> Future<T> parRun(Kind<Kind<Kind<ZIO_, R>, E>, T> value, Executor executor) {
     return value.fix(toZIO()).foldMap(env(), async(executor)).fix(toFuture());
+  }
+  
+  @Override
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<Kind<ZIO_, R>, E>, T>> values) {
+    return parRun(ZIO.traverse(values.map(ZIOOf::<R, E, T>narrowK)));
   }
 }

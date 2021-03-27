@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.EIO_;
@@ -182,5 +183,10 @@ interface EIORuntime<E> extends Runtime<Kind<EIO_, E>> {
   @Override
   default <T> Future<T> parRun(Kind<Kind<EIO_, E>, T> value, Executor executor) {
     return value.fix(toEIO()).foldMap(async(executor)).fix(toFuture());
+  }
+  
+  @Override
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<EIO_, E>, T>> values) {
+    return parRun(EIO.traverse(values.map(EIOOf::<E, T>narrowK)));
   }
 }

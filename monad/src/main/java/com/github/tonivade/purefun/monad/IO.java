@@ -209,7 +209,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
-  static <A> IO<Sequence<A>> traverse(Sequence<IO<A>> sequence) {
+  static <A> IO<Sequence<A>> traverse(Sequence<? extends IO<A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
         (IO<Sequence<A>> xs, IO<A> a) -> map2(xs, a, Sequence::append));
   }

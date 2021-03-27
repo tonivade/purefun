@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
@@ -208,5 +209,10 @@ interface TaskRuntime extends Runtime<Task_> {
   @Override
   default <T> Future<T> parRun(Kind<Task_, T> value, Executor executor) {
     return value.fix(toTask()).foldMap(async(executor)).fix(toFuture());
+  }
+  
+  @Override
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Task_, T>> values) {
+    return parRun(Task.traverse(values.map(TaskOf::<T>narrowK)));
   }
 }

@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.RIO;
 import com.github.tonivade.purefun.effect.RIOOf;
 import com.github.tonivade.purefun.effect.RIO_;
@@ -205,5 +206,10 @@ interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
   @Override
   default <T> Future<T> parRun(Kind<Kind<RIO_, R>, T> value, Executor executor) {
     return value.fix(toRIO()).foldMap(env(), async(executor)).fix(toFuture());
+  }
+  
+  @Override
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<RIO_, R>, T>> values) {
+    return parRun(RIO.traverse(values.map(RIOOf::<R, T>narrowK)));
   }
 }

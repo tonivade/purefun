@@ -33,6 +33,8 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Promise;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Option;
@@ -331,6 +333,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
 
   static <R> ZIO<R, Throwable, Unit> sleep(Duration delay) {
     return new Sleep<>(delay);
+  }
+
+  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Sequence<? extends ZIO<R, E, A>> sequence) {
+    return sequence.foldLeft(pure(ImmutableList.empty()), 
+        (ZIO<R, E, Sequence<A>> xs, ZIO<R, E, A> a) -> map2(xs, a, Sequence::append));
   }
 
   static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,

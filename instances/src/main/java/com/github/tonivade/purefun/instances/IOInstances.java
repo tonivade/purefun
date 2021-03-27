@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
@@ -202,5 +203,10 @@ interface IORuntime extends Runtime<IO_> {
   @Override
   default <T> Future<T> parRun(Kind<IO_, T> value, Executor executor) {
     return value.fix(toIO()).foldMap(async(executor)).fix(toFuture());
+  }
+  
+  @Override
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<IO_, T>> values) {
+    return parRun(IO.traverse(values.map(IOOf::<T>narrowK)));
   }
 }
