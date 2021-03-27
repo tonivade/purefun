@@ -188,6 +188,11 @@ interface UIORuntime extends Runtime<UIO_> {
   default <T> T run(Kind<UIO_, T> value) {
     return value.fix(toUIO()).unsafeRunSync();
   }
+  
+  @Override
+  default <T> Sequence<T> run(Sequence<Kind<UIO_, T>> values) {
+    return run(UIO.traverse(values.map(UIOOf::<T>narrowK)));
+  }
 
   @Override
   default <T> Future<T> parRun(Kind<UIO_, T> value, Executor executor) {
@@ -195,7 +200,7 @@ interface UIORuntime extends Runtime<UIO_> {
   }
   
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<UIO_, T>> values) {
-    return parRun(UIO.traverse(values.map(UIOOf::<T>narrowK)));
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<UIO_, T>> values, Executor executor) {
+    return parRun(UIO.traverse(values.map(UIOOf::<T>narrowK)), executor);
   }
 }

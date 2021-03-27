@@ -202,6 +202,11 @@ interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
   default <T> T run(Kind<Kind<URIO_, R>, T> value) {
     return value.fix(toURIO()).safeRunSync(env()).getOrElseThrow();
   }
+  
+  @Override
+  default <T> Sequence<T> run(Sequence<Kind<Kind<URIO_, R>, T>> values) {
+    return run(URIO.traverse(values.map(URIOOf::<R, T>narrowK)));
+  }
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<URIO_, R>, T> value, Executor executor) {
@@ -209,7 +214,7 @@ interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
   }
   
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<URIO_, R>, T>> values) {
-    return parRun(URIO.traverse(values.map(URIOOf::<R, T>narrowK)));
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<URIO_, R>, T>> values, Executor executor) {
+    return parRun(URIO.traverse(values.map(URIOOf::<R, T>narrowK)), executor);
   }
 }

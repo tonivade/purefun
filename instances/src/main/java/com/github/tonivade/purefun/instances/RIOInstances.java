@@ -202,6 +202,11 @@ interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
   default <T> T run(Kind<Kind<RIO_, R>, T> value) {
     return value.fix(toRIO()).safeRunSync(env()).getOrElseThrow();
   }
+  
+  @Override
+  default <T> Sequence<T> run(Sequence<Kind<Kind<RIO_, R>, T>> values) {
+    return run(RIO.traverse(values.map(RIOOf::<R, T>narrowK)));
+  }
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<RIO_, R>, T> value, Executor executor) {
@@ -209,7 +214,7 @@ interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
   }
   
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<RIO_, R>, T>> values) {
-    return parRun(RIO.traverse(values.map(RIOOf::<R, T>narrowK)));
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<RIO_, R>, T>> values, Executor executor) {
+    return parRun(RIO.traverse(values.map(RIOOf::<R, T>narrowK)), executor);
   }
 }

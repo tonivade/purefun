@@ -14,6 +14,8 @@ import com.github.tonivade.purefun.data.Sequence;
 public interface Runtime<F extends Witness> {
 
   <T> T run(Kind<F, T> value);
+
+  <T> Sequence<T> run(Sequence<Kind<F, T>> values);
   
   <T> Future<T> parRun(Kind<F, T> value, Executor executor);
   
@@ -21,5 +23,9 @@ public interface Runtime<F extends Witness> {
     return parRun(value, Future.DEFAULT_EXECUTOR);
   }
   
-  <T> Future<Sequence<T>> parRun(Sequence<Kind<F, T>> values);
+  <T> Future<Sequence<T>> parRun(Sequence<Kind<F, T>> values, Executor executor);
+
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<F, T>> values) {
+    return parRun(values, Future.DEFAULT_EXECUTOR);
+  }
 }
