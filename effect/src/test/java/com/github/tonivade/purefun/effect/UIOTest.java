@@ -175,8 +175,8 @@ public class UIOTest {
   
   @Test
   public void traverse() {
-    UIO<String> left = UIO.task(() -> "left");
-    UIO<String> right = UIO.task(() -> "right");
+    UIO<String> left = task(() -> "left");
+    UIO<String> right = task(() -> "right");
     
     UIO<Sequence<String>> traverse = UIO.traverse(listOf(left, right));
     

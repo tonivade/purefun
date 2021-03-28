@@ -175,8 +175,8 @@ public class URIOTest {
   
   @Test
   public void traverse() {
-    URIO<Nothing, String> left = URIO.task(() -> "left");
-    URIO<Nothing, String> right = URIO.task(() -> "right");
+    URIO<Nothing, String> left = task(() -> "left");
+    URIO<Nothing, String> right = task(() -> "right");
     
     URIO<Nothing, Sequence<String>> traverse = URIO.traverse(listOf(left, right));
     

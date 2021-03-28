@@ -177,8 +177,8 @@ public class RIOTest {
   
   @Test
   public void traverse() {
-    RIO<Nothing, String> left = RIO.task(() -> "left");
-    RIO<Nothing, String> right = RIO.task(() -> "right");
+    RIO<Nothing, String> left = task(() -> "left");
+    RIO<Nothing, String> right = task(() -> "right");
     
     RIO<Nothing, Sequence<String>> traverse = RIO.traverse(listOf(left, right));
     

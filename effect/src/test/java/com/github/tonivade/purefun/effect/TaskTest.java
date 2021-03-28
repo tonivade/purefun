@@ -188,8 +188,8 @@ public class TaskTest {
   
   @Test
   public void traverse() {
-    Task<String> left = Task.task(() -> "left");
-    Task<String> right = Task.task(() -> "right");
+    Task<String> left = task(() -> "left");
+    Task<String> right = task(() -> "right");
     
     Task<Sequence<String>> traverse = Task.traverse(listOf(left, right));
     

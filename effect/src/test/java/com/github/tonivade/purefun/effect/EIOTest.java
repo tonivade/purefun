@@ -220,8 +220,8 @@ public class EIOTest {
   
   @Test
   public void traverse() {
-    EIO<Throwable, String> left = EIO.task(() -> "left");
-    EIO<Throwable, String> right = EIO.task(() -> "right");
+    EIO<Throwable, String> left = task(() -> "left");
+    EIO<Throwable, String> right = task(() -> "right");
     
     EIO<Throwable, Sequence<String>> traverse = EIO.traverse(listOf(left, right));
     

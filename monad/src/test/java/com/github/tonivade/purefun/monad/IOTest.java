@@ -10,20 +10,27 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
