@@ -32,6 +32,10 @@ public interface Par<T> extends ParOf<T> {
     return apply(executor).toPromise();
   }
 
+  default Promise<T> run() {
+    return run(Future.DEFAULT_EXECUTOR);
+  }
+
   default <R> Par<R> map(Function1<? super T, ? extends R> mapper) {
     return executor -> apply(executor).map(mapper);
   }
