@@ -27,6 +27,8 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -275,6 +277,11 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
 
   public static <A> Task<A> raiseError(Throwable error) {
     return new Task<>(ZIO.raiseError(error));
+  }
+
+  public static <A> Task<Sequence<A>> traverse(Sequence<? extends Task<A>> sequence) {
+    return sequence.foldLeft(pure(ImmutableList.empty()), 
+        (Task<Sequence<A>> xs, Task<A> a) -> map2(xs, a, Sequence::append));
   }
 
   public static <A extends AutoCloseable, B> Task<B> bracket(

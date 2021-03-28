@@ -26,6 +26,8 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -273,6 +275,11 @@ public final class EIO<E, A> implements EIOOf<E, A> {
 
   public static <E, A> EIO<E, A> raiseError(E error) {
     return new EIO<>(ZIO.raiseError(error));
+  }
+
+  public static <E, A> EIO<E, Sequence<A>> traverse(Sequence<? extends EIO<E, A>> sequence) {
+    return sequence.foldLeft(pure(ImmutableList.empty()), 
+        (EIO<E, Sequence<A>> xs, EIO<E, A> a) -> map2(xs, a, Sequence::append));
   }
 
   public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, 

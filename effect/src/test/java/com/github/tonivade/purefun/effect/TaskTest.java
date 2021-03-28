@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.Task.pure;
 import static com.github.tonivade.purefun.effect.Task.task;
 import static com.github.tonivade.purefun.effect.Task.unit;
@@ -32,6 +33,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -182,6 +184,16 @@ public class TaskTest {
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
+  }
+  
+  @Test
+  public void traverse() {
+    Task<String> left = task(() -> "left");
+    Task<String> right = task(() -> "right");
+    
+    Task<Sequence<String>> traverse = Task.traverse(listOf(left, right));
+    
+    assertEquals(Try.success(listOf("left", "right")), traverse.safeRunSync());
   }
 
   private Task<Integer> parseInt(String string) {

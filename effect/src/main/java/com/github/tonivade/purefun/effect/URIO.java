@@ -26,6 +26,8 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -241,6 +243,11 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
   
   public static <R, A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
     return fold(ZIO.asyncF(consumer));
+  }
+
+  public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {
+    return sequence.foldLeft(pure(ImmutableList.empty()), 
+        (URIO<R, Sequence<A>> xs, URIO<R, A> a) -> map2(xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(

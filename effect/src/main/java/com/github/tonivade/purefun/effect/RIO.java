@@ -27,6 +27,8 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -282,6 +284,11 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
   
   public static <R, A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
     return new RIO<>(ZIO.asyncF(consumer));
+  }
+
+  public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends RIO<R, A>> sequence) {
+    return sequence.foldLeft(pure(ImmutableList.empty()), 
+        (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> map2(xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
