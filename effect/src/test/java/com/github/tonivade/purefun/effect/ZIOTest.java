@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,6 +36,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
@@ -358,6 +360,16 @@ public class ZIOTest {
     assertEquals(Try.success("hola"), success.toRIO().safeRunSync(nothing()));
     assertEquals(Try.failure(exception), error.toRIO().safeRunSync(nothing()));
     assertThrows(ClassCastException.class, () -> unsupported.toRIO().safeRunSync(nothing()));
+  }
+  
+  @Test
+  public void traverse() {
+    ZIO<Nothing, Throwable, String> left = ZIO.task(() -> "left");
+    ZIO<Nothing, Throwable, String> right = ZIO.task(() -> "right");
+    
+    ZIO<Nothing, Throwable, Sequence<String>> traverse = ZIO.traverse(listOf(left, right));
+    
+    assertEquals(Either.right(listOf("left", "right")), traverse.provide(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {

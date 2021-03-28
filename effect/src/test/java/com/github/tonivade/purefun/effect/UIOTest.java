@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.UIO.pure;
 import static com.github.tonivade.purefun.effect.UIO.raiseError;
 import static com.github.tonivade.purefun.effect.UIO.task;
@@ -36,6 +37,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -169,6 +171,16 @@ public class UIOTest {
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
+  }
+  
+  @Test
+  public void traverse() {
+    UIO<String> left = UIO.task(() -> "left");
+    UIO<String> right = UIO.task(() -> "right");
+    
+    UIO<Sequence<String>> traverse = UIO.traverse(listOf(left, right));
+    
+    assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
   }
 
   private UIO<Integer> parseInt(String string) {

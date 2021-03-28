@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.URIO.pure;
 import static com.github.tonivade.purefun.effect.URIO.raiseError;
 import static com.github.tonivade.purefun.effect.URIO.task;
@@ -36,6 +37,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -169,6 +171,16 @@ public class URIOTest {
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
+  }
+  
+  @Test
+  public void traverse() {
+    URIO<Nothing, String> left = URIO.task(() -> "left");
+    URIO<Nothing, String> right = URIO.task(() -> "right");
+    
+    URIO<Nothing, Sequence<String>> traverse = URIO.traverse(listOf(left, right));
+    
+    assertEquals(listOf("left", "right"), traverse.unsafeRunSync(nothing()));
   }
 
   private URIO<Nothing, Integer> parseInt(String string) {

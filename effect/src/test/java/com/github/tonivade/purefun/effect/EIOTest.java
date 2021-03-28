@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.EIO.pure;
 import static com.github.tonivade.purefun.effect.EIO.raiseError;
 import static com.github.tonivade.purefun.effect.EIO.task;
@@ -34,6 +35,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -214,6 +216,16 @@ public class EIOTest {
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
+  }
+  
+  @Test
+  public void traverse() {
+    EIO<Throwable, String> left = EIO.task(() -> "left");
+    EIO<Throwable, String> right = EIO.task(() -> "right");
+    
+    EIO<Throwable, Sequence<String>> traverse = EIO.traverse(listOf(left, right));
+    
+    assertEquals(Either.right(listOf("left", "right")), traverse.safeRunSync());
   }
 
   private EIO<Throwable, Integer> parseInt(String string) {

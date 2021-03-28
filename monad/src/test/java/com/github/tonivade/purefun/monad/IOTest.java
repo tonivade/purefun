@@ -6,14 +6,11 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -35,6 +32,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.ParInstances;
@@ -275,6 +273,16 @@ public class IOTest {
 
     assertEquals(705082704, result.get2());
     assertTrue(result.get1().toMillis() > 0);
+  }
+  
+  @Test
+  public void traverse() {
+    IO<String> left = IO.task(() -> "left");
+    IO<String> right = IO.task(() -> "right");
+    
+    IO<Sequence<String>> traverse = IO.traverse(listOf(left, right));
+    
+    assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {
