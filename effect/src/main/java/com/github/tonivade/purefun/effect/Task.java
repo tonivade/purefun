@@ -142,35 +142,43 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return new Task<>(instance.orElse(other.fix(TaskOf.toTask()).instance));
   }
   
+  @Override
   public <B> Task<Tuple2<A, B>> zip(Kind<Task_, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
+  @Override
   public <B> Task<A> zipLeft(Kind<Task_, ? extends B> other) {
     return zipWith(other, first());
   }
   
+  @Override
   public <B> Task<B> zipRight(Kind<Task_, ? extends B> other) {
     return zipWith(other, second());
   }
   
+  @Override
   public <B, C> Task<C> zipWith(Kind<Task_, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other.fix(TaskOf.toTask()), mapper);
   }
 
+  @Override
   public Task<A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public Task<A> repeat(int times) {
     return new Task<>(instance.repeat(times));
   }
 
+  @Override
   public Task<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public Task<A> repeat(Duration delay, int times) {
     return new Task<>(instance.repeat(delay, times));
   }
@@ -179,18 +187,22 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return new Task<>(instance.repeat(schedule));
   }
 
+  @Override
   public Task<A> retry() {
     return retry(1);
   }
 
+  @Override
   public Task<A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public Task<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public Task<A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }

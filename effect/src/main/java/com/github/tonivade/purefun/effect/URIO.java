@@ -136,35 +136,43 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
         value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
   
+  @Override
   public <B> URIO<R, Tuple2<A, B>> zip(Kind<Kind<URIO_, R>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
+  @Override
   public <B> URIO<R, A> zipLeft(Kind<Kind<URIO_, R>, ? extends B> other) {
     return zipWith(other, first());
   }
   
+  @Override
   public <B> URIO<R, B> zipRight(Kind<Kind<URIO_, R>, ? extends B> other) {
     return zipWith(other, second());
   }
   
+  @Override
   public <B, C> URIO<R, C> zipWith(Kind<Kind<URIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other.fix(URIOOf.toURIO()), mapper);
   }
 
+  @Override
   public URIO<R, A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public URIO<R, A> repeat(int times) {
     return fold(ZIO.redeem(instance).repeat(times));
   }
 
+  @Override
   public URIO<R, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public URIO<R, A> repeat(Duration delay, int times) {
     return fold(ZIO.redeem(instance).repeat(delay, times));
   }
@@ -173,18 +181,22 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
+  @Override
   public URIO<R, A> retry() {
     return retry(1);
   }
 
+  @Override
   public URIO<R, A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public URIO<R, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public URIO<R, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }

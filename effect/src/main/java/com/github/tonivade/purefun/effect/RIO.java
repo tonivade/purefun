@@ -137,35 +137,43 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
+  @Override
   public <B> RIO<R, Tuple2<A, B>> zip(Kind<Kind<RIO_, R>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
+  @Override
   public <B> RIO<R, A> zipLeft(Kind<Kind<RIO_, R>, ? extends B> other) {
     return zipWith(other, first());
   }
   
+  @Override
   public <B> RIO<R, B> zipRight(Kind<Kind<RIO_, R>, ? extends B> other) {
     return zipWith(other, second());
   }
   
+  @Override
   public <B, C> RIO<R, C> zipWith(Kind<Kind<RIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other.fix(RIOOf.toRIO()), mapper);
   }
 
+  @Override
   public RIO<R, A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public RIO<R, A> repeat(int times) {
     return new RIO<>(instance.repeat(times));
   }
 
+  @Override
   public RIO<R, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public RIO<R, A> repeat(Duration delay, int times) {
     return new RIO<>(instance.repeat(delay, times));
   }
@@ -174,18 +182,22 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(instance.repeat(schedule));
   }
 
+  @Override
   public RIO<R, A> retry() {
     return retry(1);
   }
 
+  @Override
   public RIO<R, A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public RIO<R, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public RIO<R, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
   }

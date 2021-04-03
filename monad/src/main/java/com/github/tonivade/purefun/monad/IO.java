@@ -125,34 +125,42 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return new Timed<>(this);
   }
 
+  @Override
   default IO<T> repeat() {
     return repeat(1);
   }
 
+  @Override
   default IO<T> repeat(int times) {
     return IOModule.repeat(this, unit(), times);
   }
 
+  @Override
   default IO<T> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   default IO<T> repeat(Duration delay, int times) {
     return IOModule.repeat(this, sleep(delay), times);
   }
 
+  @Override
   default IO<T> retry() {
     return retry(1);
   }
 
+  @Override
   default IO<T> retry(int maxRetries) {
     return IOModule.retry(this, unit(), maxRetries);
   }
 
+  @Override
   default IO<T> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   default IO<T> retry(Duration delay, int maxRetries) {
     return IOModule.retry(this, sleep(delay), maxRetries);
   }

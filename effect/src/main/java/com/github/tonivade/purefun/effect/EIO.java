@@ -140,35 +140,43 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(instance.orElse(other.instance));
   }
   
+  @Override
   public <B> EIO<E, Tuple2<A, B>> zip(Kind<Kind<EIO_, E>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
+  @Override
   public <B> EIO<E, A> zipLeft(Kind<Kind<EIO_, E>, ? extends B> other) {
     return zipWith(other, first());
   }
   
+  @Override
   public <B> EIO<E, B> zipRight(Kind<Kind<EIO_, E>, ? extends B> other) {
     return zipWith(other, second());
   }
   
+  @Override
   public <B, C> EIO<E, C> zipWith(Kind<Kind<EIO_, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other.fix(EIOOf.toEIO()), mapper);
   }
 
+  @Override
   public EIO<E, A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public EIO<E, A> repeat(int times) {
     return new EIO<>(instance.repeat(times));
   }
 
+  @Override
   public EIO<E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public EIO<E, A> repeat(Duration delay, int times) {
     return new EIO<>(instance.repeat(delay, times));
   }
@@ -177,18 +185,22 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(instance.repeat(schedule));
   }
 
+  @Override
   public EIO<E, A> retry() {
     return retry(1);
   }
 
+  @Override
   public EIO<E, A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public EIO<E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public EIO<E, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<Nothing, E>recursSpaced(delay, maxRetries));
   }

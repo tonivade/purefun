@@ -18,6 +18,30 @@ public interface Effect<F extends Witness, A> extends Kind<F, A> {
 
   Effect<F, Tuple2<Duration, A>> timed();
 
+  default Effect<F, A> repeat() {
+    return repeat(1);
+  }
+
+  Effect<F, A> repeat(int times);
+
+  default Effect<F, A> repeat(Duration delay) {
+    return repeat(delay, 1);
+  }
+
+  Effect<F, A> repeat(Duration delay, int times);
+
+  default Effect<F, A> retry() {
+    return retry(1);
+  }
+
+  Effect<F, A> retry(int maxRetries);
+
+  default Effect<F, A> retry(Duration delay) {
+    return retry(delay, 1);
+  }
+
+  Effect<F, A> retry(Duration delay, int maxRetries);
+
   default <B> Effect<F, Tuple2<A, B>> zip(Kind<F, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }

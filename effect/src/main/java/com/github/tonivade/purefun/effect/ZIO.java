@@ -127,35 +127,43 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
+  @Override
   default <B> ZIO<R, E, Tuple2<A, B>> zip(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
+  @Override
   default <B> ZIO<R, E, A> zipLeft(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
     return zipWith(other, first());
   }
   
+  @Override
   default <B> ZIO<R, E, B> zipRight(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
     return zipWith(other, second());
   }
   
+  @Override
   default <B, C> ZIO<R, E, C> zipWith(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other.fix(ZIOOf.toZIO()), mapper);
   }
 
+  @Override
   default ZIO<R, E, A> repeat() {
     return repeat(1);
   }
 
+  @Override
   default ZIO<R, E, A> repeat(int times) {
     return repeat(Schedule.<R, A>recurs(times).zipRight(Schedule.identity()));
   }
 
+  @Override
   default ZIO<R, E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   default ZIO<R, E, A> repeat(Duration delay, int times) {
     return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
   }
@@ -176,18 +184,22 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return new Repeat<>(this, schedule, orElse);
   }
 
+  @Override
   default ZIO<R, E, A> retry() {
     return retry(1);
   }
 
+  @Override
   default ZIO<R, E, A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   default ZIO<R, E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
   }

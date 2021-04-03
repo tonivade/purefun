@@ -146,35 +146,43 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
   
+  @Override
   public <B> UIO<Tuple2<A, B>> zip(Kind<UIO_, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
+  @Override
   public <B> UIO<A> zipLeft(Kind<UIO_, ? extends B> other) {
     return zipWith(other, first());
   }
   
+  @Override
   public <B> UIO<B> zipRight(Kind<UIO_, ? extends B> other) {
     return zipWith(other, second());
   }
   
+  @Override
   public <B, C> UIO<C> zipWith(Kind<UIO_, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return map2(this, other.fix(UIOOf.toUIO()), mapper);
   }
 
+  @Override
   public UIO<A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public UIO<A> repeat(int times) {
     return fold(ZIO.redeem(instance).repeat(times));
   }
 
+  @Override
   public UIO<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public UIO<A> repeat(Duration delay, int times) {
     return fold(ZIO.redeem(instance).repeat(delay, times));
   }
@@ -183,18 +191,22 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
+  @Override
   public UIO<A> retry() {
     return retry(1);
   }
 
+  @Override
   public UIO<A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public UIO<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public UIO<A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
