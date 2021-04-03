@@ -14,6 +14,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -36,7 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
-public interface IO<T> extends IOOf<T>, Recoverable {
+public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   T unsafeRunSync();
 
@@ -62,20 +63,24 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   <F extends Witness> Kind<F, T> foldMap(Async<F> monad);
 
+  @Override
   default <R> IO<R> map(Function1<? super T, ? extends R> map) {
     return flatMap(map.andThen(IO::pure));
   }
 
+  @Override
   default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-    return new FlatMapped<>(Producer.cons(this), map);
+    return new FlatMapped<>(Producer.cons(this), map.andThen(IOOf::narrowK));
   }
 
+  @Override
   default <R> IO<R> andThen(Kind<IO_, ? extends R> after) {
     return flatMap(ignore -> after);
   }
 
+  @Override
   default <R> IO<R> ap(Kind<IO_, Function1<? super T, ? extends R>> apply) {
-    return new Apply<>(this, apply);
+    return new Apply<>(this, apply.fix(IOOf.toIO()));
   }
 
   default IO<Try<T>> attempt() {
@@ -115,6 +120,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     });
   }
 
+  @Override
   default IO<Tuple2<Duration, T>> timed() {
     return new Timed<>(this);
   }
@@ -250,21 +256,21 @@ public interface IO<T> extends IOOf<T>, Recoverable {
   final class Apply<A, B> implements SealedIO<B> {
     
     private final IO<? extends A> value;
-    private final Kind<IO_, Function1<? super A, ? extends B>> apply;
+    private final IO<Function1<? super A, ? extends B>> apply;
 
-    protected Apply(IO<? extends A> value, Kind<IO_, Function1<? super A, ? extends B>> apply) {
+    protected Apply(IO<? extends A> value, IO<Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
 
     @Override
     public B unsafeRunSync() {
-      return IOModule.evaluate(value.flatMap(a -> apply.fix(IOOf.toIO()).map(map -> map.apply(a))));
+      return IOModule.evaluate(value.flatMap(a -> apply.map(map -> map.apply(a))));
     }
     
     @Override
     public <F extends Witness> Kind<F, B> foldMap(Async<F> monad) {
-      return monad.ap(value.foldMap(monad), apply.fix(IOOf.toIO()).foldMap(monad));
+      return monad.ap(value.foldMap(monad), apply.foldMap(monad));
     }
     
     @Override
@@ -275,11 +281,11 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   final class FlatMapped<T, R> implements SealedIO<R> {
 
-    private final Producer<? extends Kind<IO_, ? extends T>> current;
-    private final Function1<? super T, ? extends Kind<IO_, ? extends R>> next;
+    private final Producer<? extends IO<? extends T>> current;
+    private final Function1<? super T, ? extends IO<? extends R>> next;
 
-    protected FlatMapped(Producer<? extends Kind<IO_, ? extends T>> current,
-                         Function1<? super T, ? extends Kind<IO_, ? extends R>> next) {
+    protected FlatMapped(Producer<? extends IO<? extends T>> current,
+                         Function1<? super T, ? extends IO<? extends R>> next) {
       this.current = checkNonNull(current);
       this.next = checkNonNull(next);
     }
@@ -298,7 +304,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public <R1> IO<R1> flatMap(Function1<? super R, ? extends Kind<IO_, ? extends R1>> map) {
-      return new FlatMapped<>(this::start, r -> new FlatMapped<>(() -> run(r), map::apply));
+      return new FlatMapped<>(this::start, r -> new FlatMapped<>(() -> run(r), map.andThen(IOOf::narrowK)::apply));
     }
 
     @Override
@@ -417,7 +423,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-      return new FlatMapped<>(lazy::get, map::apply);
+      return new FlatMapped<>(lazy::get, map.andThen(IOOf::narrowK)::apply);
     }
 
     @Override

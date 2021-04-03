@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -35,7 +36,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
-public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
+public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, Recoverable {
 
   private static final RIO<?, Unit> UNIT = new RIO<>(ZIO.unit());
 
@@ -82,23 +83,27 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return instance.foldMap(env, monad);
   }
 
+  @Override
   public <B> RIO<R, B> map(Function1<? super A, ? extends B> map) {
     return new RIO<>(instance.map(map));
   }
 
-  public <B> RIO<R, B> flatMap(Function1<? super A, ? extends RIO<R, ? extends B>> map) {
+  @Override
+  public <B> RIO<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> map) {
     return new RIO<>(instance.flatMap(x -> {
-      RIO<R, ? extends B> apply = map.apply(x);
+      RIO<R, ? extends B> apply = map.andThen(RIOOf::narrowK).apply(x);
       return apply.instance;
     }));
   }
 
-  public <B> RIO<R, B> andThen(RIO<R, ? extends B> next) {
-    return new RIO<>(instance.andThen(next.instance));
+  @Override
+  public <B> RIO<R, B> andThen(Kind<Kind<RIO_, R>, ? extends B> next) {
+    return new RIO<>(instance.andThen(next.fix(RIOOf.toRIO()).instance));
   }
 
-  public <B> RIO<R, B> ap(RIO<R, Function1<? super A, ? extends B>> apply) {
-    return new RIO<>(instance.ap(apply.toZIO()));
+  @Override
+  public <B> RIO<R, B> ap(Kind<Kind<RIO_, R>, Function1<? super A, ? extends B>> apply) {
+    return new RIO<>(instance.ap(apply.fix(RIOOf.toRIO()).instance));
   }
 
   public URIO<R, A> recover(Function1<? super Throwable, ? extends A> mapError) {
@@ -121,32 +126,32 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
   }
 
   public <B> RIO<R, B> foldM(
-      Function1<? super Throwable, ? extends RIO<R, ? extends B>> mapError, 
-      Function1<? super A, ? extends RIO<R, ? extends B>> map) {
+      Function1<? super Throwable, ? extends Kind<Kind<RIO_, R>, ? extends B>> mapError, 
+      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> map) {
     return new RIO<>(instance.foldM(
         error -> mapError.andThen(RIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(RIOOf::narrowK).apply(value).instance));
   }
 
-  public RIO<R, A> orElse(RIO<R, ? extends A> other) {
+  public RIO<R, A> orElse(Kind<Kind<RIO_, R>, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
-  public <B> RIO<R, Tuple2<A, B>> zip(RIO<R, ? extends B> other) {
+  public <B> RIO<R, Tuple2<A, B>> zip(Kind<Kind<RIO_, R>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> RIO<R, A> zipLeft(RIO<R, ? extends B> other) {
+  public <B> RIO<R, A> zipLeft(Kind<Kind<RIO_, R>, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> RIO<R, B> zipRight(RIO<R, ? extends B> other) {
+  public <B> RIO<R, B> zipRight(Kind<Kind<RIO_, R>, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> RIO<R, C> zipWith(RIO<R, ? extends B> other, 
+  public <B, C> RIO<R, C> zipWith(Kind<Kind<RIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other, mapper);
+    return map2(this, other.fix(RIOOf.toRIO()), mapper);
   }
 
   public RIO<R, A> repeat() {
@@ -189,6 +194,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Recoverable {
     return new RIO<>(instance.retry(schedule));
   }
 
+  @Override
   public RIO<R, Tuple2<Duration, A>> timed() {
     return new RIO<>(instance.timed());
   }

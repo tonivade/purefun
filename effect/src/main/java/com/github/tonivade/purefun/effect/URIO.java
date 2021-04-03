@@ -14,6 +14,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -32,7 +33,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
-public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
+public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>, Recoverable {
 
   private static final URIO<?, Unit> UNIT = new URIO<>(ZIO.unit());
 
@@ -84,23 +85,27 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return instance.foldMap(env, monad);
   }
 
+  @Override
   public <B> URIO<R, B> map(Function1<? super A, ? extends B> map) {
     return new URIO<>(instance.map(map));
   }
 
-  public <B> URIO<R, B> flatMap(Function1<? super A, ? extends URIO<R, ? extends B>> map) {
+  @Override
+  public <B> URIO<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
     return new URIO<>(instance.flatMap(x -> {
-      URIO<R, ? extends B> apply = map.apply(x);
+      URIO<R, ? extends B> apply = map.andThen(URIOOf::narrowK).apply(x);
       return apply.instance;
     }));
   }
 
-  public <B> URIO<R, B> andThen(URIO<R, ? extends B> next) {
-    return new URIO<>(instance.andThen(next.instance));
+  @Override
+  public <B> URIO<R, B> andThen(Kind<Kind<URIO_, R>, ? extends B> next) {
+    return new URIO<>(instance.andThen(next.fix(URIOOf.toURIO()).instance));
   }
   
-  public <B> URIO<R, B> ap(URIO<R, Function1<? super A, ? extends B>> apply) {
-    return new URIO<>(instance.ap(apply.toZIO()));
+  @Override
+  public <B> URIO<R, B> ap(Kind<Kind<URIO_, R>, Function1<? super A, ? extends B>> apply) {
+    return new URIO<>(instance.ap(apply.fix(URIOOf.toURIO()).instance));
   }
 
   public URIO<R, A> recover(Function1<? super Throwable, ? extends A> mapError) {
@@ -124,28 +129,28 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
   }
 
   public <B> URIO<R, B> redeemWith(
-      Function1<? super Throwable, ? extends URIO<R, ? extends B>> mapError, 
-      Function1<? super A, ? extends URIO<R, ? extends B>> map) {
+      Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends B>> mapError, 
+      Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
     return new URIO<>(ZIO.redeem(instance).foldM(
         error -> mapError.andThen(URIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
   
-  public <B> URIO<R, Tuple2<A, B>> zip(URIO<R, ? extends B> other) {
+  public <B> URIO<R, Tuple2<A, B>> zip(Kind<Kind<URIO_, R>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> URIO<R, A> zipLeft(URIO<R, ? extends B> other) {
+  public <B> URIO<R, A> zipLeft(Kind<Kind<URIO_, R>, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> URIO<R, B> zipRight(URIO<R, ? extends B> other) {
+  public <B> URIO<R, B> zipRight(Kind<Kind<URIO_, R>, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> URIO<R, C> zipWith(URIO<R, ? extends B> other, 
+  public <B, C> URIO<R, C> zipWith(Kind<Kind<URIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other, mapper);
+    return map2(this, other.fix(URIOOf.toURIO()), mapper);
   }
 
   public URIO<R, A> repeat() {
@@ -188,6 +193,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Recoverable {
     return fold(ZIO.redeem(instance).retry(schedule));
   }
 
+  @Override
   public URIO<R, Tuple2<Duration, A>> timed() {
     return new URIO<>(instance.timed());
   }

@@ -19,6 +19,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -43,7 +44,7 @@ import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
-public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
+public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>, E>, A> {
 
   Either<E, A> provide(R env);
 
@@ -69,6 +70,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Swap<>(this);
   }
 
+  @Override
   default <B> ZIO<R, E, B> map(Function1<? super A, ? extends B> map) {
     return flatMap(map.andThen(ZIO::pure));
   }
@@ -81,32 +83,35 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return biflatMap(mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
   }
 
-  default <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends ZIO<R, E, ? extends B>> map) {
-    return biflatMap(ZIO::<R, E, B>raiseError, map);
+  @Override
+  default <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> map) {
+    return biflatMap(ZIO::<R, E, B>raiseError, map.andThen(ZIOOf::narrowK));
   }
 
-  default <F> ZIO<R, F, A> flatMapError(Function1<? super E, ? extends ZIO<R, F, ? extends A>> map) {
+  default <F> ZIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends A>> map) {
     return biflatMap(map, ZIO::<R, F, A>pure);
   }
 
   default <F, B> ZIO<R, F, B> biflatMap(
-      Function1<? super E, ? extends ZIO<R, F, ? extends B>> left, 
-      Function1<? super A, ? extends ZIO<R, F, ? extends B>> right) {
-    return new FlatMapped<>(cons(this), left, right);
+      Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> left, 
+      Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> right) {
+    return new FlatMapped<>(cons(this), left.andThen(ZIOOf::narrowK), right.andThen(ZIOOf::narrowK));
   }
 
-  default <B> ZIO<R, E, B> andThen(ZIO<R, E, ? extends B> next) {
+  @Override
+  default <B> ZIO<R, E, B> andThen(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> next) {
     return flatMap(ignore -> next);
   }
 
-  default <B> ZIO<R, E, B> ap(ZIO<R, E, Function1<? super A, ? extends B>> apply) {
-    return new Apply<>(this, apply);
+  @Override
+  default <B> ZIO<R, E, B> ap(Kind<Kind<Kind<ZIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
+    return new Apply<>(this, apply.fix(ZIOOf.toZIO()));
   }
 
   default <F, B> ZIO<R, F, B> foldM(
-      Function1<? super E, ? extends ZIO<R, F, ? extends B>> mapError, 
-      Function1<? super A, ? extends ZIO<R, F, ? extends B>> map) {
-    return new FoldM<>(this, mapError, map);
+      Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> mapError, 
+      Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> map) {
+    return new FoldM<>(this, mapError.andThen(ZIOOf::narrowK), map.andThen(ZIOOf::narrowK));
   }
 
   default <B> ZIO<R, Nothing, B> fold(
@@ -118,25 +123,25 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return fold(mapError, identity());
   }
 
-  default ZIO<R, E, A> orElse(ZIO<R, E, ? extends A> other) {
+  default ZIO<R, E, A> orElse(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
-  default <B> ZIO<R, E, Tuple2<A, B>> zip(ZIO<R, E, ? extends B> other) {
+  default <B> ZIO<R, E, Tuple2<A, B>> zip(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  default <B> ZIO<R, E, A> zipLeft(ZIO<R, E, ? extends B> other) {
+  default <B> ZIO<R, E, A> zipLeft(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  default <B> ZIO<R, E, B> zipRight(ZIO<R, E, ? extends B> other) {
+  default <B> ZIO<R, E, B> zipRight(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  default <B, C> ZIO<R, E, C> zipWith(ZIO<R, E, ? extends B> other, 
+  default <B, C> ZIO<R, E, C> zipWith(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other, mapper);
+    return map2(this, other.fix(ZIOOf.toZIO()), mapper);
   }
 
   default ZIO<R, E, A> repeat() {
@@ -203,6 +208,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     return new Retry<>(this, schedule, orElse);
   }
 
+  @Override
   default ZIO<R, E, Tuple2<Duration, A>> timed() {
     return new Timed<>(this);
   }
@@ -452,14 +458,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     @Override
     @SuppressWarnings("unchecked")
     public <F1, B1> ZIO<R, F1, B1> biflatMap(
-        Function1<? super F, ? extends ZIO<R, F1, ? extends B1>> left, 
-        Function1<? super B, ? extends ZIO<R, F1, ? extends B1>> right) {
+        Function1<? super F, ? extends Kind<Kind<Kind<ZIO_, R>, F1>, ? extends B1>> left, 
+        Function1<? super B, ? extends Kind<Kind<Kind<ZIO_, R>, F1>, ? extends B1>> right) {
       return new FlatMapped<>(
           () -> (ZIO<R, F, B>) start(),
           f -> new FlatMapped<>(
-              () -> run((Either<E, A>) Either.left(f)), left::apply, right::apply),
+              () -> run((Either<E, A>) Either.left(f)), left.andThen(ZIOOf::narrowK)::apply, right.andThen(ZIOOf::narrowK)::apply),
           b -> new FlatMapped<>(
-              () -> run((Either<E, A>) Either.right(b)), left::apply, right::apply)
+              () -> run((Either<E, A>) Either.right(b)), left.andThen(ZIOOf::narrowK)::apply, right.andThen(ZIOOf::narrowK)::apply)
       );
     }
 
@@ -526,8 +532,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A> {
     }
 
     @Override
-    public <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends ZIO<R, E, ? extends B>> map) {
-      return new FlatMapped<>(lazy::get, ZIO::raiseError, map::apply);
+    public <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> map) {
+      return new FlatMapped<>(lazy::get, ZIO::raiseError, map.andThen(ZIOOf::narrowK)::apply);
     }
 
     @Override
