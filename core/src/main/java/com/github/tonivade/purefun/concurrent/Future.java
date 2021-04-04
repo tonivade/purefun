@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -16,12 +17,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
@@ -64,7 +67,7 @@ import com.github.tonivade.purefun.type.TryOf;
  * @see Promise
  */
 @HigherKind(sealed = true)
-public interface Future<T> extends FutureOf<T> {
+public interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
@@ -80,9 +83,11 @@ public interface Future<T> extends FutureOf<T> {
   Future<T> onFailure(Consumer1<? super Throwable> callback);
   Future<T> onComplete(Consumer1<? super Try<? extends T>> callback);
 
+  @Override
   <R> Future<R> map(Function1<? super T, ? extends R> mapper);
   Future<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper);
 
+  @Override
   <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future_, ? extends R>> mapper);
 
   <R> Future<R> andThen(Future<? extends R> next);

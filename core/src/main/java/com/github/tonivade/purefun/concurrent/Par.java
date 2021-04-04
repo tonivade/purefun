@@ -7,14 +7,17 @@ package com.github.tonivade.purefun.concurrent;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
+
 import java.time.Duration;
 import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
@@ -25,7 +28,7 @@ import com.github.tonivade.purefun.type.Try;
 
 @HigherKind
 @FunctionalInterface
-public interface Par<T> extends ParOf<T> {
+public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
 
   Future<T> apply(Executor executor);
 
@@ -37,10 +40,12 @@ public interface Par<T> extends ParOf<T> {
     return run(Future.DEFAULT_EXECUTOR);
   }
 
+  @Override
   default <R> Par<R> map(Function1<? super T, ? extends R> mapper) {
     return executor -> apply(executor).map(mapper);
   }
 
+  @Override
   default <R> Par<R> flatMap(Function1<? super T, ? extends Kind<Par_, ? extends R>> mapper) {
     return executor -> apply(executor).flatMap(value -> mapper.andThen(ParOf::narrowK).apply(value).apply(executor));
   }

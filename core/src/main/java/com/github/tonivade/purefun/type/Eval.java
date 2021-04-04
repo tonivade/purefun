@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 
@@ -27,7 +28,7 @@ import com.github.tonivade.purefun.Unit;
  * @param <A> result of the computation
  */
 @HigherKind(sealed = true)
-public interface Eval<A> extends EvalOf<A> {
+public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
@@ -37,10 +38,12 @@ public interface Eval<A> extends EvalOf<A> {
 
   A value();
 
+  @Override
   default <R> Eval<R> map(Function1<? super A, ? extends R> map) {
     return flatMap(value -> now(map.apply(value)));
   }
 
+  @Override
   <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval_, ? extends R>> map);
 
   static <T> Eval<T> now(T value) {

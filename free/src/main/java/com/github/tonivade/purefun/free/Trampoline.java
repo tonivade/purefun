@@ -5,15 +5,18 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.util.stream.Stream;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind(sealed = true)
-public interface Trampoline<T> extends TrampolineOf<T> {
+public interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T> {
 
   Trampoline<T> apply();
 

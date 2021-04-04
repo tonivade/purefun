@@ -12,6 +12,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Mappable;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
@@ -21,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 @HigherKind
-public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
+public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree_, F>, A> {
 
   private final Functor<F> functor;
   private final A head;
@@ -50,6 +51,7 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A> {
     return of(functor, head, Eval.now(transformTail.value()));
   }
 
+  @Override
   public <B> Cofree<F, B> map(Function1<? super A, ? extends B> mapper) {
     return transform(mapper, c -> c.map(mapper));
   }

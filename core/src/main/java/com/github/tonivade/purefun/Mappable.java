@@ -1,0 +1,10 @@
+/*
+ * Copyright (c) 2018-2021, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
+package com.github.tonivade.purefun;
+
+public interface Mappable<F extends Witness, A> extends Kind<F, A> {
+  
+  <R> Mappable<F, R> map(Function1<? super A, ? extends R> mapper);
+}

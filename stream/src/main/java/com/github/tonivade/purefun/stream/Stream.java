@@ -13,6 +13,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -27,7 +28,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind(sealed = true)
-public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
+public interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<Kind<Stream_, F>, T> {
 
   default Stream<F, T> head() {
     return take(1);
@@ -60,7 +61,9 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T> {
   <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
       Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator);
 
+  @Override
   <R> Stream<F, R> map(Function1<? super T, ? extends R> map);
+  @Override
   <R> Stream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> map);
   <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper);
 

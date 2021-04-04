@@ -7,26 +7,30 @@ package com.github.tonivade.purefun.transformer;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
+
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind(sealed = true)
-public interface OptionT<F extends Witness, T> extends OptionTOf<F, T> {
+public interface OptionT<F extends Witness, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT_, F>, T> {
 
   Monad<F> monad();
   Kind<F, Option<T>> value();
 
+  @Override
   default <R> OptionT<F, R> map(Function1<? super T, ? extends R> map) {
     return OptionT.of(monad(), monad().map(value(), v -> v.map(map)));
   }
 
+  @Override
   default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<OptionT_, F>, ? extends R>> map) {
     return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>narrowK).apply(v).value()));
   }

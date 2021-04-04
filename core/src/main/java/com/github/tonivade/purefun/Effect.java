@@ -6,12 +6,15 @@ package com.github.tonivade.purefun;
 
 import java.time.Duration;
 
-public interface Effect<F extends Witness, A> extends Kind<F, A> {
+public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable<F, A> {
   
+  @Override
   <R> Effect<F, R> map(Function1<? super A, ? extends R> mapper);
 
+  @Override
   <R> Effect<F, R> ap(Kind<F, Function1<? super A, ? extends R>> apply);
 
+  @Override
   <R> Effect<F, R> flatMap(Function1<? super A, ? extends Kind<F, ? extends R>> mapper);
 
   <R> Effect<F, R> andThen(Kind<F, ? extends R> next);
@@ -55,12 +58,39 @@ public interface Effect<F extends Witness, A> extends Kind<F, A> {
   }
 
   default <B, C> Effect<F, C> zipWith(Kind<F, ? extends B> other, Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, narrowK(other), mapper);
+    return mapN(this, narrowK(other), mapper);
   }
 
-  static <F extends Witness, A, B, C> Effect<F, C> map2(Effect<F, ? extends A> fa, Effect<F, ? extends B> fb, 
+  static <F extends Witness, A, B, C> Effect<F, C> mapN(Effect<F, ? extends A> fa, Effect<F, ? extends B> fb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return fb.ap(fa.map(mapper.curried()));
+  }
+
+  static <F extends Witness, A, B, C, D> Effect<F, D> mapN(
+      Effect<F, ? extends A> fa, 
+      Effect<F, ? extends B> fb, 
+      Effect<F, ? extends C> fc, 
+      Function3<? super A, ? super B, ? super C, ? extends D> mapper) {
+    return fc.ap(mapN(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
+  }
+
+  static <F extends Witness, A, B, C, D, E> Effect<F, E> mapN(
+      Effect<F, ? extends A> fa, 
+      Effect<F, ? extends B> fb, 
+      Effect<F, ? extends C> fc, 
+      Effect<F, ? extends D> fd, 
+      Function4<? super A, ? super B, ? super C, ? super D, ? extends E> mapper) {
+    return fd.ap(mapN(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
+  }
+
+  static <F extends Witness, A, B, C, D, E, R> Effect<F, R> mapN(
+      Effect<F, ? extends A> fa, 
+      Effect<F, ? extends B> fb, 
+      Effect<F, ? extends C> fc, 
+      Effect<F, ? extends D> fd, 
+      Effect<F, ? extends E> fe, 
+      Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> mapper) {
+    return fe.ap(mapN(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
   
   @SuppressWarnings("unchecked")

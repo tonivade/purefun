@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
@@ -36,7 +37,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <T> the wrapped value
  */
 @HigherKind(sealed = true)
-public interface Try<T> extends TryOf<T> {
+public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -113,6 +114,7 @@ public interface Try<T> extends TryOf<T> {
    */
   T get();
 
+  @Override
   default <R> Try<R> map(Function1<? super T, ? extends R> mapper) {
     return flatMap(mapper.liftTry());
   }
@@ -124,6 +126,7 @@ public interface Try<T> extends TryOf<T> {
     return this;
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try_, ? extends R>> mapper) {
     if (isSuccess()) {

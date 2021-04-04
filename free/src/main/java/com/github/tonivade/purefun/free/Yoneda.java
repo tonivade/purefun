@@ -5,15 +5,17 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Function1.identity;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Mappable;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
 @FunctionalInterface
-public interface Yoneda<F extends Witness, A> extends YonedaOf<F, A> {
+public interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
 
   <B> Kind<F, B> apply(Function1<? super A, ? extends B> map);
 
@@ -21,6 +23,7 @@ public interface Yoneda<F extends Witness, A> extends YonedaOf<F, A> {
     return apply(identity());
   }
 
+  @Override
   default <B> Yoneda<F, B> map(Function1<? super A, ? extends B> outer) {
     return new Yoneda<F, B>() {
       @Override

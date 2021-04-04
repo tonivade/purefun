@@ -11,6 +11,8 @@ import static com.github.tonivade.purefun.free.FreeOf.toFree;
 import static com.github.tonivade.purefun.type.ConstOf.toConst;
 import java.util.Deque;
 import java.util.LinkedList;
+
+import com.github.tonivade.purefun.Applicable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
@@ -20,12 +22,14 @@ import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
+public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
 
   private FreeAp() {}
 
+  @Override
   public abstract <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
 
+  @Override
   public <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure) {
       Pure<F, Function1<? super A, ? extends B>> pure = (Pure<F, Function1<? super A, ? extends B>>) apply;

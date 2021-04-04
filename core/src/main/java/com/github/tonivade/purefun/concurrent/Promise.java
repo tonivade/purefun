@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -12,15 +13,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 
 @HigherKind(sealed = true)
-public interface Promise<T> extends PromiseOf<T> {
+public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -49,6 +53,8 @@ public interface Promise<T> extends PromiseOf<T> {
   }
   
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
+  
+  <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper);
 
   Try<T> await();
   Try<T> await(Duration timeout);
@@ -155,6 +161,16 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   public <R> Promise<R> map(Function1<? super T, ? extends R> mapper) {
     Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> other.tryComplete(value.map(mapper)));
+    return other;
+  }
+
+  @Override
+  public <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper) {
+    Promise<R> other = new PromiseImpl<>(executor);
+    onComplete(value -> {
+      Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::narrowK));
+      map.fold(error -> other.tryComplete(Try.failure(error)), next -> next.onComplete(other::tryComplete));
+    });
     return other;
   }
 

@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
@@ -36,7 +37,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <T> the wrapped value
  */
 @HigherKind(sealed = true)
-public interface Option<T> extends OptionOf<T> {
+public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -77,6 +78,7 @@ public interface Option<T> extends OptionOf<T> {
    */
   T get();
 
+  @Override
   default <R> Option<R> map(Function1<? super T, ? extends R> mapper) {
     if (isPresent()) {
       return some(mapper.apply(get()));
@@ -84,6 +86,7 @@ public interface Option<T> extends OptionOf<T> {
     return none();
   }
 
+  @Override
   default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
     if (isPresent()) {
       return map.andThen(OptionOf::<R>narrowK).apply(get());

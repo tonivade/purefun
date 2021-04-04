@@ -14,10 +14,12 @@ import static com.github.tonivade.purefun.Validator.nonEmpty;
 import static com.github.tonivade.purefun.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.Validator.positive;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -26,6 +28,7 @@ import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Validator;
@@ -44,7 +47,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <T> type of the value when valid
  */
 @HigherKind(sealed = true)
-public interface Validation<E, T> extends ValidationOf<E, T> {
+public interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Kind<Validation_, E>, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -76,6 +79,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
    */
   E getError();
 
+  @Override
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> map(Function1<? super T, ? extends R> mapper) {
     if (isValid()) {
@@ -97,6 +101,7 @@ public interface Validation<E, T> extends ValidationOf<E, T> {
     return mapError.map(mapper);
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Kind<Kind<Validation_, E>, ? extends R>> mapper) {
     if (isValid()) {

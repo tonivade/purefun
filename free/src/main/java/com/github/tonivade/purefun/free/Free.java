@@ -7,9 +7,11 @@ package com.github.tonivade.purefun.free;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.free.FreeOf.toFree;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
@@ -20,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
+public abstract class Free<F extends Witness, A> implements FreeOf<F, A>, Bindable<Kind<Free_, F>, A> {
 
   private Free() {}
 
@@ -55,10 +57,12 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A> {
     };
   }
 
+  @Override
   public <R> Free<F, R> map(Function1<? super A, ? extends R> map) {
     return flatMap(map.andThen(Free::pure));
   }
 
+  @Override
   public abstract <R> Free<F, R> flatMap(Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends R>> map);
 
   public abstract Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor);
