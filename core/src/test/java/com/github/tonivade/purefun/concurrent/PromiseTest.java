@@ -5,10 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import java.time.Duration;
@@ -112,6 +109,17 @@ class PromiseTest {
 
     executor.schedule(() -> promise.tryComplete(value), 500, TimeUnit.MILLISECONDS);
 
+    assertEquals(value.map(String::toUpperCase), map.await());
+  }
+  
+  @Test
+  void flatMap() {
+    Promise<String> promise = Promise.make();
+    Promise<String> map = promise.flatMap(v -> Promise.<String>make().succeeded(v.toUpperCase()));
+    Try<String> value = Try.success("hello world!");
+
+    executor.schedule(() -> promise.tryComplete(value), 500, TimeUnit.MILLISECONDS);
+    
     assertEquals(value.map(String::toUpperCase), map.await());
   }
 
