@@ -11,6 +11,8 @@ import static com.github.tonivade.purefun.free.FreeOf.toFree;
 import static com.github.tonivade.purefun.type.ConstOf.toConst;
 import java.util.Deque;
 import java.util.LinkedList;
+
+import com.github.tonivade.purefun.Applicable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
@@ -20,13 +22,15 @@ import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
+public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
 
   private FreeAp() {}
 
+  @Override
   public abstract <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
 
-  public <B> FreeAp<F, B> ap(FreeAp<F, Function1<? super A, ? extends B>> apply) {
+  @Override
+  public <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure) {
       Pure<F, Function1<? super A, ? extends B>> pure = (Pure<F, Function1<? super A, ? extends B>>) apply;
       return map(pure.value);
@@ -69,7 +73,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
         do {
           Apply ap = (Apply) argF;
           argsF.addFirst(ap.value);
-          argF = ap.apply;
+          argF = (FreeAp) ap.apply;
         } while (argF instanceof Apply);
 
         int argc = argsF.size() - lengthInitial;
@@ -85,7 +89,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
           if (function.remaining > 1) {
             fns.addFirst(new CurriedFunction(res, function.remaining - 1));
           } else {
-            if (fns.size() > 0) {
+            if (!fns.isEmpty()) {
               do {
                 function = fns.pollFirst();
 
@@ -97,7 +101,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
               } while (function.remaining == 1 && fns.size() > 0);
             }
 
-            if (fns.size() == 0) {
+            if (fns.isEmpty()) {
               return res;
             }
           }
@@ -116,9 +120,9 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A> {
     return new FreeAp.Lift<>(value);
   }
 
-  public static <F extends Witness, T, R> FreeAp<F, R> apply(FreeAp<F, ? extends T> value, 
-      FreeAp<F, ? extends Function1<? super T, ? extends R>> mapper) {
-    return new FreeAp.Apply<>(value, mapper);
+  public static <F extends Witness, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp_, F>, ? extends T> value, 
+      Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> mapper) {
+    return new FreeAp.Apply<>(value.fix(toFreeAp()), mapper.fix(toFreeAp()));
   }
 
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
@@ -233,7 +237,7 @@ interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F
   default <T, R> FreeAp<F, R> ap(
       Kind<Kind<FreeAp_, F>, ? extends T> value, 
       Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> apply) {
-    return FreeAp.apply(value.fix(toFreeAp()), apply.fix(toFreeAp()));
+    return FreeAp.apply(value, apply);
   }
 }
 

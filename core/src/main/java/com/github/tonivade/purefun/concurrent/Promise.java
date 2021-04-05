@@ -4,12 +4,7 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.LinkedList;
@@ -19,11 +14,17 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Objects.isNull;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.type.TryOf;
 
 @HigherKind(sealed = true)
-public interface Promise<T> extends PromiseOf<T> {
+public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -52,6 +53,8 @@ public interface Promise<T> extends PromiseOf<T> {
   }
   
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
+  
+  <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper);
 
   Try<T> await();
   Try<T> await(Duration timeout);
@@ -109,15 +112,15 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   @Override
   public Try<T> await() {
     if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          try {
+      try {
+        synchronized (state) {
+          while (!state.completed) {
             state.wait();
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return Try.failure(e);
           }
         }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return Try.failure(e);
       }
     }
     return TryOf.narrowK(checkNonNull(reference.get()));
@@ -126,15 +129,15 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   @Override
   public Try<T> await(Duration timeout) {
     if (isEmpty()) {
-      synchronized (state) {
-        if (isEmpty()) {
-          try {
+      try {
+        synchronized (state) {
+          if (!state.completed) {
             state.wait(timeout.toMillis());
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return Try.failure(e);
           }
         }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return Try.failure(e);
       }
     }
     Option<Try<T>> option = Option.of(reference::get).map(TryOf::narrowK);
@@ -161,12 +164,22 @@ final class PromiseImpl<T> implements SealedPromise<T> {
     return other;
   }
 
+  @Override
+  public <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper) {
+    Promise<R> other = new PromiseImpl<>(executor);
+    onComplete(value -> {
+      Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::narrowK));
+      map.fold(error -> other.tryComplete(Try.failure(error)), next -> next.onComplete(other::tryComplete));
+    });
+    return other;
+  }
+
   private Option<Try<T>> current(Consumer1<? super Try<? extends T>> consumer) {
     Try<? extends T> current = reference.get();
-    if (isNull(current)) {
+    if (current == null) {
       synchronized (state) {
         current = reference.get();
-        if (isNull(current)) {
+        if (current == null) {
           consumers.add(consumer);
         }
       }
@@ -184,7 +197,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
   }
 
   private boolean isEmpty() {
-    return isNull(reference.get());
+    return reference.get() == null;
   }
 
   private static final class State {

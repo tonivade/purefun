@@ -9,11 +9,13 @@ import static com.github.tonivade.purefun.Producer.cons;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 
 @HigherKind
-public interface Control<T> extends ControlOf<T> {
+public interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
 
   <R> Result<R> apply(MetaCont<T, R> cont);
 
@@ -21,6 +23,7 @@ public interface Control<T> extends ControlOf<T> {
     return Result.trampoline(apply(MetaCont.returnCont()));
   }
 
+  @Override
   default <R> Control<R> map(Function1<? super T, ? extends R> mapper) {
     return new Control<R>() {
       @Override
@@ -30,7 +33,8 @@ public interface Control<T> extends ControlOf<T> {
     };
   }
 
-  default <R> Control<R> flatMap(Function1<? super T, ? extends Control<? extends R>> mapper) {
+  @Override
+  default <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
     return new Control<R>() {
       @Override
       public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
@@ -39,7 +43,7 @@ public interface Control<T> extends ControlOf<T> {
     };
   }
 
-  default <R> Control<R> andThen(Control<? extends R> next) {
+  default <R> Control<R> andThen(Kind<Control_, ? extends R> next) {
     return flatMap(ignore -> next);
   }
 
@@ -187,7 +191,7 @@ public interface Control<T> extends ControlOf<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> Control<R> flatMap(Function1<? super T, ? extends Control<? extends R>> mapper) {
+    public <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
       return (Control<R>) this;
     }
   }

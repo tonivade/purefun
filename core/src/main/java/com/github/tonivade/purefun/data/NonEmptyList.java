@@ -4,19 +4,18 @@
  */
 package com.github.tonivade.purefun.data;
 
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Matcher1;
-
+import static com.github.tonivade.purefun.Validator.greaterThan;
+import static com.github.tonivade.purefun.Validator.nonNullAnd;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-
-import static com.github.tonivade.purefun.Validator.greaterThan;
-import static com.github.tonivade.purefun.Validator.nonNullAnd;
-import static com.github.tonivade.purefun.data.Sequence.listOf;
+import com.github.tonivade.purefun.Equal;
+import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Matcher1;
 
 public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
 
@@ -36,7 +35,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
+  public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
     return of(value.flatMap(mapper));
   }
 

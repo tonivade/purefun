@@ -14,6 +14,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -36,7 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
-public interface IO<T> extends IOOf<T>, Recoverable {
+public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   T unsafeRunSync();
 
@@ -62,20 +63,24 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
   <F extends Witness> Kind<F, T> foldMap(Async<F> monad);
 
+  @Override
   default <R> IO<R> map(Function1<? super T, ? extends R> map) {
     return flatMap(map.andThen(IO::pure));
   }
 
-  default <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
-    return new FlatMapped<>(Producer.cons(this), map);
+  @Override
+  default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
+    return new FlatMapped<>(Producer.cons(this), map.andThen(IOOf::narrowK));
   }
 
-  default <R> IO<R> andThen(IO<? extends R> after) {
+  @Override
+  default <R> IO<R> andThen(Kind<IO_, ? extends R> after) {
     return flatMap(ignore -> after);
   }
 
-  default <R> IO<R> ap(IO<Function1<? super T, ? extends R>> apply) {
-    return new Apply<>(this, apply);
+  @Override
+  default <R> IO<R> ap(Kind<IO_, Function1<? super T, ? extends R>> apply) {
+    return new Apply<>(this, apply.fix(IOOf.toIO()));
   }
 
   default IO<Try<T>> attempt() {
@@ -96,8 +101,8 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     return attempt().map(try_ -> try_.fold(mapError, mapper));
   }
 
-  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends IO<? extends R>> mapError,
-                               Function1<? super T, ? extends IO<? extends R>> mapper) {
+  default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends Kind<IO_, ? extends R>> mapError,
+                               Function1<? super T, ? extends Kind<IO_, ? extends R>> mapper) {
     return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
   }
 
@@ -115,38 +120,47 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     });
   }
 
+  @Override
   default IO<Tuple2<Duration, T>> timed() {
     return new Timed<>(this);
   }
 
+  @Override
   default IO<T> repeat() {
     return repeat(1);
   }
 
+  @Override
   default IO<T> repeat(int times) {
     return IOModule.repeat(this, unit(), times);
   }
 
+  @Override
   default IO<T> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   default IO<T> repeat(Duration delay, int times) {
     return IOModule.repeat(this, sleep(delay), times);
   }
 
+  @Override
   default IO<T> retry() {
     return retry(1);
   }
 
+  @Override
   default IO<T> retry(int maxRetries) {
     return IOModule.retry(this, unit(), maxRetries);
   }
 
+  @Override
   default IO<T> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   default IO<T> retry(Duration delay, int maxRetries) {
     return IOModule.retry(this, sleep(delay), maxRetries);
   }
@@ -291,13 +305,14 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
-      return monad.flatMap(current.get().foldMap(monad), next.andThen(io -> io.foldMap(monad)));
+      return monad.flatMap(
+        current.andThen(IOOf::<T>narrowK).get().foldMap(monad), 
+        next.andThen(IOOf::<R>narrowK).andThen(io -> io.foldMap(monad)));
     }
 
-    @SuppressWarnings("cast")
     @Override
-    public <R1> IO<R1> flatMap(Function1<? super R, ? extends IO<? extends R1>> map) {
-      return new FlatMapped<>(() -> start(), r -> new FlatMapped<>(() -> run((T) r), map::apply));
+    public <R1> IO<R1> flatMap(Function1<? super R, ? extends Kind<IO_, ? extends R1>> map) {
+      return new FlatMapped<>(this::start, r -> new FlatMapped<>(() -> run(r), map.andThen(IOOf::narrowK)::apply));
     }
 
     @Override
@@ -341,7 +356,7 @@ public interface IO<T> extends IOOf<T>, Recoverable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
+    public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
       return (IO<R>) this;
     }
 
@@ -415,8 +430,8 @@ public interface IO<T> extends IOOf<T>, Recoverable {
     }
 
     @Override
-    public <R> IO<R> flatMap(Function1<? super T, ? extends IO<? extends R>> map) {
-      return new FlatMapped<>(lazy::get, map::apply);
+    public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
+      return new FlatMapped<>(lazy::get, map.andThen(IOOf::narrowK)::apply);
     }
 
     @Override

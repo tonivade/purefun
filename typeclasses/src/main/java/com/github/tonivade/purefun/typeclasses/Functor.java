@@ -17,7 +17,8 @@ public interface Functor<F extends Witness> extends Invariant<F> {
   }
 
   @Override
-  default <A, B> Kind<F, B> imap(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap) {
+  default <A, B> Kind<F, B> imap(
+      Kind<F, ? extends A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap) {
     return map(value, map);
   }
 

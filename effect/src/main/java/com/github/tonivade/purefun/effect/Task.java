@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -35,7 +36,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
-public final class Task<A> implements TaskOf<A>, Recoverable {
+public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   private static final Task<Unit> UNIT = new Task<>(ZIO.unit());
 
@@ -87,27 +88,31 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return instance.foldMap(nothing(), monad);
   }
 
+  @Override
   public <B> Task<B> map(Function1<? super A, ? extends B> map) {
     return flatMap(lift(map));
   }
 
-  public <B> Task<B> flatMap(Function1<? super A, ? extends Task<? extends B>> map) {
+  @Override
+  public <B> Task<B> flatMap(Function1<? super A, ? extends Kind<Task_, ? extends B>> map) {
     return new Task<>(instance.flatMap(value -> {
-      Task<? extends B> apply = map.apply(value);
+      Task<? extends B> apply = map.andThen(TaskOf::narrowK).apply(value);
       return apply.instance;
     }));
   }
 
-  public <B> Task<B> andThen(Task<? extends B> next) {
-    return new Task<>(instance.andThen(next.instance));
+  @Override
+  public <B> Task<B> andThen(Kind<Task_, ? extends B> next) {
+    return new Task<>(instance.andThen(next.fix(TaskOf.toTask()).instance));
   }
 
-  public <B> Task<B> ap(Task<Function1<? super A, ? extends B>> apply) {
-    return new Task<>(instance.ap(apply.toZIO()));
+  @Override
+  public <B> Task<B> ap(Kind<Task_, Function1<? super A, ? extends B>> apply) {
+    return new Task<>(instance.ap(apply.fix(TaskOf.toTask()).instance));
   }
 
   public <B> Task<B> foldM(
-      Function1<? super Throwable, ? extends Task<? extends B>> mapError, 
+      Function1<? super Throwable, ? extends Kind<Task_, ? extends B>> mapError, 
       Function1<? super A, ? extends Task<? extends B>> map) {
     return new Task<>(instance.foldM(
         error -> mapError.andThen(TaskOf::narrowK).apply(error).instance, 
@@ -133,39 +138,47 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new UIO<>(instance.recover(mapError));
   }
 
-  public Task<A> orElse(Task<? extends A> other) {
-    return new Task<>(instance.orElse(other.instance));
+  public Task<A> orElse(Kind<Task_, ? extends A> other) {
+    return new Task<>(instance.orElse(other.fix(TaskOf.toTask()).instance));
   }
   
-  public <B> Task<Tuple2<A, B>> zip(Task<? extends B> other) {
+  @Override
+  public <B> Task<Tuple2<A, B>> zip(Kind<Task_, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> Task<A> zipLeft(Task<? extends B> other) {
+  @Override
+  public <B> Task<A> zipLeft(Kind<Task_, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> Task<B> zipRight(Task<? extends B> other) {
+  @Override
+  public <B> Task<B> zipRight(Kind<Task_, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> Task<C> zipWith(Task<? extends B> other, 
+  @Override
+  public <B, C> Task<C> zipWith(Kind<Task_, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other, mapper);
+    return map2(this, other.fix(TaskOf.toTask()), mapper);
   }
 
+  @Override
   public Task<A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public Task<A> repeat(int times) {
     return new Task<>(instance.repeat(times));
   }
 
+  @Override
   public Task<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public Task<A> repeat(Duration delay, int times) {
     return new Task<>(instance.repeat(delay, times));
   }
@@ -174,18 +187,22 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.repeat(schedule));
   }
 
+  @Override
   public Task<A> retry() {
     return retry(1);
   }
 
+  @Override
   public Task<A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public Task<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public Task<A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
@@ -194,6 +211,7 @@ public final class Task<A> implements TaskOf<A>, Recoverable {
     return new Task<>(instance.retry(schedule));
   }
 
+  @Override
   public Task<Tuple2<Duration, A>> timed() {
     return new Task<>(instance.timed());
   }

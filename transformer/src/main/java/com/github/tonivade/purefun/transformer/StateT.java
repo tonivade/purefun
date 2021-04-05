@@ -5,21 +5,23 @@
 package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.Unit.unit;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind(sealed = true)
-public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A> {
+public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A>, Bindable<Kind<Kind<StateT_, F>, S>, A> {
 
   Monad<F> monad();
   Kind<F, Tuple2<S, A>> run(S state);
@@ -28,11 +30,13 @@ public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A> {
     return monad().map(run(state), Tuple2::get2);
   }
 
+  @Override
   default <R> StateT<F, S, R> map(Function1<? super A, ? extends R> map) {
     return flatMap(value -> pure(monad(), map.apply(value)));
   }
 
-  default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends StateT<F, S, ? extends R>> map) {
+  @Override
+  default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<StateT_, F>, S>, ? extends R>> map) {
     return state(monad(), state -> {
       Kind<F, Tuple2<S, A>> newState = run(state);
       return monad().flatMap(newState, state2 -> map.andThen(StateTOf::<F, S, R>narrowK).apply(state2.get2()).run(state2.get1()));

@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,9 +17,9 @@ import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.type.Option;
 
@@ -59,8 +58,8 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
-    return ImmutableList.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
+  default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
+    return ImmutableList.from(stream().flatMap(mapper.andThen(SequenceOf::<R>narrowK).andThen(Sequence::stream)::apply));
   }
 
   @Override

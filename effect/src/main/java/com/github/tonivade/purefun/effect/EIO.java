@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -34,7 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
-public final class EIO<E, A> implements EIOOf<E, A> {
+public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
 
   private static final EIO<?, Unit> UNIT = new EIO<>(ZIO.unit());
 
@@ -77,15 +78,27 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return instance.foldMap(nothing(), monad);
   }
 
+  @Override
   public <B> EIO<E, B> map(Function1<? super A, ? extends B> map) {
     return new EIO<>(instance.map(map));
   }
 
-  public <B> EIO<E, B> flatMap(Function1<? super A, ? extends EIO<E, ? extends B>> map) {
+  @Override
+  public <B> EIO<E, B> flatMap(Function1<? super A, ? extends Kind<Kind<EIO_, E>, ? extends B>> map) {
     return new EIO<>(instance.flatMap(value -> {
-      EIO<E, ? extends B> apply = map.apply(value);
+      EIO<E, ? extends B> apply = map.andThen(EIOOf::narrowK).apply(value);
       return apply.instance;
     }));
+  }
+
+  @Override
+  public <B> EIO<E, B> andThen(Kind<Kind<EIO_, E>, ? extends B> next) {
+    return new EIO<>(instance.andThen(next.fix(EIOOf.toEIO()).instance));
+  }
+
+  @Override
+  public <B> EIO<E, B> ap(Kind<Kind<EIO_, E>, Function1<? super A, ? extends B>> apply) {
+    return new EIO<>(instance.ap(apply.fix(EIOOf.toEIO()).toZIO()));
   }
 
   public EIO<A, E> swap() {
@@ -96,9 +109,9 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.mapError(map));
   }
 
-  public <F> EIO<F, A> flatMapError(Function1<? super E, ? extends EIO<F, ? extends A>> map) {
+  public <F> EIO<F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<EIO_, F>, ? extends A>> map) {
     return new EIO<>(instance.flatMapError(error -> {
-      EIO<F, ? extends A> apply = map.apply(error);
+      EIO<F, ? extends A> apply = map.andThen(EIOOf::narrowK).apply(error);
       return apply.instance;
     }));
   }
@@ -107,17 +120,9 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.bimap(mapError, map));
   }
 
-  public <B> EIO<E, B> andThen(EIO<E, ? extends B> next) {
-    return new EIO<>(instance.andThen(next.instance));
-  }
-
-  public <B> EIO<E, B> ap(EIO<E, Function1<? super A, ? extends B>> apply) {
-    return new EIO<>(instance.ap(apply.toZIO()));
-  }
-
   public <B, F> EIO<F, B> foldM(
-      Function1<? super E, ? extends EIO<F, ? extends B>> mapError, 
-      Function1<? super A, ? extends EIO<F, ? extends B>> map) {
+      Function1<? super E, ? extends Kind<Kind<EIO_, F>, ? extends B>> mapError, 
+      Function1<? super A, ? extends Kind<Kind<EIO_, F>, ? extends B>> map) {
     return new EIO<>(instance.foldM(
         error -> mapError.andThen(EIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(EIOOf::narrowK).apply(value).instance));
@@ -135,35 +140,43 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.orElse(other.instance));
   }
   
-  public <B> EIO<E, Tuple2<A, B>> zip(EIO<E, ? extends B> other) {
+  @Override
+  public <B> EIO<E, Tuple2<A, B>> zip(Kind<Kind<EIO_, E>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> EIO<E, A> zipLeft(EIO<E, ? extends B> other) {
+  @Override
+  public <B> EIO<E, A> zipLeft(Kind<Kind<EIO_, E>, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> EIO<E, B> zipRight(EIO<E, ? extends B> other) {
+  @Override
+  public <B> EIO<E, B> zipRight(Kind<Kind<EIO_, E>, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> EIO<E, C> zipWith(EIO<E, ? extends B> other, 
+  @Override
+  public <B, C> EIO<E, C> zipWith(Kind<Kind<EIO_, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other, mapper);
+    return map2(this, other.fix(EIOOf.toEIO()), mapper);
   }
 
+  @Override
   public EIO<E, A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public EIO<E, A> repeat(int times) {
     return new EIO<>(instance.repeat(times));
   }
 
+  @Override
   public EIO<E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public EIO<E, A> repeat(Duration delay, int times) {
     return new EIO<>(instance.repeat(delay, times));
   }
@@ -172,18 +185,22 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.repeat(schedule));
   }
 
+  @Override
   public EIO<E, A> retry() {
     return retry(1);
   }
 
+  @Override
   public EIO<E, A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public EIO<E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public EIO<E, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<Nothing, E>recursSpaced(delay, maxRetries));
   }
@@ -192,6 +209,7 @@ public final class EIO<E, A> implements EIOOf<E, A> {
     return new EIO<>(instance.retry(schedule));
   }
 
+  @Override
   public EIO<E, Tuple2<Duration, A>> timed() {
     return new EIO<>(instance.timed());
   }

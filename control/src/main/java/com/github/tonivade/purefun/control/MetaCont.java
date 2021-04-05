@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.control;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -26,7 +27,7 @@ interface MetaCont<A, B> {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  default <R> MetaCont<R, B> flatMap(Function1<? super R, ? extends Control<? extends A>> mapper) {
+  default <R> MetaCont<R, B> flatMap(Function1<? super R, ? extends Kind<Control_, ? extends A>> mapper) {
     Function1<?, Control<?>> f = (Function1) mapper;
     return new Frames<>(NonEmptyList.of(f), this);
   }
@@ -113,7 +114,7 @@ interface MetaCont<A, B> {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R> MetaCont<R, C> flatMap(Function1<? super R, ? extends Control<? extends A>> mapper) {
+    public <R> MetaCont<R, C> flatMap(Function1<? super R, ? extends Kind<Control_, ? extends A>> mapper) {
       NonEmptyList<Function1<?, Control<?>>> list = NonEmptyList.of((Function1) mapper);
       return new Frames<>(list.appendAll(frames), tail);
     }

@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
 
 public interface ImmutableArray<E> extends Sequence<E> {
@@ -56,8 +57,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Sequence<? extends R>> mapper) {
-    return ImmutableArray.from(stream().flatMap(mapper.andThen(Sequence::stream)::apply));
+  default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
+    return ImmutableArray.from(stream().flatMap(mapper.andThen(SequenceOf::<R>narrowK).andThen(Sequence::stream)::apply));
   }
 
   @Override

@@ -6,9 +6,12 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.ImmutableList.empty;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
@@ -16,15 +19,17 @@ import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
 @FunctionalInterface
-public interface State<S, A> extends StateOf<S, A> {
+public interface State<S, A> extends StateOf<S, A>, Bindable<Kind<State_, S>, A> {
 
   Tuple2<S, A> run(S state);
 
+  @Override
   default <R> State<S, R> map(Function1<? super A, ? extends R> mapper) {
     return flatMap(value -> pure(mapper.apply(value)));
   }
 
-  default <R> State<S, R> flatMap(Function1<? super A, ? extends State<S, ? extends R>> mapper) {
+  @Override
+  default <R> State<S, R> flatMap(Function1<? super A, ? extends Kind<Kind<State_, S>, ? extends R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
       State<S, R> narrowK = mapper.andThen(StateOf::<S, R>narrowK).apply(run.get2());

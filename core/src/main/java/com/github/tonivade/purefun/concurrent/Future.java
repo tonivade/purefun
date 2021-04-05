@@ -23,6 +23,8 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
@@ -65,7 +67,7 @@ import com.github.tonivade.purefun.type.TryOf;
  * @see Promise
  */
 @HigherKind(sealed = true)
-public interface Future<T> extends FutureOf<T> {
+public interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
@@ -81,10 +83,12 @@ public interface Future<T> extends FutureOf<T> {
   Future<T> onFailure(Consumer1<? super Throwable> callback);
   Future<T> onComplete(Consumer1<? super Try<? extends T>> callback);
 
+  @Override
   <R> Future<R> map(Function1<? super T, ? extends R> mapper);
   Future<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper);
 
-  <R> Future<R> flatMap(Function1<? super T, ? extends Future<? extends R>> mapper);
+  @Override
+  <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future_, ? extends R>> mapper);
 
   <R> Future<R> andThen(Future<? extends R> next);
 
@@ -364,7 +368,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   @Override
-  public <R> Future<R> flatMap(Function1<? super T, ? extends Future<? extends R>> mapper) {
+  public <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future_, ? extends R>> mapper) {
     return chain(value -> value.fold(e -> Future.failure(executor, e), mapper));
   }
 
@@ -431,12 +435,12 @@ final class FutureImpl<T> implements SealedFuture<T> {
           promise.onComplete(value -> p.tryComplete(mapper.apply(value))), this::cancel);
   }
 
-  private <R> Future<R> chain(Function1<? super Try<? extends T>, ? extends Future<? extends R>> mapper) {
+  private <R> Future<R> chain(Function1<? super Try<? extends T>, ? extends Kind<Future_, ? extends R>> mapper) {
     checkNonNull(executor);
     checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (p, c) ->
-          promise.onComplete(value -> mapper.apply(value).onComplete(p::tryComplete)), this::cancel);
+          promise.onComplete(value -> mapper.andThen(FutureOf::<R>narrowK).apply(value).onComplete(p::tryComplete)), this::cancel);
   }
 
   protected static <T> Future<T> sync(Executor executor, Try<? extends T> result) {

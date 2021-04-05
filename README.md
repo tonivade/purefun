@@ -1,6 +1,12 @@
 # Purefun
 
-[![Purefun logo](pics/logo.png)](https://github.com/tonivade/purefun)
+```
+ ____                  __             
+|  _ \ _   _ _ __ ___ / _|_   _ _ __  
+| |_) | | | | '__/ _ \ |_| | | | '_ \ 
+|  __/| |_| | | |  __/  _| |_| | | | |
+|_|    \__,_|_|  \___|_|  \__,_|_| |_|
+```
 
 ![Build Status](https://github.com/tonivade/purefun/workflows/Java%20CI%20with%20Gradle/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/38422db161da48f09cd192c7e7caa7dd)](https://www.codacy.com/app/zeromock/purefun?utm_source=github.com&utm_medium=referral&utm_content=tonivade/purefun&utm_campaign=Badge_Coverage)

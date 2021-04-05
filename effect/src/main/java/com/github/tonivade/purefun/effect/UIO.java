@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -33,7 +34,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
-public final class UIO<A> implements UIOOf<A>, Recoverable {
+public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   private static final UIO<Unit> UNIT = new UIO<>(ZIO.unit());
 
@@ -95,23 +96,27 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return instance.foldMap(nothing(), monad);
   }
 
+  @Override
   public <B> UIO<B> map(Function1<? super A, ? extends B> map) {
     return new UIO<>(instance.map(map));
   }
 
-  public <B> UIO<B> flatMap(Function1<? super A, ? extends UIO<? extends B>> map) {
+  @Override
+  public <B> UIO<B> flatMap(Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
     return new UIO<>(instance.flatMap(x -> {
-      UIO<? extends B> apply = map.apply(x);
+      UIO<? extends B> apply = map.andThen(UIOOf::narrowK).apply(x);
       return apply.instance;
     }));
   }
 
-  public <B> UIO<B> andThen(UIO<? extends B> next) {
-    return new UIO<>(instance.andThen(next.instance));
+  @Override
+  public <B> UIO<B> andThen(Kind<UIO_, ? extends B> next) {
+    return new UIO<>(instance.andThen(next.fix(UIOOf.toUIO()).instance));
   }
 
-  public <B> UIO<B> ap(UIO<Function1<? super A, ? extends B>> apply) {
-    return new UIO<>(instance.ap(apply.toZIO()));
+  @Override
+  public <B> UIO<B> ap(Kind<UIO_, Function1<? super A, ? extends B>> apply) {
+    return new UIO<>(instance.ap(apply.fix(UIOOf.toUIO()).instance));
   }
 
   public UIO<A> recover(Function1<? super Throwable, ? extends A> mapError) {
@@ -134,42 +139,50 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
   }
 
   public <B> UIO<B> redeemWith(
-      Function1<? super Throwable, ? extends UIO<? extends B>> mapError, 
-      Function1<? super A, ? extends UIO<? extends B>> map) {
+      Function1<? super Throwable, ? extends Kind<UIO_, ? extends B>> mapError, 
+      Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
     return new UIO<>(ZIO.redeem(instance).foldM(
         error -> mapError.andThen(UIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
   
-  public <B> UIO<Tuple2<A, B>> zip(UIO<? extends B> other) {
+  @Override
+  public <B> UIO<Tuple2<A, B>> zip(Kind<UIO_, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
-  public <B> UIO<A> zipLeft(UIO<? extends B> other) {
+  @Override
+  public <B> UIO<A> zipLeft(Kind<UIO_, ? extends B> other) {
     return zipWith(other, first());
   }
   
-  public <B> UIO<B> zipRight(UIO<? extends B> other) {
+  @Override
+  public <B> UIO<B> zipRight(Kind<UIO_, ? extends B> other) {
     return zipWith(other, second());
   }
   
-  public <B, C> UIO<C> zipWith(UIO<? extends B> other, 
+  @Override
+  public <B, C> UIO<C> zipWith(Kind<UIO_, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other, mapper);
+    return map2(this, other.fix(UIOOf.toUIO()), mapper);
   }
 
+  @Override
   public UIO<A> repeat() {
     return repeat(1);
   }
 
+  @Override
   public UIO<A> repeat(int times) {
     return fold(ZIO.redeem(instance).repeat(times));
   }
 
+  @Override
   public UIO<A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
+  @Override
   public UIO<A> repeat(Duration delay, int times) {
     return fold(ZIO.redeem(instance).repeat(delay, times));
   }
@@ -178,18 +191,22 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return fold(ZIO.redeem(instance).repeat(schedule));
   }
 
+  @Override
   public UIO<A> retry() {
     return retry(1);
   }
 
+  @Override
   public UIO<A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
+  @Override
   public UIO<A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
+  @Override
   public UIO<A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
   }
@@ -198,6 +215,7 @@ public final class UIO<A> implements UIOOf<A>, Recoverable {
     return fold(ZIO.redeem(instance).retry(schedule));
   }
 
+  @Override
   public UIO<Tuple2<Duration, A>> timed() {
     return new UIO<>(instance.timed());
   }
