@@ -120,9 +120,9 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
     return new FreeAp.Lift<>(value);
   }
 
-  public static <F extends Witness, T, R> FreeAp<F, R> apply(FreeAp<F, ? extends T> value, 
+  public static <F extends Witness, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp_, F>, ? extends T> value, 
       Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> mapper) {
-    return new FreeAp.Apply<>(value, mapper);
+    return new FreeAp.Apply<>(value.fix(FreeApOf.toFreeAp()), mapper.fix(FreeApOf.toFreeAp()));
   }
 
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
@@ -191,11 +191,11 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
   private static final class Apply<F extends Witness, A, B> extends FreeAp<F, B> {
 
     private final FreeAp<F, ? extends A> value;
-    private final Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply;
+    private final FreeAp<F, ? extends Function1<? super A, ? extends B>> apply;
 
     private Apply(
         FreeAp<F, ? extends A> value, 
-        Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply) {
+        FreeAp<F, ? extends Function1<? super A, ? extends B>> apply) {
       this.value = checkNonNull(value);
       this.apply = checkNonNull(apply);
     }
@@ -237,7 +237,7 @@ interface FreeApplicative<F extends Witness> extends Applicative<Kind<FreeAp_, F
   default <T, R> FreeAp<F, R> ap(
       Kind<Kind<FreeAp_, F>, ? extends T> value, 
       Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> apply) {
-    return FreeAp.apply(value.fix(toFreeAp()), apply.fix(toFreeAp()));
+    return FreeAp.apply(value, apply);
   }
 }
 
