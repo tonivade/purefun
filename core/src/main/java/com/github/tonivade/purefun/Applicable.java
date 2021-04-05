@@ -11,22 +11,6 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
 
   <R> Applicable<F, R> ap(Kind<F, Function1<? super A, ? extends R>> apply);
 
-  default <B> Applicable<F, Tuple2<A, B>> zip(Kind<F, ? extends B> other) {
-    return zipWith(other, Tuple::of);
-  }
-
-  default <B> Applicable<F, A> zipLeft(Kind<F, ? extends B> other) {
-    return zipWith(other, Function2.first());
-  }
-
-  default <B> Applicable<F, B> zipRight(Kind<F, ? extends B> other) {
-    return zipWith(other, Function2.second());
-  }
-
-  default <B, C> Applicable<F, C> zipWith(Kind<F, ? extends B> other, Function2<? super A, ? super B, ? extends C> mapper) {
-    return Applicable.mapN(this, narrowK(other), mapper);
-  }
-
   static <F extends Witness, A, B, C> Applicable<F, C> mapN(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return fb.ap(fa.map(mapper.curried()));

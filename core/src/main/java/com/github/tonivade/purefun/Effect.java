@@ -21,6 +21,22 @@ public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable
     return flatMap(ignore -> next);
   }
 
+  default <B> Effect<F, Tuple2<A, B>> zip(Kind<F, ? extends B> other) {
+    return zipWith(other, Tuple::of);
+  }
+
+  default <B> Effect<F, A> zipLeft(Kind<F, ? extends B> other) {
+    return zipWith(other, Function2.first());
+  }
+
+  default <B> Effect<F, B> zipRight(Kind<F, ? extends B> other) {
+    return zipWith(other, Function2.second());
+  }
+
+  default <B, C> Effect<F, C> zipWith(Kind<F, ? extends B> other, Function2<? super A, ? super B, ? extends C> mapper) {
+    return narrowK(other).ap(this.map(mapper.curried()));
+  }
+
   Effect<F, Tuple2<Duration, A>> timed();
 
   default Effect<F, A> repeat() {
