@@ -17,7 +17,9 @@ public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable
   @Override
   <R> Effect<F, R> flatMap(Function1<? super A, ? extends Kind<F, ? extends R>> mapper);
 
-  <R> Effect<F, R> andThen(Kind<F, ? extends R> next);
+  default <R> Effect<F, R> andThen(Kind<F, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
 
   Effect<F, Tuple2<Duration, A>> timed();
 
