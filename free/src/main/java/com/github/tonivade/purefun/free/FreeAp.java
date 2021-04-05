@@ -122,7 +122,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
 
   public static <F extends Witness, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp_, F>, ? extends T> value, 
       Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> mapper) {
-    return new FreeAp.Apply<>(value.fix(FreeApOf.toFreeAp()), mapper.fix(FreeApOf.toFreeAp()));
+    return new FreeAp.Apply<>(value.fix(toFreeAp()), mapper.fix(toFreeAp()));
   }
 
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
