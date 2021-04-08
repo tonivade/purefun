@@ -3,7 +3,7 @@ ext {
     junitEngine     : '5.7.1',
     junitPlatform   : '1.7.1',
     equalsVerifier  : '3.4.2',
-    mockito         : '3.8.0',
+    mockito         : '3.9.0',
     compileTesting  : '0.19'
   ]
   libs = [
