@@ -252,6 +252,10 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public static <A> UIO<A> task(Producer<? extends A> task) {
     return fold(ZIO.task(task));
   }
+
+  public static <T> UIO<T> fromTry(Try<T> task) {
+    return task.fold(UIO::raiseError, UIO::pure);
+  }
   
   public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(consumer));

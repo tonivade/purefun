@@ -254,6 +254,10 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   public static <R, A> URIO<R, A> task(Producer<? extends A> task) {
     return fold(ZIO.task(task));
   }
+
+  public static <R, T> URIO<R, T> fromTry(Try<T> task) {
+    return task.fold(URIO::raiseError, URIO::pure);
+  }
   
   public static <R, A> URIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(consumer));

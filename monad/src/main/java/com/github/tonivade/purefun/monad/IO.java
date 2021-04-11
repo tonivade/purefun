@@ -185,6 +185,10 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return task.andThen(IO::pure);
   }
 
+  static <T> IO<T> fromTry(Try<T> task) {
+    return task.fold(IO::raiseError, IO::pure);
+  }
+
   static IO<Unit> sleep(Duration duration) {
     return new Sleep(duration);
   }
