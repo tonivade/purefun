@@ -30,6 +30,8 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -253,7 +255,15 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return fold(ZIO.task(task));
   }
 
-  public static <T> UIO<T> fromTry(Try<T> task) {
+  static <T> UIO<T> fromOption(Option<T> task) {
+    return fromEither(task.toEither());
+  }
+
+  static <T> UIO<T> fromTry(Try<T> task) {
+    return fromEither(task.toEither());
+  }
+
+  static <T> UIO<T> fromEither(Either<Throwable, T> task) {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   

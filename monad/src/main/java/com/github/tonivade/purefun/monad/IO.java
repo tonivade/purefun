@@ -32,6 +32,7 @@ import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Instance;
@@ -185,7 +186,15 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return task.andThen(IO::pure);
   }
 
+  static <T> IO<T> fromOption(Option<T> task) {
+    return fromEither(task.toEither());
+  }
+
   static <T> IO<T> fromTry(Try<T> task) {
+    return fromEither(task.toEither());
+  }
+
+  static <T> IO<T> fromEither(Either<Throwable, T> task) {
     return task.fold(IO::raiseError, IO::pure);
   }
 

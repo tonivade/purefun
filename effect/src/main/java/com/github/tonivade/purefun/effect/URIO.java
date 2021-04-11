@@ -29,6 +29,8 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
@@ -255,7 +257,15 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return fold(ZIO.task(task));
   }
 
-  public static <R, T> URIO<R, T> fromTry(Try<T> task) {
+  static <R, T> URIO<R, T> fromOption(Option<T> task) {
+    return fromEither(task.toEither());
+  }
+
+  static <R, T> URIO<R, T> fromTry(Try<T> task) {
+    return fromEither(task.toEither());
+  }
+
+  static <R, T> URIO<R, T> fromEither(Either<Throwable, T> task) {
     return task.fold(URIO::raiseError, URIO::pure);
   }
   
