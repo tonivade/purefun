@@ -189,11 +189,15 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return failureMapper.apply(getCause());
   }
 
-  default Try<T> orElse(Kind<Try_, T> orElse) {
+  default Try<T> or(Producer<Kind<Try_, T>> orElse) {
     if (isFailure()) {
-      return (Try<T>) orElse;
+      return orElse.andThen(TryOf::narrowK).get();
     }
     return this;
+  }
+
+  default Try<T> orElse(Kind<Try_, T> orElse) {
+    return or(Producer.cons(orElse));
   }
 
   default T getOrElse(T value) {

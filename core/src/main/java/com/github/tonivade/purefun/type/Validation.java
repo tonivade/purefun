@@ -128,11 +128,15 @@ public interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Kind<Vali
     return orElse.andThen(ValidationOf::narrowK).get();
   }
 
-  default Validation<E, T> orElse(Validation<E, T> orElse) {
+  default Validation<E, T> or(Producer<Kind<Kind<Validation_, E>, T>> orElse) {
     if (isInvalid()) {
-      return orElse;
+      return orElse.andThen(ValidationOf::narrowK).get();
     }
     return this;
+  }
+
+  default Validation<E, T> orElse(Kind<Kind<Validation_, E>, T> orElse) {
+    return or(Producer.cons(orElse));
   }
 
   default T getOrElse(T value) {

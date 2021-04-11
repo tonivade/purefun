@@ -119,11 +119,15 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     return filter(matcher.negate());
   }
 
-  default Option<T> orElse(Option<T> orElse) {
+  default Option<T> or(Producer<Kind<Option_, T>> orElse) {
     if (isEmpty()) {
-      return orElse;
+      return orElse.andThen(OptionOf::narrowK).get();
     }
     return this;
+  }
+  
+  default Option<T> orElse(Kind<Option_, T> orElse) {
+    return or(cons(orElse));
   }
 
   default T getOrElse(T value) {

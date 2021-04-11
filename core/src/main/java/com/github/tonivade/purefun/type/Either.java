@@ -142,11 +142,15 @@ public interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>,
     return orElse.andThen(EitherOf::narrowK).get();
   }
 
-  default Either<L, R> orElse(Either<L, R> orElse) {
+  default Either<L, R> or(Producer<Kind<Kind<Either_, L>, R>> orElse) {
     if (isLeft()) {
-      return orElse;
+      return orElse.andThen(EitherOf::narrowK).get();
     }
     return this;
+  }
+
+  default Either<L, R> orElse(Kind<Kind<Either_, L>, R> orElse) {
+    return or(Producer.cons(orElse));
   }
 
   default R getOrElse(R value) {
