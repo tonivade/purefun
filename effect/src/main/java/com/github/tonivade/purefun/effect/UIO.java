@@ -255,15 +255,15 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return fold(ZIO.task(task));
   }
 
-  static <T> UIO<T> fromOption(Option<T> task) {
+  public static <T> UIO<T> fromOption(Option<T> task) {
     return fromEither(task.toEither());
   }
 
-  static <T> UIO<T> fromTry(Try<T> task) {
+  public static <T> UIO<T> fromTry(Try<T> task) {
     return fromEither(task.toEither());
   }
 
-  static <T> UIO<T> fromEither(Either<Throwable, T> task) {
+  public static <T> UIO<T> fromEither(Either<Throwable, T> task) {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   

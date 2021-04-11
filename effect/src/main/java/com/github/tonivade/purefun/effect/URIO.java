@@ -257,15 +257,15 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return fold(ZIO.task(task));
   }
 
-  static <R, T> URIO<R, T> fromOption(Option<T> task) {
+  public static <R, T> URIO<R, T> fromOption(Option<T> task) {
     return fromEither(task.toEither());
   }
 
-  static <R, T> URIO<R, T> fromTry(Try<T> task) {
+  public static <R, T> URIO<R, T> fromTry(Try<T> task) {
     return fromEither(task.toEither());
   }
 
-  static <R, T> URIO<R, T> fromEither(Either<Throwable, T> task) {
+  public static <R, T> URIO<R, T> fromEither(Either<Throwable, T> task) {
     return task.fold(URIO::raiseError, URIO::pure);
   }
   
