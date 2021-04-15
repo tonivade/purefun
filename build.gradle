@@ -1,34 +1,22 @@
-apply from: 'gradle/deps.gradle'
-
-buildscript {
-  ext {
-    nexusPlugin = '2.3.1'
-    sonarPlugin = '3.1.1'
-    aptPlugin = '3.29.1'
-  }
-
-  repositories {
-    mavenCentral()
-    jcenter()
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-
-  dependencies {
-    classpath "com.bmuschko:gradle-nexus-plugin:${nexusPlugin}"
-    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${sonarPlugin}"
-    classpath "com.diffplug.gradle:goomph:${aptPlugin}"
-  }
+plugins {
+  id 'java-library'
+  id 'jacoco'
+  id 'maven-publish'
+  id 'signing'
+  id "org.sonarqube" version "3.1.1"
+  id "com.diffplug.oomph.ide" version "3.29.1"
+  id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
 }
+
+apply from: 'gradle/deps.gradle'
 
 apply plugin: 'org.sonarqube'
 
 allprojects {
-  apply plugin: 'java'
   apply plugin: 'java-library'
   apply plugin: 'jacoco'
-  apply plugin: 'com.bmuschko.nexus'
+  apply plugin: 'maven-publish'
+  apply plugin: 'signing'
   apply plugin: 'com.diffplug.eclipse.apt'
 
   group = 'com.github.tonivade'
@@ -36,6 +24,8 @@ allprojects {
 
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
+  
+  ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
   repositories {
     mavenLocal()
@@ -46,7 +36,7 @@ allprojects {
   }
 
   jacoco {
-    toolVersion = '0.8.5'
+    toolVersion = '0.8.6'
   }
 
   compileJava {
@@ -81,55 +71,78 @@ subprojects {
     reports.html.enabled = false
   }
 
-  modifyPom {
-    project {
-      name 'Pure Fun'
-      description 'Functional Programming Library for Java'
-      url 'https://github.com/tonivade/purefun'
-      inceptionYear '2018'
+  publishing {
+    publications {
+      mavenJava(MavenPublication) {
+        
+        from components.java
 
-      scm {
-        url 'https://github.com/tonivade/purefun'
-        connection 'scm:https://github.com/tonivade/purefun.git'
-        developerConnection 'scm:git://github.com/tonivade/purefun.git'
-      }
+        pom {
+          name = 'Pure Fun'
+          description = 'Functional Programming Library for Java'
+          url = 'https://github.com/tonivade/purefun'
+          inceptionYear = '2018'
 
-      licenses {
-        license {
-          name 'The MIT License (MIT)'
-          url 'https://github.com/tonivade/purefun/blob/master/LICENSE'
-          distribution 'repo'
-        }
-      }
+          scm {
+            url = 'https://github.com/tonivade/purefun'
+            connection = 'scm:https://github.com/tonivade/purefun.git'
+            developerConnection = 'scm:git://github.com/tonivade/purefun.git'
+          }
 
-      developers {
-        developer {
-          id 'tonivade'
-          name 'Antonio Muñoz'
-          email 'antoniogmc@gmail.com'
+          licenses {
+            license {
+              name = 'The MIT License (MIT)'
+              url = 'https://github.com/tonivade/purefun/blob/master/LICENSE'
+              distribution = 'repo'
+            }
+          }
+
+          developers {
+            developer {
+              id = 'tonivade'
+              name = 'Antonio Muñoz'
+              email = 'antoniogmc@gmail.com'
+            }
+          }
         }
       }
     }
   }
 
-  extraArchive {
-    sources = true
-    tests = false
-    javadoc = true
+  signing {
+    sign publishing.publications.mavenJava
   }
-
-  nexus {
-    sign = true
-    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
-    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots'
+  
+  tasks.withType(Sign) {
+    onlyIf { isReleaseVersion }
   }
 
   dependencies {
     testImplementation libs.junitJupiter
-    testRuntime libs.junitRunner
+    testRuntimeOnly libs.junitRunner
     testImplementation libs.equalsVerifier
     testImplementation libs.mockitoCore
     testImplementation libs.mockitoJunit
+  }
+}
+
+nexusPublishing {
+  repositories {
+    sonatype {
+      
+      stagingProfileId = '19a96b937cdb5'
+      
+      username = project.findProperty('nexusUsername')  
+      password = project.findProperty('nexusPassword')
+    }
+  }
+  
+  clientTimeout = Duration.ofSeconds(300)
+  connectTimeout = Duration.ofSeconds(60)
+
+  transitionCheckOptions {
+    maxRetries.set(40)
+    delayBetween.set(java.time.Duration.ofMillis(3000))
   }
 }
 
