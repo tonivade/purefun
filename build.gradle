@@ -4,7 +4,7 @@ buildscript {
   ext {
     nexusPlugin = '2.3.1'
     sonarPlugin = '3.1.1'
-    aptPlugin = '3.28.2'
+    aptPlugin = '3.29.1'
   }
 
   repositories {
