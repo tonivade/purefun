@@ -186,15 +186,27 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return task.andThen(IO::pure);
   }
 
-  static <T> IO<T> fromOption(Option<T> task) {
+  public static <A, B> Function1<A, IO<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, IO<B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, IO<B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
+  static <T> IO<T> fromOption(Option<? extends T> task) {
     return fromEither(task.toEither());
   }
 
-  static <T> IO<T> fromTry(Try<T> task) {
+  static <T> IO<T> fromTry(Try<? extends T> task) {
     return fromEither(task.toEither());
   }
 
-  static <T> IO<T> fromEither(Either<Throwable, T> task) {
+  static <T> IO<T> fromEither(Either<Throwable, ? extends T> task) {
     return task.fold(IO::raiseError, IO::pure);
   }
 

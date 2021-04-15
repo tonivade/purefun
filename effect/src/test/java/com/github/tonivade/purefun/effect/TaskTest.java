@@ -40,69 +40,69 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskTest {
+class TaskTest {
 
   @Captor
   private ArgumentCaptor<Try<Integer>> captor;
 
   @Test
-  public void mapRight() {
+  void mapRight() {
     Try<Integer> result = parseInt("1").map(x -> x + 1).safeRunSync();
 
     assertEquals(Try.success(2), result);
   }
 
   @Test
-  public void mapLeft() {
+  void mapLeft() {
     Try<Integer> result = parseInt("lskjdf").map(x -> x + 1).safeRunSync();
 
     assertEquals(NumberFormatException.class, result.getCause().getClass());
   }
 
   @Test
-  public void flatMapRight() {
+  void flatMapRight() {
     Try<Integer> result = parseInt("1").flatMap(x -> pure(x + 1)).safeRunSync();
 
     assertEquals(Try.success(2), result);
   }
 
   @Test
-  public void flatMapLeft() {
+  void flatMapLeft() {
     Try<Integer> result = parseInt("lskjdf").flatMap(x -> pure(x + 1)).safeRunSync();
 
     assertEquals(NumberFormatException.class, result.getCause().getClass());
   }
 
   @Test
-  public void foldRight() {
+  void foldRight() {
     Integer result = parseInt("1").recover(e -> -1).unsafeRunSync();
 
     assertEquals(1, result);
   }
 
   @Test
-  public void foldLeft() {
+  void foldLeft() {
     Integer result = parseInt("kjsdfdf").recover(e -> -1).unsafeRunSync();
 
     assertEquals(-1, result);
   }
 
   @Test
-  public void orElseRight() {
+  void orElseRight() {
     Try<Integer> result = parseInt("1").orElse(pure(2)).safeRunSync();
 
     assertEquals(Try.success(1), result);
   }
 
   @Test
-  public void orElseLeft() {
+  void orElseLeft() {
     Try<Integer> result = parseInt("kjsdfe").orElse(pure(2)).safeRunSync();
 
     assertEquals(Try.success(2), result);
   }
 
   @Test
-  public void bracket() throws SQLException {
+  void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
 
@@ -113,14 +113,14 @@ public class TaskTest {
   }
 
   @Test
-  public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
+  void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("1").safeRunAsync(callback);
 
     verify(callback, timeout(100)).accept(Try.success(1));
   }
 
   @Test
-  public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
+  void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
     parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(500)).accept(captor.capture());
@@ -129,7 +129,7 @@ public class TaskTest {
   }
 
   @Test
-  public void absorb() {
+  void absorb() {
     Exception error = new Exception();
     Task<Either<Throwable, Integer>> task = pure(Either.left(error));
 
@@ -139,7 +139,7 @@ public class TaskTest {
   }
 
   @Test
-  public void foldMapRight() {
+  void foldMapRight() {
     Async<Future_> async = FutureInstances.async();
 
     Kind<Future_, Integer> future = parseInt("0").foldMap(async);
@@ -148,7 +148,7 @@ public class TaskTest {
   }
 
   @Test
-  public void foldMapLeft() {
+  void foldMapLeft() {
     Async<Future_> async = FutureInstances.async();
 
     Kind<Future_, Integer> future = parseInt("jdjd").foldMap(async);
@@ -157,7 +157,7 @@ public class TaskTest {
   }
 
   @Test
-  public void retry(@Mock Producer<String> computation) {
+  void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
     Try<String> retry = task(computation).retry().safeRunSync();
@@ -167,7 +167,7 @@ public class TaskTest {
   }
 
   @Test
-  public void repeat(@Mock Producer<String> computation) {
+  void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
     Try<String> repeat = task(computation).repeat().safeRunSync();
@@ -177,7 +177,7 @@ public class TaskTest {
   }
 
   @Test
-  public void testCompositionWithZIO() {
+  void testCompositionWithZIO() {
     ZIO<Environment, Throwable, Integer> getValue = ZIO.accessM(env -> ZIO.pure(env.getValue()));
     ZIO<Environment, Throwable, Integer> result = unit().<Environment>toZIO().andThen(getValue);
 
@@ -187,13 +187,20 @@ public class TaskTest {
   }
   
   @Test
-  public void traverse() {
+  void traverse() {
     Task<String> left = task(() -> "left");
     Task<String> right = task(() -> "right");
     
     Task<Sequence<String>> traverse = Task.traverse(listOf(left, right));
     
     assertEquals(Try.success(listOf("left", "right")), traverse.safeRunSync());
+  }
+  
+  @Test
+  void liftTry() {
+    Task<String> flatMap = Task.pure("Toni").flatMap(Task.liftTry(this::helloWorld));
+    
+    assertEquals(Try.success("Hello Toni!"), flatMap.safeRunSync());
   }
 
   private Task<Integer> parseInt(String string) {
@@ -206,5 +213,9 @@ public class TaskTest {
 
   private Function1<ResultSet, Task<String>> getString(String column) {
     return resultSet -> task(() -> resultSet.getString(column));
+  }
+  
+  private Try<String> helloWorld(String name) {
+    return Try.success("Hello " + name + "!");
   }
 }

@@ -233,6 +233,18 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return value -> task(() -> function.apply(value));
   }
 
+  public static <R, A, B> Function1<A, URIO<R, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  public static <R, A, B> Function1<A, URIO<R, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  public static <R, A, B> Function1<A, URIO<R, B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
   public static <R> URIO<R, Unit> sleep(Duration delay) {
     return fold(ZIO.sleep(delay));
   }
@@ -257,15 +269,15 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return fold(ZIO.task(task));
   }
 
-  public static <R, T> URIO<R, T> fromOption(Option<T> task) {
+  public static <R, T> URIO<R, T> fromOption(Option<? extends T> task) {
     return fromEither(task.toEither());
   }
 
-  public static <R, T> URIO<R, T> fromTry(Try<T> task) {
+  public static <R, T> URIO<R, T> fromTry(Try<? extends T> task) {
     return fromEither(task.toEither());
   }
 
-  public static <R, T> URIO<R, T> fromEither(Either<Throwable, T> task) {
+  public static <R, T> URIO<R, T> fromEither(Either<Throwable, ? extends T> task) {
     return task.fold(URIO::raiseError, URIO::pure);
   }
   

@@ -231,6 +231,18 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return value -> task(() -> function.apply(value));
   }
 
+  public static <A, B> Function1<A, UIO<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+    return value -> fromOption(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, UIO<B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+    return value -> fromTry(function.apply(value));
+  }
+
+  public static <A, B> Function1<A, UIO<B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+    return value -> fromEither(function.apply(value));
+  }
+
   public static UIO<Unit> sleep(Duration delay) {
     return fold(ZIO.sleep(delay));
   }
@@ -255,15 +267,15 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return fold(ZIO.task(task));
   }
 
-  public static <T> UIO<T> fromOption(Option<T> task) {
+  public static <T> UIO<T> fromOption(Option<? extends T> task) {
     return fromEither(task.toEither());
   }
 
-  public static <T> UIO<T> fromTry(Try<T> task) {
+  public static <T> UIO<T> fromTry(Try<? extends T> task) {
     return fromEither(task.toEither());
   }
 
-  public static <T> UIO<T> fromEither(Either<Throwable, T> task) {
+  public static <T> UIO<T> fromEither(Either<Throwable, ? extends T> task) {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   
