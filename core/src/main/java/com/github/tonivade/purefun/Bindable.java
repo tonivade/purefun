@@ -11,6 +11,10 @@ public interface Bindable<F extends Witness, A> extends Mappable<F, A> {
 
   <R> Bindable<F, R> flatMap(Function1<? super A, ? extends Kind<F, ? extends R>> mapper);
   
+  default <R> Bindable<F, R> andThen(Kind<F, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+  
   @SuppressWarnings("unchecked")
   static <F extends Witness, A> Bindable<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Bindable<F, A>) kind;

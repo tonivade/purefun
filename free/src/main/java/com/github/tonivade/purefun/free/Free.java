@@ -69,7 +69,8 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A>, Bindab
 
   public abstract Free<F, A> step();
 
-  public <R> Free<F, R> andThen(Free<F, R> next) {
+  @Override
+  public <R> Free<F, R> andThen(Kind<Kind<Free_, F>, ? extends R> next) {
     return flatMap(ignore -> next);
   }
 

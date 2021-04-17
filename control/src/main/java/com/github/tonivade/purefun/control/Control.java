@@ -43,6 +43,7 @@ public interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
     };
   }
 
+  @Override
   default <R> Control<R> andThen(Kind<Control_, ? extends R> next) {
     return flatMap(ignore -> next);
   }
