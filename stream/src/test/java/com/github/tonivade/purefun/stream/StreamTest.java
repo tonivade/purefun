@@ -19,12 +19,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
 import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -301,6 +304,13 @@ public class StreamTest {
         () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
         () -> assertEquals("--- file not found ---", notFound.await().get()));
   }
+  
+  @Test
+  public void test() {
+    Stream<IO_, Integer> stream = streamOfIO.from(listOf("a", "b", "c")).mapReplace(IO.pure(1));
+    
+    assertEquals("111", stream.asString().fix(toIO()).unsafeRunSync());
+  }
 
   private IO<String> pureReadFileIO(String file) {
     return streamOfIO.eval(IO.task(() -> reader(file)))
@@ -352,7 +362,7 @@ public class StreamTest {
       .recover(cons("--- file not found ---"));
   }
 
-  public String impureReadFile(String file) {
+  private String impureReadFile(String file) {
     String content = "";
     try (BufferedReader reader = reader(file)) {
       while (true) {

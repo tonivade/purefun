@@ -65,6 +65,11 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<K
   <R> Stream<F, R> map(Function1<? super T, ? extends R> map);
   @Override
   <R> Stream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> map);
+  @Override
+  default <R> Stream<F, R> andThen(Kind<Kind<Stream_, F>, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+
   <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper);
 
   Stream<F, T> repeat();
@@ -89,7 +94,7 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<K
     return foldLeft(unit(), (acc, a) -> acc);
   }
 
-  default <R> Stream<F, R> andThen(Kind<F, R> next) {
+  default <R> Stream<F, R> mapReplace(Kind<F, ? extends R> next) {
     return mapEval(ignore -> next);
   }
 
