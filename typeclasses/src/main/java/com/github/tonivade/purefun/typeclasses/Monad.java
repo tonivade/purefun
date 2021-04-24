@@ -15,6 +15,10 @@ import com.github.tonivade.purefun.type.Either;
 public interface Monad<F extends Witness> extends Selective<F> {
 
   <T, R> Kind<F, R> flatMap(Kind<F, ? extends T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
+  
+  default For<F> use() {
+    return For.with(this);
+  }
 
   // XXX: this method in not stack safe. In fact, now I don't really know how to do it stack safe
   // without real tail recursion optimization
