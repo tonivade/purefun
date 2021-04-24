@@ -13,4 +13,8 @@ public interface Console<F extends Witness> {
   Kind<F, String> readln();
 
   Kind<F, Unit> println(String text);
+  
+  default Kind<F, Unit> printf(String template, Object...args) {
+    return println(String.format(template, args));
+  }
 }
