@@ -5,6 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
+import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
+import static com.github.tonivade.purefun.transformer.StateTOf.toStateT;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple;
@@ -17,13 +20,10 @@ import com.github.tonivade.purefun.instances.MonadMTL.EffectR;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectR_;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectS_;
 import com.github.tonivade.purefun.transformer.EitherT;
-import com.github.tonivade.purefun.transformer.EitherTOf;
 import com.github.tonivade.purefun.transformer.EitherT_;
 import com.github.tonivade.purefun.transformer.Kleisli;
-import com.github.tonivade.purefun.transformer.KleisliOf;
 import com.github.tonivade.purefun.transformer.Kleisli_;
 import com.github.tonivade.purefun.transformer.StateT;
-import com.github.tonivade.purefun.transformer.StateTOf;
 import com.github.tonivade.purefun.transformer.StateT_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -52,45 +52,43 @@ public class MonadMTL<F extends Witness, S, R, E>
 
   @Override
   public <A> EffectS<F, S, R, E, A> pure(A value) {
-    return new EffectS<>(monadStateS.pure(value).fix(StateTOf.toStateT()));
+    return new EffectS<>(monadStateS.pure(value));
   }
 
   @Override
   public <A, B> EffectS<F, S, R, E, B> flatMap(Kind<EffectS_, ? extends A> value,
       Function1<? super A, ? extends Kind<EffectS_, ? extends B>> map) {
-    Kind<Kind<Kind<StateT_, EffectR_>, S>, B> flatMap = monadStateS.flatMap(
+    return new EffectS<>(monadStateS.flatMap(
         value.fix(EffectS::<F, S, R, E, A>narrowK).value(),
-        x -> map.apply(x).fix(EffectS::<F, S, R, E, B>narrowK).value());
-    return new EffectS<>(flatMap.fix(StateTOf::narrowK));
+        x -> map.apply(x).fix(EffectS::<F, S, R, E, B>narrowK).value()));
   }
 
   @Override
   public EffectS<F, S, R, E, S> get() {
-    return new EffectS<>(monadStateS.get().fix(StateTOf.toStateT()));
+    return new EffectS<>(monadStateS.get());
   }
 
   @Override
   public EffectS<F, S, R, E, Unit> set(S state) {
-    return new EffectS<>(monadStateS.set(state).fix(StateTOf.toStateT()));
+    return new EffectS<>(monadStateS.set(state));
   }
 
   @Override
   public <A> EffectS<F, S, R, E, A> raiseError(E error) {
-    return new EffectS<>(monadErrorS.<A>raiseError(error).fix(StateTOf.toStateT()));
+    return new EffectS<>(monadErrorS.<A>raiseError(error));
   }
 
   @Override
   public <A> EffectS<F, S, R, E, A> handleErrorWith(
       Kind<EffectS_, A> value, Function1<? super E, ? extends Kind<EffectS_, ? extends A>> handler) {
-    Kind<Kind<Kind<StateT_, EffectR_>, S>, A> handleErrorWith = monadErrorS.handleErrorWith(
+    return new EffectS<>(monadErrorS.handleErrorWith(
         value.fix(EffectS::<F, S, R, E, A>narrowK).value(),
-        error -> handler.apply(error).fix(EffectS::<F, S, R, E, A>narrowK).value());
-    return new EffectS<>(handleErrorWith.fix(StateTOf.toStateT()));
+        error -> handler.apply(error).fix(EffectS::<F, S, R, E, A>narrowK).value()));
   }
 
   @Override
   public EffectS<F, S, R, E, R> ask() {
-    return new EffectS<>(monadReaderS.ask().fix(StateTOf.toStateT()));
+    return new EffectS<>(monadReaderS.ask());
   }
 
   public <A> EffectE<F, E, A> effectE(Kind<F, Either<E, A>> value) {
@@ -113,8 +111,8 @@ public class MonadMTL<F extends Witness, S, R, E>
 
     private final EitherT<F, E, A> value;
 
-    public EffectE(EitherT<F, E, A> value) {
-      this.value = value;
+    public EffectE(Kind<Kind<Kind<EitherT_, F>, E>, A> value) {
+      this.value = value.fix(toEitherT());
     }
 
     public EitherT<F, E, A> value() {
@@ -135,8 +133,8 @@ public class MonadMTL<F extends Witness, S, R, E>
 
     private final Kleisli<EffectE_, R, A> value;
 
-    public EffectR(Kleisli<EffectE_, R, A> value) {
-      this.value = value;
+    public EffectR(Kind<Kind<Kind<Kleisli_, EffectE_>, R>, A> value) {
+      this.value = value.fix(toKleisli());
     }
 
     public Kleisli<EffectE_, R, A> value() {
@@ -157,8 +155,8 @@ public class MonadMTL<F extends Witness, S, R, E>
 
     private final StateT<EffectR_, S, A> value;
 
-    public EffectS(StateT<EffectR_, S, A> value) {
-      this.value = value;
+    public EffectS(Kind<Kind<Kind<StateT_, EffectR_>, S>, A> value) {
+      this.value = value.fix(toStateT());
     }
 
     public StateT<EffectR_, S, A> value() {
@@ -186,30 +184,27 @@ class EffectEMonadError<F extends Witness, E> implements MonadError<EffectE_, E>
 
   @Override
   public <A> EffectE<F, E, A> pure(A value) {
-    return new EffectE<>(monad.pure(value).fix(EitherTOf.toEitherT()));
+    return new EffectE<>(monad.pure(value));
   }
 
   @Override
   public <A, B> EffectE<F, E, B> flatMap(Kind<EffectE_, ? extends A> value,
       Function1<? super A, ? extends Kind<EffectE_, ? extends B>> map) {
-    Kind<Kind<Kind<EitherT_, F>, E>, ? extends B> flatMap =
-        monad.flatMap(
-            value.fix(EffectE::<F, E, A>narrowK).value(),
-            x -> map.apply(x).fix(EffectE::<F, E, B>narrowK).value());
-    return new EffectE<>(flatMap.fix(EitherTOf::narrowK));
+    return new EffectE<>(monad.flatMap(
+        value.fix(EffectE::<F, E, A>narrowK).value(),
+        x -> map.apply(x).fix(EffectE::<F, E, B>narrowK).value()));
   }
 
   @Override
   public <A> EffectE<F, E, A> raiseError(E error) {
-    return new EffectE<>(monad.<A>raiseError(error).fix(EitherTOf.toEitherT()));
+    return new EffectE<>(monad.<A>raiseError(error));
   }
 
   @Override
   public <A> EffectE<F, E, A> handleErrorWith(Kind<EffectE_, A> value,
       Function1<? super E, ? extends Kind<EffectE_, ? extends A>> handler) {
-    Kind<Kind<Kind<EitherT_, F>, E>, A> handleErrorWith = monad.handleErrorWith(value.fix(EffectE::<F, E, A>narrowK).value(),
-            error -> handler.apply(error).fix(EffectE::<F, E, A>narrowK).value());
-    return new EffectE<>(handleErrorWith.fix(EitherTOf.toEitherT()));
+    return new EffectE<>(monad.handleErrorWith(value.fix(EffectE::<F, E, A>narrowK).value(),
+            error -> handler.apply(error).fix(EffectE::<F, E, A>narrowK).value()));
   }
 }
 
@@ -224,15 +219,14 @@ class EffectRMonad<F extends Witness, R, E> implements Monad<EffectR_> {
 
   @Override
   public <A> EffectR<F, R, E, A> pure(A value) {
-    return new EffectR<>(monad.pure(value).fix(KleisliOf.toKleisli()));
+    return new EffectR<>(monad.pure(value));
   }
 
   @Override
   public <A, B> EffectR<F, R, E, B> flatMap(Kind<EffectR_, ? extends A> value,
       Function1<? super A, ? extends Kind<EffectR_, ? extends B>> map) {
-    Kind<Kind<Kind<Kleisli_, EffectE_>, R>, B> flatMap = monad.flatMap(value.fix(EffectR::<F, R, E, A>narrowK).value(),
-        t -> map.apply(t).fix(EffectR::<F, R, E, B>narrowK).value());
-    return new EffectR<>(flatMap.fix(KleisliOf::narrowK));
+    return new EffectR<>(monad.flatMap(value.fix(EffectR::<F, R, E, A>narrowK).value(),
+        t -> map.apply(t).fix(EffectR::<F, R, E, B>narrowK).value()));
   }
 }
 
@@ -247,7 +241,7 @@ class EffectRMonadReader<F extends Witness, R, E> extends EffectRMonad<F, E, R> 
 
   @Override
   public EffectR<F, R, E, R> ask() {
-    return new EffectR<>(monad.ask().fix(KleisliOf.toKleisli()));
+    return new EffectR<>(monad.ask());
   }
 }
 
@@ -262,15 +256,14 @@ class EffectRMonadError<F extends Witness, R, E> extends EffectRMonad<F, R, E> i
 
   @Override
   public <A> EffectR<F, R, E, A> raiseError(E error) {
-    return new EffectR<>(monadError.<A>raiseError(error).fix(KleisliOf.toKleisli()));
+    return new EffectR<>(monadError.<A>raiseError(error));
   }
 
   @Override
   public <A> EffectR<F, R, E, A> handleErrorWith(
       Kind<EffectR_, A> value, Function1<? super E, ? extends Kind<EffectR_, ? extends A>> handler) {
-    Kind<Kind<Kind<Kleisli_, EffectE_>, R>, A> handleErrorWith = monadError.handleErrorWith(
+    return new EffectR<>(monadError.handleErrorWith(
         value.fix(EffectR::<F, R, E, A>narrowK).value(),
-        error -> handler.apply(error).fix(EffectR::<F, R, E, A>narrowK).value());
-    return new EffectR<>(handleErrorWith.fix(KleisliOf.toKleisli()));
+        error -> handler.apply(error).fix(EffectR::<F, R, E, A>narrowK).value()));
   }
 }
