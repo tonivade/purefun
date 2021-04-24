@@ -1,6 +1,4 @@
-archivesBaseName = 'purefun-core'
-
 dependencies {
-  annotationProcessor project(':kind:processor')
-  api project(':kind:annotation')
+  annotationProcessor project(':purefun-processor')
+  api project(':purefun-annotation')
 }

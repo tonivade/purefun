@@ -110,7 +110,7 @@ public class MonadT<F extends Witness, S, R, E>
   public static final class Effect1_ implements Witness { }
   public static final class EffectN_ implements Witness { }
 
-  public static class Effect0<F extends Witness, E, A> implements Kind<Effect0_, A> {
+  public static final class Effect0<F extends Witness, E, A> implements Kind<Effect0_, A> {
     
     private final EitherT<F, E, A> value;
     
@@ -132,7 +132,7 @@ public class MonadT<F extends Witness, S, R, E>
     }
   }
 
-  public static class Effect1<F extends Witness, R, E, A> implements Kind<Effect1_, A> {
+  public static final class Effect1<F extends Witness, R, E, A> implements Kind<Effect1_, A> {
     
     private final Kleisli<Effect0_, R, A> value;
     
@@ -154,7 +154,7 @@ public class MonadT<F extends Witness, S, R, E>
     }
   }
 
-  public static class EffectN<F extends Witness, S, R, E, A> implements Kind<EffectN_, A> {
+  public static final class EffectN<F extends Witness, S, R, E, A> implements Kind<EffectN_, A> {
     
     private final StateT<Effect1_, S, A> value;
     

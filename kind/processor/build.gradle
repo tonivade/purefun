@@ -1,6 +1,0 @@
-archivesBaseName = 'purefun-processor'
-
-dependencies {
-  implementation project(':kind:annotation')
-  testImplementation libs.compileTesting
-}

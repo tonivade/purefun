@@ -1,5 +1,3 @@
-archivesBaseName = 'purefun-optics'
-
 dependencies {
-  api project(':core')
+  api project(':purefun-core')
 }

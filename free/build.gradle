@@ -1,11 +1,9 @@
-archivesBaseName = 'purefun-free'
-
 dependencies {
-  annotationProcessor project(':kind:processor')
-  api project(':core')
-  api project(':typeclasses')
-  testAnnotationProcessor project(':kind:processor')
-  testImplementation project(':monad')
-  testImplementation project(':effect')
-  testImplementation project(':instances')
+  annotationProcessor project(':purefun-processor')
+  api project(':purefun-core')
+  api project(':purefun-typeclasses')
+  testAnnotationProcessor project(':purefun-processor')
+  testImplementation project(':purefun-monad')
+  testImplementation project(':purefun-effect')
+  testImplementation project(':purefun-instances')
 }

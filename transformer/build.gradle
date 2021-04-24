@@ -1,9 +1,7 @@
-archivesBaseName = 'purefun-transformer'
-
 dependencies {
-  annotationProcessor project(':kind:processor')
-  api project(':core')
-  api project(':typeclasses')
-  testImplementation project(':instances')
-  testImplementation project(':monad')
+  annotationProcessor project(':purefun-processor')
+  api project(':purefun-core')
+  api project(':purefun-typeclasses')
+  testImplementation project(':purefun-instances')
+  testImplementation project(':purefun-monad')
 }

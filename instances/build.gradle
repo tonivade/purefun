@@ -1,13 +1,11 @@
-archivesBaseName = 'purefun-instances'
-
 dependencies {
-  annotationProcessor project(':kind:processor')
-  api project(':core')
-  api project(':typeclasses')
-  implementation project(':monad')
-  implementation project(':free')
-  implementation project(':transformer')
-  implementation project(':stream')
-  implementation project(':effect')
-  implementation project(':control')
+  annotationProcessor project(':purefun-processor')
+  api project(':purefun-core')
+  api project(':purefun-typeclasses')
+  implementation project(':purefun-monad')
+  implementation project(':purefun-free')
+  implementation project(':purefun-transformer')
+  implementation project(':purefun-stream')
+  implementation project(':purefun-effect')
+  implementation project(':purefun-control')
 }
