@@ -4,12 +4,31 @@
  */
 package com.github.tonivade.purefun;
 
+import static com.github.tonivade.purefun.Function2.first;
+import static com.github.tonivade.purefun.Function2.second;
+
 public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
 
   @Override
   <R> Applicable<F, R> map(Function1<? super A, ? extends R> mapper);
 
   <R> Applicable<F, R> ap(Kind<F, Function1<? super A, ? extends R>> apply);
+  
+  default <B> Applicable<F, Tuple2<A, B>> zip(Kind<F, ? extends B> other) {
+    return mapN(narrowK(this), narrowK(other), Tuple::of);
+  }
+  
+  default <B> Applicable<F, A> zipLeft(Kind<F, ? extends B> other) {
+    return mapN(narrowK(this), narrowK(other), first());
+  }
+  
+  default <B> Applicable<F, B> zipRight(Kind<F, ? extends B> other) {
+    return mapN(narrowK(this), narrowK(other), second());
+  }
+  
+  default <B, R> Applicable<F, R> zipWith(Kind<F, ? extends B> other, Function2<? super A, ? super B, ? extends R> mapper) {
+    return mapN(narrowK(this), narrowK(other), mapper);
+  }
 
   static <F extends Witness, A, B, C> Applicable<F, C> mapN(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
