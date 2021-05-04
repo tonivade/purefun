@@ -1,0 +1,146 @@
+[
+  {
+    "name": "com.github.tonivade.purefun.instances.CofreeInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ConstInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ControlInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.EIOInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.EitherInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.EitherKInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.EitherTInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.EvalInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.Function1Instances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.FutureInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.IdInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.IOInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.KleisliInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.MonadMTL",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.OptionInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.OptionTInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ParInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ProducerInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ReaderInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.RIOInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ScheduleInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.SequenceInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.StateInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.StateTInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.StreamInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.SystemConsole",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.TaskInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.TrampolineInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.TryInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.TupleInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.UIOInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.URIOInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ValidationInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.WriterInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.WriterTInstances",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.github.tonivade.purefun.instances.ZIOInstances",
+    "allPublicMethods": true
+  }
+]

@@ -103,6 +103,10 @@ public class MonadMTL<F extends Witness, S, R, E>
     return new EffectS<>(StateT.<EffectR_, S, A>state(monadR, state -> monadR.map(effect1, x -> Tuple.of(state, x))));
   }
 
+  public <A> EffectS<F, S, R, E, A> effect(Kind<F, Either<E, A>> value) {
+    return effectS(effectR(effectE(value)));
+  }
+
   public static final class EffectE_ implements Witness { }
   public static final class EffectR_ implements Witness { }
   public static final class EffectS_ implements Witness { }
