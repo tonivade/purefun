@@ -392,7 +392,7 @@ IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
 String content = readFile.unsafeRunSync();
 ```
 
-## ZIO
+## Effects
 
 An experimental version of `ZIO`.
 
