@@ -4,19 +4,6 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.type.Try;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,14 +14,30 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.type.Try;
+
 @ExtendWith(MockitoExtension.class)
 public class ParTest {
 
   @Test
   public void onSuccess(@Mock Consumer1<String> consumerSuccess) {
-    Par<String> par = Par.success("Hello World!");
+    Par<String> par = Par.success("Hello World!").onSuccess(consumerSuccess);
 
-    Try<String> result = par.apply(Future.DEFAULT_EXECUTOR).onSuccess(consumerSuccess).await();
+    Try<String> result = par.apply(Future.DEFAULT_EXECUTOR).await();
 
     assertAll(
         () -> verify(consumerSuccess, timeout(1000)).accept("Hello World!"),
@@ -44,9 +47,9 @@ public class ParTest {
   @Test
   public void onFailure(@Mock Consumer1<Throwable> consumerFailure) {
     UnsupportedOperationException error = new UnsupportedOperationException();
-    Par<String> par = Par.failure(error);
+    Par<String> par = Par.<String>failure(error).onFailure(consumerFailure);
 
-    Try<String> result = par.apply(Future.DEFAULT_EXECUTOR).onFailure(consumerFailure).await();
+    Try<String> result = par.apply(Future.DEFAULT_EXECUTOR).await();
 
     assertAll(
         () -> verify(consumerFailure, timeout(1000)).accept(any()),
@@ -91,7 +94,7 @@ public class ParTest {
 
   @Test
   public void sequence(@Mock Consumer1<String> consumer) {
-    Par<Unit> run = Par.run(() -> currentThread(consumer));
+    Par<Unit> run = Par.exec(() -> currentThread(consumer));
 
     Par<Unit> sequence = Par.sequence(listOf(run, run, run));
 
@@ -125,6 +128,34 @@ public class ParTest {
     Tuple2<String, String> result = sequence.apply(Future.DEFAULT_EXECUTOR).get();
 
     assertNotEquals(result.get1(), result.get2());
+  }
+
+  @Test
+  public void asyncF(@Mock Producer<Unit> effect) {
+    Par<String> async = Par.asyncF(callback -> { 
+      callback.accept(Try.success("hello")); 
+      return Par.later(effect); 
+    });
+
+    assertEquals(Try.success("hello"), async.run().await());
+    verify(effect, timeout(500)).get();
+  }
+
+  @Test
+  public void async() {
+    Par<String> async = Par.async(callback -> callback.accept(Try.success("hello")));
+
+    assertEquals(Try.success("hello"), async.run().await());
+  }
+
+  @Test
+  public void sleep() {
+    long start = System.currentTimeMillis();
+
+    Par.sleep(Duration.ofSeconds(1)).andThen(Par.success("ok")).run().await();
+
+    long elapsedTime = System.currentTimeMillis() - start;
+    assertTrue(1000 - elapsedTime < 100, () -> "it should wait for almost 1 sec, but it was " + elapsedTime);
   }
 
   private String currentThread() throws InterruptedException {

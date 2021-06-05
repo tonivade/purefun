@@ -5,20 +5,28 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Function1.identity;
+
 import java.time.Duration;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.concurrent.ParOf;
 import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -46,6 +54,10 @@ public interface ParInstances {
 
   static Async<Par_> async() {
     return ParAsync.INSTANCE;
+  }
+  
+  static Concurrent<Par_> concurrent() {
+    return ParConcurrent.INSTANCE;
   }
   
   static <A> Reference<Par_, A> reference(A value) {
@@ -159,7 +171,34 @@ interface ParAsync extends Async<Par_>, ParMonadDefer {
   ParAsync INSTANCE = new ParAsync() {};
   
   @Override
-  default <A> Kind<Par_, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Par_, Unit>> consumer) {
+  default <A> Par<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Par_, Unit>> consumer) {
     return Par.asyncF(consumer.andThen(ParOf::narrowK));
+  }
+}
+
+interface ParConcurrent extends Concurrent<Par_>, ParAsync {
+  
+  ParConcurrent INSTANCE = new ParConcurrent() {};
+
+  @Override
+  default <A> Par<Fiber<Par_, A>> fork(Kind<Par_, A> value) {
+    return Par.later(() -> fiber(value.fix(ParOf.toPar())));
+  }
+  
+  @Override
+  default <A, B> Par<Either<Tuple2<A, Fiber<Par_, B>>, Tuple2<Fiber<Par_, A>, B>>> racePair(
+      Kind<Par_, A> fa, Kind<Par_, B> fb) {
+
+    return executor -> {
+      Future<Either<Tuple2<A, Fiber<Future_, B>>, Tuple2<Fiber<Future_, A>, B>>> racePair = FutureConcurrent.instance(executor).racePair(
+          fa.fix(ParOf.toPar()).apply(executor), 
+          fb.fix(ParOf.toPar()).apply(executor));
+      
+      return racePair.map(either -> either.bimap(t1 -> t1.map2(b -> fiber(fb)), t2 -> t2.map1(a -> fiber(fa))));
+    };
+  }
+  
+  static <A> Fiber<Par_, A> fiber(Kind<Par_, A> par) {
+    return Fiber.of(() -> par, () -> Par.unit());
   }
 }

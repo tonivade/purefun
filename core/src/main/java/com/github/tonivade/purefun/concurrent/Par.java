@@ -54,6 +54,18 @@ public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return map2(this, next, second());
   }
 
+  default Par<T> onSuccess(Consumer1<? super T> callback) {
+    return executor -> apply(executor).onSuccess(callback);
+  }
+
+  default Par<T> onFailure(Consumer1<? super Throwable> callback) {
+    return executor -> apply(executor).onFailure(callback);
+  }
+
+  default Par<T> onComplete(Consumer1<? super Try<? extends T>> callback) {
+    return executor -> apply(executor).onComplete(callback);
+  }
+
   default <R> Par<R> ap(Par<Function1<? super T, ? extends R>> apply) {
     return executor -> apply(executor).ap(apply.apply(executor));
   }
@@ -100,7 +112,11 @@ public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return executor -> Future.later(executor, producer::get);
   }
 
-  static Par<Unit> run(CheckedRunnable runnable) {
+  static <T> Par<T> delay(Duration delay, Producer<? extends T> producer) {
+    return executor -> Future.delay(executor, delay, producer::get);
+  }
+
+  static Par<Unit> exec(CheckedRunnable runnable) {
     return executor -> Future.exec(executor, runnable);
   }
 
