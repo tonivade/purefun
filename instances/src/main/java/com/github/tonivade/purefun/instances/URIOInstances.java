@@ -22,7 +22,9 @@ import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.URIOOf;
 import com.github.tonivade.purefun.effect.URIO_;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -54,6 +56,10 @@ public interface URIOInstances {
 
   static <R> MonadDefer<Kind<URIO_, R>> monadDefer() {
     return URIOMonadDefer.INSTANCE;
+  }
+
+  static <R> Async<Kind<URIO_, R>> async() {
+    return URIOAsync.INSTANCE;
   }
 
   static <R> Console<Kind<Kind<URIO_, R>, Throwable>> console() {
@@ -157,6 +163,17 @@ interface URIOBracket<R> extends URIOMonadError<R>, Bracket<Kind<URIO_, R>, Thro
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use,
                   Consumer1<? super A> release) {
     return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release);
+  }
+}
+
+interface URIOAsync<R> extends Async<Kind<URIO_, R>>, URIOMonadDefer<R> {
+
+  @SuppressWarnings("rawtypes")
+  URIOAsync INSTANCE = new URIOAsync<Object>() {};
+  
+  @Override
+  default <A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<URIO_, R>, Unit>> consumer) {
+    return URIO.asyncF(consumer.andThen(URIOOf::narrowK));
   }
 }
 

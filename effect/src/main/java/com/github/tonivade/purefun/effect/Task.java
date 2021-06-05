@@ -289,8 +289,8 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return new Task<>(ZIO.async(consumer));
   }
   
-  public static <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return new Task<>(ZIO.asyncF(consumer));
+  public static <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Task<Unit>> consumer) {
+    return new Task<>(ZIO.asyncF(consumer.andThen(Task::toZIO)));
   }
 
   public static <A> Task<A> raiseError(Throwable error) {

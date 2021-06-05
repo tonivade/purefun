@@ -22,7 +22,9 @@ import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIOOf;
 import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -58,6 +60,10 @@ public interface ZIOInstances {
 
   static <R> MonadDefer<Kind<Kind<ZIO_, R>, Throwable>> monadDefer() {
     return ZIOMonadDefer.INSTANCE;
+  }
+
+  static <R> Async<Kind<Kind<ZIO_, R>, Throwable>> async() {
+    return ZIOAsync.INSTANCE;
   }
 
   static <R> Console<Kind<Kind<ZIO_, R>, Throwable>> console() {
@@ -173,6 +179,17 @@ interface ZIOMonadDefer<R>
   @Override
   default ZIO<R, Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R, Throwable>toZIO();
+  }
+}
+
+interface ZIOAsync<R> extends Async<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadDefer<R> {
+
+  @SuppressWarnings("rawtypes")
+  ZIOAsync INSTANCE = new ZIOAsync<Object>() {};
+  
+  @Override
+  default <A> ZIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<Kind<ZIO_, R>, Throwable>, Unit>> consumer) {
+    return ZIO.asyncF(consumer.andThen(ZIOOf::narrowK));
   }
 }
 

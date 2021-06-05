@@ -21,7 +21,9 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -56,6 +58,10 @@ public interface UIOInstances {
 
   static MonadDefer<UIO_> monadDefer() {
     return UIOMonadDefer.INSTANCE;
+  }
+
+  static Async<UIO_> async() {
+    return UIOAsync.INSTANCE;
   }
   
   static Runtime<UIO_> runtime() {
@@ -160,6 +166,16 @@ interface UIOMonadDefer
   @Override
   default UIO<Unit> sleep(Duration duration) {
     return UIO.sleep(duration);
+  }
+}
+
+interface UIOAsync extends Async<UIO_>, UIOMonadDefer {
+
+  UIOAsync INSTANCE = new UIOAsync() {};
+  
+  @Override
+  default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO_, Unit>> consumer) {
+    return UIO.asyncF(consumer.andThen(UIOOf::narrowK));
   }
 }
 

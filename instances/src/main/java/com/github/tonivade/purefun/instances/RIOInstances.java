@@ -22,7 +22,9 @@ import com.github.tonivade.purefun.effect.RIO;
 import com.github.tonivade.purefun.effect.RIOOf;
 import com.github.tonivade.purefun.effect.RIO_;
 import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -54,6 +56,10 @@ public interface RIOInstances {
 
   static <R> MonadDefer<Kind<RIO_, R>> monadDefer() {
     return RIOMonadDefer.INSTANCE;
+  }
+
+  static <R> Async<Kind<RIO_, R>> async() {
+    return RIOAsync.INSTANCE;
   }
 
   static <R> Console<Kind<Kind<RIO_, R>, Throwable>> console() {
@@ -169,6 +175,17 @@ interface RIOMonadDefer<R>
   @Override
   default RIO<R, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<R>toRIO();
+  }
+}
+
+interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
+
+  @SuppressWarnings("rawtypes")
+  RIOAsync INSTANCE = new RIOAsync<Object>() {};
+  
+  @Override
+  default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO_, R>, Unit>> consumer) {
+    return RIO.asyncF(consumer.andThen(RIOOf::narrowK));
   }
 }
 

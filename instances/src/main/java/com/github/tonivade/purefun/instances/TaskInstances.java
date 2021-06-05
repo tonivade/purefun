@@ -21,7 +21,9 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -177,6 +179,16 @@ interface TaskMonadDefer
   @Override
   default Task<Unit> sleep(Duration duration) {
     return Task.sleep(duration);
+  }
+}
+
+interface TaskAsync extends Async<Task_>, TaskMonadDefer {
+
+  TaskAsync INSTANCE = new TaskAsync() {};
+  
+  @Override
+  default <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Task_, Unit>> consumer) {
+    return Task.asyncF(consumer.andThen(TaskOf::narrowK));
   }
 }
 

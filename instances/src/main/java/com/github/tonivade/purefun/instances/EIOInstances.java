@@ -22,7 +22,9 @@ import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -57,6 +59,10 @@ public interface EIOInstances {
 
   static MonadDefer<Kind<EIO_, Throwable>> monadDefer() {
     return EIOMonadDefer.INSTANCE;
+  }
+
+  static Async<Kind<EIO_, Throwable>> async() {
+    return EIOAsync.INSTANCE;
   }
   
   static <E> Runtime<Kind<EIO_, E>> runtime() {
@@ -167,6 +173,16 @@ interface EIOMonadDefer
   @Override
   default EIO<Throwable, Unit> sleep(Duration duration) {
     return UIO.sleep(duration).<Throwable>toEIO();
+  }
+}
+
+interface EIOAsync extends Async<Kind<EIO_, Throwable>>, EIOMonadDefer {
+
+  EIOAsync INSTANCE = new EIOAsync() {};
+  
+  @Override
+  default <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<EIO_, Throwable>, Unit>> consumer) {
+    return EIO.asyncF(consumer.andThen(EIOOf::narrowK));
   }
 }
 

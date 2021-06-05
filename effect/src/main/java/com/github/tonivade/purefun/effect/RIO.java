@@ -300,8 +300,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(ZIO.async(consumer));
   }
   
-  public static <R, A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return new RIO<>(ZIO.asyncF(consumer));
+  public static <R, A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, RIO<R, Unit>> consumer) {
+    return new RIO<>(ZIO.asyncF(consumer.andThen(RIO::toZIO)));
   }
 
   public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends RIO<R, A>> sequence) {

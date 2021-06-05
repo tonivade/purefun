@@ -285,8 +285,8 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return fold(ZIO.async(consumer));
   }
   
-  public static <R, A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return fold(ZIO.asyncF(consumer));
+  public static <R, A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
+    return fold(ZIO.asyncF(consumer.andThen(URIO::toZIO)));
   }
 
   public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {

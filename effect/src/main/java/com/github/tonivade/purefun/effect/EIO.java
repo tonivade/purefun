@@ -287,8 +287,8 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(ZIO.async(consumer));
   }
   
-  public static <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return new EIO<>(ZIO.asyncF(consumer));
+  public static <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, EIO<Throwable, Unit>> consumer) {
+    return new EIO<>(ZIO.asyncF(consumer.andThen(EIO::toZIO)));
   }
 
   public static <E, A> EIO<E, A> raiseError(E error) {

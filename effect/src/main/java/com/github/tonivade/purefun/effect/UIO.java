@@ -284,7 +284,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   public static <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return fold(ZIO.asyncF(consumer));
+    return fold(ZIO.asyncF(consumer.andThen(UIO::toZIO)));
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {

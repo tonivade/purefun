@@ -65,6 +65,10 @@ public interface IOInstances {
     return IOMonadDefer.INSTANCE;
   }
 
+  static Async<IO_> async() {
+    return IOAsync.INSTANCE;
+  }
+
   static Console<IO_> console() {
     return IOConsole.INSTANCE;
   }
