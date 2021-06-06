@@ -44,6 +44,7 @@ import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Reference;
@@ -72,7 +73,7 @@ public class IOTest {
       callback.accept(Try.success("1"));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> foldMap = async.foldMap(FutureInstances.concurrent()).fix(toFuture());
     
     assertEquals("1", foldMap.get());
   }
@@ -84,7 +85,7 @@ public class IOTest {
       callback.accept(Try.failure(new UnsupportedOperationException()));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> foldMap = async.foldMap(FutureInstances.concurrent()).fix(toFuture());
    
     assertThrows(UnsupportedOperationException.class, foldMap::get);
   }
@@ -108,7 +109,7 @@ public class IOTest {
     IO<ImmutableList<String>> program = currentThreadIO();
 
     Try<ImmutableList<String>> result =
-        program.foldMap(FutureInstances.async())
+        program.foldMap(FutureInstances.concurrent())
             .fix(toFuture()).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
@@ -119,7 +120,7 @@ public class IOTest {
     IO<ImmutableList<String>> program = currentThreadIO();
 
     Par<ImmutableList<String>> result =
-        program.foldMap(ParInstances.async())
+        program.foldMap(ParInstances.concurrent())
           .fix(toPar());
 
     assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
@@ -142,7 +143,7 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.concurrent()).fix(toFuture());
 
     assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
@@ -266,7 +267,7 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.concurrent()).fix(toFuture());
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
@@ -292,6 +293,28 @@ public class IOTest {
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
   }
 
+  @Test
+  public void raceA() {
+    IO<Either<Integer, String>> race = IO.race(
+        IO.delay(Duration.ofMillis(10), () -> 10),
+        IO.delay(Duration.ofMillis(100), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    IO<Either<Integer, String>> race = IO.race(
+        IO.delay(Duration.ofMillis(100), () -> 10),
+        IO.delay(Duration.ofMillis(10), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+
   private IO<ResultSet> open(ResultSet resultSet) {
     return IO.pure(resultSet);
   }
@@ -305,10 +328,10 @@ public class IOTest {
   }
 
   private IO<Integer> sum(Integer n, Integer sum) {
-    if ( n == 0) {
+    if (n == 0) {
       return IO.pure(sum);
     }
-    return IO.suspend(() -> sum( n - 1, sum + n));
+    return IO.suspend(() -> sum(n - 1, sum + n));
   }
 
   private IO<ImmutableList<String>> currentThreadIO() {

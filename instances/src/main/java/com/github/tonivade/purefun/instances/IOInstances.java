@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 
 import java.time.Duration;
@@ -211,7 +210,7 @@ interface IORuntime extends Runtime<IO_> {
 
   @Override
   default <T> Future<T> parRun(Kind<IO_, T> value, Executor executor) {
-    return value.fix(toIO()).foldMap(async(executor)).fix(toFuture());
+    return value.fix(toIO()).foldMap(FutureInstances.concurrent(executor)).fix(toFuture());
   }
   
   @Override
