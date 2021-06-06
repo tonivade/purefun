@@ -306,6 +306,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
         resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release));
   }
 
+  public static <R, A, B> URIO<R, B> bracket(URIO<R, ? extends A> acquire, 
+      Function1<? super A, ? extends URIO<R, ? extends B>> use, Function1<? super A, ? extends URIO<R, Unit>> release) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release.andThen(URIO::toZIO)));
+  }
+
   @SuppressWarnings("unchecked")
   public static <R> URIO<R, Unit> unit() {
     return (URIO<R, Unit>) UNIT;

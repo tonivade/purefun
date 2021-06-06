@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
+
 import java.time.Duration;
 import java.util.NoSuchElementException;
-import com.github.tonivade.purefun.Consumer1;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -159,7 +161,11 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
             option -> option.fold(
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
                 value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
-            option -> option.fold(Unit::unit, release.asFunction()));
+            option -> {
+              Kind<Kind<OptionT_,F>,Unit> fold = option.fold(() -> pure(Unit.unit()), release::apply);
+              Kind<F, Option<Unit>> value = fold.fix(OptionTOf::<F, Unit>narrowK).value();
+              return monadF().map(value, x -> x.fold(Unit::unit, identity()));
+            });
     return OptionT.of(monadF(), bracket);
   }
 }

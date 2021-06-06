@@ -312,6 +312,12 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
         resource -> use.andThen(EIOOf::<E, B>narrowK).apply(resource).instance, release));
   }
 
+  public static <E, A, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, 
+      Function1<? super A, ? extends EIO<E, ? extends B>> use, Function1<? super A, ? extends EIO<E, Unit>> release) {
+    return new EIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(EIOOf::<E, B>narrowK).apply(resource).instance, release.andThen(EIO::toZIO)));
+  }
+
   @SuppressWarnings("unchecked")
   public static <E> EIO<E, Unit> unit() {
     return (EIO<E, Unit>) UNIT;

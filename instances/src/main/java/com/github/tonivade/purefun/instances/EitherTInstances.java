@@ -5,10 +5,12 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Function1.cons;
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
+
 import java.time.Duration;
-import com.github.tonivade.purefun.Consumer1;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -178,7 +180,11 @@ interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT
             either -> either.fold(
                 this::acquireRecover,
                 value -> use.andThen(EitherTOf::<F, E, B>narrowK).apply(value).value()),
-            either -> either.fold(cons(unit()), release.asFunction()));
+            either -> {
+              Kind<Kind<Kind<EitherT_, F>, E>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release::apply);
+              Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::<F, E, Unit>narrowK).value();
+              return monadF().map(value, x -> x.fold(cons(unit()), identity()));
+            });
     return EitherT.of(monadF(), bracket);
   }
 }

@@ -304,6 +304,12 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
         resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release));
   }
 
+  public static <A, B> UIO<B> bracket(UIO<? extends A> acquire, 
+      Function1<? super A, ? extends UIO<? extends B>> use, Function1<? super A, ? extends UIO<Unit>> release) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release.andThen(UIO::toZIO)));
+  }
+
   public static UIO<Unit> unit() {
     return UNIT;
   }

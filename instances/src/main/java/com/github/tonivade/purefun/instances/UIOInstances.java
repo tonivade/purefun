@@ -154,7 +154,7 @@ interface UIOBracket extends UIOMonadError, Bracket<UIO_, Throwable> {
           bracket(Kind<UIO_, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<UIO_, ? extends B>> use,
                   Function1<? super A, ? extends Kind<UIO_, Unit>> release) {
-    return UIO.bracket(acquire.fix(toUIO()), use.andThen(UIOOf::narrowK), release);
+    return UIO.bracket(acquire.fix(toUIO()), use.andThen(UIOOf::narrowK), release::apply);
   }
 }
 

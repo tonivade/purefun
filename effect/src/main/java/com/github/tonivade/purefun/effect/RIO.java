@@ -321,6 +321,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release));
   }
 
+  public static <R, A, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
+      Function1<? super A, ? extends RIO<R, ? extends B>> use, Function1<? super A, ? extends RIO<R, Unit>> release) {
+    return new RIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release.andThen(RIO::toZIO)));
+  }
+
   @SuppressWarnings("unchecked")
   public static <R> RIO<R, Unit> unit() {
     return (RIO<R, Unit>) UNIT;

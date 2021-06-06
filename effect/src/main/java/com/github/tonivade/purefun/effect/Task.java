@@ -312,6 +312,11 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
   }
 
+  public static <A, B> Task<B> bracket(
+      Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use, Function1<? super A, ? extends Task<Unit>> release) {
+    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release.andThen(Task::toZIO)));
+  }
+
   public static Task<Unit> unit() {
     return UNIT;
   }

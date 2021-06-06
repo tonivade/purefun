@@ -170,7 +170,7 @@ interface FutureBracket extends Bracket<Future_, Throwable>, ExecutorHolder {
       Kind<Future_, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<Future_, ? extends B>> use, 
       Function1<? super A, ? extends Kind<Future_, Unit>> release) {
-    return Future.bracket(executor(), acquire.fix(toFuture()), use.andThen(FutureOf::narrowK), release);
+    return Future.bracket(executor(), acquire.fix(toFuture()), use.andThen(FutureOf::narrowK), release::apply);
   }
 }
 

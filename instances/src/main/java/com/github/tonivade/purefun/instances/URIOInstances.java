@@ -162,7 +162,7 @@ interface URIOBracket<R> extends URIOMonadError<R>, Bracket<Kind<URIO_, R>, Thro
           bracket(Kind<Kind<URIO_, R>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use,
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, Unit>> release) {
-    return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release);
+    return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release::apply);
   }
 }
 

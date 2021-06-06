@@ -142,7 +142,7 @@ interface ParBracket extends Bracket<Par_, Throwable> {
       Kind<Par_, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<Par_, ? extends B>> use, 
       Function1<? super A, ? extends Kind<Par_, Unit>> release) {
-    return Par.bracket(ParOf.narrowK(acquire), use.andThen(ParOf::narrowK), release);
+    return Par.bracket(ParOf.narrowK(acquire), use.andThen(ParOf::narrowK), release::apply);
   }
 }
 
