@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
@@ -20,6 +21,7 @@ import com.github.tonivade.purefun.concurrent.ParOf;
 import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.type.Either;
 
+@Disabled
 public class ConcurrentTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(3);

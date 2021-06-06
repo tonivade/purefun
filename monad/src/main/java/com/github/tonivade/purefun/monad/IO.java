@@ -34,7 +34,9 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Concurrent;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
@@ -51,7 +53,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   default Future<T> toFuture(Executor executor) {
-    return foldMap(Instance.concurrent(Future_.class, executor)).fix(FutureOf.toFuture());
+    return foldMap(Instance.async(Future_.class, executor)).fix(FutureOf.toFuture());
   }
 
   default void safeRunAsync(Consumer1<? super Try<? extends T>> callback) {
@@ -62,7 +64,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     toFuture(executor).onComplete(callback);
   }
 
-  <F extends Witness> Kind<F, T> foldMap(Concurrent<F> monad);
+  <F extends Witness> Kind<F, T> foldMap(Async<F> monad);
 
   @Override
   default <R> IO<R> map(Function1<? super T, ? extends R> map) {
@@ -165,6 +167,25 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default IO<T> retry(Duration delay, int maxRetries) {
     return IOModule.retry(this, sleep(delay), maxRetries);
   }
+  
+  default IO<Fiber<IO_, T>> fork(Executor executor) {
+    return new Fork<>(executor, this);
+  }
+
+  static <T> IO<T> cancelable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+    return asyncF(cb1 -> {
+      Promise<Unit> promise = Promise.make();
+      
+      IO<Unit> async = IO.async(cb2 -> promise.onComplete(x -> cb2.accept(Try.success(Unit.unit()))));
+      
+      IO<Unit> token = callback.apply(result -> {
+        promise.complete(Try.success(Unit.unit()));
+        cb1.accept(result);
+      });
+      
+      return bracket(IO.pure(token), ignore -> async, cancel -> cancel);
+    });
+  }
 
   static <T> IO<T> pure(T value) {
     return new Pure<>(value);
@@ -243,8 +264,13 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T, R> IO<R> bracket(IO<? extends T> acquire, 
-      Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
+      Function1<? super T, ? extends IO<? extends R>> use, Function1<? super T, IO<Unit>> release) {
     return new Bracket<>(acquire, use, release);
+  }
+
+  static <T, R> IO<R> bracket(IO<? extends T> acquire, 
+      Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
+    return bracket(acquire, use, release.asFunction().andThen(IO::pure));
   }
 
   static <T extends AutoCloseable, R> IO<R> bracket(IO<? extends T> acquire, 
@@ -284,7 +310,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, T> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
       return monad.pure(value);
     }
 
@@ -310,7 +336,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
     
     @Override
-    public <F extends Witness> Kind<F, B> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, B> foldMap(Async<F> monad) {
       return monad.ap(value.foldMap(monad), apply.foldMap(monad));
     }
     
@@ -337,7 +363,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, R> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
       return monad.flatMap(
         current.andThen(IOOf::<T>narrowK).get().foldMap(monad), 
         next.andThen(IOOf::<R>narrowK).andThen(io -> io.foldMap(monad)));
@@ -377,7 +403,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, T> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
       return monad.raiseError(error);
     }
 
@@ -413,7 +439,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, T> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
       return monad.later(task);
     }
 
@@ -439,13 +465,37 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, T> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
       return monad.asyncF(c -> callback.apply(c).foldMap(monad));
     }
 
     @Override
     public String toString() {
       return "Async(?)";
+    }
+  }
+  
+  final class Fork<T> implements SealedIO<Fiber<IO_, T>> {
+    
+    private final Executor executor;
+    private final IO<T> task;
+    
+    public Fork(Executor executor, IO<T> task) {
+      this.executor = checkNonNull(executor);
+      this.task = checkNonNull(task);
+    }
+
+    @Override
+    public Fiber<IO_, T> unsafeRunSync() {
+      return Fiber.of(
+          IO.async(consumer -> task.toFuture(executor).onComplete(consumer)), 
+          unit());
+    }
+    
+    @Override
+    public <F extends Witness> Kind<F, Fiber<IO_, T>> foldMap(Async<F> monad) {
+      // TODO Auto-generated method stub
+      return null;
     }
   }
   
@@ -471,8 +521,14 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
     
     @Override
-    public <F extends Witness> Kind<F, Either<A, B>> foldMap(Concurrent<F> monad) {
-      return monad.race(fa.foldMap(monad), fb.foldMap(monad));
+    public <F extends Witness> Kind<F, Either<A, B>> foldMap(Async<F> monad) {
+      // TODO
+      return null;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("Race(%s, %s)", fa, fb);
     }
   }
 
@@ -495,7 +551,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, T> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
       return monad.defer(() -> lazy.get().foldMap(monad));
     }
 
@@ -529,7 +585,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, Unit> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, Unit> foldMap(Async<F> monad) {
       return monad.sleep(duration);
     }
 
@@ -543,9 +599,9 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
     private final IO<? extends T> acquire;
     private final Function1<? super T, ? extends IO<? extends R>> use;
-    private final Consumer1<? super T> release;
+    private final Function1<? super T, IO<Unit>> release;
 
-    protected Bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
+    protected Bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Function1<? super T, IO<Unit>> release) {
       this.acquire = checkNonNull(acquire);
       this.use = checkNonNull(use);
       this.release = checkNonNull(release);
@@ -559,8 +615,11 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, R> foldMap(Concurrent<F> monad) {
-      return monad.bracket(acquire.foldMap(monad), use.andThen(io -> io.foldMap(monad)), release);
+    public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
+      return monad.bracket(
+          acquire.foldMap(monad), 
+          use.andThen(io -> io.foldMap(monad)), 
+          release.andThen(close -> close.foldMap(monad)));
     }
 
     @Override
@@ -585,7 +644,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
     
     @Override
-    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(Async<F> monad) {
       return monad.timed(current.foldMap(monad));
     }
     
@@ -609,7 +668,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
 
     @Override
-    public <F extends Witness> Kind<F, Try<T>> foldMap(Concurrent<F> monad) {
+    public <F extends Witness> Kind<F, Try<T>> foldMap(Async<F> monad) {
       return monad.map(monad.attempt(current.foldMap(monad)), Try::fromEither);
     }
 
@@ -682,9 +741,9 @@ interface IOModule {
 final class IOResource<T> implements AutoCloseable {
 
   private final T resource;
-  private final Consumer1<? super T> release;
+  private final Function1<? super T, IO<Unit>> release;
 
-  IOResource(T resource, Consumer1<? super T> release) {
+  IOResource(T resource, Function1<? super T, IO<Unit>> release) {
     this.resource = checkNonNull(resource);
     this.release = checkNonNull(release);
   }
@@ -695,6 +754,6 @@ final class IOResource<T> implements AutoCloseable {
 
   @Override
   public void close() {
-    release.accept(resource);
+    IOModule.evaluate(release.apply(resource));
   }
 }

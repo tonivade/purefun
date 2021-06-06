@@ -298,8 +298,8 @@ public class StreamTest {
 
   @Test
   public void readFileAsync() {
-    Future<String> license = pureReadFileIO("../LICENSE").foldMap(FutureInstances.concurrent()).fix(toFuture());
-    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(FutureInstances.concurrent()).fix(toFuture());
+    Future<String> license = pureReadFileIO("../LICENSE").foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(FutureInstances.async()).fix(toFuture());
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
         () -> assertEquals("--- file not found ---", notFound.await().get()));

@@ -10,25 +10,20 @@ import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
-import com.github.tonivade.purefun.concurrent.Promise;
-import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
-import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Defer;
-import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -79,14 +74,6 @@ public interface FutureInstances {
 
   static Async<Future_> async(Executor executor) {
     return FutureAsync.instance(checkNonNull(executor));
-  }
-
-  static Concurrent<Future_> concurrent() {
-    return concurrent(Future.DEFAULT_EXECUTOR);
-  }
-
-  static Concurrent<Future_> concurrent(Executor executor) {
-    return FutureConcurrent.instance(checkNonNull(executor));
   }
 }
 
@@ -179,8 +166,10 @@ interface FutureDefer extends Defer<Future_>, ExecutorHolder {
 interface FutureBracket extends Bracket<Future_, Throwable>, ExecutorHolder {
 
   @Override
-  default <A, B> Kind<Future_, B> bracket(Kind<Future_, ? extends A> acquire, 
-      Function1<? super A, ? extends Kind<Future_, ? extends B>> use, Consumer1<? super A> release) {
+  default <A, B> Kind<Future_, B> bracket(
+      Kind<Future_, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<Future_, ? extends B>> use, 
+      Function1<? super A, ? extends Kind<Future_, Unit>> release) {
     return Future.bracket(executor(), acquire.fix(toFuture()), use.andThen(FutureOf::narrowK), release);
   }
 }
@@ -207,44 +196,5 @@ interface FutureAsync extends Async<Future_>, FutureMonadDefer {
   default <A> Kind<Future_, A> asyncF(
       Function1<Consumer1<? super Try<? extends A>>, Kind<Future_, Unit>> consumer) {
     return Future.asyncF(executor(), consumer.andThen(FutureOf::narrowK));
-  }
-}
-
-interface FutureConcurrent extends Concurrent<Future_>, FutureAsync {
-
-  static FutureConcurrent instance(Executor executor) {
-    return () -> executor;
-  }
-
-  @Override
-  default <A> Future<Fiber<Future_, A>> fork(Kind<Future_, A> value) {
-    return Future.later(executor(), () -> fiber(executor(), value.fix(toFuture())));
-  }
-  
-  @Override
-  default <A, B> Future<Either<Tuple2<A, Fiber<Future_, B>>, Tuple2<Fiber<Future_, A>, B>>> racePair(
-      Kind<Future_, A> fa, Kind<Future_, B> fb) {
-    
-    Kind<Future_, Either<Tuple2<A, Fiber<Future_, B>>, Tuple2<Fiber<Future_, A>, B>>> async = 
-        async(consumer -> {
-          Fiber<Future_, A> fiberA = fiber(executor(), fa);
-          Fiber<Future_, B> fiberB = fiber(executor(), fb);
-          
-          Promise<Either<Tuple2<A, Fiber<Future_, B>>, Tuple2<Fiber<Future_, A>, B>>> promise = Promise.make();
-          promise.onComplete(consumer);
-          
-          fa.fix(toFuture()).onSuccess(a -> promise.tryComplete(Try.success(Either.left(Tuple.of(a, fiberB)))));
-          fb.fix(toFuture()).onSuccess(b -> promise.tryComplete(Try.success(Either.right(Tuple.of(fiberA, b)))));
-
-          fa.fix(toFuture()).onFailure(
-              error1 -> fb.fix(toFuture()).onFailure(
-                  error2 -> promise.tryComplete(Try.failure("failed: " + error1 + " " + error2))));
-        });
-    
-    return async.fix(toFuture());
-  }
-  
-  static <A> Fiber<Future_, A> fiber(Executor executor, Kind<Future_, A> future) {
-    return Fiber.of(() -> future, () -> Future.exec(executor, () -> future.fix(toFuture()).cancel(true)));
   }
 }

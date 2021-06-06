@@ -360,12 +360,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
   static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
                                                                  Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
-    return new Bracket<>(acquire, use, AutoCloseable::close);
+    return bracket(acquire, use, AutoCloseable::close);
   }
 
   static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
                                            Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
                                            Consumer1<? super A> release) {
+    return bracket(acquire, use, release.asFunction().andThen(ZIO::pure));
+  }
+
+  static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
+                                           Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
+                                           Function1<? super A, ? extends ZIO<R, E, Unit>> release) {
     return new Bracket<>(acquire, use, release);
   }
 
@@ -906,11 +912,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
     private final ZIO<R, E, ? extends A> acquire;
     private final Function1<? super A, ? extends ZIO<R, E, ? extends B>> use;
-    private final Consumer1<? super A> release;
+    private final Function1<? super A, ? extends ZIO<R, E, Unit>> release;
 
     protected Bracket(ZIO<R, E, ? extends A> acquire,
                       Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
-                      Consumer1<? super A> release) {
+                      Function1<? super A, ? extends ZIO<R, E, Unit>> release) {
       this.acquire = checkNonNull(acquire);
       this.use = checkNonNull(use);
       this.release = checkNonNull(release);
@@ -918,7 +924,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
     @Override
     public Either<E, B> provide(R env) {
-      try (ZIOResource<E, A> resource = new ZIOResource<>(ZIOModule.evaluate(env, acquire), release)) {
+      try (ZIOResource<R, E, A> resource = new ZIOResource<>(env, ZIOModule.evaluate(env, acquire), release)) {
         return ZIOModule.evaluate(env, resource.apply(use));
       }
     }
@@ -927,7 +933,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     public <F extends Witness> Kind<F, B> foldMap(R env, Async<F> monad) {
       return monad.bracket(acquire.foldMap(env, monad),
                            use.andThen(zio -> zio.foldMap(env, monad)),
-                           release);
+                           release.andThen(release -> release.foldMap(env, monad)));
     }
 
     @Override
@@ -986,22 +992,24 @@ interface ZIOModule {
   }
 }
 
-final class ZIOResource<E, A> implements AutoCloseable {
+final class ZIOResource<R, E, A> implements AutoCloseable {
 
+  private final R env;
   private final Either<E, ? extends A> resource;
-  private final Consumer1<? super A> release;
+  private final Function1<? super A, ? extends ZIO<R, E, Unit>> release;
 
-  ZIOResource(Either<E, ? extends A> resource, Consumer1<? super A> release) {
+  ZIOResource(R env, Either<E, ? extends A> resource, Function1<? super A, ? extends ZIO<R, E, Unit>> release) {
+    this.env = checkNonNull(env);
     this.resource = checkNonNull(resource);
     this.release = checkNonNull(release);
   }
 
-  public <R, B> ZIO<R, E, B> apply(Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
+  public <B> ZIO<R, E, B> apply(Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
     return resource.map(use.andThen(ZIOOf::<R, E, B>narrowK)).fold(ZIO::raiseError, identity());
   }
 
   @Override
   public void close() {
-    resource.toOption().ifPresent(release);
+    resource.toOption().ifPresent(a -> ZIOModule.evaluate(env, release.apply(a)));
   }
 }

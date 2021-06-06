@@ -166,7 +166,7 @@ interface TaskBracket extends TaskMonadError, Bracket<Task_, Throwable> {
   default <A, B> Task<B>
           bracket(Kind<Task_, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Task_, ? extends B>> use,
-                  Consumer1<? super A> release) {
+                  Function1<? super A, ? extends Kind<Task_, Unit>> release) {
     return Task.bracket(acquire.fix(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release);
   }
 }

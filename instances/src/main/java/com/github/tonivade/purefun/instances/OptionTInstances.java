@@ -149,9 +149,10 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
   Bracket<F, Throwable> monadF();
 
   @Override
-  default <A, B> OptionT<F, B> bracket(Kind<Kind<OptionT_, F>, ? extends A> acquire,
-                                       Function1<? super A, ? extends Kind<Kind<OptionT_, F>, ? extends B>> use,
-                                       Consumer1<? super A> release) {
+  default <A, B> OptionT<F, B> bracket(
+      Kind<Kind<OptionT_, F>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Kind<OptionT_, F>, ? extends B>> use,
+      Function1<? super A, ? extends Kind<Kind<OptionT_, F>, Unit>> release) {
     Kind<F, Option<B>> bracket =
         monadF().bracket(
             acquire.fix(OptionTOf::<F, A>narrowK).value(),

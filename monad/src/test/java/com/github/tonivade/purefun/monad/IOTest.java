@@ -37,6 +37,8 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.FutureOf;
+import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
@@ -47,6 +49,7 @@ import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.Instance;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,7 +76,7 @@ public class IOTest {
       callback.accept(Try.success("1"));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.concurrent()).fix(toFuture());
+    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
     
     assertEquals("1", foldMap.get());
   }
@@ -85,7 +88,7 @@ public class IOTest {
       callback.accept(Try.failure(new UnsupportedOperationException()));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.concurrent()).fix(toFuture());
+    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
    
     assertThrows(UnsupportedOperationException.class, foldMap::get);
   }
@@ -109,7 +112,7 @@ public class IOTest {
     IO<ImmutableList<String>> program = currentThreadIO();
 
     Try<ImmutableList<String>> result =
-        program.foldMap(FutureInstances.concurrent())
+        program.foldMap(FutureInstances.async())
             .fix(toFuture()).await();
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
@@ -120,7 +123,7 @@ public class IOTest {
     IO<ImmutableList<String>> program = currentThreadIO();
 
     Par<ImmutableList<String>> result =
-        program.foldMap(ParInstances.concurrent())
+        program.foldMap(ParInstances.async())
           .fix(toPar());
 
     assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
@@ -143,7 +146,7 @@ public class IOTest {
     when(resultSet.getString("id")).thenReturn("value");
 
     IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.concurrent()).fix(toFuture());
+    Future<Try<String>> future = bracket.foldMap(FutureInstances.async()).fix(toFuture());
 
     assertEquals(Try.success("value"), future.await().get());
     verify(resultSet, timeout(1000)).close();
@@ -267,7 +270,7 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.concurrent()).fix(toFuture());
+    Future<Integer> futureSum = sum.foldMap(FutureInstances.async()).fix(toFuture());
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
@@ -292,6 +295,20 @@ public class IOTest {
     
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
   }
+  
+  @Test
+  public void cancelable() {
+    IO<String> cancelable = IO.cancelable(consumer -> {
+      
+      Future<String> future = Future.delay(Duration.ofSeconds(5), () -> "Hola Mundo!").onComplete(consumer::accept);
+      
+      return IO.exec(() -> future.cancel(true));
+    });
+
+    Try<String> await = cancelable.toFuture().await();
+    
+    System.out.println(await);
+  }
 
   @Test
   public void raceA() {
@@ -305,12 +322,34 @@ public class IOTest {
   }
 
   @Test
+  public void asyncRaceA() {
+    IO<Either<Integer, String>> race = IO.race(
+        IO.delay(Duration.ofMillis(10), () -> 10),
+        IO.delay(Duration.ofMillis(100), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.foldMap(Instance.async(Future_.class)).fix(FutureOf.toFuture()).await().getOrElseThrow();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
   public void raceB() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),
         IO.delay(Duration.ofMillis(10), () -> "b"));
     
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+
+  @Test
+  public void asyncRaceB() {
+    IO<Either<Integer, String>> race = IO.race(
+        IO.delay(Duration.ofMillis(100), () -> 10),
+        IO.delay(Duration.ofMillis(10), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.foldMap(Instance.async(Future_.class)).fix(FutureOf.toFuture()).await().getOrElseThrow();
     
     assertEquals(Either.right("b"), orElseThrow);
   }

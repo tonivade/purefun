@@ -160,7 +160,7 @@ interface EIOBracket<E> extends EIOMonadError<E>, Bracket<Kind<EIO_, E>, E> {
   default <A, B> EIO<E, B>
           bracket(Kind<Kind<EIO_, E>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<EIO_, E>, ? extends B>> use,
-                  Consumer1<? super A> release) {
+                  Function1<? super A, ? extends Kind<Kind<EIO_, E>, Unit>> release) {
     return EIO.bracket(acquire.fix(toEIO()), use.andThen(EIOOf::narrowK), release);
   }
 }
