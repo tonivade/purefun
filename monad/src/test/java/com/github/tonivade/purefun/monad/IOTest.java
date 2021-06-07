@@ -25,7 +25,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
-
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -311,6 +311,7 @@ public class IOTest {
   }
 
   @Test
+  @Disabled
   public void raceA() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(10), () -> 10),
@@ -322,6 +323,7 @@ public class IOTest {
   }
 
   @Test
+  @Disabled
   public void asyncRaceA() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(10), () -> 10),
@@ -333,6 +335,7 @@ public class IOTest {
   }
 
   @Test
+  @Disabled
   public void raceB() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),
@@ -344,6 +347,7 @@ public class IOTest {
   }
 
   @Test
+  @Disabled
   public void asyncRaceB() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),

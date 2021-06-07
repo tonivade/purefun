@@ -999,7 +999,7 @@ final class ZIOResource<R, E, A> implements AutoCloseable {
   private final Function1<? super A, ? extends ZIO<R, E, Unit>> release;
 
   ZIOResource(R env, Either<E, ? extends A> resource, Function1<? super A, ? extends ZIO<R, E, Unit>> release) {
-    this.env = checkNonNull(env);
+    this.env = env;
     this.resource = checkNonNull(resource);
     this.release = checkNonNull(release);
   }

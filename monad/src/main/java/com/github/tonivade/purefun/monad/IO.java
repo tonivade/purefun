@@ -35,7 +35,6 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
-import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Instance;
 
@@ -513,17 +512,12 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     
     @Override
     public Either<A, B> unsafeRunSync() {
-      Concurrent<Future_> concurrent = Instance.concurrent(Future_.class, executor);
-      
-      Future<Either<A, B>> result = concurrent.race(fa.toFuture(), fb.toFuture()).fix(FutureOf.toFuture());
-      
-      return result.await().getOrElseThrow();
+      throw new UnsupportedOperationException("not implemented yet");
     }
     
     @Override
     public <F extends Witness> Kind<F, Either<A, B>> foldMap(Async<F> monad) {
-      // TODO
-      return null;
+      throw new UnsupportedOperationException("not implemented yet");
     }
     
     @Override
