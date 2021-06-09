@@ -22,7 +22,7 @@ public class Tuple1Test {
 
     assertAll(
       () -> assertEquals(Tuple.of("value"), tuple),
-      () -> assertEquals(Tuple.of("VALUE"), tuple.map(String::toUpperCase)),
+      () -> assertEquals(Tuple.of("VALUE"), tuple.map1(String::toUpperCase)),
       () -> assertEquals("value", tuple.get1()),
       () -> assertEquals("Tuple1(value)", tuple.toString())
     );

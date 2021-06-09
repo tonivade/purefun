@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.data.Sequence;
 
 public interface Tuple {
   
-  Sequence<Object> toSequence();
+  Sequence<?> toSequence();
 
   default void forEach(Consumer1<? super Object> consumer) {
     toSequence().forEach(consumer::accept);
