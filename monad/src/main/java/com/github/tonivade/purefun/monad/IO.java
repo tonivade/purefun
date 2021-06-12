@@ -179,8 +179,29 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
   
   static <A, B> IO<Either<A, B>> race(Executor executor, IO<A> fa, IO<B> fb) {
-    // TODO
-    return never();
+    return racePair(executor, fa, fb).flatMap(either -> either.fold(
+        ta -> ta.get2().map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().map(x -> Either.right(tb.get2()))));
+  }
+  
+  static <A, B> IO<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
+    return cancelable((Consumer1<? super Try<? extends Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>>> cb) -> {
+      
+      Promise<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> promise = Promise.make();
+      promise.onComplete(cb);
+      
+      Future<A> futureA = fa.toFuture(executor);
+      Future<B> futureB = fb.toFuture(executor);
+      
+      futureA.onSuccess(a -> promise.tryComplete(Try.success(Either.left(Tuple.of(a, IO.exec(() -> futureB.cancel(true)))))));
+      futureB.onSuccess(b -> promise.tryComplete(Try.success(Either.right(Tuple.of(IO.exec(() -> futureA.cancel(true)), b)))));
+      
+      futureA.onFailure(
+          error1 -> futureB.onFailure(
+            error2 -> promise.tryComplete(Try.failure("failed: " + error1 + " " + error2))));
+      
+      return unit();
+    });
   }
 
   static <T> IO<T> raiseError(Throwable error) {
