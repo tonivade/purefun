@@ -35,7 +35,6 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Async;
-import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Instance;
 
 @HigherKind(sealed = true)
@@ -126,6 +125,10 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default IO<Tuple2<Duration, T>> timed() {
     return new Timed<>(this);
   }
+  
+  default IO<Unit> forked(Executor executor) {
+    return this.andThen(IO.fork(executor));
+  }
 
   @Override
   default IO<T> repeat() {
@@ -166,36 +169,18 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default IO<T> retry(Duration delay, int maxRetries) {
     return IOModule.retry(this, sleep(delay), maxRetries);
   }
-  
-  default IO<Fiber<IO_, T>> fork(Executor executor) {
-    return new Fork<>(executor, this);
-  }
-
-  static <T> IO<T> cancelable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
-    return asyncF(cb1 -> {
-      Promise<Unit> promise = Promise.make();
-      
-      IO<Unit> async = IO.async(cb2 -> promise.onComplete(x -> cb2.accept(Try.success(Unit.unit()))));
-      
-      IO<Unit> token = callback.apply(result -> {
-        promise.complete(Try.success(Unit.unit()));
-        cb1.accept(result);
-      });
-      
-      return bracket(IO.pure(token), ignore -> async, cancel -> cancel);
-    });
-  }
 
   static <T> IO<T> pure(T value) {
     return new Pure<>(value);
   }
   
   static <A, B> IO<Either<A, B>> race(IO<A> fa, IO<B> fb) {
-    return race(fa, fb, Future.DEFAULT_EXECUTOR);
+    return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <A, B> IO<Either<A, B>> race(IO<A> fa, IO<B> fb, Executor executor) {
-    return new Race<>(fa, fb, executor);
+  static <A, B> IO<Either<A, B>> race(Executor executor, IO<A> fa, IO<B> fb) {
+    // TODO
+    return never();
   }
 
   static <T> IO<T> raiseError(Throwable error) {
@@ -250,11 +235,19 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return new SyncTask<>(producer);
   }
 
-  static <T> IO<T> async(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
-    return asyncF(callback.asFunction().andThen(IO::pure));
+  static <T> IO<T> never() {
+    return async(cb -> {});
   }
 
-  static <T> IO<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+  static <T> IO<T> async(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
+    return cancelable(callback.asFunction().andThen(IO::pure));
+  }
+  
+  static IO<Unit> fork(Executor executor) {
+    return async(cb -> executor.execute(() -> cb.accept(Try.success(Unit.unit()))));
+  }
+
+  static <T> IO<T> cancelable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
     return new AsyncTask<>(callback);
   }
 
@@ -471,58 +464,6 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     @Override
     public String toString() {
       return "Async(?)";
-    }
-  }
-  
-  final class Fork<T> implements SealedIO<Fiber<IO_, T>> {
-    
-    private final Executor executor;
-    private final IO<T> task;
-    
-    public Fork(Executor executor, IO<T> task) {
-      this.executor = checkNonNull(executor);
-      this.task = checkNonNull(task);
-    }
-
-    @Override
-    public Fiber<IO_, T> unsafeRunSync() {
-      return Fiber.of(
-          IO.async(consumer -> task.toFuture(executor).onComplete(consumer)), 
-          unit());
-    }
-    
-    @Override
-    public <F extends Witness> Kind<F, Fiber<IO_, T>> foldMap(Async<F> monad) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-  }
-  
-  final class Race<A, B> implements SealedIO<Either<A, B>> {
-
-    private final IO<A> fa;
-    private final IO<B> fb;
-    private final Executor executor;
-
-    public Race(IO<A> fa, IO<B> fb, Executor executor) {
-      this.fa = checkNonNull(fa);
-      this.fb = checkNonNull(fb);
-      this.executor = checkNonNull(executor);
-    }
-    
-    @Override
-    public Either<A, B> unsafeRunSync() {
-      throw new UnsupportedOperationException("not implemented yet");
-    }
-    
-    @Override
-    public <F extends Witness> Kind<F, Either<A, B>> foldMap(Async<F> monad) {
-      throw new UnsupportedOperationException("not implemented yet");
-    }
-    
-    @Override
-    public String toString() {
-      return String.format("Race(%s, %s)", fa, fb);
     }
   }
 
