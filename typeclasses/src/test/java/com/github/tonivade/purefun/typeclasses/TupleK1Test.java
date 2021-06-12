@@ -20,13 +20,15 @@ import com.github.tonivade.purefun.type.Option_;
 @ExtendWith(MockitoExtension.class)
 public class TupleK1Test {
   
+  private final Functor<Option_> functor = Instance.functor(Option_.class);
+
   @Test
   public void tuple() {
     TupleK1<Option_, String> tuple = TupleK.of(some("value"));
 
     assertAll(
       () -> assertEquals(TupleK.of(some("value")), tuple),
-      () -> assertEquals(TupleK.of(some("VALUE")), tuple.map1(Instance.functor(Option_.class), String::toUpperCase)),
+      () -> assertEquals(TupleK.of(some("VALUE")), tuple.map1(functor, String::toUpperCase)),
       () -> assertEquals(some("value"), tuple.get1()),
       () -> assertEquals("TupleK1(Some(value))", tuple.toString())
     );
