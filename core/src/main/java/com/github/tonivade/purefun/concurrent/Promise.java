@@ -61,7 +61,16 @@ public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
   
   @Override
+  default <R> Promise<R> andThen(Kind<Promise_, ? extends R> next) {
+    return PromiseOf.narrowK(Bindable.super.andThen(next));
+  }
+  
+  @Override
   <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper);
+  
+  default Promise<Unit> then(Consumer1<? super T> next) {
+    return map(next.asFunction());
+  }
   
   default Promise<Unit> thenRun(CheckedRunnable next) {
     return map(next.asProducer().asFunction());

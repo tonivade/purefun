@@ -10,7 +10,6 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -28,6 +27,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO.FlatMapped;
@@ -186,13 +186,11 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       StateIO cancellable2 = StateIO.cancellable();
       
       IOModule.runAsync(IO.forked(executor).andThen(fa), cancellable1)
-        .whenComplete((value, error) -> {
-          callback.accept(Try.from(error, value).map(a -> Either.left(Tuple.of(a, IO.exec(cancellable2::cancel)))));
-        });
+        .onComplete(result -> callback.accept(
+          result.map(a -> Either.left(Tuple.of(a, IO.exec(cancellable2::cancel))))));
       IOModule.runAsync(IO.forked(executor).andThen(fb), cancellable2)
-        .whenComplete((value, error) -> {
-          callback.accept(Try.from(error, value).map(b -> Either.right(Tuple.of(IO.exec(cancellable2::cancel), b))));
-        });
+        .onComplete(result -> callback.accept(
+          result.map(b -> Either.right(Tuple.of(IO.exec(cancellable2::cancel), b)))));
 
       return IO.exec(() -> {
         try {
@@ -443,22 +441,21 @@ interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
   
-  static <T> CompletableFuture<T> runAsync(IO<T> current, StateIO state) {
-    CompletableFuture<T> promise = new CompletableFuture<>();
+  static <T> Promise<T> runAsync(IO<T> current, StateIO state) {
+    Promise<T> promise = Promise.make();
     promise.thenRun(() -> System.err.println(current + " promise completed"));
     return runAsync(current, state, new CallStack<>(), promise);
   }
 
   @SuppressWarnings("unchecked")
-  static <T, U, V> CompletableFuture<T> runAsync(IO<T> current, StateIO state, CallStack<T> stack, CompletableFuture<T> promise) {
+  static <T, U, V> Promise<T> runAsync(IO<T> current, StateIO state, CallStack<T> stack, Promise<T> promise) {
     while (true) {
       System.err.println("current=" + current + " - " + Thread.currentThread().getName());
       try {
         current = unwrap(current, stack, identity());
         
         if (current instanceof IO.Pure) {
-          promise.complete(((IO.Pure<T>) current).value);
-          return promise;
+          return promise.succeeded(((IO.Pure<T>) current).value);
         }
         
         if (current instanceof IO.Async) {
@@ -474,9 +471,9 @@ interface IOModule {
           System.err.println("source=" + source + " - " + Thread.currentThread().getName());
           
           if (source instanceof IO.Async) {
-            CompletableFuture<U> nextPromise = new CompletableFuture<>();
+            Promise<U> nextPromise = Promise.make();
             
-            nextPromise.thenAccept(u -> {
+            nextPromise.then(u -> {
               System.err.println("recursive run async " + Thread.currentThread().getName());
               runAsync(flatMapped.next.andThen(IOOf::narrowK).apply(u), state, stack, promise);
             });
@@ -504,8 +501,7 @@ interface IOModule {
         if (result.isPresent()) {
           current = result.get();
         } else {
-          promise.completeExceptionally(error);
-          return promise;
+          return promise.failed(error);
         }
       }
     }
@@ -541,13 +537,12 @@ interface IOModule {
     }
   }
 
-  static <T> CompletableFuture<T> executeAsync(IO.Async<T> current, StateIO state, CompletableFuture<T> promise) {
+  static <T> Promise<T> executeAsync(IO.Async<T> current, StateIO state, Promise<T> promise) {
     if (state.isCancellable() && !state.updateState(RunState::startingNow).isRunnable()) {
-      promise.cancel(false);
-      return promise;
+      return promise.cancel();
     }
     
-    state.setCancel(current.callback.apply(result -> result.onFailure(promise::completeExceptionally).onSuccess(promise::complete)));
+    state.setCancel(current.callback.apply(promise::tryComplete));
     
     promise.thenRun(() -> state.setCancel(UNIT));
     

@@ -173,7 +173,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
@@ -184,7 +183,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void retryFailure(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
@@ -195,7 +193,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void retrySuccess(@Mock Producer<String> computation) {
     when(computation.get())
         .thenThrow(UnsupportedOperationException.class)
@@ -210,7 +207,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void repeatSuccess(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
@@ -221,7 +217,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void repeatFailure(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola").thenThrow(UnsupportedOperationException.class);
 
@@ -232,7 +227,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
@@ -287,7 +281,7 @@ public class IOTest {
   
   @Test
   @Disabled
-  public void cancelable() {
+  public void cancellable() {
     IO<String> cancelable = IO.cancellable(consumer -> {
       
       Future<String> future = Future.delay(Duration.ofSeconds(5), () -> "Hola Mundo!").onComplete(consumer::accept);
