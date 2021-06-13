@@ -39,7 +39,7 @@ import com.github.tonivade.purefun.type.Try;
 public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   default Future<T> runAsync() {
-    return Future.from(IOModule.runAsync(this, StateIO.UNCANCELLABLE));
+    return Future.from(IOModule.runAsync(this, IOConnection.UNCANCELLABLE));
   }
   
   default T unsafeRunSync() {
@@ -89,12 +89,12 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   default <R> IO<R> redeem(Function1<? super Throwable, ? extends R> mapError,
                            Function1<? super T, ? extends R> mapper) {
-    return attempt().map(try_ -> try_.fold(mapError, mapper));
+    return attempt().map(result -> result.fold(mapError, mapper));
   }
 
   default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends Kind<IO_, ? extends R>> mapError,
                                Function1<? super T, ? extends Kind<IO_, ? extends R>> mapper) {
-    return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
+    return attempt().flatMap(result -> result.fold(mapError, mapper));
   }
 
   default IO<T> recover(Function1<? super Throwable, ? extends T> mapError) {
@@ -176,21 +176,21 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <A, B> IO<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
     return cancellable(callback -> {
       
-      StateIO cancellable1 = StateIO.cancellable();
-      StateIO cancellable2 = StateIO.cancellable();
+      IOConnection connection1 = IOConnection.cancellable();
+      IOConnection connection2 = IOConnection.cancellable();
       
-      IOModule.runAsync(IO.forked(executor).andThen(fa), cancellable1)
+      IOModule.runAsync(IO.forked(executor).andThen(fa), connection1)
         .onComplete(result -> callback.accept(
-          result.map(a -> Either.left(Tuple.of(a, IO.exec(cancellable2::cancel))))));
-      IOModule.runAsync(IO.forked(executor).andThen(fb), cancellable2)
+          result.map(a -> Either.left(Tuple.of(a, IO.exec(connection2::cancel))))));
+      IOModule.runAsync(IO.forked(executor).andThen(fb), connection2)
         .onComplete(result -> callback.accept(
-          result.map(b -> Either.right(Tuple.of(IO.exec(cancellable2::cancel), b)))));
+          result.map(b -> Either.right(Tuple.of(IO.exec(connection2::cancel), b)))));
 
       return IO.exec(() -> {
         try {
-          cancellable1.cancel();
+          connection1.cancel();
         } finally {
-          cancellable2.cancel();
+          connection2.cancel();
         }
       });
     });
@@ -435,16 +435,13 @@ interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
   
-  static <T> Promise<T> runAsync(IO<T> current, StateIO state) {
-    Promise<T> promise = Promise.make();
-    promise.thenRun(() -> System.err.println(current + " promise completed"));
-    return runAsync(current, state, new CallStack<>(), promise);
+  static <T> Promise<T> runAsync(IO<T> current, IOConnection connection) {
+    return runAsync(current, connection, new CallStack<>(), Promise.make());
   }
 
   @SuppressWarnings("unchecked")
-  static <T, U, V> Promise<T> runAsync(IO<T> current, StateIO state, CallStack<T> stack, Promise<T> promise) {
+  static <T, U, V> Promise<T> runAsync(IO<T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
     while (true) {
-      System.err.println("current=" + current + " - " + Thread.currentThread().getName());
       try {
         current = unwrap(current, stack, identity());
         
@@ -453,7 +450,7 @@ interface IOModule {
         }
         
         if (current instanceof IO.Async) {
-          return executeAsync((IO.Async<T>) current, state, promise);
+          return executeAsync((IO.Async<T>) current, connection, promise);
         }
         
         if (current instanceof IO.FlatMapped) {
@@ -462,19 +459,12 @@ interface IOModule {
           IO.FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
           IO<? extends U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next));
           
-          System.err.println("source=" + source + " - " + Thread.currentThread().getName());
-          
           if (source instanceof IO.Async) {
             Promise<U> nextPromise = Promise.make();
             
-            nextPromise.then(u -> {
-              System.err.println("recursive run async " + Thread.currentThread().getName());
-              runAsync(flatMapped.next.andThen(IOOf::narrowK).apply(u), state, stack, promise);
-            });
+            nextPromise.then(u -> runAsync(flatMapped.next.andThen(IOOf::narrowK).apply(u), connection, stack, promise));
             
-            nextPromise.thenRun(() -> System.err.println(source + " promise completed"));
-            
-            executeAsync((IO.Async<U>) source, state, nextPromise);
+            executeAsync((IO.Async<U>) source, connection, nextPromise);
             
             return promise;
           }
@@ -501,24 +491,17 @@ interface IOModule {
     }
   }
 
-  static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) throws Throwable {
+  static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
     while (true) {
       if (current instanceof IO.Failure) {
-        
-        throw ((IO.Failure<T>) current).error;
-
+        return stack.sneakyThrow(((IO.Failure<T>) current).error);
       } else if (current instanceof IO.Recover) {
         stack.add(((IO.Recover<T>) current).mapper.andThen(next));
         current = ((IO.Recover<T>) current).current;
-      
       } else if (current instanceof IO.Suspend) {
-        
         current = ((IO.Suspend<T>) current).lazy.andThen(IOOf::narrowK).get();
-      
       } else if (current instanceof IO.Delay) {
-      
         return IO.pure(((IO.Delay<T>) current).task.get());
-      
       } else if (current instanceof IO.Pure) {
         return current;
       } else if (current instanceof IO.FlatMapped) {
@@ -531,17 +514,17 @@ interface IOModule {
     }
   }
 
-  static <T> Promise<T> executeAsync(IO.Async<T> current, StateIO state, Promise<T> promise) {
-    if (state.isCancellable() && !state.updateState(RunState::startingNow).isRunnable()) {
+  static <T> Promise<T> executeAsync(IO.Async<T> current, IOConnection connection, Promise<T> promise) {
+    if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
     
-    state.setCancel(current.callback.apply(promise::tryComplete));
+    connection.setCancelToken(current.callback.apply(promise::tryComplete));
     
-    promise.thenRun(() -> state.setCancel(UNIT));
+    promise.thenRun(() -> connection.setCancelToken(UNIT));
     
-    if (state.isCancellable() && state.updateState(RunState::notStartingNow).isCancelligNow()) {
-      state.cancelNow();
+    if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancelligNow()) {
+      connection.cancelNow();
     }
 
     return promise;
@@ -564,62 +547,62 @@ interface IOModule {
   }
 }
 
-interface StateIO {
+interface IOConnection {
   
-  StateIO UNCANCELLABLE = new StateIO() {};
+  IOConnection UNCANCELLABLE = new IOConnection() {};
   
   default boolean isCancellable() { return false; }
   
-  default void setCancel(IO<Unit> cancel) { }
+  default void setCancelToken(IO<Unit> cancel) { }
   
   default void cancelNow() { }
   
   default void cancel() { }
   
-  default RunState updateState(Operator1<RunState> update) { return RunState.INITIAL; }
+  default StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
   
-  static StateIO cancellable() {
-    return new StateIO() {
+  static IOConnection cancellable() {
+    return new IOConnection() {
       
-      private IO<Unit> cancel;
-      private AtomicReference<RunState> state = new AtomicReference<>(RunState.INITIAL);
+      private IO<Unit> cancelToken;
+      private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
       
       @Override
       public boolean isCancellable() { return true; }
       
       @Override
-      public void setCancel(IO<Unit> cancel) { this.cancel = checkNonNull(cancel); }
+      public void setCancelToken(IO<Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
       
       @Override
-      public void cancelNow() { cancel.runAsync(); }
+      public void cancelNow() { cancelToken.runAsync(); }
       
       @Override
       public void cancel() {
-        if (state.getAndUpdate(RunState::cancellingNow).isCancelable()) {
+        if (state.getAndUpdate(StateIO::cancellingNow).isCancelable()) {
           cancelNow();
         
-          state.set(RunState.CANCELLED);
+          state.set(StateIO.CANCELLED);
         }
       }
       
       @Override
-      public RunState updateState(Operator1<RunState> update) {
+      public StateIO updateState(Operator1<StateIO> update) {
         return state.updateAndGet(update::apply);
       }
     };
   }
 }
 
-final class RunState {
+final class StateIO {
   
-  public static final RunState INITIAL = new RunState(false, false, false);
-  public static final RunState CANCELLED = new RunState(true, false, false);
+  public static final StateIO INITIAL = new StateIO(false, false, false);
+  public static final StateIO CANCELLED = new StateIO(true, false, false);
   
   private final boolean isCancelled;
   private final boolean cancelligNow;
   private final boolean startingNow;
   
-  public RunState(boolean isCancelled, boolean cancelligNow, boolean startingNow) {
+  public StateIO(boolean isCancelled, boolean cancelligNow, boolean startingNow) {
     this.isCancelled = isCancelled;
     this.cancelligNow = cancelligNow;
     this.startingNow = startingNow;
@@ -637,16 +620,16 @@ final class RunState {
     return startingNow;
   }
   
-  public RunState cancellingNow() {
-    return new RunState(isCancelled, true, startingNow);
+  public StateIO cancellingNow() {
+    return new StateIO(isCancelled, true, startingNow);
   }
   
-  public RunState startingNow() {
-    return new RunState(isCancelled, cancelligNow, true);
+  public StateIO startingNow() {
+    return new StateIO(isCancelled, cancelligNow, true);
   }
   
-  public RunState notStartingNow() {
-    return new RunState(isCancelled, cancelligNow, false);
+  public StateIO notStartingNow() {
+    return new StateIO(isCancelled, cancelligNow, false);
   }
   
   public boolean isCancelable() {
@@ -658,7 +641,7 @@ final class RunState {
   }
 }
 
-final class CallStack<T> {
+final class CallStack<T> implements Recoverable {
   
   private StackItem<T> top = new StackItem<>();
   
