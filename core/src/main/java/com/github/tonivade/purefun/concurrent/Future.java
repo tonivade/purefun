@@ -225,14 +225,6 @@ public interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
     return FutureImpl.sleep(executor, delay);
   }
 
-  static <T> Future<T> defer(Producer<? extends Future<? extends T>> producer) {
-    return defer(DEFAULT_EXECUTOR, producer);
-  }
-
-  static <T> Future<T> defer(Executor executor, Producer<? extends Future<? extends T>> producer) {
-    return task(executor, producer::get).flatMap(identity());
-  }
-
   static <T> Future<T> later(Producer<? extends T> producer) {
     return later(DEFAULT_EXECUTOR, producer);
   }
@@ -285,14 +277,6 @@ public interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
   }
 
   static <T> Future<T> async(Executor executor, Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
-    return FutureImpl.async(executor, consumer.asFunction().andThen(Future::success));
-  }
-
-  static <T> Future<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, Future<Unit>> consumer) {
-    return asyncF(DEFAULT_EXECUTOR, consumer);
-  }
-
-  static <T> Future<T> asyncF(Executor executor, Function1<Consumer1<? super Try<? extends T>>, Future<Unit>> consumer) {
     return FutureImpl.async(executor, consumer);
   }
 }
@@ -460,13 +444,13 @@ final class FutureImpl<T> implements SealedFuture<T> {
   }
 
   protected static <T> Future<T> async(Executor executor, 
-      Function1<Consumer1<? super Try<? extends T>>, Future<Unit>> consumer) {
+      Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
     return new FutureImpl<>(executor, 
-        (p, c) -> Future.defer(executor, () -> {
+        (p, c) -> Future.later(executor, () -> {
           c.updateThread();
-          return consumer.apply(p::tryComplete);
+          return consumer.asFunction().apply(p::tryComplete);
         }));
   }
 

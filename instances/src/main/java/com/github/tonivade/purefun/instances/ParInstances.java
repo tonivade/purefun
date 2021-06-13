@@ -162,6 +162,6 @@ interface ParAsync extends Async<Par_>, ParMonadDefer {
   
   @Override
   default <A> Par<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Par_, Unit>> consumer) {
-    return Par.asyncF(consumer.andThen(ParOf::narrowK));
+    return Par.cancelable(consumer.andThen(ParOf::narrowK));
   }
 }

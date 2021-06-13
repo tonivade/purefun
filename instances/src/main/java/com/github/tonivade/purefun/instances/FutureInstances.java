@@ -159,7 +159,7 @@ interface FutureDefer extends Defer<Future_>, ExecutorHolder {
 
   @Override
   default <A> Kind<Future_, A> defer(Producer<? extends Kind<Future_, ? extends A>> defer) {
-    return Future.defer(executor(), defer.map(FutureOf::<A>narrowK)::get);
+    throw new UnsupportedOperationException();
   }
 }
 
@@ -195,6 +195,6 @@ interface FutureAsync extends Async<Future_>, FutureMonadDefer {
   @Override
   default <A> Kind<Future_, A> asyncF(
       Function1<Consumer1<? super Try<? extends A>>, Kind<Future_, Unit>> consumer) {
-    return Future.asyncF(executor(), consumer.andThen(FutureOf::narrowK));
+    throw new UnsupportedOperationException();
   }
 }

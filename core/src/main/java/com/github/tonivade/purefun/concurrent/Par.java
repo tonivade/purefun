@@ -105,7 +105,7 @@ public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
   }
 
   static <T> Par<T> defer(Producer<? extends Kind<Par_, ? extends T>> producer) {
-    return executor -> Future.defer(executor, () -> producer.andThen(ParOf::narrowK).get().apply(executor));
+    return executor -> producer.andThen(ParOf::narrowK).get().apply(executor);
   }
 
   static <T> Par<T> later(Producer<? extends T> producer) {
@@ -124,8 +124,9 @@ public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return executor -> Future.async(executor, consumer);
   }
 
-  static <T> Par<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, Par<Unit>> consumer) {
-    return executor -> Future.asyncF(executor, c -> consumer.apply(c).apply(executor));
+  static <T> Par<T> cancelable(Function1<Consumer1<? super Try<? extends T>>, Par<Unit>> consumer) {
+    // TODO:
+    throw new UnsupportedOperationException("not implemented");
   }
 
   static Par<Unit> sleep(Duration delay) {
