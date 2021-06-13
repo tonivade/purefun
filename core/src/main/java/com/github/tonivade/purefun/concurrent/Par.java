@@ -105,7 +105,10 @@ public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
   }
 
   static <T> Par<T> defer(Producer<? extends Kind<Par_, ? extends T>> producer) {
-    return executor -> producer.andThen(ParOf::narrowK).get().apply(executor);
+    return executor -> {
+      Producer<Par<T>> andThen = producer.andThen(ParOf::narrowK);
+      return andThen.get().apply(executor);
+    };
   }
 
   static <T> Par<T> later(Producer<? extends T> producer) {

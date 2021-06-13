@@ -462,7 +462,10 @@ interface IOModule {
           if (source instanceof IO.Async) {
             Promise<U> nextPromise = Promise.make();
             
-            nextPromise.then(u -> runAsync(flatMapped.next.andThen(IOOf::narrowK).apply(u), connection, stack, promise));
+            nextPromise.then(u -> {
+              Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
+              runAsync(andThen.apply(u), connection, stack, promise);
+            });
             
             executeAsync((IO.Async<U>) source, connection, nextPromise);
             
@@ -471,7 +474,8 @@ interface IOModule {
 
           if (source instanceof IO.Pure) {
             IO.Pure<U> pure = (IO.Pure<U>) source;
-            current = flatMapped.next.andThen(IOOf::narrowK).apply(pure.value);
+            Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
+            current = andThen.apply(pure.value);
           } else if (source instanceof IO.FlatMapped) {
             IO.FlatMapped<V, U> flatMapped2 = (FlatMapped<V, U>) source;
             current = flatMapped2.current.flatMap(a -> flatMapped2.next.apply(a).flatMap(flatMapped.next));
@@ -499,7 +503,8 @@ interface IOModule {
         stack.add(((IO.Recover<T>) current).mapper.andThen(next));
         current = ((IO.Recover<T>) current).current;
       } else if (current instanceof IO.Suspend) {
-        current = ((IO.Suspend<T>) current).lazy.andThen(IOOf::narrowK).get();
+        Producer<IO<T>> andThen = ((IO.Suspend<T>) current).lazy.andThen(IOOf::narrowK);
+        current = andThen.get();
       } else if (current instanceof IO.Delay) {
         return IO.pure(((IO.Delay<T>) current).task.get());
       } else if (current instanceof IO.Pure) {
@@ -723,7 +728,8 @@ final class StackItem<T> {
     while (!recover.isEmpty()) {
       PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        return Option.some(mapError.andThen(IOOf::narrowK).apply(error));
+        PartialFunction1<? super Throwable, IO<T>> andThen = mapError.andThen(IOOf::narrowK);
+        return Option.some(andThen.apply(error));
       }
     }
     return Option.none();
