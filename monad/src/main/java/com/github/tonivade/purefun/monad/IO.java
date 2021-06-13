@@ -169,14 +169,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   
   static <A, B> IO<Either<A, B>> race(Executor executor, IO<A> fa, IO<B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().map(x -> {
-          Either<A, B> left = Either.left(ta.get1());
-          return left;
-        }),
-        tb -> tb.get1().map(x -> {
-          Either<A, B> right = Either.right(tb.get2());
-          return right;
-        })));
+        ta -> ta.get2().map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().map(x -> Either.right(tb.get2()))));
   }
   
   static <A, B> IO<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
