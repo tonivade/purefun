@@ -53,7 +53,7 @@ import com.github.tonivade.purefun.type.TryOf;
  *   <li>Future.bracket(acquire, usage, release): returns a future that eventually will acquire a resource, then use it, and finally release it.</li>
  * </ul>
  *
- * <p>A future can be cancelable by calling the method {@code cancel}. If the future has not been executed yet, the future will be cancelled
+ * <p>A future can be cancellable by calling the method {@code cancel}. If the future has not been executed yet, the future will be cancelled
  * and the result of the computation will be a {@code Try.failure(CancellableException)}, but if the future has been executed, and is completed
  * the calling of cancel method will not have any consequences. If the computation is running when the cancel method is called, and if the flag
  * mayInterruptThread is true, then it will try to interrupt the thread running the computation and the result of the computation

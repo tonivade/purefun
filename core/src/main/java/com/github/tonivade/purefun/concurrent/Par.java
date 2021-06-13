@@ -124,11 +124,6 @@ public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return executor -> Future.async(executor, consumer);
   }
 
-  static <T> Par<T> cancelable(Function1<Consumer1<? super Try<? extends T>>, Par<Unit>> consumer) {
-    // TODO:
-    throw new UnsupportedOperationException("not implemented");
-  }
-
   static Par<Unit> sleep(Duration delay) {
     return executor -> Future.sleep(executor, delay);
   }

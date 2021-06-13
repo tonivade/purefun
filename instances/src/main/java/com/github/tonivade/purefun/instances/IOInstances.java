@@ -172,7 +172,7 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
   
   @Override
   default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO_, Unit>> consumer) {
-    return IO.cancelable(consumer.andThen(IOOf::narrowK));
+    return IO.cancellable(consumer.andThen(IOOf::narrowK));
   }
 }
 

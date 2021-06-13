@@ -63,11 +63,12 @@ public class IOTest {
   @Test
   public void asyncSuccess() {
     IO<String> async = IO.async(callback -> {
+      System.out.println(Thread.currentThread().getName());
       Thread.sleep(100);
       callback.accept(Try.success("1"));
     });
     
-    Future<String> foldMap = async.runAsync();
+    Future<String> foldMap = IO.forked().andThen(async).runAsync();
     
     assertEquals("1", foldMap.getOrElseThrow());
   }
@@ -79,7 +80,7 @@ public class IOTest {
       callback.accept(Try.failure(new UnsupportedOperationException()));
     });
     
-    Future<String> foldMap = async.runAsync();
+    Future<String> foldMap = IO.forked().andThen(async).runAsync();
    
     assertThrows(UnsupportedOperationException.class, foldMap::getOrElseThrow);
   }
@@ -287,7 +288,7 @@ public class IOTest {
   @Test
   @Disabled
   public void cancelable() {
-    IO<String> cancelable = IO.cancelable(consumer -> {
+    IO<String> cancelable = IO.cancellable(consumer -> {
       
       Future<String> future = Future.delay(Duration.ofSeconds(5), () -> "Hola Mundo!").onComplete(consumer::accept);
       
@@ -311,7 +312,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void asyncRaceA() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(10), () -> 10),
@@ -323,7 +323,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void raceB() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),
@@ -335,7 +334,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void asyncRaceB() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),

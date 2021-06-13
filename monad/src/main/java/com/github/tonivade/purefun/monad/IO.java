@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -28,7 +28,6 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO.FlatMapped;
@@ -40,7 +39,7 @@ import com.github.tonivade.purefun.type.Try;
 public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   default Future<T> runAsync() {
-    return Future.from(IOModule.runAsync(this, StateIO.UNCANCELABLE));
+    return Future.from(IOModule.runAsync(this, StateIO.UNCANCELLABLE));
   }
   
   default T unsafeRunSync() {
@@ -116,8 +115,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     throw new UnsupportedOperationException();
   }
   
-  default IO<Unit> forked(Executor executor) {
-    return this.andThen(IO.fork(executor));
+  default IO<Unit> fork(Executor executor) {
+    return this.andThen(IO.forked(executor));
   }
 
   @Override
@@ -170,37 +169,36 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   
   static <A, B> IO<Either<A, B>> race(Executor executor, IO<A> fa, IO<B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().map(x -> Either.left(ta.get1())),
-        tb -> tb.get1().map(x -> Either.right(tb.get2()))));
+        ta -> ta.get2().map(x -> {
+          Either<A, B> left = Either.left(ta.get1());
+          return left;
+        }),
+        tb -> tb.get1().map(x -> {
+          Either<A, B> right = Either.right(tb.get2());
+          return right;
+        })));
   }
   
   static <A, B> IO<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
-    return cancelable(cb -> {
+    return cancellable(callback -> {
       
-      Promise<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> promise = Promise.make();
-      promise.onComplete(x -> {
-        cb.accept(x);
-      });
+      StateIO cancellable1 = StateIO.cancellable();
+      StateIO cancellable2 = StateIO.cancellable();
       
-      StateIO cancelable1 = StateIO.cancelable();
-      StateIO cancelable2 = StateIO.cancelable();
-      
-      IOModule.runAsync(IO.fork(executor).andThen(fa), cancelable1)
-        .onComplete(result -> {
-          Try<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> map = result.map(a -> Either.left(Tuple.of(a, IO.exec(cancelable2::cancel))));
-          promise.tryComplete(map);
+      IOModule.runAsync(IO.forked(executor).andThen(fa), cancellable1)
+        .whenComplete((value, error) -> {
+          callback.accept(Try.from(error, value).map(a -> Either.left(Tuple.of(a, IO.exec(cancellable2::cancel)))));
         });
-      IOModule.runAsync(IO.fork(executor).andThen(fb), cancelable2)
-        .onComplete(result -> {
-          Try<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> map = result.map(b -> Either.right(Tuple.of(IO.exec(cancelable1::cancel), b)));
-          promise.tryComplete(map);
+      IOModule.runAsync(IO.forked(executor).andThen(fb), cancellable2)
+        .whenComplete((value, error) -> {
+          callback.accept(Try.from(error, value).map(b -> Either.right(Tuple.of(IO.exec(cancellable2::cancel), b))));
         });
 
       return IO.exec(() -> {
         try {
-          cancelable1.cancel();
+          cancellable1.cancel();
         } finally {
-          cancelable2.cancel();
+          cancellable2.cancel();
         }
       });
     });
@@ -247,8 +245,9 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static IO<Unit> sleep(Duration duration) {
-    return cancelable(callback -> {
-      Future<Unit> sleep = Future.sleep(duration);
+    return cancellable(callback -> {
+      Future<Unit> sleep = Future.sleep(duration)
+        .onComplete(result -> callback.accept(Try.success(Unit.unit())));
       return IO.exec(() -> sleep.cancel(true));
     });
   }
@@ -265,15 +264,19 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return async(callback -> {});
   }
   
-  static IO<Unit> fork(Executor executor) {
+  static IO<Unit> forked() {
+    return forked(Future.DEFAULT_EXECUTOR);
+  }
+  
+  static IO<Unit> forked(Executor executor) {
     return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
   static <T> IO<T> async(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
-    return cancelable(callback.asFunction().andThen(IO::pure));
+    return cancellable(callback.asFunction().andThen(IO::pure));
   }
 
-  static <T> IO<T> cancelable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+  static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
     return new Async<>(callback);
   }
 
@@ -440,20 +443,22 @@ interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
   
-  static <T> Promise<T> runAsync(IO<T> current, StateIO state) {
-    Promise<T> make = Promise.make();
-    return runAsync(current, state, new CallStack<>(), make);
+  static <T> CompletableFuture<T> runAsync(IO<T> current, StateIO state) {
+    CompletableFuture<T> promise = new CompletableFuture<>();
+    promise.thenRun(() -> System.err.println(current + " promise completed"));
+    return runAsync(current, state, new CallStack<>(), promise);
   }
 
   @SuppressWarnings("unchecked")
-  static <T, U, V> Promise<T> runAsync(IO<T> current, StateIO state, CallStack<T> stack, Promise<T> promise) {
-    System.out.println(current + "-" + Thread.currentThread().getName());
+  static <T, U, V> CompletableFuture<T> runAsync(IO<T> current, StateIO state, CallStack<T> stack, CompletableFuture<T> promise) {
     while (true) {
+      System.err.println("current=" + current + " - " + Thread.currentThread().getName());
       try {
         current = unwrap(current, stack, identity());
         
         if (current instanceof IO.Pure) {
-          return promise.succeeded(((IO.Pure<T>) current).value);
+          promise.complete(((IO.Pure<T>) current).value);
+          return promise;
         }
         
         if (current instanceof IO.Async) {
@@ -466,16 +471,19 @@ interface IOModule {
           IO.FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
           IO<? extends U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next));
           
+          System.err.println("source=" + source + " - " + Thread.currentThread().getName());
+          
           if (source instanceof IO.Async) {
-            Promise<U> nextPromise = Promise.make();
+            CompletableFuture<U> nextPromise = new CompletableFuture<>();
             
-            stack.retain(nextPromise);
-            
-            nextPromise.onSuccess(u -> {
+            nextPromise.thenAccept(u -> {
+              System.err.println("recursive run async " + Thread.currentThread().getName());
               runAsync(flatMapped.next.andThen(IOOf::narrowK).apply(u), state, stack, promise);
             });
             
-            executeAsync((IO.Async<U>) source, state, nextPromise).onFailure(System.out::println);
+            nextPromise.thenRun(() -> System.err.println(source + " promise completed"));
+            
+            executeAsync((IO.Async<U>) source, state, nextPromise);
             
             return promise;
           }
@@ -490,33 +498,17 @@ interface IOModule {
         } else {
           stack.pop();
         }
-        
       } catch (Throwable error) {
         Option<IO<T>> result = stack.tryHandle(error);
         
         if (result.isPresent()) {
           current = result.get();
         } else {
-          return promise.failed(error);
+          promise.completeExceptionally(error);
+          return promise;
         }
       }
     }
-  }
-
-  static <T> Promise<T> executeAsync(IO.Async<T> current, StateIO state, Promise<T> promise) {
-    if (state.isCancelable() && !state.updateState(RunState::startingNow).isRunnable()) {
-      return promise.cancel();
-    }
-    
-    state.setCancel(current.callback.apply(promise::tryComplete));
-    
-    promise.thenRun(() -> state.setCancel(UNIT));
-    
-    if (state.isCancelable() && state.updateState(RunState::notStartingNow).isCancelligNow()) {
-      state.cancelNow();
-    }
-
-    return promise;
   }
 
   static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) throws Throwable {
@@ -549,6 +541,23 @@ interface IOModule {
     }
   }
 
+  static <T> CompletableFuture<T> executeAsync(IO.Async<T> current, StateIO state, CompletableFuture<T> promise) {
+    if (state.isCancellable() && !state.updateState(RunState::startingNow).isRunnable()) {
+      promise.cancel(false);
+      return promise;
+    }
+    
+    state.setCancel(current.callback.apply(result -> result.onFailure(promise::completeExceptionally).onSuccess(promise::complete)));
+    
+    promise.thenRun(() -> state.setCancel(UNIT));
+    
+    if (state.isCancellable() && state.updateState(RunState::notStartingNow).isCancelligNow()) {
+      state.cancelNow();
+    }
+
+    return promise;
+  }
+
   static <T> IO<T> repeat(IO<T> self, IO<Unit> pause, int times) {
     return self.redeemWith(IO::raiseError, value -> {
       if (times > 0) {
@@ -568,9 +577,9 @@ interface IOModule {
 
 interface StateIO {
   
-  StateIO UNCANCELABLE = new StateIO() {};
+  StateIO UNCANCELLABLE = new StateIO() {};
   
-  default boolean isCancelable() { return false; }
+  default boolean isCancellable() { return false; }
   
   default void setCancel(IO<Unit> cancel) { }
   
@@ -580,14 +589,14 @@ interface StateIO {
   
   default RunState updateState(Operator1<RunState> update) { return RunState.INITIAL; }
   
-  static StateIO cancelable() {
+  static StateIO cancellable() {
     return new StateIO() {
       
       private IO<Unit> cancel;
       private AtomicReference<RunState> state = new AtomicReference<>(RunState.INITIAL);
       
       @Override
-      public boolean isCancelable() { return true; }
+      public boolean isCancellable() { return true; }
       
       @Override
       public void setCancel(IO<Unit> cancel) { this.cancel = checkNonNull(cancel); }
@@ -617,18 +626,18 @@ final class RunState {
   public static final RunState INITIAL = new RunState(false, false, false);
   public static final RunState CANCELLED = new RunState(true, false, false);
   
-  private final boolean cancelled;
+  private final boolean isCancelled;
   private final boolean cancelligNow;
   private final boolean startingNow;
   
-  public RunState(boolean cancelled, boolean cancelligNow, boolean startingNow) {
-    this.cancelled = cancelled;
+  public RunState(boolean isCancelled, boolean cancelligNow, boolean startingNow) {
+    this.isCancelled = isCancelled;
     this.cancelligNow = cancelligNow;
     this.startingNow = startingNow;
   }
   
   public boolean isCancelled() {
-    return cancelled;
+    return isCancelled;
   }
   
   public boolean isCancelligNow() {
@@ -640,34 +649,29 @@ final class RunState {
   }
   
   public RunState cancellingNow() {
-    return new RunState(cancelled, true, startingNow);
+    return new RunState(isCancelled, true, startingNow);
   }
   
   public RunState startingNow() {
-    return new RunState(cancelled, cancelligNow, true);
+    return new RunState(isCancelled, cancelligNow, true);
   }
   
   public RunState notStartingNow() {
-    return new RunState(cancelled, cancelligNow, false);
+    return new RunState(isCancelled, cancelligNow, false);
   }
   
   public boolean isCancelable() {
-    return !cancelled && !cancelligNow && !startingNow;
+    return !isCancelled && !cancelligNow && !startingNow;
   }
   
   public boolean isRunnable() {
-    return !cancelled && !cancelligNow;
+    return !isCancelled && !cancelligNow;
   }
 }
 
 final class CallStack<T> {
   
   private StackItem<T> top = new StackItem<>();
-  private List<Object> retain = new LinkedList<>();
-  
-  public void retain(Object object) {
-    retain.add(object);
-  }
   
   public void push() {
     top.push();
