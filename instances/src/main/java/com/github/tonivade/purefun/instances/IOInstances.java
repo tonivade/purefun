@@ -38,7 +38,11 @@ public interface IOInstances {
   }
 
   static Applicative<IO_> applicative() {
-    return IOApplicative.INSTANCE;
+    return applicative(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Applicative<IO_> applicative(Executor executor) {
+    return IOApplicative.instance(executor);
   }
 
   static Monad<IO_> monad() {
@@ -93,13 +97,17 @@ interface IOPure extends Applicative<IO_> {
 }
 
 interface IOApplicative extends IOPure, Applicative<IO_> {
+  
+  static IOApplicative instance(Executor executor) {
+    return () -> executor;
+  }
 
-  IOApplicative INSTANCE = new IOApplicative() {};
+  Executor executor();
 
   @Override
   default <T, R> IO<R> ap(Kind<IO_, ? extends T> value, 
       Kind<IO_, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(IOOf::<T>narrowK).ap(apply.fix(IOOf::narrowK));
+    return IO.parMap2(executor(), value.fix(toIO()), apply.fix(toIO()), (v, a) -> a.apply(v));
   }
 }
 

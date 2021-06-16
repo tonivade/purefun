@@ -71,7 +71,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> ap(Kind<IO_, Function1<? super T, ? extends R>> apply) {
-    throw new UnsupportedOperationException();
+    return parMap2(Future.DEFAULT_EXECUTOR, this, apply, (v, a) -> a.apply(v));
   }
 
   default IO<Try<T>> attempt() {
@@ -295,18 +295,46 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return sequence.fold(unit(), IO::andThen).andThen(unit());
   }
 
-  static <A> IO<Sequence<A>> traverse(Sequence<? extends IO<A>> sequence) {
+  static <A> IO<Sequence<A>> traverse(Sequence<? extends Kind<IO_, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  static <A> IO<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<IO_, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (IO<Sequence<A>> xs, IO<A> a) -> map2(xs, a, Sequence::append));
+        (Kind<IO_, Sequence<A>> xs, Kind<IO_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  static <A, B, C> IO<C> map2(IO<? extends A> fa, IO<? extends B> fb,
+  static <A, B, C> IO<C> parMap2(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb,
                               Function2<? super A, ? super B, ? extends C> mapper) {
-    return fb.ap(fa.map(mapper.curried()));
+    return cancellable(callback -> {
+      
+      IOConnection connection1 = IOConnection.cancellable();
+      IOConnection connection2 = IOConnection.cancellable();
+      
+      Promise<A> promiseA = Promise.make();
+      Promise<B> promiseB = Promise.make();
+      
+      IOModule.runAsync(IO.forked(executor).andThen(fa), connection1).onComplete(promiseA::tryComplete);
+      IOModule.runAsync(IO.forked(executor).andThen(fb), connection2).onComplete(promiseB::tryComplete);
+      
+      promiseA.onComplete(a -> promiseB.onComplete(b -> callback.accept(Try.map2(a, b, mapper))));
+      
+      return IO.exec(() -> {
+        try {
+          connection1.cancel();
+        } finally {
+          connection2.cancel();
+        }
+      });
+    });
   }
 
-  static <A, B> IO<Tuple2<A, B>> tuple(IO<? extends A> fa, IO<? extends B> fb) {
-    return map2(fa, fb, Tuple::of);
+  static <A, B> IO<Tuple2<A, B>> tuple(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
+    return tuple(Future.DEFAULT_EXECUTOR, fa, fb);
+  }
+
+  static <A, B> IO<Tuple2<A, B>> tuple(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
+    return parMap2(executor, fa, fb, Tuple::of);
   }
 
   final class Pure<T> implements SealedIO<T> {
@@ -364,7 +392,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
     @Override
     public String toString() {
-      return "SyncTask(?)";
+      return "Delay(?)";
     }
   }
 

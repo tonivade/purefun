@@ -269,7 +269,6 @@ public class IOTest {
   }
   
   @Test
-  @Disabled
   public void traverse() {
     IO<String> left = IO.task(() -> "left");
     IO<String> right = IO.task(() -> "right");
@@ -306,34 +305,12 @@ public class IOTest {
   }
 
   @Test
-  public void asyncRaceA() {
-    IO<Either<Integer, String>> race = IO.race(
-        IO.delay(Duration.ofMillis(10), () -> 10),
-        IO.delay(Duration.ofMillis(100), () -> "b"));
-    
-    Either<Integer, String> orElseThrow = race.runAsync().await(Duration.ofSeconds(1)).getOrElseThrow();
-    
-    assertEquals(Either.left(10), orElseThrow);
-  }
-
-  @Test
   public void raceB() {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),
         IO.delay(Duration.ofMillis(10), () -> "b"));
     
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
-    
-    assertEquals(Either.right("b"), orElseThrow);
-  }
-
-  @Test
-  public void asyncRaceB() {
-    IO<Either<Integer, String>> race = IO.race(
-        IO.delay(Duration.ofMillis(100), () -> 10),
-        IO.delay(Duration.ofMillis(10), () -> "b"));
-    
-    Either<Integer, String> orElseThrow = race.runAsync().await(Duration.ofSeconds(1)).getOrElseThrow();
     
     assertEquals(Either.right("b"), orElseThrow);
   }
