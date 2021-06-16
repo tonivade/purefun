@@ -8,11 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -22,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -249,6 +246,16 @@ public class IOTest {
 
     assertEquals(705082704, result.get2());
     assertTrue(result.get1().toMillis() > 0);
+  }
+  
+  @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, IO.never().timeout(Duration.ofSeconds(1))::unsafeRunSync);
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(1, IO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync());
   }
   
   @Test

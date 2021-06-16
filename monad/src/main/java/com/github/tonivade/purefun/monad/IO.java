@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
@@ -118,6 +119,16 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   
   default IO<Unit> fork(Executor executor) {
     return this.andThen(IO.forked(executor));
+  }
+  
+  default IO<T> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  default IO<T> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().map(x -> ta.get1()),
+        tb -> tb.get1().flatMap(x -> IO.raiseError(new TimeoutException()))));
   }
 
   @Override
