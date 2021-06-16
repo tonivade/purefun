@@ -22,7 +22,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
-import java.util.concurrent.CancellationException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,7 +108,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -118,19 +116,6 @@ public class IOTest {
 
     assertEquals(Try.success("value"), bracket.unsafeRunSync());
     verify(resultSet).close();
-  }
-
-  @Test
-  @Disabled
-  public void bracketAsync() throws SQLException {
-    ResultSet resultSet = mock(ResultSet.class);
-    when(resultSet.getString("id")).thenReturn("value");
-
-    IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.runAsync();
-
-    assertEquals(Try.success("value"), future.await(Duration.ofSeconds(1)).get());
-    verify(resultSet, timeout(1000)).close();
   }
 
   @Test
@@ -276,21 +261,6 @@ public class IOTest {
     IO<Sequence<String>> traverse = IO.traverse(listOf(left, right));
     
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
-  }
-  
-  @Test
-  @Disabled
-  public void cancellable() {
-    IO<String> cancelable = IO.cancellable(consumer -> {
-      
-      Future<String> future = Future.delay(Duration.ofSeconds(5), () -> "Hola Mundo!").onComplete(consumer::accept);
-      
-      return IO.exec(() -> future.cancel(true));
-    });
-
-    Try<String> await = cancelable.runAsync().await(Duration.ofSeconds(1));
-    
-    assertEquals(CancellationException.class, await.getCause().getClass());
   }
 
   @Test

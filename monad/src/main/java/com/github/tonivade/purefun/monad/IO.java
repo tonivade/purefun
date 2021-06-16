@@ -179,11 +179,12 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       IOConnection connection1 = IOConnection.cancellable();
       IOConnection connection2 = IOConnection.cancellable();
       
-      IOModule.runAsync(IO.forked(executor).andThen(fa), connection1)
-        .onComplete(result -> callback.accept(
+      Promise<A> promiseA = IOModule.runAsync(IO.forked(executor).andThen(fa), connection1);
+      Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
+
+      promiseA.onComplete(result -> callback.accept(
           result.map(a -> Either.left(Tuple.of(a, IO.exec(connection2::cancel))))));
-      IOModule.runAsync(IO.forked(executor).andThen(fb), connection2)
-        .onComplete(result -> callback.accept(
+      promiseB .onComplete(result -> callback.accept(
           result.map(b -> Either.right(Tuple.of(IO.exec(connection2::cancel), b)))));
 
       return IO.exec(() -> {
@@ -278,7 +279,22 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   static <T, R> IO<R> bracket(IO<? extends T> acquire, 
       Function1<? super T, ? extends IO<? extends R>> use, Function1<? super T, IO<Unit>> release) {
-    return new Bracket<>(acquire, use, release);
+    // TODO: test cancellation
+    return cancellable(callback -> {
+      
+      IOConnection cancellable = IOConnection.cancellable();
+      
+      Promise<? extends T> promise = IOModule.runAsync(acquire, cancellable);
+      
+      promise
+        .onFailure(error -> callback.accept(Try.failure(error)))
+        .onSuccess(resource -> IOModule.runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
+          .onComplete(result -> IOModule.runAsync(release.apply(resource), cancellable)
+            .onComplete(ignore -> callback.accept(result))
+        ));
+      
+      return IO.exec(cancellable::cancel);
+    });
   }
 
   static <T, R> IO<R> bracket(IO<? extends T> acquire, 
@@ -311,11 +327,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       IOConnection connection1 = IOConnection.cancellable();
       IOConnection connection2 = IOConnection.cancellable();
       
-      Promise<A> promiseA = Promise.make();
-      Promise<B> promiseB = Promise.make();
-      
-      IOModule.runAsync(IO.forked(executor).andThen(fa), connection1).onComplete(promiseA::tryComplete);
-      IOModule.runAsync(IO.forked(executor).andThen(fb), connection2).onComplete(promiseB::tryComplete);
+      Promise<A> promiseA = IOModule.runAsync(IO.forked(executor).andThen(fa), connection1);
+      Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
       
       promiseA.onComplete(a -> promiseB.onComplete(b -> callback.accept(Try.map2(a, b, mapper))));
       
@@ -437,24 +450,6 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     @Override
     public String toString() {
       return "Recover(" + current + ", ?)";
-    }
-  }
-
-  final class Bracket<T, R> implements SealedIO<R> {
-
-    final IO<? extends T> acquire;
-    final Function1<? super T, ? extends IO<? extends R>> use;
-    final Function1<? super T, IO<Unit>> release;
-
-    protected Bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Function1<? super T, IO<Unit>> release) {
-      this.acquire = checkNonNull(acquire);
-      this.use = checkNonNull(use);
-      this.release = checkNonNull(release);
-    }
-
-    @Override
-    public String toString() {
-      return "Bracket(" + acquire + ", ?, ?)";
     }
   }
 }
