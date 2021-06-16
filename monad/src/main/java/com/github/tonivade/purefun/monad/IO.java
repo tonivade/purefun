@@ -112,7 +112,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default IO<Tuple2<Duration, T>> timed() {
-    throw new UnsupportedOperationException();
+    return IO.task(System::nanoTime).flatMap(
+      start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
   
   default IO<Unit> fork(Executor executor) {

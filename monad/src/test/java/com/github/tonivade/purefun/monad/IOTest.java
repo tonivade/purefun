@@ -22,7 +22,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -243,7 +242,6 @@ public class IOTest {
   }
 
   @Test
-  @Disabled
   public void timed() {
     IO<Tuple2<Duration, Integer>> sum = sum(100000, 0).timed();
 
