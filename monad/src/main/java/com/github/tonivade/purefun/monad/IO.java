@@ -258,8 +258,9 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return task.fold(IO::raiseError, IO::pure);
   }
   
-  static <T> IO<T> fromPromise(Promise<T> promise) {
-    return async(promise::onComplete);
+  static <T> IO<T> fromPromise(Promise<? extends T> promise) {
+    Consumer1<Consumer1<? super Try<? extends T>>> callback = promise::onComplete;
+    return async(callback);
   }
 
   static IO<Unit> sleep(Duration duration) {

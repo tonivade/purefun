@@ -73,6 +73,14 @@ public interface IOInstances {
     return IOAsync.INSTANCE;
   }
 
+  static Concurrent<IO_> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Concurrent<IO_> concurrent(Executor executor) {
+    return IOConcurrent.instance(executor);
+  }
+
   static Console<IO_> console() {
     return IOConsole.INSTANCE;
   }
@@ -189,6 +197,10 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
 }
 
 interface IOConcurrent extends Concurrent<IO_>, IOAsync {
+  
+  static IOConcurrent instance(Executor executor) {
+    return () -> executor;
+  }
   
   Executor executor();
   

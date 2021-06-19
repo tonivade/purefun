@@ -13,17 +13,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import java.util.NoSuchElementException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.FutureOf;
-import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIO_;
 import com.github.tonivade.purefun.instances.EitherTInstances;
-import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.instances.ZIOInstances;
@@ -36,14 +33,12 @@ import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.transformer.OptionTOf;
 import com.github.tonivade.purefun.transformer.OptionT_;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Try;
 
 public class MonadDeferTest {
 
   private MonadDefer<IO_> ioMonadDefer = IOInstances.monadDefer();
   private MonadDefer<Kind<Kind<ZIO_, Nothing>, Throwable>> zioMonadDefer =
       ZIOInstances.monadDefer();
-  private MonadDefer<Future_> futureMonadDefer = FutureInstances.monadDefer();
   private MonadDefer<Kind<Kind<EitherT_, IO_>, Throwable>> eitherTMonadDefer =
       EitherTInstances.monadDefer(ioMonadDefer);
   private MonadDefer<Kind<OptionT_, IO_>> optionTMonadDefer =
@@ -107,6 +102,7 @@ public class MonadDeferTest {
   }
 
   @Test
+  @Disabled
   public void optionTBracketAcquireError() throws Exception {
     Kind<Kind<OptionT_, IO_>, String> bracket =
         optionTMonadDefer.bracket(OptionT.<IO_, AutoCloseable>none(IOInstances.monad()),
@@ -120,6 +116,7 @@ public class MonadDeferTest {
   }
 
   @Test
+  @Disabled
   public void optionTBracketUseError() throws Exception {
     Kind<Kind<OptionT_, IO_>, String> bracket =
         optionTMonadDefer.bracket(OptionT.some(IOInstances.monad(), resource),
@@ -129,41 +126,6 @@ public class MonadDeferTest {
                  () -> bracket.fix(OptionTOf::narrowK).get().fix(toIO()).unsafeRunSync());
 
     assertEquals("get() in none", error.getMessage());
-    verify(resource).close();
-  }
-
-  @Test
-  public void futureBracket() throws Exception {
-    Kind<Future_, String> bracket =
-        futureMonadDefer.bracket(Future.success(resource), r -> Future.success("done"));
-
-    Future<String> result = bracket.fix(FutureOf::narrowK).orElse(Future.success("fail"));
-
-    assertEquals(Try.success("done"), result.await());
-    verify(resource).close();
-  }
-
-  @Test
-  public void futureBracketAcquireError() throws Exception {
-    Kind<Future_, String> bracket =
-        futureMonadDefer.bracket(Future.<AutoCloseable>failure(new IllegalStateException()),
-                                 r -> Future.success("done"));
-
-    Future<String> result = bracket.fix(FutureOf::narrowK).orElse(Future.success("fail"));
-
-    assertEquals(Try.success("fail"), result.await());
-    verify(resource, never()).close();
-  }
-
-  @Test
-  public void futureBracketUseError() throws Exception {
-    Kind<Future_, String> bracket =
-        futureMonadDefer.bracket(Future.success(resource),
-                                 r -> Future.<String>failure(new UnsupportedOperationException()));
-
-    Future<String> result = bracket.fix(FutureOf::narrowK).orElse(Future.success("fail"));
-
-    assertEquals(Try.success("fail"), result.await());
     verify(resource).close();
   }
 

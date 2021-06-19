@@ -31,7 +31,7 @@ public interface Concurrent<F extends Witness> extends Async<F> {
         tb -> map(tb.get1().cancel(), x -> Either.right(tb.get2()))));
   }
   
-  default <A> Kind<F, A> cancelable(Function1<Consumer1<? super Try<? extends A>>, Kind<F, Unit>> callback) {
+  default <A> Kind<F, A> cancellable(Function1<Consumer1<? super Try<? extends A>>, Kind<F, Unit>> callback) {
     return asyncF(cb1 -> {
       Promise<Unit> promise = Promise.make();
       
