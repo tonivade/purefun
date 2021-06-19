@@ -8,7 +8,12 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.github.tonivade.purefun.typeclasses.Instance.monad;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -32,10 +37,12 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.monad.IO.Fiber;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.For;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
 @ExtendWith(MockitoExtension.class)
@@ -288,6 +295,18 @@ public class IOTest {
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
     
     assertEquals(Either.right("b"), orElseThrow);
+  }
+  
+  @Test
+  public void fork() {
+    IO<String> result = For.with(monad(IO_.class))
+      .then(IO.pure("hola"))
+      .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
+      .flatMap(Fiber::join).fix(toIO());
+    
+    String orElseThrow = result.runAsync().getOrElseThrow();
+
+    assertEquals("hola toni", orElseThrow);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {

@@ -117,10 +117,18 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
   
-  default IO<Unit> fork(Executor executor) {
-    return this.andThen(IO.forked(executor));
+  default IO<Fiber<T>> fork() {
+    return async(callback -> {
+      IOConnection connection = IOConnection.cancellable();
+      Promise<T> promise = IOModule.runAsync(this, connection);
+      
+      IO<T> join = fromPromise(promise);
+      IO<Unit> cancel = exec(connection::cancel);
+      
+      callback.accept(Try.success(new Fiber<>(join, cancel)));
+    });
   }
-  
+
   default IO<T> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }
@@ -248,6 +256,10 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <T> IO<T> fromEither(Either<Throwable, ? extends T> task) {
     return task.fold(IO::raiseError, IO::pure);
   }
+  
+  static <T> IO<T> fromPromise(Promise<T> promise) {
+    return async(promise::onComplete);
+  }
 
   static IO<Unit> sleep(Duration duration) {
     return cancellable(callback -> {
@@ -360,6 +372,27 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   static <A, B> IO<Tuple2<A, B>> tuple(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return parMap2(executor, fa, fb, Tuple::of);
+  }
+  
+  final class Fiber<T> implements com.github.tonivade.purefun.typeclasses.Fiber<IO_, T> {
+    
+    private final IO<T> join;
+    private final IO<Unit> cancel;
+    
+    protected Fiber(IO<T> join, IO<Unit> cancel) {
+      this.join = checkNonNull(join);
+      this.cancel = checkNonNull(cancel);
+    }
+
+    @Override
+    public IO<T> join() {
+      return join;
+    }
+
+    @Override
+    public IO<Unit> cancel() {
+      return cancel;
+    }
   }
 
   final class Pure<T> implements SealedIO<T> {

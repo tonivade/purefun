@@ -21,6 +21,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -182,6 +183,10 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
   default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO_, Unit>> consumer) {
     return IO.cancellable(consumer.andThen(IOOf::narrowK));
   }
+}
+
+interface IOConcurrent extends Concurrent<IO_>, IOAsync {
+  // TODO
 }
 
 final class IOConsole implements Console<IO_> {
