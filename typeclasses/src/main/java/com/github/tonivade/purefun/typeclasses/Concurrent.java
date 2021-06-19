@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.type.Try;
 
 public interface Concurrent<F extends Witness> extends Async<F> {
   
-  <A> Kind<F, ? extends Fiber<F, A>> fork(Kind<F, A> value);
+  <A> Kind<F, Fiber<F, A>> fork(Kind<F, A> value);
   
   <A, B> Kind<F, Either<Tuple2<A, Fiber<F, B>>, Tuple2<Fiber<F, A>, B>>> racePair(Kind<F, A> fa, Kind<F, B> fb);
   

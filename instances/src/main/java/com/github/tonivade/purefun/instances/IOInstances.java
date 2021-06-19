@@ -11,12 +11,14 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
@@ -24,6 +26,7 @@ import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -186,7 +189,18 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
 }
 
 interface IOConcurrent extends Concurrent<IO_>, IOAsync {
-  // TODO
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Kind<IO_, A> fa, Kind<IO_, B> fb) {
+    return IO.racePair(executor(), fa.fix(toIO()), fb.fix(toIO()));
+  }
+  
+  @Override
+  default <A> IO<Fiber<IO_, A>> fork(Kind<IO_, A> value) {
+    return value.fix(toIO()).fork();
+  }
 }
 
 final class IOConsole implements Console<IO_> {

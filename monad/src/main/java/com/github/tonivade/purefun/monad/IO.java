@@ -35,6 +35,7 @@ import com.github.tonivade.purefun.monad.IO.FlatMapped;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 
 @HigherKind(sealed = true)
 public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
@@ -117,7 +118,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
   
-  default IO<Fiber<T>> fork() {
+  default IO<Fiber<IO_, T>> fork() {
     return async(callback -> {
       IOConnection connection = IOConnection.cancellable();
       Promise<T> promise = IOModule.runAsync(this, connection);
@@ -125,7 +126,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       IO<T> join = fromPromise(promise);
       IO<Unit> cancel = exec(connection::cancel);
       
-      callback.accept(Try.success(new Fiber<>(join, cancel)));
+      callback.accept(Try.success(Fiber.of(join, cancel)));
     });
   }
 
@@ -135,8 +136,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   
   default IO<T> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
-        ta -> ta.get2().map(x -> ta.get1()),
-        tb -> tb.get1().flatMap(x -> IO.raiseError(new TimeoutException()))));
+        ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(IOOf.toIO()).flatMap(x -> IO.raiseError(new TimeoutException()))));
   }
 
   @Override
@@ -189,11 +190,11 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   
   static <A, B> IO<Either<A, B>> race(Executor executor, IO<A> fa, IO<B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().map(x -> Either.left(ta.get1())),
-        tb -> tb.get1().map(x -> Either.right(tb.get2()))));
+        ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(IOOf.toIO()).map(x -> Either.right(tb.get2()))));
   }
   
-  static <A, B> IO<Either<Tuple2<A, IO<Unit>>, Tuple2<IO<Unit>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
+  static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
     return cancellable(callback -> {
       
       IOConnection connection1 = IOConnection.cancellable();
@@ -203,9 +204,9 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
 
       promiseA.onComplete(result -> callback.accept(
-          result.map(a -> Either.left(Tuple.of(a, IO.exec(connection2::cancel))))));
+          result.map(a -> Either.left(Tuple.of(a, Fiber.of(IO.fromPromise(promiseB), IO.exec(connection2::cancel)))))));
       promiseB .onComplete(result -> callback.accept(
-          result.map(b -> Either.right(Tuple.of(IO.exec(connection2::cancel), b)))));
+          result.map(b -> Either.right(Tuple.of(Fiber.of(IO.fromPromise(promiseA), IO.exec(connection2::cancel)), b)))));
 
       return IO.exec(() -> {
         try {
@@ -372,27 +373,6 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   static <A, B> IO<Tuple2<A, B>> tuple(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return parMap2(executor, fa, fb, Tuple::of);
-  }
-  
-  final class Fiber<T> implements com.github.tonivade.purefun.typeclasses.Fiber<IO_, T> {
-    
-    private final IO<T> join;
-    private final IO<Unit> cancel;
-    
-    protected Fiber(IO<T> join, IO<Unit> cancel) {
-      this.join = checkNonNull(join);
-      this.cancel = checkNonNull(cancel);
-    }
-
-    @Override
-    public IO<T> join() {
-      return join;
-    }
-
-    @Override
-    public IO<Unit> cancel() {
-      return cancel;
-    }
   }
 
   final class Pure<T> implements SealedIO<T> {
