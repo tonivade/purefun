@@ -7,12 +7,15 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -261,6 +264,10 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <T> IO<T> fromPromise(Promise<? extends T> promise) {
     Consumer1<Consumer1<? super Try<? extends T>>> callback = promise::onComplete;
     return async(callback);
+  }
+  
+  static <T> IO<T> fromCompletableFuture(CompletableFuture<? extends T> promise) {
+    return fromPromise(Promise.from(promise));
   }
 
   static IO<Unit> sleep(Duration duration) {
