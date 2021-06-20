@@ -187,17 +187,17 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return new Pure<>(value);
   }
   
-  static <A, B> IO<Either<A, B>> race(IO<A> fa, IO<B> fb) {
+  static <A, B> IO<Either<A, B>> race(Kind<IO_, A> fa, Kind<IO_, B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <A, B> IO<Either<A, B>> race(Executor executor, IO<A> fa, IO<B> fb) {
+  static <A, B> IO<Either<A, B>> race(Executor executor, Kind<IO_, A> fa, Kind<IO_, B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(IOOf.toIO()).map(x -> Either.right(tb.get2()))));
   }
   
-  static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, IO<A> fa, IO<B> fb) {
+  static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, Kind<IO_, A> fa, Kind<IO_, B> fb) {
     return cancellable(callback -> {
       
       IOConnection connection1 = IOConnection.cancellable();
@@ -229,8 +229,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return sleep(delay).andThen(task(lazy));
   }
 
-  static <T> IO<T> suspend(Producer<? extends IO<? extends T>> lazy) {
-    return new Suspend<>(lazy);
+  static <T> IO<T> suspend(Producer<? extends Kind<IO_, ? extends T>> lazy) {
+    return new Suspend<>(lazy.andThen(IOOf::narrowK));
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -310,19 +310,19 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return IOModule.UNIT;
   }
 
-  static <T, R> IO<R> bracket(IO<? extends T> acquire, 
-      Function1<? super T, ? extends IO<? extends R>> use, Function1<? super T, IO<Unit>> release) {
+  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Function1<? super T, Kind<IO_, Unit>> release) {
     // TODO: test cancellation
     return cancellable(callback -> {
       
       IOConnection cancellable = IOConnection.cancellable();
       
-      Promise<? extends T> promise = IOModule.runAsync(acquire, cancellable);
+      Promise<? extends T> promise = IOModule.runAsync(acquire.fix(IOOf::narrowK), cancellable);
       
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
         .onSuccess(resource -> IOModule.runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
-          .onComplete(result -> IOModule.runAsync(release.apply(resource), cancellable)
+          .onComplete(result -> IOModule.runAsync(release.andThen(IOOf::narrowK).apply(resource), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
       
@@ -330,18 +330,20 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     });
   }
 
-  static <T, R> IO<R> bracket(IO<? extends T> acquire, 
-      Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
+  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Consumer1<? super T> release) {
     return bracket(acquire, use, release.asFunction().andThen(IO::pure));
   }
 
-  static <T extends AutoCloseable, R> IO<R> bracket(IO<? extends T> acquire, 
-      Function1<? super T, ? extends IO<? extends R>> use) {
+  static <T extends AutoCloseable, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
-  static IO<Unit> sequence(Sequence<IO<?>> sequence) {
-    return sequence.fold(unit(), IO::andThen).andThen(unit());
+  static IO<Unit> sequence(Sequence<? extends Kind<IO_, ?>> sequence) {
+    Kind<IO_, ?> initial = IO.unit().kind();
+    return sequence.foldLeft(initial, 
+        (Kind<IO_, ?> a, Kind<IO_, ?> b) -> a.fix(IOOf::narrowK).andThen(b.fix(IOOf::narrowK))).fix(IOOf::narrowK).andThen(IO.unit());
   }
 
   static <A> IO<Sequence<A>> traverse(Sequence<? extends Kind<IO_, A>> sequence) {
