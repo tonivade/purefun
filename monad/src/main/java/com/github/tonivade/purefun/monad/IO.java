@@ -34,7 +34,6 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.monad.IO.FlatMapped;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -514,7 +513,7 @@ interface IOModule {
         if (current instanceof IO.FlatMapped) {
           stack.push();
           
-          IO.FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
+          IO.FlatMapped<U, T> flatMapped = (IO.FlatMapped<U, T>) current;
           IO<? extends U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next));
           
           if (source instanceof IO.Async) {
@@ -535,7 +534,7 @@ interface IOModule {
             Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
             current = andThen.apply(pure.value);
           } else if (source instanceof IO.FlatMapped) {
-            IO.FlatMapped<V, U> flatMapped2 = (FlatMapped<V, U>) source;
+            IO.FlatMapped<V, U> flatMapped2 = (IO.FlatMapped<V, U>) source;
             current = flatMapped2.current.flatMap(a -> flatMapped2.next.apply(a).flatMap(flatMapped.next));
           }
         } else {

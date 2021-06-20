@@ -9,10 +9,7 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
-import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -26,14 +23,12 @@ import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
 public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
@@ -44,6 +39,10 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   UIO(ZIO<Nothing, Nothing, A> value) {
     this.instance = checkNonNull(value);
+  }
+  
+  public Future<A> runAsync() {
+    return instance.runAsync(nothing()).map(Either::getRight);
   }
 
   public A unsafeRunSync() {
@@ -78,24 +77,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return new Task<>(ZIO.redeem(instance));
   }
 
-  public Future<A> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
-  }
-
-  public Future<A> toFuture(Executor executor) {
-    return instance.toFuture(executor, nothing());
-  }
-
-  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, nothing(), callback);
-  }
-
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
-  }
-
-  public <F extends Witness> Kind<F, A> foldMap(Async<F> monad) {
-    return instance.foldMap(nothing(), monad);
+    instance.provideAsync(nothing(), x -> callback.accept(x.map(Either::getRight)));
   }
 
   @Override
@@ -143,7 +126,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public <B> UIO<B> redeemWith(
       Function1<? super Throwable, ? extends Kind<UIO_, ? extends B>> mapError, 
       Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
-    return new UIO<>(ZIO.redeem(instance).foldM(
+    return new UIO<>(ZIO.redeem(instance).biflatMap(
         error -> mapError.andThen(UIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
@@ -283,8 +266,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return fold(ZIO.async(consumer));
   }
   
-  public static <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return fold(ZIO.asyncF(consumer.andThen(UIO::toZIO)));
+  public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
+    return fold(ZIO.cancellable(consumer.andThen(UIO::toZIO)));
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {
@@ -315,6 +298,6 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   private static <A> UIO<A> fold(ZIO<Nothing, Throwable, A> zio) {
-    return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).instance, value -> UIO.pure(value).instance));
+    return new UIO<>(zio.biflatMap(error -> UIO.<A>raiseError(error).instance, value -> UIO.pure(value).instance));
   }
 }

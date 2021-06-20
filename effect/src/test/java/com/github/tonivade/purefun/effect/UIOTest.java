@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.UIO.pure;
 import static com.github.tonivade.purefun.effect.UIO.raiseError;
@@ -19,7 +18,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.junit.jupiter.api.Disabled;
@@ -29,19 +27,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
 @Disabled
 @ExtendWith(MockitoExtension.class)
@@ -124,24 +116,6 @@ public class UIOTest {
     verify(callback, timeout(1000)).accept(captor.capture());
 
     assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
-  }
-
-  @Test
-  public void foldMapRight() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("0").foldMap(async);
-
-    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
-  }
-
-  @Test
-  public void foldMapLeft() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("skjdsf").foldMap(async);
-
-    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
   }
 
   @Test

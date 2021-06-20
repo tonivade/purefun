@@ -67,24 +67,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return new RIO<>(ZIO.redeem(instance));
   }
 
-  public Future<A> toFuture(R env) {
-    return toFuture(Future.DEFAULT_EXECUTOR, env);
-  }
-
-  public Future<A> toFuture(Executor executor, R env) {
-    return instance.toFuture(executor, env);
-  }
-
-  public void safeRunAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, env, callback);
+  public Future<A> runAsync(R env) {
+    return instance.runAsync(env).map(Either::getRight);
   }
 
   public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
-  }
-
-  public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
-    return instance.foldMap(env, monad);
+    instance.provideAsync(env, result -> callback.accept(result.map(Either::getRight)));
   }
 
   @Override
@@ -133,7 +121,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   public <B> URIO<R, B> redeemWith(
       Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends B>> mapError, 
       Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
-    return new URIO<>(ZIO.redeem(instance).foldM(
+    return new URIO<>(ZIO.redeem(instance).biflatMap(
         error -> mapError.andThen(URIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
@@ -285,8 +273,8 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return fold(ZIO.async(consumer));
   }
   
-  public static <R, A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
-    return fold(ZIO.asyncF(consumer.andThen(URIO::toZIO)));
+  public static <R, A> URIO<R, A> cancellable(Function1<Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
+    return fold(ZIO.cancellable(consumer.andThen(URIO::toZIO)));
   }
 
   public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {
@@ -318,6 +306,6 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
 
   private static <R, A> URIO<R, A> fold(ZIO<R, Throwable, A> zio) {
-    return new URIO<>(zio.foldM(error -> URIO.<R, A>raiseError(error).instance, value -> URIO.<R, A>pure(value).instance));
+    return new URIO<>(zio.biflatMap(error -> URIO.<R, A>raiseError(error).instance, value -> URIO.<R, A>pure(value).instance));
   }
 }
