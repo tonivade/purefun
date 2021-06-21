@@ -312,7 +312,7 @@ public class ZIOTest {
   
   @Test
   public void timed() {
-    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = ZIO.<Nothing>sleep(Duration.ofMillis(100)).timed();
+    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = ZIO.<Nothing, Throwable>sleep(Duration.ofMillis(100)).timed();
     
     Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
     
@@ -382,6 +382,28 @@ public class ZIOTest {
     ZIO<Nothing, Throwable, Sequence<String>> traverse = ZIO.traverse(listOf(left, right));
     
     assertEquals(Either.right(listOf("left", "right")), traverse.provide(nothing()));
+  }
+
+  @Test
+  public void raceA() {
+    ZIO<Nothing, Nothing, Either<Integer, String>> race = ZIO.race(
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(10)).map(x -> 10),
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(100)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.provide(nothing()).get();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    ZIO<Nothing, Nothing, Either<Integer, String>> race = ZIO.race(
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(100)).map(x -> 10),
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(10)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.provide(nothing()).get();
+    
+    assertEquals(Either.right("b"), orElseThrow);
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
