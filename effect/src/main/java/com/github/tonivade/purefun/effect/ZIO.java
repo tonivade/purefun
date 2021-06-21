@@ -7,11 +7,13 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
+import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
@@ -45,7 +47,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   default Future<Either<E, A>> runAsync(R env) {
-    return Future.from(ZIOModule.runAsync(env, this, IOConnection.UNCANCELLABLE));
+    return Future.from(ZIOModule.runAsync(env, this, ZIOConnection.UNCANCELLABLE));
   }
 
   default void provideAsync(R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
@@ -91,7 +93,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
   @Override
   default <B> ZIO<R, E, B> ap(Kind<Kind<Kind<ZIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
-    return map2(this, apply.fix(ZIOOf.toZIO()), (v, a) -> a.apply(v));
+    return parMap2(this, apply.fix(ZIOOf.toZIO()), (v, a) -> a.apply(v));
   }
 
   default <B> URIO<R, B> fold(
@@ -125,7 +127,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   @Override
   default <B, C> ZIO<R, E, C> zipWith(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(ZIOOf.toZIO()), mapper);
+    return parMap2(this, other.fix(ZIOOf.toZIO()), mapper);
   }
 
   @Override
@@ -248,10 +250,39 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   static <R, E> ZIO<R, E, R> env() {
     return access(identity());
   }
+  
+  static <R, E> ZIO<R, E, Unit> forked(Executor executor) {
+    return async(callback -> executor.execute(() -> callback.accept(Either.right(Unit.unit()))));
+  }
 
-  static <R, E, A, B, C> ZIO<R, E, C> map2(ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
+  static <R, E, A, B, C> ZIO<R, E, C> parMap2(ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    throw new UnsupportedOperationException("not implemented yet");
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  static <R, E, A, B, C> ZIO<R, E, C> parMap2(Executor executor, ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return cancellable(callback -> {
+      
+      ZIOConnection connection1 = ZIOConnection.cancellable();
+      ZIOConnection connection2 = ZIOConnection.cancellable();
+      
+      // TODO
+      R env = null;
+      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(za), connection1);
+      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(zb), connection2);
+      
+      promiseA.onComplete(a -> promiseB.onComplete(
+        b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.narrowK(Either.map2(e1, e2, mapper))).get())));
+      
+      return ZIO.exec(() -> {
+        try {
+          connection1.cancel();
+        } finally {
+          connection2.cancel();
+        }
+      });
+    });
   }
 
   static <R, E, A> ZIO<R, E, A> absorb(ZIO<R, E, Either<E, A>> value) {
@@ -331,7 +362,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, ? extends A> value) {
-    return new Redeem<>(value);
+    return new Recover<>(value.fix(ZIOOf::narrowK), PartialFunction1.of(always(), ZIO::raiseError));
   }
 
   static <R> ZIO<R, Throwable, Unit> sleep(Duration delay) {
@@ -343,8 +374,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Sequence<? extends ZIO<R, E, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends ZIO<R, E, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (ZIO<R, E, Sequence<A>> xs, ZIO<R, E, A> a) -> map2(xs, a, Sequence::append));
+        (ZIO<R, E, Sequence<A>> xs, ZIO<R, E, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
@@ -473,17 +508,19 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     }
   }
 
-  final class Redeem<R, A> implements SealedZIO<R, Throwable, A> {
+  final class Recover<R, E, A> implements SealedZIO<R, E, A> {
 
-    private final ZIO<R, Nothing, ? extends A> current;
+    final ZIO<R, ?, A> current;
+    final PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapper;
 
-    protected Redeem(ZIO<R, Nothing, ? extends A> current) {
+    protected Recover(ZIO<R, ?, A> current, PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapper) {
       this.current = checkNonNull(current);
+      this.mapper = checkNonNull(mapper);
     }
 
     @Override
     public String toString() {
-      return "Redeem(" + current + ")";
+      return "Recover(" + current + ", ?)";
     }
   }
 
@@ -544,15 +581,15 @@ interface ZIOModule {
 
   ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
 
-  static <R, E, A> Promise<Either<E, A>> runAsync(R env, ZIO<R, E, A> current, IOConnection connection) {
+  static <R, E, A> Promise<Either<E, A>> runAsync(R env, ZIO<R, E, A> current, ZIOConnection connection) {
     return runAsync(env, current, connection, new CallStack<>(), Promise.make());
   }
 
   @SuppressWarnings("unchecked")
-  static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, ZIO<R, E, A> current, IOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+  static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, ZIO<R, E, A> current, ZIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
-        current = unwrap(env, current, identity());
+        current = unwrap(env, current, stack, identity());
         
         if (current instanceof ZIO.Pure) {
           ZIO.Pure<R, E, A> pure = (ZIO.Pure<R, E, A>) current;
@@ -572,7 +609,7 @@ interface ZIOModule {
           stack.push();
           
           ZIO.FlatMapped<R, F, B, E, A> flatMapped = (ZIO.FlatMapped<R, F, B, E, A>) current;
-          ZIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, identity());
+          ZIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, stack, b -> b.biflatMap(flatMapped.nextError, flatMapped.next));
           
           if (source instanceof ZIO.Async) {
             Promise<Either<F, B>> nextPromise = Promise.make();
@@ -620,7 +657,7 @@ interface ZIOModule {
   }
 
   @SuppressWarnings("unchecked")
-  static <R, E, F, A, U> ZIO<R, E, A> unwrap(R env, ZIO<R, E, A> current, Function1<ZIO<R, E, ? extends A>, ZIO<R, F, ? extends U>> next) {
+  static <R, E, F, A, B> ZIO<R, E, A> unwrap(R env, ZIO<R, E, A> current, CallStack<R, F, B> stack, Function1<ZIO<R, E, ? extends A>, ZIO<R, F, ? extends B>> next) {
     while (true) {
       if (current instanceof ZIO.Failure) {
         return current;
@@ -630,6 +667,10 @@ interface ZIOModule {
         return current;
       } else if (current instanceof ZIO.Async) {
         return current;
+      } else if (current instanceof ZIO.Recover) {
+        ZIO.Recover<R, E, A> recover = (ZIO.Recover<R, E, A>) current;
+        stack.add((PartialFunction1<? super Throwable, ZIO<R, F, ? extends B>>) recover.mapper.andThen(next));
+        current = (ZIO<R, E, A>) recover.current;
       } else if (current instanceof ZIO.AccessM) {
         ZIO.AccessM<R, E, A> accessM = (ZIO.AccessM<R, E, A>) current;
         current = accessM.function.andThen(ZIOOf::narrowK).apply(env);
@@ -651,7 +692,7 @@ interface ZIOModule {
     }
   }
 
-  static <R, E, A> Promise<Either<E, A>> executeAsync(ZIO.Async<R, E, A> current, IOConnection connection, Promise<Either<E, A>> promise) {
+  static <R, E, A> Promise<Either<E, A>> executeAsync(ZIO.Async<R, E, A> current, ZIOConnection connection, Promise<Either<E, A>> promise) {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
@@ -669,9 +710,9 @@ interface ZIOModule {
   }
 }
 
-interface IOConnection {
+interface ZIOConnection {
   
-  IOConnection UNCANCELLABLE = new IOConnection() {};
+  ZIOConnection UNCANCELLABLE = new ZIOConnection() {};
   
   default boolean isCancellable() { return false; }
   
@@ -683,8 +724,8 @@ interface IOConnection {
   
   default StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
   
-  static IOConnection cancellable() {
-    return new IOConnection() {
+  static ZIOConnection cancellable() {
+    return new ZIOConnection() {
       
       private ZIO<?, ?, Unit> cancelToken;
       private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);

@@ -36,6 +36,15 @@ import com.github.tonivade.purefun.type.Try;
 public class ZIOTest {
   
   @Test
+  public void recover() {
+    ZIO<Nothing, Nothing, String> ups = ZIO.fromEither(() -> {
+      throw new RuntimeException("ups!");
+    });
+    
+    assertEquals("ups!", ZIO.redeem(ups).provide(nothing()).getLeft().getMessage());
+  }
+  
+  @Test
   public void accessM() {
     ZIO<String, Nothing, String> access = ZIO.<String, Nothing, String>access(a -> a.toUpperCase());
     
@@ -223,7 +232,6 @@ public class ZIOTest {
   }
 
   @Test
-  @Disabled
   public void safeRunAsync() {
     Ref<ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
     UIO<ImmutableList<String>> currentThread =
@@ -367,7 +375,6 @@ public class ZIOTest {
   }
   
   @Test
-  @Disabled
   public void traverse() {
     ZIO<Nothing, Throwable, String> left = ZIO.task(() -> "left");
     ZIO<Nothing, Throwable, String> right = ZIO.task(() -> "right");

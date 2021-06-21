@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -15,7 +14,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -555,15 +553,19 @@ interface IOModule {
   static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
     while (true) {
       if (current instanceof IO.Failure) {
-        return stack.sneakyThrow(((IO.Failure<T>) current).error);
+        IO.Failure<T> failure = (IO.Failure<T>) current;
+        return stack.sneakyThrow(failure.error);
       } else if (current instanceof IO.Recover) {
-        stack.add(((IO.Recover<T>) current).mapper.andThen(next));
-        current = ((IO.Recover<T>) current).current;
+        IO.Recover<T> recover = (IO.Recover<T>) current;
+        stack.add(recover.mapper.andThen(next));
+        current = recover.current;
       } else if (current instanceof IO.Suspend) {
-        Producer<IO<T>> andThen = ((IO.Suspend<T>) current).lazy.andThen(IOOf::narrowK);
+        IO.Suspend<T> suspend = (IO.Suspend<T>) current;
+        Producer<IO<T>> andThen = (suspend).lazy.andThen(IOOf::narrowK);
         current = andThen.get();
       } else if (current instanceof IO.Delay) {
-        return IO.pure(((IO.Delay<T>) current).task.get());
+        IO.Delay<T> delay = (IO.Delay<T>) current;
+        return IO.pure(delay.task.get());
       } else if (current instanceof IO.Pure) {
         return current;
       } else if (current instanceof IO.FlatMapped) {
