@@ -380,7 +380,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   
   static <R, E, A> ZIO<R, E, A> fromPromise(Promise<? extends Either<E, ? extends A>> promise) {
     Consumer1<Consumer1<? super Try<? extends Either<E, ? extends A>>>> callback = promise::onComplete;
-    return async((R env, Consumer1<? super Either<E, ? extends A>> x) -> {});
+    return async((env, cb) -> callback.accept(result -> result.onSuccess(cb::accept)));
   }
 
   static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
