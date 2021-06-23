@@ -35,7 +35,6 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
 public class URIOTest {
 
@@ -85,6 +84,7 @@ public class URIOTest {
   }
 
   @Test
+  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -96,6 +96,7 @@ public class URIOTest {
   }
 
   @Test
+  @Disabled
   public void bracketError() {
     URIO<Nothing, String> bracket = URIO.bracket(openError(), getString("id"));
 
@@ -119,6 +120,7 @@ public class URIOTest {
   }
 
   @Test
+  @Disabled
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
@@ -129,6 +131,7 @@ public class URIOTest {
   }
 
   @Test
+  @Disabled
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 

@@ -14,6 +14,7 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -25,14 +26,12 @@ import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
 public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>, Recoverable {
@@ -144,7 +143,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   @Override
   public <B, C> URIO<R, C> zipWith(Kind<Kind<URIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(URIOOf.toURIO()), mapper);
+    return parMap2(this, other.fix(URIOOf.toURIO()), mapper);
   }
 
   @Override
@@ -212,9 +211,14 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return access(identity());
   }
 
-  public static <R, A, B, C> URIO<R, C> map2(URIO<R, ? extends A> za, URIO<R, ? extends B> zb, 
+  public static <R, A, B, C> URIO<R, C> parMap2(URIO<R, ? extends A> za, URIO<R, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new URIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  public static <R, A, B, C> URIO<R, C> parMap2(Executor executor, URIO<R, ? extends A> za, URIO<R, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return new URIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
   }
 
   public static <R, A, B> Function1<A, URIO<R, B>> lift(Function1<? super A, ? extends B> function) {
@@ -269,17 +273,23 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return task.fold(URIO::raiseError, URIO::pure);
   }
   
-  public static <R, A> URIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return fold(ZIO.async(consumer));
+  public static <R, A> URIO<R, A> async(Consumer2<R, Consumer1<? super Try<? extends A>>> consumer) {
+    return fold(ZIO.async(
+        (env, cb1) -> consumer.accept(env, result -> cb1.accept(result.toEither()))));
   }
   
-  public static <R, A> URIO<R, A> cancellable(Function1<Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
-    return fold(ZIO.cancellable(consumer.andThen(URIO::toZIO)));
+  public static <R, A> URIO<R, A> cancellable(Function2<R, Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
+    return fold(ZIO.cancellable(
+        (env, cb1) -> consumer.andThen(URIO::<Throwable>toZIO).apply(env, result -> cb1.accept(result.toEither()))));
   }
 
   public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  public static <R, A> URIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends URIO<R, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (URIO<R, Sequence<A>> xs, URIO<R, A> a) -> map2(xs, a, Sequence::append));
+        (URIO<R, Sequence<A>> xs, URIO<R, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(
