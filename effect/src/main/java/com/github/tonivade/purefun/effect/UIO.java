@@ -9,7 +9,10 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
+import java.util.concurrent.Executor;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -149,7 +152,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   @Override
   public <B, C> UIO<C> zipWith(Kind<UIO_, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(UIOOf.toUIO()), mapper);
+    return parMap2(this, other.fix(UIOOf.toUIO()), mapper);
   }
 
   @Override
@@ -205,9 +208,14 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return new UIO<>(instance.timed());
   }
 
-  public static <A, B, C> UIO<C> map2(UIO<? extends A> za, UIO<? extends B> zb, 
+  public static <A, B, C> UIO<C> parMap2(UIO<? extends A> za, UIO<? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new UIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  public static <A, B, C> UIO<C> parMap2(Executor executor, UIO<? extends A> za, UIO<? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return new UIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
   }
 
   public static <A, B> Function1<A, UIO<B>> lift(Function1<? super A, ? extends B> function) {
@@ -263,16 +271,22 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return fold(ZIO.async(consumer));
+    return fold(ZIO.async(
+        (env, cb1) -> consumer.accept(result -> cb1.accept(result.toEither()))));
   }
   
   public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return fold(ZIO.cancellable(consumer.andThen(UIO::toZIO)));
+    return fold(ZIO.cancellable(
+        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toZIO).apply(result -> cb1.accept(result.toEither()))));
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  public static <A> UIO<Sequence<A>> traverse(Executor executor, Sequence<? extends UIO<A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (UIO<Sequence<A>> xs, UIO<A> a) -> map2(xs, a, Sequence::append));
+        (UIO<Sequence<A>> xs, UIO<A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(

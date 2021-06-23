@@ -18,8 +18,10 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
@@ -35,7 +38,6 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
 public class UIOTest {
 
@@ -85,6 +87,7 @@ public class UIOTest {
   }
 
   @Test
+  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -96,6 +99,7 @@ public class UIOTest {
   }
 
   @Test
+  @Disabled
   public void bracketError() {
     UIO<String> bracket = UIO.bracket(openError(), getString("id"));
 
@@ -119,6 +123,7 @@ public class UIOTest {
   }
 
   @Test
+  @Disabled
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
@@ -129,6 +134,7 @@ public class UIOTest {
   }
 
   @Test
+  @Disabled
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
