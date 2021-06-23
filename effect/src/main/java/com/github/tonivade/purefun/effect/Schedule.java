@@ -258,7 +258,7 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   public Schedule<R, A, B> addDelayM(Function1<B, URIO<R, Duration>> map) {
     return updated(update -> (a, s) -> {
       ZIO<R, Unit, Tuple2<Duration, S>> map2 = 
-        ZIO.map2(
+        ZIO.parMap2(
           map.apply(extract(a, s)).toZIO(), 
           update.update(a, s), 
           Tuple::of);

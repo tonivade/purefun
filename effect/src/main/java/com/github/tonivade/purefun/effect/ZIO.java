@@ -10,11 +10,13 @@ import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
+
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Consumer2;
@@ -165,7 +167,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   default <B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
       Schedule<R, A, B> schedule,
       Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
-    return new Repeat<>(this, schedule, orElse);
+    return new Repeat<>(this, schedule, orElse).run();
   }
 
   @Override
@@ -201,7 +203,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   default <B, C> ZIO<R, E, Either<B, A>> retryOrElseEither(
       Schedule<R, E, C> schedule,
       Function2<E, C, ZIO<R, E, B>> orElse) {
-    return new Retry<>(this, schedule, orElse);
+    return new Retry<>(this, schedule, orElse).run();
   }
 
   @Override
@@ -593,43 +595,65 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
       return "AccessM(?)";
     }
   }
+}
   
-  final class Repeat<R, S, E, A, B, C> implements SealedZIO<R, E, Either<C, B>> {
-    
-    private final ZIO<R, E, A> current;
-    private final ScheduleImpl<R, S, A, B> schedule;
-    private final Function2<E, Option<B>, ZIO<R, E, C>> orElse;
+final class Repeat<R, S, E, A, B, C> {
+  
+  private final ZIO<R, E, A> current;
+  private final ScheduleImpl<R, S, A, B> schedule;
+  private final Function2<E, Option<B>, ZIO<R, E, C>> orElse;
 
-    @SuppressWarnings("unchecked")
-    protected Repeat(ZIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
-      this.current = checkNonNull(current);
-      this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
-      this.orElse = checkNonNull(orElse);
-    }
-
-    @Override
-    public String toString() {
-      return "Repeat(" + current + ", ?, ?)";
-    }
+  @SuppressWarnings("unchecked")
+  protected Repeat(ZIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
+    this.current = checkNonNull(current);
+    this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
+    this.orElse = checkNonNull(orElse);
+  }
+  
+  protected ZIO<R, E, Either<C, B>> run() {
+    return current.biflatMap(error -> {
+      ZIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
+      ZIO<R, E, Either<C, B>> map = apply.map(Either::<C, B>left);
+      return map;
+    }, value -> {
+      ZIO<R, E, S> zio = schedule.initial().<E>toZIO();
+      ZIO<R, E, Either<C, B>> map = zio.flatMap(s -> loop(value, s));
+      return map;
+    });
   }
 
-  final class Retry<R, E, A, B, S> implements SealedZIO<R, E, Either<B, A>> {
-    
-    private final ZIO<R, E, A> current;
-    private final ScheduleImpl<R, S, E, S> schedule;
-    private final Function2<E, S, ZIO<R, E, B>> orElse;
+  private ZIO<R, E, Either<C, B>> loop(A later, S state) {
+    return schedule.update(later, state)
+      .biflatMap(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+        s -> current.biflatMap(
+          e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
+          a -> loop(a, s)));
+  }
+}
 
-    @SuppressWarnings("unchecked")
-    protected Retry(ZIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
-      this.current = checkNonNull(current);
-      this.schedule = (ScheduleImpl<R, S, E, S>) checkNonNull(schedule);
-      this.orElse = checkNonNull(orElse);
-    }
+final class Retry<R, E, A, B, S> {
+  
+  private final ZIO<R, E, A> current;
+  private final ScheduleImpl<R, S, E, S> schedule;
+  private final Function2<E, S, ZIO<R, E, B>> orElse;
 
-    @Override
-    public String toString() {
-      return "Retry(" + current + ", ?, ?)";
-    }
+  @SuppressWarnings("unchecked")
+  protected Retry(ZIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
+    this.current = checkNonNull(current);
+    this.schedule = (ScheduleImpl<R, S, E, S>) checkNonNull(schedule);
+    this.orElse = checkNonNull(orElse);
+  }
+
+  public ZIO<R, E, Either<B, A>> run() {
+    return schedule.initial().<E>toZIO().flatMap(this::loop);
+  }
+
+  private ZIO<R, E, Either<B, A>> loop(S state) {
+    return current.biflatMap(error -> {
+      ZIO<R, Unit, S> update = schedule.update(error, state);
+      return update.biflatMap(
+        e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
+    }, value -> ZIO.pure(Either.right(value)));
   }
 }
 

@@ -209,7 +209,7 @@ public class ZIOTest {
   
   @Test
   public void asyncSuccess() {
-    ZIO<Nothing, Throwable, String> async = ZIO.async(callback -> {
+    ZIO<Nothing, Throwable, String> async = ZIO.async((env, callback) -> {
       Thread.sleep(100);
       callback.accept(Either.right("1"));
     });
@@ -221,7 +221,7 @@ public class ZIOTest {
   
   @Test
   public void asyncFailure() {
-    ZIO<Nothing, Throwable, String> async = ZIO.async(callback -> {
+    ZIO<Nothing, Throwable, String> async = ZIO.async((env, callback) -> {
       Thread.sleep(100);
       callback.accept(Either.left(new UnsupportedOperationException()));
     });
@@ -259,7 +259,6 @@ public class ZIOTest {
   }
 
   @Test
-  @Disabled
   public void retryError(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     when(computation.get()).thenReturn(Either.left(new UnsupportedOperationException()));
 
@@ -270,7 +269,6 @@ public class ZIOTest {
   }
 
   @Test
-  @Disabled
   public void retrySuccess(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     Mockito.<Either<Throwable, ? extends String>>when(computation.get())
         .thenReturn(Either.left(new UnsupportedOperationException()))
@@ -285,7 +283,6 @@ public class ZIOTest {
   }
 
   @Test
-  @Disabled
   public void repeatSuccess(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     Mockito.<Either<Throwable, ? extends String>>when(computation.get()).thenReturn(Either.right("hola"));
 
@@ -296,7 +293,6 @@ public class ZIOTest {
   }
 
   @Test
-  @Disabled
   public void repeatFailure(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     Mockito.<Either<Throwable, ? extends String>>when(computation.get())
         .thenReturn(Either.right("hola"))
