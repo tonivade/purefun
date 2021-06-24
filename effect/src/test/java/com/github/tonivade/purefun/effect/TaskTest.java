@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.Task.pure;
 import static com.github.tonivade.purefun.effect.Task.task;
@@ -17,7 +16,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.junit.jupiter.api.Disabled;
@@ -27,19 +25,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
 class TaskTest {
 
@@ -103,6 +95,7 @@ class TaskTest {
   }
 
   @Test
+  @Disabled
   void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -140,24 +133,7 @@ class TaskTest {
   }
 
   @Test
-  void foldMapRight() {
-    Async<Future_> async = FutureInstances.async();
-
-    Kind<Future_, Integer> future = parseInt("0").foldMap(async);
-
-    assertEquals(Try.success(0), future.fix(toFuture()).await());
-  }
-
-  @Test
-  void foldMapLeft() {
-    Async<Future_> async = FutureInstances.async();
-
-    Kind<Future_, Integer> future = parseInt("jdjd").foldMap(async);
-
-    assertEquals(NumberFormatException.class, future.fix(toFuture()).await().getCause().getClass());
-  }
-
-  @Test
+  @Disabled
   void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
@@ -168,6 +144,7 @@ class TaskTest {
   }
 
   @Test
+  @Disabled
   void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 
