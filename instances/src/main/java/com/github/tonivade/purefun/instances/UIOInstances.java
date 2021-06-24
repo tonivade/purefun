@@ -4,13 +4,9 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -175,7 +171,7 @@ interface UIOAsync extends Async<UIO_>, UIOMonadDefer {
   
   @Override
   default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO_, Unit>> consumer) {
-    return UIO.asyncF(consumer.andThen(UIOOf::narrowK));
+    return UIO.cancellable(consumer.andThen(UIOOf::narrowK));
   }
 }
 
@@ -212,7 +208,7 @@ interface UIORuntime extends Runtime<UIO_> {
 
   @Override
   default <T> Future<T> parRun(Kind<UIO_, T> value, Executor executor) {
-    return value.fix(toUIO()).foldMap(async(executor)).fix(toFuture());
+    return value.fix(toUIO()).runAsync();
   }
   
   @Override

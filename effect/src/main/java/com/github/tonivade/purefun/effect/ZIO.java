@@ -72,19 +72,19 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   default <B, F> ZIO<R, F, B> bimap(Function1<? super E, ? extends F> mapError, Function1<? super A, ? extends B> map) {
-    return biflatMap(mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
+    return foldM(mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
   }
 
   @Override
   default <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> map) {
-    return biflatMap(ZIO::<R, E, B>raiseError, map.andThen(ZIOOf::narrowK));
+    return foldM(ZIO::<R, E, B>raiseError, map.andThen(ZIOOf::narrowK));
   }
 
   default <F> ZIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends A>> map) {
-    return biflatMap(map, ZIO::<R, F, A>pure);
+    return foldM(map, ZIO::<R, F, A>pure);
   }
 
-  default <F, B> ZIO<R, F, B> biflatMap(
+  default <F, B> ZIO<R, F, B> foldM(
       Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> left, 
       Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> right) {
     return new FlatMapped<>(this, left.andThen(ZIOOf::narrowK), right.andThen(ZIOOf::narrowK));
@@ -102,7 +102,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
   default <B> URIO<R, B> fold(
       Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
-    return new URIO<>(biflatMap(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure)));
+    return new URIO<>(foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure)));
   }
 
   default URIO<R, A> recover(Function1<? super E, ? extends A> mapError) {
@@ -110,7 +110,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   default ZIO<R, E, A> orElse(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> other) {
-    return biflatMap(Function1.cons(other), Function1.cons(this));
+    return foldM(Function1.cons(other), Function1.cons(this));
   }
   
   @Override
@@ -611,7 +611,7 @@ final class Repeat<R, S, E, A, B, C> {
   }
   
   protected ZIO<R, E, Either<C, B>> run() {
-    return current.biflatMap(error -> {
+    return current.foldM(error -> {
       ZIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
       ZIO<R, E, Either<C, B>> map = apply.map(Either::<C, B>left);
       return map;
@@ -624,8 +624,8 @@ final class Repeat<R, S, E, A, B, C> {
 
   private ZIO<R, E, Either<C, B>> loop(A later, S state) {
     return schedule.update(later, state)
-      .biflatMap(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
-        s -> current.biflatMap(
+      .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+        s -> current.foldM(
           e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
           a -> loop(a, s)));
   }
@@ -649,9 +649,9 @@ final class Retry<R, E, A, B, S> {
   }
 
   private ZIO<R, E, Either<B, A>> loop(S state) {
-    return current.biflatMap(error -> {
+    return current.foldM(error -> {
       ZIO<R, Unit, S> update = schedule.update(error, state);
-      return update.biflatMap(
+      return update.foldM(
         e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
     }, value -> ZIO.pure(Either.right(value)));
   }
@@ -689,7 +689,7 @@ interface ZIOModule {
           stack.push();
           
           ZIO.FlatMapped<R, F, B, E, A> flatMapped = (ZIO.FlatMapped<R, F, B, E, A>) current;
-          ZIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, stack, b -> b.biflatMap(flatMapped.nextError, flatMapped.next));
+          ZIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
           
           if (source instanceof ZIO.Async) {
             Promise<Either<F, B>> nextPromise = Promise.make();
@@ -717,9 +717,9 @@ interface ZIOModule {
           } else if (source instanceof ZIO.FlatMapped) {
             ZIO.FlatMapped<R, G, C, F, B> flatMapped2 = (ZIO.FlatMapped<R, G, C, F, B>) source;
             
-            current = flatMapped2.current.biflatMap(
-              e -> flatMapped2.nextError.apply(e).biflatMap(flatMapped.nextError, flatMapped.next), 
-              a -> flatMapped2.next.apply(a).biflatMap(flatMapped.nextError, flatMapped.next));
+            current = flatMapped2.current.foldM(
+              e -> flatMapped2.nextError.apply(e).foldM(flatMapped.nextError, flatMapped.next), 
+              a -> flatMapped2.next.apply(a).foldM(flatMapped.nextError, flatMapped.next));
           }
         } else {
           stack.pop();

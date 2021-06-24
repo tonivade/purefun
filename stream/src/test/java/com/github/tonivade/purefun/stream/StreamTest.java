@@ -36,6 +36,7 @@ import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIO_;
 import com.github.tonivade.purefun.instances.StreamInstances;
@@ -284,11 +285,11 @@ public class StreamTest {
 
   @Test
   public void readFileZIO() {
-    ZIO<Nothing, Nothing, String> license = pureReadFileZIO("../LICENSE");
-    ZIO<Nothing, Nothing, String> notFound = pureReadFileZIO("hjsjkdf");
+    URIO<Nothing, String> license = pureReadFileZIO("../LICENSE");
+    URIO<Nothing, String> notFound = pureReadFileZIO("hjsjkdf");
     assertAll(
-        () -> assertEquals(impureReadFile("../LICENSE"), license.provide(nothing()).get()),
-        () -> assertEquals("--- file not found ---", notFound.provide(nothing()).get()));
+        () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync(nothing())),
+        () -> assertEquals("--- file not found ---", notFound.unsafeRunSync(nothing())));
   }
 
   @Test
@@ -347,7 +348,7 @@ public class StreamTest {
         .recover(cons("--- file not found ---"));
   }
 
-  private ZIO<Nothing, Nothing, String> pureReadFileZIO(String file) {
+  private URIO<Nothing, String> pureReadFileZIO(String file) {
     return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>task(() -> reader(file)))
       .flatMap(reader -> streamOfZIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)

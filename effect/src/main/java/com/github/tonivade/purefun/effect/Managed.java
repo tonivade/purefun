@@ -78,7 +78,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
       Function1<? super E, ? extends Managed<R, F, ? extends B>> mapError, 
       Function1<? super A, ? extends Managed<R, F, ? extends B>> mapper) {
     ZIO<R, F, Tuple2<B, Consumer1<? super B>>> foldM = 
-        resource.biflatMap(
+        resource.foldM(
             error -> ManagedOf.<R, F, B>narrowK(mapError.apply(error)).resource,
             a -> ManagedOf.<R, F, B>narrowK(mapper.apply(a.get1())).resource.map(b -> b.map2(ignore -> releaseAndThen(a, b))));
     return new Managed<>(foldM);
@@ -94,7 +94,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   
   public <B> Managed<R, E, Either<A, B>> either(Managed<R, E, B> other) {
     ZIO<R, E, Either<Tuple2<A, Consumer1<? super A>>, Tuple2<B, Consumer1<? super B>>>> foldM = 
-        this.resource.biflatMap(
+        this.resource.foldM(
             error -> other.resource.map(Either::right), 
             success -> ZIO.pure(Either.left(success)));
     

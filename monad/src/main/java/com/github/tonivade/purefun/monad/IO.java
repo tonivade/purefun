@@ -308,7 +308,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
-      Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Function1<? super T, Kind<IO_, Unit>> release) {
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Function1<? super T, ? extends Kind<IO_, Unit>> release) {
     // TODO: test cancellation
     return cancellable(callback -> {
       

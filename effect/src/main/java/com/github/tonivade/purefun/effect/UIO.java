@@ -129,7 +129,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public <B> UIO<B> redeemWith(
       Function1<? super Throwable, ? extends Kind<UIO_, ? extends B>> mapError, 
       Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
-    return new UIO<>(ZIO.redeem(instance).biflatMap(
+    return new UIO<>(ZIO.redeem(instance).foldM(
         error -> mapError.andThen(UIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
@@ -312,6 +312,6 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   private static <A> UIO<A> fold(ZIO<Nothing, Throwable, A> zio) {
-    return new UIO<>(zio.biflatMap(error -> UIO.<A>raiseError(error).instance, value -> UIO.pure(value).instance));
+    return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).instance, value -> UIO.pure(value).instance));
   }
 }

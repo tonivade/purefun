@@ -120,7 +120,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   public <B> URIO<R, B> redeemWith(
       Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends B>> mapError, 
       Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
-    return new URIO<>(ZIO.redeem(instance).biflatMap(
+    return new URIO<>(ZIO.redeem(instance).foldM(
         error -> mapError.andThen(URIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
@@ -316,6 +316,6 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
 
   private static <R, A> URIO<R, A> fold(ZIO<R, Throwable, A> zio) {
-    return new URIO<>(zio.biflatMap(error -> URIO.<R, A>raiseError(error).instance, value -> URIO.<R, A>pure(value).instance));
+    return new URIO<>(zio.foldM(error -> URIO.<R, A>raiseError(error).instance, value -> URIO.<R, A>pure(value).instance));
   }
 }

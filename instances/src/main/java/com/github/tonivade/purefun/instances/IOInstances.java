@@ -172,7 +172,7 @@ interface IOBracket extends IOMonadError, Bracket<IO_, Throwable> {
       Kind<IO_, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<IO_, ? extends B>> use, 
       Function1<? super A, ? extends Kind<IO_, Unit>> release) {
-    return IO.bracket(acquire.fix(toIO()), use.andThen(IOOf::narrowK), release::apply);
+    return IO.bracket(acquire, use, release);
   }
 }
 
