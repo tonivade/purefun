@@ -17,15 +17,17 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.junit.jupiter.api.Disabled;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
@@ -118,9 +120,10 @@ public class RIOTest {
   }
 
   @Test
-  @Disabled
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
+    when(computation.liftTry()).thenCallRealMethod();
+    when(computation.liftEither()).thenCallRealMethod();
 
     Try<String> retry = task(computation).retry().safeRunSync(nothing());
 
@@ -129,9 +132,10 @@ public class RIOTest {
   }
 
   @Test
-  @Disabled
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
+    when(computation.liftTry()).thenCallRealMethod();
+    when(computation.liftEither()).thenCallRealMethod();
 
     Try<String> repeat = task(computation).repeat().safeRunSync(nothing());
 
