@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
-
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -30,6 +30,7 @@ import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Either;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 public class ManagedTest {
   

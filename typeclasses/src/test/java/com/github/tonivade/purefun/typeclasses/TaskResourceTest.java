@@ -4,8 +4,10 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import org.junit.jupiter.api.Disabled;
 import com.github.tonivade.purefun.effect.Task_;
 
+@Disabled
 public class TaskResourceTest extends ResourceTest<Task_> {
 
   public TaskResourceTest() {

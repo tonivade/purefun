@@ -9,10 +9,8 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -26,14 +24,12 @@ import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
 public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, Recoverable {
@@ -63,24 +59,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return recover(this::sneakyThrow);
   }
 
-  public Future<A> toFuture(R env) {
-    return toFuture(Future.DEFAULT_EXECUTOR, env);
-  }
-
-  public Future<A> toFuture(Executor executor, R env) {
-    return instance.toFuture(executor, env);
-  }
-
-  public void safeRunAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, env, callback);
+  public Future<A> runAsync(R env) {
+    return instance.runAsync(env).flatMap(e -> e.fold(Future::failure, Future::success));
   }
 
   public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
-  }
-
-  public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
-    return instance.foldMap(env, monad);
+    instance.provideAsync(env, result -> callback.accept(result.flatMap(Try::fromEither)));
   }
 
   @Override
@@ -155,7 +139,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   @Override
   public <B, C> RIO<R, C> zipWith(Kind<Kind<RIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(RIOOf.toRIO()), mapper);
+    return parMap2(this, other.fix(RIOOf.toRIO()), mapper);
   }
 
   @Override
@@ -227,9 +211,14 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(ZIO.absorb(value.instance));
   }
 
-  public static <R, A, B, C> RIO<R, C> map2(RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+  public static <R, A, B, C> RIO<R, C> parMap2(RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new RIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  public static <R, A, B, C> RIO<R, C> parMap2(Executor executor, RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return new RIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
   }
 
   public static <R> RIO<R, Unit> sleep(Duration delay) {
@@ -297,16 +286,22 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
   
   public static <R, A> RIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return new RIO<>(ZIO.async(consumer));
+    return new RIO<>(ZIO.async(
+      (env, cb1) -> consumer.accept(result -> cb1.accept(result.toEither()))));
   }
   
-  public static <R, A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, RIO<R, Unit>> consumer) {
-    return new RIO<>(ZIO.asyncF(consumer.andThen(RIO::toZIO)));
+  public static <R, A> RIO<R, A> cancellable(Function1<Consumer1<? super Try<? extends A>>, RIO<R, Unit>> consumer) {
+    return new RIO<>(ZIO.cancellable(
+      (env, cb1) -> consumer.andThen(RIO::toZIO).apply(result -> cb1.accept(result.toEither()))));
   }
 
   public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends RIO<R, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  public static <R, A> RIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends RIO<R, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> map2(xs, a, Sequence::append));
+        (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 

@@ -4,21 +4,18 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.EIO.pure;
 import static com.github.tonivade.purefun.effect.EIO.raiseError;
 import static com.github.tonivade.purefun.effect.EIO.task;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.junit.jupiter.api.Disabled;
@@ -28,25 +25,18 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
 public class EIOTest {
 
   @Captor
-  private ArgumentCaptor<Try<Integer>> captor;
+  private ArgumentCaptor<Try<Either<Throwable, Integer>>> captor;
 
   @Test
   public void mapRight() {
@@ -135,6 +125,7 @@ public class EIOTest {
   }
 
   @Test
+  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -146,19 +137,19 @@ public class EIOTest {
   }
 
   @Test
-  public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
+  public void asyncRight(@Mock Consumer1<? super Try<? extends Either<Throwable, ? extends Integer>>> callback) {
     parseInt("1").safeRunAsync(callback);
 
-    verify(callback, timeout(500)).accept(Try.success(1));
+    verify(callback, timeout(500)).accept(Try.success(Either.right(1)));
   }
 
   @Test
-  public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
+  public void asyncLeft(@Mock Consumer1<? super Try<? extends Either<Throwable, ? extends Integer>>> callback) {
     parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(500)).accept(captor.capture());
 
-    assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
+    assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
   }
 
   @Test
@@ -172,24 +163,7 @@ public class EIOTest {
   }
 
   @Test
-  public void foldMapRight() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("0").foldMap(async);
-
-    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
-  }
-
-  @Test
-  public void foldMapLeft() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("jkdf").foldMap(async);
-
-    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
-  }
-
-  @Test
+  @Disabled
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
 
@@ -200,6 +174,7 @@ public class EIOTest {
   }
 
   @Test
+  @Disabled
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
 

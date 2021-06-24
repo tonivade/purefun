@@ -9,10 +9,8 @@ import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -25,14 +23,12 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
 
 @HigherKind
 public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
@@ -58,24 +54,12 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return instance.provide(nothing());
   }
 
-  public Future<A> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
+  public Future<Either<E, A>> runAsync() {
+    return instance.runAsync(nothing());
   }
-
-  public Future<A> toFuture(Executor executor) {
-    return instance.toFuture(executor, nothing());
-  }
-
-  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, nothing(), callback);
-  }
-
-  public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
-  }
-
-  public <F extends Witness> Kind<F, A> foldMap(Async<F> monad) {
-    return instance.foldMap(nothing(), monad);
+  
+  public void safeRunAsync(Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
+    instance.provideAsync(nothing(), callback);
   }
 
   @Override
@@ -129,11 +113,11 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public <B> UIO<B> fold(Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
-    return new UIO<>(instance.fold(mapError, map));
+    return new UIO<>(instance.fold(mapError, map).<Nothing>toZIO());
   }
 
   public UIO<A> recover(Function1<? super E, ? extends A> mapError) {
-    return new UIO<>(instance.recover(mapError));
+    return new UIO<>(instance.recover(mapError).<Nothing>toZIO());
   }
 
   public EIO<E, A> orElse(EIO<E, ? extends A> other) {
@@ -158,7 +142,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   @Override
   public <B, C> EIO<E, C> zipWith(Kind<Kind<EIO_, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(EIOOf.toEIO()), mapper);
+    return parMap2(this, other.fix(EIOOf.toEIO()), mapper);
   }
 
   @Override
@@ -218,9 +202,14 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(instance.refineOrDie(type));
   }
 
-  public static <E, A, B, C> EIO<E, C> map2(EIO<E, ? extends A> za, EIO<E, ? extends B> zb, 
+  public static <E, A, B, C> EIO<E, C> parMap2(EIO<E, ? extends A> za, EIO<E, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new EIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  public static <E, A, B, C> EIO<E, C> parMap2(Executor executor, EIO<E, ? extends A> za, EIO<E, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return new EIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
   }
 
   public static <E, A> EIO<E, A> absorb(EIO<E, Either<E, A>> value) {
@@ -283,12 +272,12 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(ZIO.task(task));
   }
   
-  public static <A> EIO<Throwable, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return new EIO<>(ZIO.async(consumer));
+  public static <E, A> EIO<E, A> async(Consumer1<Consumer1<? super Either<E, ? extends A>>> consumer) {
+    return new EIO<>(ZIO.async((env, cb) -> consumer.accept(cb)));
   }
   
-  public static <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, EIO<Throwable, Unit>> consumer) {
-    return new EIO<>(ZIO.asyncF(consumer.andThen(EIO::toZIO)));
+  public static <E, A> EIO<E, A> cancellable(Function1<Consumer1<? super Either<E, ? extends A>>, EIO<E, Unit>> consumer) {
+    return new EIO<>(ZIO.cancellable((env, cb) -> consumer.andThen(EIO::<Nothing>toZIO).apply(cb)));
   }
 
   public static <E, A> EIO<E, A> raiseError(E error) {
@@ -296,8 +285,12 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public static <E, A> EIO<E, Sequence<A>> traverse(Sequence<? extends EIO<E, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  public static <E, A> EIO<E, Sequence<A>> traverse(Executor executor, Sequence<? extends EIO<E, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (EIO<E, Sequence<A>> xs, EIO<E, A> a) -> map2(xs, a, Sequence::append));
+        (EIO<E, Sequence<A>> xs, EIO<E, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(EIO<E, ? extends A> acquire, 

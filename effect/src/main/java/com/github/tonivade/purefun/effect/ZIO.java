@@ -753,7 +753,8 @@ interface ZIOModule {
         current = (ZIO<R, E, A>) recover.current;
       } else if (current instanceof ZIO.AccessM) {
         ZIO.AccessM<R, E, A> accessM = (ZIO.AccessM<R, E, A>) current;
-        current = accessM.function.andThen(ZIOOf::narrowK).apply(env);
+        Function1<? super R, ZIO<R, E, A>> andThen = accessM.function.andThen(ZIOOf::narrowK);
+        current = andThen.apply(env);
       } else if (current instanceof ZIO.Suspend) {
         ZIO.Suspend<R, E, A> suspend = (ZIO.Suspend<R, E, A>) current;
         Producer<ZIO<R, E, A>> andThen = suspend.lazy.andThen(ZIOOf::narrowK);
