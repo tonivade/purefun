@@ -84,7 +84,6 @@ public class URIOTest {
   }
 
   @Test
-  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -96,7 +95,6 @@ public class URIOTest {
   }
 
   @Test
-  @Disabled
   public void bracketError() {
     URIO<Nothing, String> bracket = URIO.bracket(openError(), getString("id"));
 

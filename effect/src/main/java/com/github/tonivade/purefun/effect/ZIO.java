@@ -454,7 +454,42 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
                                            Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
                                            Function1<? super A, ? extends ZIO<R, E, Unit>> release) {
-    throw new UnsupportedOperationException("not implemented yet");
+    // TODO: cancel
+    return cancellable((env, callback) -> {
+      
+      ZIOConnection cancellable = ZIOConnection.cancellable();
+      
+      Promise<Either<E, A>> promise = ZIOModule.runAsync(env, acquire.fix(ZIOOf::narrowK), cancellable);
+      
+      promise.onSuccess(either -> {
+        either.fold(e1 -> {
+          callback.accept(Either.left(e1));
+          return Unit.unit();
+        }, resource -> {
+          Function1<? super A, ZIO<R, E, B>> andThen = use.andThen(ZIOOf::narrowK);
+          Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
+          
+          runAsync.onSuccess(result -> {
+            
+            result.fold(e2 -> {
+              callback.accept(Either.left(e2));
+              return Unit.unit();
+            }, b -> {
+              
+              Promise<Either<E, Unit>> runAsync2 = ZIOModule.runAsync(env, release.andThen(ZIOOf::narrowK).apply(resource), cancellable);
+              
+              runAsync2.onSuccess(ignore -> callback.accept(Either.right(b)));
+              
+              return Unit.unit();
+            });
+            
+          });
+          return Unit.unit();
+        });
+      });
+
+      return ZIO.run(cancellable::cancel);
+    });
   }
 
   @SuppressWarnings("unchecked")

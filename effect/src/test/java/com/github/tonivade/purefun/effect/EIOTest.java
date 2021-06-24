@@ -125,7 +125,6 @@ public class EIOTest {
   }
 
   @Test
-  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");

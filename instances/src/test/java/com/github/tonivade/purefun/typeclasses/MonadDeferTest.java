@@ -130,7 +130,6 @@ public class MonadDeferTest {
   }
 
   @Test
-  @Disabled
   public void zioBracket() throws Exception {
     Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> bracket =
         zioMonadDefer.bracket(ZIO.<Nothing, Throwable, AutoCloseable>pure(resource),
@@ -143,7 +142,6 @@ public class MonadDeferTest {
   }
 
   @Test
-  @Disabled
   public void zioBracketAcquireError() throws Exception {
     Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> bracket =
         zioMonadDefer.bracket(ZIO.<Nothing, Throwable, AutoCloseable>raiseError(new IllegalStateException()),

@@ -87,7 +87,6 @@ public class UIOTest {
   }
 
   @Test
-  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -99,7 +98,6 @@ public class UIOTest {
   }
 
   @Test
-  @Disabled
   public void bracketError() {
     UIO<String> bracket = UIO.bracket(openError(), getString("id"));
 

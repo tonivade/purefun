@@ -84,7 +84,6 @@ public class RIOTest {
   }
 
   @Test
-  @Disabled
   public void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
@@ -96,7 +95,6 @@ public class RIOTest {
   }
 
   @Test
-  @Disabled
   public void bracketError() {
     RIO<Nothing, String> bracket = RIO.bracket(openError(), getString("id"));
 

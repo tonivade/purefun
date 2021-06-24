@@ -4,10 +4,8 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import org.junit.jupiter.api.Disabled;
 import com.github.tonivade.purefun.effect.UIO_;
 
-@Disabled
 public class UIOResourceTest extends ResourceTest<UIO_> {
 
   public UIOResourceTest() {

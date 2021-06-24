@@ -95,7 +95,6 @@ class TaskTest {
   }
 
   @Test
-  @Disabled
   void bracket() throws SQLException {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
