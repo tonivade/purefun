@@ -272,11 +272,11 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(ZIO.task(task));
   }
   
-  public static <E, A> EIO<E, A> async(Consumer1<Consumer1<? super Either<E, ? extends A>>> consumer) {
+  public static <E, A> EIO<E, A> async(Consumer1<Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
     return new EIO<>(ZIO.async((env, cb) -> consumer.accept(cb)));
   }
   
-  public static <E, A> EIO<E, A> cancellable(Function1<Consumer1<? super Either<E, ? extends A>>, EIO<E, Unit>> consumer) {
+  public static <E, A> EIO<E, A> cancellable(Function1<Consumer1<? super Try<? extends Either<E, ? extends A>>>, EIO<E, Unit>> consumer) {
     return new EIO<>(ZIO.cancellable((env, cb) -> consumer.andThen(EIO::<Nothing>toZIO).apply(cb)));
   }
 

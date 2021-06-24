@@ -186,7 +186,7 @@ interface ZIOAsync<R> extends Async<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadDef
   
   @Override
   default <A> ZIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<Kind<ZIO_, R>, Throwable>, Unit>> consumer) {
-    return ZIO.cancellable((env, cb) -> consumer.andThen(ZIOOf::narrowK).apply(e -> cb.accept(e.toEither())));
+    return ZIO.cancellable((env, cb) -> consumer.andThen(ZIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
   }
 }
 

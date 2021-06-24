@@ -179,7 +179,7 @@ interface EIOAsync extends Async<Kind<EIO_, Throwable>>, EIOMonadDefer {
   
   @Override
   default <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<EIO_, Throwable>, Unit>> consumer) {
-    return EIO.cancellable(cb -> consumer.andThen(EIOOf::narrowK).apply(e -> cb.accept(e.toEither())));
+    return EIO.cancellable(cb -> consumer.andThen(EIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
   }
 }
 

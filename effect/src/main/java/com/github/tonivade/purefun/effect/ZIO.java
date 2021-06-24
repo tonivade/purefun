@@ -256,7 +256,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
   
   static <R, E> ZIO<R, E, Unit> forked(Executor executor) {
-    return async((env, callback) -> executor.execute(() -> callback.accept(Either.right(Unit.unit()))));
+    return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Either.right(Unit.unit())))));
   }
 
   static <R, E, A, B, C> ZIO<R, E, C> parMap2(ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
@@ -275,7 +275,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
       Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(zb), connection2);
       
       promiseA.onComplete(a -> promiseB.onComplete(
-        b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.narrowK(Either.map2(e1, e2, mapper))).get())));
+        b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.narrowK(Either.map2(e1, e2, mapper))))));
       
       return ZIO.exec(() -> {
         try {
@@ -297,7 +297,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
         tb -> tb.get1().cancel().fix(ZIOOf.toZIO()).map(x -> Either.right(tb.get2()))));
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>> racePair(Executor executor, ZIO<R, E, A> fa, ZIO<R, E, B> fb) {
+  static <R, E, A, B> ZIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>> 
+      racePair(Executor executor, ZIO<R, E, A> fa, ZIO<R, E, B> fb) {
     return cancellable((env, callback) -> {
       
       ZIOConnection connection1 = ZIOConnection.cancellable();
@@ -312,7 +313,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
         Fiber<Kind<Kind<ZIO_, R>, E>, B> fiberB = Fiber.of(fromPromiseB, cancelB);
         callback.accept(result.map(
           either -> either.map(
-            a -> Either.<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>left(Tuple.of(a, fiberB)))).get());
+            a -> Either.<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>left(Tuple.of(a, fiberB)))));
       });
       
       promiseB.onComplete(result -> {
@@ -321,7 +322,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
         Fiber<Kind<Kind<ZIO_, R>, E>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
         callback.accept(result.map(
           either -> either.map(
-            b -> Either.<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>right(Tuple.of(fiberA, b)))).get());
+            b -> Either.<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>right(Tuple.of(fiberA, b)))));
       });
 
       return ZIO.exec(() -> {
@@ -380,7 +381,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   
   static <R, E, A> ZIO<R, E, A> fromPromise(Promise<? extends Either<E, ? extends A>> promise) {
     Consumer1<Consumer1<? super Try<? extends Either<E, ? extends A>>>> callback = promise::onComplete;
-    return async((env, cb) -> callback.accept(result -> result.onSuccess(cb::accept)));
+    return async((env, cb) -> callback.accept(cb));
   }
 
   static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
@@ -407,11 +408,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return fromEither(task.andThen(Either::right));
   }
   
-  static <R, E, A> ZIO<R, E, A> async(Consumer2<R, Consumer1<? super Either<E, ? extends A>>> consumer) {
+  static <R, E, A> ZIO<R, E, A> async(Consumer2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
     return cancellable(consumer.asFunction().andThen(ZIO::pure));
   }
   
-  static <R, E, A> ZIO<R, E, A> cancellable(Function2<R, Consumer1<? super Either<E, ? extends A>>, ZIO<R, ?, Unit>> consumer) {
+  static <R, E, A> ZIO<R, E, A> cancellable(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, ZIO<R, ?, Unit>> consumer) {
     return new Async<>(consumer);
   }
 
@@ -426,7 +427,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   static <R, E> ZIO<R, E, Unit> sleep(Duration delay) {
     return cancellable((env, callback) -> {
       Future<Unit> sleep = Future.sleep(delay)
-        .onComplete(result -> callback.accept(Either.right(Unit.unit())));
+        .onComplete(result -> callback.accept(Try.success(Either.right(Unit.unit()))));
       return ZIO.exec(() -> sleep.cancel(true));
     });  
   }
@@ -461,32 +462,35 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
       
       Promise<Either<E, A>> promise = ZIOModule.runAsync(env, acquire.fix(ZIOOf::narrowK), cancellable);
       
-      promise.onSuccess(either -> {
-        either.fold(e1 -> {
-          callback.accept(Either.left(e1));
-          return Unit.unit();
-        }, resource -> {
-          Function1<? super A, ZIO<R, E, B>> andThen = use.andThen(ZIOOf::narrowK);
-          Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
-          
-          runAsync.onSuccess(result -> {
+      promise
+        .onFailure(e -> callback.accept(Try.failure(e)))
+        .onSuccess(either -> {
+          either.fold(error -> {
+            callback.accept(Try.success(Either.left(error)));
+            return Unit.unit();
+          }, resource -> {
+            Function1<? super A, ZIO<R, E, B>> andThen = use.andThen(ZIOOf::narrowK);
+            Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
             
-            result.fold(e2 -> {
-              callback.accept(Either.left(e2));
-              return Unit.unit();
-            }, b -> {
-              
-              Promise<Either<E, Unit>> runAsync2 = ZIOModule.runAsync(env, release.andThen(ZIOOf::narrowK).apply(resource), cancellable);
-              
-              runAsync2.onSuccess(ignore -> callback.accept(Either.right(b)));
-              
-              return Unit.unit();
+            runAsync
+              .onFailure(e -> callback.accept(Try.failure(e)))
+              .onSuccess(result -> {
+
+                Promise<Either<E, Unit>> run = ZIOModule.runAsync(env, release.andThen(ZIOOf::narrowK).apply(resource), cancellable);
+                
+                run.onComplete(ignore -> {
+                  result.fold(error -> {
+                    callback.accept(Try.success(Either.left(error)));
+                    return Unit.unit();
+                  }, b -> {
+                    callback.accept(Try.success(Either.right(b)));
+                    return Unit.unit();
+                  });
+                });
             });
-            
+            return Unit.unit();
           });
-          return Unit.unit();
         });
-      });
 
       return ZIO.run(cancellable::cancel);
     });
@@ -575,9 +579,9 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
   final class Async<R, E, A> implements SealedZIO<R, E, A> {
 
-    final Function2<R, Consumer1<? super Either<E, ? extends A>>, ZIO<R, ?, Unit>> callback;
+    final Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, ZIO<R, ?, Unit>> callback;
 
-    protected Async(Function2<R, Consumer1<? super Either<E, ? extends A>>, ZIO<R, ?, Unit>> callback) {
+    protected Async(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, ZIO<R, ?, Unit>> callback) {
       this.callback = checkNonNull(callback);
     }
 
@@ -813,8 +817,7 @@ interface ZIOModule {
       return promise.cancel();
     }
     
-    Function2<R, Consumer1<? super Either<E, ? extends A>>, ZIO<R, ?, Unit>> callback = current.callback;
-    connection.setCancelToken(callback.apply(env, either -> promise.succeeded(either.fix(EitherOf::narrowK))));
+    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
     
     promise.thenRun(() -> connection.setCancelToken(UNIT));
     

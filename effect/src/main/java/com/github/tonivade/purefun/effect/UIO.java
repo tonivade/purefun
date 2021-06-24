@@ -272,12 +272,12 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   
   public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(
-        (env, cb1) -> consumer.accept(result -> cb1.accept(result.toEither()))));
+        (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
     return fold(ZIO.cancellable(
-        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toZIO).apply(result -> cb1.accept(result.toEither()))));
+        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toZIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {

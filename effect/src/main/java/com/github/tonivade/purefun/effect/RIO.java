@@ -287,12 +287,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   
   public static <R, A> RIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new RIO<>(ZIO.async(
-      (env, cb1) -> consumer.accept(result -> cb1.accept(result.toEither()))));
+      (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <R, A> RIO<R, A> cancellable(Function1<Consumer1<? super Try<? extends A>>, RIO<R, Unit>> consumer) {
     return new RIO<>(ZIO.cancellable(
-      (env, cb1) -> consumer.andThen(RIO::toZIO).apply(result -> cb1.accept(result.toEither()))));
+      (env, cb1) -> consumer.andThen(RIO::toZIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends RIO<R, A>> sequence) {

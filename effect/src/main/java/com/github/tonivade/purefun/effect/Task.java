@@ -276,12 +276,12 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   
   public static <A> Task<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new Task<>(ZIO.async(
-      (env, cb1) -> consumer.accept(result -> cb1.accept(result.toEither()))));
+      (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Task<Unit>> consumer) {
     return new Task<>(ZIO.cancellable(
-      (env, cb1) -> consumer.andThen(Task::<Nothing>toZIO).apply(result -> cb1.accept(result.toEither()))));
+      (env, cb1) -> consumer.andThen(Task::<Nothing>toZIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A> Task<A> raiseError(Throwable error) {

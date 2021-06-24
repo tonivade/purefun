@@ -275,12 +275,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   
   public static <R, A> URIO<R, A> async(Consumer2<R, Consumer1<? super Try<? extends A>>> consumer) {
     return fold(ZIO.async(
-        (env, cb1) -> consumer.accept(env, result -> cb1.accept(result.toEither()))));
+        (env, cb1) -> consumer.accept(env, result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <R, A> URIO<R, A> cancellable(Function2<R, Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
     return fold(ZIO.cancellable(
-        (env, cb1) -> consumer.andThen(URIO::<Throwable>toZIO).apply(env, result -> cb1.accept(result.toEither()))));
+        (env, cb1) -> consumer.andThen(URIO::<Throwable>toZIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {

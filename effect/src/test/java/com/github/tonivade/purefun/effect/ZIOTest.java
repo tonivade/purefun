@@ -211,7 +211,7 @@ public class ZIOTest {
   public void asyncSuccess() {
     ZIO<Nothing, Throwable, String> async = ZIO.async((env, callback) -> {
       Thread.sleep(100);
-      callback.accept(Either.right("1"));
+      callback.accept(Try.success(Either.right("1")));
     });
     
     Either<Throwable, String> result = async.provide(nothing());
@@ -223,7 +223,7 @@ public class ZIOTest {
   public void asyncFailure() {
     ZIO<Nothing, Throwable, String> async = ZIO.async((env, callback) -> {
       Thread.sleep(100);
-      callback.accept(Either.left(new UnsupportedOperationException()));
+      callback.accept(Try.success(Either.left(new UnsupportedOperationException())));
     });
     
     Either<Throwable, String> result = async.provide(nothing());
