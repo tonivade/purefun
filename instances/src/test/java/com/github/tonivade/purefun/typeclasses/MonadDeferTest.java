@@ -78,6 +78,18 @@ public class MonadDeferTest {
   }
 
   @Test
+  public void eitherTBracket() throws Exception {
+    Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
+        eitherTMonadDefer.bracket(EitherT.<IO_, Throwable, AutoCloseable>right(IOInstances.monad(), resource),
+                                                r -> EitherT.<IO_, Throwable, String>right(IOInstances.monad(), "done"));
+
+    String result = bracket.fix(EitherTOf::narrowK).get().fix(toIO()).unsafeRunSync();
+
+    assertEquals("done", result);
+    verify(resource).close();
+  }
+
+  @Test
   public void eitherTBracketAcquireError() throws Exception {
     Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
         eitherTMonadDefer.bracket(EitherT.<IO_, Throwable, AutoCloseable>left(IOInstances.monad(), new IllegalStateException()),
@@ -87,6 +99,18 @@ public class MonadDeferTest {
                  () -> bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync());
 
     verify(resource, never()).close();
+  }
+
+  @Test
+  public void eitherTBracketUseError() throws Exception {
+    Kind<Kind<Kind<EitherT_, IO_>, Throwable>, String> bracket =
+        eitherTMonadDefer.bracket(EitherT.<IO_, Throwable, AutoCloseable>right(IOInstances.monad(), resource),
+                                                r -> EitherT.<IO_, Throwable, String>left(IOInstances.monad(), new UnsupportedOperationException()));
+
+    Either<Throwable, String> unsafeRunSync = bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync();
+    
+    assertTrue(unsafeRunSync.getLeft() instanceof UnsupportedOperationException);
+    verify(resource).close();
   }
 
   @Test
