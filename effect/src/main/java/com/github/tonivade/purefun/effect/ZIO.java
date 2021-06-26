@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -223,6 +224,16 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
       callback.accept(Try.success(Either.right(Fiber.of(join, cancel))));
     });
   }
+
+  default ZIO<R, E, A> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  default ZIO<R, E, A> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(ZIOOf.toZIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(ZIOOf.toZIO()).flatMap(x -> ZIO.throwError(new TimeoutException()))));
+  }
   
   @SuppressWarnings("unchecked")
   default <X extends Throwable> ZIO<R, X, A> refineOrDie(Class<X> type) {
@@ -420,6 +431,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return fromEither(task.andThen(Either::right));
   }
   
+  static <R, E, A> ZIO<R, E, A> never() {
+    return async((env, cb) -> {});
+  }
+  
   static <R, E, A> ZIO<R, E, A> async(Consumer2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
     return cancellable(consumer.asFunction().andThen(ZIO::pure));
   }
@@ -430,6 +445,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
   static <R, E, A> ZIO<R, E, A> raiseError(E error) {
     return new Failure<>(error);
+  }
+
+  static <R, E, A> ZIO<R, E, A> throwError(Throwable error) {
+    return new Throw<>(error);
   }
 
   static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, ? extends A> value) {
@@ -538,6 +557,20 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     @Override
     public String toString() {
       return "Failure(" + error + ")";
+    }
+  }
+
+  final class Throw<R, E, A> implements SealedZIO<R, E, A> {
+
+    final Throwable error;
+
+    protected Throw(Throwable error) {
+      this.error = checkNonNull(error);
+    }
+
+    @Override
+    public String toString() {
+      return "Throw(" + error + ")";
     }
   }
 
@@ -798,6 +831,9 @@ interface ZIOModule {
         return current;
       } else if (current instanceof ZIO.Async) {
         return current;
+      } else if (current instanceof ZIO.Throw) {
+        ZIO.Throw<R, E, A> throw_ = (ZIO.Throw<R, E, A>) current;
+        return stack.sneakyThrow(throw_.error);
       } else if (current instanceof ZIO.Recover) {
         ZIO.Recover<R, E, A> recover = (ZIO.Recover<R, E, A>) current;
         stack.add((PartialFunction1<? super Throwable, ZIO<R, F, ? extends B>>) recover.mapper.andThen(next));

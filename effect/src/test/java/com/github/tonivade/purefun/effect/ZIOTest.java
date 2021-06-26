@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -420,6 +421,16 @@ public class ZIOTest {
     Either<Throwable, String> orElseThrow = result.runAsync(nothing()).getOrElseThrow();
 
     assertEquals(Either.right("hola toni"), orElseThrow);
+  }
+  
+  @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, () -> ZIO.never().timeout(Duration.ofSeconds(1)).provide(nothing()));
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(Either.right(1), ZIO.pure(1).timeout(Duration.ofSeconds(1)).provide(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {
