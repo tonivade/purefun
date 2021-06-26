@@ -212,6 +212,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
   
+  default ZIO<R, E, Fiber<Kind<Kind<ZIO_, R>, E>, A>> fork() {
+    return async((env, callback) -> {
+      ZIOConnection connection = ZIOConnection.cancellable();
+      Promise<Either<E, A>> promise = ZIOModule.runAsync(env, this, connection);
+      
+      ZIO<R, E, A> join = fromPromise(promise);
+      ZIO<R, E, Unit> cancel = run(connection::cancel);
+      
+      callback.accept(Try.success(Either.right(Fiber.of(join, cancel))));
+    });
+  }
+  
   @SuppressWarnings("unchecked")
   default <X extends Throwable> ZIO<R, X, A> refineOrDie(Class<X> type) {
     return mapError(error -> {
