@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
@@ -23,8 +24,10 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -61,6 +64,14 @@ public interface ZIOInstances {
 
   static <R> Async<Kind<Kind<ZIO_, R>, Throwable>> async() {
     return ZIOAsync.INSTANCE;
+  }
+
+  static <R> Concurrent<Kind<Kind<ZIO_, R>, Throwable>> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static <R> Concurrent<Kind<Kind<ZIO_, R>, Throwable>> concurrent(Executor executor) {
+    return ZIOConcurrent.instance(executor);
   }
 
   static <R> Console<Kind<Kind<ZIO_, R>, Throwable>> console() {
@@ -187,6 +198,26 @@ interface ZIOAsync<R> extends Async<Kind<Kind<ZIO_, R>, Throwable>>, ZIOMonadDef
   @Override
   default <A> ZIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<Kind<ZIO_, R>, Throwable>, Unit>> consumer) {
     return ZIO.cancellable((env, cb) -> consumer.andThen(ZIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
+  }
+}
+
+interface ZIOConcurrent<R> extends Concurrent<Kind<Kind<ZIO_, R>, Throwable>>, ZIOAsync<R> {
+  
+  static <R> ZIOConcurrent<R> instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  Executor executor();
+
+  @Override
+  default <A, B> ZIO<R, Throwable, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, Throwable>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, Throwable>, A>, B>>> racePair(
+      Kind<Kind<Kind<ZIO_, R>, Throwable>, A> fa, Kind<Kind<Kind<ZIO_, R>, Throwable>, B> fb) {
+    return ZIO.racePair(executor(), fa.fix(toZIO()), fb.fix(toZIO()));
+  }
+  
+  @Override
+  default <A> ZIO<R, Throwable, Fiber<Kind<Kind<ZIO_, R>, Throwable>, A>> fork(Kind<Kind<Kind<ZIO_, R>, Throwable>, A> value) {
+    return value.fix(toZIO()).fork();
   }
 }
 
