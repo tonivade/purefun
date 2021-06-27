@@ -63,7 +63,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-    return new FlatMapped<>(this, map.andThen(IOOf::narrowK));
+    return new IOModule.FlatMapped<>(this, map.andThen(IOOf::narrowK));
   }
 
   @Override
@@ -109,7 +109,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
   
   default IO<T> recoverWith(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapper) {
-    return new Recover<>(this, mapper.andThen(IOOf::narrowK));
+    return new IOModule.Recover<>(this, mapper.andThen(IOOf::narrowK));
   }
 
   @Override
@@ -181,7 +181,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> pure(T value) {
-    return new Pure<>(value);
+    return new IOModule.Pure<>(value);
   }
   
   static <A, B> IO<Either<A, B>> race(Kind<IO_, A> fa, Kind<IO_, B> fb) {
@@ -219,7 +219,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> raiseError(Throwable error) {
-    return new Failure<>(error);
+    return new IOModule.Failure<>(error);
   }
 
   static <T> IO<T> delay(Duration delay, Producer<? extends T> lazy) {
@@ -227,7 +227,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> suspend(Producer<? extends Kind<IO_, ? extends T>> lazy) {
-    return new Suspend<>(lazy.andThen(IOOf::narrowK));
+    return new IOModule.Suspend<>(lazy.andThen(IOOf::narrowK));
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -280,7 +280,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> task(Producer<? extends T> producer) {
-    return new Delay<>(producer);
+    return new IOModule.Delay<>(producer);
   }
 
   static <T> IO<T> never() {
@@ -300,7 +300,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
-    return new Async<>(callback);
+    return new IOModule.Async<>(callback);
   }
 
   static IO<Unit> unit() {
@@ -381,109 +381,6 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <A, B> IO<Tuple2<A, B>> tuple(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return parMap2(executor, fa, fb, Tuple::of);
   }
-
-  final class Pure<T> implements SealedIO<T> {
-
-    final T value;
-
-    protected Pure(T value) {
-      this.value = checkNonNull(value);
-    }
-
-    @Override
-    public String toString() {
-      return "Pure(" + value + ")";
-    }
-  }
-
-  final class Failure<T> implements SealedIO<T>, Recoverable {
-
-    final Throwable error;
-
-    protected Failure(Throwable error) {
-      this.error = checkNonNull(error);
-    }
-
-    @Override
-    public String toString() {
-      return "Failure(" + error + ")";
-    }
-  }
-
-  final class FlatMapped<T, R> implements SealedIO<R> {
-
-    final IO<? extends T> current;
-    final Function1<? super T, ? extends IO<? extends R>> next;
-
-    protected FlatMapped(IO<? extends T> current,
-                         Function1<? super T, ? extends IO<? extends R>> next) {
-      this.current = checkNonNull(current);
-      this.next = checkNonNull(next);
-    }
-
-    @Override
-    public String toString() {
-      return "FlatMapped(" + current + ", ?)";
-    }
-  }
-
-  final class Delay<T> implements SealedIO<T> {
-
-    final Producer<? extends T> task;
-
-    protected Delay(Producer<? extends T> task) {
-      this.task = checkNonNull(task);
-    }
-
-    @Override
-    public String toString() {
-      return "Delay(?)";
-    }
-  }
-
-  final class Async<T> implements SealedIO<T> {
-
-    final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
-
-    protected Async(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
-      this.callback = checkNonNull(callback);
-    }
-
-    @Override
-    public String toString() {
-      return "Async(?)";
-    }
-  }
-
-  final class Suspend<T> implements SealedIO<T> {
-
-    final Producer<? extends IO<? extends T>> lazy;
-
-    protected Suspend(Producer<? extends IO<? extends T>> lazy) {
-      this.lazy = checkNonNull(lazy);
-    }
-
-    @Override
-    public String toString() {
-      return "Suspend(?)";
-    }
-  }
-
-  final class Recover<T> implements SealedIO<T> {
-
-    final IO<T> current;
-    final PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper;
-
-    protected Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper) {
-      this.current = checkNonNull(current);
-      this.mapper = checkNonNull(mapper);
-    }
-
-    @Override
-    public String toString() {
-      return "Recover(" + current + ", ?)";
-    }
-  }
 }
 
 interface IOModule {
@@ -500,21 +397,21 @@ interface IOModule {
       try {
         current = unwrap(current, stack, identity());
         
-        if (current instanceof IO.Pure) {
-          return promise.succeeded(((IO.Pure<T>) current).value);
+        if (current instanceof Pure) {
+          return promise.succeeded(((Pure<T>) current).value);
         }
         
-        if (current instanceof IO.Async) {
-          return executeAsync((IO.Async<T>) current, connection, promise);
+        if (current instanceof Async) {
+          return executeAsync((Async<T>) current, connection, promise);
         }
         
-        if (current instanceof IO.FlatMapped) {
+        if (current instanceof FlatMapped) {
           stack.push();
           
-          IO.FlatMapped<U, T> flatMapped = (IO.FlatMapped<U, T>) current;
+          FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
           IO<? extends U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next));
           
-          if (source instanceof IO.Async) {
+          if (source instanceof Async) {
             Promise<U> nextPromise = Promise.make();
             
             nextPromise.then(u -> {
@@ -522,17 +419,17 @@ interface IOModule {
               runAsync(andThen.apply(u), connection, stack, promise);
             });
             
-            executeAsync((IO.Async<U>) source, connection, nextPromise);
+            executeAsync((Async<U>) source, connection, nextPromise);
             
             return promise;
           }
 
-          if (source instanceof IO.Pure) {
-            IO.Pure<U> pure = (IO.Pure<U>) source;
+          if (source instanceof Pure) {
+            Pure<U> pure = (Pure<U>) source;
             Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
             current = andThen.apply(pure.value);
-          } else if (source instanceof IO.FlatMapped) {
-            IO.FlatMapped<V, U> flatMapped2 = (IO.FlatMapped<V, U>) source;
+          } else if (source instanceof FlatMapped) {
+            FlatMapped<V, U> flatMapped2 = (FlatMapped<V, U>) source;
             current = flatMapped2.current.flatMap(a -> flatMapped2.next.apply(a).flatMap(flatMapped.next));
           }
         } else {
@@ -552,25 +449,25 @@ interface IOModule {
 
   static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
     while (true) {
-      if (current instanceof IO.Failure) {
-        IO.Failure<T> failure = (IO.Failure<T>) current;
+      if (current instanceof Failure) {
+        Failure<T> failure = (Failure<T>) current;
         return stack.sneakyThrow(failure.error);
-      } else if (current instanceof IO.Recover) {
-        IO.Recover<T> recover = (IO.Recover<T>) current;
+      } else if (current instanceof Recover) {
+        Recover<T> recover = (Recover<T>) current;
         stack.add(recover.mapper.andThen(next));
         current = recover.current;
-      } else if (current instanceof IO.Suspend) {
-        IO.Suspend<T> suspend = (IO.Suspend<T>) current;
+      } else if (current instanceof Suspend) {
+        Suspend<T> suspend = (Suspend<T>) current;
         Producer<IO<T>> andThen = (suspend).lazy.andThen(IOOf::narrowK);
         current = andThen.get();
-      } else if (current instanceof IO.Delay) {
-        IO.Delay<T> delay = (IO.Delay<T>) current;
+      } else if (current instanceof Delay) {
+        Delay<T> delay = (Delay<T>) current;
         return IO.pure(delay.task.get());
-      } else if (current instanceof IO.Pure) {
+      } else if (current instanceof Pure) {
         return current;
-      } else if (current instanceof IO.FlatMapped) {
+      } else if (current instanceof FlatMapped) {
         return current;
-      } else if (current instanceof IO.Async) {
+      } else if (current instanceof Async) {
         return current;
       } else {
         throw new IllegalStateException();
@@ -578,7 +475,7 @@ interface IOModule {
     }
   }
 
-  static <T> Promise<T> executeAsync(IO.Async<T> current, IOConnection connection, Promise<T> promise) {
+  static <T> Promise<T> executeAsync(Async<T> current, IOConnection connection, Promise<T> promise) {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
@@ -587,7 +484,7 @@ interface IOModule {
     
     promise.thenRun(() -> connection.setCancelToken(UNIT));
     
-    if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancelligNow()) {
+    if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancellingNow()) {
       connection.cancelNow();
     }
 
@@ -608,6 +505,109 @@ interface IOModule {
         return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
       } else return IO.raiseError(error);
     }, IO::pure);
+  }
+
+  final class Pure<T> implements SealedIO<T> {
+
+    private final T value;
+
+    protected Pure(T value) {
+      this.value = checkNonNull(value);
+    }
+
+    @Override
+    public String toString() {
+      return "Pure(" + value + ")";
+    }
+  }
+
+  final class Failure<T> implements SealedIO<T>, Recoverable {
+
+    private final Throwable error;
+
+    protected Failure(Throwable error) {
+      this.error = checkNonNull(error);
+    }
+
+    @Override
+    public String toString() {
+      return "Failure(" + error + ")";
+    }
+  }
+
+  final class FlatMapped<T, R> implements SealedIO<R> {
+
+    private final IO<? extends T> current;
+    private final Function1<? super T, ? extends IO<? extends R>> next;
+
+    protected FlatMapped(IO<? extends T> current,
+                         Function1<? super T, ? extends IO<? extends R>> next) {
+      this.current = checkNonNull(current);
+      this.next = checkNonNull(next);
+    }
+
+    @Override
+    public String toString() {
+      return "FlatMapped(" + current + ", ?)";
+    }
+  }
+
+  final class Delay<T> implements SealedIO<T> {
+
+    private final Producer<? extends T> task;
+
+    protected Delay(Producer<? extends T> task) {
+      this.task = checkNonNull(task);
+    }
+
+    @Override
+    public String toString() {
+      return "Delay(?)";
+    }
+  }
+
+  final class Async<T> implements SealedIO<T> {
+
+    private final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
+
+    protected Async(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+      this.callback = checkNonNull(callback);
+    }
+
+    @Override
+    public String toString() {
+      return "Async(?)";
+    }
+  }
+
+  final class Suspend<T> implements SealedIO<T> {
+
+    private final Producer<? extends IO<? extends T>> lazy;
+
+    protected Suspend(Producer<? extends IO<? extends T>> lazy) {
+      this.lazy = checkNonNull(lazy);
+    }
+
+    @Override
+    public String toString() {
+      return "Suspend(?)";
+    }
+  }
+
+  final class Recover<T> implements SealedIO<T> {
+
+    private final IO<T> current;
+    private final PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper;
+
+    protected Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper) {
+      this.current = checkNonNull(current);
+      this.mapper = checkNonNull(mapper);
+    }
+
+    @Override
+    public String toString() {
+      return "Recover(" + current + ", ?)";
+    }
   }
 }
 
@@ -663,12 +663,12 @@ final class StateIO {
   public static final StateIO CANCELLED = new StateIO(true, false, false);
   
   private final boolean isCancelled;
-  private final boolean cancelligNow;
+  private final boolean cancellingNow;
   private final boolean startingNow;
   
-  public StateIO(boolean isCancelled, boolean cancelligNow, boolean startingNow) {
+  public StateIO(boolean isCancelled, boolean cancellingNow, boolean startingNow) {
     this.isCancelled = isCancelled;
-    this.cancelligNow = cancelligNow;
+    this.cancellingNow = cancellingNow;
     this.startingNow = startingNow;
   }
   
@@ -676,8 +676,8 @@ final class StateIO {
     return isCancelled;
   }
   
-  public boolean isCancelligNow() {
-    return cancelligNow;
+  public boolean isCancellingNow() {
+    return cancellingNow;
   }
   
   public boolean isStartingNow() {
@@ -689,19 +689,19 @@ final class StateIO {
   }
   
   public StateIO startingNow() {
-    return new StateIO(isCancelled, cancelligNow, true);
+    return new StateIO(isCancelled, cancellingNow, true);
   }
   
   public StateIO notStartingNow() {
-    return new StateIO(isCancelled, cancelligNow, false);
+    return new StateIO(isCancelled, cancellingNow, false);
   }
   
   public boolean isCancelable() {
-    return !isCancelled && !cancelligNow && !startingNow;
+    return !isCancelled && !cancellingNow && !startingNow;
   }
   
   public boolean isRunnable() {
-    return !isCancelled && !cancelligNow;
+    return !isCancelled && !cancellingNow;
   }
 }
 
@@ -747,7 +747,7 @@ final class CallStack<T> implements Recoverable {
 final class StackItem<T> {
   
   private int count = 0;
-  private Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new LinkedList<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new LinkedList<>();
 
   private final StackItem<T> prev;
 
