@@ -879,17 +879,34 @@ interface ZIOModule {
 
 interface ZIOConnection {
   
-  ZIOConnection UNCANCELLABLE = new ZIOConnection() {};
+  ZIOConnection UNCANCELLABLE = new ZIOConnection() {
+    @Override
+    public boolean isCancellable() { return false; }
+
+    @Override
+    public void setCancelToken(ZIO<?, ?, Unit> cancel) { }
+
+    @Override
+    public void cancelNow() { }
+
+    @Override
+    public void cancel() { }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) {
+      return StateIO.INITIAL;
+    }
+  };
   
-  default boolean isCancellable() { return false; }
+  boolean isCancellable();
   
-  default void setCancelToken(ZIO<?, ?, Unit> cancel) { }
+  void setCancelToken(ZIO<?, ?, Unit> cancel);
   
-  default void cancelNow() { }
+  void cancelNow();
   
-  default void cancel() { }
+  void cancel();
   
-  default StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
+  StateIO updateState(Operator1<StateIO> update);
   
   static ZIOConnection cancellable() {
     return new ZIOConnection() {

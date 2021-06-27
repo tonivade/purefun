@@ -613,17 +613,32 @@ interface IOModule {
 
 interface IOConnection {
   
-  IOConnection UNCANCELLABLE = new IOConnection() {};
+  IOConnection UNCANCELLABLE = new IOConnection() {
+    @Override
+    public boolean isCancellable() { return false; }
+
+    @Override
+    public void setCancelToken(IO<Unit> cancel) { }
+
+    @Override
+    public void cancelNow() { }
+
+    @Override
+    public void cancel() { }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
+  };
   
-  default boolean isCancellable() { return false; }
+  boolean isCancellable();
+
+  void setCancelToken(IO<Unit> cancel);
   
-  default void setCancelToken(IO<Unit> cancel) { }
+  void cancelNow();
   
-  default void cancelNow() { }
+  void cancel();
   
-  default void cancel() { }
-  
-  default StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
+  StateIO updateState(Operator1<StateIO> update);
   
   static IOConnection cancellable() {
     return new IOConnection() {
