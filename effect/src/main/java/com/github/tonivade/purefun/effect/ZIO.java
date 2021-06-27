@@ -60,7 +60,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   default ZIO<R, A, E> swap() {
-    throw new UnsupportedOperationException();
+    return foldM(ZIO::pure, ZIO::raiseError);
   }
 
   @Override

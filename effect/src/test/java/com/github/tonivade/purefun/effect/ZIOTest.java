@@ -63,12 +63,26 @@ public class ZIOTest {
     
     assertEquals(Either.right("hello world"), result);
   }
-  
+
   @Test
   public void failure() {
     Either<String, Integer> result = ZIO.<Nothing, String, Integer>raiseError("error").provide(nothing());
-    
+
     assertEquals(Either.left("error"), result);
+  }
+
+  @Test
+  public void swapLeft() {
+    Either<Integer, String> result = ZIO.<Nothing, String, Integer>raiseError("error").swap().provide(nothing());
+
+    assertEquals(Either.right("error"), result);
+  }
+
+  @Test
+  public void swapRight() {
+    Either<String, Integer> result = ZIO.<Nothing, Integer, String>pure("value").swap().provide(nothing());
+    
+    assertEquals(Either.left("value"), result);
   }
   
   @Test
