@@ -237,11 +237,11 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   
   @SuppressWarnings("unchecked")
   default <X extends Throwable> ZIO<R, X, A> refineOrDie(Class<X> type) {
-    return mapError(error -> {
+    return flatMapError(error -> {
       if (type.isAssignableFrom(error.getClass())) {
-        return (X) error;
+        return ZIO.raiseError((X) error);
       }
-      throw new ClassCastException(error.getClass() + " not asignable to " + type);
+      return ZIO.throwError(new ClassCastException(error.getClass() + " not asignable to " + type));
     });
   }
   
