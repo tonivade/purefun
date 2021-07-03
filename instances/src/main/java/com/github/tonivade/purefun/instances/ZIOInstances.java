@@ -174,7 +174,7 @@ interface ZIOBracket<R, E> extends ZIOMonadError<R, E>, Bracket<Kind<Kind<ZIO_, 
           bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use,
                   Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, Unit>> release) {
-    return ZIO.bracket(acquire.fix(toZIO()), use.andThen(ZIOOf::narrowK), release::apply);
+    return ZIO.bracket(acquire, use, release);
   }
 }
 

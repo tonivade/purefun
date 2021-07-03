@@ -161,14 +161,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   
   default <B> ZIO<R, E, B> repeatOrElse(
       Schedule<R, A, B> schedule,
-      Function2<E, Option<B>, ZIO<R, E, B>> orElse) {
+      Function2<E, Option<B>, Kind<Kind<Kind<ZIO_, R>, E>, B>> orElse) {
     return repeatOrElseEither(schedule, orElse).map(Either::merge);
   }
 
   default <B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
       Schedule<R, A, B> schedule,
-      Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
-    return new Repeat<>(this, schedule, orElse).run();
+      Function2<E, Option<B>, Kind<Kind<Kind<ZIO_, R>, E>, C>> orElse) {
+    return new Repeat<>(this, schedule, orElse.andThen(ZIOOf::narrowK)).run();
   }
 
   @Override
@@ -197,14 +197,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
 
   default <B> ZIO<R, E, A> retryOrElse(
       Schedule<R, E, B> schedule,
-      Function2<E, B, ZIO<R, E, A>> orElse) {
+      Function2<E, B, Kind<Kind<Kind<ZIO_, R>, E>, A>> orElse) {
     return retryOrElseEither(schedule, orElse).map(Either::merge);
   }
 
   default <B, C> ZIO<R, E, Either<B, A>> retryOrElseEither(
       Schedule<R, E, C> schedule,
-      Function2<E, C, ZIO<R, E, B>> orElse) {
-    return new Retry<>(this, schedule, orElse).run();
+      Function2<E, C, Kind<Kind<Kind<ZIO_, R>, E>, B>> orElse) {
+    return new Retry<>(this, schedule, orElse.andThen(ZIOOf::narrowK)).run();
   }
 
   @Override
@@ -266,8 +266,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return Managed.from(this, release);
   }
 
-  static <R, E, A> ZIO<R, E, A> accessM(Function1<? super R, ? extends ZIO<R, E, ? extends A>> map) {
-    return new ZIOModule.AccessM<>(map);
+  static <R, E, A> ZIO<R, E, A> accessM(Function1<? super R, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> map) {
+    return new ZIOModule.AccessM<>(map.andThen(ZIOOf::narrowK));
   }
 
   static <R, E, A> ZIO<R, E, A> access(Function1<? super R, ? extends A> map) {
@@ -282,12 +282,12 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Either.right(Unit.unit())))));
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> parMap2(ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
+  static <R, E, A, B, C> ZIO<R, E, C> parMap2(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> parMap2(Executor executor, ZIO<R, E, ? extends A> za, ZIO<R, E, ? extends B> zb, 
+  static <R, E, A, B, C> ZIO<R, E, C> parMap2(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable((env, callback) -> {
       
@@ -310,18 +310,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     });
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(ZIO<R, E, A> fa, ZIO<R, E, B> fb) {
+  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Kind<Kind<Kind<ZIO_, R>, E>, A> fa, Kind<Kind<Kind<ZIO_, R>, E>, B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Executor executor, ZIO<R, E, A> fa, ZIO<R, E, B> fb) {
+  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, A> fa, Kind<Kind<Kind<ZIO_, R>, E>, B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(ZIOOf.toZIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(ZIOOf.toZIO()).map(x -> Either.right(tb.get2()))));
   }
   
   static <R, E, A, B> ZIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>> 
-      racePair(Executor executor, ZIO<R, E, A> fa, ZIO<R, E, B> fb) {
+      racePair(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, A> fa, Kind<Kind<Kind<ZIO_, R>, E>, B> fb) {
     return cancellable((env, callback) -> {
       
       ZIOConnection connection1 = ZIOConnection.cancellable();
@@ -358,8 +358,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     });
   }
 
-  static <R, E, A> ZIO<R, E, A> absorb(ZIO<R, E, Either<E, A>> value) {
-    return value.flatMap(either -> either.fold(ZIO::raiseError, ZIO::pure));
+  static <R, E, A> ZIO<R, E, A> absorb(Kind<Kind<Kind<ZIO_, R>, E>, Either<E, A>> value) {
+    return value.fix(ZIOOf::narrowK).flatMap(either -> either.fold(ZIO::raiseError, ZIO::pure));
   }
 
   static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<? super A, ? extends B> function) {
@@ -419,8 +419,8 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return new ZIOModule.Pure<>(value);
   }
 
-  static <R, E, A> ZIO<R, E, A> defer(Producer<ZIO<R, E, ? extends A>> lazy) {
-    return new ZIOModule.Suspend<>(lazy);
+  static <R, E, A> ZIO<R, E, A> defer(Producer<Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> lazy) {
+    return new ZIOModule.Suspend<>(lazy.andThen(ZIOOf::narrowK));
   }
 
   static <R, A> ZIO<R, Throwable, A> task(Producer<? extends A> task) {
@@ -451,7 +451,7 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return new ZIOModule.Throw<>(error);
   }
 
-  static <R, A> ZIO<R, Throwable, A> redeem(ZIO<R, Nothing, ? extends A> value) {
+  static <R, A> ZIO<R, Throwable, A> redeem(Kind<Kind<Kind<ZIO_, R>, Nothing>, ? extends A> value) {
     return new ZIOModule.Recover<>(value.fix(ZIOOf::narrowK), PartialFunction1.of(always(), ZIO::raiseError));
   }
 
@@ -463,29 +463,29 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     });  
   }
 
-  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Sequence<? extends ZIO<R, E, A>> sequence) {
+  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Sequence<? extends Kind<Kind<Kind<ZIO_, R>, E>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends ZIO<R, E, A>> sequence) {
+  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<Kind<ZIO_, R>, E>, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (ZIO<R, E, Sequence<A>> xs, ZIO<R, E, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Kind<Kind<ZIO_, R>, E>, Sequence<A>> xs, Kind<Kind<Kind<ZIO_, R>, E>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
-                                                                 Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
+  static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
+                                                                 Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
-  static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
-                                           Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
+  static <R, E, A, B> ZIO<R, E, B> bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
+                                           Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use,
                                            Consumer1<? super A> release) {
     return bracket(acquire, use, release.asFunction().andThen(ZIO::pure));
   }
 
-  static <R, E, A, B> ZIO<R, E, B> bracket(ZIO<R, E, ? extends A> acquire,
-                                           Function1<? super A, ? extends ZIO<R, E, ? extends B>> use,
-                                           Function1<? super A, ? extends ZIO<R, E, Unit>> release) {
+  static <R, E, A, B> ZIO<R, E, B> bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
+                                           Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use,
+                                           Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, Unit>> release) {
     // TODO: cancel
     return cancellable((env, callback) -> {
       
@@ -495,33 +495,29 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
       
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
-        .onSuccess(either -> {
-          either.fold(error -> {
-            callback.accept(Try.success(Either.left(error)));
-            return Unit.unit();
-          }, resource -> {
-            Function1<? super A, ZIO<R, E, B>> andThen = use.andThen(ZIOOf::narrowK);
-            Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
-            
-            runAsync
-              .onFailure(e -> callback.accept(Try.failure(e)))
-              .onSuccess(result -> {
+        .onSuccess(either -> either.fold(error -> {
+          callback.accept(Try.success(Either.left(error)));
+          return Unit.unit();
+        }, resource -> {
+          Function1<? super A, ZIO<R, E, B>> andThen = use.andThen(ZIOOf::narrowK);
+          Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
+          
+          runAsync
+            .onFailure(e -> callback.accept(Try.failure(e)))
+            .onSuccess(result -> {
 
-                Promise<Either<E, Unit>> run = ZIOModule.runAsync(env, release.andThen(ZIOOf::narrowK).apply(resource), cancellable);
-                
-                run.onComplete(ignore -> {
-                  result.fold(error -> {
-                    callback.accept(Try.success(Either.left(error)));
-                    return Unit.unit();
-                  }, b -> {
-                    callback.accept(Try.success(Either.right(b)));
-                    return Unit.unit();
-                  });
-                });
-            });
-            return Unit.unit();
+              Promise<Either<E, Unit>> run = ZIOModule.runAsync(env, release.andThen(ZIOOf::narrowK).apply(resource), cancellable);
+              
+              run.onComplete(ignore -> result.fold(error -> {
+                callback.accept(Try.success(Either.left(error)));
+                return Unit.unit();
+              }, b -> {
+                callback.accept(Try.success(Either.right(b)));
+                return Unit.unit();
+              }));
           });
-        });
+          return Unit.unit();
+        }));
 
       return ZIO.run(cancellable::cancel);
     });
@@ -549,12 +545,10 @@ final class Repeat<R, S, E, A, B, C> {
   protected ZIO<R, E, Either<C, B>> run() {
     return current.foldM(error -> {
       ZIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
-      ZIO<R, E, Either<C, B>> map = apply.map(Either::<C, B>left);
-      return map;
+      return apply.map(Either::<C, B>left);
     }, value -> {
       ZIO<R, E, S> zio = schedule.initial().<E>toZIO();
-      ZIO<R, E, Either<C, B>> map = zio.flatMap(s -> loop(value, s));
-      return map;
+      return zio.flatMap(s -> loop(value, s));
     });
   }
 
@@ -684,8 +678,8 @@ interface ZIOModule {
       } else if (current instanceof Async) {
         return current;
       } else if (current instanceof Throw) {
-        Throw<R, E, A> throw_ = (Throw<R, E, A>) current;
-        return stack.sneakyThrow(throw_.error);
+        Throw<R, E, A> throwError = (Throw<R, E, A>) current;
+        return stack.sneakyThrow(throwError.error);
       } else if (current instanceof Recover) {
         Recover<R, E, A> recover = (Recover<R, E, A>) current;
         stack.add((PartialFunction1<? super Throwable, ZIO<R, F, ? extends B>>) recover.mapper.andThen(next));
@@ -884,13 +878,13 @@ interface ZIOConnection {
     public boolean isCancellable() { return false; }
 
     @Override
-    public void setCancelToken(ZIO<?, ?, Unit> cancel) { }
+    public void setCancelToken(ZIO<?, ?, Unit> cancel) { /* nothing to do */ }
 
     @Override
-    public void cancelNow() { }
+    public void cancelNow() { /* nothing to do */ }
 
     @Override
-    public void cancel() { }
+    public void cancel() { /* nothing to do */ }
 
     @Override
     public StateIO updateState(Operator1<StateIO> update) {
