@@ -18,24 +18,27 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.URIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
 public class URIOTest {
@@ -161,6 +164,54 @@ public class URIOTest {
     URIO<Nothing, Sequence<String>> traverse = URIO.traverse(listOf(left, right));
     
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync(nothing()));
+  }
+
+  @Test
+  public void raceA() {
+    URIO<Nothing, Either<Integer, String>> race = URIO.race(
+        URIO.<Nothing>sleep(Duration.ofMillis(10)).map(x -> 10),
+        URIO.<Nothing>sleep(Duration.ofMillis(100)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync(nothing());
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    URIO<Nothing, Either<Integer, String>> race = URIO.race(
+        URIO.<Nothing>sleep(Duration.ofMillis(100)).map(x -> 10),
+        URIO.<Nothing>sleep(Duration.ofMillis(10)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync(nothing());
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+  
+  @Test
+  public void fork() {
+    URIO<Nothing, String> result = For.with(URIOInstances.<Nothing>monad())
+      .then(URIO.<Nothing, String>pure("hola"))
+      .flatMap(hello -> {
+        URIO<Nothing, Unit> sleep = URIO.sleep(Duration.ofSeconds(1));
+        URIO<Nothing, String> task = URIO.task(() -> hello + " toni");
+        return sleep.andThen(task).fork();
+      })
+      .flatMap(Fiber::join).fix(URIOOf.toURIO());
+    
+    String orElseThrow = result.unsafeRunSync(nothing());
+
+    assertEquals("hola toni", orElseThrow);
+  }
+  
+  @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, () -> URIO.never().timeout(Duration.ofSeconds(1)).unsafeRunSync(nothing()));
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(1, URIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync(nothing()));
   }
 
   private URIO<Nothing, Integer> parseInt(String string) {

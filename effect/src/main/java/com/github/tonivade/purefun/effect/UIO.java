@@ -230,7 +230,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return new UIO<>(instance.timed());
   }
   
-  static UIO<Unit> forked(Executor executor) {
+  public static UIO<Unit> forked(Executor executor) {
     return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
@@ -244,33 +244,32 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return new UIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
   }
   
-  static <A, B> UIO<Either<A, B>> race(Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
+  public static <A, B> UIO<Either<A, B>> race(Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <A, B> UIO<Either<A, B>> race(Executor executor, Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
+  public static <A, B> UIO<Either<A, B>> race(Executor executor, Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(UIOOf.toUIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(UIOOf.toUIO()).map(x -> Either.right(tb.get2()))));
   }
   
-  static <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>> 
+  public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>> 
       racePair(Executor executor, Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
     ZIO<Nothing, Nothing, A> instance1 = fa.fix(UIOOf.toUIO()).instance;
     ZIO<Nothing, Nothing, B> instance2 = fb.fix(UIOOf.toUIO()).instance;
-    return new UIO<>(ZIO.racePair(executor, instance1, instance2).map(either -> {
-      return either.mapLeft(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+    return new UIO<>(ZIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
         @Override
-        public <T> Kind<UIO_, T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
           return new UIO<>(from.fix(ZIOOf::narrowK));
         }
-      }))).map(b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
         @Override
-        public <T> Kind<UIO_, T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
           return new UIO<>(from.fix(ZIOOf::narrowK));
         }
-      })));
-    }));
+      })))));
   }
 
   public static <A, B> Function1<A, UIO<B>> lift(Function1<? super A, ? extends B> function) {
@@ -325,7 +324,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   
-  static <A> UIO<A> never() {
+  public static <A> UIO<A> never() {
     return async(cb -> {});
   }
   
