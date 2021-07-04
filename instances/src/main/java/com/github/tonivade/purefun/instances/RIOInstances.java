@@ -181,7 +181,7 @@ interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
   
   @Override
   default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO_, R>, Unit>> consumer) {
-    return RIO.cancellable(consumer.andThen(RIOOf::narrowK));
+    return RIO.cancellable((env, cb) -> consumer.andThen(RIOOf::narrowK).apply(cb));
   }
 }
 
