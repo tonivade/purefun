@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.Task.pure;
 import static com.github.tonivade.purefun.effect.Task.task;
 import static com.github.tonivade.purefun.effect.Task.unit;
+import static com.github.tonivade.purefun.effect.TaskOf.toTask;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,8 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,9 +32,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
 class TaskTest {
@@ -175,6 +181,56 @@ class TaskTest {
     Task<Sequence<String>> traverse = Task.traverse(listOf(left, right));
     
     assertEquals(Try.success(listOf("left", "right")), traverse.safeRunSync());
+  }
+
+  @Test
+  void raceA() {
+    Task<Either<Integer, String>> race = Task.race(
+        Task.sleep(Duration.ofMillis(10)).map(x -> 10),
+        Task.sleep(Duration.ofMillis(100)).map(x -> "b"));
+    
+    Try<Either<Integer, String>> orElseThrow = race.safeRunSync();
+    
+    assertEquals(Try.success(Either.left(10)), orElseThrow);
+  }
+
+  @Test
+  void raceB() {
+    Task<Either<Integer, String>> race = Task.race(
+        Task.sleep(Duration.ofMillis(100)).map(x -> 10),
+        Task.sleep(Duration.ofMillis(10)).map(x -> "b"));
+    
+    Try<Either<Integer, String>> orElseThrow = race.safeRunSync();
+    
+    assertEquals(Try.success(Either.right("b")), orElseThrow);
+  }
+  
+  @Test
+  void fork() {
+    Task<String> result = For.with(TaskInstances.monad())
+      .then(Task.pure("hola"))
+      .flatMap(hello -> {
+        Task<Unit> sleep = Task.sleep(Duration.ofSeconds(1));
+        Task<String> task = Task.task(() -> hello + " toni");
+        return sleep.andThen(task).fork();
+      })
+      .flatMap(Fiber::join).fix(toTask());
+    
+    Try<String> orElseThrow = result.safeRunSync();
+
+    assertEquals(Try.success("hola toni"), orElseThrow);
+  }
+  
+  @Test
+  void timeoutFail() {
+    Try<Unit> safeRunSync = Task.<Unit>never().timeout(Duration.ofSeconds(1)).safeRunSync();
+    
+    assertTrue(safeRunSync.getCause() instanceof TimeoutException);
+  }
+  
+  @Test
+  void timeoutSuccess() {
+    assertEquals(Try.success(1), Task.pure(1).timeout(Duration.ofSeconds(1)).safeRunSync());
   }
   
   @Test

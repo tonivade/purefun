@@ -161,7 +161,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public UIO<Fiber<UIO_, A>> fork() {
     return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
       @Override
-      public <T> Kind<UIO_, T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
+      public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
         return new UIO<>(from.fix(ZIOOf::narrowK));
       }
     })));

@@ -11,6 +11,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import java.time.Duration;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -30,6 +31,8 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
@@ -146,6 +149,25 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(TaskOf.toTask()), mapper);
   }
+  
+  public Task<Fiber<Task_, A>> fork() {
+    return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
+      @Override
+      public <T> Task<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, ? extends T> from) {
+        return new Task<>(from.fix(ZIOOf::narrowK));
+      }
+    })));
+  }
+
+  public Task<A> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  public Task<A> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(TaskOf.toTask()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(TaskOf.toTask()).flatMap(x -> Task.raiseError(new TimeoutException()))));
+  }
 
   @Override
   public Task<A> repeat() {
@@ -208,6 +230,34 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public static <A, B, C> Task<C> parMap2(Executor executor, Task<? extends A> za, Task<? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return new Task<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
+  }
+  
+  public static <A, B> Task<Either<A, B>> race(Kind<Task_, A> fa, Kind<Task_, B> fb) {
+    return race(Future.DEFAULT_EXECUTOR, fa, fb);
+  }
+  
+  public static <A, B> Task<Either<A, B>> race(Executor executor, Kind<Task_, A> fa, Kind<Task_, B> fb) {
+    return racePair(executor, fa, fb).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(TaskOf.toTask()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(TaskOf.toTask()).map(x -> Either.right(tb.get2()))));
+  }
+  
+  public static <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> 
+      racePair(Executor executor, Kind<Task_, A> fa, Kind<Task_, B> fb) {
+    ZIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance;
+    ZIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance;
+    return new Task<>(ZIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
+        @Override
+        public <T> Task<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, ? extends T> from) {
+          return new Task<>(from.fix(ZIOOf::narrowK));
+        }
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
+        @Override
+        public <T> Task<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, ? extends T> from) {
+          return new Task<>(from.fix(ZIOOf::narrowK));
+        }
+      })))));
   }
 
   public static <A> Task<A> absorb(Task<Either<Throwable, A>> value) {
@@ -272,6 +322,10 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public static <A> Task<A> task(Producer<? extends A> task) {
     return new Task<>(ZIO.task(task));
+  }
+  
+  public static <A> Task<A> never() {
+    return async(cb -> {});
   }
   
   public static <A> Task<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
