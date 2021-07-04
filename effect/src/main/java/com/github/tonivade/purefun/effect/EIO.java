@@ -11,6 +11,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import java.time.Duration;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -29,6 +30,8 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
@@ -144,6 +147,25 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(EIOOf.toEIO()), mapper);
   }
+  
+  public EIO<E, Fiber<Kind<EIO_, E>, A>> fork() {
+    return new EIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, E>, Kind<EIO_, E>>() {
+      @Override
+      public <T> EIO<E, T> apply(Kind<Kind<Kind<ZIO_, Nothing>, E>, ? extends T> from) {
+        return new EIO<>(from.fix(ZIOOf::narrowK));
+      }
+    })));
+  }
+
+  public EIO<E, A> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  public EIO<E, A> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, EIO.<E>sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(EIOOf.toEIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(EIOOf.toEIO()).flatMap(x -> EIO.throwError(new TimeoutException()))));
+  }
 
   @Override
   public EIO<E, A> repeat() {
@@ -211,6 +233,34 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
       Function2<? super A, ? super B, ? extends C> mapper) {
     return new EIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
   }
+  
+  public static <E, A, B> EIO<E, Either<A, B>> race(Kind<Kind<EIO_, E>, A> fa, Kind<Kind<EIO_, E>, B> fb) {
+    return race(Future.DEFAULT_EXECUTOR, fa, fb);
+  }
+  
+  public static <E, A, B> EIO<E, Either<A, B>> race(Executor executor, Kind<Kind<EIO_, E>, A> fa, Kind<Kind<EIO_, E>, B> fb) {
+    return racePair(executor, fa, fb).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(EIOOf.toEIO()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(EIOOf.toEIO()).map(x -> Either.right(tb.get2()))));
+  }
+  
+  public static <E, A, B> EIO<E, Either<Tuple2<A, Fiber<Kind<EIO_, E>, B>>, Tuple2<Fiber<Kind<EIO_, E>, A>, B>>> 
+      racePair(Executor executor, Kind<Kind<EIO_, E>, A> fa, Kind<Kind<EIO_, E>, B> fb) {
+    ZIO<Nothing, E, A> instance1 = fa.fix(EIOOf.toEIO()).instance;
+    ZIO<Nothing, E, B> instance2 = fb.fix(EIOOf.toEIO()).instance;
+    return new EIO<>(ZIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, E>, Kind<EIO_, E>>() {
+        @Override
+        public <T> EIO<E, T> apply(Kind<Kind<Kind<ZIO_, Nothing>, E>, ? extends T> from) {
+          return new EIO<>(from.fix(ZIOOf::narrowK));
+        }
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, E>, Kind<EIO_, E>>() {
+        @Override
+        public <T> EIO<E, T> apply(Kind<Kind<Kind<ZIO_, Nothing>, E>, ? extends T> from) {
+          return new EIO<>(from.fix(ZIOOf::narrowK));
+        }
+      })))));
+  }
 
   public static <E, A> EIO<E, A> absorb(EIO<E, Either<E, A>> value) {
     return new EIO<>(ZIO.absorb(value.instance));
@@ -256,6 +306,10 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(ZIO.fromEither(task));
   }
 
+  public static <E> EIO<E, Unit> sleep(Duration delay) {
+    return new EIO<>(ZIO.sleep(delay));
+  }
+
   public static EIO<Throwable, Unit> exec(CheckedRunnable task) {
     return new EIO<>(ZIO.exec(task));
   }
@@ -272,6 +326,10 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(ZIO.task(task));
   }
   
+  public static <E, A> EIO<E, A> never() {
+    return async(cb -> {});
+  }
+  
   public static <E, A> EIO<E, A> async(Consumer1<Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
     return new EIO<>(ZIO.async((env, cb) -> consumer.accept(cb)));
   }
@@ -282,6 +340,10 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
 
   public static <E, A> EIO<E, A> raiseError(E error) {
     return new EIO<>(ZIO.raiseError(error));
+  }
+
+  public static <E, A> EIO<E, A> throwError(Throwable error) {
+    return new EIO<>(ZIO.throwError(error));
   }
 
   public static <E, A> EIO<E, Sequence<A>> traverse(Sequence<? extends EIO<E, A>> sequence) {
