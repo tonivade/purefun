@@ -5,13 +5,15 @@
 package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -19,50 +21,40 @@ import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.FutureOf;
-import com.github.tonivade.purefun.concurrent.Future_;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
-import com.github.tonivade.purefun.typeclasses.Instance;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 
 @HigherKind(sealed = true)
 public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
-  T unsafeRunSync();
+  default Future<T> runAsync() {
+    return Future.from(IOModule.runAsync(this, IOConnection.UNCANCELLABLE));
+  }
+  
+  default T unsafeRunSync() {
+    return safeRunSync().getOrElseThrow();
+  }
 
   default Try<T> safeRunSync() {
-    return Try.of(this::unsafeRunSync);
-  }
-
-  default Future<T> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
-  }
-
-  default Future<T> toFuture(Executor executor) {
-    return foldMap(Instance.async(Future_.class, executor)).fix(FutureOf.toFuture());
+    return runAsync().await();
   }
 
   default void safeRunAsync(Consumer1<? super Try<? extends T>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
+    runAsync().onComplete(callback);
   }
-
-  default void safeRunAsync(Executor executor, Consumer1<? super Try<? extends T>> callback) {
-    toFuture(executor).onComplete(callback);
-  }
-
-  <F extends Witness> Kind<F, T> foldMap(Async<F> monad);
 
   @Override
   default <R> IO<R> map(Function1<? super T, ? extends R> map) {
@@ -71,7 +63,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-    return new FlatMapped<>(Producer.cons(this), map.andThen(IOOf::narrowK));
+    return new IOModule.FlatMapped<>(this, map.andThen(IOOf::narrowK));
   }
 
   @Override
@@ -81,11 +73,11 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> ap(Kind<IO_, Function1<? super T, ? extends R>> apply) {
-    return new Apply<>(this, apply.fix(IOOf.toIO()));
+    return parMap2(Future.DEFAULT_EXECUTOR, this, apply, (v, a) -> a.apply(v));
   }
 
   default IO<Try<T>> attempt() {
-    return new Attempt<>(this);
+    return map(Try::success).recover(Try::failure);
   }
 
   default IO<Either<Throwable, T>> either() {
@@ -99,31 +91,53 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   default <R> IO<R> redeem(Function1<? super Throwable, ? extends R> mapError,
                            Function1<? super T, ? extends R> mapper) {
-    return attempt().map(try_ -> try_.fold(mapError, mapper));
+    return attempt().map(result -> result.fold(mapError, mapper));
   }
 
   default <R> IO<R> redeemWith(Function1<? super Throwable, ? extends Kind<IO_, ? extends R>> mapError,
                                Function1<? super T, ? extends Kind<IO_, ? extends R>> mapper) {
-    return attempt().flatMap(try_ -> try_.fold(mapError, mapper));
+    return attempt().flatMap(result -> result.fold(mapError, mapper));
   }
 
   default IO<T> recover(Function1<? super Throwable, ? extends T> mapError) {
-    return redeem(mapError, identity());
+    return recoverWith(PartialFunction1.of(always(), mapError.andThen(IO::pure)));
   }
 
   @SuppressWarnings("unchecked")
-  default <X extends Throwable> IO<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> function) {
-    return recover(cause -> {
-      if (type.isAssignableFrom(cause.getClass())) {
-        return function.apply((X) cause);
-      }
-      return sneakyThrow(cause);
-    });
+  default <X extends Throwable> IO<T> recover(Class<X> type, Function1<? super X, ? extends T> function) {
+    return recoverWith(PartialFunction1.of(error -> error.getClass().equals(type), t -> function.andThen(IO::pure).apply((X) t)));
+  }
+  
+  default IO<T> recoverWith(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapper) {
+    return new IOModule.Recover<>(this, mapper.andThen(IOOf::narrowK));
   }
 
   @Override
   default IO<Tuple2<Duration, T>> timed() {
-    return new Timed<>(this);
+    return IO.task(System::nanoTime).flatMap(
+      start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
+  }
+  
+  default IO<Fiber<IO_, T>> fork() {
+    return async(callback -> {
+      IOConnection connection = IOConnection.cancellable();
+      Promise<T> promise = IOModule.runAsync(this, connection);
+      
+      IO<T> join = fromPromise(promise);
+      IO<Unit> cancel = exec(connection::cancel);
+      
+      callback.accept(Try.success(Fiber.of(join, cancel)));
+    });
+  }
+
+  default IO<T> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  default IO<T> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(IOOf.toIO()).flatMap(x -> IO.raiseError(new TimeoutException()))));
   }
 
   @Override
@@ -167,19 +181,53 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> pure(T value) {
-    return new Pure<>(value);
+    return new IOModule.Pure<>(value);
+  }
+  
+  static <A, B> IO<Either<A, B>> race(Kind<IO_, A> fa, Kind<IO_, B> fb) {
+    return race(Future.DEFAULT_EXECUTOR, fa, fb);
+  }
+  
+  static <A, B> IO<Either<A, B>> race(Executor executor, Kind<IO_, A> fa, Kind<IO_, B> fb) {
+    return racePair(executor, fa, fb).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(IOOf.toIO()).map(x -> Either.right(tb.get2()))));
+  }
+  
+  static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, Kind<IO_, A> fa, Kind<IO_, B> fb) {
+    return cancellable(callback -> {
+      
+      IOConnection connection1 = IOConnection.cancellable();
+      IOConnection connection2 = IOConnection.cancellable();
+      
+      Promise<A> promiseA = IOModule.runAsync(IO.forked(executor).andThen(fa), connection1);
+      Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
+
+      promiseA.onComplete(result -> callback.accept(
+          result.map(a -> Either.left(Tuple.of(a, Fiber.of(IO.fromPromise(promiseB), IO.exec(connection2::cancel)))))));
+      promiseB .onComplete(result -> callback.accept(
+          result.map(b -> Either.right(Tuple.of(Fiber.of(IO.fromPromise(promiseA), IO.exec(connection2::cancel)), b)))));
+
+      return IO.exec(() -> {
+        try {
+          connection1.cancel();
+        } finally {
+          connection2.cancel();
+        }
+      });
+    });
   }
 
   static <T> IO<T> raiseError(Throwable error) {
-    return new Failure<>(error);
+    return new IOModule.Failure<>(error);
   }
 
-  static <T> IO<T> delay(Producer<? extends T> lazy) {
-    return suspend(lazy.map(IO::pure));
+  static <T> IO<T> delay(Duration delay, Producer<? extends T> lazy) {
+    return sleep(delay).andThen(task(lazy));
   }
 
-  static <T> IO<T> suspend(Producer<? extends IO<? extends T>> lazy) {
-    return new Suspend<>(lazy);
+  static <T> IO<T> suspend(Producer<? extends Kind<IO_, ? extends T>> lazy) {
+    return new IOModule.Suspend<>(lazy.andThen(IOOf::narrowK));
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -209,9 +257,22 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <T> IO<T> fromEither(Either<Throwable, ? extends T> task) {
     return task.fold(IO::raiseError, IO::pure);
   }
+  
+  static <T> IO<T> fromPromise(Promise<? extends T> promise) {
+    Consumer1<Consumer1<? super Try<? extends T>>> callback = promise::onComplete;
+    return async(callback);
+  }
+  
+  static <T> IO<T> fromCompletableFuture(CompletableFuture<? extends T> promise) {
+    return fromPromise(Promise.from(promise));
+  }
 
   static IO<Unit> sleep(Duration duration) {
-    return new Sleep(duration);
+    return cancellable(callback -> {
+      Future<Unit> sleep = Future.sleep(duration)
+        .onComplete(result -> callback.accept(Try.success(Unit.unit())));
+      return IO.exec(() -> sleep.cancel(true));
+    });
   }
 
   static IO<Unit> exec(CheckedRunnable task) {
@@ -219,412 +280,215 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> task(Producer<? extends T> producer) {
-    return new SyncTask<>(producer);
+    return new IOModule.Delay<>(producer);
+  }
+
+  static <T> IO<T> never() {
+    return async(callback -> {});
+  }
+  
+  static IO<Unit> forked() {
+    return forked(Future.DEFAULT_EXECUTOR);
+  }
+  
+  static IO<Unit> forked(Executor executor) {
+    return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
   static <T> IO<T> async(Consumer1<Consumer1<? super Try<? extends T>>> callback) {
-    return asyncF(callback.asFunction().andThen(IO::pure));
+    return cancellable(callback.asFunction().andThen(IO::pure));
   }
 
-  static <T> IO<T> asyncF(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
-    return new AsyncTask<>(callback);
+  static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+    return new IOModule.Async<>(callback);
   }
 
   static IO<Unit> unit() {
     return IOModule.UNIT;
   }
 
-  static <T, R> IO<R> bracket(IO<? extends T> acquire, 
-      Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
-    return new Bracket<>(acquire, use, release);
+  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Function1<? super T, ? extends Kind<IO_, Unit>> release) {
+    // TODO: test cancellation
+    return cancellable(callback -> {
+      
+      IOConnection cancellable = IOConnection.cancellable();
+      
+      Promise<? extends T> promise = IOModule.runAsync(acquire.fix(IOOf::narrowK), cancellable);
+      
+      promise
+        .onFailure(error -> callback.accept(Try.failure(error)))
+        .onSuccess(resource -> IOModule.runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
+          .onComplete(result -> IOModule.runAsync(release.andThen(IOOf::narrowK).apply(resource), cancellable)
+            .onComplete(ignore -> callback.accept(result))
+        ));
+      
+      return IO.exec(cancellable::cancel);
+    });
   }
 
-  static <T extends AutoCloseable, R> IO<R> bracket(IO<? extends T> acquire, 
-      Function1<? super T, ? extends IO<? extends R>> use) {
+  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Consumer1<? super T> release) {
+    return bracket(acquire, use, release.asFunction().andThen(IO::pure));
+  }
+
+  static <T extends AutoCloseable, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+      Function1<? super T, ? extends Kind<IO_, ? extends R>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
-  static IO<Unit> sequence(Sequence<IO<?>> sequence) {
-    return sequence.fold(unit(), IO::andThen).andThen(unit());
+  static IO<Unit> sequence(Sequence<? extends Kind<IO_, ?>> sequence) {
+    Kind<IO_, ?> initial = IO.unit().kind();
+    return sequence.foldLeft(initial, 
+        (Kind<IO_, ?> a, Kind<IO_, ?> b) -> a.fix(IOOf::narrowK).andThen(b.fix(IOOf::narrowK))).fix(IOOf::narrowK).andThen(IO.unit());
   }
 
-  static <A> IO<Sequence<A>> traverse(Sequence<? extends IO<A>> sequence) {
+  static <A> IO<Sequence<A>> traverse(Sequence<? extends Kind<IO_, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  static <A> IO<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<IO_, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (IO<Sequence<A>> xs, IO<A> a) -> map2(xs, a, Sequence::append));
+        (Kind<IO_, Sequence<A>> xs, Kind<IO_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  static <A, B, C> IO<C> map2(IO<? extends A> fa, IO<? extends B> fb,
+  static <A, B, C> IO<C> parMap2(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb,
                               Function2<? super A, ? super B, ? extends C> mapper) {
-    return fb.ap(fa.map(mapper.curried()));
+    return cancellable(callback -> {
+      
+      IOConnection connection1 = IOConnection.cancellable();
+      IOConnection connection2 = IOConnection.cancellable();
+      
+      Promise<A> promiseA = IOModule.runAsync(IO.forked(executor).andThen(fa), connection1);
+      Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
+      
+      promiseA.onComplete(a -> promiseB.onComplete(b -> callback.accept(Try.map2(a, b, mapper))));
+      
+      return IO.exec(() -> {
+        try {
+          connection1.cancel();
+        } finally {
+          connection2.cancel();
+        }
+      });
+    });
   }
 
-  static <A, B> IO<Tuple2<A, B>> tuple(IO<? extends A> fa, IO<? extends B> fb) {
-    return map2(fa, fb, Tuple::of);
+  static <A, B> IO<Tuple2<A, B>> tuple(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
+    return tuple(Future.DEFAULT_EXECUTOR, fa, fb);
   }
 
-  final class Pure<T> implements SealedIO<T> {
-
-    private final T value;
-
-    protected Pure(T value) {
-      this.value = checkNonNull(value);
-    }
-
-    @Override
-    public T unsafeRunSync() {
-      return value;
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
-      return monad.pure(value);
-    }
-
-    @Override
-    public String toString() {
-      return "Pure(" + value + ")";
-    }
-  }
-
-  final class Apply<A, B> implements SealedIO<B> {
-    
-    private final IO<? extends A> value;
-    private final IO<Function1<? super A, ? extends B>> apply;
-
-    protected Apply(IO<? extends A> value, IO<Function1<? super A, ? extends B>> apply) {
-      this.value = checkNonNull(value);
-      this.apply = checkNonNull(apply);
-    }
-
-    @Override
-    public B unsafeRunSync() {
-      return IOModule.evaluate(value.flatMap(a -> apply.map(map -> map.apply(a))));
-    }
-    
-    @Override
-    public <F extends Witness> Kind<F, B> foldMap(Async<F> monad) {
-      return monad.ap(value.foldMap(monad), apply.foldMap(monad));
-    }
-    
-    @Override
-    public String toString() {
-      return "Apply(" + value + ", ?)";
-    }
-  }
-
-  final class FlatMapped<T, R> implements SealedIO<R> {
-
-    private final Producer<? extends IO<? extends T>> current;
-    private final Function1<? super T, ? extends IO<? extends R>> next;
-
-    protected FlatMapped(Producer<? extends IO<? extends T>> current,
-                         Function1<? super T, ? extends IO<? extends R>> next) {
-      this.current = checkNonNull(current);
-      this.next = checkNonNull(next);
-    }
-
-    @Override
-    public R unsafeRunSync() {
-      return IOModule.evaluate(this);
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
-      return monad.flatMap(
-        current.andThen(IOOf::<T>narrowK).get().foldMap(monad), 
-        next.andThen(IOOf::<R>narrowK).andThen(io -> io.foldMap(monad)));
-    }
-
-    @Override
-    public <R1> IO<R1> flatMap(Function1<? super R, ? extends Kind<IO_, ? extends R1>> map) {
-      return new FlatMapped<>(this::start, r -> new FlatMapped<>(() -> run(r), map.andThen(IOOf::narrowK)::apply));
-    }
-
-    @Override
-    public String toString() {
-      return "FlatMapped(" + current + ", ?)";
-    }
-
-    protected IO<T> start() {
-      return current.andThen(IOOf::<T>narrowK).get();
-    }
-
-    protected IO<R> run(T value) {
-      Function1<? super T, IO<R>> andThen = next.andThen(IOOf::narrowK);
-      return andThen.apply(value);
-    }
-  }
-
-  final class Failure<T> implements SealedIO<T>, Recoverable {
-
-    private final Throwable error;
-
-    protected Failure(Throwable error) {
-      this.error = checkNonNull(error);
-    }
-
-    @Override
-    public T unsafeRunSync() {
-      return sneakyThrow(error);
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
-      return monad.raiseError(error);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <R> IO<R> map(Function1<? super T, ? extends R> map) {
-      return (IO<R>) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-      return (IO<R>) this;
-    }
-
-    @Override
-    public String toString() {
-      return "Failure(" + error + ")";
-    }
-  }
-
-  final class SyncTask<T> implements SealedIO<T> {
-
-    private final Producer<? extends T> task;
-
-    protected SyncTask(Producer<? extends T> task) {
-      this.task = checkNonNull(task);
-    }
-
-    @Override
-    public T unsafeRunSync() {
-      return task.get();
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
-      return monad.later(task);
-    }
-
-    @Override
-    public String toString() {
-      return "Task(?)";
-    }
-  }
-
-  final class AsyncTask<T> implements SealedIO<T> {
-
-    private final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
-
-    protected AsyncTask(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
-      this.callback = checkNonNull(callback);
-    }
-
-    @Override
-    public T unsafeRunSync() {
-      Promise<T> promise = Promise.make();
-      IOModule.evaluate(callback.apply(promise::tryComplete));
-      return promise.await().getOrElseThrow();
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
-      return monad.asyncF(c -> callback.apply(c).foldMap(monad));
-    }
-
-    @Override
-    public String toString() {
-      return "Async(?)";
-    }
-  }
-
-  final class Suspend<T> implements SealedIO<T> {
-
-    private final Producer<? extends IO<? extends T>> lazy;
-
-    protected Suspend(Producer<? extends IO<? extends T>> lazy) {
-      this.lazy = checkNonNull(lazy);
-    }
-
-    @Override
-    public T unsafeRunSync() {
-      return IOModule.collapse(this).unsafeRunSync();
-    }
-
-    @Override
-    public <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-      return new FlatMapped<>(lazy::get, map.andThen(IOOf::narrowK)::apply);
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, T> foldMap(Async<F> monad) {
-      return monad.defer(() -> lazy.get().foldMap(monad));
-    }
-
-    @Override
-    public String toString() {
-      return "Suspend(?)";
-    }
-
-    protected IO<T> next() {
-      return lazy.andThen(IOOf::<T>narrowK).get();
-    }
-  }
-
-  final class Sleep implements SealedIO<Unit>, Recoverable {
-
-    private final Duration duration;
-
-    public Sleep(Duration duration) {
-      this.duration = checkNonNull(duration);
-    }
-
-    @Override
-    public Unit unsafeRunSync() {
-      try {
-        Thread.sleep(duration.toMillis());
-        return Unit.unit();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return sneakyThrow(e);
-      }
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, Unit> foldMap(Async<F> monad) {
-      return monad.sleep(duration);
-    }
-
-    @Override
-    public String toString() {
-      return "Sleep(" + duration + ')';
-    }
-  }
-
-  final class Bracket<T, R> implements SealedIO<R> {
-
-    private final IO<? extends T> acquire;
-    private final Function1<? super T, ? extends IO<? extends R>> use;
-    private final Consumer1<? super T> release;
-
-    protected Bracket(IO<? extends T> acquire, Function1<? super T, ? extends IO<? extends R>> use, Consumer1<? super T> release) {
-      this.acquire = checkNonNull(acquire);
-      this.use = checkNonNull(use);
-      this.release = checkNonNull(release);
-    }
-
-    @Override
-    public R unsafeRunSync() {
-      try (IOResource<T> resource = new IOResource<>(IOModule.evaluate(acquire), release)) {
-        return IOModule.evaluate(resource.apply(use));
-      }
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, R> foldMap(Async<F> monad) {
-      return monad.bracket(acquire.foldMap(monad), use.andThen(io -> io.foldMap(monad)), release);
-    }
-
-    @Override
-    public String toString() {
-      return "Bracket(" + acquire + ", ?, ?)";
-    }
-  }
-  
-  final class Timed<A> implements SealedIO<Tuple2<Duration, A>> {
-    
-    private final IO<A> current;
-
-    protected Timed(IO<A> current) {
-      this.current = checkNonNull(current);
-    }
-    
-    @Override
-    public Tuple2<Duration, A> unsafeRunSync() {
-      long start = System.nanoTime();
-      A result = IOModule.evaluate(current);
-      return Tuple.of(Duration.ofNanos(System.nanoTime() - start), result);
-    }
-    
-    @Override
-    public <F extends Witness> Kind<F, Tuple2<Duration, A>> foldMap(Async<F> monad) {
-      return monad.timed(current.foldMap(monad));
-    }
-    
-    @Override
-    public String toString() {
-      return "Timed(" + current + ')';
-    }
-  }
-
-  final class Attempt<T> implements SealedIO<Try<T>> {
-
-    private final IO<T> current;
-
-    protected Attempt(IO<T> current) {
-      this.current = checkNonNull(current);
-    }
-
-    @Override
-    public Try<T> unsafeRunSync() {
-      return Try.of(() -> IOModule.evaluate(current));
-    }
-
-    @Override
-    public <F extends Witness> Kind<F, Try<T>> foldMap(Async<F> monad) {
-      return monad.map(monad.attempt(current.foldMap(monad)), Try::fromEither);
-    }
-
-    @Override
-    public String toString() {
-      return "Attempt(" + current + ")";
-    }
+  static <A, B> IO<Tuple2<A, B>> tuple(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
+    return parMap2(executor, fa, fb, Tuple::of);
   }
 }
 
 interface IOModule {
 
   IO<Unit> UNIT = IO.pure(Unit.unit());
-
-  @SuppressWarnings("unchecked")
-  static <A, X> IO<A> collapse(IO<A> self) {
-    IO<A> current = self;
-    while (true) {
-      if (current instanceof IO.Suspend) {
-        IO.Suspend<A> suspend = (IO.Suspend<A>) current;
-        current = suspend.next();
-      } else if (current instanceof IO.FlatMapped) {
-        IO.FlatMapped<X, A> flatMapped = (IO.FlatMapped<X, A>) current;
-        return new IO.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
-      } else break;
-    }
-    return current;
+  
+  static <T> Promise<T> runAsync(IO<T> current, IOConnection connection) {
+    return runAsync(current, connection, new CallStack<>(), Promise.make());
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
-  static <A> A evaluate(IO<A> self) {
-    Deque<Function1<Object, IO>> stack = new LinkedList<>();
-    IO<A> current = self;
+  @SuppressWarnings("unchecked")
+  static <T, U, V> Promise<T> runAsync(IO<T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
     while (true) {
-      if (current instanceof IO.FlatMapped) {
-        IO.FlatMapped currentFlatMapped = (IO.FlatMapped) current;
-        IO<A> next = currentFlatMapped.start();
-        if (next instanceof IO.FlatMapped) {
-          IO.FlatMapped nextFlatMapped = (IO.FlatMapped) next;
-          current = nextFlatMapped.start();
-          stack.push(currentFlatMapped::run);
-          stack.push(nextFlatMapped::run);
-        } else {
-          current = currentFlatMapped.run(next.unsafeRunSync());
+      try {
+        current = unwrap(current, stack, identity());
+        
+        if (current instanceof Pure) {
+          return promise.succeeded(((Pure<T>) current).value);
         }
-      } else if (!stack.isEmpty()) {
-        current = stack.pop().apply(current.unsafeRunSync());
-      } else break;
+        
+        if (current instanceof Async) {
+          return executeAsync((Async<T>) current, connection, promise);
+        }
+        
+        if (current instanceof FlatMapped) {
+          stack.push();
+          
+          FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
+          IO<? extends U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next));
+          
+          if (source instanceof Async) {
+            Promise<U> nextPromise = Promise.make();
+            
+            nextPromise.then(u -> {
+              Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
+              runAsync(andThen.apply(u), connection, stack, promise);
+            });
+            
+            executeAsync((Async<U>) source, connection, nextPromise);
+            
+            return promise;
+          }
+
+          if (source instanceof Pure) {
+            Pure<U> pure = (Pure<U>) source;
+            Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
+            current = andThen.apply(pure.value);
+          } else if (source instanceof FlatMapped) {
+            FlatMapped<V, U> flatMapped2 = (FlatMapped<V, U>) source;
+            current = flatMapped2.current.flatMap(a -> flatMapped2.next.apply(a).flatMap(flatMapped.next));
+          }
+        } else {
+          stack.pop();
+        }
+      } catch (Throwable error) {
+        Option<IO<T>> result = stack.tryHandle(error);
+        
+        if (result.isPresent()) {
+          current = result.get();
+        } else {
+          return promise.failed(error);
+        }
+      }
     }
-    return current.unsafeRunSync();
+  }
+
+  static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
+    while (true) {
+      if (current instanceof Failure) {
+        Failure<T> failure = (Failure<T>) current;
+        return stack.sneakyThrow(failure.error);
+      } else if (current instanceof Recover) {
+        Recover<T> recover = (Recover<T>) current;
+        stack.add(recover.mapper.andThen(next));
+        current = recover.current;
+      } else if (current instanceof Suspend) {
+        Suspend<T> suspend = (Suspend<T>) current;
+        Producer<IO<T>> andThen = (suspend).lazy.andThen(IOOf::narrowK);
+        current = andThen.get();
+      } else if (current instanceof Delay) {
+        Delay<T> delay = (Delay<T>) current;
+        return IO.pure(delay.task.get());
+      } else if (current instanceof Pure) {
+        return current;
+      } else if (current instanceof FlatMapped) {
+        return current;
+      } else if (current instanceof Async) {
+        return current;
+      } else {
+        throw new IllegalStateException();
+      }
+    }
+  }
+
+  static <T> Promise<T> executeAsync(Async<T> current, IOConnection connection, Promise<T> promise) {
+    if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
+      return promise.cancel();
+    }
+    
+    connection.setCancelToken(current.callback.apply(promise::tryComplete));
+    
+    promise.thenRun(() -> connection.setCancelToken(UNIT));
+    
+    if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancellingNow()) {
+      connection.cancelNow();
+    }
+
+    return promise;
   }
 
   static <T> IO<T> repeat(IO<T> self, IO<Unit> pause, int times) {
@@ -642,24 +506,306 @@ interface IOModule {
       } else return IO.raiseError(error);
     }, IO::pure);
   }
+
+  final class Pure<T> implements SealedIO<T> {
+
+    private final T value;
+
+    protected Pure(T value) {
+      this.value = checkNonNull(value);
+    }
+
+    @Override
+    public String toString() {
+      return "Pure(" + value + ")";
+    }
+  }
+
+  final class Failure<T> implements SealedIO<T>, Recoverable {
+
+    private final Throwable error;
+
+    protected Failure(Throwable error) {
+      this.error = checkNonNull(error);
+    }
+
+    @Override
+    public String toString() {
+      return "Failure(" + error + ")";
+    }
+  }
+
+  final class FlatMapped<T, R> implements SealedIO<R> {
+
+    private final IO<? extends T> current;
+    private final Function1<? super T, ? extends IO<? extends R>> next;
+
+    protected FlatMapped(IO<? extends T> current,
+                         Function1<? super T, ? extends IO<? extends R>> next) {
+      this.current = checkNonNull(current);
+      this.next = checkNonNull(next);
+    }
+
+    @Override
+    public String toString() {
+      return "FlatMapped(" + current + ", ?)";
+    }
+  }
+
+  final class Delay<T> implements SealedIO<T> {
+
+    private final Producer<? extends T> task;
+
+    protected Delay(Producer<? extends T> task) {
+      this.task = checkNonNull(task);
+    }
+
+    @Override
+    public String toString() {
+      return "Delay(?)";
+    }
+  }
+
+  final class Async<T> implements SealedIO<T> {
+
+    private final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
+
+    protected Async(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+      this.callback = checkNonNull(callback);
+    }
+
+    @Override
+    public String toString() {
+      return "Async(?)";
+    }
+  }
+
+  final class Suspend<T> implements SealedIO<T> {
+
+    private final Producer<? extends IO<? extends T>> lazy;
+
+    protected Suspend(Producer<? extends IO<? extends T>> lazy) {
+      this.lazy = checkNonNull(lazy);
+    }
+
+    @Override
+    public String toString() {
+      return "Suspend(?)";
+    }
+  }
+
+  final class Recover<T> implements SealedIO<T> {
+
+    private final IO<T> current;
+    private final PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper;
+
+    protected Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper) {
+      this.current = checkNonNull(current);
+      this.mapper = checkNonNull(mapper);
+    }
+
+    @Override
+    public String toString() {
+      return "Recover(" + current + ", ?)";
+    }
+  }
 }
 
-final class IOResource<T> implements AutoCloseable {
+interface IOConnection {
+  
+  IOConnection UNCANCELLABLE = new IOConnection() {
+    @Override
+    public boolean isCancellable() { return false; }
 
-  private final T resource;
-  private final Consumer1<? super T> release;
+    @Override
+    public void setCancelToken(IO<Unit> cancel) { }
 
-  IOResource(T resource, Consumer1<? super T> release) {
-    this.resource = checkNonNull(resource);
-    this.release = checkNonNull(release);
+    @Override
+    public void cancelNow() { }
+
+    @Override
+    public void cancel() { }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
+  };
+  
+  boolean isCancellable();
+
+  void setCancelToken(IO<Unit> cancel);
+  
+  void cancelNow();
+  
+  void cancel();
+  
+  StateIO updateState(Operator1<StateIO> update);
+  
+  static IOConnection cancellable() {
+    return new IOConnection() {
+      
+      private IO<Unit> cancelToken;
+      private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
+      
+      @Override
+      public boolean isCancellable() { return true; }
+      
+      @Override
+      public void setCancelToken(IO<Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
+      
+      @Override
+      public void cancelNow() { cancelToken.runAsync(); }
+      
+      @Override
+      public void cancel() {
+        if (state.getAndUpdate(StateIO::cancellingNow).isCancelable()) {
+          cancelNow();
+        
+          state.set(StateIO.CANCELLED);
+        }
+      }
+      
+      @Override
+      public StateIO updateState(Operator1<StateIO> update) {
+        return state.updateAndGet(update::apply);
+      }
+    };
+  }
+}
+
+final class StateIO {
+  
+  public static final StateIO INITIAL = new StateIO(false, false, false);
+  public static final StateIO CANCELLED = new StateIO(true, false, false);
+  
+  private final boolean isCancelled;
+  private final boolean cancellingNow;
+  private final boolean startingNow;
+  
+  public StateIO(boolean isCancelled, boolean cancellingNow, boolean startingNow) {
+    this.isCancelled = isCancelled;
+    this.cancellingNow = cancellingNow;
+    this.startingNow = startingNow;
+  }
+  
+  public boolean isCancelled() {
+    return isCancelled;
+  }
+  
+  public boolean isCancellingNow() {
+    return cancellingNow;
+  }
+  
+  public boolean isStartingNow() {
+    return startingNow;
+  }
+  
+  public StateIO cancellingNow() {
+    return new StateIO(isCancelled, true, startingNow);
+  }
+  
+  public StateIO startingNow() {
+    return new StateIO(isCancelled, cancellingNow, true);
+  }
+  
+  public StateIO notStartingNow() {
+    return new StateIO(isCancelled, cancellingNow, false);
+  }
+  
+  public boolean isCancelable() {
+    return !isCancelled && !cancellingNow && !startingNow;
+  }
+  
+  public boolean isRunnable() {
+    return !isCancelled && !cancellingNow;
+  }
+}
+
+final class CallStack<T> implements Recoverable {
+  
+  private StackItem<T> top = new StackItem<>();
+  
+  public void push() {
+    top.push();
   }
 
-  public <R> IO<R> apply(Function1<? super T, ? extends IO<? extends R>> use) {
-    return use.andThen(IOOf::<R>narrowK).apply(resource);
+  public void pop() {
+    if (top.count() > 0) {
+      top.pop();
+    } else {
+      top = top.prev();
+    }
+  }
+  
+  public void add(PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError) {
+    if (top.count() > 0) {
+      top.pop();
+      top = new StackItem<>(top);
+    }
+    top.add(mapError);
+  }
+  
+  public Option<IO<T>> tryHandle(Throwable error) {
+    while (top != null) {
+      top.reset();
+      Option<IO<T>> result = top.tryHandle(error);
+      
+      if (result.isPresent()) {
+        return result;
+      } else {
+        top = top.prev();
+      }
+    }
+    return Option.none();
+  }
+}
+
+final class StackItem<T> {
+  
+  private int count = 0;
+  private final Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new LinkedList<>();
+
+  private final StackItem<T> prev;
+
+  public StackItem() {
+    this(null);
   }
 
-  @Override
-  public void close() {
-    release.accept(resource);
+  public StackItem(StackItem<T> prev) {
+    this.prev = prev;
+  }
+  
+  public StackItem<T> prev() {
+    return prev;
+  }
+  
+  public int count() {
+    return count;
+  }
+  
+  public void push() {
+    count++;
+  }
+  
+  public void pop() {
+    count--;
+  }
+  
+  public void reset() {
+    count = 0;
+  }
+  
+  public void add(PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError) {
+    recover.addFirst(mapError);
+  }
+
+  public Option<IO<T>> tryHandle(Throwable error) {
+    while (!recover.isEmpty()) {
+      PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError = recover.removeFirst();
+      if (mapError.isDefinedAt(error)) {
+        PartialFunction1<? super Throwable, IO<T>> andThen = mapError.andThen(IOOf::narrowK);
+        return Option.some(andThen.apply(error));
+      }
+    }
+    return Option.none();
   }
 }

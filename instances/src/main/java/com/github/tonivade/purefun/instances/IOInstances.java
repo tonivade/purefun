@@ -4,29 +4,29 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -42,7 +42,11 @@ public interface IOInstances {
   }
 
   static Applicative<IO_> applicative() {
-    return IOApplicative.INSTANCE;
+    return applicative(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Applicative<IO_> applicative(Executor executor) {
+    return IOApplicative.instance(executor);
   }
 
   static Monad<IO_> monad() {
@@ -67,6 +71,14 @@ public interface IOInstances {
 
   static Async<IO_> async() {
     return IOAsync.INSTANCE;
+  }
+
+  static Concurrent<IO_> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Concurrent<IO_> concurrent(Executor executor) {
+    return IOConcurrent.instance(executor);
   }
 
   static Console<IO_> console() {
@@ -97,13 +109,17 @@ interface IOPure extends Applicative<IO_> {
 }
 
 interface IOApplicative extends IOPure, Applicative<IO_> {
+  
+  static IOApplicative instance(Executor executor) {
+    return () -> executor;
+  }
 
-  IOApplicative INSTANCE = new IOApplicative() {};
+  Executor executor();
 
   @Override
   default <T, R> IO<R> ap(Kind<IO_, ? extends T> value, 
       Kind<IO_, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(IOOf::<T>narrowK).ap(apply.fix(IOOf::narrowK));
+    return IO.parMap2(executor(), value.fix(toIO()), apply.fix(toIO()), (v, a) -> a.apply(v));
   }
 }
 
@@ -152,9 +168,11 @@ interface IODefer extends Defer<IO_> {
 interface IOBracket extends IOMonadError, Bracket<IO_, Throwable> {
 
   @Override
-  default <A, B> IO<B> bracket(Kind<IO_, ? extends A> acquire, 
-      Function1<? super A, ? extends Kind<IO_, ? extends B>> use, Consumer1<? super A> release) {
-    return IO.bracket(acquire.fix(toIO()), use.andThen(IOOf::narrowK), release::accept);
+  default <A, B> IO<B> bracket(
+      Kind<IO_, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<IO_, ? extends B>> use, 
+      Function1<? super A, ? extends Kind<IO_, Unit>> release) {
+    return IO.bracket(acquire, use, release);
   }
 }
 
@@ -174,7 +192,26 @@ interface IOAsync extends Async<IO_>, IOMonadDefer {
   
   @Override
   default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO_, Unit>> consumer) {
-    return IO.asyncF(consumer.andThen(IOOf::narrowK));
+    return IO.cancellable(consumer.andThen(IOOf::narrowK));
+  }
+}
+
+interface IOConcurrent extends Concurrent<IO_>, IOAsync {
+  
+  static IOConcurrent instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Kind<IO_, A> fa, Kind<IO_, B> fb) {
+    return IO.racePair(executor(), fa.fix(toIO()), fb.fix(toIO()));
+  }
+  
+  @Override
+  default <A> IO<Fiber<IO_, A>> fork(Kind<IO_, A> value) {
+    return value.fix(toIO()).fork();
   }
 }
 
@@ -211,7 +248,7 @@ interface IORuntime extends Runtime<IO_> {
 
   @Override
   default <T> Future<T> parRun(Kind<IO_, T> value, Executor executor) {
-    return value.fix(toIO()).foldMap(async(executor)).fix(toFuture());
+    return value.fix(toIO()).runAsync();
   }
   
   @Override

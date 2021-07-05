@@ -4,13 +4,9 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.RIOOf.toRIO;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -161,8 +157,8 @@ interface RIOBracket<R> extends RIOMonadError<R>, Bracket<Kind<RIO_, R>, Throwab
   default <A, B> RIO<R, B>
           bracket(Kind<Kind<RIO_, R>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use,
-                  Consumer1<? super A> release) {
-    return RIO.bracket(acquire.fix(toRIO()), use.andThen(RIOOf::narrowK), release);
+                  Function1<? super A, ? extends Kind<Kind<RIO_, R>, Unit>> release) {
+    return RIO.bracket(acquire.fix(toRIO()), use.andThen(RIOOf::narrowK), release::apply);
   }
 }
 
@@ -185,7 +181,7 @@ interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
   
   @Override
   default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO_, R>, Unit>> consumer) {
-    return RIO.asyncF(consumer.andThen(RIOOf::narrowK));
+    return RIO.cancellable((env, cb) -> consumer.andThen(RIOOf::narrowK).apply(cb));
   }
 }
 
@@ -227,7 +223,7 @@ interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<RIO_, R>, T> value, Executor executor) {
-    return value.fix(toRIO()).foldMap(env(), async(executor)).fix(toFuture());
+    return value.fix(toRIO()).runAsync(env());
   }
   
   @Override

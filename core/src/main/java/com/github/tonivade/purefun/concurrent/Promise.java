@@ -5,20 +5,21 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
+import com.github.tonivade.purefun.Bindable;
+import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
@@ -27,6 +28,10 @@ import com.github.tonivade.purefun.type.TryOf;
 public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
 
   boolean tryComplete(Try<? extends T> value);
+
+  default Promise<T> cancel() {
+    return failed(new CancellationException());
+  }
 
   default Promise<T> complete(Try<? extends T> value) {
     if (tryComplete(value)) {
@@ -52,9 +57,24 @@ public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
     return onComplete(value -> value.onFailure(consumer));
   }
   
+  @Override
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
   
+  @Override
+  default <R> Promise<R> andThen(Kind<Promise_, ? extends R> next) {
+    return PromiseOf.narrowK(Bindable.super.andThen(next));
+  }
+  
+  @Override
   <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper);
+  
+  default Promise<Unit> then(Consumer1<? super T> next) {
+    return map(next.asFunction());
+  }
+  
+  default Promise<Unit> thenRun(CheckedRunnable next) {
+    return map(next.asProducer().asFunction());
+  }
 
   Try<T> await();
   Try<T> await(Duration timeout);

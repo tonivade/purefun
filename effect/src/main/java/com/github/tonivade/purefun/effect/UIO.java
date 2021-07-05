@@ -12,6 +12,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
@@ -26,14 +27,14 @@ import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
@@ -44,6 +45,10 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   UIO(ZIO<Nothing, Nothing, A> value) {
     this.instance = checkNonNull(value);
+  }
+  
+  public Future<A> runAsync() {
+    return instance.runAsync(nothing()).map(Either::getRight);
   }
 
   public A unsafeRunSync() {
@@ -78,24 +83,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return new Task<>(ZIO.redeem(instance));
   }
 
-  public Future<A> toFuture() {
-    return toFuture(Future.DEFAULT_EXECUTOR);
-  }
-
-  public Future<A> toFuture(Executor executor) {
-    return instance.toFuture(executor, nothing());
-  }
-
-  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, nothing(), callback);
-  }
-
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
-  }
-
-  public <F extends Witness> Kind<F, A> foldMap(Async<F> monad) {
-    return instance.foldMap(nothing(), monad);
+    instance.provideAsync(nothing(), x -> callback.accept(x.map(Either::getRight)));
   }
 
   @Override
@@ -166,7 +155,26 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   @Override
   public <B, C> UIO<C> zipWith(Kind<UIO_, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(UIOOf.toUIO()), mapper);
+    return parMap2(this, other.fix(UIOOf.toUIO()), mapper);
+  }
+  
+  public UIO<Fiber<UIO_, A>> fork() {
+    return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+      @Override
+      public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
+        return new UIO<>(from.fix(ZIOOf::narrowK));
+      }
+    })));
+  }
+
+  public UIO<A> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  public UIO<A> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(UIOOf.toUIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(UIOOf.toUIO()).flatMap(x -> UIO.raiseError(new TimeoutException()))));
   }
 
   @Override
@@ -221,10 +229,47 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public UIO<Tuple2<Duration, A>> timed() {
     return new UIO<>(instance.timed());
   }
+  
+  public static UIO<Unit> forked(Executor executor) {
+    return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
+  }
 
-  public static <A, B, C> UIO<C> map2(UIO<? extends A> za, UIO<? extends B> zb, 
+  public static <A, B, C> UIO<C> parMap2(UIO<? extends A> za, UIO<? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new UIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  public static <A, B, C> UIO<C> parMap2(Executor executor, UIO<? extends A> za, UIO<? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return new UIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
+  }
+  
+  public static <A, B> UIO<Either<A, B>> race(Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
+    return race(Future.DEFAULT_EXECUTOR, fa, fb);
+  }
+  
+  public static <A, B> UIO<Either<A, B>> race(Executor executor, Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
+    return racePair(executor, fa, fb).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(UIOOf.toUIO()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(UIOOf.toUIO()).map(x -> Either.right(tb.get2()))));
+  }
+  
+  public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>> 
+      racePair(Executor executor, Kind<UIO_, A> fa, Kind<UIO_, B> fb) {
+    ZIO<Nothing, Nothing, A> instance1 = fa.fix(UIOOf.toUIO()).instance;
+    ZIO<Nothing, Nothing, B> instance2 = fb.fix(UIOOf.toUIO()).instance;
+    return new UIO<>(ZIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+        @Override
+        public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
+          return new UIO<>(from.fix(ZIOOf::narrowK));
+        }
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+        @Override
+        public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
+          return new UIO<>(from.fix(ZIOOf::narrowK));
+        }
+      })))));
   }
 
   public static <A, B> Function1<A, UIO<B>> lift(Function1<? super A, ? extends B> function) {
@@ -279,17 +324,27 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   
-  public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return fold(ZIO.async(consumer));
+  public static <A> UIO<A> never() {
+    return async(cb -> {});
   }
   
-  public static <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return fold(ZIO.asyncF(consumer.andThen(UIO::toZIO)));
+  public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
+    return fold(ZIO.async(
+        (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
+  }
+  
+  public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
+    return fold(ZIO.cancellable(
+        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toZIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  public static <A> UIO<Sequence<A>> traverse(Executor executor, Sequence<? extends UIO<A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (UIO<Sequence<A>> xs, UIO<A> a) -> map2(xs, a, Sequence::append));
+        (UIO<Sequence<A>> xs, UIO<A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(
@@ -302,6 +357,12 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
       Function1<? super A, ? extends UIO<? extends B>> use, Consumer1<? super A> release) {
     return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
         resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release));
+  }
+
+  public static <A, B> UIO<B> bracket(UIO<? extends A> acquire, 
+      Function1<? super A, ? extends UIO<? extends B>> use, Function1<? super A, ? extends UIO<Unit>> release) {
+    return fold(ZIO.bracket(ZIO.redeem(acquire.instance), 
+        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release.andThen(UIO::toZIO)));
   }
 
   public static UIO<Unit> unit() {

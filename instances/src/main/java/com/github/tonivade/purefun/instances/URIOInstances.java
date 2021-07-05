@@ -4,13 +4,9 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.URIOOf.toURIO;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -161,8 +157,8 @@ interface URIOBracket<R> extends URIOMonadError<R>, Bracket<Kind<URIO_, R>, Thro
   default <A, B> URIO<R, B>
           bracket(Kind<Kind<URIO_, R>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use,
-                  Consumer1<? super A> release) {
-    return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release);
+                  Function1<? super A, ? extends Kind<Kind<URIO_, R>, Unit>> release) {
+    return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release::apply);
   }
 }
 
@@ -173,7 +169,7 @@ interface URIOAsync<R> extends Async<Kind<URIO_, R>>, URIOMonadDefer<R> {
   
   @Override
   default <A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<URIO_, R>, Unit>> consumer) {
-    return URIO.asyncF(consumer.andThen(URIOOf::narrowK));
+    return URIO.cancellable((env, cb) -> consumer.andThen(URIOOf::narrowK).apply(cb));
   }
 }
 
@@ -227,7 +223,7 @@ interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<URIO_, R>, T> value, Executor executor) {
-    return value.fix(toURIO()).foldMap(env(), async(executor)).fix(toFuture());
+    return value.fix(toURIO()).runAsync(env());
   }
   
   @Override

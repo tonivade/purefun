@@ -6,45 +6,119 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
-import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.effect.ZIOOf.toZIO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
-
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.FutureInstances;
-import com.github.tonivade.purefun.instances.ParInstances;
+import com.github.tonivade.purefun.instances.ZIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
 public class ZIOTest {
+  
+  @Test
+  public void recover() {
+    ZIO<Nothing, Nothing, String> ups = ZIO.fromEither(() -> {
+      throw new RuntimeException("ups!");
+    });
+    
+    assertEquals("ups!", ZIO.redeem(ups).provide(nothing()).getLeft().getMessage());
+  }
+  
+  @Test
+  public void accessM() {
+    ZIO<String, Nothing, String> access = ZIO.<String, Nothing, String>access(a -> a.toUpperCase());
+    
+    assertEquals(Either.right("HELLO WORLD"), access.provide("hello world"));
+  }
+  
+  @Test
+  public void pure() {
+    Either<Nothing, String> result = ZIO.<Nothing, Nothing, String>pure("hello world").provide(nothing());
+    
+    assertEquals(Either.right("hello world"), result);
+  }
+
+  @Test
+  public void failure() {
+    Either<String, Integer> result = ZIO.<Nothing, String, Integer>raiseError("error").provide(nothing());
+
+    assertEquals(Either.left("error"), result);
+  }
+
+  @Test
+  public void swapLeft() {
+    Either<Integer, String> result = ZIO.<Nothing, String, Integer>raiseError("error").swap().provide(nothing());
+
+    assertEquals(Either.right("error"), result);
+  }
+
+  @Test
+  public void swapRight() {
+    Either<String, Integer> result = ZIO.<Nothing, Integer, String>pure("value").swap().provide(nothing());
+    
+    assertEquals(Either.left("value"), result);
+  }
+  
+  @Test
+  public void task() {
+    Either<Throwable, String> result = ZIO.<Nothing, String>task(() -> "hello world").provide(nothing());
+
+    assertEquals(Either.right("hello world"), result);
+  }
+  
+  @Test
+  public void laterRight() {
+    Either<Throwable, String> result = ZIO.<Nothing, Throwable, String>fromEither(() -> Either.right("hello world")).provide(nothing());
+
+    assertEquals(Either.right("hello world"), result);
+  }
+  
+  @Test
+  public void laterLeft() {
+    Either<String, Throwable> result = ZIO.<Nothing, String, Throwable>fromEither(() -> Either.left("hello world")).provide(nothing());
+
+    assertEquals(Either.left("hello world"), result);
+  }
+  
+  @Test
+  public void deferRight() {
+    Either<Throwable, String> result = ZIO.<Nothing, Throwable, String>defer(() -> ZIO.pure("hello world")).provide(nothing());
+
+    assertEquals(Either.right("hello world"), result);
+  }
+  
+  @Test
+  public void deferLeft() {
+    Either<String, Throwable> result = ZIO.<Nothing, String, Throwable>defer(() -> ZIO.raiseError("hello world")).provide(nothing());
+
+    assertEquals(Either.left("hello world"), result);
+  }
 
   @Test
   public void mapRight() {
@@ -112,18 +186,18 @@ public class ZIOTest {
 
   @Test
   public void foldRight() {
-    Either<Nothing, Integer> result =
-        parseInt("1").fold(e -> -1, identity()).provide(nothing());
+    Integer result =
+        parseInt("1").fold(e -> -1, identity()).unsafeRunSync(nothing());
 
-    assertEquals(Either.right(1), result);
+    assertEquals(1, result);
   }
 
   @Test
   public void foldLeft() {
-    Either<Nothing, Integer> result =
-        parseInt("kjsdfdf").fold(e -> -1, identity()).provide(nothing());
+    Integer result =
+        parseInt("kjsdfdf").fold(e -> -1, identity()).unsafeRunSync(nothing());
 
-    assertEquals(Either.right(-1), result);
+    assertEquals(-1, result);
   }
 
   @Test
@@ -154,26 +228,26 @@ public class ZIOTest {
   
   @Test
   public void asyncSuccess() {
-    UIO<String> async = UIO.async(callback -> {
+    ZIO<Nothing, Throwable, String> async = ZIO.async((env, callback) -> {
       Thread.sleep(100);
-      callback.accept(Try.success("1"));
+      callback.accept(Try.success(Either.right("1")));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    Either<Throwable, String> result = async.provide(nothing());
     
-    assertEquals("1", foldMap.get());
+    assertEquals("1", result.get());
   }
   
   @Test
   public void asyncFailure() {
-    UIO<String> async = UIO.async(callback -> {
+    ZIO<Nothing, Throwable, String> async = ZIO.async((env, callback) -> {
       Thread.sleep(100);
-      callback.accept(Try.failure(new UnsupportedOperationException()));
+      callback.accept(Try.success(Either.left(new UnsupportedOperationException())));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    Either<Throwable, String> result = async.provide(nothing());
    
-    assertThrows(UnsupportedOperationException.class, foldMap::get);
+    assertTrue(result.getLeft() instanceof UnsupportedOperationException);
   }
 
   @Test
@@ -188,10 +262,7 @@ public class ZIOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    ImmutableList<String> result =
-        program.foldMap(FutureInstances.async())
-            .fix(toFuture())
-            .await().get();
+    ImmutableList<String> result = program.runAsync().await().get();
 
     assertEquals(5, result.size());
   }
@@ -204,24 +275,6 @@ public class ZIOTest {
     Either<Throwable, Integer> result = ZIO.absorb(task).provide(nothing());
 
     assertEquals(error, result.getLeft());
-  }
-
-  @Test
-  public void foldMapRight() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("0").foldMap(nothing(), async);
-
-    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
-  }
-
-  @Test
-  public void foldMapLeft() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("kjsdf").foldMap(nothing(), async);
-
-    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
   }
 
   @Test
@@ -249,36 +302,10 @@ public class ZIOTest {
   }
 
   @Test
-  public void retrySuccessFuture(@Mock Producer<Either<Throwable, ? extends String>> computation) {
-    Mockito.<Either<Throwable, ? extends String>>when(computation.get())
-        .thenReturn(Either.left(new UnsupportedOperationException()))
-        .thenReturn(Either.left(new UnsupportedOperationException()))
-        .thenReturn(Either.left(new UnsupportedOperationException()))
-        .thenReturn(Either.right("OK"));
-
-    Future<String> provide = ZIO.fromEither(computation).retry(Duration.ofMillis(100), 3)
-      .foldMap(nothing(), FutureInstances.async()).fix(toFuture());
-
-    assertEquals("OK", provide.get());
-    verify(computation, times(4)).get();
-  }
-
-  @Test
   public void repeatSuccess(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     Mockito.<Either<Throwable, ? extends String>>when(computation.get()).thenReturn(Either.right("hola"));
 
     Either<Throwable, String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3).provide(nothing());
-
-    assertEquals("hola", provide.get());
-    verify(computation, times(4)).get();
-  }
-
-  @Test
-  public void repeatSuccessFuture(@Mock Producer<Either<Throwable, ? extends String>> computation) {
-    Mockito.<Either<Throwable, ? extends String>>when(computation.get()).thenReturn(Either.right("hola"));
-
-    Future<String> provide = ZIO.fromEither(computation).repeat(Duration.ofMillis(100), 3)
-      .foldMap(nothing(), FutureInstances.async()).fix(toFuture());
 
     assertEquals("hola", provide.get());
     verify(computation, times(4)).get();
@@ -300,7 +327,7 @@ public class ZIOTest {
   
   @Test
   public void timed() {
-    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = ZIO.<Nothing>sleep(Duration.ofMillis(100)).timed();
+    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = ZIO.<Nothing, Throwable>sleep(Duration.ofMillis(100)).timed();
     
     Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
     
@@ -322,7 +349,7 @@ public class ZIOTest {
   public void stackSafety() {
     UIO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<Integer> futureSum = sum.runAsync();
 
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
@@ -370,6 +397,54 @@ public class ZIOTest {
     ZIO<Nothing, Throwable, Sequence<String>> traverse = ZIO.traverse(listOf(left, right));
     
     assertEquals(Either.right(listOf("left", "right")), traverse.provide(nothing()));
+  }
+
+  @Test
+  public void raceA() {
+    ZIO<Nothing, Nothing, Either<Integer, String>> race = ZIO.race(
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(10)).map(x -> 10),
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(100)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.provide(nothing()).get();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    ZIO<Nothing, Nothing, Either<Integer, String>> race = ZIO.race(
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(100)).map(x -> 10),
+        ZIO.<Nothing, Nothing>sleep(Duration.ofMillis(10)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.provide(nothing()).get();
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+  
+  @Test
+  public void fork() {
+    ZIO<Nothing, Throwable, String> result = For.with(ZIOInstances.<Nothing, Throwable>monad())
+      .then(ZIO.pure("hola"))
+      .flatMap(hello -> {
+        ZIO<Nothing, Throwable, Unit> sleep = ZIO.sleep(Duration.ofSeconds(1));
+        ZIO<Nothing, Throwable, String> task = ZIO.task(() -> hello + " toni");
+        return sleep.andThen(task).fork();
+      })
+      .flatMap(Fiber::join).fix(toZIO());
+    
+    Either<Throwable, String> orElseThrow = result.runAsync(nothing()).getOrElseThrow();
+
+    assertEquals(Either.right("hola toni"), orElseThrow);
+  }
+  
+  @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, () -> ZIO.never().timeout(Duration.ofSeconds(1)).provide(nothing()));
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(Either.right(1), ZIO.pure(1).timeout(Duration.ofSeconds(1)).provide(nothing()));
   }
 
   private ZIO<Nothing, Throwable, Integer> parseInt(String string) {

@@ -37,15 +37,15 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   }
   
   public <R> Kind<F, R> use(Function1<? super T, ? extends Kind<F, ? extends R>> use) {
-    return monad.bracket(resource, t -> use.apply(t.get1()), Resource::release);
+    return monad.bracket(resource, t -> use.apply(t.get1()), release());
   }
   
   public <R> Resource<F, Tuple2<T, R>> combine(Resource<F, ? extends R> other) {
     return new Resource<>(monad, monad.bracket(resource, 
         t -> monad.bracket(other.resource, 
           r -> monad.pure(Tuple.of(Tuple.of(t.get1(), r.get1()), noop())), 
-          Resource::release), 
-        Resource::release));
+          release()), 
+        release()));
   }
   
   public static <F extends Witness, T> Resource<F, T> pure(
@@ -66,13 +66,13 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   private static <T, R> void releaseAndThen(
       Tuple2<T, Consumer1<? super T>> outter, Tuple2<R, Consumer1<? super R>> inner) {
     try {
-      release(inner);
+      Resource.<R>release().accept(inner);
     } finally {
-      release(outter);
+      Resource.<T>release().accept(outter);
     }
   }
 
-  private static <T> void release(Tuple2<T, Consumer1<? super T>> t) {
-    t.get2().accept(t.get1());
+  private static <T> Consumer1<Tuple2<T, Consumer1<? super T>>> release() {
+    return t -> t.get2().accept(t.get1());
   }
 }

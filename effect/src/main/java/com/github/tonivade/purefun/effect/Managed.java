@@ -56,7 +56,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
   
   public <B> ZIO<R, E, B> use(Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
-    return ZIO.bracket(resource, a -> use.apply(a.get1()), Managed::release);
+    return ZIO.bracket(resource, a -> use.apply(a.get1()), release());
   }
   
   public <B> Managed<R, Nothing, B> fold(
@@ -88,8 +88,8 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
     return new Managed<>(ZIO.bracket(resource,
         t -> ZIO.bracket(other.resource,
           r -> ZIO.pure(Tuple.of(Tuple.of(t.get1(), r.get1()), noop())), 
-          Managed::release), 
-        Managed::release));
+          release()), 
+        release()));
   }
   
   public <B> Managed<R, E, Either<A, B>> either(Managed<R, E, B> other) {
@@ -100,8 +100,8 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
     
     return new Managed<>(foldM.map(
         e -> e.fold(
-            a -> a.map(Either::left, x -> either -> release(a)), 
-            b -> b.map(Either::right, y -> either -> release(b)))
+            a -> a.map(Either::left, x -> either -> Managed.<A>release().accept(a)), 
+            b -> b.map(Either::right, y -> either -> Managed.<B>release().accept(b)))
         ));
   }
   
@@ -164,17 +164,17 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
 
   private static <X, T, R> Consumer1<X> releaseAndThen(
-      Tuple2<T, Consumer1<? super T>> outer, Tuple2<R, Consumer1<? super R>> inner) {
+      Tuple2<T, Consumer1<? super T>> outter, Tuple2<R, Consumer1<? super R>> inner) {
     return ignore -> {
       try {
-        release(inner);
+        Managed.<R>release().accept(inner);
       } finally {
-        release(outer);
+        Managed.<T>release().accept(outter);
       }
     };
   }
 
-  private static <T> void release(Tuple2<T, Consumer1<? super T>> t) {
-    t.get2().accept(t.get1());
+  private static <T> Consumer1<Tuple2<T, Consumer1<? super T>>> release() {
+    return t -> t.get2().accept(t.get1());
   }
 }

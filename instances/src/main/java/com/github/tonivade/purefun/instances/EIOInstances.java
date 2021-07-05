@@ -4,13 +4,9 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -22,6 +18,7 @@ import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
@@ -160,8 +157,8 @@ interface EIOBracket<E> extends EIOMonadError<E>, Bracket<Kind<EIO_, E>, E> {
   default <A, B> EIO<E, B>
           bracket(Kind<Kind<EIO_, E>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<EIO_, E>, ? extends B>> use,
-                  Consumer1<? super A> release) {
-    return EIO.bracket(acquire.fix(toEIO()), use.andThen(EIOOf::narrowK), release);
+                  Function1<? super A, ? extends Kind<Kind<EIO_, E>, Unit>> release) {
+    return EIO.bracket(acquire.fix(toEIO()), use.andThen(EIOOf::narrowK), release::apply);
   }
 }
 
@@ -182,7 +179,7 @@ interface EIOAsync extends Async<Kind<EIO_, Throwable>>, EIOMonadDefer {
   
   @Override
   default <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<EIO_, Throwable>, Unit>> consumer) {
-    return EIO.asyncF(consumer.andThen(EIOOf::narrowK));
+    return EIO.cancellable(cb -> consumer.andThen(EIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
   }
 }
 
@@ -203,7 +200,7 @@ interface EIORuntime<E> extends Runtime<Kind<EIO_, E>> {
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<EIO_, E>, T> value, Executor executor) {
-    return value.fix(toEIO()).foldMap(async(executor)).fix(toFuture());
+    return value.fix(toEIO()).runAsync().map(Either::get);
   }
   
   @Override

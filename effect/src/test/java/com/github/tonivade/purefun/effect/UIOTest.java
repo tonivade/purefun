@@ -4,12 +4,12 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.UIO.pure;
 import static com.github.tonivade.purefun.effect.UIO.raiseError;
 import static com.github.tonivade.purefun.effect.UIO.task;
 import static com.github.tonivade.purefun.effect.UIO.unit;
+import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,16 +34,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.ParInstances;
+import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
 public class UIOTest {
@@ -126,26 +128,10 @@ public class UIOTest {
   }
 
   @Test
-  public void foldMapRight() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("0").foldMap(async);
-
-    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
-  }
-
-  @Test
-  public void foldMapLeft() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("skjdsf").foldMap(async);
-
-    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
-  }
-
-  @Test
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
+    when(computation.liftTry()).thenCallRealMethod();
+    when(computation.liftEither()).thenCallRealMethod();
 
     Try<String> retry = task(computation).retry().safeRunSync();
 
@@ -156,6 +142,8 @@ public class UIOTest {
   @Test
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
+    when(computation.liftTry()).thenCallRealMethod();
+    when(computation.liftEither()).thenCallRealMethod();
 
     Try<String> repeat = task(computation).repeat().safeRunSync();
 
@@ -174,6 +162,15 @@ public class UIOTest {
   }
   
   @Test
+  public void timed() {
+    UIO<Tuple2<Duration, Unit>> timed = UIO.sleep(Duration.ofMillis(100)).timed();
+    
+    Tuple2<Duration, Unit> provide = timed.unsafeRunSync();
+    
+    assertTrue(provide.get1().toMillis() >= 100);
+  }
+  
+  @Test
   public void traverse() {
     UIO<String> left = task(() -> "left");
     UIO<String> right = task(() -> "right");
@@ -181,6 +178,54 @@ public class UIOTest {
     UIO<Sequence<String>> traverse = UIO.traverse(listOf(left, right));
     
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
+  }
+
+  @Test
+  public void raceA() {
+    UIO<Either<Integer, String>> race = UIO.race(
+        UIO.sleep(Duration.ofMillis(10)).map(x -> 10),
+        UIO.sleep(Duration.ofMillis(100)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    UIO<Either<Integer, String>> race = UIO.race(
+        UIO.sleep(Duration.ofMillis(100)).map(x -> 10),
+        UIO.sleep(Duration.ofMillis(10)).map(x -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+  
+  @Test
+  public void fork() {
+    UIO<String> result = For.with(UIOInstances.monad())
+      .then(UIO.pure("hola"))
+      .flatMap(hello -> {
+        UIO<Unit> sleep = UIO.sleep(Duration.ofSeconds(1));
+        UIO<String> task = UIO.task(() -> hello + " toni");
+        return sleep.andThen(task).fork();
+      })
+      .flatMap(Fiber::join).fix(toUIO());
+    
+    String orElseThrow = result.unsafeRunSync();
+
+    assertEquals("hola toni", orElseThrow);
+  }
+  
+  @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, () -> UIO.never().timeout(Duration.ofSeconds(1)).unsafeRunSync());
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(1, UIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync());
   }
 
   private UIO<Integer> parseInt(String string) {

@@ -263,17 +263,6 @@ public class FutureTest {
   }
 
   @Test
-  public void asyncF(@Mock Producer<Unit> effect) {
-    Future<String> async = Future.asyncF(callback -> { 
-      callback.accept(Try.success("hello")); 
-      return Future.later(effect); 
-    });
-
-    assertEquals(Try.success("hello"), async.await());
-    verify(effect, timeout(500)).get();
-  }
-
-  @Test
   public void async() {
     Future<String> async = Future.async(callback -> callback.accept(Try.success("hello")));
 
@@ -304,21 +293,7 @@ public class FutureTest {
     assertEquals(4, result.size());
   }
 
-  @Test
-  public void stackSafety() {
-    Future<Integer> sum = sum(100000, 0);
-
-    assertEquals(Try.success(705082704), sum.await(), "future is stack safe :)");
-  }
-
   private Future<Unit> currentThread(Executor executor, List<String> result) {
     return Future.exec(executor, () -> result.add(Thread.currentThread().getName()));
-  }
-
-  private Future<Integer> sum(Integer n, Integer sum) {
-    if (n == 0) {
-      return Future.success(sum);
-    }
-    return Future.defer(() -> sum( n - 1, sum + n));
   }
 }

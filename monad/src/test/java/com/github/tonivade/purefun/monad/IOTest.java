@@ -4,12 +4,11 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
-import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
+import static com.github.tonivade.purefun.typeclasses.Instance.monad;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,32 +19,30 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
-
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.instances.ParInstances;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.For;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,13 +65,14 @@ public class IOTest {
   @Test
   public void asyncSuccess() {
     IO<String> async = IO.async(callback -> {
+      System.out.println(Thread.currentThread().getName());
       Thread.sleep(100);
       callback.accept(Try.success("1"));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> foldMap = IO.forked().andThen(async).runAsync();
     
-    assertEquals("1", foldMap.get());
+    assertEquals("1", foldMap.getOrElseThrow());
   }
   
   @Test
@@ -84,9 +82,9 @@ public class IOTest {
       callback.accept(Try.failure(new UnsupportedOperationException()));
     });
     
-    Future<String> foldMap = async.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> foldMap = IO.forked().andThen(async).runAsync();
    
-    assertThrows(UnsupportedOperationException.class, foldMap::get);
+    assertThrows(UnsupportedOperationException.class, foldMap::getOrElseThrow);
   }
 
   @Test
@@ -107,22 +105,9 @@ public class IOTest {
   public void safeRunAsync() {
     IO<ImmutableList<String>> program = currentThreadIO();
 
-    Try<ImmutableList<String>> result =
-        program.foldMap(FutureInstances.async())
-            .fix(toFuture()).await();
+    Try<ImmutableList<String>> result = program.runAsync().await(Duration.ofSeconds(1));
 
     assertEquals(Try.success(5), result.map(ImmutableList::size));
-  }
-
-  @Test
-  public void safeRunPar() {
-    IO<ImmutableList<String>> program = currentThreadIO();
-
-    Par<ImmutableList<String>> result =
-        program.foldMap(ParInstances.async())
-          .fix(toPar());
-
-    assertEquals(Try.success(5), result.apply(Future.DEFAULT_EXECUTOR).await().map(ImmutableList::size));
   }
 
   @Test
@@ -134,18 +119,6 @@ public class IOTest {
 
     assertEquals(Try.success("value"), bracket.unsafeRunSync());
     verify(resultSet).close();
-  }
-
-  @Test
-  public void bracketAsync() throws SQLException {
-    ResultSet resultSet = mock(ResultSet.class);
-    when(resultSet.getString("id")).thenReturn("value");
-
-    IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
-    Future<Try<String>> future = bracket.foldMap(FutureInstances.async()).fix(toFuture());
-
-    assertEquals(Try.success("value"), future.await().get());
-    verify(resultSet, timeout(1000)).close();
   }
 
   @Test
@@ -174,7 +147,7 @@ public class IOTest {
   @Test
   public void recoverWith() {
     IO<String> recover = IO.<String>raiseError(new IllegalArgumentException())
-        .recoverWith(IllegalArgumentException.class, error -> "hola mundo");
+        .recover(IllegalArgumentException.class, error -> "hola mundo");
 
     assertEquals("hola mundo", recover.unsafeRunSync());
   }
@@ -182,7 +155,7 @@ public class IOTest {
   @Test
   public void recoverWithNotMatch() {
     IO<String> recover = IO.<String>raiseError(new IllegalArgumentException())
-        .recoverWith(NoSuchElementException.class, error -> "hola mundo");
+        .recover(NoSuchElementException.class, error -> "hola mundo");
 
     assertThrows(IllegalArgumentException.class, recover::unsafeRunSync);
   }
@@ -266,10 +239,10 @@ public class IOTest {
   public void stackSafety() {
     IO<Integer> sum = sum(100000, 0);
 
-    Future<Integer> futureSum = sum.foldMap(FutureInstances.async()).fix(toFuture());
+    Future<Integer> futureSum = sum.runAsync();
 
     assertEquals(705082704, sum.unsafeRunSync());
-    assertEquals(Try.success(705082704), futureSum.await());
+    assertEquals(Try.success(705082704), futureSum.await(Duration.ofSeconds(1)));
   }
 
   @Test
@@ -283,6 +256,16 @@ public class IOTest {
   }
   
   @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, IO.never().timeout(Duration.ofSeconds(1))::unsafeRunSync);
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(1, IO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync());
+  }
+  
+  @Test
   public void traverse() {
     IO<String> left = IO.task(() -> "left");
     IO<String> right = IO.task(() -> "right");
@@ -290,6 +273,40 @@ public class IOTest {
     IO<Sequence<String>> traverse = IO.traverse(listOf(left, right));
     
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
+  }
+
+  @Test
+  public void raceA() {
+    IO<Either<Integer, String>> race = IO.race(
+        IO.delay(Duration.ofMillis(10), () -> 10),
+        IO.delay(Duration.ofMillis(100), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.left(10), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    IO<Either<Integer, String>> race = IO.race(
+        IO.delay(Duration.ofMillis(100), () -> 10),
+        IO.delay(Duration.ofMillis(10), () -> "b"));
+    
+    Either<Integer, String> orElseThrow = race.unsafeRunSync();
+    
+    assertEquals(Either.right("b"), orElseThrow);
+  }
+  
+  @Test
+  public void fork() {
+    IO<String> result = For.with(monad(IO_.class))
+      .then(IO.pure("hola"))
+      .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
+      .flatMap(Fiber::join).fix(toIO());
+    
+    String orElseThrow = result.runAsync().getOrElseThrow();
+
+    assertEquals("hola toni", orElseThrow);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {
@@ -305,10 +322,10 @@ public class IOTest {
   }
 
   private IO<Integer> sum(Integer n, Integer sum) {
-    if ( n == 0) {
+    if (n == 0) {
       return IO.pure(sum);
     }
-    return IO.suspend(() -> sum( n - 1, sum + n));
+    return IO.suspend(() -> sum(n - 1, sum + n));
   }
 
   private IO<ImmutableList<String>> currentThreadIO() {

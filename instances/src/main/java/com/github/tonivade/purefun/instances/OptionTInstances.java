@@ -4,11 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
+
 import java.time.Duration;
 import java.util.NoSuchElementException;
-import com.github.tonivade.purefun.Consumer1;
+
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -149,16 +151,21 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
   Bracket<F, Throwable> monadF();
 
   @Override
-  default <A, B> OptionT<F, B> bracket(Kind<Kind<OptionT_, F>, ? extends A> acquire,
-                                       Function1<? super A, ? extends Kind<Kind<OptionT_, F>, ? extends B>> use,
-                                       Consumer1<? super A> release) {
+  default <A, B> OptionT<F, B> bracket(
+      Kind<Kind<OptionT_, F>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Kind<OptionT_, F>, ? extends B>> use,
+      Function1<? super A, ? extends Kind<Kind<OptionT_, F>, Unit>> release) {
     Kind<F, Option<B>> bracket =
         monadF().bracket(
             acquire.fix(OptionTOf::<F, A>narrowK).value(),
             option -> option.fold(
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
                 value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
-            option -> option.fold(Unit::unit, release.asFunction()));
+            option -> {
+              Kind<Kind<OptionT_, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release::apply);
+              Kind<F, Option<Unit>> value = fold.fix(OptionTOf::<F, Unit>narrowK).value();
+              return monadF().map(value, x -> x.fold(Unit::unit, identity()));
+            });
     return OptionT.of(monadF(), bracket);
   }
 }

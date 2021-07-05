@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
 import static com.github.tonivade.purefun.effect.TaskOf.toTask;
@@ -19,15 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.PartialFunction1;
@@ -40,9 +36,9 @@ import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.ZIO;
 import com.github.tonivade.purefun.effect.ZIO_;
-import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.StreamInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
@@ -289,17 +285,17 @@ public class StreamTest {
 
   @Test
   public void readFileZIO() {
-    ZIO<Nothing, Nothing, String> license = pureReadFileZIO("../LICENSE");
-    ZIO<Nothing, Nothing, String> notFound = pureReadFileZIO("hjsjkdf");
+    URIO<Nothing, String> license = pureReadFileZIO("../LICENSE");
+    URIO<Nothing, String> notFound = pureReadFileZIO("hjsjkdf");
     assertAll(
-        () -> assertEquals(impureReadFile("../LICENSE"), license.provide(nothing()).get()),
-        () -> assertEquals("--- file not found ---", notFound.provide(nothing()).get()));
+        () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync(nothing())),
+        () -> assertEquals("--- file not found ---", notFound.unsafeRunSync(nothing())));
   }
 
   @Test
   public void readFileAsync() {
-    Future<String> license = pureReadFileIO("../LICENSE").foldMap(FutureInstances.async()).fix(toFuture());
-    Future<String> notFound = pureReadFileIO("hjsjkdf").foldMap(FutureInstances.async()).fix(toFuture());
+    Future<String> license = pureReadFileIO("../LICENSE").runAsync();
+    Future<String> notFound = pureReadFileIO("hjsjkdf").runAsync();
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
         () -> assertEquals("--- file not found ---", notFound.await().get()));
@@ -319,7 +315,7 @@ public class StreamTest {
         .map(Option::get)
         .foldLeft("", (a, b) -> a + '\n' + b)
         .fix(toIO())
-        .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
+        .recover(UncheckedIOException.class, cons("--- file not found ---"));
   }
 
   private UIO<String> pureReadFileUIO(String file) {
@@ -352,7 +348,7 @@ public class StreamTest {
         .recover(cons("--- file not found ---"));
   }
 
-  private ZIO<Nothing, Nothing, String> pureReadFileZIO(String file) {
+  private URIO<Nothing, String> pureReadFileZIO(String file) {
     return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>task(() -> reader(file)))
       .flatMap(reader -> streamOfZIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)

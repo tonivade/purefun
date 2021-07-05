@@ -4,13 +4,9 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.effect.TaskOf.toTask;
-import static com.github.tonivade.purefun.instances.FutureInstances.async;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -166,8 +162,8 @@ interface TaskBracket extends TaskMonadError, Bracket<Task_, Throwable> {
   default <A, B> Task<B>
           bracket(Kind<Task_, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Task_, ? extends B>> use,
-                  Consumer1<? super A> release) {
-    return Task.bracket(acquire.fix(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release);
+                  Function1<? super A, ? extends Kind<Task_, Unit>> release) {
+    return Task.bracket(acquire.fix(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release::apply);
   }
 }
 
@@ -225,7 +221,7 @@ interface TaskRuntime extends Runtime<Task_> {
 
   @Override
   default <T> Future<T> parRun(Kind<Task_, T> value, Executor executor) {
-    return value.fix(toTask()).foldMap(async(executor)).fix(toFuture());
+    return value.fix(toTask()).runAsync();
   }
   
   @Override

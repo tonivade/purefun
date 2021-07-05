@@ -95,6 +95,10 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
   }
 
+  static <R> Try<R> from(Throwable error, R value) {
+    return error != null ? Try.failure(error) : Try.success(value);
+  }
+
   static <R> Try<R> fromEither(Either<? extends Throwable, ? extends R> value) {
     return value.fold(Try::failure, Try::success);
   }

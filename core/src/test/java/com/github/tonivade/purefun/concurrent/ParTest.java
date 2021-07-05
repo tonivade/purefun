@@ -13,18 +13,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
 import java.time.Duration;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
@@ -128,17 +124,6 @@ public class ParTest {
     Tuple2<String, String> result = sequence.apply(Future.DEFAULT_EXECUTOR).get();
 
     assertNotEquals(result.get1(), result.get2());
-  }
-
-  @Test
-  public void asyncF(@Mock Producer<Unit> effect) {
-    Par<String> async = Par.asyncF(callback -> { 
-      callback.accept(Try.success("hello")); 
-      return Par.later(effect); 
-    });
-
-    assertEquals(Try.success("hello"), async.run().await());
-    verify(effect, timeout(500)).get();
   }
 
   @Test

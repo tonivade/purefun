@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.concurrent.ParOf.toPar;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.EIO.pure;
 import static com.github.tonivade.purefun.effect.EIO.raiseError;
@@ -18,34 +17,32 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.ParInstances;
+import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
 public class EIOTest {
 
   @Captor
-  private ArgumentCaptor<Try<Integer>> captor;
+  private ArgumentCaptor<Try<Either<Throwable, Integer>>> captor;
 
   @Test
   public void mapRight() {
@@ -145,19 +142,19 @@ public class EIOTest {
   }
 
   @Test
-  public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
+  public void asyncRight(@Mock Consumer1<? super Try<? extends Either<Throwable, ? extends Integer>>> callback) {
     parseInt("1").safeRunAsync(callback);
 
-    verify(callback, timeout(500)).accept(Try.success(1));
+    verify(callback, timeout(500)).accept(Try.success(Either.right(1)));
   }
 
   @Test
-  public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
+  public void asyncLeft(@Mock Consumer1<? super Try<? extends Either<Throwable, ? extends Integer>>> callback) {
     parseInt("kjsdf").safeRunAsync(callback);
 
     verify(callback, timeout(500)).accept(captor.capture());
 
-    assertEquals(NumberFormatException.class, captor.getValue().getCause().getClass());
+    assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
   }
 
   @Test
@@ -171,26 +168,10 @@ public class EIOTest {
   }
 
   @Test
-  public void foldMapRight() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("0").foldMap(async);
-
-    assertEquals(0, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR).get());
-  }
-
-  @Test
-  public void foldMapLeft() {
-    Async<Par_> async = ParInstances.async();
-
-    Kind<Par_, Integer> future = parseInt("jkdf").foldMap(async);
-
-    assertThrows(NumberFormatException.class, future.fix(toPar()).apply(Future.DEFAULT_EXECUTOR)::get);
-  }
-
-  @Test
   public void retry(@Mock Producer<String> computation) {
     when(computation.get()).thenThrow(UnsupportedOperationException.class);
+    when(computation.liftTry()).thenCallRealMethod();
+    when(computation.liftEither()).thenCallRealMethod();
 
     Either<Throwable, String> retry = task(computation).retry().safeRunSync();
 
@@ -201,6 +182,8 @@ public class EIOTest {
   @Test
   public void repeat(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola");
+    when(computation.liftTry()).thenCallRealMethod();
+    when(computation.liftEither()).thenCallRealMethod();
 
     Either<Throwable, String> repeat = task(computation).repeat().safeRunSync();
 
@@ -226,6 +209,54 @@ public class EIOTest {
     EIO<Throwable, Sequence<String>> traverse = EIO.traverse(listOf(left, right));
     
     assertEquals(Either.right(listOf("left", "right")), traverse.safeRunSync());
+  }
+
+  @Test
+  public void raceA() {
+    EIO<Throwable, Either<Integer, String>> race = EIO.race(
+        EIO.<Throwable>sleep(Duration.ofMillis(10)).map(x -> 10),
+        EIO.<Throwable>sleep(Duration.ofMillis(100)).map(x -> "b"));
+    
+    Either<Throwable, Either<Integer, String>> orElseThrow = race.safeRunSync();
+    
+    assertEquals(Either.right(Either.left(10)), orElseThrow);
+  }
+
+  @Test
+  public void raceB() {
+    EIO<Throwable, Either<Integer, String>> race = EIO.race(
+        EIO.<Throwable>sleep(Duration.ofMillis(100)).map(x -> 10),
+        EIO.<Throwable>sleep(Duration.ofMillis(10)).map(x -> "b"));
+    
+    Either<Throwable, Either<Integer, String>> orElseThrow = race.safeRunSync();
+    
+    assertEquals(Either.right(Either.right("b")), orElseThrow);
+  }
+  
+  @Test
+  public void fork() {
+    EIO<Throwable, String> result = For.with(EIOInstances.<Throwable>monad())
+      .then(EIO.pure("hola"))
+      .flatMap(hello -> {
+        EIO<Throwable, Unit> sleep = EIO.sleep(Duration.ofSeconds(1));
+        EIO<Throwable, String> task = EIO.task(() -> hello + " toni");
+        return sleep.andThen(task).fork();
+      })
+      .flatMap(Fiber::join).fix(EIOOf.toEIO());
+    
+    Either<Throwable, String> orElseThrow = result.safeRunSync();
+
+    assertEquals(Either.right("hola toni"), orElseThrow);
+  }
+  
+  @Test
+  public void timeoutFail() {
+    assertThrows(TimeoutException.class, () -> EIO.never().timeout(Duration.ofSeconds(1)).safeRunSync());
+  }
+  
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(Either.right(1), EIO.pure(1).timeout(Duration.ofSeconds(1)).safeRunSync());
   }
 
   private EIO<Throwable, Integer> parseInt(String string) {

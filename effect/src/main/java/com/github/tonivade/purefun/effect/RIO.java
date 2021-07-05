@@ -9,12 +9,12 @@ import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
-
 import java.time.Duration;
 import java.util.concurrent.Executor;
-
+import java.util.concurrent.TimeoutException;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Effect;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -26,14 +26,14 @@ import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.typeclasses.Async;
+import com.github.tonivade.purefun.typeclasses.Fiber;
+import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, Recoverable {
@@ -63,24 +63,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return recover(this::sneakyThrow);
   }
 
-  public Future<A> toFuture(R env) {
-    return toFuture(Future.DEFAULT_EXECUTOR, env);
-  }
-
-  public Future<A> toFuture(Executor executor, R env) {
-    return instance.toFuture(executor, env);
-  }
-
-  public void safeRunAsync(Executor executor, R env, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(executor, env, callback);
+  public Future<A> runAsync(R env) {
+    return instance.runAsync(env).flatMap(e -> e.fold(Future::failure, Future::success));
   }
 
   public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
-    safeRunAsync(Future.DEFAULT_EXECUTOR, env, callback);
-  }
-
-  public <F extends Witness> Kind<F, A> foldMap(R env, Async<F> monad) {
-    return instance.foldMap(env, monad);
+    instance.provideAsync(env, result -> callback.accept(result.flatMap(Try::fromEither)));
   }
 
   @Override
@@ -155,7 +143,26 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   @Override
   public <B, C> RIO<R, C> zipWith(Kind<Kind<RIO_, R>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return map2(this, other.fix(RIOOf.toRIO()), mapper);
+    return parMap2(this, other.fix(RIOOf.toRIO()), mapper);
+  }
+  
+  public RIO<R, Fiber<Kind<RIO_, R>, A>> fork() {
+    return new RIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Throwable>, Kind<RIO_, R>>() {
+      @Override
+      public <T> RIO<R, T> apply(Kind<Kind<Kind<ZIO_, R>, Throwable>, ? extends T> from) {
+        return new RIO<>(from.fix(ZIOOf::narrowK));
+      }
+    })));
+  }
+
+  public RIO<R, A> timeout(Duration duration) {
+    return timeout(Future.DEFAULT_EXECUTOR, duration);
+  }
+  
+  public RIO<R, A> timeout(Executor executor, Duration duration) {
+    return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(RIOOf.toRIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(RIOOf.toRIO()).flatMap(x -> RIO.raiseError(new TimeoutException()))));
   }
 
   @Override
@@ -227,9 +234,42 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(ZIO.absorb(value.instance));
   }
 
-  public static <R, A, B, C> RIO<R, C> map2(RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+  public static <R, A, B, C> RIO<R, C> parMap2(RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new RIO<>(ZIO.map2(za.instance, zb.instance, mapper));
+    return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
+  }
+
+  public static <R, A, B, C> RIO<R, C> parMap2(Executor executor, RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return new RIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
+  }
+  
+  public static <R, A, B> RIO<R, Either<A, B>> race(Kind<Kind<RIO_, R>, A> fa, Kind<Kind<RIO_, R>, B> fb) {
+    return race(Future.DEFAULT_EXECUTOR, fa, fb);
+  }
+  
+  public static <R, A, B> RIO<R, Either<A, B>> race(Executor executor, Kind<Kind<RIO_, R>, A> fa, Kind<Kind<RIO_, R>, B> fb) {
+    return racePair(executor, fa, fb).flatMap(either -> either.fold(
+        ta -> ta.get2().cancel().fix(RIOOf.toRIO()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(RIOOf.toRIO()).map(x -> Either.right(tb.get2()))));
+  }
+  
+  public static <R, A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO_, R>, B>>, Tuple2<Fiber<Kind<RIO_, R>, A>, B>>> 
+      racePair(Executor executor, Kind<Kind<RIO_, R>, A> fa, Kind<Kind<RIO_, R>, B> fb) {
+    ZIO<R, Throwable, A> instance1 = fa.fix(RIOOf.toRIO()).instance;
+    ZIO<R, Throwable, B> instance2 = fb.fix(RIOOf.toRIO()).instance;
+    return new RIO<>(ZIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Throwable>, Kind<RIO_, R>>() {
+        @Override
+        public <T> RIO<R, T> apply(Kind<Kind<Kind<ZIO_, R>, Throwable>, ? extends T> from) {
+          return new RIO<>(from.fix(ZIOOf::narrowK));
+        }
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Throwable>, Kind<RIO_, R>>() {
+        @Override
+        public <T> RIO<R, T> apply(Kind<Kind<Kind<ZIO_, R>, Throwable>, ? extends T> from) {
+          return new RIO<>(from.fix(ZIOOf::narrowK));
+        }
+      })))));
   }
 
   public static <R> RIO<R, Unit> sleep(Duration delay) {
@@ -296,17 +336,27 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(ZIO.task(task));
   }
   
-  public static <R, A> RIO<R, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return new RIO<>(ZIO.async(consumer));
+  public static <R, A> RIO<R, A> never() {
+    return async((env, cb) -> {});
   }
   
-  public static <R, A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, RIO<R, Unit>> consumer) {
-    return new RIO<>(ZIO.asyncF(consumer.andThen(RIO::toZIO)));
+  public static <R, A> RIO<R, A> async(Consumer2<R, Consumer1<? super Try<? extends A>>> consumer) {
+    return new RIO<>(ZIO.async(
+      (env, cb1) -> consumer.accept(env, result -> cb1.accept(result.map(Either::right)))));
+  }
+  
+  public static <R, A> RIO<R, A> cancellable(Function2<R, Consumer1<? super Try<? extends A>>, RIO<R, Unit>> consumer) {
+    return new RIO<>(ZIO.cancellable(
+      (env, cb1) -> consumer.andThen(RIO::toZIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends RIO<R, A>> sequence) {
+    return traverse(Future.DEFAULT_EXECUTOR, sequence);
+  }
+
+  public static <R, A> RIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends RIO<R, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> map2(xs, a, Sequence::append));
+        (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
@@ -319,6 +369,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
       Function1<? super A, ? extends RIO<R, ? extends B>> use, Consumer1<? super A> release) {
     return new RIO<>(ZIO.bracket(acquire.instance, 
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release));
+  }
+
+  public static <R, A, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
+      Function1<? super A, ? extends RIO<R, ? extends B>> use, Function1<? super A, ? extends RIO<R, Unit>> release) {
+    return new RIO<>(ZIO.bracket(acquire.instance, 
+        resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release.andThen(RIO::toZIO)));
   }
 
   @SuppressWarnings("unchecked")
