@@ -7,26 +7,15 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
-
-import java.time.Duration;
 import java.util.concurrent.Executor;
-
-import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
-import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.Async;
-import com.github.tonivade.purefun.typeclasses.Bracket;
-import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
-import com.github.tonivade.purefun.typeclasses.MonadDefer;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadThrow;
 
@@ -58,22 +47,6 @@ public interface FutureInstances {
 
   static MonadError<Future_, Throwable> monadError(Executor executor) {
     return FutureMonadThrow.instance(checkNonNull(executor));
-  }
-
-  static MonadDefer<Future_> monadDefer() {
-    return monadDefer(Future.DEFAULT_EXECUTOR);
-  }
-
-  static MonadDefer<Future_> monadDefer(Executor executor) {
-    return FutureMonadDefer.instance(checkNonNull(executor));
-  }
-
-  static Async<Future_> async() {
-    return async(Future.DEFAULT_EXECUTOR);
-  }
-
-  static Async<Future_> async(Executor executor) {
-    return FutureAsync.instance(checkNonNull(executor));
   }
 }
 
@@ -152,49 +125,5 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future_> {
       Function1<? super Throwable, ? extends Kind<Future_, ? extends A>> handler) {
     return value.fix(toFuture()).fold(handler.andThen(FutureOf::narrowK),
                                       success -> Future.success(executor(), success)).flatMap(identity());
-  }
-}
-
-interface FutureDefer extends Defer<Future_>, ExecutorHolder {
-
-  @Override
-  default <A> Kind<Future_, A> defer(Producer<? extends Kind<Future_, ? extends A>> defer) {
-    throw new UnsupportedOperationException();
-  }
-}
-
-interface FutureBracket extends Bracket<Future_, Throwable>, ExecutorHolder {
-
-  @Override
-  default <A, B> Kind<Future_, B> bracket(
-      Kind<Future_, ? extends A> acquire, 
-      Function1<? super A, ? extends Kind<Future_, ? extends B>> use, 
-      Function1<? super A, ? extends Kind<Future_, Unit>> release) {
-    return Future.bracket(executor(), acquire.fix(toFuture()), use.andThen(FutureOf::narrowK), release::apply);
-  }
-}
-
-interface FutureMonadDefer extends MonadDefer<Future_>, FutureMonadThrow, FutureDefer, FutureBracket {
-
-  static FutureMonadDefer instance(Executor executor) {
-    return () -> executor;
-  }
-
-  @Override
-  default Kind<Future_, Unit> sleep(Duration duration) {
-    return Future.sleep(executor(), duration);
-  }
-}
-
-interface FutureAsync extends Async<Future_>, FutureMonadDefer {
-
-  static FutureAsync instance(Executor executor) {
-    return () -> executor;
-  }
-  
-  @Override
-  default <A> Kind<Future_, A> asyncF(
-      Function1<Consumer1<? super Try<? extends A>>, Kind<Future_, Unit>> consumer) {
-    throw new UnsupportedOperationException();
   }
 }

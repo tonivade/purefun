@@ -16,9 +16,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.concurrent.ParOf;
 import com.github.tonivade.purefun.concurrent.Par_;
-import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -44,10 +42,6 @@ public interface ParInstances {
 
   static MonadDefer<Par_> monadDefer() {
     return ParMonadDefer.INSTANCE;
-  }
-
-  static Async<Par_> async() {
-    return ParAsync.INSTANCE;
   }
   
   static <A> Reference<Par_, A> reference(A value) {
@@ -153,15 +147,5 @@ interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<
   @Override
   default Par<Unit> sleep(Duration duration) {
     return Par.sleep(duration);
-  }
-}
-
-interface ParAsync extends Async<Par_>, ParMonadDefer {
-  
-  ParAsync INSTANCE = new ParAsync() {};
-  
-  @Override
-  default <A> Par<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Par_, Unit>> consumer) {
-    throw new UnsupportedOperationException();
   }
 }
