@@ -9,9 +9,11 @@ import static com.github.tonivade.purefun.Function2.second;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
+
 import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -59,6 +61,10 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
 
   public Future<Either<E, A>> runAsync() {
     return instance.runAsync(nothing());
+  }
+
+  public Future<Either<E, A>> runAsync(Executor executor) {
+    return EIO.<E>forked(executor).andThen(this).runAsync();
   }
   
   public void safeRunAsync(Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
@@ -218,6 +224,10 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   @Override
   public EIO<E, Tuple2<Duration, A>> timed() {
     return new EIO<>(instance.timed());
+  }
+  
+  public static <E> EIO<E, Unit> forked(Executor executor) {
+    return async(callback -> executor.execute(() -> callback.accept(Try.success(Either.right(Unit.unit())))));
   }
   
   public <X extends Throwable> EIO<X, A> refineOrDie(Class<X> type) {

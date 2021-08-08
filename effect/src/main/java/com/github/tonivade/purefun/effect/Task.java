@@ -71,6 +71,10 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return instance.runAsync(nothing()).flatMap(e -> e.fold(Future::failure, Future::success));
   }
 
+  public Future<A> runAsync(Executor executor) {
+    return Task.forked(executor).andThen(this).runAsync();
+  }
+
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(nothing(), result -> callback.accept(result.flatMap(Try::fromEither)));
   }
@@ -220,6 +224,10 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   @Override
   public Task<Tuple2<Duration, A>> timed() {
     return new Task<>(instance.timed());
+  }
+  
+  public static Task<Unit> forked(Executor executor) {
+    return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
   public static <A, B, C> Task<C> parMap2(Task<? extends A> za, Task<? extends B> zb, 

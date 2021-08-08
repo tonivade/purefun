@@ -67,6 +67,10 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return instance.runAsync(env).flatMap(e -> e.fold(Future::failure, Future::success));
   }
 
+  public Future<A> runAsync(R env, Executor executor) {
+    return RIO.<R>forked(executor).andThen(this).runAsync(env);
+  }
+
   public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(env, result -> callback.accept(result.flatMap(Try::fromEither)));
   }
@@ -216,6 +220,10 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   @Override
   public RIO<R, Tuple2<Duration, A>> timed() {
     return new RIO<>(instance.timed());
+  }
+  
+  public static <R> RIO<R, Unit> forked(Executor executor) {
+    return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
   public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends RIO<R, ? extends A>> map) {

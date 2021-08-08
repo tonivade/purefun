@@ -55,6 +55,10 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return Future.from(ZIOModule.runAsync(env, this, ZIOConnection.UNCANCELLABLE));
   }
 
+  default Future<Either<E, A>> runAsync(R env, Executor executor) {
+    return ZIO.<R, E>forked(executor).andThen(this).runAsync(env);
+  }
+
   default void provideAsync(R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     runAsync(env).onComplete(callback::accept);
   }

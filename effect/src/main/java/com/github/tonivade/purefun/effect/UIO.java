@@ -51,6 +51,10 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return instance.runAsync(nothing()).map(Either::getRight);
   }
 
+  public Future<A> runAsync(Executor executor) {
+    return UIO.forked(executor).andThen(this).runAsync();
+  }
+
   public A unsafeRunSync() {
     return instance.provide(nothing()).get();
   }

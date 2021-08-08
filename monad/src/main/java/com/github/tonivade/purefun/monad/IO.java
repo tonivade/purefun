@@ -43,6 +43,10 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default Future<T> runAsync() {
     return Future.from(IOModule.runAsync(this, IOConnection.UNCANCELLABLE));
   }
+
+  default Future<T> runAsync(Executor executor) {
+    return IO.forked(executor).andThen(this).runAsync();
+  }
   
   default T unsafeRunSync() {
     return safeRunSync().getOrElseThrow();

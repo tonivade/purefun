@@ -72,6 +72,10 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return instance.runAsync(env).map(Either::getRight);
   }
 
+  public Future<A> runAsync(R env, Executor executor) {
+    return URIO.<R>forked(executor).andThen(this).runAsync(env);
+  }
+
   public void safeRunAsync(R env, Consumer1<? super Try<? extends A>> callback) {
     instance.provideAsync(env, result -> callback.accept(result.map(Either::getRight)));
   }
