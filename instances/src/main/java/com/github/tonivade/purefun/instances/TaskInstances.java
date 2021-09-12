@@ -11,18 +11,22 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -56,6 +60,18 @@ public interface TaskInstances {
 
   static MonadDefer<Task_> monadDefer() {
     return TaskMonadDefer.INSTANCE;
+  }
+
+  static Async<Task_> async() {
+    return TaskAsync.INSTANCE;
+  }
+
+  static Concurrent<Task_> concurrent() {
+    return TaskConcurrent.instance(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Concurrent<Task_> concurrent(Executor executor) {
+    return TaskConcurrent.instance(executor);
   }
 
   static <A> Reference<Task_, A> ref(A value) {
@@ -152,7 +168,7 @@ interface TaskDefer extends Defer<Task_> {
   @Override
   default <A> Task<A>
           defer(Producer<? extends Kind<Task_, ? extends A>> defer) {
-    return Task.defer(() -> defer.map(TaskOf::<A>narrowK).get());
+    return Task.defer(() -> defer.get());
   }
 }
 
@@ -163,7 +179,7 @@ interface TaskBracket extends TaskMonadError, Bracket<Task_, Throwable> {
           bracket(Kind<Task_, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Task_, ? extends B>> use,
                   Function1<? super A, ? extends Kind<Task_, Unit>> release) {
-    return Task.bracket(acquire.fix(TaskOf::narrowK), use.andThen(TaskOf::narrowK), release::apply);
+    return Task.bracket(acquire, use, release);
   }
 }
 
@@ -186,6 +202,28 @@ interface TaskAsync extends Async<Task_>, TaskMonadDefer {
   default <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Task_, Unit>> consumer) {
     return Task.asyncF(consumer.andThen(TaskOf::narrowK));
   }
+}
+
+interface TaskConcurrent extends TaskAsync, Concurrent<Task_> {
+  
+  static TaskConcurrent instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> racePair(Kind<Task_, ? extends A> fa,
+    Kind<Task_, ? extends B> fb) {
+    return Task.racePair(executor(), fa, fb);
+  }
+  
+  @Override
+  default <A> Task<Fiber<Task_, A>> fork(Kind<Task_, ? extends A> value) {
+    Task<A> fix = value.fix(TaskOf::narrowK);
+    return fix.fork();
+  }
+  
 }
 
 final class TaskConsole implements Console<Task_> {

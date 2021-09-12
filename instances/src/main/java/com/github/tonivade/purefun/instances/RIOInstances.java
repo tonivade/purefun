@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
@@ -18,12 +19,15 @@ import com.github.tonivade.purefun.effect.RIO;
 import com.github.tonivade.purefun.effect.RIOOf;
 import com.github.tonivade.purefun.effect.RIO_;
 import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -56,6 +60,14 @@ public interface RIOInstances {
 
   static <R> Async<Kind<RIO_, R>> async() {
     return RIOAsync.INSTANCE;
+  }
+
+  static <R> Concurrent<Kind<RIO_, R>> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static <R> Concurrent<Kind<RIO_, R>> concurrent(Executor executor) {
+    return RIOConcurrent.instance(executor);
   }
 
   static <R> Console<Kind<Kind<RIO_, R>, Throwable>> console() {
@@ -147,7 +159,7 @@ interface RIODefer<R> extends Defer<Kind<RIO_, R>> {
   @Override
   default <A> RIO<R, A>
           defer(Producer<? extends Kind<Kind<RIO_, R>, ? extends A>> defer) {
-    return RIO.defer(() -> defer.map(RIOOf::<R, A>narrowK).get());
+    return RIO.defer(defer::get);
   }
 }
 
@@ -158,7 +170,7 @@ interface RIOBracket<R> extends RIOMonadError<R>, Bracket<Kind<RIO_, R>, Throwab
           bracket(Kind<Kind<RIO_, R>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use,
                   Function1<? super A, ? extends Kind<Kind<RIO_, R>, Unit>> release) {
-    return RIO.bracket(acquire.fix(toRIO()), use.andThen(RIOOf::narrowK), release::apply);
+    return RIO.bracket(acquire, use, release);
   }
 }
 
@@ -182,6 +194,27 @@ interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
   @Override
   default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO_, R>, Unit>> consumer) {
     return RIO.cancellable((env, cb) -> consumer.andThen(RIOOf::narrowK).apply(cb));
+  }
+}
+
+interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<Kind<RIO_, R>> {
+  
+  static <R> RIOConcurrent<R> instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO_, R>, B>>, Tuple2<Fiber<Kind<RIO_, R>, A>, B>>> racePair(
+    Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
+    return RIO.racePair(executor(), fa, fb);
+  }
+
+  @Override
+  default <A> RIO<R, Fiber<Kind<RIO_, R>, A>> fork(Kind<Kind<RIO_, R>, ? extends A> value) {
+    RIO<R, A> fix = value.fix(RIOOf::narrowK);
+    return fix.fork();
   }
 }
 

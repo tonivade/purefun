@@ -16,16 +16,16 @@ import com.github.tonivade.purefun.type.Try;
 
 public interface Concurrent<F extends Witness> extends Async<F> {
   
-  <A> Kind<F, Fiber<F, A>> fork(Kind<F, A> value);
+  <A> Kind<F, Fiber<F, A>> fork(Kind<F, ? extends A> value);
   
-  <A, B> Kind<F, Either<Tuple2<A, Fiber<F, B>>, Tuple2<Fiber<F, A>, B>>> racePair(Kind<F, A> fa, Kind<F, B> fb);
+  <A, B> Kind<F, Either<Tuple2<A, Fiber<F, B>>, Tuple2<Fiber<F, A>, B>>> racePair(Kind<F, ? extends A> fa, Kind<F, ? extends B> fb);
   
-  default <A> Resource<F, Kind<F, A>> background(Kind<F, A> acquire) {
-    Resource<F, ? extends Fiber<F, A>> from = Resource.from(this, fork(acquire), Fiber::cancel);
-    return from.map(Fiber::join);
+  default <A> Resource<F, Kind<F, A>> background(Kind<F, ? extends A> acquire) {
+    Resource<F, ? extends Fiber<F, ? extends A>> from = Resource.from(this, fork(acquire), Fiber::cancel);
+    return from.map(Fiber::join).map(Kind::narrowK);
   }
 
-  default <A, B> Kind<F, Either<A, B>> race(Kind<F, A> fa, Kind<F, B> fb) {
+  default <A, B> Kind<F, Either<A, B>> race(Kind<F, ? extends A> fa, Kind<F, ? extends B> fb) {
     return flatMap(racePair(fa, fb), either -> either.fold(
         ta -> map(ta.get2().cancel(), x -> Either.left(ta.get1())), 
         tb -> map(tb.get1().cancel(), x -> Either.right(tb.get2()))));

@@ -230,30 +230,30 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <A, B, C> Task<C> parMap2(Task<? extends A> za, Task<? extends B> zb, 
+  public static <A, B, C> Task<C> parMap2(Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  public static <A, B, C> Task<C> parMap2(Executor executor, Task<? extends A> za, Task<? extends B> zb, 
+  public static <A, B, C> Task<C> parMap2(Executor executor, Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new Task<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
+    return new Task<>(ZIO.parMap2(executor, za.fix(TaskOf::narrowK).instance, zb.fix(TaskOf::narrowK).instance, mapper));
   }
   
-  public static <A, B> Task<Either<A, B>> race(Kind<Task_, A> fa, Kind<Task_, B> fb) {
+  public static <A, B> Task<Either<A, B>> race(Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  public static <A, B> Task<Either<A, B>> race(Executor executor, Kind<Task_, A> fa, Kind<Task_, B> fb) {
+  public static <A, B> Task<Either<A, B>> race(Executor executor, Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(TaskOf.toTask()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(TaskOf.toTask()).map(x -> Either.right(tb.get2()))));
   }
   
   public static <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> 
-      racePair(Executor executor, Kind<Task_, A> fa, Kind<Task_, B> fb) {
-    ZIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance;
-    ZIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance;
+      racePair(Executor executor, Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
+    ZIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(ZIOOf::narrowK);
+    ZIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(ZIOOf::narrowK);
     return new Task<>(ZIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
         @Override
@@ -324,8 +324,8 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return new Task<>(ZIO.pure(value));
   }
 
-  public static <A> Task<A> defer(Producer<Task<? extends A>> lazy) {
-    return new Task<>(ZIO.defer(() -> lazy.get().instance));
+  public static <A> Task<A> defer(Producer<? extends Kind<Task_, ? extends A>> lazy) {
+    return new Task<>(ZIO.defer(() -> lazy.andThen(TaskOf::narrowK).get().instance));
   }
 
   public static <A> Task<A> task(Producer<? extends A> task) {
@@ -360,18 +360,18 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public static <A extends AutoCloseable, B> Task<B> bracket(
-      Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use) {
-    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance));
+      Kind<Task_, ? extends A> acquire, Function1<? super A, ? extends Kind<Task_, ? extends B>> use) {
+    return new Task<>(ZIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance));
   }
 
   public static <A, B> Task<B> bracket(
-      Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use, Consumer1<? super A> release) {
-    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
+      Kind<Task_, ? extends A> acquire, Function1<? super A, ? extends Kind<Task_, ? extends B>> use, Consumer1<? super A> release) {
+    return new Task<>(ZIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
   }
 
   public static <A, B> Task<B> bracket(
-      Task<? extends A> acquire, Function1<? super A, ? extends Task<? extends B>> use, Function1<? super A, ? extends Task<Unit>> release) {
-    return new Task<>(ZIO.bracket(acquire.instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release.andThen(Task::toZIO)));
+      Kind<Task_, ? extends A> acquire, Function1<? super A, ? extends Kind<Task_, ? extends B>> use, Function1<? super A, ? extends Kind<Task_, Unit>> release) {
+    return new Task<>(ZIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release.andThen(TaskOf::narrowK).andThen(Task::toZIO)));
   }
 
   public static Task<Unit> unit() {

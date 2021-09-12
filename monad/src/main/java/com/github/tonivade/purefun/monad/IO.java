@@ -188,17 +188,17 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return new IOModule.Pure<>(value);
   }
   
-  static <A, B> IO<Either<A, B>> race(Kind<IO_, A> fa, Kind<IO_, B> fb) {
+  static <A, B> IO<Either<A, B>> race(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <A, B> IO<Either<A, B>> race(Executor executor, Kind<IO_, A> fa, Kind<IO_, B> fb) {
+  static <A, B> IO<Either<A, B>> race(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(IOOf.toIO()).map(x -> Either.right(tb.get2()))));
   }
   
-  static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, Kind<IO_, A> fa, Kind<IO_, B> fb) {
+  static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return cancellable(callback -> {
       
       IOConnection connection1 = IOConnection.cancellable();
@@ -313,7 +313,6 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
       Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Function1<? super T, ? extends Kind<IO_, Unit>> release) {
-    // TODO: test cancellation
     return cancellable(callback -> {
       
       IOConnection cancellable = IOConnection.cancellable();

@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
@@ -23,7 +24,9 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -60,6 +63,14 @@ public interface EIOInstances {
 
   static Async<Kind<EIO_, Throwable>> async() {
     return EIOAsync.INSTANCE;
+  }
+
+  static Concurrent<Kind<EIO_, Throwable>> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Concurrent<Kind<EIO_, Throwable>> concurrent(Executor executor) {
+    return EIOConcurrent.instance(executor);
   }
   
   static <E> Runtime<Kind<EIO_, E>> runtime() {
@@ -147,7 +158,7 @@ interface EIODefer<E> extends Defer<Kind<EIO_, E>> {
   @Override
   default <A> EIO<E, A>
           defer(Producer<? extends Kind<Kind<EIO_, E>, ? extends A>> defer) {
-    return EIO.defer(() -> defer.map(EIOOf::<E, A>narrowK).get());
+    return EIO.defer(defer::get);
   }
 }
 
@@ -158,7 +169,7 @@ interface EIOBracket<E> extends EIOMonadError<E>, Bracket<Kind<EIO_, E>, E> {
           bracket(Kind<Kind<EIO_, E>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<EIO_, E>, ? extends B>> use,
                   Function1<? super A, ? extends Kind<Kind<EIO_, E>, Unit>> release) {
-    return EIO.bracket(acquire.fix(toEIO()), use.andThen(EIOOf::narrowK), release::apply);
+    return EIO.bracket(acquire, use, release);
   }
 }
 
@@ -180,6 +191,27 @@ interface EIOAsync extends Async<Kind<EIO_, Throwable>>, EIOMonadDefer {
   @Override
   default <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<EIO_, Throwable>, Unit>> consumer) {
     return EIO.cancellable(cb -> consumer.andThen(EIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
+  }
+}
+
+interface EIOConcurrent extends EIOAsync, Concurrent<Kind<EIO_, Throwable>> {
+  
+  static EIOConcurrent instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> EIO<Throwable, Either<Tuple2<A, Fiber<Kind<EIO_, Throwable>, B>>, Tuple2<Fiber<Kind<EIO_, Throwable>, A>, B>>> racePair(
+    Kind<Kind<EIO_, Throwable>, ? extends A> fa, Kind<Kind<EIO_, Throwable>, ? extends B> fb) {
+    return EIO.racePair(executor(), fa, fb);
+  }
+
+  @Override
+  default <A> EIO<Throwable, Fiber<Kind<EIO_, Throwable>, A>> fork(Kind<Kind<EIO_, Throwable>, ? extends A> value) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 

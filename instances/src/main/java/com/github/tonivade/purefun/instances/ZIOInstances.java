@@ -211,13 +211,14 @@ interface ZIOConcurrent<R> extends Concurrent<Kind<Kind<ZIO_, R>, Throwable>>, Z
 
   @Override
   default <A, B> ZIO<R, Throwable, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, Throwable>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, Throwable>, A>, B>>> racePair(
-      Kind<Kind<Kind<ZIO_, R>, Throwable>, A> fa, Kind<Kind<Kind<ZIO_, R>, Throwable>, B> fb) {
-    return ZIO.racePair(executor(), fa.fix(toZIO()), fb.fix(toZIO()));
+      Kind<Kind<Kind<ZIO_, R>, Throwable>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, Throwable>, ? extends B> fb) {
+    return ZIO.racePair(executor(), fa, fb);
   }
   
   @Override
-  default <A> ZIO<R, Throwable, Fiber<Kind<Kind<ZIO_, R>, Throwable>, A>> fork(Kind<Kind<Kind<ZIO_, R>, Throwable>, A> value) {
-    return value.fix(toZIO()).fork();
+  default <A> ZIO<R, Throwable, Fiber<Kind<Kind<ZIO_, R>, Throwable>, A>> fork(Kind<Kind<Kind<ZIO_, R>, Throwable>, ? extends A> value) {
+    ZIO<R, Throwable, A> fix = value.fix(ZIOOf::narrowK);
+    return fix.fork();
   }
 }
 

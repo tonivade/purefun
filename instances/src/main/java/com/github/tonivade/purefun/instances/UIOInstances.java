@@ -11,18 +11,22 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -58,6 +62,14 @@ public interface UIOInstances {
 
   static Async<UIO_> async() {
     return UIOAsync.INSTANCE;
+  }
+
+  static Concurrent<UIO_> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static Concurrent<UIO_> concurrent(Executor executor) {
+    return UIOConcurrent.instance(executor);
   }
   
   static Runtime<UIO_> runtime() {
@@ -139,7 +151,7 @@ interface UIODefer extends Defer<UIO_> {
   @Override
   default <A> UIO<A>
           defer(Producer<? extends Kind<UIO_, ? extends A>> defer) {
-    return UIO.defer(() -> defer.map(UIOOf::<A>narrowK).get());
+    return UIO.defer(defer::get);
   }
 }
 
@@ -150,7 +162,7 @@ interface UIOBracket extends UIOMonadError, Bracket<UIO_, Throwable> {
           bracket(Kind<UIO_, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<UIO_, ? extends B>> use,
                   Function1<? super A, ? extends Kind<UIO_, Unit>> release) {
-    return UIO.bracket(acquire.fix(toUIO()), use.andThen(UIOOf::narrowK), release::apply);
+    return UIO.bracket(acquire, use, release);
   }
 }
 
@@ -172,6 +184,26 @@ interface UIOAsync extends Async<UIO_>, UIOMonadDefer {
   @Override
   default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO_, Unit>> consumer) {
     return UIO.cancellable(consumer.andThen(UIOOf::narrowK));
+  }
+}
+
+interface UIOConcurrent extends Concurrent<UIO_>, UIOAsync {
+  
+  static UIOConcurrent instance(Executor executor) {
+    return () -> executor;
+  }
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>> racePair(Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
+    return UIO.racePair(executor(), fa, fb);
+  }
+  
+  @Override
+  default <A> UIO<Fiber<UIO_, A>> fork(Kind<UIO_, ? extends A> value) {
+    UIO<A> fix = value.fix(UIOOf::narrowK);
+    return fix.fork();
   }
 }
 

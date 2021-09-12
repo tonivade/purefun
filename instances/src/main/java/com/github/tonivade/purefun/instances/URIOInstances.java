@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
@@ -18,12 +19,15 @@ import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.URIOOf;
 import com.github.tonivade.purefun.effect.URIO_;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Async;
 import com.github.tonivade.purefun.typeclasses.Bracket;
+import com.github.tonivade.purefun.typeclasses.Concurrent;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Defer;
+import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
@@ -56,6 +60,14 @@ public interface URIOInstances {
 
   static <R> Async<Kind<URIO_, R>> async() {
     return URIOAsync.INSTANCE;
+  }
+
+  static <R> Concurrent<Kind<URIO_, R>> concurrent() {
+    return concurrent(Future.DEFAULT_EXECUTOR);
+  }
+
+  static <R> Concurrent<Kind<URIO_, R>> concurrent(Executor executor) {
+    return URIOConcurrent.instance(executor);
   }
 
   static <R> Console<Kind<Kind<URIO_, R>, Throwable>> console() {
@@ -147,7 +159,7 @@ interface URIODefer<R> extends Defer<Kind<URIO_, R>> {
   @Override
   default <A> URIO<R, A>
           defer(Producer<? extends Kind<Kind<URIO_, R>, ? extends A>> defer) {
-    return URIO.defer(() -> defer.map(URIOOf::<R, A>narrowK).get());
+    return URIO.defer(defer::get);
   }
 }
 
@@ -158,7 +170,19 @@ interface URIOBracket<R> extends URIOMonadError<R>, Bracket<Kind<URIO_, R>, Thro
           bracket(Kind<Kind<URIO_, R>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use,
                   Function1<? super A, ? extends Kind<Kind<URIO_, R>, Unit>> release) {
-    return URIO.bracket(acquire.fix(toURIO()), use.andThen(URIOOf::narrowK), release::apply);
+    return URIO.bracket(acquire, use, release);
+  }
+}
+
+interface URIOMonadDefer<R>
+    extends MonadDefer<Kind<URIO_, R>>, URIODefer<R>, URIOBracket<R> {
+
+  @SuppressWarnings("rawtypes")
+  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
+
+  @Override
+  default URIO<R, Unit> sleep(Duration duration) {
+    return UIO.sleep(duration).<R>toURIO();
   }
 }
 
@@ -173,16 +197,26 @@ interface URIOAsync<R> extends Async<Kind<URIO_, R>>, URIOMonadDefer<R> {
   }
 }
 
-interface URIOMonadDefer<R>
-    extends MonadDefer<Kind<URIO_, R>>, URIODefer<R>, URIOBracket<R> {
-
-  @SuppressWarnings("rawtypes")
-  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
-
-  @Override
-  default URIO<R, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).<R>toURIO();
+interface URIOConcurrent<R> extends URIOAsync<R>, Concurrent<Kind<URIO_, R>> {
+  
+  static <R> URIOConcurrent<R> instance(Executor executor) {
+    return () -> executor;
   }
+  
+  Executor executor();
+  
+  @Override
+  default <A, B> URIO<R, Either<Tuple2<A, Fiber<Kind<URIO_, R>, B>>, Tuple2<Fiber<Kind<URIO_, R>, A>, B>>> racePair(
+    Kind<Kind<URIO_, R>, ? extends A> fa, Kind<Kind<URIO_, R>, ? extends B> fb) {
+    return URIO.racePair(executor(), fa, fb);
+  }
+  
+  @Override
+  default <A> URIO<R, Fiber<Kind<URIO_, R>, A>> fork(Kind<Kind<URIO_, R>, ? extends A> value) {
+    URIO<R, A> fix = value.fix(URIOOf::narrowK);
+    return fix.fork();
+  }
+  
 }
 
 final class URIOConsole<R> implements Console<Kind<URIO_, R>> {

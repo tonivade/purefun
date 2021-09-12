@@ -314,18 +314,18 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     });
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Kind<Kind<Kind<ZIO_, R>, E>, A> fa, Kind<Kind<Kind<ZIO_, R>, E>, B> fb) {
+  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, A> fa, Kind<Kind<Kind<ZIO_, R>, E>, B> fb) {
+  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(ZIOOf.toZIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(ZIOOf.toZIO()).map(x -> Either.right(tb.get2()))));
   }
   
   static <R, E, A, B> ZIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>> 
-      racePair(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, A> fa, Kind<Kind<Kind<ZIO_, R>, E>, B> fb) {
+      racePair(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> fb) {
     return cancellable((env, callback) -> {
       
       ZIOConnection connection1 = ZIOConnection.cancellable();

@@ -205,13 +205,14 @@ interface IOConcurrent extends Concurrent<IO_>, IOAsync {
   Executor executor();
   
   @Override
-  default <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Kind<IO_, A> fa, Kind<IO_, B> fb) {
-    return IO.racePair(executor(), fa.fix(toIO()), fb.fix(toIO()));
+  default <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
+    return IO.racePair(executor(), fa, fb);
   }
   
   @Override
-  default <A> IO<Fiber<IO_, A>> fork(Kind<IO_, A> value) {
-    return value.fix(toIO()).fork();
+  default <A> IO<Fiber<IO_, A>> fork(Kind<IO_, ? extends A> value) {
+    IO<A> fix = value.fix(IOOf::narrowK);
+    return fix.fork();
   }
 }
 

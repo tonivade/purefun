@@ -242,30 +242,30 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(ZIO.absorb(value.instance));
   }
 
-  public static <R, A, B, C> RIO<R, C> parMap2(RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+  public static <R, A, B, C> RIO<R, C> parMap2(Kind<Kind<RIO_, R>, ? extends A> za, Kind<Kind<RIO_, R>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  public static <R, A, B, C> RIO<R, C> parMap2(Executor executor, RIO<R, ? extends A> za, RIO<R, ? extends B> zb, 
+  public static <R, A, B, C> RIO<R, C> parMap2(Executor executor, Kind<Kind<RIO_, R>, ? extends A> za, Kind<Kind<RIO_, R>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new RIO<>(ZIO.parMap2(executor, za.instance, zb.instance, mapper));
+    return new RIO<>(ZIO.parMap2(executor, za.fix(RIOOf::narrowK).instance, zb.fix(RIOOf::narrowK).instance, mapper));
   }
   
-  public static <R, A, B> RIO<R, Either<A, B>> race(Kind<Kind<RIO_, R>, A> fa, Kind<Kind<RIO_, R>, B> fb) {
+  public static <R, A, B> RIO<R, Either<A, B>> race(Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  public static <R, A, B> RIO<R, Either<A, B>> race(Executor executor, Kind<Kind<RIO_, R>, A> fa, Kind<Kind<RIO_, R>, B> fb) {
+  public static <R, A, B> RIO<R, Either<A, B>> race(Executor executor, Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(RIOOf.toRIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(RIOOf.toRIO()).map(x -> Either.right(tb.get2()))));
   }
   
   public static <R, A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO_, R>, B>>, Tuple2<Fiber<Kind<RIO_, R>, A>, B>>> 
-      racePair(Executor executor, Kind<Kind<RIO_, R>, A> fa, Kind<Kind<RIO_, R>, B> fb) {
-    ZIO<R, Throwable, A> instance1 = fa.fix(RIOOf.toRIO()).instance;
-    ZIO<R, Throwable, B> instance2 = fb.fix(RIOOf.toRIO()).instance;
+      racePair(Executor executor, Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
+    ZIO<R, Throwable, A> instance1 = fa.fix(RIOOf.toRIO()).instance.fix(ZIOOf::narrowK);
+    ZIO<R, Throwable, B> instance2 = fb.fix(RIOOf.toRIO()).instance.fix(ZIOOf::narrowK);
     return new RIO<>(ZIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Throwable>, Kind<RIO_, R>>() {
         @Override
@@ -336,8 +336,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(ZIO.raiseError(throwable));
   }
 
-  public static <R, A> RIO<R, A> defer(Producer<RIO<R, ? extends A>> lazy) {
-    return new RIO<>(ZIO.defer(() -> lazy.get().instance));
+  public static <R, A> RIO<R, A> defer(Producer<Kind<Kind<RIO_, R>, ? extends A>> lazy) {
+    return new RIO<>(ZIO.defer(() -> lazy.andThen(RIOOf::narrowK).get().instance));
   }
 
   public static <R, A> RIO<R, A> task(Producer<? extends A> task) {
@@ -367,22 +367,22 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
         (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
-      Function1<? super A, ? extends RIO<R, ? extends B>> use) {
-    return new RIO<>(ZIO.bracket(acquire.instance, 
+  public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use) {
+    return new RIO<>(ZIO.bracket(acquire.fix(RIOOf::narrowK).instance, 
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance));
   }
 
-  public static <R, A, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
-      Function1<? super A, ? extends RIO<R, ? extends B>> use, Consumer1<? super A> release) {
-    return new RIO<>(ZIO.bracket(acquire.instance, 
+  public static <R, A, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use, Consumer1<? super A> release) {
+    return new RIO<>(ZIO.bracket(acquire.fix(RIOOf::narrowK).instance, 
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release));
   }
 
-  public static <R, A, B> RIO<R, B> bracket(RIO<R, ? extends A> acquire, 
-      Function1<? super A, ? extends RIO<R, ? extends B>> use, Function1<? super A, ? extends RIO<R, Unit>> release) {
-    return new RIO<>(ZIO.bracket(acquire.instance, 
-        resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release.andThen(RIO::toZIO)));
+  public static <R, A, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire, 
+      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use, Function1<? super A, ? extends Kind<Kind<RIO_, R>, Unit>> release) {
+    return new RIO<>(ZIO.bracket(acquire.fix(RIOOf::narrowK).instance, 
+        resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release.andThen(RIOOf::narrowK).andThen(RIO::toZIO)));
   }
 
   @SuppressWarnings("unchecked")
