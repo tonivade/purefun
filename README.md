@@ -394,10 +394,10 @@ String content = readFile.unsafeRunSync();
 
 ## Effects
 
-An experimental version of `ZIO`.
+An experimental version of `PureIO` similar to ZIO.
 
 ```java
-ZIO<Console, Throwable, Unit> echoProgram =
+PureIO<Console, Throwable, Unit> echoProgram =
   Console.println("what's your name?")
       .andThen(Console.readln())
       .flatMap(name -> Console.println("Hello " + name));
@@ -406,30 +406,30 @@ interface Console {
 
   <R extends Console> Console.Service<R> console();
 
-  static ZIO<Console, Throwable, String> readln() {
-    return ZIO.accessM(env -> env.console().readln());
+  static PureIO<Console, Throwable, String> readln() {
+    return PureIO.accessM(env -> env.console().readln());
   }
 
-  static ZIO<Console, Throwable, Unit> println(String text) {
-    return ZIO.accessM(env -> env.console().println(text));
+  static PureIO<Console, Throwable, Unit> println(String text) {
+    return PureIO.accessM(env -> env.console().println(text));
   }
 
   interface Service<R extends Console> {
-    ZIO<R, Throwable, String> readln();
+    PureIO<R, Throwable, String> readln();
 
-    ZIO<R, Throwable, Unit> println(String text);
+    PureIO<R, Throwable, Unit> println(String text);
   }
 }
 ```
 
-Additionally, there are aliases for some ZIO special cases:
+Additionally, there are aliases for some PureIO special cases:
 
 ```
-UIO<T>      =>  ZIO<Any, Nothing, T>
-EIO<E, T>   =>  ZIO<Any, E, T>
-Task<T>     =>  ZIO<Any, Throwable, T>
-RIO<R, T>   =>  ZIO<R, Throwable, T>
-URIO<T>     =>  ZIO<R, Nothing, T>
+UIO<T>      =>  PureIO<?, Nothing, T>
+EIO<E, T>   =>  PureIO<?, E, T>
+Task<T>     =>  PureIO<?, Throwable, T>
+RIO<R, T>   =>  PureIO<R, Throwable, T>
+URIO<T>     =>  PureIO<R, Nothing, T>
 ```
 
 ## Algebraic Effects

@@ -12,35 +12,35 @@ import java.util.stream.IntStream;
 
 import com.github.tonivade.purefun.effect.URIO;
 
-public interface ZRandom {
+public interface PureRandom {
 
-  <R extends ZRandom> ZRandom.Service<R> random();
+  <R extends PureRandom> PureRandom.Service<R> random();
 
-  static <R extends ZRandom> URIO<R, Integer> nextInt() {
+  static <R extends PureRandom> URIO<R, Integer> nextInt() {
     return URIO.accessM(env -> env.<R>random().nextInt());
   }
 
-  static <R extends ZRandom> URIO<R, Long> nextLong() {
+  static <R extends PureRandom> URIO<R, Long> nextLong() {
     return URIO.accessM(env -> env.<R>random().nextLong());
   }
 
-  static <R extends ZRandom> URIO<R, Float> nextFloat() {
+  static <R extends PureRandom> URIO<R, Float> nextFloat() {
     return URIO.accessM(env -> env.<R>random().nextFloat());
   }
 
-  static <R extends ZRandom> URIO<R, Double> nextDouble() {
+  static <R extends PureRandom> URIO<R, Double> nextDouble() {
     return URIO.accessM(env -> env.<R>random().nextDouble());
   }
 
-  static <R extends ZRandom> URIO<R, Character> nextChar() {
+  static <R extends PureRandom> URIO<R, Character> nextChar() {
     return URIO.accessM(env -> env.<R>random().nextChar());
   }
 
-  static <R extends ZRandom> URIO<R, String> nextString(int length) {
+  static <R extends PureRandom> URIO<R, String> nextString(int length) {
     return URIO.accessM(env -> env.<R>random().nextString(length));
   }
 
-  interface Service<R extends ZRandom> {
+  interface Service<R extends PureRandom> {
     URIO<R, Integer> nextInt();
     URIO<R, Long> nextLong();
     URIO<R, Float> nextFloat();
@@ -49,16 +49,16 @@ public interface ZRandom {
     URIO<R, String> nextString(int length);
   }
 
-  static ZRandom live() {
+  static PureRandom live() {
     return new ZRandomImpl(new Random());
   }
 
-  static ZRandom test(long seed) {
+  static PureRandom test(long seed) {
     return new ZRandomImpl(new Random(seed));
   }
 }
 
-class ZRandomImpl implements ZRandom {
+class ZRandomImpl implements PureRandom {
 
   private static final String PRINTABLE_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -69,8 +69,8 @@ class ZRandomImpl implements ZRandom {
   }
 
   @Override
-  public <R extends ZRandom> ZRandom.Service<R> random() {
-    return new ZRandom.Service<R>() {
+  public <R extends PureRandom> PureRandom.Service<R> random() {
+    return new PureRandom.Service<R>() {
 
       @Override
       public URIO<R, Integer> nextInt() {

@@ -12,30 +12,30 @@ import java.util.Queue;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.RIO;
 
-public interface ZConsole {
+public interface PureConsole {
 
-  <R extends ZConsole> ZConsole.Service<R> console();
+  <R extends PureConsole> PureConsole.Service<R> console();
 
-  static <R extends ZConsole> RIO<R, String> readln() {
+  static <R extends PureConsole> RIO<R, String> readln() {
     return RIO.accessM(env -> env.<R>console().readln());
   }
 
-  static <R extends ZConsole> RIO<R, Unit> println(String text) {
+  static <R extends PureConsole> RIO<R, Unit> println(String text) {
     return RIO.accessM(env -> env.<R>console().println(text));
   }
 
-  interface Service<R extends ZConsole> {
+  interface Service<R extends PureConsole> {
     RIO<R, String> readln();
 
     RIO<R, Unit> println(String text);
   }
 
-  static ZConsole test(final Queue<String> input, final Queue<String> output) {
-    return new ZConsole() {
+  static PureConsole test(final Queue<String> input, final Queue<String> output) {
+    return new PureConsole() {
 
       @Override
-      public <R extends ZConsole> Service<R> console() {
-        return new ZConsole.Service<R>() {
+      public <R extends PureConsole> Service<R> console() {
+        return new PureConsole.Service<R>() {
 
           @Override
           public RIO<R, String> readln() {
@@ -51,12 +51,12 @@ public interface ZConsole {
     };
   }
 
-  static ZConsole live() {
-    return new ZConsole() {
+  static PureConsole live() {
+    return new PureConsole() {
 
       @Override
-      public <R extends ZConsole> Service<R> console() {
-        return new ZConsole.Service<R>() {
+      public <R extends PureConsole> Service<R> console() {
+        return new PureConsole.Service<R>() {
 
           @Override
           public RIO<R, String> readln() {

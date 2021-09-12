@@ -45,7 +45,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
 @HigherKind(sealed = true)
-public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>, E>, A> {
+public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<PureIO_, R>, E>, A> {
 
   default Either<E, A> provide(R env) {
     return runAsync(env).getOrElseThrow();
@@ -56,196 +56,196 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
   }
 
   default Future<Either<E, A>> runAsync(R env, Executor executor) {
-    return ZIO.<R, E>forked(executor).andThen(this).runAsync(env);
+    return PureIO.<R, E>forked(executor).andThen(this).runAsync(env);
   }
 
   default void provideAsync(R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     runAsync(env).onComplete(callback::accept);
   }
 
-  default ZIO<R, A, E> swap() {
-    return foldM(ZIO::pure, ZIO::raiseError);
+  default PureIO<R, A, E> swap() {
+    return foldM(PureIO::pure, PureIO::raiseError);
   }
 
   @Override
-  default <B> ZIO<R, E, B> map(Function1<? super A, ? extends B> map) {
-    return flatMap(map.andThen(ZIO::pure));
+  default <B> PureIO<R, E, B> map(Function1<? super A, ? extends B> map) {
+    return flatMap(map.andThen(PureIO::pure));
   }
 
-  default <B> ZIO<R, B, A> mapError(Function1<? super E, ? extends B> map) {
-    return flatMapError(map.andThen(ZIO::raiseError));
+  default <B> PureIO<R, B, A> mapError(Function1<? super E, ? extends B> map) {
+    return flatMapError(map.andThen(PureIO::raiseError));
   }
 
-  default <B, F> ZIO<R, F, B> bimap(Function1<? super E, ? extends F> mapError, Function1<? super A, ? extends B> map) {
-    return foldM(mapError.andThen(ZIO::raiseError), map.andThen(ZIO::pure));
-  }
-
-  @Override
-  default <B> ZIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> map) {
-    return foldM(ZIO::<R, E, B>raiseError, map.andThen(ZIOOf::narrowK));
-  }
-
-  default <F> ZIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends A>> map) {
-    return foldM(map, ZIO::<R, F, A>pure);
-  }
-
-  default <F, B> ZIO<R, F, B> foldM(
-      Function1<? super E, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> left, 
-      Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, F>, ? extends B>> right) {
-    return new ZIOModule.FlatMapped<>(this, left.andThen(ZIOOf::narrowK), right.andThen(ZIOOf::narrowK));
+  default <B, F> PureIO<R, F, B> bimap(Function1<? super E, ? extends F> mapError, Function1<? super A, ? extends B> map) {
+    return foldM(mapError.andThen(PureIO::raiseError), map.andThen(PureIO::pure));
   }
 
   @Override
-  default <B> ZIO<R, E, B> andThen(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> next) {
+  default <B> PureIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends B>> map) {
+    return foldM(PureIO::<R, E, B>raiseError, map.andThen(PureIOOf::narrowK));
+  }
+
+  default <F> PureIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends A>> map) {
+    return foldM(map, PureIO::<R, F, A>pure);
+  }
+
+  default <F, B> PureIO<R, F, B> foldM(
+      Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> left, 
+      Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> right) {
+    return new ZIOModule.FlatMapped<>(this, left.andThen(PureIOOf::narrowK), right.andThen(PureIOOf::narrowK));
+  }
+
+  @Override
+  default <B> PureIO<R, E, B> andThen(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> next) {
     return flatMap(ignore -> next);
   }
 
   @Override
-  default <B> ZIO<R, E, B> ap(Kind<Kind<Kind<ZIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
-    return parMap2(this, apply.fix(ZIOOf.toZIO()), (v, a) -> a.apply(v));
+  default <B> PureIO<R, E, B> ap(Kind<Kind<Kind<PureIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
+    return parMap2(this, apply.fix(PureIOOf.toPureIO()), (v, a) -> a.apply(v));
   }
 
   default <B> URIO<R, B> fold(
       Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
-    return new URIO<>(foldM(mapError.andThen(ZIO::pure), map.andThen(ZIO::pure)));
+    return new URIO<>(foldM(mapError.andThen(PureIO::pure), map.andThen(PureIO::pure)));
   }
 
   default URIO<R, A> recover(Function1<? super E, ? extends A> mapError) {
     return fold(mapError, identity());
   }
 
-  default ZIO<R, E, A> orElse(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> other) {
+  default PureIO<R, E, A> orElse(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
   
   @Override
-  default <B> ZIO<R, E, Tuple2<A, B>> zip(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
+  default <B> PureIO<R, E, Tuple2<A, B>> zip(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
   
   @Override
-  default <B> ZIO<R, E, A> zipLeft(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
+  default <B> PureIO<R, E, A> zipLeft(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other) {
     return zipWith(other, first());
   }
   
   @Override
-  default <B> ZIO<R, E, B> zipRight(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other) {
+  default <B> PureIO<R, E, B> zipRight(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other) {
     return zipWith(other, second());
   }
   
   @Override
-  default <B, C> ZIO<R, E, C> zipWith(Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> other, 
+  default <B, C> PureIO<R, E, C> zipWith(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return parMap2(this, other.fix(ZIOOf.toZIO()), mapper);
+    return parMap2(this, other.fix(PureIOOf.toPureIO()), mapper);
   }
 
   @Override
-  default ZIO<R, E, A> repeat() {
+  default PureIO<R, E, A> repeat() {
     return repeat(1);
   }
 
   @Override
-  default ZIO<R, E, A> repeat(int times) {
+  default PureIO<R, E, A> repeat(int times) {
     return repeat(Schedule.<R, A>recurs(times).zipRight(Schedule.identity()));
   }
 
   @Override
-  default ZIO<R, E, A> repeat(Duration delay) {
+  default PureIO<R, E, A> repeat(Duration delay) {
     return repeat(delay, 1);
   }
 
   @Override
-  default ZIO<R, E, A> repeat(Duration delay, int times) {
+  default PureIO<R, E, A> repeat(Duration delay, int times) {
     return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
   }
   
-  default <B> ZIO<R, E, B> repeat(Schedule<R, A, B> schedule) {
+  default <B> PureIO<R, E, B> repeat(Schedule<R, A, B> schedule) {
     return repeatOrElse(schedule, (e, b) -> raiseError(e));
   }
   
-  default <B> ZIO<R, E, B> repeatOrElse(
+  default <B> PureIO<R, E, B> repeatOrElse(
       Schedule<R, A, B> schedule,
-      Function2<E, Option<B>, Kind<Kind<Kind<ZIO_, R>, E>, B>> orElse) {
+      Function2<E, Option<B>, Kind<Kind<Kind<PureIO_, R>, E>, B>> orElse) {
     return repeatOrElseEither(schedule, orElse).map(Either::merge);
   }
 
-  default <B, C> ZIO<R, E, Either<C, B>> repeatOrElseEither(
+  default <B, C> PureIO<R, E, Either<C, B>> repeatOrElseEither(
       Schedule<R, A, B> schedule,
-      Function2<E, Option<B>, Kind<Kind<Kind<ZIO_, R>, E>, C>> orElse) {
-    return new Repeat<>(this, schedule, orElse.andThen(ZIOOf::narrowK)).run();
+      Function2<E, Option<B>, Kind<Kind<Kind<PureIO_, R>, E>, C>> orElse) {
+    return new Repeat<>(this, schedule, orElse.andThen(PureIOOf::narrowK)).run();
   }
 
   @Override
-  default ZIO<R, E, A> retry() {
+  default PureIO<R, E, A> retry() {
     return retry(1);
   }
 
   @Override
-  default ZIO<R, E, A> retry(int maxRetries) {
+  default PureIO<R, E, A> retry(int maxRetries) {
     return retry(Schedule.recurs(maxRetries));
   }
 
   @Override
-  default ZIO<R, E, A> retry(Duration delay) {
+  default PureIO<R, E, A> retry(Duration delay) {
     return retry(delay, 1);
   }
 
   @Override
-  default ZIO<R, E, A> retry(Duration delay, int maxRetries) {
+  default PureIO<R, E, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
   }
   
-  default <B> ZIO<R, E, A> retry(Schedule<R, E, B> schedule) {
+  default <B> PureIO<R, E, A> retry(Schedule<R, E, B> schedule) {
     return retryOrElse(schedule, (e, b) -> raiseError(e));
   }
 
-  default <B> ZIO<R, E, A> retryOrElse(
+  default <B> PureIO<R, E, A> retryOrElse(
       Schedule<R, E, B> schedule,
-      Function2<E, B, Kind<Kind<Kind<ZIO_, R>, E>, A>> orElse) {
+      Function2<E, B, Kind<Kind<Kind<PureIO_, R>, E>, A>> orElse) {
     return retryOrElseEither(schedule, orElse).map(Either::merge);
   }
 
-  default <B, C> ZIO<R, E, Either<B, A>> retryOrElseEither(
+  default <B, C> PureIO<R, E, Either<B, A>> retryOrElseEither(
       Schedule<R, E, C> schedule,
-      Function2<E, C, Kind<Kind<Kind<ZIO_, R>, E>, B>> orElse) {
-    return new Retry<>(this, schedule, orElse.andThen(ZIOOf::narrowK)).run();
+      Function2<E, C, Kind<Kind<Kind<PureIO_, R>, E>, B>> orElse) {
+    return new Retry<>(this, schedule, orElse.andThen(PureIOOf::narrowK)).run();
   }
 
   @Override
-  default ZIO<R, E, Tuple2<Duration, A>> timed() {
-    return ZIO.<R, E, Long>later(System::nanoTime).flatMap(
+  default PureIO<R, E, Tuple2<Duration, A>> timed() {
+    return PureIO.<R, E, Long>later(System::nanoTime).flatMap(
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
   
-  default ZIO<R, E, Fiber<Kind<Kind<ZIO_, R>, E>, A>> fork() {
+  default PureIO<R, E, Fiber<Kind<Kind<PureIO_, R>, E>, A>> fork() {
     return async((env, callback) -> {
       ZIOConnection connection = ZIOConnection.cancellable();
       Promise<Either<E, A>> promise = ZIOModule.runAsync(env, this, connection);
       
-      ZIO<R, E, A> join = fromPromise(promise);
-      ZIO<R, E, Unit> cancel = run(connection::cancel);
+      PureIO<R, E, A> join = fromPromise(promise);
+      PureIO<R, E, Unit> cancel = run(connection::cancel);
       
       callback.accept(Try.success(Either.right(Fiber.of(join, cancel))));
     });
   }
 
-  default ZIO<R, E, A> timeout(Duration duration) {
+  default PureIO<R, E, A> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }
   
-  default ZIO<R, E, A> timeout(Executor executor, Duration duration) {
+  default PureIO<R, E, A> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(ZIOOf.toZIO()).map(x -> ta.get1()),
-        tb -> tb.get1().cancel().fix(ZIOOf.toZIO()).flatMap(x -> ZIO.throwError(new TimeoutException()))));
+        ta -> ta.get2().cancel().fix(PureIOOf.toPureIO()).map(x -> ta.get1()),
+        tb -> tb.get1().cancel().fix(PureIOOf.toPureIO()).flatMap(x -> PureIO.throwError(new TimeoutException()))));
   }
   
   @SuppressWarnings("unchecked")
-  default <X extends Throwable> ZIO<R, X, A> refineOrDie(Class<X> type) {
+  default <X extends Throwable> PureIO<R, X, A> refineOrDie(Class<X> type) {
     return flatMapError(error -> {
       if (type.isAssignableFrom(error.getClass())) {
-        return ZIO.raiseError((X) error);
+        return PureIO.raiseError((X) error);
       }
-      return ZIO.throwError(new ClassCastException(error.getClass() + " not asignable to " + type));
+      return PureIO.throwError(new ClassCastException(error.getClass() + " not asignable to " + type));
     });
   }
   
@@ -270,41 +270,41 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     return Managed.from(this, release);
   }
 
-  static <R, E, A> ZIO<R, E, A> accessM(Function1<? super R, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> map) {
-    return new ZIOModule.AccessM<>(map.andThen(ZIOOf::narrowK));
+  static <R, E, A> PureIO<R, E, A> accessM(Function1<? super R, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> map) {
+    return new ZIOModule.AccessM<>(map.andThen(PureIOOf::narrowK));
   }
 
-  static <R, E, A> ZIO<R, E, A> access(Function1<? super R, ? extends A> map) {
-    return accessM(map.andThen(ZIO::pure));
+  static <R, E, A> PureIO<R, E, A> access(Function1<? super R, ? extends A> map) {
+    return accessM(map.andThen(PureIO::pure));
   }
 
-  static <R, E> ZIO<R, E, R> env() {
+  static <R, E> PureIO<R, E, R> env() {
     return access(identity());
   }
   
-  static <R, E> ZIO<R, E, Unit> forked(Executor executor) {
+  static <R, E> PureIO<R, E, Unit> forked(Executor executor) {
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Either.right(Unit.unit())))));
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> parMap2(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> zb, 
+  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  static <R, E, A, B, C> ZIO<R, E, C> parMap2(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> zb, 
+  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable((env, callback) -> {
       
       ZIOConnection connection1 = ZIOConnection.cancellable();
       ZIOConnection connection2 = ZIOConnection.cancellable();
       
-      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(za), connection1);
-      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(zb), connection2);
+      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(za), connection1);
+      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(zb), connection2);
       
       promiseA.onComplete(a -> promiseB.onComplete(
         b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.narrowK(Either.map2(e1, e2, mapper))))));
       
-      return ZIO.exec(() -> {
+      return PureIO.exec(() -> {
         try {
           connection1.cancel();
         } finally {
@@ -314,45 +314,45 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     });
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> fb) {
+  static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> fb) {
+  static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(ZIOOf.toZIO()).map(x -> Either.left(ta.get1())),
-        tb -> tb.get1().cancel().fix(ZIOOf.toZIO()).map(x -> Either.right(tb.get2()))));
+        ta -> ta.get2().cancel().fix(PureIOOf.toPureIO()).map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().fix(PureIOOf.toPureIO()).map(x -> Either.right(tb.get2()))));
   }
   
-  static <R, E, A, B> ZIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>> 
-      racePair(Executor executor, Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<ZIO_, R>, E>, ? extends B> fb) {
+  static <R, E, A, B> PureIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>> 
+      racePair(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return cancellable((env, callback) -> {
       
       ZIOConnection connection1 = ZIOConnection.cancellable();
       ZIOConnection connection2 = ZIOConnection.cancellable();
       
-      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(fa), connection1);
-      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, ZIO.<R, E>forked(executor).andThen(fb), connection2);
+      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(fa), connection1);
+      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(fb), connection2);
       
       promiseA.onComplete(result -> {
-        ZIO<R, E, B> fromPromiseB = ZIO.fromPromise(promiseB);
-        ZIO<R, E, Unit> cancelB = ZIO.run(connection2::cancel);
-        Fiber<Kind<Kind<ZIO_, R>, E>, B> fiberB = Fiber.of(fromPromiseB, cancelB);
+        PureIO<R, E, B> fromPromiseB = PureIO.fromPromise(promiseB);
+        PureIO<R, E, Unit> cancelB = PureIO.run(connection2::cancel);
+        Fiber<Kind<Kind<PureIO_, R>, E>, B> fiberB = Fiber.of(fromPromiseB, cancelB);
         callback.accept(result.map(
           either -> either.map(
-            a -> Either.<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>left(Tuple.of(a, fiberB)))));
+            a -> Either.<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>left(Tuple.of(a, fiberB)))));
       });
       
       promiseB.onComplete(result -> {
-        ZIO<R, E, A> fromPromiseA = ZIO.fromPromise(promiseA);
-        ZIO<R, E, Unit> cancelA = ZIO.run(connection2::cancel);
-        Fiber<Kind<Kind<ZIO_, R>, E>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
+        PureIO<R, E, A> fromPromiseA = PureIO.fromPromise(promiseA);
+        PureIO<R, E, Unit> cancelA = PureIO.run(connection2::cancel);
+        Fiber<Kind<Kind<PureIO_, R>, E>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
         callback.accept(result.map(
           either -> either.map(
-            b -> Either.<Tuple2<A, Fiber<Kind<Kind<ZIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<ZIO_, R>, E>, A>, B>>right(Tuple.of(fiberA, b)))));
+            b -> Either.<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>right(Tuple.of(fiberA, b)))));
       });
 
-      return ZIO.exec(() -> {
+      return PureIO.exec(() -> {
         try {
           connection1.cancel();
         } finally {
@@ -362,140 +362,140 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
     });
   }
 
-  static <R, E, A> ZIO<R, E, A> absorb(Kind<Kind<Kind<ZIO_, R>, E>, Either<E, A>> value) {
-    return value.fix(ZIOOf::narrowK).flatMap(either -> either.fold(ZIO::raiseError, ZIO::pure));
+  static <R, E, A> PureIO<R, E, A> absorb(Kind<Kind<Kind<PureIO_, R>, E>, Either<E, A>> value) {
+    return value.fix(PureIOOf::narrowK).flatMap(either -> either.fold(PureIO::raiseError, PureIO::pure));
   }
 
-  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> lift(Function1<? super A, ? extends B> function) {
+  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> lift(Function1<? super A, ? extends B> function) {
     return value -> pure(function.apply(value));
   }
 
-  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  static <R, A, B> Function1<A, ZIO<R, Throwable, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  static <R, E, A, B> Function1<A, ZIO<R, E, B>> liftEither(Function1<? super A, Either<E, ? extends B>> function) {
+  static <R, E, A, B> Function1<A, PureIO<R, E, B>> liftEither(Function1<? super A, Either<E, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
-  static <R, A> ZIO<R, Throwable, A> fromOption(Option<? extends A> task) {
+  static <R, A> PureIO<R, Throwable, A> fromOption(Option<? extends A> task) {
     return fromOption(cons(task));
   }
 
-  static <R, A> ZIO<R, Throwable, A> fromOption(Producer<Option<? extends A>> task) {
+  static <R, A> PureIO<R, Throwable, A> fromOption(Producer<Option<? extends A>> task) {
     return fromEither(task.andThen(Option::toEither));
   }
 
-  static <R, A> ZIO<R, Throwable, A> fromTry(Try<? extends A> task) {
+  static <R, A> PureIO<R, Throwable, A> fromTry(Try<? extends A> task) {
     return fromTry(cons(task));
   }
 
-  static <R, A> ZIO<R, Throwable, A> fromTry(Producer<Try<? extends A>> task) {
+  static <R, A> PureIO<R, Throwable, A> fromTry(Producer<Try<? extends A>> task) {
     return fromEither(task.andThen(Try::toEither));
   }
 
-  static <R, E, A> ZIO<R, E, A> fromEither(Either<E, ? extends A> task) {
+  static <R, E, A> PureIO<R, E, A> fromEither(Either<E, ? extends A> task) {
     return fromEither(cons(task));
   }
 
-  static <R, E, A> ZIO<R, E, A> fromEither(Producer<Either<E, ? extends A>> task) {
+  static <R, E, A> PureIO<R, E, A> fromEither(Producer<Either<E, ? extends A>> task) {
     return new ZIOModule.Delay<>(task);
   }
   
-  static <R, E, A> ZIO<R, E, A> fromPromise(Promise<? extends Either<E, ? extends A>> promise) {
+  static <R, E, A> PureIO<R, E, A> fromPromise(Promise<? extends Either<E, ? extends A>> promise) {
     Consumer1<Consumer1<? super Try<? extends Either<E, ? extends A>>>> callback = promise::onComplete;
     return async((env, cb) -> callback.accept(cb));
   }
 
-  static <R> ZIO<R, Throwable, Unit> exec(CheckedRunnable task) {
+  static <R> PureIO<R, Throwable, Unit> exec(CheckedRunnable task) {
     return new ZIOModule.Attempt<>(task.asProducer());
   }
 
-  static <R, E> ZIO<R, E, Unit> run(Runnable task) {
+  static <R, E> PureIO<R, E, Unit> run(Runnable task) {
     return fromEither(() -> { task.run(); return Either.right(Unit.unit()); });
   }
 
-  static <R, E, A> ZIO<R, E, A> pure(A value) {
+  static <R, E, A> PureIO<R, E, A> pure(A value) {
     return new ZIOModule.Pure<>(value);
   }
 
-  static <R, E, A> ZIO<R, E, A> defer(Producer<Kind<Kind<Kind<ZIO_, R>, E>, ? extends A>> lazy) {
-    return new ZIOModule.Suspend<>(lazy.andThen(ZIOOf::narrowK));
+  static <R, E, A> PureIO<R, E, A> defer(Producer<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> lazy) {
+    return new ZIOModule.Suspend<>(lazy.andThen(PureIOOf::narrowK));
   }
 
-  static <R, A> ZIO<R, Throwable, A> task(Producer<? extends A> task) {
+  static <R, A> PureIO<R, Throwable, A> task(Producer<? extends A> task) {
     return new ZIOModule.Attempt<>(task);
   }
 
-  static <R, E, A> ZIO<R, E, A> later(Producer<? extends A> task) {
+  static <R, E, A> PureIO<R, E, A> later(Producer<? extends A> task) {
     return fromEither(task.andThen(Either::right));
   }
   
-  static <R, E, A> ZIO<R, E, A> never() {
+  static <R, E, A> PureIO<R, E, A> never() {
     return async((env, cb) -> {});
   }
   
-  static <R, E, A> ZIO<R, E, A> async(Consumer2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
-    return cancellable(consumer.asFunction().andThen(ZIO::pure));
+  static <R, E, A> PureIO<R, E, A> async(Consumer2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
+    return cancellable(consumer.asFunction().andThen(PureIO::pure));
   }
   
-  static <R, E, A> ZIO<R, E, A> cancellable(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, ZIO<R, ?, Unit>> consumer) {
+  static <R, E, A> PureIO<R, E, A> cancellable(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> consumer) {
     return new ZIOModule.Async<>(consumer);
   }
 
-  static <R, E, A> ZIO<R, E, A> raiseError(E error) {
+  static <R, E, A> PureIO<R, E, A> raiseError(E error) {
     return new ZIOModule.Failure<>(error);
   }
 
-  static <R, E, A> ZIO<R, E, A> throwError(Throwable error) {
+  static <R, E, A> PureIO<R, E, A> throwError(Throwable error) {
     return new ZIOModule.Throw<>(error);
   }
 
-  static <R, A> ZIO<R, Throwable, A> redeem(Kind<Kind<Kind<ZIO_, R>, Nothing>, ? extends A> value) {
-    return new ZIOModule.Recover<>(value.fix(ZIOOf::narrowK), PartialFunction1.of(always(), ZIO::raiseError));
+  static <R, A> PureIO<R, Throwable, A> redeem(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends A> value) {
+    return new ZIOModule.Recover<>(value.fix(PureIOOf::narrowK), PartialFunction1.of(always(), PureIO::raiseError));
   }
 
-  static <R, E> ZIO<R, E, Unit> sleep(Duration delay) {
+  static <R, E> PureIO<R, E, Unit> sleep(Duration delay) {
     return cancellable((env, callback) -> {
       Future<Unit> sleep = Future.sleep(delay)
         .onComplete(result -> callback.accept(Try.success(Either.right(Unit.unit()))));
-      return ZIO.exec(() -> sleep.cancel(true));
+      return PureIO.exec(() -> sleep.cancel(true));
     });  
   }
 
-  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Sequence<? extends Kind<Kind<Kind<ZIO_, R>, E>, A>> sequence) {
+  static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Sequence<? extends Kind<Kind<Kind<PureIO_, R>, E>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  static <R, E, A> ZIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<Kind<ZIO_, R>, E>, A>> sequence) {
+  static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<Kind<PureIO_, R>, E>, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (Kind<Kind<Kind<ZIO_, R>, E>, Sequence<A>> xs, Kind<Kind<Kind<ZIO_, R>, E>, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Kind<Kind<PureIO_, R>, E>, Sequence<A>> xs, Kind<Kind<Kind<PureIO_, R>, E>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  static <R, E, A extends AutoCloseable, B> ZIO<R, E, B> bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
-                                                                 Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use) {
+  static <R, E, A extends AutoCloseable, B> PureIO<R, E, B> bracket(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> acquire,
+                                                                 Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends B>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
-  static <R, E, A, B> ZIO<R, E, B> bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
-                                           Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use,
+  static <R, E, A, B> PureIO<R, E, B> bracket(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> acquire,
+                                           Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends B>> use,
                                            Consumer1<? super A> release) {
-    return bracket(acquire, use, release.asFunction().andThen(ZIO::pure));
+    return bracket(acquire, use, release.asFunction().andThen(PureIO::pure));
   }
 
-  static <R, E, A, B> ZIO<R, E, B> bracket(Kind<Kind<Kind<ZIO_, R>, E>, ? extends A> acquire,
-                                           Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, ? extends B>> use,
-                                           Function1<? super A, ? extends Kind<Kind<Kind<ZIO_, R>, E>, Unit>> release) {
+  static <R, E, A, B> PureIO<R, E, B> bracket(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> acquire,
+                                           Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends B>> use,
+                                           Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, Unit>> release) {
     // TODO: cancel
     return cancellable((env, callback) -> {
       
       ZIOConnection cancellable = ZIOConnection.cancellable();
       
-      Promise<Either<E, A>> promise = ZIOModule.runAsync(env, acquire.fix(ZIOOf::narrowK), cancellable);
+      Promise<Either<E, A>> promise = ZIOModule.runAsync(env, acquire.fix(PureIOOf::narrowK), cancellable);
       
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
@@ -503,14 +503,14 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
           callback.accept(Try.success(Either.left(error)));
           return Unit.unit();
         }, resource -> {
-          Function1<? super A, ZIO<R, E, B>> andThen = use.andThen(ZIOOf::narrowK);
+          Function1<? super A, PureIO<R, E, B>> andThen = use.andThen(PureIOOf::narrowK);
           Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
           
           runAsync
             .onFailure(e -> callback.accept(Try.failure(e)))
             .onSuccess(result -> {
 
-              Promise<Either<E, Unit>> run = ZIOModule.runAsync(env, release.andThen(ZIOOf::narrowK).apply(resource), cancellable);
+              Promise<Either<E, Unit>> run = ZIOModule.runAsync(env, release.andThen(PureIOOf::narrowK).apply(resource), cancellable);
               
               run.onComplete(ignore -> result.fold(error -> {
                 callback.accept(Try.success(Either.left(error)));
@@ -523,42 +523,42 @@ public interface ZIO<R, E, A> extends ZIOOf<R, E, A>, Effect<Kind<Kind<ZIO_, R>,
           return Unit.unit();
         }));
 
-      return ZIO.run(cancellable::cancel);
+      return PureIO.run(cancellable::cancel);
     });
   }
 
   @SuppressWarnings("unchecked")
-  static <R, E> ZIO<R, E, Unit> unit() {
-    return (ZIO<R, E, Unit>) ZIOModule.UNIT;
+  static <R, E> PureIO<R, E, Unit> unit() {
+    return (PureIO<R, E, Unit>) ZIOModule.UNIT;
   }
 }
   
 final class Repeat<R, S, E, A, B, C> {
   
-  private final ZIO<R, E, A> current;
+  private final PureIO<R, E, A> current;
   private final ScheduleImpl<R, S, A, B> schedule;
-  private final Function2<E, Option<B>, ZIO<R, E, C>> orElse;
+  private final Function2<E, Option<B>, PureIO<R, E, C>> orElse;
 
   @SuppressWarnings("unchecked")
-  protected Repeat(ZIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, ZIO<R, E, C>> orElse) {
+  protected Repeat(PureIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, PureIO<R, E, C>> orElse) {
     this.current = checkNonNull(current);
     this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
     this.orElse = checkNonNull(orElse);
   }
   
-  protected ZIO<R, E, Either<C, B>> run() {
+  protected PureIO<R, E, Either<C, B>> run() {
     return current.foldM(error -> {
-      ZIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
+      PureIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
       return apply.map(Either::<C, B>left);
     }, value -> {
-      ZIO<R, E, S> zio = schedule.initial().<E>toZIO();
+      PureIO<R, E, S> zio = schedule.initial().<E>toPureIO();
       return zio.flatMap(s -> loop(value, s));
     });
   }
 
-  private ZIO<R, E, Either<C, B>> loop(A later, S state) {
+  private PureIO<R, E, Either<C, B>> loop(A later, S state) {
     return schedule.update(later, state)
-      .foldM(error -> ZIO.pure(Either.right(schedule.extract(later, state))), 
+      .foldM(error -> PureIO.pure(Either.right(schedule.extract(later, state))), 
         s -> current.foldM(
           e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
           a -> loop(a, s)));
@@ -567,40 +567,40 @@ final class Repeat<R, S, E, A, B, C> {
 
 final class Retry<R, E, A, B, S> {
   
-  private final ZIO<R, E, A> current;
+  private final PureIO<R, E, A> current;
   private final ScheduleImpl<R, S, E, S> schedule;
-  private final Function2<E, S, ZIO<R, E, B>> orElse;
+  private final Function2<E, S, PureIO<R, E, B>> orElse;
 
   @SuppressWarnings("unchecked")
-  protected Retry(ZIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, ZIO<R, E, B>> orElse) {
+  protected Retry(PureIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, PureIO<R, E, B>> orElse) {
     this.current = checkNonNull(current);
     this.schedule = (ScheduleImpl<R, S, E, S>) checkNonNull(schedule);
     this.orElse = checkNonNull(orElse);
   }
 
-  public ZIO<R, E, Either<B, A>> run() {
-    return schedule.initial().<E>toZIO().flatMap(this::loop);
+  public PureIO<R, E, Either<B, A>> run() {
+    return schedule.initial().<E>toPureIO().flatMap(this::loop);
   }
 
-  private ZIO<R, E, Either<B, A>> loop(S state) {
+  private PureIO<R, E, Either<B, A>> loop(S state) {
     return current.foldM(error -> {
-      ZIO<R, Unit, S> update = schedule.update(error, state);
+      PureIO<R, Unit, S> update = schedule.update(error, state);
       return update.foldM(
         e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
-    }, value -> ZIO.pure(Either.right(value)));
+    }, value -> PureIO.pure(Either.right(value)));
   }
 }
 
 interface ZIOModule {
 
-  ZIO<?, ?, Unit> UNIT = ZIO.pure(Unit.unit());
+  PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
 
-  static <R, E, A> Promise<Either<E, A>> runAsync(R env, ZIO<R, E, A> current, ZIOConnection connection) {
+  static <R, E, A> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, ZIOConnection connection) {
     return runAsync(env, current, connection, new CallStack<>(), Promise.make());
   }
 
   @SuppressWarnings("unchecked")
-  static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, ZIO<R, E, A> current, ZIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+  static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, ZIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
         current = unwrap(env, current, stack, identity());
@@ -623,15 +623,15 @@ interface ZIOModule {
           stack.push();
           
           FlatMapped<R, F, B, E, A> flatMapped = (FlatMapped<R, F, B, E, A>) current;
-          ZIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
+          PureIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
           
           if (source instanceof Async) {
             Promise<Either<F, B>> nextPromise = Promise.make();
             
             nextPromise.then(either -> {
-              Function1<? super B, ZIO<R, E, A>> andThen = flatMapped.next.andThen(ZIOOf::narrowK);
-              Function1<? super F, ZIO<R, E, A>> andThenError = flatMapped.nextError.andThen(ZIOOf::narrowK);
-              ZIO<R, E, A> fold = either.fold(andThenError, andThen);
+              Function1<? super B, PureIO<R, E, A>> andThen = flatMapped.next.andThen(PureIOOf::narrowK);
+              Function1<? super F, PureIO<R, E, A>> andThenError = flatMapped.nextError.andThen(PureIOOf::narrowK);
+              PureIO<R, E, A> fold = either.fold(andThenError, andThen);
               runAsync(env, fold, connection, stack, promise);
             });
             
@@ -642,11 +642,11 @@ interface ZIOModule {
 
           if (source instanceof Pure) {
             Pure<R, F, B> pure = (Pure<R, F, B>) source;
-            Function1<? super B, ZIO<R, E, A>> andThen = flatMapped.next.andThen(ZIOOf::narrowK);
+            Function1<? super B, PureIO<R, E, A>> andThen = flatMapped.next.andThen(PureIOOf::narrowK);
             current = andThen.apply(pure.value);
           } else if (source instanceof Failure) {
             Failure<R, F, B> failure = (Failure<R, F, B>) source;
-            Function1<? super F, ZIO<R, E, A>> andThen = flatMapped.nextError.andThen(ZIOOf::narrowK);
+            Function1<? super F, PureIO<R, E, A>> andThen = flatMapped.nextError.andThen(PureIOOf::narrowK);
             current = andThen.apply(failure.error);
           } else if (source instanceof FlatMapped) {
             FlatMapped<R, G, C, F, B> flatMapped2 = (FlatMapped<R, G, C, F, B>) source;
@@ -659,7 +659,7 @@ interface ZIOModule {
           stack.pop();
         }
       } catch (Throwable error) {
-        Option<ZIO<R, E, A>> result = stack.tryHandle(error);
+        Option<PureIO<R, E, A>> result = stack.tryHandle(error);
         
         if (result.isPresent()) {
           current = result.get();
@@ -671,7 +671,7 @@ interface ZIOModule {
   }
 
   @SuppressWarnings("unchecked")
-  static <R, E, F, A, B> ZIO<R, E, A> unwrap(R env, ZIO<R, E, A> current, CallStack<R, F, B> stack, Function1<ZIO<R, E, ? extends A>, ZIO<R, F, ? extends B>> next) {
+  static <R, E, F, A, B> PureIO<R, E, A> unwrap(R env, PureIO<R, E, A> current, CallStack<R, F, B> stack, Function1<PureIO<R, E, ? extends A>, PureIO<R, F, ? extends B>> next) {
     while (true) {
       if (current instanceof Failure) {
         return current;
@@ -686,24 +686,24 @@ interface ZIOModule {
         return stack.sneakyThrow(throwError.error);
       } else if (current instanceof Recover) {
         Recover<R, E, A> recover = (Recover<R, E, A>) current;
-        stack.add((PartialFunction1<? super Throwable, ZIO<R, F, ? extends B>>) recover.mapper.andThen(next));
-        current = (ZIO<R, E, A>) recover.current;
+        stack.add((PartialFunction1<? super Throwable, PureIO<R, F, ? extends B>>) recover.mapper.andThen(next));
+        current = (PureIO<R, E, A>) recover.current;
       } else if (current instanceof AccessM) {
         AccessM<R, E, A> accessM = (AccessM<R, E, A>) current;
-        Function1<? super R, ZIO<R, E, A>> andThen = accessM.function.andThen(ZIOOf::narrowK);
+        Function1<? super R, PureIO<R, E, A>> andThen = accessM.function.andThen(PureIOOf::narrowK);
         current = andThen.apply(env);
       } else if (current instanceof Suspend) {
         Suspend<R, E, A> suspend = (Suspend<R, E, A>) current;
-        Producer<ZIO<R, E, A>> andThen = suspend.lazy.andThen(ZIOOf::narrowK);
+        Producer<PureIO<R, E, A>> andThen = suspend.lazy.andThen(PureIOOf::narrowK);
         current = andThen.get();
       } else if (current instanceof Delay) {
         Delay<R, E, A> delay = (Delay<R, E, A>) current;
         Either<E, ? extends A> value = delay.task.get();
-        return value.fold(ZIO::raiseError, ZIO::pure);
+        return value.fold(PureIO::raiseError, PureIO::pure);
       } else if (current instanceof Attempt) {
         Attempt<R, A> attempt = (Attempt<R, A>) current;
         Either<E, ? extends A> either = (Either<E, ? extends A>) attempt.current.liftEither().get();
-        return either.fold(ZIO::raiseError, ZIO::pure);
+        return either.fold(PureIO::raiseError, PureIO::pure);
       } else {
         throw new IllegalStateException("not supported: " + current);
       }
@@ -726,7 +726,7 @@ interface ZIOModule {
     return promise;
   }
 
-  final class Pure<R, E, A> implements SealedZIO<R, E, A> {
+  final class Pure<R, E, A> implements SealedPureIO<R, E, A> {
 
     private final A value;
 
@@ -740,7 +740,7 @@ interface ZIOModule {
     }
   }
 
-  final class Failure<R, E, A> implements SealedZIO<R, E, A> {
+  final class Failure<R, E, A> implements SealedPureIO<R, E, A> {
 
     private final E error;
 
@@ -754,7 +754,7 @@ interface ZIOModule {
     }
   }
 
-  final class Throw<R, E, A> implements SealedZIO<R, E, A> {
+  final class Throw<R, E, A> implements SealedPureIO<R, E, A> {
 
     private final Throwable error;
 
@@ -768,15 +768,15 @@ interface ZIOModule {
     }
   }
 
-  final class FlatMapped<R, E, A, F, B> implements SealedZIO<R, F, B> {
+  final class FlatMapped<R, E, A, F, B> implements SealedPureIO<R, F, B> {
 
-    private final ZIO<R, E, A> current;
-    private final Function1<? super E, ? extends ZIO<R, F, ? extends B>> nextError;
-    private final Function1<? super A, ? extends ZIO<R, F, ? extends B>> next;
+    private final PureIO<R, E, A> current;
+    private final Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError;
+    private final Function1<? super A, ? extends PureIO<R, F, ? extends B>> next;
 
-    protected FlatMapped(ZIO<R, E, A> current,
-                         Function1<? super E, ? extends ZIO<R, F, ? extends B>> nextError,
-                         Function1<? super A, ? extends ZIO<R, F, ? extends B>> next) {
+    protected FlatMapped(PureIO<R, E, A> current,
+                         Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError,
+                         Function1<? super A, ? extends PureIO<R, F, ? extends B>> next) {
       this.current = checkNonNull(current);
       this.nextError = checkNonNull(nextError);
       this.next = checkNonNull(next);
@@ -788,7 +788,7 @@ interface ZIOModule {
     }
   }
 
-  final class Delay<R, E, A> implements SealedZIO<R, E, A> {
+  final class Delay<R, E, A> implements SealedPureIO<R, E, A> {
 
     private final Producer<Either<E, ? extends A>> task;
 
@@ -802,11 +802,11 @@ interface ZIOModule {
     }
   }
 
-  final class Suspend<R, E, A> implements SealedZIO<R, E, A> {
+  final class Suspend<R, E, A> implements SealedPureIO<R, E, A> {
 
-    private final Producer<ZIO<R, E, ? extends A>> lazy;
+    private final Producer<PureIO<R, E, ? extends A>> lazy;
 
-    protected Suspend(Producer<ZIO<R, E, ? extends A>> lazy) {
+    protected Suspend(Producer<PureIO<R, E, ? extends A>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -816,11 +816,11 @@ interface ZIOModule {
     }
   }
 
-  final class Async<R, E, A> implements SealedZIO<R, E, A> {
+  final class Async<R, E, A> implements SealedPureIO<R, E, A> {
 
-    private final Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, ZIO<R, ?, Unit>> callback;
+    private final Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> callback;
 
-    protected Async(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, ZIO<R, ?, Unit>> callback) {
+    protected Async(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> callback) {
       this.callback = checkNonNull(callback);
     }
 
@@ -830,7 +830,7 @@ interface ZIOModule {
     }
   }
 
-  final class Attempt<R, A> implements SealedZIO<R, Throwable, A> {
+  final class Attempt<R, A> implements SealedPureIO<R, Throwable, A> {
 
     private final Producer<? extends A> current;
 
@@ -844,12 +844,12 @@ interface ZIOModule {
     }
   }
 
-  final class Recover<R, E, A> implements SealedZIO<R, E, A> {
+  final class Recover<R, E, A> implements SealedPureIO<R, E, A> {
 
-    private final ZIO<R, ?, A> current;
-    private final PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapper;
+    private final PureIO<R, ?, A> current;
+    private final PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper;
 
-    protected Recover(ZIO<R, ?, A> current, PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapper) {
+    protected Recover(PureIO<R, ?, A> current, PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper) {
       this.current = checkNonNull(current);
       this.mapper = checkNonNull(mapper);
     }
@@ -860,11 +860,11 @@ interface ZIOModule {
     }
   }
 
-  final class AccessM<R, E, A> implements SealedZIO<R, E, A> {
+  final class AccessM<R, E, A> implements SealedPureIO<R, E, A> {
 
-    private final Function1<? super R, ? extends ZIO<R, E, ? extends A>> function;
+    private final Function1<? super R, ? extends PureIO<R, E, ? extends A>> function;
 
-    protected AccessM(Function1<? super R, ? extends ZIO<R, E, ? extends A>> function) {
+    protected AccessM(Function1<? super R, ? extends PureIO<R, E, ? extends A>> function) {
       this.function = checkNonNull(function);
     }
 
@@ -882,7 +882,7 @@ interface ZIOConnection {
     public boolean isCancellable() { return false; }
 
     @Override
-    public void setCancelToken(ZIO<?, ?, Unit> cancel) { /* nothing to do */ }
+    public void setCancelToken(PureIO<?, ?, Unit> cancel) { /* nothing to do */ }
 
     @Override
     public void cancelNow() { /* nothing to do */ }
@@ -898,7 +898,7 @@ interface ZIOConnection {
   
   boolean isCancellable();
   
-  void setCancelToken(ZIO<?, ?, Unit> cancel);
+  void setCancelToken(PureIO<?, ?, Unit> cancel);
   
   void cancelNow();
   
@@ -909,14 +909,14 @@ interface ZIOConnection {
   static ZIOConnection cancellable() {
     return new ZIOConnection() {
       
-      private ZIO<?, ?, Unit> cancelToken;
+      private PureIO<?, ?, Unit> cancelToken;
       private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
       
       @Override
       public boolean isCancellable() { return true; }
       
       @Override
-      public void setCancelToken(ZIO<?, ?, Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
+      public void setCancelToken(PureIO<?, ?, Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
       
       @Override
       public void cancelNow() { cancelToken.runAsync(null); }
@@ -1002,7 +1002,7 @@ final class CallStack<R, E, A> implements Recoverable {
     }
   }
   
-  public void add(PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError) {
     if (top.count() > 0) {
       top.pop();
       top = new StackItem<>(top);
@@ -1010,10 +1010,10 @@ final class CallStack<R, E, A> implements Recoverable {
     top.add(mapError);
   }
   
-  public Option<ZIO<R, E, A>> tryHandle(Throwable error) {
+  public Option<PureIO<R, E, A>> tryHandle(Throwable error) {
     while (top != null) {
       top.reset();
-      Option<ZIO<R, E, A>> result = top.tryHandle(error);
+      Option<PureIO<R, E, A>> result = top.tryHandle(error);
       
       if (result.isPresent()) {
         return result;
@@ -1028,7 +1028,7 @@ final class CallStack<R, E, A> implements Recoverable {
 final class StackItem<R, E, A> {
   
   private int count = 0;
-  private final Deque<PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>>> recover = new LinkedList<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>>> recover = new LinkedList<>();
 
   private final StackItem<R, E, A> prev;
 
@@ -1060,15 +1060,15 @@ final class StackItem<R, E, A> {
     count = 0;
   }
   
-  public void add(PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError) {
     recover.addFirst(mapError);
   }
 
-  public Option<ZIO<R, E, A>> tryHandle(Throwable error) {
+  public Option<PureIO<R, E, A>> tryHandle(Throwable error) {
     while (!recover.isEmpty()) {
-      PartialFunction1<? super Throwable, ? extends ZIO<R, E, ? extends A>> mapError = recover.removeFirst();
+      PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        PartialFunction1<? super Throwable, ZIO<R, E, A>> andThen = mapError.andThen(ZIOOf::narrowK);
+        PartialFunction1<? super Throwable, PureIO<R, E, A>> andThen = mapError.andThen(PureIOOf::narrowK);
         return Option.some(andThen.apply(error));
       }
     }

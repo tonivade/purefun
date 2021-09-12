@@ -10,32 +10,32 @@ import java.time.OffsetDateTime;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.effect.URIO;
 
-public interface ZClock {
+public interface PureClock {
 
-  <R extends ZClock> ZClock.Service<R> clock();
+  <R extends PureClock> PureClock.Service<R> clock();
 
-  static <R extends ZClock> URIO<R, Long> currentTime() {
+  static <R extends PureClock> URIO<R, Long> currentTime() {
     return URIO.accessM(env -> env.<R>clock().currentTime());
   }
 
-  static <R extends ZClock> URIO<R, OffsetDateTime> currentDateTime() {
+  static <R extends PureClock> URIO<R, OffsetDateTime> currentDateTime() {
     return URIO.accessM(env -> env.<R>clock().currentDateTime());
   }
 
-  static <R extends ZClock> URIO<R, Unit> sleep(Duration duration) {
+  static <R extends PureClock> URIO<R, Unit> sleep(Duration duration) {
     return URIO.accessM(env -> env.<R>clock().sleep(duration));
   }
 
-  interface Service<R extends ZClock> {
+  interface Service<R extends PureClock> {
     URIO<R, Long> currentTime();
     URIO<R, OffsetDateTime> currentDateTime();
     URIO<R, Unit> sleep(Duration duration);
   }
 
-  static ZClock live() {
-    return new ZClock() {
+  static PureClock live() {
+    return new PureClock() {
       @Override
-      public <R extends ZClock> Service<R> clock() {
+      public <R extends PureClock> Service<R> clock() {
         return new Service<R>() {
 
           @Override

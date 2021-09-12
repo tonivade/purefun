@@ -39,11 +39,11 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 @HigherKind
 public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
-  private static final UIO<Unit> UNIT = new UIO<>(ZIO.unit());
+  private static final UIO<Unit> UNIT = new UIO<>(PureIO.unit());
 
-  private final ZIO<Nothing, Nothing, A> instance;
+  private final PureIO<Nothing, Nothing, A> instance;
 
-  UIO(ZIO<Nothing, Nothing, A> value) {
+  UIO(PureIO<Nothing, Nothing, A> value) {
     this.instance = checkNonNull(value);
   }
   
@@ -64,27 +64,27 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   @SuppressWarnings("unchecked")
-  public <R, E> ZIO<R, E, A> toZIO() {
-    return (ZIO<R, E, A>) instance;
+  public <R, E> PureIO<R, E, A> toPureIO() {
+    return (PureIO<R, E, A>) instance;
   }
 
   @SuppressWarnings("unchecked")
   public <E> EIO<E, A> toEIO() {
-    return new EIO<>((ZIO<Nothing, E, A>) instance);
+    return new EIO<>((PureIO<Nothing, E, A>) instance);
   }
 
   @SuppressWarnings("unchecked")
   public <R> RIO<R, A> toRIO() {
-    return new RIO<>((ZIO<R, Throwable, A>) ZIO.redeem(instance));
+    return new RIO<>((PureIO<R, Throwable, A>) PureIO.redeem(instance));
   }
 
   @SuppressWarnings("unchecked")
   public <R> URIO<R, A> toURIO() {
-    return new URIO<>((ZIO<R, Nothing, A>) instance);
+    return new URIO<>((PureIO<R, Nothing, A>) instance);
   }
 
   public Task<A> toTask() {
-    return new Task<>(ZIO.redeem(instance));
+    return new Task<>(PureIO.redeem(instance));
   }
 
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
@@ -136,7 +136,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public <B> UIO<B> redeemWith(
       Function1<? super Throwable, ? extends Kind<UIO_, ? extends B>> mapError, 
       Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
-    return new UIO<>(ZIO.redeem(instance).foldM(
+    return new UIO<>(PureIO.redeem(instance).foldM(
         error -> mapError.andThen(UIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
@@ -163,10 +163,10 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   public UIO<Fiber<UIO_, A>> fork() {
-    return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+    return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Nothing>, UIO_>() {
       @Override
-      public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
-        return new UIO<>(from.fix(ZIOOf::narrowK));
+      public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
+        return new UIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
   }
@@ -188,7 +188,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   @Override
   public UIO<A> repeat(int times) {
-    return fold(ZIO.redeem(instance).repeat(times));
+    return fold(PureIO.redeem(instance).repeat(times));
   }
 
   @Override
@@ -198,11 +198,11 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   @Override
   public UIO<A> repeat(Duration delay, int times) {
-    return fold(ZIO.redeem(instance).repeat(delay, times));
+    return fold(PureIO.redeem(instance).repeat(delay, times));
   }
   
   public <B> UIO<B> repeat(Schedule<Nothing, A, B> schedule) {
-    return fold(ZIO.redeem(instance).repeat(schedule));
+    return fold(PureIO.redeem(instance).repeat(schedule));
   }
 
   @Override
@@ -226,7 +226,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   public <B> UIO<A> retry(Schedule<Nothing, Throwable, B> schedule) {
-    return fold(ZIO.redeem(instance).retry(schedule));
+    return fold(PureIO.redeem(instance).retry(schedule));
   }
 
   @Override
@@ -245,7 +245,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   public static <A, B, C> UIO<C> parMap2(Executor executor, Kind<UIO_, ? extends A> za, Kind<UIO_, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new UIO<>(ZIO.parMap2(executor, za.fix(UIOOf::narrowK).instance, zb.fix(UIOOf::narrowK).instance, mapper));
+    return new UIO<>(PureIO.parMap2(executor, za.fix(UIOOf::narrowK).instance, zb.fix(UIOOf::narrowK).instance, mapper));
   }
   
   public static <A, B> UIO<Either<A, B>> race(Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
@@ -260,18 +260,18 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   
   public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>> 
       racePair(Executor executor, Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
-    ZIO<Nothing, Nothing, A> instance1 = fa.fix(UIOOf.toUIO()).instance.fix(ZIOOf::narrowK);
-    ZIO<Nothing, Nothing, B> instance2 = fb.fix(UIOOf.toUIO()).instance.fix(ZIOOf::narrowK);
-    return new UIO<>(ZIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+    PureIO<Nothing, Nothing, A> instance1 = fa.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<Nothing, Nothing, B> instance2 = fb.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
+    return new UIO<>(PureIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Nothing>, UIO_>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
-          return new UIO<>(from.fix(ZIOOf::narrowK));
+        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
+          return new UIO<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Nothing>, UIO_>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Nothing>, UIO_>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Nothing>, ? extends T> from) {
-          return new UIO<>(from.fix(ZIOOf::narrowK));
+        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
+          return new UIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));
   }
@@ -293,27 +293,27 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   public static UIO<Unit> sleep(Duration delay) {
-    return fold(ZIO.sleep(delay));
+    return fold(PureIO.sleep(delay));
   }
 
   public static UIO<Unit> exec(CheckedRunnable task) {
-    return fold(ZIO.exec(task));
+    return fold(PureIO.exec(task));
   }
 
   public static <A> UIO<A> pure(A value) {
-    return new UIO<>(ZIO.pure(value));
+    return new UIO<>(PureIO.pure(value));
   }
 
   public static <A> UIO<A> raiseError(Throwable throwable) {
-    return new UIO<>(ZIO.fromEither(() -> { throw throwable; }));
+    return new UIO<>(PureIO.fromEither(() -> { throw throwable; }));
   }
 
   public static <A> UIO<A> defer(Producer<Kind<UIO_, ? extends A>> lazy) {
-    return new UIO<>(ZIO.defer(() -> lazy.andThen(UIOOf::narrowK).get().instance));
+    return new UIO<>(PureIO.defer(() -> lazy.andThen(UIOOf::narrowK).get().instance));
   }
 
   public static <A> UIO<A> task(Producer<? extends A> task) {
-    return fold(ZIO.task(task));
+    return fold(PureIO.task(task));
   }
 
   public static <T> UIO<T> fromOption(Option<? extends T> task) {
@@ -333,13 +333,13 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   public static <A> UIO<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return fold(ZIO.async(
+    return fold(PureIO.async(
         (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
-    return fold(ZIO.cancellable(
-        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toZIO).apply(result -> cb1.accept(result.map(Either::right)))));
+    return fold(PureIO.cancellable(
+        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {
@@ -353,27 +353,27 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(
       Kind<UIO_, ? extends A> acquire, Function1<? super A, ? extends Kind<UIO_, ? extends B>> use) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.fix(UIOOf::narrowK).instance), 
-        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance)));
+    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::narrowK).instance), 
+        resource -> PureIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance)));
   }
 
   public static <A, B> UIO<B> bracket(Kind<UIO_, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<UIO_, ? extends B>> use, Consumer1<? super A> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.fix(UIOOf::narrowK).instance), 
-        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release));
+    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::narrowK).instance), 
+        resource -> PureIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release));
   }
 
   public static <A, B> UIO<B> bracket(Kind<UIO_, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<UIO_, ? extends B>> use, Function1<? super A, ? extends Kind<UIO_, Unit>> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.fix(UIOOf::narrowK).instance), 
-        resource -> ZIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release.andThen(UIOOf::narrowK).andThen(UIO::toZIO)));
+    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::narrowK).instance), 
+        resource -> PureIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release.andThen(UIOOf::narrowK).andThen(UIO::toPureIO)));
   }
 
   public static UIO<Unit> unit() {
     return UNIT;
   }
 
-  private static <A> UIO<A> fold(ZIO<Nothing, Throwable, A> zio) {
+  private static <A> UIO<A> fold(PureIO<Nothing, Throwable, A> zio) {
     return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).instance, value -> UIO.pure(value).instance));
   }
 }

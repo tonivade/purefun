@@ -64,10 +64,10 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 
   default <Z> Schedule<R, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
-    return foldM(zero, (z, b) -> ZIO.pure(next.apply(z, b)));
+    return foldM(zero, (z, b) -> PureIO.pure(next.apply(z, b)));
   }
 
-  <Z> Schedule<R, A, Z> foldM(Z zero, Function2<Z, B, ZIO<R, Unit, Z>> next);
+  <Z> Schedule<R, A, Z> foldM(Z zero, Function2<Z, B, PureIO<R, Unit, Z>> next);
 
   default Schedule<R, A, B> addDelay(Function1<B, Duration> map) {
     return addDelayM(map.andThen(URIO::pure));
@@ -140,7 +140,7 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   static <R, A> Schedule<R, A, Unit> never() {
     return ScheduleImpl.of(
             URIO.unit(),
-            (a, s) -> ZIO.<R, Unit, Unit>raiseError(Unit.unit()),
+            (a, s) -> PureIO.<R, Unit, Unit>raiseError(Unit.unit()),
             (a, s) -> s);
   }
 
@@ -154,7 +154,7 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
   static <R, A> Schedule<R, A, A> identity() {
     return ScheduleImpl.of(URIO.unit(),
-            (a, s) -> ZIO.unit(),
+            (a, s) -> PureIO.unit(),
             (a, s) -> a);
   }
 
@@ -175,18 +175,18 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 
   static <R, A, B> Schedule<R, A, B> unfold(B initial, Operator1<B> next) {
-    return unfoldM(URIO.pure(initial), next.andThen(ZIO::pure));
+    return unfoldM(URIO.pure(initial), next.andThen(PureIO::pure));
   }
 
   static <R, A, B> Schedule<R, A, B> unfoldM(
-          URIO<R, B> initial, Function1<B, ZIO<R, Unit, B>> next) {
+          URIO<R, B> initial, Function1<B, PureIO<R, Unit, B>> next) {
     return ScheduleImpl.<R, B, A, B>of(initial, (a, s) -> next.apply(s), (a, s) -> s);
   }
 
   @FunctionalInterface
   interface Update<R, S, A> {
 
-    ZIO<R, Unit, S> update(A last, S state);
+    PureIO<R, Unit, S> update(A last, S state);
 
   }
 
@@ -242,13 +242,13 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   }
 
   @Override
-  public <Z> Schedule<R, A, Z> foldM(Z zero, Function2<Z, B, ZIO<R, Unit, Z>> next) {
+  public <Z> Schedule<R, A, Z> foldM(Z zero, Function2<Z, B, PureIO<R, Unit, Z>> next) {
     return ScheduleImpl.of(
       initial().map(s -> Tuple.of(s, zero)), 
       (a, sz) -> {
-        ZIO<R, Unit, S> update = update(a, sz.get1());
-        ZIO<R, Unit, Z> other = next.apply(sz.get2(), extract(a, sz.get1()));
-        ZIO<R, Unit, Tuple2<S, Z>> zip = update.zip(other);
+        PureIO<R, Unit, S> update = update(a, sz.get1());
+        PureIO<R, Unit, Z> other = next.apply(sz.get2(), extract(a, sz.get1()));
+        PureIO<R, Unit, Tuple2<S, Z>> zip = update.zip(other);
         return zip;
       }, 
       (a, sz) -> sz.get2());
@@ -257,14 +257,14 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   @Override
   public Schedule<R, A, B> addDelayM(Function1<B, URIO<R, Duration>> map) {
     return updated(update -> (a, s) -> {
-      ZIO<R, Unit, Tuple2<Duration, S>> map2 = 
-        ZIO.parMap2(
-          map.apply(extract(a, s)).toZIO(), 
+      PureIO<R, Unit, Tuple2<Duration, S>> map2 = 
+        PureIO.parMap2(
+          map.apply(extract(a, s)).toPureIO(), 
           update.update(a, s), 
           Tuple::of);
       
       return map2.flatMap(ds -> {
-        ZIO<R, Unit, Unit> sleep = URIO.<R>sleep(ds.get1()).toZIO();
+        PureIO<R, Unit, Unit> sleep = URIO.<R>sleep(ds.get1()).toPureIO();
         return sleep.map(ignore -> ds.get2());
       });
     });
@@ -274,8 +274,8 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   public Schedule<R, A, B> untilInputM(Function1<A, UIO<Boolean>> condition) {
     return updated(update -> (a, s) -> {
       UIO<Boolean> apply = condition.apply(a);
-      return apply.<R, Unit>toZIO()
-              .flatMap(test -> test ? ZIO.raiseError(Unit.unit()) : update(a, s));
+      return apply.<R, Unit>toPureIO()
+              .flatMap(test -> test ? PureIO.raiseError(Unit.unit()) : update(a, s));
     });
   }
 
@@ -283,16 +283,16 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   public Schedule<R, A, B> untilOutputM(Function1<B, UIO<Boolean>> condition) {
     return updated(update -> (a, s) -> {
       UIO<Boolean> apply = condition.apply(extract(a, s));
-      return apply.<R, Unit>toZIO()
-        .flatMap(test -> test ? ZIO.raiseError(Unit.unit()) : update(a, s));
+      return apply.<R, Unit>toPureIO()
+        .flatMap(test -> test ? PureIO.raiseError(Unit.unit()) : update(a, s));
     });
   }
 
   @Override
   public Schedule<R, A, B> check(Function2<A, B, UIO<Boolean>> condition) {
     return updated(update -> (a, s) -> {
-      ZIO<R, Unit, Boolean> apply = condition.apply(a, this.extract(a, s)).toZIO();
-      return apply.flatMap(result -> result != null && result ? update.update(a, s) : ZIO.raiseError(Unit.unit()));
+      PureIO<R, Unit, Boolean> apply = condition.apply(a, this.extract(a, s)).toPureIO();
+      return apply.flatMap(result -> result != null && result ? update.update(a, s) : PureIO.raiseError(Unit.unit()));
     });
   }
 
@@ -301,8 +301,8 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
             initial().map(Either::<S, T>left),
             (a, st) -> st.fold(
                     s -> {
-                      ZIO<R, Unit, Either<S, T>> orElse =
-                              other.initial().<Unit>toZIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
+                      PureIO<R, Unit, Either<S, T>> orElse =
+                              other.initial().<Unit>toPureIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
                       return this.update(a, s).map(Either::<S, T>left).orElse(orElse);
                     },
                     t -> other.update(a, t).map(Either::<S, T>right)),
@@ -313,10 +313,10 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
 
   private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> _zip(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
-            this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).toURIO(),
+            this.initial().<Unit>toPureIO().zip(other.initial().<Unit>toPureIO()).toURIO(),
             (a, st) -> {
-              ZIO<R, Unit, S> self = this.update(a, st.get1());
-              ZIO<R, Unit, T> next = other.update(a, st.get2());
+              PureIO<R, Unit, S> self = this.update(a, st.get1());
+              PureIO<R, Unit, T> next = other.update(a, st.get2());
               return self.zip(next);
             },
             (a, st) -> Tuple.of(
@@ -326,10 +326,10 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
 
   private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> _compose(ScheduleImpl<R, T, B, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, C>of(
-            this.initial().<Unit>toZIO().zip(other.initial().<Unit>toZIO()).toURIO(),
+            this.initial().<Unit>toPureIO().zip(other.initial().<Unit>toPureIO()).toURIO(),
             (a, st) -> {
-              ZIO<R, Unit, S> self = this.update(a, st.get1());
-              ZIO<R, Unit, T> next = other.update(this.extract(a, st.get1()), st.get2());
+              PureIO<R, Unit, S> self = this.update(a, st.get1());
+              PureIO<R, Unit, T> next = other.update(this.extract(a, st.get1()), st.get2());
               return self.zip(next);
             },
             (a, st) -> other.extract(this.extract(a, st.get1()), st.get2()));
@@ -354,7 +354,7 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
       }
       
       @Override
-      public ZIO<R, Unit, S> update(A last, S state) {
+      public PureIO<R, Unit, S> update(A last, S state) {
         return update.update(last, state);
       }
       

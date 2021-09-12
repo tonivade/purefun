@@ -31,9 +31,9 @@ public class ManagedTest {
   
   @Test
   public void use(@Mock Consumer1<String> release) {
-    Managed<Nothing, Throwable, String> resource = Managed.from(ZIO.pure("hola"), release);
+    Managed<Nothing, Throwable, String> resource = Managed.from(PureIO.pure("hola"), release);
     
-    ZIO<Nothing, Throwable, String> use = resource.use(string -> ZIO.pure(string.toUpperCase()));
+    PureIO<Nothing, Throwable, String> use = resource.use(string -> PureIO.pure(string.toUpperCase()));
     
     assertEquals(right("HOLA"), use.provide(nothing()));
     verify(release).accept("hola");
@@ -41,9 +41,9 @@ public class ManagedTest {
   
   @Test
   public void map(@Mock Consumer1<String> release) {
-    Managed<Nothing, Throwable, String> resource = Managed.from(ZIO.pure("hola"), release);
+    Managed<Nothing, Throwable, String> resource = Managed.from(PureIO.pure("hola"), release);
     
-    ZIO<Nothing, Throwable, Integer> use = resource.map(String::toUpperCase).use(string -> ZIO.pure(string.length()));
+    PureIO<Nothing, Throwable, Integer> use = resource.map(String::toUpperCase).use(string -> PureIO.pure(string.length()));
     
     assertEquals(right(4), use.provide(nothing()));
     verify(release).accept("hola");
@@ -56,11 +56,11 @@ public class ManagedTest {
     when(connection.prepareStatement("sql")).thenReturn(statement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.getString(0)).thenReturn("result");
-    Managed<Nothing, Throwable, ResultSet> flatMap = Managed.<Nothing, Throwable, Connection>from(ZIO.task(dataSource::getConnection))
-      .flatMap(conn -> Managed.from(ZIO.task(() -> conn.prepareStatement("sql"))))
-      .flatMap(stmt -> Managed.from(ZIO.task(() -> stmt.executeQuery())));
+    Managed<Nothing, Throwable, ResultSet> flatMap = Managed.<Nothing, Throwable, Connection>from(PureIO.task(dataSource::getConnection))
+      .flatMap(conn -> Managed.from(PureIO.task(() -> conn.prepareStatement("sql"))))
+      .flatMap(stmt -> Managed.from(PureIO.task(() -> stmt.executeQuery())));
     
-    ZIO<Nothing, Throwable, String> use = flatMap.use(rs -> ZIO.task(() -> rs.getString(0)));
+    PureIO<Nothing, Throwable, String> use = flatMap.use(rs -> PureIO.task(() -> rs.getString(0)));
     
     assertEquals(right("result"), use.provide(nothing()));
     InOrder inOrder = inOrder(resultSet, statement, connection);
@@ -83,7 +83,7 @@ public class ManagedTest {
     
     Managed<DataSource, Throwable, ResultSet> andThen = a.andThen(b).andThen(c);
     
-    ZIO<DataSource, Throwable, String> use = andThen.use(rs -> ZIO.task(() -> rs.getString(0)));
+    PureIO<DataSource, Throwable, String> use = andThen.use(rs -> PureIO.task(() -> rs.getString(0)));
     
     assertEquals(right("result"), use.provide(dataSource));
     InOrder inOrder = inOrder(resultSet, statement, connection);
@@ -94,12 +94,12 @@ public class ManagedTest {
 
   @Test
   public void combine(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
-    Managed<Nothing, Throwable, String> res1 = Managed.from(ZIO.pure("hola"), release1);
-    Managed<Nothing, Throwable, Integer> res2 = Managed.from(ZIO.pure(5), release2);
+    Managed<Nothing, Throwable, String> res1 = Managed.from(PureIO.pure("hola"), release1);
+    Managed<Nothing, Throwable, Integer> res2 = Managed.from(PureIO.pure(5), release2);
     
     Managed<Nothing, Throwable, Tuple2<String, Integer>> combine = res1.combine(res2);
     
-    ZIO<Nothing, Throwable, String> use = combine.use(tuple -> ZIO.task(tuple::toString));
+    PureIO<Nothing, Throwable, String> use = combine.use(tuple -> PureIO.task(tuple::toString));
 
     assertEquals(right("Tuple2(hola, 5)"), use.provide(nothing()));
     verify(release1).accept("hola");
@@ -108,12 +108,12 @@ public class ManagedTest {
   
   @Test
   public void andThenLeft(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
-    Managed<Nothing, Throwable, String> res1 = Managed.from(ZIO.pure("hola"), release1);
-    Managed<Nothing, Throwable, Integer> res2 = Managed.from(ZIO.pure(5), release2);
+    Managed<Nothing, Throwable, String> res1 = Managed.from(PureIO.pure("hola"), release1);
+    Managed<Nothing, Throwable, Integer> res2 = Managed.from(PureIO.pure(5), release2);
     
     Managed<Nothing, Throwable, Either<String, Integer>> either = res1.either(res2);
 
-    ZIO<Nothing, Throwable, String> use = either.use(tuple -> ZIO.task(tuple::toString));
+    PureIO<Nothing, Throwable, String> use = either.use(tuple -> PureIO.task(tuple::toString));
 
     assertEquals(right("Left(hola)"), use.provide(nothing()));
     verify(release1).accept("hola");
@@ -122,12 +122,12 @@ public class ManagedTest {
   
   @Test
   public void andThenRight(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
-    Managed<Nothing, Throwable, String> res1 = Managed.from(ZIO.raiseError(new UnsupportedOperationException()), release1);
-    Managed<Nothing, Throwable, Integer> res2 = Managed.from(ZIO.pure(5), release2);
+    Managed<Nothing, Throwable, String> res1 = Managed.from(PureIO.raiseError(new UnsupportedOperationException()), release1);
+    Managed<Nothing, Throwable, Integer> res2 = Managed.from(PureIO.pure(5), release2);
     
     Managed<Nothing, Throwable, Either<String, Integer>> either = res1.either(res2);
 
-    ZIO<Nothing, Throwable, String> use = either.use(tuple -> ZIO.task(tuple::toString));
+    PureIO<Nothing, Throwable, String> use = either.use(tuple -> PureIO.task(tuple::toString));
 
     assertEquals(right("Right(5)"), use.provide(nothing()));
     verify(release1, never()).accept("hola");

@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.effect.ZIOOf.toZIO;
+import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.type.EitherOf.toEither;
 import static com.github.tonivade.purefun.type.IdOf.toId;
 import static com.github.tonivade.purefun.typeclasses.Instance.functor;
@@ -16,8 +16,8 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.effect.ZIO;
-import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.effect.PureIO;
+import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Id;
@@ -42,10 +42,10 @@ public class InstanceTest {
   }
 
   @Test
-  public void testZIO() {
-    Instance<Kind<Kind<ZIO_, Nothing>, String>> instance = new Instance<Kind<Kind<ZIO_, Nothing>, String>>(){};
+  public void testPureIO() {
+    Instance<Kind<Kind<PureIO_, Nothing>, String>> instance = new Instance<Kind<Kind<PureIO_, Nothing>, String>>(){};
 
-    ZIO<Nothing, String, Integer> result = instance.functor().map(ZIO.pure(1), x -> x + 1).fix(toZIO());
+    PureIO<Nothing, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(toPureIO());
     
     assertEquals(Either.right(2), result.provide(nothing()));
   }

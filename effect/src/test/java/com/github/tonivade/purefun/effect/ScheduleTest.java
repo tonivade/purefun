@@ -34,8 +34,8 @@ public class ScheduleTest {
 
   @Test
   public void repeat(@Mock Consumer1<String> console) {
-    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    ZIO<Nothing, Throwable, Unit> repeat = print.repeat(Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity()));
+    PureIO<Nothing, Throwable, Unit> print = PureIO.exec(() -> console.accept("hola"));
+    PureIO<Nothing, Throwable, Unit> repeat = print.repeat(Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity()));
     
     Either<Throwable, Unit> provide = repeat.provide(nothing());
     
@@ -45,10 +45,10 @@ public class ScheduleTest {
 
   @Test
   public void repeatDelay(@Mock Consumer1<String> console) {
-    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
+    PureIO<Nothing, Throwable, Unit> print = PureIO.exec(() -> console.accept("hola"));
     Schedule<Nothing, Unit, Unit> recurs = Schedule.<Nothing, Unit>recurs(2).zipRight(Schedule.identity());
     Schedule<Nothing, Unit, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
-    ZIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = print.repeat(recurs.zipLeft(spaced)).timed();
+    PureIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = print.repeat(recurs.zipLeft(spaced)).timed();
     
     Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
     
@@ -58,8 +58,8 @@ public class ScheduleTest {
   
   @Test
   public void noRepeat(@Mock Consumer1<String> console) {
-    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    ZIO<Nothing, Throwable, Unit> repeat = print.repeat(Schedule.never());
+    PureIO<Nothing, Throwable, Unit> print = PureIO.exec(() -> console.accept("hola"));
+    PureIO<Nothing, Throwable, Unit> repeat = print.repeat(Schedule.never());
     
     Either<Throwable, Unit> provide = repeat.provide(nothing());
     
@@ -71,8 +71,8 @@ public class ScheduleTest {
   public void retry(@Mock Producer<String> console) {
     when(console.get()).thenThrow(RuntimeException.class).thenReturn("hola");
 
-    ZIO<Nothing, Throwable, String> read = ZIO.task(console::get);
-    ZIO<Nothing, Throwable, String> retry = read.retry(Schedule.recurs(1));
+    PureIO<Nothing, Throwable, String> read = PureIO.task(console::get);
+    PureIO<Nothing, Throwable, String> retry = read.retry(Schedule.recurs(1));
     
     Either<Throwable, String> provide = retry.provide(nothing());
     
@@ -84,10 +84,10 @@ public class ScheduleTest {
   public void retryDelay(@Mock Producer<String> console) {
     when(console.get()).thenThrow(RuntimeException.class).thenReturn("hola");
 
-    ZIO<Nothing, Throwable, String> read = ZIO.task(console::get);
+    PureIO<Nothing, Throwable, String> read = PureIO.task(console::get);
     Schedule<Nothing, Throwable, Integer> recurs = Schedule.recurs(2);
     Schedule<Nothing, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
-    ZIO<Nothing, Throwable, Tuple2<Duration, String>> retry = read.retry(recurs.zip(spaced)).timed();
+    PureIO<Nothing, Throwable, Tuple2<Duration, String>> retry = read.retry(recurs.zip(spaced)).timed();
     
     Either<Throwable, Tuple2<Duration, String>> provide = retry.provide(nothing());
     
@@ -100,8 +100,8 @@ public class ScheduleTest {
   public void noRetry(@Mock Producer<String> console) {
     when(console.get()).thenThrow(RuntimeException.class).thenReturn("hola");
     
-    ZIO<Nothing, Throwable, String> read = ZIO.task(console::get);
-    ZIO<Nothing, Throwable, String> retry = read.retry(Schedule.never());
+    PureIO<Nothing, Throwable, String> read = PureIO.task(console::get);
+    PureIO<Nothing, Throwable, String> retry = read.retry(Schedule.never());
     
     Either<Throwable, String> provide = retry.provide(nothing());
     
@@ -113,8 +113,8 @@ public class ScheduleTest {
     Schedule<Nothing, Unit, Integer> two =
         Schedule.<Nothing, Unit>recurs(1).andThen(Schedule.<Nothing, Unit>recurs(1));
 
-    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(two);
+    PureIO<Nothing, Throwable, Unit> print = PureIO.exec(() -> console.accept("hola"));
+    PureIO<Nothing, Throwable, Integer> repeat = print.repeat(two);
     
     Either<Throwable, Integer> provide = repeat.provide(nothing());
     
@@ -128,8 +128,8 @@ public class ScheduleTest {
     Schedule<Nothing, Unit, Integer> two =
       Schedule.<Nothing, Unit>recurs(1).compose(Schedule.<Nothing, Integer>recurs(1));
 
-    ZIO<Nothing, Throwable, Unit> print = ZIO.exec(() -> console.accept("hola"));
-    ZIO<Nothing, Throwable, Integer> repeat = print.repeat(two);
+    PureIO<Nothing, Throwable, Unit> print = PureIO.exec(() -> console.accept("hola"));
+    PureIO<Nothing, Throwable, Integer> repeat = print.repeat(two);
     
     Either<Throwable, Integer> provide = repeat.provide(nothing());
     
@@ -139,9 +139,9 @@ public class ScheduleTest {
   
   @Test
   public void collect() {
-    ZIO<Nothing, Nothing, Unit> pure = ZIO.unit();
+    PureIO<Nothing, Nothing, Unit> pure = PureIO.unit();
     
-    ZIO<Nothing, Nothing, Sequence<Integer>> repeat = 
+    PureIO<Nothing, Nothing, Sequence<Integer>> repeat = 
         pure.repeat(Schedule.<Nothing, Unit>recurs(5).collectAll().zipLeft(Schedule.identity()));
     
     Either<Nothing, Sequence<Integer>> provide = repeat.provide(nothing());

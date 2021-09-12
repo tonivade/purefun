@@ -38,11 +38,11 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 @HigherKind
 public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>, Recoverable {
 
-  private static final URIO<?, Unit> UNIT = new URIO<>(ZIO.unit());
+  private static final URIO<?, Unit> UNIT = new URIO<>(PureIO.unit());
 
-  private final ZIO<R, Nothing, A> instance;
+  private final PureIO<R, Nothing, A> instance;
 
-  URIO(ZIO<R, Nothing, A> value) {
+  URIO(PureIO<R, Nothing, A> value) {
     this.instance = checkNonNull(value);
   }
 
@@ -55,17 +55,17 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
 
   @SuppressWarnings("unchecked")
-  public <E> ZIO<R, E, A> toZIO() {
-    return (ZIO<R, E, A>) instance;
+  public <E> PureIO<R, E, A> toPureIO() {
+    return (PureIO<R, E, A>) instance;
   }
 
   @SuppressWarnings("unchecked")
   public <E> EIO<E, A> toEIO() {
-    return new EIO<>((ZIO<Nothing, E, A>) instance);
+    return new EIO<>((PureIO<Nothing, E, A>) instance);
   }
 
   public RIO<R, A> toRIO() {
-    return new RIO<>(ZIO.redeem(instance));
+    return new RIO<>(PureIO.redeem(instance));
   }
 
   public Future<A> runAsync(R env) {
@@ -126,7 +126,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   public <B> URIO<R, B> redeemWith(
       Function1<? super Throwable, ? extends Kind<Kind<URIO_, R>, ? extends B>> mapError, 
       Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> map) {
-    return new URIO<>(ZIO.redeem(instance).foldM(
+    return new URIO<>(PureIO.redeem(instance).foldM(
         error -> mapError.andThen(URIOOf::narrowK).apply(error).instance, 
         value -> map.andThen(URIOOf::narrowK).apply(value).instance));
   }
@@ -153,10 +153,10 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
   
   public URIO<R, Fiber<Kind<URIO_, R>, A>> fork() {
-    return new URIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Nothing>, Kind<URIO_, R>>() {
+    return new URIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Nothing>, Kind<URIO_, R>>() {
       @Override
-      public <T> URIO<R, T> apply(Kind<Kind<Kind<ZIO_, R>, Nothing>, ? extends T> from) {
-        return new URIO<>(from.fix(ZIOOf::narrowK));
+      public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
+        return new URIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
   }
@@ -178,7 +178,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   @Override
   public URIO<R, A> repeat(int times) {
-    return fold(ZIO.redeem(instance).repeat(times));
+    return fold(PureIO.redeem(instance).repeat(times));
   }
 
   @Override
@@ -188,11 +188,11 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   @Override
   public URIO<R, A> repeat(Duration delay, int times) {
-    return fold(ZIO.redeem(instance).repeat(delay, times));
+    return fold(PureIO.redeem(instance).repeat(delay, times));
   }
   
   public <B> URIO<R, B> repeat(Schedule<R, A, B> schedule) {
-    return fold(ZIO.redeem(instance).repeat(schedule));
+    return fold(PureIO.redeem(instance).repeat(schedule));
   }
 
   @Override
@@ -216,7 +216,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
   
   public <B> URIO<R, A> retry(Schedule<R, Throwable, B> schedule) {
-    return fold(ZIO.redeem(instance).retry(schedule));
+    return fold(PureIO.redeem(instance).retry(schedule));
   }
 
   @Override
@@ -229,7 +229,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
 
   public static <R, A> URIO<R, A> accessM(Function1<? super R, ? extends URIO<R, ? extends A>> map) {
-    return new URIO<>(ZIO.accessM(map.andThen(URIO::toZIO)));
+    return new URIO<>(PureIO.accessM(map.andThen(URIO::toPureIO)));
   }
 
   public static <R, A> URIO<R, A> access(Function1<? super R, ? extends A> map) {
@@ -247,7 +247,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   public static <R, A, B, C> URIO<R, C> parMap2(Executor executor, Kind<Kind<URIO_, R>, ? extends A> za, Kind<Kind<URIO_, R>, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new URIO<>(ZIO.parMap2(executor, za.fix(URIOOf::narrowK).instance, zb.fix(URIOOf::narrowK).instance, mapper));
+    return new URIO<>(PureIO.parMap2(executor, za.fix(URIOOf::narrowK).instance, zb.fix(URIOOf::narrowK).instance, mapper));
   }
   
   public static <R, A, B> URIO<R, Either<A, B>> race(Kind<Kind<URIO_, R>, ? extends A> fa, Kind<Kind<URIO_, R>, ? extends B> fb) {
@@ -262,18 +262,18 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   
   public static <R, A, B> URIO<R, Either<Tuple2<A, Fiber<Kind<URIO_, R>, B>>, Tuple2<Fiber<Kind<URIO_, R>, A>, B>>> 
       racePair(Executor executor, Kind<Kind<URIO_, R>, ? extends A> fa, Kind<Kind<URIO_, R>, ? extends B> fb) {
-    ZIO<R, Nothing, A> instance1 = fa.fix(URIOOf.toURIO()).instance.fix(ZIOOf::narrowK);
-    ZIO<R, Nothing, B> instance2 = fb.fix(URIOOf.toURIO()).instance.fix(ZIOOf::narrowK);
-    return new URIO<>(ZIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Nothing>, Kind<URIO_, R>>() {
+    PureIO<R, Nothing, A> instance1 = fa.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<R, Nothing, B> instance2 = fb.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
+    return new URIO<>(PureIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Nothing>, Kind<URIO_, R>>() {
         @Override
-        public <T> URIO<R, T> apply(Kind<Kind<Kind<ZIO_, R>, Nothing>, ? extends T> from) {
-          return new URIO<>(from.fix(ZIOOf::narrowK));
+        public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
+          return new URIO<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, R>, Nothing>, Kind<URIO_, R>>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Nothing>, Kind<URIO_, R>>() {
         @Override
-        public <T> URIO<R, T> apply(Kind<Kind<Kind<ZIO_, R>, Nothing>, ? extends T> from) {
-          return new URIO<>(from.fix(ZIOOf::narrowK));
+        public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
+          return new URIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));
   }
@@ -295,27 +295,27 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
 
   public static <R> URIO<R, Unit> sleep(Duration delay) {
-    return fold(ZIO.sleep(delay));
+    return fold(PureIO.sleep(delay));
   }
 
   public static <R> URIO<R, Unit> exec(CheckedRunnable task) {
-    return fold(ZIO.exec(task));
+    return fold(PureIO.exec(task));
   }
 
   public static <R, A> URIO<R, A> pure(A value) {
-    return new URIO<>(ZIO.pure(value));
+    return new URIO<>(PureIO.pure(value));
   }
 
   public static <R, A> URIO<R, A> raiseError(Throwable throwable) {
-    return new URIO<>(ZIO.fromEither(() -> { throw throwable; }));
+    return new URIO<>(PureIO.fromEither(() -> { throw throwable; }));
   }
 
   public static <R, A> URIO<R, A> defer(Producer<Kind<Kind<URIO_, R>, ? extends A>> lazy) {
-    return new URIO<>(ZIO.defer(() -> lazy.andThen(URIOOf::narrowK).get().instance));
+    return new URIO<>(PureIO.defer(() -> lazy.andThen(URIOOf::narrowK).get().instance));
   }
 
   public static <R, A> URIO<R, A> task(Producer<? extends A> task) {
-    return fold(ZIO.task(task));
+    return fold(PureIO.task(task));
   }
 
   public static <R, T> URIO<R, T> fromOption(Option<? extends T> task) {
@@ -335,13 +335,13 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
   
   public static <R, A> URIO<R, A> async(Consumer2<R, Consumer1<? super Try<? extends A>>> consumer) {
-    return fold(ZIO.async(
+    return fold(PureIO.async(
         (env, cb1) -> consumer.accept(env, result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <R, A> URIO<R, A> cancellable(Function2<R, Consumer1<? super Try<? extends A>>, URIO<R, Unit>> consumer) {
-    return fold(ZIO.cancellable(
-        (env, cb1) -> consumer.andThen(URIO::<Throwable>toZIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
+    return fold(PureIO.cancellable(
+        (env, cb1) -> consumer.andThen(URIO::<Throwable>toPureIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {
@@ -355,20 +355,20 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(
     Kind<Kind<URIO_, R>, ? extends A> acquire, Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.fix(URIOOf::narrowK).instance), 
-        resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance)));
+    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(URIOOf::narrowK).instance), 
+        resource -> PureIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance)));
   }
 
   public static <R, A, B> URIO<R, B> bracket(Kind<Kind<URIO_, R>, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use, Consumer1<? super A> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.fix(URIOOf::narrowK).instance), 
-        resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release));
+    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(URIOOf::narrowK).instance), 
+        resource -> PureIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release));
   }
 
   public static <R, A, B> URIO<R, B> bracket(Kind<Kind<URIO_, R>, ? extends A> acquire, 
       Function1<? super A, ? extends Kind<Kind<URIO_, R>, ? extends B>> use, Function1<? super A, ? extends Kind<Kind<URIO_, R>, Unit>> release) {
-    return fold(ZIO.bracket(ZIO.redeem(acquire.fix(URIOOf::narrowK).instance), 
-        resource -> ZIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release.andThen(URIOOf::narrowK).andThen(URIO::toZIO)));
+    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(URIOOf::narrowK).instance), 
+        resource -> PureIO.redeem(use.andThen(URIOOf::narrowK).apply(resource).instance), release.andThen(URIOOf::narrowK).andThen(URIO::toPureIO)));
   }
 
   @SuppressWarnings("unchecked")
@@ -376,7 +376,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return (URIO<R, Unit>) UNIT;
   }
 
-  private static <R, A> URIO<R, A> fold(ZIO<R, Throwable, A> zio) {
+  private static <R, A> URIO<R, A> fold(PureIO<R, Throwable, A> zio) {
     return new URIO<>(zio.foldM(error -> URIO.<R, A>raiseError(error).instance, value -> URIO.<R, A>pure(value).instance));
   }
 }

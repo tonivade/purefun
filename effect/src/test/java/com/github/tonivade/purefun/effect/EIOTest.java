@@ -193,8 +193,8 @@ public class EIOTest {
 
   @Test
   public void testCompositionWithZIO() {
-    ZIO<Environment, Throwable, Integer> getValue = ZIO.accessM(env -> ZIO.pure(env.getValue()));
-    ZIO<Environment, Throwable, Integer> result = EIO.<Throwable>unit().<Environment>toZIO().andThen(getValue);
+    PureIO<Environment, Throwable, Integer> getValue = PureIO.accessM(env -> PureIO.pure(env.getValue()));
+    PureIO<Environment, Throwable, Integer> result = EIO.<Throwable>unit().<Environment>toPureIO().andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 

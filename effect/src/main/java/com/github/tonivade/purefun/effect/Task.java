@@ -37,17 +37,17 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 @HigherKind
 public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
-  private static final Task<Unit> UNIT = new Task<>(ZIO.unit());
+  private static final Task<Unit> UNIT = new Task<>(PureIO.unit());
 
-  private final ZIO<Nothing, Throwable, A> instance;
+  private final PureIO<Nothing, Throwable, A> instance;
 
-  Task(ZIO<Nothing, Throwable, A> value) {
+  Task(PureIO<Nothing, Throwable, A> value) {
     this.instance = checkNonNull(value);
   }
 
   @SuppressWarnings("unchecked")
-  public <R> ZIO<R, Throwable, A> toZIO() {
-    return (ZIO<R, Throwable, A>) instance;
+  public <R> PureIO<R, Throwable, A> toPureIO() {
+    return (PureIO<R, Throwable, A>) instance;
   }
 
   public EIO<Throwable, A> toEIO() {
@@ -56,7 +56,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   @SuppressWarnings("unchecked")
   public <R> RIO<R, A> toURIO() {
-    return new RIO<>((ZIO<R, Throwable, A>)instance);
+    return new RIO<>((PureIO<R, Throwable, A>)instance);
   }
   
   public UIO<A> toUIO() {
@@ -112,7 +112,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public <B> UIO<B> fold(
       Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
-    return new UIO<>(instance.fold(mapError, map).<Nothing>toZIO());
+    return new UIO<>(instance.fold(mapError, map).<Nothing>toPureIO());
   }
 
   @SuppressWarnings("unchecked")
@@ -126,7 +126,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public UIO<A> recover(Function1<? super Throwable, ? extends A> mapError) {
-    return new UIO<>(instance.recover(mapError).<Nothing>toZIO());
+    return new UIO<>(instance.recover(mapError).<Nothing>toPureIO());
   }
 
   public Task<A> orElse(Kind<Task_, ? extends A> other) {
@@ -155,10 +155,10 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
   
   public Task<Fiber<Task_, A>> fork() {
-    return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
+    return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Throwable>, Task_>() {
       @Override
-      public <T> Task<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, ? extends T> from) {
-        return new Task<>(from.fix(ZIOOf::narrowK));
+      public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
+        return new Task<>(from.fix(PureIOOf::narrowK));
       }
     })));
   }
@@ -237,7 +237,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public static <A, B, C> Task<C> parMap2(Executor executor, Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb, 
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new Task<>(ZIO.parMap2(executor, za.fix(TaskOf::narrowK).instance, zb.fix(TaskOf::narrowK).instance, mapper));
+    return new Task<>(PureIO.parMap2(executor, za.fix(TaskOf::narrowK).instance, zb.fix(TaskOf::narrowK).instance, mapper));
   }
   
   public static <A, B> Task<Either<A, B>> race(Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
@@ -252,28 +252,28 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   
   public static <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> 
       racePair(Executor executor, Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
-    ZIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(ZIOOf::narrowK);
-    ZIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(ZIOOf::narrowK);
-    return new Task<>(ZIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
+    PureIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
+    PureIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
+    return new Task<>(PureIO.racePair(executor, instance1, instance2).map(
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Throwable>, Task_>() {
         @Override
-        public <T> Task<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, ? extends T> from) {
-          return new Task<>(from.fix(ZIOOf::narrowK));
+        public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
+          return new Task<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<ZIO_, Nothing>, Throwable>, Task_>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Throwable>, Task_>() {
         @Override
-        public <T> Task<T> apply(Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, ? extends T> from) {
-          return new Task<>(from.fix(ZIOOf::narrowK));
+        public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
+          return new Task<>(from.fix(PureIOOf::narrowK));
         }
       })))));
   }
 
   public static <A> Task<A> absorb(Task<Either<Throwable, A>> value) {
-    return new Task<>(ZIO.absorb(value.instance));
+    return new Task<>(PureIO.absorb(value.instance));
   }
 
   public static <A, B> Function1<A, Task<B>> lift(Function1<? super A, ? extends B> function) {
-    return ZIO.<Nothing, A, B>lift(function).andThen(Task::new);
+    return PureIO.<Nothing, A, B>lift(function).andThen(Task::new);
   }
 
   public static <A, B> Function1<A, Task<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
@@ -309,27 +309,27 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public static <A> Task<A> fromEither(Producer<Either<Throwable, ? extends A>> task) {
-    return new Task<>(ZIO.fromEither(task));
+    return new Task<>(PureIO.fromEither(task));
   }
 
   public static Task<Unit> sleep(Duration delay) {
-    return new Task<>(ZIO.sleep(delay));
+    return new Task<>(PureIO.sleep(delay));
   }
 
   public static Task<Unit> exec(CheckedRunnable task) {
-    return new Task<>(ZIO.exec(task));
+    return new Task<>(PureIO.exec(task));
   }
 
   public static <A> Task<A> pure(A value) {
-    return new Task<>(ZIO.pure(value));
+    return new Task<>(PureIO.pure(value));
   }
 
   public static <A> Task<A> defer(Producer<? extends Kind<Task_, ? extends A>> lazy) {
-    return new Task<>(ZIO.defer(() -> lazy.andThen(TaskOf::narrowK).get().instance));
+    return new Task<>(PureIO.defer(() -> lazy.andThen(TaskOf::narrowK).get().instance));
   }
 
   public static <A> Task<A> task(Producer<? extends A> task) {
-    return new Task<>(ZIO.task(task));
+    return new Task<>(PureIO.task(task));
   }
   
   public static <A> Task<A> never() {
@@ -337,17 +337,17 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
   
   public static <A> Task<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
-    return new Task<>(ZIO.async(
+    return new Task<>(PureIO.async(
       (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
   }
   
   public static <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Task<Unit>> consumer) {
-    return new Task<>(ZIO.cancellable(
-      (env, cb1) -> consumer.andThen(Task::<Nothing>toZIO).apply(result -> cb1.accept(result.map(Either::right)))));
+    return new Task<>(PureIO.cancellable(
+      (env, cb1) -> consumer.andThen(Task::<Nothing>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A> Task<A> raiseError(Throwable error) {
-    return new Task<>(ZIO.raiseError(error));
+    return new Task<>(PureIO.raiseError(error));
   }
 
   public static <A> Task<Sequence<A>> traverse(Sequence<? extends Task<A>> sequence) {
@@ -361,17 +361,17 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public static <A extends AutoCloseable, B> Task<B> bracket(
       Kind<Task_, ? extends A> acquire, Function1<? super A, ? extends Kind<Task_, ? extends B>> use) {
-    return new Task<>(ZIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance));
+    return new Task<>(PureIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance));
   }
 
   public static <A, B> Task<B> bracket(
       Kind<Task_, ? extends A> acquire, Function1<? super A, ? extends Kind<Task_, ? extends B>> use, Consumer1<? super A> release) {
-    return new Task<>(ZIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
+    return new Task<>(PureIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release));
   }
 
   public static <A, B> Task<B> bracket(
       Kind<Task_, ? extends A> acquire, Function1<? super A, ? extends Kind<Task_, ? extends B>> use, Function1<? super A, ? extends Kind<Task_, Unit>> release) {
-    return new Task<>(ZIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release.andThen(TaskOf::narrowK).andThen(Task::toZIO)));
+    return new Task<>(PureIO.bracket(acquire.fix(TaskOf::narrowK).instance, resource -> use.andThen(TaskOf::narrowK).apply(resource).instance, release.andThen(TaskOf::narrowK).andThen(Task::toPureIO)));
   }
 
   public static Task<Unit> unit() {

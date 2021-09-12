@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
 import static com.github.tonivade.purefun.effect.TaskOf.toTask;
 import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
-import static com.github.tonivade.purefun.effect.ZIOOf.toZIO;
+import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -37,8 +37,8 @@ import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.effect.URIO;
-import com.github.tonivade.purefun.effect.ZIO;
-import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.effect.PureIO;
+import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.instances.StreamInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
@@ -51,7 +51,7 @@ public class StreamTest {
   private final StreamOf<UIO_> streamOfUIO = StreamInstances.ofUIO();
   private final StreamOf<Task_> streamOfTask = StreamInstances.ofTask();
   private final StreamOf<Kind<EIO_, Throwable>> streamOfEIO = StreamInstances.ofEIO();
-  private final StreamOf<Kind<Kind<ZIO_, Nothing>, Throwable>> streamOfZIO = StreamInstances.ofZIO();
+  private final StreamOf<Kind<Kind<PureIO_, Nothing>, Throwable>> streamOfPureIO = StreamInstances.ofPureIO();
 
   @Test
   public void map() {
@@ -284,9 +284,9 @@ public class StreamTest {
   }
 
   @Test
-  public void readFileZIO() {
-    URIO<Nothing, String> license = pureReadFileZIO("../LICENSE");
-    URIO<Nothing, String> notFound = pureReadFileZIO("hjsjkdf");
+  public void readFilePureIO() {
+    URIO<Nothing, String> license = pureReadFilePureIO("../LICENSE");
+    URIO<Nothing, String> notFound = pureReadFilePureIO("hjsjkdf");
     assertAll(
         () -> assertEquals(impureReadFile("../LICENSE"), license.unsafeRunSync(nothing())),
         () -> assertEquals("--- file not found ---", notFound.unsafeRunSync(nothing())));
@@ -348,13 +348,13 @@ public class StreamTest {
         .recover(cons("--- file not found ---"));
   }
 
-  private URIO<Nothing, String> pureReadFileZIO(String file) {
-    return streamOfZIO.eval(ZIO.<Nothing, BufferedReader>task(() -> reader(file)))
-      .flatMap(reader -> streamOfZIO.iterate(() -> Option.of(() -> readLine(reader))))
+  private URIO<Nothing, String> pureReadFilePureIO(String file) {
+    return streamOfPureIO.eval(PureIO.<Nothing, BufferedReader>task(() -> reader(file)))
+      .flatMap(reader -> streamOfPureIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
       .map(Option::get)
       .foldLeft("", (a, b) -> a + '\n' + b)
-      .fix(toZIO())
+      .fix(toPureIO())
       .recover(cons("--- file not found ---"));
   }
 

@@ -21,14 +21,14 @@ import com.github.tonivade.purefun.type.Either;
 @HigherKind
 public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
 
-  private final ZIO<R, E, Tuple2<A, Consumer1<? super A>>> resource;
+  private final PureIO<R, E, Tuple2<A, Consumer1<? super A>>> resource;
 
-  protected Managed(ZIO<R, E, Tuple2<A, Consumer1<? super A>>> resource) {
+  protected Managed(PureIO<R, E, Tuple2<A, Consumer1<? super A>>> resource) {
     this.resource = checkNonNull(resource);
   }
   
   public <B> Managed<R, E, B> map(Function1<? super A, ? extends B> mapper) {
-    return flatMap(a -> pure(ZIO.pure(mapper.apply(a))));
+    return flatMap(a -> pure(PureIO.pure(mapper.apply(a))));
   }
   
   public <F> Managed<R, F, A> mapError(Function1<? super E, ? extends F> mapper) {
@@ -36,7 +36,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
   
   public <B> Managed<R, E, B> flatMap(Function1<? super A, ? extends Managed<R, E, ? extends B>> mapper) {
-    ZIO<R, E, Tuple2<B, Consumer1<? super B>>> result = resource.flatMap(t -> {
+    PureIO<R, E, Tuple2<B, Consumer1<? super B>>> result = resource.flatMap(t -> {
       Managed<R, E, B> apply = ManagedOf.narrowK(mapper.apply(t.get1()));
       return apply.resource.map(r -> r.map2(ignore -> releaseAndThen(t, r)));
     });
@@ -48,15 +48,15 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
   
   public <B> Managed<R, E, B> andThen(Managed<A, E, B> other) {
-    ZIO<R, E, Tuple2<B, Consumer1<? super B>>> flatMap = resource.flatMap(a -> {
+    PureIO<R, E, Tuple2<B, Consumer1<? super B>>> flatMap = resource.flatMap(a -> {
       Either<E, Tuple2<B, Consumer1<? super B>>> next = other.resource.provide(a.get1());
-      return ZIO.fromEither(() -> next.map(t -> t.map2(ignore -> releaseAndThen(a, t))));
+      return PureIO.fromEither(() -> next.map(t -> t.map2(ignore -> releaseAndThen(a, t))));
     });
     return new Managed<>(flatMap);
   }
   
-  public <B> ZIO<R, E, B> use(Function1<? super A, ? extends ZIO<R, E, ? extends B>> use) {
-    return ZIO.bracket(resource, a -> use.apply(a.get1()), release());
+  public <B> PureIO<R, E, B> use(Function1<? super A, ? extends PureIO<R, E, ? extends B>> use) {
+    return PureIO.bracket(resource, a -> use.apply(a.get1()), release());
   }
   
   public <B> Managed<R, Nothing, B> fold(
@@ -77,7 +77,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   public <F, B> Managed<R, F, B> foldM(
       Function1<? super E, ? extends Managed<R, F, ? extends B>> mapError, 
       Function1<? super A, ? extends Managed<R, F, ? extends B>> mapper) {
-    ZIO<R, F, Tuple2<B, Consumer1<? super B>>> foldM = 
+    PureIO<R, F, Tuple2<B, Consumer1<? super B>>> foldM = 
         resource.foldM(
             error -> ManagedOf.<R, F, B>narrowK(mapError.apply(error)).resource,
             a -> ManagedOf.<R, F, B>narrowK(mapper.apply(a.get1())).resource.map(b -> b.map2(ignore -> releaseAndThen(a, b))));
@@ -85,18 +85,18 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
   
   public <B> Managed<R, E, Tuple2<A, B>> combine(Managed<R, E, B> other) {
-    return new Managed<>(ZIO.bracket(resource,
-        t -> ZIO.bracket(other.resource,
-          r -> ZIO.pure(Tuple.of(Tuple.of(t.get1(), r.get1()), noop())), 
+    return new Managed<>(PureIO.bracket(resource,
+        t -> PureIO.bracket(other.resource,
+          r -> PureIO.pure(Tuple.of(Tuple.of(t.get1(), r.get1()), noop())), 
           release()), 
         release()));
   }
   
   public <B> Managed<R, E, Either<A, B>> either(Managed<R, E, B> other) {
-    ZIO<R, E, Either<Tuple2<A, Consumer1<? super A>>, Tuple2<B, Consumer1<? super B>>>> foldM = 
+    PureIO<R, E, Either<Tuple2<A, Consumer1<? super A>>, Tuple2<B, Consumer1<? super B>>>> foldM = 
         this.resource.foldM(
             error -> other.resource.map(Either::right), 
-            success -> ZIO.pure(Either.left(success)));
+            success -> PureIO.pure(Either.left(success)));
     
     return new Managed<>(foldM.map(
         e -> e.fold(
@@ -131,18 +131,18 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
   
   public static <R, E, A> Managed<R, E, A> pure(A resource) {
-    return pure(ZIO.pure(resource));
+    return pure(PureIO.pure(resource));
   }
   
-  public static <R, E, A> Managed<R, E, A> pure(ZIO<R, E, ? extends A> resource) {
+  public static <R, E, A> Managed<R, E, A> pure(PureIO<R, E, ? extends A> resource) {
     return from(resource, noop());
   }
   
-  public static <R, E, A extends AutoCloseable> Managed<R, E, A> from(ZIO<R, E, ? extends A> resource) {
+  public static <R, E, A extends AutoCloseable> Managed<R, E, A> from(PureIO<R, E, ? extends A> resource) {
     return from(resource, AutoCloseable::close);
   }
   
-  public static <R, E, A> Managed<R, E, A> from(ZIO<R, E, ? extends A> resource, Consumer1<? super A> release) {
+  public static <R, E, A> Managed<R, E, A> from(PureIO<R, E, ? extends A> resource, Consumer1<? super A> release) {
     return new Managed<>(resource.map(a -> Tuple.of(a, release)));
   }
   
@@ -151,16 +151,16 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
   
   public static <R, E, A> Managed<R, E, A> from(Function1<? super R, ? extends A> mapper, Consumer1<? super A> release) {
-    return new Managed<>(ZIO.<R, E, A>access(mapper).map(y -> Tuple.of(y, release)));
+    return new Managed<>(PureIO.<R, E, A>access(mapper).map(y -> Tuple.of(y, release)));
   }
   
-  public static <R, E, A extends AutoCloseable> Managed<R, E, A> fromM(Function1<? super R, ? extends ZIO<R, E, ? extends A>> mapper) {
+  public static <R, E, A extends AutoCloseable> Managed<R, E, A> fromM(Function1<? super R, ? extends PureIO<R, E, ? extends A>> mapper) {
     return fromM(mapper, AutoCloseable::close);
   }
   
   public static <R, E, A> Managed<R, E, A> fromM(
-      Function1<? super R, ? extends ZIO<R, E, ? extends A>> mapper, Consumer1<? super A> release) {
-    return new Managed<>(ZIO.<R, E, A>accessM(mapper).map(y -> Tuple.of(y, release)));
+      Function1<? super R, ? extends PureIO<R, E, ? extends A>> mapper, Consumer1<? super A> release) {
+    return new Managed<>(PureIO.<R, E, A>accessM(mapper).map(y -> Tuple.of(y, release)));
   }
 
   private static <X, T, R> Consumer1<X> releaseAndThen(

@@ -153,8 +153,8 @@ public class UIOTest {
 
   @Test
   public void testCompositionWithZIO() {
-    ZIO<Environment, Nothing, Integer> getValue = ZIO.access(Environment::getValue);
-    ZIO<Environment, Nothing, Integer> result = unit().<Environment, Nothing>toZIO().andThen(getValue);
+    PureIO<Environment, Nothing, Integer> getValue = PureIO.access(Environment::getValue);
+    PureIO<Environment, Nothing, Integer> result = unit().<Environment, Nothing>toPureIO().andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 

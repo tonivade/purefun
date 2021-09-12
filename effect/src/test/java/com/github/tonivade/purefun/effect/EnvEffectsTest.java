@@ -13,7 +13,7 @@ import java.util.Queue;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.effect.util.ZConsole;
+import com.github.tonivade.purefun.effect.util.PureConsole;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 public class EnvEffectsTest {
@@ -22,7 +22,7 @@ public class EnvEffectsTest {
   public void programLive() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(echo()).apply(ZConsole.live());
+    executor.run(echo()).apply(PureConsole.live());
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }
@@ -32,14 +32,14 @@ public class EnvEffectsTest {
     Queue<String> input = new LinkedList<>(asList("Toni"));
     Queue<String> output = new LinkedList<>();
 
-    echo().safeRunSync(ZConsole.test(input, output));
+    echo().safeRunSync(PureConsole.test(input, output));
 
     assertEquals(asList("what's your name?", "Hello Toni"), output);
   }
 
-  private RIO<ZConsole, Unit> echo() {
-    return ZConsole.println("what's your name?")
-        .andThen(ZConsole.readln())
-        .flatMap(name -> ZConsole.println("Hello " + name));
+  private RIO<PureConsole, Unit> echo() {
+    return PureConsole.println("what's your name?")
+        .andThen(PureConsole.readln())
+        .flatMap(name -> PureConsole.println("Hello " + name));
   }
 }

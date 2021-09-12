@@ -25,8 +25,8 @@ import com.github.tonivade.purefun.effect.TaskOf;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
-import com.github.tonivade.purefun.effect.ZIOOf;
-import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.effect.PureIOOf;
+import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.EvalInstances;
@@ -36,7 +36,7 @@ import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
-import com.github.tonivade.purefun.instances.ZIOInstances;
+import com.github.tonivade.purefun.instances.PureIOInstances;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
@@ -261,20 +261,20 @@ public class MonadErrorTest {
   }
 
   @Test
-  public void zio() {
+  public void PureIO() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Kind<ZIO_, Nothing>, Throwable>, Throwable> monadError = ZIOInstances.monadThrow();
+    MonadError<Kind<Kind<PureIO_, Nothing>, Throwable>, Throwable> monadError = PureIOInstances.monadThrow();
 
-    Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<Kind<Kind<ZIO_, Nothing>, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Either.<Throwable, String>left(error), ZIOOf.narrowK(raiseError).provide(nothing())),
-        () -> assertEquals(Either.<Throwable, String>right("not an error"), ZIOOf.narrowK(handleError).provide(nothing())),
-        () -> assertEquals(Either.<Throwable, String>left(error), ZIOOf.narrowK(ensureError).provide(nothing())),
-        () -> assertEquals(Either.<Throwable, String>right("is not ok"), ZIOOf.narrowK(ensureOk).provide(nothing())));
+        () -> assertEquals(Either.<Throwable, String>left(error), PureIOOf.narrowK(raiseError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>right("not an error"), PureIOOf.narrowK(handleError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>left(error), PureIOOf.narrowK(ensureError).provide(nothing())),
+        () -> assertEquals(Either.<Throwable, String>right("is not ok"), PureIOOf.narrowK(ensureOk).provide(nothing())));
   }
 }

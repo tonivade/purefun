@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.effect.RIO_;
 import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.effect.URIO_;
-import com.github.tonivade.purefun.effect.ZIO_;
+import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.Stream;
 import com.github.tonivade.purefun.stream.StreamOf;
@@ -28,8 +28,8 @@ public interface StreamInstances {
     return Stream.of(IOInstances.monadDefer());
   }
 
-  static <R> Stream.StreamOf<Kind<Kind<ZIO_, R>, Throwable>> ofZIO() {
-    return Stream.of(ZIOInstances.monadDefer());
+  static <R> Stream.StreamOf<Kind<Kind<PureIO_, R>, Throwable>> ofPureIO() {
+    return Stream.of(PureIOInstances.monadDefer());
   }
 
   static Stream.StreamOf<UIO_> ofUIO() {

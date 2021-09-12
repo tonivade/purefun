@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.effect.RIO;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
-import com.github.tonivade.purefun.effect.ZIO;
+import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -35,7 +35,7 @@ public final class ConsoleExecutor {
     return new String(output.toByteArray(), UTF_8);
   }
   
-  public <R, E, T> Function1<R, Either<E, T>> run(ZIO<R, E, T> program) {
+  public <R, E, T> Function1<R, Either<E, T>> run(PureIO<R, E, T> program) {
     return env -> run(() -> program.provide(env));
   }
   

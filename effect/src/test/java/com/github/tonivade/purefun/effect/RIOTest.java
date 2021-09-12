@@ -150,9 +150,9 @@ public class RIOTest {
 
   @Test
   public void testCompositionWithZIO() {
-    ZIO<Environment, Throwable, Integer> getValue = ZIO.access(Environment::getValue);
-    ZIO<Environment, Throwable, Unit> zio = RIO.<Environment>unit().toZIO();
-    ZIO<Environment, Throwable, Integer> result = zio.andThen(getValue);
+    PureIO<Environment, Throwable, Integer> getValue = PureIO.access(Environment::getValue);
+    PureIO<Environment, Throwable, Unit> zio = RIO.<Environment>unit().toPureIO();
+    PureIO<Environment, Throwable, Integer> result = zio.andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 
