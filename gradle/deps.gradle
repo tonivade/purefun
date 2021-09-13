@@ -1,7 +1,7 @@
 ext {
   versions = [
-    junitEngine     : '5.7.2',
-    junitPlatform   : '1.7.2',
+    junitEngine     : '5.8.0',
+    junitPlatform   : '1.8.0',
     equalsVerifier  : '3.7.1',
     mockito         : '3.12.4',
     compileTesting  : '0.19'
