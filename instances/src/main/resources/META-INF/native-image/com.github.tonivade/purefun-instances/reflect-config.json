@@ -140,7 +140,7 @@
     "allPublicMethods": true
   },
   {
-    "name": "com.github.tonivade.purefun.instances.ZIOInstances",
+    "name": "com.github.tonivade.purefun.instances.PureIOInstances",
     "allPublicMethods": true
   }
 ]
