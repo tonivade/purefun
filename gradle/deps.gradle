@@ -1,17 +1,10 @@
 ext {
-  versions = [
-    junitEngine     : '5.8.0',
-    junitPlatform   : '1.8.0',
-    equalsVerifier  : '3.7.1',
-    mockito         : '3.12.4',
-    compileTesting  : '0.19'
-  ]
   libs = [
-    junitJupiter    : "org.junit.jupiter:junit-jupiter-engine:$versions.junitEngine",
-    junitRunner     : "org.junit.platform:junit-platform-runner:$versions.junitPlatform",
-    equalsVerifier  : "nl.jqno.equalsverifier:equalsverifier:$versions.equalsVerifier",
-    mockitoCore     : "org.mockito:mockito-core:$versions.mockito",
-    mockitoJunit    : "org.mockito:mockito-junit-jupiter:$versions.mockito",
-    compileTesting  : "com.google.testing.compile:compile-testing:$versions.compileTesting"
+    junitJupiter    : "org.junit.jupiter:junit-jupiter-engine:$junitEngineVersion",
+    junitRunner     : "org.junit.platform:junit-platform-runner:$junitPlatformVersion",
+    equalsVerifier  : "nl.jqno.equalsverifier:equalsverifier:$equalsVerifierVersion",
+    mockitoCore     : "org.mockito:mockito-core:$mockitoVersion",
+    mockitoJunit    : "org.mockito:mockito-junit-jupiter:$mockitoVersion",
+    compileTesting  : "com.google.testing.compile:compile-testing:$compileTestingVersion"
   ]
 }
