@@ -1,9 +1,9 @@
 dependencies {
-  annotationProcessor project(':purefun-processor')
-  api project(':purefun-core')
-  testImplementation project(':purefun-instances')
-  testImplementation project(':purefun-monad')
-  testImplementation project(':purefun-effect')
+  annotationProcessor projects.purefunProcessor
+  api projects.purefunCore
+  testImplementation projects.purefunEffect
+  testImplementation projects.purefunMonad
+  testImplementation projects.purefunInstances
 }
 
 sonarqube {

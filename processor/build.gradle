@@ -1,4 +1,4 @@
 dependencies {
-  implementation project(':purefun-annotation')
+  implementation projects.purefunAnnotation
   testImplementation libs.compileTesting
 }

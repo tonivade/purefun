@@ -1,4 +1,4 @@
 dependencies {
-  annotationProcessor project(':purefun-processor')
-  api project(':purefun-annotation')
+  annotationProcessor projects.purefunProcessor
+  api projects.purefunAnnotation
 }

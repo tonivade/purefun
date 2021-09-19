@@ -1,11 +1,11 @@
 dependencies {
-  annotationProcessor project(':purefun-processor')
-  api project(':purefun-core')
-  api project(':purefun-typeclasses')
-  implementation project(':purefun-monad')
-  implementation project(':purefun-free')
-  implementation project(':purefun-transformer')
-  implementation project(':purefun-stream')
-  implementation project(':purefun-effect')
-  implementation project(':purefun-control')
+  annotationProcessor projects.purefunProcessor
+  api projects.purefunCore
+  api projects.purefunTypeclasses
+  implementation projects.purefunMonad
+  implementation projects.purefunFree
+  implementation projects.purefunTransformer
+  implementation projects.purefunStream
+  implementation projects.purefunEffect
+  implementation projects.purefunControl
 }

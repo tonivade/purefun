@@ -1,3 +1,6 @@
+enableFeaturePreview("VERSION_CATALOGS")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = 'purefun-parent'
 
 include "core", "monad", "stream", "typeclasses",
@@ -6,3 +9,16 @@ include "core", "monad", "stream", "typeclasses",
         "generic", "control"
 
 rootProject.children.each { it.name = "purefun-" + it.name }
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    libs {
+      alias('junitJupiter').to("org.junit.jupiter:junit-jupiter-engine:$junitEngineVersion")
+      alias('junitRunner').to("org.junit.platform:junit-platform-runner:$junitPlatformVersion")
+      alias('equalsVerifier').to("nl.jqno.equalsverifier:equalsverifier:$equalsVerifierVersion")
+      alias('mockitoCore').to("org.mockito:mockito-core:$mockitoVersion")
+      alias('mockitoJunit').to("org.mockito:mockito-junit-jupiter:$mockitoVersion")
+      alias('compileTesting').to("com.google.testing.compile:compile-testing:$compileTestingVersion")
+    }
+  }
+}

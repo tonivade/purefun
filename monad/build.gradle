@@ -1,8 +1,8 @@
 dependencies {
-  annotationProcessor project(':purefun-processor')
-  api project(':purefun-core')
-  api project(':purefun-typeclasses')
-  testAnnotationProcessor project(':purefun-processor')
-  testImplementation project(':purefun-effect')
-  testImplementation project(':purefun-instances')
+  annotationProcessor projects.purefunProcessor
+  api projects.purefunCore
+  api projects.purefunTypeclasses
+  testImplementation projects.purefunEffect
+  testImplementation projects.purefunInstances
+  testAnnotationProcessor projects.purefunProcessor
 }
