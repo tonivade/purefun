@@ -11,7 +11,7 @@ import java.util.concurrent.CancellationException;
 
 import com.github.tonivade.purefun.type.Try;
 
-public interface Cancellable {
+public sealed interface Cancellable {
   
   void updateThread();
   

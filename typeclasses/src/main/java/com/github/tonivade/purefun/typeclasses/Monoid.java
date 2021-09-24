@@ -16,7 +16,7 @@ public interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix(MonoidOf::<R>narrowK);
+    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix(MonoidOf::narrowK);
   }
 
   static Monoid<String> string() {

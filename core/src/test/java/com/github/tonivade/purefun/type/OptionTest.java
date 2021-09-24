@@ -124,7 +124,7 @@ public class OptionTest {
     assertAll(
         () -> assertTrue(some.isPresent()),
         () -> assertFalse(some.isEmpty()),
-        () -> assertEquals("Hola mundo", some.get()),
+        () -> assertEquals("Hola mundo", some.getOrElseThrow()),
         () -> assertEquals("Some(Hola mundo)", some.toString()),
         () -> assertEquals(Optional.of("Hola mundo"), some.toOptional()),
         () -> assertEquals(Option.some("Hola mundo"), some),
@@ -148,7 +148,7 @@ public class OptionTest {
         () -> assertEquals(Option.none(), none),
         () -> assertEquals(Optional.empty(), none.toOptional()),
         () -> assertEquals(emptyList(), none.stream().collect(toList())),
-        () -> assertThrows(NoSuchElementException.class, none::get),
+        () -> assertThrows(NoSuchElementException.class, none::getOrElseThrow),
         () -> assertNull(none.getOrElseNull()),
         () -> {
           AtomicReference<String> ref = new AtomicReference<>();
@@ -177,7 +177,7 @@ public class OptionTest {
     
     byte[] bytes;
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(baos);) {
+        ObjectOutputStream out = new ObjectOutputStream(baos)) {
       out.writeObject(option);
       out.flush();
 

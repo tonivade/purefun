@@ -27,8 +27,8 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-@HigherKind(sealed = true)
-public interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<Kind<Stream_, F>, T> {
+@HigherKind
+public sealed interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<Kind<Stream_, F>, T> permits Cons, Suspend, Nil {
 
   default Stream<F, T> head() {
     return take(1);
@@ -146,7 +146,7 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<K
     }
 
     default <T, S> Stream<F, T> unfold(S seed, Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
-      return suspend(() -> StreamModule.unfold(this, seed, function));
+      return suspend(() -> doUnfold(seed, function));
     }
 
     default <T> Stream<F, T> iterate(T seed, Operator1<T> generator) {
@@ -196,15 +196,11 @@ public interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bindable<K
           })
         ));
     }
-  }
-}
 
-interface StreamModule {
-
-  static <F extends Witness, T, S> Stream<F, T> unfold(Stream.StreamOf<F> streamOf, S seed,
-                                                       Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
-    return function.apply(seed)
-      .map(tuple -> streamOf.cons(tuple.get1(), streamOf.<T>suspend(() -> unfold(streamOf, tuple.get2(), function))))
-      .getOrElse(streamOf::empty);
+    private <T, S> Stream<F, T> doUnfold(S seed, Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
+      return function.apply(seed)
+        .map(tuple -> tuple.applyTo((t, s) -> cons(t, suspend(() -> doUnfold(s, function)))))
+        .getOrElse(this::empty);
+    }
   }
 }

@@ -49,7 +49,7 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A>, Bindab
   }
 
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<Free_, G>> functionKF(FunctionK<F, G> functionK) {
-    return new FunctionK<F, Kind<Free_, G>>() {
+    return new FunctionK<>() {
       @Override
       public <T> Free<G, T> apply(Kind<F, ? extends T> from) {
         return liftF(functionK.apply(from));
@@ -179,7 +179,7 @@ public abstract class Free<F extends Witness, A> implements FreeOf<F, A>, Bindab
       }
       if (value instanceof Pure) {
         Free.Pure<F, A> pure = (Free.Pure<F, A>) value;
-        Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::<F, B>narrowK);
+        Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
         return andThen.apply(pure.value).step();
       }
       return this;

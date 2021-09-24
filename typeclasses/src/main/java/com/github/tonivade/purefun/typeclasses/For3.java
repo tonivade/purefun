@@ -19,7 +19,7 @@ public final class For3<F extends Witness, A, B, C> extends AbstractFor<F, B, C>
   private final Producer<? extends Kind<F, ? extends A>> value1;
   private final Function1<? super A, ? extends Kind<F, ? extends B>> value2;
 
-  protected For3(Monad<F> monad,
+  For3(Monad<F> monad,
                  Producer<? extends Kind<F, ? extends A>> value1,
                  Function1<? super A, ? extends Kind<F, ? extends B>> value2,
                  Function1<? super B, ? extends Kind<F, ? extends C>> value3) {

@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Operator1;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -15,6 +16,7 @@ import static com.github.tonivade.purefun.type.Validation.requireNonEmpty;
 
 public class NonEmptyString implements Serializable {
 
+  @Serial
   private static final long serialVersionUID = -4000125976618351707L;
 
   private static final Equal<NonEmptyString> EQUAL = Equal.<NonEmptyString>of().comparing(x -> x.value);

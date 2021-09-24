@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
@@ -13,6 +15,7 @@ import com.github.tonivade.purefun.HigherKind;
 @HigherKind
 public final class Const<T, A> implements ConstOf<T, A>, Serializable {
 
+  @Serial
   private static final long serialVersionUID = 7431389527943145565L;
 
   private static final Equal<Const<?, ?>> EQUAL = Equal.<Const<?, ?>>of().comparing(Const::get);

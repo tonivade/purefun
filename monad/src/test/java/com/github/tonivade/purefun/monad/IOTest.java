@@ -190,7 +190,7 @@ public class IOTest {
 
     Try<String> retry = IO.task(computation).retry(Duration.ofMillis(100), 3).safeRunSync();
 
-    assertEquals("hola", retry.get());
+    assertEquals("hola", retry.getOrElseThrow());
     verify(computation, times(4)).get();
   }
 
@@ -200,7 +200,7 @@ public class IOTest {
 
     Try<String> repeat = IO.task(computation).repeat(Duration.ofMillis(100), 3).safeRunSync();
 
-    assertEquals("hola", repeat.get());
+    assertEquals("hola", repeat.getOrElseThrow());
     verify(computation, times(4)).get();
   }
 
@@ -220,7 +220,7 @@ public class IOTest {
 
     Try<String> repeat = IO.task(computation).repeat().safeRunSync();
 
-    assertEquals("hola", repeat.get());
+    assertEquals("hola", repeat.getOrElseThrow());
     verify(computation, times(2)).get();
   }
 

@@ -6,11 +6,12 @@ import com.github.tonivade.purefun.Unit;
 
 @HigherKind
 public interface ConsoleAlg<T> extends ConsoleAlgOf<T> {
-  final class WriteLine implements ConsoleAlg<Unit> {
-    private final String line;
-    public WriteLine(String line) { this.line = checkNonNull(line); }
 
-    public String getLine() { return line; }
+  record WriteLine(String line) implements ConsoleAlg<Unit> {
+    public WriteLine {
+      checkNonNull(line);
+    }
   }
-  final class ReadLine implements ConsoleAlg<String> { }
+
+  record ReadLine() implements ConsoleAlg<String> { }
 }

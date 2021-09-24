@@ -30,7 +30,7 @@ public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>
   @SuppressWarnings("unchecked")
   default <A, B, C> Kind<F, Either<C, B>> repeatOrElseEither(
       Kind<F, A> value, Schedule<F, A, B> schedule, Function2<E, Option<B>, Kind<F, C>> orElse) {
-    return MonadErrorModule.repeat(this, value, (ScheduleImpl<F, ?, A, B>) schedule, orElse);
+    return repeat(this, value, (ScheduleImpl<F, ?, A, B>) schedule, orElse);
   }
   
   default <A, B> Kind<F, A> retry(Kind<F, A> value, Schedule<F, E, B> schedule) {
@@ -44,13 +44,10 @@ public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>
   @SuppressWarnings("unchecked")
   default <A, B, C> Kind<F, Either<B, A>> retryOrElseEither(
       Kind<F, A> value, Schedule<F, E, C> schedule, Function2<E, C, Kind<F, B>> orElse) {
-    return MonadErrorModule.retry(this, value, (ScheduleImpl<F, C, E, C>) schedule, orElse);
+    return retry(this, value, (ScheduleImpl<F, C, E, C>) schedule, orElse);
   }
-}
 
-interface MonadErrorModule {
-
-  static <F extends Witness, E, A, B, C, S> Kind<F, Either<C, B>> repeat(
+  private static <F extends Witness, E, A, B, C, S> Kind<F, Either<C, B>> repeat(
       MonadError<F, E> monad, Kind<F, A> value, ScheduleImpl<F, S, A, B> schedule, Function2<E, Option<B>, Kind<F, C>> orElse) {
     
     class Loop {
@@ -64,11 +61,11 @@ interface MonadErrorModule {
     }
     
     return monad.flatMap(monad.attempt(value), either -> either.fold(
-        error -> monad.map(orElse.apply(error, Option.<B>none()), Either::<C, B>left), 
+        error -> monad.map(orElse.apply(error, Option.none()), Either::<C, B>left),
         a -> monad.flatMap(schedule.initial(), s -> new Loop().loop(a, s))));
   }
 
-  static <F extends Witness, E, A, B, S> Kind<F, Either<B, A>> retry(
+  private static <F extends Witness, E, A, B, S> Kind<F, Either<B, A>> retry(
       MonadError<F, E> monad, Kind<F, A> value, ScheduleImpl<F, S, E, S> schedule, Function2<E, S, Kind<F, B>> orElse) {
     
     class Loop {

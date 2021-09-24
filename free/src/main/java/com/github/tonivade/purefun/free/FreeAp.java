@@ -31,8 +31,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
 
   @Override
   public <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
-    if (apply instanceof Pure) {
-      Pure<F, Function1<? super A, ? extends B>> pure = (Pure<F, Function1<? super A, ? extends B>>) apply;
+    if (apply instanceof Pure<F, Function1<? super A, ? extends B>> pure) {
       return map(pure.value);
     }
     return apply(this, apply);
@@ -73,7 +72,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
         do {
           Apply ap = (Apply) argF;
           argsF.addFirst(ap.value);
-          argF = (FreeAp) ap.apply;
+          argF = ap.apply;
         } while (argF instanceof Apply);
 
         int argc = argsF.size() - lengthInitial;
@@ -126,7 +125,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
   }
 
   public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
-    return new FunctionK<F, Kind<FreeAp_, G>>() {
+    return new FunctionK<>() {
       @Override
       public <T> FreeAp<G, T> apply(Kind<F, ? extends T> from) {
         return lift(functionK.apply(from));
@@ -211,14 +210,10 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
     }
   }
 
-  private static final class CurriedFunction<G extends Witness, A, B> {
+  private record CurriedFunction<G extends Witness, A, B>(Kind<G, Function1<A, B>> value, int remaining) {
 
-    private final Kind<G, Function1<A, B>> value;
-    private final int remaining;
-
-    CurriedFunction(Kind<G, Function1<A, B>> value, int remaining) {
-      this.value = checkNonNull(value);
-      this.remaining = remaining;
+    public CurriedFunction {
+      checkNonNull(value);
     }
   }
 }

@@ -37,15 +37,17 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
-@HigherKind(sealed = true)
-public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
+@HigherKind
+public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
+
+  IO<Unit> UNIT = pure(Unit.unit());
 
   default Future<T> runAsync() {
-    return Future.from(IOModule.runAsync(this, IOConnection.UNCANCELLABLE));
+    return Future.from(runAsync(this, IOConnection.UNCANCELLABLE));
   }
 
   default Future<T> runAsync(Executor executor) {
-    return IO.forked(executor).andThen(this).runAsync();
+    return forked(executor).andThen(this).runAsync();
   }
   
   default T unsafeRunSync() {
@@ -67,7 +69,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-    return new IOModule.FlatMapped<>(this, map.andThen(IOOf::narrowK));
+    return new FlatMapped<>(this, map.andThen(IOOf::narrowK));
   }
 
   @Override
@@ -113,7 +115,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
   
   default IO<T> recoverWith(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapper) {
-    return new IOModule.Recover<>(this, mapper.andThen(IOOf::narrowK));
+    return new Recover<>(this, mapper.andThen(IOOf::narrowK));
   }
 
   @Override
@@ -125,7 +127,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default IO<Fiber<IO_, T>> fork() {
     return async(callback -> {
       IOConnection connection = IOConnection.cancellable();
-      Promise<T> promise = IOModule.runAsync(this, connection);
+      Promise<T> promise = runAsync(this, connection);
       
       IO<T> join = fromPromise(promise);
       IO<Unit> cancel = exec(connection::cancel);
@@ -151,7 +153,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default IO<T> repeat(int times) {
-    return IOModule.repeat(this, unit(), times);
+    return repeat(this, unit(), times);
   }
 
   @Override
@@ -161,7 +163,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default IO<T> repeat(Duration delay, int times) {
-    return IOModule.repeat(this, sleep(delay), times);
+    return repeat(this, sleep(delay), times);
   }
 
   @Override
@@ -171,7 +173,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default IO<T> retry(int maxRetries) {
-    return IOModule.retry(this, unit(), maxRetries);
+    return retry(this, unit(), maxRetries);
   }
 
   @Override
@@ -181,11 +183,11 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default IO<T> retry(Duration delay, int maxRetries) {
-    return IOModule.retry(this, sleep(delay), maxRetries);
+    return retry(this, sleep(delay), maxRetries);
   }
 
   static <T> IO<T> pure(T value) {
-    return new IOModule.Pure<>(value);
+    return new Pure<>(value);
   }
   
   static <A, B> IO<Either<A, B>> race(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
@@ -204,8 +206,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       IOConnection connection1 = IOConnection.cancellable();
       IOConnection connection2 = IOConnection.cancellable();
       
-      Promise<A> promiseA = IOModule.runAsync(IO.forked(executor).andThen(fa), connection1);
-      Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
+      Promise<A> promiseA = runAsync(IO.forked(executor).andThen(fa), connection1);
+      Promise<B> promiseB = runAsync(IO.forked(executor).andThen(fb), connection2);
 
       promiseA.onComplete(result -> callback.accept(
           result.map(a -> Either.left(Tuple.of(a, Fiber.of(IO.fromPromise(promiseB), IO.exec(connection2::cancel)))))));
@@ -223,7 +225,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> raiseError(Throwable error) {
-    return new IOModule.Failure<>(error);
+    return new Failure<>(error);
   }
 
   static <T> IO<T> delay(Duration delay, Producer<? extends T> lazy) {
@@ -231,7 +233,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> suspend(Producer<? extends Kind<IO_, ? extends T>> lazy) {
-    return new IOModule.Suspend<>(lazy.andThen(IOOf::narrowK));
+    return new Suspend<>(lazy.andThen(IOOf::narrowK));
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -284,7 +286,7 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> task(Producer<? extends T> producer) {
-    return new IOModule.Delay<>(producer);
+    return new Delay<>(producer);
   }
 
   static <T> IO<T> never() {
@@ -304,11 +306,11 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
-    return new IOModule.Async<>(callback);
+    return new Async<>(callback);
   }
 
   static IO<Unit> unit() {
-    return IOModule.UNIT;
+    return UNIT;
   }
 
   static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
@@ -317,12 +319,12 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       
       IOConnection cancellable = IOConnection.cancellable();
       
-      Promise<? extends T> promise = IOModule.runAsync(acquire.fix(IOOf::narrowK), cancellable);
+      Promise<? extends T> promise = runAsync(acquire.fix(IOOf::narrowK), cancellable);
       
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
-        .onSuccess(resource -> IOModule.runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
-          .onComplete(result -> IOModule.runAsync(release.andThen(IOOf::narrowK).apply(resource), cancellable)
+        .onSuccess(resource -> runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
+          .onComplete(result -> runAsync(release.andThen(IOOf::narrowK).apply(resource), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
       
@@ -362,8 +364,8 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
       IOConnection connection1 = IOConnection.cancellable();
       IOConnection connection2 = IOConnection.cancellable();
       
-      Promise<A> promiseA = IOModule.runAsync(IO.forked(executor).andThen(fa), connection1);
-      Promise<B> promiseB = IOModule.runAsync(IO.forked(executor).andThen(fb), connection2);
+      Promise<A> promiseA = runAsync(IO.forked(executor).andThen(fa), connection1);
+      Promise<B> promiseB = runAsync(IO.forked(executor).andThen(fb), connection2);
       
       promiseA.onComplete(a -> promiseB.onComplete(b -> callback.accept(Try.map2(a, b, mapper))));
       
@@ -384,35 +386,30 @@ public interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <A, B> IO<Tuple2<A, B>> tuple(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return parMap2(executor, fa, fb, Tuple::of);
   }
-}
 
-interface IOModule {
-
-  IO<Unit> UNIT = IO.pure(Unit.unit());
-  
-  static <T> Promise<T> runAsync(IO<T> current, IOConnection connection) {
+  private static <T> Promise<T> runAsync(IO<T> current, IOConnection connection) {
     return runAsync(current, connection, new CallStack<>(), Promise.make());
   }
 
   @SuppressWarnings("unchecked")
-  static <T, U, V> Promise<T> runAsync(IO<T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
+  private static <T, U, V> Promise<T> runAsync(IO<T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
     while (true) {
       try {
         current = unwrap(current, stack, identity());
         
-        if (current instanceof Pure) {
-          return promise.succeeded(((Pure<T>) current).value);
+        if (current instanceof Pure<T> pure) {
+          return promise.succeeded(pure.value);
         }
         
-        if (current instanceof Async) {
-          return executeAsync((Async<T>) current, connection, promise);
+        if (current instanceof Async<T> async) {
+          return executeAsync(async, connection, promise);
         }
         
         if (current instanceof FlatMapped) {
           stack.push();
-          
+
           FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
-          IO<? extends U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next));
+          IO<U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next)).fix(IOOf::narrowK);
           
           if (source instanceof Async) {
             Promise<U> nextPromise = Promise.make();
@@ -427,8 +424,7 @@ interface IOModule {
             return promise;
           }
 
-          if (source instanceof Pure) {
-            Pure<U> pure = (Pure<U>) source;
+          if (source instanceof Pure<U> pure) {
             Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
             current = andThen.apply(pure.value);
           } else if (source instanceof FlatMapped) {
@@ -442,7 +438,7 @@ interface IOModule {
         Option<IO<T>> result = stack.tryHandle(error);
         
         if (result.isPresent()) {
-          current = result.get();
+          current = result.getOrElseThrow();
         } else {
           return promise.failed(error);
         }
@@ -450,21 +446,17 @@ interface IOModule {
     }
   }
 
-  static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
+  private static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
     while (true) {
-      if (current instanceof Failure) {
-        Failure<T> failure = (Failure<T>) current;
+      if (current instanceof Failure<T> failure) {
         return stack.sneakyThrow(failure.error);
-      } else if (current instanceof Recover) {
-        Recover<T> recover = (Recover<T>) current;
+      } else if (current instanceof Recover<T> recover) {
         stack.add(recover.mapper.andThen(next));
         current = recover.current;
-      } else if (current instanceof Suspend) {
-        Suspend<T> suspend = (Suspend<T>) current;
+      } else if (current instanceof Suspend<T> suspend) {
         Producer<IO<T>> andThen = (suspend).lazy.andThen(IOOf::narrowK);
         current = andThen.get();
-      } else if (current instanceof Delay) {
-        Delay<T> delay = (Delay<T>) current;
+      } else if (current instanceof Delay<T> delay) {
         return IO.pure(delay.task.get());
       } else if (current instanceof Pure) {
         return current;
@@ -478,7 +470,7 @@ interface IOModule {
     }
   }
 
-  static <T> Promise<T> executeAsync(Async<T> current, IOConnection connection, Promise<T> promise) {
+  private static <T> Promise<T> executeAsync(Async<T> current, IOConnection connection, Promise<T> promise) {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
@@ -494,7 +486,7 @@ interface IOModule {
     return promise;
   }
 
-  static <T> IO<T> repeat(IO<T> self, IO<Unit> pause, int times) {
+  private static <T> IO<T> repeat(IO<T> self, IO<Unit> pause, int times) {
     return self.redeemWith(IO::raiseError, value -> {
       if (times > 0) {
         return pause.andThen(repeat(self, pause, times - 1));
@@ -502,7 +494,7 @@ interface IOModule {
     });
   }
 
-  static <T> IO<T> retry(IO<T> self, IO<Unit> pause, int maxRetries) {
+  private static <T> IO<T> retry(IO<T> self, IO<Unit> pause, int maxRetries) {
     return self.redeemWith(error -> {
       if (maxRetries > 0) {
         return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
@@ -510,11 +502,11 @@ interface IOModule {
     }, IO::pure);
   }
 
-  final class Pure<T> implements SealedIO<T> {
+  final class Pure<T> implements IO<T> {
 
     private final T value;
 
-    protected Pure(T value) {
+    private Pure(T value) {
       this.value = checkNonNull(value);
     }
 
@@ -524,11 +516,11 @@ interface IOModule {
     }
   }
 
-  final class Failure<T> implements SealedIO<T>, Recoverable {
+  final class Failure<T> implements IO<T>, Recoverable {
 
     private final Throwable error;
 
-    protected Failure(Throwable error) {
+    private Failure(Throwable error) {
       this.error = checkNonNull(error);
     }
 
@@ -538,12 +530,12 @@ interface IOModule {
     }
   }
 
-  final class FlatMapped<T, R> implements SealedIO<R> {
+  final class FlatMapped<T, R> implements IO<R> {
 
     private final IO<? extends T> current;
     private final Function1<? super T, ? extends IO<? extends R>> next;
 
-    protected FlatMapped(IO<? extends T> current,
+    private FlatMapped(IO<? extends T> current,
                          Function1<? super T, ? extends IO<? extends R>> next) {
       this.current = checkNonNull(current);
       this.next = checkNonNull(next);
@@ -555,11 +547,11 @@ interface IOModule {
     }
   }
 
-  final class Delay<T> implements SealedIO<T> {
+  final class Delay<T> implements IO<T> {
 
     private final Producer<? extends T> task;
 
-    protected Delay(Producer<? extends T> task) {
+    private Delay(Producer<? extends T> task) {
       this.task = checkNonNull(task);
     }
 
@@ -569,11 +561,11 @@ interface IOModule {
     }
   }
 
-  final class Async<T> implements SealedIO<T> {
+  final class Async<T> implements IO<T> {
 
     private final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
 
-    protected Async(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+    private Async(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
       this.callback = checkNonNull(callback);
     }
 
@@ -583,11 +575,11 @@ interface IOModule {
     }
   }
 
-  final class Suspend<T> implements SealedIO<T> {
+  final class Suspend<T> implements IO<T> {
 
     private final Producer<? extends IO<? extends T>> lazy;
 
-    protected Suspend(Producer<? extends IO<? extends T>> lazy) {
+    private Suspend(Producer<? extends IO<? extends T>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -597,12 +589,12 @@ interface IOModule {
     }
   }
 
-  final class Recover<T> implements SealedIO<T> {
+  final class Recover<T> implements IO<T> {
 
     private final IO<T> current;
     private final PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper;
 
-    protected Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper) {
+    private Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper) {
       this.current = checkNonNull(current);
       this.mapper = checkNonNull(mapper);
     }
@@ -803,10 +795,9 @@ final class StackItem<T> {
 
   public Option<IO<T>> tryHandle(Throwable error) {
     while (!recover.isEmpty()) {
-      PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError = recover.removeFirst();
+      var mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        PartialFunction1<? super Throwable, IO<T>> andThen = mapError.andThen(IOOf::narrowK);
-        return Option.some(andThen.apply(error));
+        return Option.some(mapError.andThen(IOOf::<T>narrowK).apply(error));
       }
     }
     return Option.none();

@@ -12,11 +12,6 @@ public interface InjectK<F extends Witness, G extends Witness> {
   <T> Kind<G, T> inject(Kind<F, ? extends T> value);
 
   static <F extends Witness> InjectK<F, F> injectReflexive() {
-    return new InjectK<F, F>() {
-      @Override
-      public <T> Kind<F, T> inject(Kind<F, ? extends T> value) {
-        return Kind.narrowK(value);
-      }
-    };
+    return Kind::narrowK;
   }
 }

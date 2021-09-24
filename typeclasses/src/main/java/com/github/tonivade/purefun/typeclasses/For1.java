@@ -18,7 +18,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 
 public final class For1<F extends Witness, A> extends AbstractFor<F, Unit, A> {
 
-  protected For1(Monad<F> monad, Producer<Kind<F, ? extends A>> value) {
+  For1(Monad<F> monad, Producer<Kind<F, ? extends A>> value) {
     super(monad, value.asFunction());
   }
 

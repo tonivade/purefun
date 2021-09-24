@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -36,8 +37,8 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@HigherKind(sealed = true)
-public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
+@HigherKind
+public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -107,16 +108,10 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return tryA.flatMap(a -> tryB.map(b -> mapper.apply(a, b)));
   }
 
+  T getOrElseThrow();
   Throwable getCause();
   boolean isSuccess();
   boolean isFailure();
-
-  /**
-   * Returns the value if available. If not, it throws {@code NoSuchElementException}
-   * @return the wrapped value
-   * @throws NoSuchElementException if value is not available
-   */
-  T get();
 
   @Override
   default <R> Try<R> map(Function1<? super T, ? extends R> mapper) {
@@ -124,8 +119,8 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   }
 
   default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
-    if (isFailure()) {
-      return failure(mapper.apply(getCause()));
+    if (this instanceof Failure<T> f) {
+      return failure(mapper.apply(f.cause));
     }
     return this;
   }
@@ -133,38 +128,37 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   @Override
   @SuppressWarnings("unchecked")
   default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try_, ? extends R>> mapper) {
-    if (isSuccess()) {
-      return mapper.andThen(TryOf::<R>narrowK).apply(get());
+    if (this instanceof Success<T> s) {
+      return mapper.andThen(TryOf::<R>narrowK).apply(s.value);
     }
     return (Try<R>) this;
   }
 
   default Try<T> onFailure(Consumer1<? super Throwable> consumer) {
-    if (isFailure()) {
-      consumer.accept(getCause());
+    if (this instanceof Failure<T> f) {
+      consumer.accept(f.cause);
     }
     return this;
   }
 
   default Try<T> onSuccess(Consumer1<? super T> consumer) {
-    if (isSuccess()) {
-      consumer.accept(get());
+    if (this instanceof Success<T> s) {
+      consumer.accept(s.value);
     }
     return this;
   }
 
   default Try<T> recover(Function1<? super Throwable, ? extends T> mapper) {
-    if (isFailure()) {
-      return Try.of(() -> mapper.apply(getCause()));
+    if (this instanceof Failure<T> f) {
+      return Try.of(() -> mapper.apply(f.cause));
     }
     return this;
   }
 
   @SuppressWarnings("unchecked")
   default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
-    if (isFailure()) {
-      Throwable cause = getCause();
-      if (type.isAssignableFrom(cause.getClass())) {
+    if (this instanceof Failure<T> f) {
+      if (type.isAssignableFrom(f.cause.getClass())) {
         return Try.of(() -> mapper.apply((X) getCause()));
       }
     }
@@ -180,21 +174,21 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   }
 
   default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Try_, ? extends T>> producer) {
-    if (isFailure() || matcher.match(get())) {
+    if (this instanceof Failure || (this instanceof Success<T> s && matcher.match(s.value))) {
       return this;
     }
     return producer.andThen(TryOf::<T>narrowK).get();
   }
 
   default <U> U fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
-    if (isSuccess()) {
-      return successMapper.apply(get());
+    if (this instanceof Success<T> s) {
+      return successMapper.apply(s.value);
     }
     return failureMapper.apply(getCause());
   }
 
   default Try<T> or(Producer<Kind<Try_, T>> orElse) {
-    if (isFailure()) {
+    if (this instanceof Failure) {
       return orElse.andThen(TryOf::narrowK).get();
     }
     return this;
@@ -216,13 +210,9 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return fold(producer.asFunction(), identity());
   }
 
-  default T getOrElseThrow() {
-    return get();
-  }
-
   default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
-    if (isSuccess()) {
-      return get();
+    if (this instanceof Success<T> s) {
+      return s.value;
     }
     throw producer.get();
   }
@@ -247,11 +237,12 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return fold(map.andThen(Validation::invalid), Validation::valid);
   }
 
-  final class Success<T> implements SealedTry<T>, Serializable {
+  final class Success<T> implements Try<T>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = -3934628369477099278L;
 
-    private static final Equal<Success<?>> EQUAL = Equal.<Success<?>>of().comparing(Success::get);
+    private static final Equal<Success<?>> EQUAL = Equal.<Success<?>>of().comparing(s -> s.value);
 
     private final T value;
 
@@ -270,7 +261,7 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
 
     @Override
-    public T get() {
+    public T getOrElseThrow() {
       return value;
     }
 
@@ -295,8 +286,9 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
   }
 
-  final class Failure<T> implements SealedTry<T>, Serializable, Recoverable {
+  final class Failure<T> implements Try<T>, Serializable, Recoverable {
 
+    @Serial
     private static final long serialVersionUID = -8155444386075553318L;
 
     private static final Equal<Failure<?>> EQUAL =
@@ -319,7 +311,7 @@ public interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
 
     @Override
-    public T get() {
+    public T getOrElseThrow() {
       return sneakyThrow(cause);
     }
 

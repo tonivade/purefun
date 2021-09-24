@@ -122,11 +122,11 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public <B> UIO<B> fold(Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
-    return new UIO<>(instance.fold(mapError, map).<Nothing>toPureIO());
+    return new UIO<>(instance.fold(mapError, map).toPureIO());
   }
 
   public UIO<A> recover(Function1<? super E, ? extends A> mapError) {
-    return new UIO<>(instance.recover(mapError).<Nothing>toPureIO());
+    return new UIO<>(instance.recover(mapError).toPureIO());
   }
 
   public EIO<E, A> orElse(EIO<E, ? extends A> other) {

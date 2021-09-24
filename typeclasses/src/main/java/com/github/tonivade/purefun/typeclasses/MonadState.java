@@ -35,7 +35,7 @@ public interface MonadState<F extends Witness, S> extends Monad<F> {
   }
 }
 
-class ReferenceMonadState<F extends Witness, S> implements MonadState<F, S> {
+final class ReferenceMonadState<F extends Witness, S> implements MonadState<F, S> {
 
   private final Reference<F, S> ref;
   private final Monad<F> monad;

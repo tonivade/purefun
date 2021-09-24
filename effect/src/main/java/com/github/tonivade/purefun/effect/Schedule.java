@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind(sealed = true)
+@HigherKind
 public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
   <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper);
@@ -198,7 +198,7 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 }
 
-abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
+abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
   
   private ScheduleImpl() { }
   

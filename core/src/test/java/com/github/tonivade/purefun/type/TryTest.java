@@ -162,7 +162,7 @@ public class TryTest {
         () -> assertTrue(success.isSuccess()),
         () -> assertFalse(success.isFailure()),
         () -> assertEquals("Success(Hola mundo)", success.toString()),
-        () -> assertEquals("Hola mundo", success.get()),
+        () -> assertEquals("Hola mundo", success.getOrElseThrow()),
         () -> assertEquals(Try.success("Hola mundo"), success),
         () -> assertEquals(Option.some("Hola mundo"), success.toOption()),
         () -> assertEquals(Validation.valid("Hola mundo"), success.toValidation(Throwable::getMessage)),
@@ -170,7 +170,6 @@ public class TryTest {
         () -> assertEquals(singletonList("Hola mundo"), success.stream().collect(toList())),
         () -> assertThrows(NoSuchElementException.class, success::getCause),
         () -> assertEquals("Hola mundo", success.getOrElseNull()),
-        () -> assertEquals("Hola mundo", success.getOrElseThrow()),
         () -> {
           AtomicReference<String> ref = new AtomicReference<>();
           success.onSuccess(ref::set);
@@ -197,7 +196,6 @@ public class TryTest {
         () -> assertEquals(Either.left(failure.getCause()), failure.toEither()),
         () -> assertEquals("error", failure.getCause().getMessage()),
         () -> assertEquals(emptyList(), failure.stream().collect(toList())),
-        () -> assertThrows(UnsupportedOperationException.class, failure::get),
         () -> assertThrows(UnsupportedOperationException.class, failure::getOrElseThrow),
         () -> assertNull(failure.getOrElseNull()),
         () -> {

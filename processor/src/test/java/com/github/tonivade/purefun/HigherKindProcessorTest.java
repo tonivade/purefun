@@ -61,51 +61,6 @@ public class HigherKindProcessorTest {
   }
 
   @Test
-  public void compilesKind1Sealed() {
-    JavaFileObject file = forSourceLines("test.Foo",
-        "package test;",
-
-        "import com.github.tonivade.purefun.HigherKind;",
-
-        "@HigherKind(sealed = true)",
-        "public interface Foo<T> extends FooOf<T> {",
-        "}");
-
-    JavaFileObject generated = forSourceLines("test.FooOf",
-        "package test;",
-
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Fixer;",
-        "import javax.annotation.processing.Generated;",
-
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
-        "public interface FooOf<A> extends Kind<Foo_, A> {",
-        
-        "SealedFoo<A> youShallNotPass();",
-
-        "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
-        "return (Foo<A>) hkt;",
-        "}",
-
-        "static <A> Fixer<Kind<Foo_, A>, Foo<A>> toFoo() {",
-        "return FooOf::narrowK;",
-        "}",
-
-        "}",
-        
-        "interface SealedFoo<A> extends Foo<A> {",
-        "default SealedFoo<A> youShallNotPass() {",
-        "throw new UnsupportedOperationException();",
-        "}",
-        "}");
-
-    assert_().about(javaSource()).that(file)
-        .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, witness);
-  }
-
-  @Test
   public void compilesKind1NoPackage() {
     JavaFileObject file = forSourceLines("test.Foo",
         "import com.github.tonivade.purefun.HigherKind;",

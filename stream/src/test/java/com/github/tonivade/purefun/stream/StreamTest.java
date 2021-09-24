@@ -297,8 +297,8 @@ public class StreamTest {
     Future<String> license = pureReadFileIO("../LICENSE").runAsync();
     Future<String> notFound = pureReadFileIO("hjsjkdf").runAsync();
     assertAll(
-        () -> assertEquals(impureReadFile("../LICENSE"), license.await().get()),
-        () -> assertEquals("--- file not found ---", notFound.await().get()));
+        () -> assertEquals(impureReadFile("../LICENSE"), license.await().getOrElseThrow()),
+        () -> assertEquals("--- file not found ---", notFound.await().getOrElseThrow()));
   }
   
   @Test
@@ -312,7 +312,7 @@ public class StreamTest {
     return streamOfIO.eval(IO.task(() -> reader(file)))
         .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
-        .map(Option::get)
+        .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
         .fix(toIO())
         .recover(UncheckedIOException.class, cons("--- file not found ---"));
@@ -322,7 +322,7 @@ public class StreamTest {
     return streamOfUIO.eval(UIO.task(() -> reader(file)))
         .flatMap(reader -> streamOfUIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
-        .map(Option::get)
+        .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
         .fix(toUIO())
         .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
@@ -332,7 +332,7 @@ public class StreamTest {
     return streamOfTask.eval(Task.task(() -> reader(file)))
         .flatMap(reader -> streamOfTask.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
-        .map(Option::get)
+        .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
         .fix(toTask())
         .recover(cons("--- file not found ---"));
@@ -342,7 +342,7 @@ public class StreamTest {
     return streamOfEIO.eval(EIO.task(() -> reader(file)))
         .flatMap(reader -> streamOfEIO.iterate(() -> Option.of(() -> readLine(reader))))
         .takeWhile(Option::isPresent)
-        .map(Option::get)
+        .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
         .fix(toEIO())
         .recover(cons("--- file not found ---"));
@@ -352,7 +352,7 @@ public class StreamTest {
     return streamOfPureIO.eval(PureIO.<Nothing, BufferedReader>task(() -> reader(file)))
       .flatMap(reader -> streamOfPureIO.iterate(() -> Option.of(() -> readLine(reader))))
       .takeWhile(Option::isPresent)
-      .map(Option::get)
+      .map(Option::getOrElseThrow)
       .foldLeft("", (a, b) -> a + '\n' + b)
       .fix(toPureIO())
       .recover(cons("--- file not found ---"));

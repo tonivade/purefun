@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -11,6 +12,7 @@ import com.github.tonivade.purefun.data.Sequence;
 
 public final class Tuple5<A, B, C, D, E> implements Tuple, Serializable {
 
+  @Serial
   private static final long serialVersionUID = 4097431156050938896L;
 
   private static final Equal<Tuple5<?, ?, ?, ?, ?>> EQUAL = Equal.<Tuple5<?, ?, ?, ?, ?>>of()

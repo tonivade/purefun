@@ -21,7 +21,7 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
   private final MonadDefer<F> monad;
   private final Kind<F, Tuple2<T, Consumer1<? super T>>> resource;
   
-  protected Resource(MonadDefer<F> monad, Kind<F, Tuple2<T, Consumer1<? super T>>> resource) {
+  Resource(MonadDefer<F> monad, Kind<F, Tuple2<T, Consumer1<? super T>>> resource) {
     this.monad = checkNonNull(monad);
     this.resource = checkNonNull(resource);
   }

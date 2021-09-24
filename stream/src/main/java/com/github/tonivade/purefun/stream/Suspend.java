@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-final class Suspend<F extends Witness, T> implements SealedStream<F, T> {
+public final class Suspend<F extends Witness, T> implements Stream<F, T> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, Stream<F, T>> evalStream;

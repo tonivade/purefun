@@ -17,7 +17,7 @@ public final class PPrism<S, T, A, B> {
   private final Function1<S, Either<T, A>> getOrModify;
   private final Function1<B, T> reverseGet;
 
-  protected PPrism(Function1<S, Either<T, A>> getOrModify, Function1<B, T> reverseGet) {
+  PPrism(Function1<S, Either<T, A>> getOrModify, Function1<B, T> reverseGet) {
     this.getOrModify = checkNonNull(getOrModify);
     this.reverseGet = checkNonNull(reverseGet);
   }

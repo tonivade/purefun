@@ -14,6 +14,4 @@ import java.lang.annotation.Target;
 public @interface HigherKind {
 
   String value() default "";
-  
-  boolean sealed() default false;
 }

@@ -14,7 +14,7 @@ public final class Lens<S, A> {
 
   private final PLens<S, S, A, A> delegate;
 
-  protected Lens(PLens<S, S, A, A> delegate) {
+  Lens(PLens<S, S, A, A> delegate) {
     this.delegate = checkNonNull(delegate);
   }
 

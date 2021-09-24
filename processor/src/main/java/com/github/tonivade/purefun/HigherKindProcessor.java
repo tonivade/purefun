@@ -72,7 +72,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     String witnessName = className + "_";
     String typeOfName = annotation.value().isEmpty() ? className + "Of" : annotation.value();
     writeWitness(packageName, witnessName);
-    writeTypeOf(annotation.sealed(), packageName, className, typeOfName, witnessName, element.getTypeParameters());
+    writeTypeOf(packageName, className, typeOfName, witnessName, element.getTypeParameters());
   }
 
   private void writeWitness(String packageName, String witnessName) throws IOException {
@@ -82,16 +82,16 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
   }
 
-  private void writeTypeOf(boolean sealed, String packageName, String className, String typeOfName, String witnessName,
+  private void writeTypeOf(String packageName, String className, String typeOfName, String witnessName,
     List<? extends TypeParameterElement> types) throws IOException {
     JavaFileObject typeOfFile = createFile(packageName, typeOfName);
     try (PrintWriter writer = new PrintWriter(typeOfFile.openWriter())) {
       if (types.size() == 1) {
-        generate1(writer, sealed, packageName, className, typeOfName, witnessName, types);
+        generate1(writer, packageName, className, typeOfName, witnessName, types);
       } else if (types.size() == 2) {
-        generate2(writer, sealed, packageName, className, typeOfName, witnessName, types);
+        generate2(writer, packageName, className, typeOfName, witnessName, types);
       } else if (types.size() == 3) {
-        generate3(writer, sealed, packageName, className, typeOfName, witnessName, types);
+        generate3(writer, packageName, className, typeOfName, witnessName, types);
       } else {
         throw new UnsupportedOperationException("too many params: " + packageName + "." + className);
       }
@@ -114,7 +114,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(END);
   }
 
-  private void generate1(PrintWriter writer, boolean sealed, String packageName, String className,
+  private void generate1(PrintWriter writer, String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<" + kindName + ", A>";
     String higher1Wildcard = "Kind<" + kindName + ", ? extends A>";
@@ -131,21 +131,13 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(typeOfNameWithParams, higher1));
-    if (sealed) {
-      writer.println();
-      sealedMethod(writer, className, "<A>");
-    }
     writer.println();
     narrowK1(writer, className, aType, higher1Wildcard);
     toTypeOf1(writer, className, aType, higher1, typeOfName);
     writer.println(END);
-    if (sealed) {
-      writer.println();
-      sealedType(writer, className, typeParams, "<A>");
-    }
   }
 
-  private void generate2(PrintWriter writer, boolean sealed, String packageName, String className,
+  private void generate2(PrintWriter writer, String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<Kind<" + kindName + ", A>, B>";
     String higher1Wildcard = "Kind<Kind<" + kindName + ", A>, ? extends B>";
@@ -164,21 +156,13 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(typeOfNameWithParams, higher1));
-    if (sealed) {
-      writer.println();
-      sealedMethod(writer, className, "<A, B>");
-    }
     writer.println();
     narrowK2(writer, className, aType, bType, higher1Wildcard);
     toTypeOf2(writer, className, aType, bType, higher1, typeOfName);
     writer.println(END);
-    if (sealed) {
-      writer.println();
-      sealedType(writer, className, typeParams, "<A, B>");
-    }
   }
 
-  private void generate3(PrintWriter writer, boolean sealed, String packageName, String className,
+  private void generate3(PrintWriter writer, String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<Kind<Kind<" + kindName + ", A>, B>, C>";
     String higher1Wildcard = "Kind<Kind<Kind<" + kindName + ", A>, B>, ? extends C>";
@@ -198,18 +182,10 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(typeOfNameWithParams, higher1));
-    if (sealed) {
-      writer.println();
-      sealedMethod(writer, className, "<A, B, C>");
-    }
     writer.println();
     narrowK3(writer, className, aType, bType, cType, higher1Wildcard);
     toTypeOf3(writer, className, aType, bType, cType, higher1, typeOfName);
     writer.println(END);
-    if (sealed) {
-      writer.println();
-      sealedType(writer, className, typeParams, "<A, B, C>");
-    }
   }
 
   private JavaFileObject createFile(String packageName, String className) throws IOException {
@@ -222,18 +198,6 @@ public class HigherKindProcessor extends AbstractProcessor {
       return JAVAX_ANNOTATION_GENERATED;
     }
     return JAVAX_ANNOTATION_PROCESSING_GENERATED;
-  }
-
-  private static void sealedType(PrintWriter writer, String className, String typeParams, String params) {
-    writer.println("interface Sealed" + className + typeParams + " extends " + className + params + " {");
-    writer.println("  default Sealed" + className + params + " youShallNotPass() {");
-    writer.println("    throw new UnsupportedOperationException();");
-    writer.println("  }");
-    writer.println(END);
-  }
-
-  private static void sealedMethod(PrintWriter writer, String className, String types) {
-    writer.println("  Sealed" + className + types + " youShallNotPass();");
   }
 
   private static String privateConstructor(String witnessName) {

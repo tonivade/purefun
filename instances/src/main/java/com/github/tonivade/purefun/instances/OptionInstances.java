@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
@@ -36,14 +35,12 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 public interface OptionInstances {
 
   static <T> Eq<Kind<Option_, T>> eq(Eq<T> eqSome) {
-    return (a, b) -> Pattern2.<Option<T>, Option<T>, Boolean>build()
-      .when((x, y) -> x.isPresent() && y.isPresent())
-        .then((x, y) -> eqSome.eqv(x.get(), y.get()))
-      .when((x, y) -> x.isEmpty() && y.isEmpty())
-        .returns(true)
-      .otherwise()
-        .returns(false)
-      .apply(OptionOf.narrowK(a), OptionOf.narrowK(b));
+    return (a, b) -> {
+      if (a instanceof Option.Some<T> someA && b instanceof Option.Some<T> someB) {
+        return eqSome.eqv(someA.getOrElseThrow(), someB.getOrElseThrow());
+      }
+      return a instanceof Option.None<T> && b instanceof Option.None<T>;
+    };
   }
 
   static Functor<Option_> functor() {

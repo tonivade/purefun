@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -24,6 +25,7 @@ import com.github.tonivade.purefun.Bindable;
 @HigherKind
 public final class Id<T> implements IdOf<T>, Bindable<Id_, T>, Serializable {
 
+  @Serial
   private static final long serialVersionUID = -6295106408421985189L;
 
   private static final Equal<Id<?>> EQUAL = Equal.<Id<?>>of().comparing(Id::get);

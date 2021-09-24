@@ -59,6 +59,6 @@ public interface PartialFunction1<A, R> {
   }
 
   static <K, V> PartialFunction1<K, V> from(ImmutableMap<? super K, ? extends V> map) {
-    return of(map::containsKey, key -> map.get(key).get());
+    return of(map::containsKey, key -> map.get(key).getOrElseThrow());
   }
 }

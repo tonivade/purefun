@@ -44,15 +44,15 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
-@HigherKind(sealed = true)
-public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<PureIO_, R>, E>, A> {
+@HigherKind
+public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<PureIO_, R>, E>, A> {
 
   default Either<E, A> provide(R env) {
     return runAsync(env).getOrElseThrow();
   }
 
   default Future<Either<E, A>> runAsync(R env) {
-    return Future.from(ZIOModule.runAsync(env, this, ZIOConnection.UNCANCELLABLE));
+    return Future.from(runAsync(env, this, PureIOConnection.UNCANCELLABLE));
   }
 
   default Future<Either<E, A>> runAsync(R env, Executor executor) {
@@ -92,7 +92,7 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   default <F, B> PureIO<R, F, B> foldM(
       Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> left, 
       Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> right) {
-    return new ZIOModule.FlatMapped<>(this, left.andThen(PureIOOf::narrowK), right.andThen(PureIOOf::narrowK));
+    return new FlatMapped<>(this, left.andThen(PureIOOf::narrowK), right.andThen(PureIOOf::narrowK));
   }
 
   @Override
@@ -219,8 +219,8 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   
   default PureIO<R, E, Fiber<Kind<Kind<PureIO_, R>, E>, A>> fork() {
     return async((env, callback) -> {
-      ZIOConnection connection = ZIOConnection.cancellable();
-      Promise<Either<E, A>> promise = ZIOModule.runAsync(env, this, connection);
+      PureIOConnection connection = PureIOConnection.cancellable();
+      Promise<Either<E, A>> promise = runAsync(env, this, connection);
       
       PureIO<R, E, A> join = fromPromise(promise);
       PureIO<R, E, Unit> cancel = run(connection::cancel);
@@ -271,7 +271,7 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   }
 
   static <R, E, A> PureIO<R, E, A> accessM(Function1<? super R, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> map) {
-    return new ZIOModule.AccessM<>(map.andThen(PureIOOf::narrowK));
+    return new AccessM<>(map.andThen(PureIOOf::narrowK));
   }
 
   static <R, E, A> PureIO<R, E, A> access(Function1<? super R, ? extends A> map) {
@@ -295,11 +295,11 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
       Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable((env, callback) -> {
       
-      ZIOConnection connection1 = ZIOConnection.cancellable();
-      ZIOConnection connection2 = ZIOConnection.cancellable();
+      PureIOConnection connection1 = PureIOConnection.cancellable();
+      PureIOConnection connection2 = PureIOConnection.cancellable();
       
-      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(za), connection1);
-      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(zb), connection2);
+      Promise<Either<E, A>> promiseA = runAsync(env, PureIO.<R, E>forked(executor).andThen(za), connection1);
+      Promise<Either<E, B>> promiseB = runAsync(env, PureIO.<R, E>forked(executor).andThen(zb), connection2);
       
       promiseA.onComplete(a -> promiseB.onComplete(
         b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.narrowK(Either.map2(e1, e2, mapper))))));
@@ -328,11 +328,11 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
       racePair(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return cancellable((env, callback) -> {
       
-      ZIOConnection connection1 = ZIOConnection.cancellable();
-      ZIOConnection connection2 = ZIOConnection.cancellable();
+      PureIOConnection connection1 = PureIOConnection.cancellable();
+      PureIOConnection connection2 = PureIOConnection.cancellable();
       
-      Promise<Either<E, A>> promiseA = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(fa), connection1);
-      Promise<Either<E, B>> promiseB = ZIOModule.runAsync(env, PureIO.<R, E>forked(executor).andThen(fb), connection2);
+      Promise<Either<E, A>> promiseA = runAsync(env, PureIO.<R, E>forked(executor).andThen(fa), connection1);
+      Promise<Either<E, B>> promiseB = runAsync(env, PureIO.<R, E>forked(executor).andThen(fb), connection2);
       
       promiseA.onComplete(result -> {
         PureIO<R, E, B> fromPromiseB = PureIO.fromPromise(promiseB);
@@ -403,7 +403,7 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   }
 
   static <R, E, A> PureIO<R, E, A> fromEither(Producer<Either<E, ? extends A>> task) {
-    return new ZIOModule.Delay<>(task);
+    return new Delay<>(task);
   }
   
   static <R, E, A> PureIO<R, E, A> fromPromise(Promise<? extends Either<E, ? extends A>> promise) {
@@ -412,7 +412,7 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   }
 
   static <R> PureIO<R, Throwable, Unit> exec(CheckedRunnable task) {
-    return new ZIOModule.Attempt<>(task.asProducer());
+    return new Attempt<>(task.asProducer());
   }
 
   static <R, E> PureIO<R, E, Unit> run(Runnable task) {
@@ -420,15 +420,15 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   }
 
   static <R, E, A> PureIO<R, E, A> pure(A value) {
-    return new ZIOModule.Pure<>(value);
+    return new Pure<>(value);
   }
 
   static <R, E, A> PureIO<R, E, A> defer(Producer<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> lazy) {
-    return new ZIOModule.Suspend<>(lazy.andThen(PureIOOf::narrowK));
+    return new Suspend<>(lazy.andThen(PureIOOf::narrowK));
   }
 
   static <R, A> PureIO<R, Throwable, A> task(Producer<? extends A> task) {
-    return new ZIOModule.Attempt<>(task);
+    return new Attempt<>(task);
   }
 
   static <R, E, A> PureIO<R, E, A> later(Producer<? extends A> task) {
@@ -444,19 +444,19 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   }
   
   static <R, E, A> PureIO<R, E, A> cancellable(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> consumer) {
-    return new ZIOModule.Async<>(consumer);
+    return new Async<>(consumer);
   }
 
   static <R, E, A> PureIO<R, E, A> raiseError(E error) {
-    return new ZIOModule.Failure<>(error);
+    return new Failure<>(error);
   }
 
   static <R, E, A> PureIO<R, E, A> throwError(Throwable error) {
-    return new ZIOModule.Throw<>(error);
+    return new Throw<>(error);
   }
 
   static <R, A> PureIO<R, Throwable, A> redeem(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends A> value) {
-    return new ZIOModule.Recover<>(value.fix(PureIOOf::narrowK), PartialFunction1.of(always(), PureIO::raiseError));
+    return new Recover<>(value.fix(PureIOOf::narrowK), PartialFunction1.of(always(), PureIO::raiseError));
   }
 
   static <R, E> PureIO<R, E, Unit> sleep(Duration delay) {
@@ -472,7 +472,7 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
   }
 
   static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<Kind<PureIO_, R>, E>, A>> sequence) {
-    return sequence.foldLeft(pure(ImmutableList.empty()), 
+    return sequence.foldLeft(PureIO.<R, E, Sequence<A>>pure(ImmutableList.empty()),
         (Kind<Kind<Kind<PureIO_, R>, E>, Sequence<A>> xs, Kind<Kind<Kind<PureIO_, R>, E>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
@@ -493,9 +493,9 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
     // TODO: cancel
     return cancellable((env, callback) -> {
       
-      ZIOConnection cancellable = ZIOConnection.cancellable();
+      PureIOConnection cancellable = PureIOConnection.cancellable();
       
-      Promise<Either<E, A>> promise = ZIOModule.runAsync(env, acquire.fix(PureIOOf::narrowK), cancellable);
+      Promise<Either<E, A>> promise = runAsync(env, acquire.fix(PureIOOf::narrowK), cancellable);
       
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
@@ -504,13 +504,13 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
           return Unit.unit();
         }, resource -> {
           Function1<? super A, PureIO<R, E, B>> andThen = use.andThen(PureIOOf::narrowK);
-          Promise<Either<E, B>> runAsync = ZIOModule.runAsync(env, andThen.apply(resource), cancellable);
+          Promise<Either<E, B>> runAsync = runAsync(env, andThen.apply(resource), cancellable);
           
           runAsync
             .onFailure(e -> callback.accept(Try.failure(e)))
             .onSuccess(result -> {
 
-              Promise<Either<E, Unit>> run = ZIOModule.runAsync(env, release.andThen(PureIOOf::narrowK).apply(resource), cancellable);
+              Promise<Either<E, Unit>> run = runAsync(env, release.andThen(PureIOOf::narrowK).apply(resource), cancellable);
               
               run.onComplete(ignore -> result.fold(error -> {
                 callback.accept(Try.success(Either.left(error)));
@@ -529,7 +529,279 @@ public interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<Pur
 
   @SuppressWarnings("unchecked")
   static <R, E> PureIO<R, E, Unit> unit() {
-    return (PureIO<R, E, Unit>) ZIOModule.UNIT;
+    return (PureIO<R, E, Unit>) UNIT;
+  }
+
+  PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
+
+  private static <R, E, A> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, PureIOConnection connection) {
+    return runAsync(env, current, connection, new CallStack<>(), Promise.make());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+    while (true) {
+      try {
+        current = unwrap(env, current, stack, identity());
+
+        if (current instanceof Pure<R, E, A> pure) {
+          return promise.succeeded(Either.right(pure.value));
+        }
+
+        if (current instanceof Failure<R, E, A> failure) {
+          return promise.succeeded(Either.left(failure.error));
+        }
+
+        if (current instanceof Async<R, E, A> async) {
+          return executeAsync(env, async, connection, promise);
+        }
+
+        if (current instanceof FlatMapped) {
+          stack.push();
+
+          FlatMapped<R, F, B, E, A> flatMapped = (FlatMapped<R, F, B, E, A>) current;
+          PureIO<R, F, B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
+
+          if (source instanceof Async<R, F, B> async) {
+            Promise<Either<F, B>> nextPromise = Promise.make();
+
+            nextPromise.then(either -> {
+              Function1<? super B, PureIO<R, E, A>> andThen = flatMapped.next.andThen(PureIOOf::narrowK);
+              Function1<? super F, PureIO<R, E, A>> andThenError = flatMapped.nextError.andThen(PureIOOf::narrowK);
+              PureIO<R, E, A> fold = either.fold(andThenError, andThen);
+              runAsync(env, fold, connection, stack, promise);
+            });
+
+            executeAsync(env, async, connection, nextPromise);
+
+            return promise;
+          }
+
+          if (source instanceof Pure<R, F, B> pure) {
+            Function1<? super B, PureIO<R, E, A>> andThen = flatMapped.next.andThen(PureIOOf::narrowK);
+            current = andThen.apply(pure.value);
+          } else if (source instanceof Failure<R, F, B> failure) {
+            Function1<? super F, PureIO<R, E, A>> andThen = flatMapped.nextError.andThen(PureIOOf::narrowK);
+            current = andThen.apply(failure.error);
+          } else if (source instanceof FlatMapped) {
+            FlatMapped<R, G, C, F, B> flatMapped2 = (FlatMapped<R, G, C, F, B>) source;
+
+            current = flatMapped2.current.foldM(
+                e -> flatMapped2.nextError.apply(e).foldM(flatMapped.nextError, flatMapped.next),
+                a -> flatMapped2.next.apply(a).foldM(flatMapped.nextError, flatMapped.next));
+          }
+        } else {
+          stack.pop();
+        }
+      } catch (Throwable error) {
+        Option<PureIO<R, E, A>> result = stack.tryHandle(error);
+
+        if (result.isPresent()) {
+          current = result.getOrElseThrow();
+        } else {
+          return promise.failed(error);
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <R, E, F, A, B> PureIO<R, E, A> unwrap(R env, PureIO<R, E, A> current, CallStack<R, F, B> stack, Function1<PureIO<R, E, ? extends A>, PureIO<R, F, ? extends B>> next) {
+    while (true) {
+      if (current instanceof Failure) {
+        return current;
+      } else if (current instanceof Pure) {
+        return current;
+      } else if (current instanceof FlatMapped) {
+        return current;
+      } else if (current instanceof Async) {
+        return current;
+      } else if (current instanceof Throw<R, E, A> throwError) {
+        return stack.sneakyThrow(throwError.error);
+      } else if (current instanceof Recover<R, E, A> recover) {
+        stack.add(recover.mapper.andThen(next));
+        current = (PureIO<R, E, A>) recover.current;
+      } else if (current instanceof AccessM<R, E, A> accessM) {
+        Function1<? super R, PureIO<R, E, A>> andThen = accessM.function.andThen(PureIOOf::narrowK);
+        current = andThen.apply(env);
+      } else if (current instanceof Suspend<R, E, A> suspend) {
+        Producer<PureIO<R, E, A>> andThen = suspend.lazy.andThen(PureIOOf::narrowK);
+        current = andThen.get();
+      } else if (current instanceof Delay<R, E, A> delay) {
+        Either<E, ? extends A> value = delay.task.get();
+        return value.fold(PureIO::raiseError, PureIO::pure);
+      } else if (current instanceof Attempt) {
+        Attempt<R, A> attempt = (Attempt<R, A>) current;
+        Either<E, ? extends A> either = (Either<E, ? extends A>) attempt.current.liftEither().get();
+        return either.fold(PureIO::raiseError, PureIO::pure);
+      } else {
+        throw new IllegalStateException("not supported: " + current);
+      }
+    }
+  }
+
+  private static <R, E, A> Promise<Either<E, A>> executeAsync(R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
+    if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
+      return promise.cancel();
+    }
+
+    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
+
+    promise.thenRun(() -> connection.setCancelToken(UNIT));
+
+    if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancellingNow()) {
+      connection.cancelNow();
+    }
+
+    return promise;
+  }
+
+  final class Pure<R, E, A> implements PureIO<R, E, A> {
+
+    private final A value;
+
+    private Pure(A value) {
+      this.value = checkNonNull(value);
+    }
+
+    @Override
+    public String toString() {
+      return "Pure(" + value + ")";
+    }
+  }
+
+  final class Failure<R, E, A> implements PureIO<R, E, A> {
+
+    private final E error;
+
+    private Failure(E error) {
+      this.error = checkNonNull(error);
+    }
+
+    @Override
+    public String toString() {
+      return "Failure(" + error + ")";
+    }
+  }
+
+  final class Throw<R, E, A> implements PureIO<R, E, A> {
+
+    private final Throwable error;
+
+    private Throw(Throwable error) {
+      this.error = checkNonNull(error);
+    }
+
+    @Override
+    public String toString() {
+      return "Throw(" + error + ")";
+    }
+  }
+
+  final class FlatMapped<R, E, A, F, B> implements PureIO<R, F, B> {
+
+    private final PureIO<R, E, A> current;
+    private final Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError;
+    private final Function1<? super A, ? extends PureIO<R, F, ? extends B>> next;
+
+    private FlatMapped(PureIO<R, E, A> current,
+                         Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError,
+                         Function1<? super A, ? extends PureIO<R, F, ? extends B>> next) {
+      this.current = checkNonNull(current);
+      this.nextError = checkNonNull(nextError);
+      this.next = checkNonNull(next);
+    }
+
+    @Override
+    public String toString() {
+      return "FlatMapped(" + current + ", ?, ?)";
+    }
+  }
+
+  final class Delay<R, E, A> implements PureIO<R, E, A> {
+
+    private final Producer<Either<E, ? extends A>> task;
+
+    private Delay(Producer<Either<E, ? extends A>> task) {
+      this.task = checkNonNull(task);
+    }
+
+    @Override
+    public String toString() {
+      return "Delay(?)";
+    }
+  }
+
+  final class Suspend<R, E, A> implements PureIO<R, E, A> {
+
+    private final Producer<PureIO<R, E, ? extends A>> lazy;
+
+    private Suspend(Producer<PureIO<R, E, ? extends A>> lazy) {
+      this.lazy = checkNonNull(lazy);
+    }
+
+    @Override
+    public String toString() {
+      return "Suspend(?)";
+    }
+  }
+
+  final class Async<R, E, A> implements PureIO<R, E, A> {
+
+    private final Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> callback;
+
+    private Async(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> callback) {
+      this.callback = checkNonNull(callback);
+    }
+
+    @Override
+    public String toString() {
+      return "Async(?)";
+    }
+  }
+
+  final class Attempt<R, A> implements PureIO<R, Throwable, A> {
+
+    private final Producer<? extends A> current;
+
+    private Attempt(Producer<? extends A> current) {
+      this.current = checkNonNull(current);
+    }
+
+    @Override
+    public String toString() {
+      return "Attempt(" + current + ")";
+    }
+  }
+
+  final class Recover<R, E, A> implements PureIO<R, E, A> {
+
+    private final PureIO<R, ?, A> current;
+    private final PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper;
+
+    private Recover(PureIO<R, ?, A> current, PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper) {
+      this.current = checkNonNull(current);
+      this.mapper = checkNonNull(mapper);
+    }
+
+    @Override
+    public String toString() {
+      return "Recover(" + current + ", ?)";
+    }
+  }
+
+  final class AccessM<R, E, A> implements PureIO<R, E, A> {
+
+    private final Function1<? super R, ? extends PureIO<R, E, ? extends A>> function;
+
+    private AccessM(Function1<? super R, ? extends PureIO<R, E, ? extends A>> function) {
+      this.function = checkNonNull(function);
+    }
+
+    @Override
+    public String toString() {
+      return "AccessM(?)";
+    }
   }
 }
   
@@ -540,13 +812,13 @@ final class Repeat<R, S, E, A, B, C> {
   private final Function2<E, Option<B>, PureIO<R, E, C>> orElse;
 
   @SuppressWarnings("unchecked")
-  protected Repeat(PureIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, PureIO<R, E, C>> orElse) {
+  Repeat(PureIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, PureIO<R, E, C>> orElse) {
     this.current = checkNonNull(current);
     this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
     this.orElse = checkNonNull(orElse);
   }
   
-  protected PureIO<R, E, Either<C, B>> run() {
+  PureIO<R, E, Either<C, B>> run() {
     return current.foldM(error -> {
       PureIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
       return apply.map(Either::<C, B>left);
@@ -566,13 +838,13 @@ final class Repeat<R, S, E, A, B, C> {
 }
 
 final class Retry<R, E, A, B, S> {
-  
+
   private final PureIO<R, E, A> current;
   private final ScheduleImpl<R, S, E, S> schedule;
   private final Function2<E, S, PureIO<R, E, B>> orElse;
 
   @SuppressWarnings("unchecked")
-  protected Retry(PureIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, PureIO<R, E, B>> orElse) {
+  Retry(PureIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, PureIO<R, E, B>> orElse) {
     this.current = checkNonNull(current);
     this.schedule = (ScheduleImpl<R, S, E, S>) checkNonNull(schedule);
     this.orElse = checkNonNull(orElse);
@@ -591,293 +863,9 @@ final class Retry<R, E, A, B, S> {
   }
 }
 
-interface ZIOModule {
-
-  PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
-
-  static <R, E, A> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, ZIOConnection connection) {
-    return runAsync(env, current, connection, new CallStack<>(), Promise.make());
-  }
-
-  @SuppressWarnings("unchecked")
-  static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, ZIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
-    while (true) {
-      try {
-        current = unwrap(env, current, stack, identity());
-        
-        if (current instanceof Pure) {
-          Pure<R, E, A> pure = (Pure<R, E, A>) current;
-          return promise.succeeded(Either.right(pure.value));
-        }
-        
-        if (current instanceof Failure) {
-          Failure<R, E, A> failure = (Failure<R, E, A>) current;
-          return promise.succeeded(Either.left(failure.error));
-        }
-        
-        if (current instanceof Async) {
-          return executeAsync(env, (Async<R, E, A>) current, connection, promise);
-        }
-        
-        if (current instanceof FlatMapped) {
-          stack.push();
-          
-          FlatMapped<R, F, B, E, A> flatMapped = (FlatMapped<R, F, B, E, A>) current;
-          PureIO<R, F, ? extends B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
-          
-          if (source instanceof Async) {
-            Promise<Either<F, B>> nextPromise = Promise.make();
-            
-            nextPromise.then(either -> {
-              Function1<? super B, PureIO<R, E, A>> andThen = flatMapped.next.andThen(PureIOOf::narrowK);
-              Function1<? super F, PureIO<R, E, A>> andThenError = flatMapped.nextError.andThen(PureIOOf::narrowK);
-              PureIO<R, E, A> fold = either.fold(andThenError, andThen);
-              runAsync(env, fold, connection, stack, promise);
-            });
-            
-            executeAsync(env, (Async<R, F, B>) source, connection, nextPromise);
-            
-            return promise;
-          }
-
-          if (source instanceof Pure) {
-            Pure<R, F, B> pure = (Pure<R, F, B>) source;
-            Function1<? super B, PureIO<R, E, A>> andThen = flatMapped.next.andThen(PureIOOf::narrowK);
-            current = andThen.apply(pure.value);
-          } else if (source instanceof Failure) {
-            Failure<R, F, B> failure = (Failure<R, F, B>) source;
-            Function1<? super F, PureIO<R, E, A>> andThen = flatMapped.nextError.andThen(PureIOOf::narrowK);
-            current = andThen.apply(failure.error);
-          } else if (source instanceof FlatMapped) {
-            FlatMapped<R, G, C, F, B> flatMapped2 = (FlatMapped<R, G, C, F, B>) source;
-            
-            current = flatMapped2.current.foldM(
-              e -> flatMapped2.nextError.apply(e).foldM(flatMapped.nextError, flatMapped.next), 
-              a -> flatMapped2.next.apply(a).foldM(flatMapped.nextError, flatMapped.next));
-          }
-        } else {
-          stack.pop();
-        }
-      } catch (Throwable error) {
-        Option<PureIO<R, E, A>> result = stack.tryHandle(error);
-        
-        if (result.isPresent()) {
-          current = result.get();
-        } else {
-          return promise.failed(error);
-        }
-      }
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  static <R, E, F, A, B> PureIO<R, E, A> unwrap(R env, PureIO<R, E, A> current, CallStack<R, F, B> stack, Function1<PureIO<R, E, ? extends A>, PureIO<R, F, ? extends B>> next) {
-    while (true) {
-      if (current instanceof Failure) {
-        return current;
-      } else if (current instanceof Pure) {
-        return current;
-      } else if (current instanceof FlatMapped) {
-        return current;
-      } else if (current instanceof Async) {
-        return current;
-      } else if (current instanceof Throw) {
-        Throw<R, E, A> throwError = (Throw<R, E, A>) current;
-        return stack.sneakyThrow(throwError.error);
-      } else if (current instanceof Recover) {
-        Recover<R, E, A> recover = (Recover<R, E, A>) current;
-        stack.add((PartialFunction1<? super Throwable, PureIO<R, F, ? extends B>>) recover.mapper.andThen(next));
-        current = (PureIO<R, E, A>) recover.current;
-      } else if (current instanceof AccessM) {
-        AccessM<R, E, A> accessM = (AccessM<R, E, A>) current;
-        Function1<? super R, PureIO<R, E, A>> andThen = accessM.function.andThen(PureIOOf::narrowK);
-        current = andThen.apply(env);
-      } else if (current instanceof Suspend) {
-        Suspend<R, E, A> suspend = (Suspend<R, E, A>) current;
-        Producer<PureIO<R, E, A>> andThen = suspend.lazy.andThen(PureIOOf::narrowK);
-        current = andThen.get();
-      } else if (current instanceof Delay) {
-        Delay<R, E, A> delay = (Delay<R, E, A>) current;
-        Either<E, ? extends A> value = delay.task.get();
-        return value.fold(PureIO::raiseError, PureIO::pure);
-      } else if (current instanceof Attempt) {
-        Attempt<R, A> attempt = (Attempt<R, A>) current;
-        Either<E, ? extends A> either = (Either<E, ? extends A>) attempt.current.liftEither().get();
-        return either.fold(PureIO::raiseError, PureIO::pure);
-      } else {
-        throw new IllegalStateException("not supported: " + current);
-      }
-    }
-  }
-
-  static <R, E, A> Promise<Either<E, A>> executeAsync(R env, Async<R, E, A> current, ZIOConnection connection, Promise<Either<E, A>> promise) {
-    if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
-      return promise.cancel();
-    }
-    
-    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
-    
-    promise.thenRun(() -> connection.setCancelToken(UNIT));
-    
-    if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancellingNow()) {
-      connection.cancelNow();
-    }
-
-    return promise;
-  }
-
-  final class Pure<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final A value;
-
-    protected Pure(A value) {
-      this.value = checkNonNull(value);
-    }
-
-    @Override
-    public String toString() {
-      return "Pure(" + value + ")";
-    }
-  }
-
-  final class Failure<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final E error;
-
-    protected Failure(E error) {
-      this.error = checkNonNull(error);
-    }
-
-    @Override
-    public String toString() {
-      return "Failure(" + error + ")";
-    }
-  }
-
-  final class Throw<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final Throwable error;
-
-    protected Throw(Throwable error) {
-      this.error = checkNonNull(error);
-    }
-
-    @Override
-    public String toString() {
-      return "Throw(" + error + ")";
-    }
-  }
-
-  final class FlatMapped<R, E, A, F, B> implements SealedPureIO<R, F, B> {
-
-    private final PureIO<R, E, A> current;
-    private final Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError;
-    private final Function1<? super A, ? extends PureIO<R, F, ? extends B>> next;
-
-    protected FlatMapped(PureIO<R, E, A> current,
-                         Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError,
-                         Function1<? super A, ? extends PureIO<R, F, ? extends B>> next) {
-      this.current = checkNonNull(current);
-      this.nextError = checkNonNull(nextError);
-      this.next = checkNonNull(next);
-    }
-
-    @Override
-    public String toString() {
-      return "FlatMapped(" + current + ", ?, ?)";
-    }
-  }
-
-  final class Delay<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final Producer<Either<E, ? extends A>> task;
-
-    protected Delay(Producer<Either<E, ? extends A>> task) {
-      this.task = checkNonNull(task);
-    }
-
-    @Override
-    public String toString() {
-      return "Delay(?)";
-    }
-  }
-
-  final class Suspend<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final Producer<PureIO<R, E, ? extends A>> lazy;
-
-    protected Suspend(Producer<PureIO<R, E, ? extends A>> lazy) {
-      this.lazy = checkNonNull(lazy);
-    }
-
-    @Override
-    public String toString() {
-      return "Suspend(?)";
-    }
-  }
-
-  final class Async<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> callback;
-
-    protected Async(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> callback) {
-      this.callback = checkNonNull(callback);
-    }
-
-    @Override
-    public String toString() {
-      return "Async(?)";
-    }
-  }
-
-  final class Attempt<R, A> implements SealedPureIO<R, Throwable, A> {
-
-    private final Producer<? extends A> current;
-
-    protected Attempt(Producer<? extends A> current) {
-      this.current = checkNonNull(current);
-    }
-
-    @Override
-    public String toString() {
-      return "Attempt(" + current + ")";
-    }
-  }
-
-  final class Recover<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final PureIO<R, ?, A> current;
-    private final PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper;
-
-    protected Recover(PureIO<R, ?, A> current, PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper) {
-      this.current = checkNonNull(current);
-      this.mapper = checkNonNull(mapper);
-    }
-
-    @Override
-    public String toString() {
-      return "Recover(" + current + ", ?)";
-    }
-  }
-
-  final class AccessM<R, E, A> implements SealedPureIO<R, E, A> {
-
-    private final Function1<? super R, ? extends PureIO<R, E, ? extends A>> function;
-
-    protected AccessM(Function1<? super R, ? extends PureIO<R, E, ? extends A>> function) {
-      this.function = checkNonNull(function);
-    }
-
-    @Override
-    public String toString() {
-      return "AccessM(?)";
-    }
-  }
-}
-
-interface ZIOConnection {
+interface PureIOConnection {
   
-  ZIOConnection UNCANCELLABLE = new ZIOConnection() {
+  PureIOConnection UNCANCELLABLE = new PureIOConnection() {
     @Override
     public boolean isCancellable() { return false; }
 
@@ -906,8 +894,8 @@ interface ZIOConnection {
   
   StateIO updateState(Operator1<StateIO> update);
   
-  static ZIOConnection cancellable() {
-    return new ZIOConnection() {
+  static PureIOConnection cancellable() {
+    return new PureIOConnection() {
       
       private PureIO<?, ?, Unit> cancelToken;
       private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
@@ -1066,10 +1054,9 @@ final class StackItem<R, E, A> {
 
   public Option<PureIO<R, E, A>> tryHandle(Throwable error) {
     while (!recover.isEmpty()) {
-      PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError = recover.removeFirst();
+      var mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        PartialFunction1<? super Throwable, PureIO<R, E, A>> andThen = mapError.andThen(PureIOOf::narrowK);
-        return Option.some(andThen.apply(error));
+        return Option.some(mapError.andThen(PureIOOf::<R, E, A>narrowK).apply(error));
       }
     }
     return Option.none();

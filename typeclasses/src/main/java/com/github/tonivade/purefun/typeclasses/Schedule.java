@@ -23,7 +23,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind(sealed = true)
+@HigherKind
 public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
   
   static <F extends Witness> ScheduleOf<F> of(Monad<F> monad, Timer<F> timer) {
@@ -230,7 +230,7 @@ public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
   }
 }
 
-abstract class ScheduleImpl<F extends Witness, S, A, B> implements SealedSchedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
+abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
   
   private final Monad<F> monad;
   private final Timer<F> timer;

@@ -15,8 +15,8 @@ import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind(sealed = true)
-public interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T> {
+@HigherKind
+public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T> {
 
   Trampoline<T> apply();
 
@@ -25,13 +25,13 @@ public interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T>
   T get();
 
   default <R> Trampoline<R> map(Function1<? super T, ? extends R> map) {
-    return TrampolineModule.resume(this)
+    return resume(this)
         .fold(next -> more(() -> next.map(map)),
               value -> done(map.apply(value)));
   }
 
   default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline_, ? extends R>> map) {
-    return TrampolineModule.resume(this)
+    return resume(this)
         .fold(next -> more(() -> next.flatMap(map)), map.andThen(TrampolineOf::narrowK));
   }
 
@@ -40,7 +40,7 @@ public interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T>
   }
 
   default T run() {
-    return TrampolineModule.iterate(this).get();
+    return iterate(this).get();
   }
 
   static <T> Trampoline<T> done(T value) {
@@ -51,63 +51,56 @@ public interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T>
     return new More<>(next);
   }
 
-  final class Done<T> implements SealedTrampoline<T> {
+  record Done<T>(T value) implements Trampoline<T> {
 
-    private final T value;
+      public Done {
+        checkNonNull(value);
+      }
 
-    private Done(T value) {
-      this.value = checkNonNull(value);
-    }
+      @Override
+      public boolean complete() {
+        return true;
+      }
 
-    @Override
-    public boolean complete() {
-      return true;
-    }
+      @Override
+      public T get() {
+        return value;
+      }
 
-    @Override
-    public T get() {
-      return value;
-    }
-
-    @Override
-    public Trampoline<T> apply() {
-      throw new UnsupportedOperationException();
-    }
+      @Override
+      public Trampoline<T> apply() {
+        throw new UnsupportedOperationException();
+      }
   }
 
-  final class More<T> implements SealedTrampoline<T> {
+  record More<T>(Producer<Trampoline<T>> next) implements Trampoline<T> {
 
-    private final Producer<Trampoline<T>> next;
+      public More {
+        checkNonNull(next);
+      }
 
-    private More(Producer<Trampoline<T>> next) {
-      this.next = checkNonNull(next);
-    }
+      @Override
+      public boolean complete() {
+        return false;
+      }
 
-    @Override
-    public boolean complete() {
-      return false;
-    }
+      @Override
+      public T get() {
+        throw new UnsupportedOperationException();
+      }
 
-    @Override
-    public T get() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Trampoline<T> apply() {
-      return next.get();
-    }
+      @Override
+      public Trampoline<T> apply() {
+        return next.get();
+      }
   }
-}
 
-interface TrampolineModule {
-
-  static <T> Trampoline<T> iterate(Trampoline<T> trampoline) {
+  private static <T> Trampoline<T> iterate(Trampoline<T> trampoline) {
     return Stream.iterate(trampoline, Trampoline::apply)
-        .filter(Trampoline::complete).findFirst().orElseThrow(IllegalStateException::new);
+            .filter(Trampoline::complete).findFirst().orElseThrow(IllegalStateException::new);
   }
 
-  static <T> Either<Trampoline<T>, T> resume(Trampoline<T> trampoline) {
+  private static <T> Either<Trampoline<T>, T> resume(Trampoline<T> trampoline) {
     return trampoline.fold(Either::left, Either::right);
   }
 }

@@ -147,7 +147,7 @@ public class UIOTest {
 
     Try<String> repeat = task(computation).repeat().safeRunSync();
 
-    assertEquals("hola", repeat.get());
+    assertEquals("hola", repeat.getOrElseThrow());
     verify(computation, times(2)).get();
   }
 

@@ -8,7 +8,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Recoverable;
 
-interface Result<T> {
+sealed interface Result<T> {
 
   @SuppressWarnings("unchecked")
   static <T> T trampoline(Result<T> apply) {

@@ -13,7 +13,7 @@ public final class Iso<S, A> {
 
   private final PIso<S, S, A, A> delegate;
 
-  protected Iso(PIso<S, S, A, A> delegate) {
+  Iso(PIso<S, S, A, A> delegate) {
     this.delegate = checkNonNull(delegate);
   }
 

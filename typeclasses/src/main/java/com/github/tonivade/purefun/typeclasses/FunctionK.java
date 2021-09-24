@@ -13,7 +13,7 @@ public interface FunctionK<F extends Witness, G extends Witness> {
 
   default <B extends Witness> FunctionK<B, G> compose(FunctionK<B, F> before) {
     final FunctionK<F, G> self = this;
-    return new FunctionK<B, G>() {
+    return new FunctionK<>() {
       @Override
       public <T> Kind<G, T> apply(Kind<B, ? extends T> from) {
         return self.apply(before.apply(from));
@@ -23,7 +23,7 @@ public interface FunctionK<F extends Witness, G extends Witness> {
 
   default <A extends Witness> FunctionK<F, A> andThen(FunctionK<G, A> after) {
     final FunctionK<F, G> self = this;
-    return new FunctionK<F, A>() {
+    return new FunctionK<>() {
       @Override
       public <T> Kind<A, T> apply(Kind<F, ? extends T> from) {
         return after.apply(self.apply(from));

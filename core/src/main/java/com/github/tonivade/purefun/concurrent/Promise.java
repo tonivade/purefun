@@ -24,8 +24,8 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 
-@HigherKind(sealed = true)
-public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
+@HigherKind
+public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -102,7 +102,7 @@ public interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
   }
 }
 
-final class PromiseImpl<T> implements SealedPromise<T> {
+final class PromiseImpl<T> implements Promise<T> {
 
   private final State state = new State();
   private final Queue<Consumer1<? super Try<? extends T>>> consumers = new LinkedList<>();
@@ -161,7 +161,7 @@ final class PromiseImpl<T> implements SealedPromise<T> {
       }
     }
     Option<Try<T>> option = Option.of(reference::get).map(TryOf::narrowK);
-    return option.getOrElse(Try.<T>failure(new TimeoutException()));
+    return option.getOrElse(Try.failure(new TimeoutException()));
   }
 
   @Override

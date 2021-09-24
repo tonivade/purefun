@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
 
-interface MetaCont<A, B> {
+sealed interface MetaCont<A, B> {
 
   Result<B> apply(A value);
 
@@ -95,7 +95,7 @@ interface MetaCont<A, B> {
     public Result<C> apply(A value) {
       Option<Function1<?, Control<?>>> head = frames.head();
       ImmutableList<Function1<?, Control<?>>> rest = frames.tail();
-      Function1<A, Control<B>> result = (Function1) head.get();
+      Function1<A, Control<B>> result = (Function1) head.getOrElseThrow();
       if (rest.isEmpty()) {
         return Result.computation(result.apply(value), tail);
       }

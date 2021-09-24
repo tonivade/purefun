@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind(sealed = true)
+@HigherKind
 public interface OptionT<F extends Witness, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT_, F>, T> {
 
   Monad<F> monad();
@@ -43,8 +43,8 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T>, Bindable
     return OptionT.of(other, functionK.apply(value()));
   }
 
-  default Kind<F, T> get() {
-    return monad().map(value(), Option::get);
+  default Kind<F, T> getOrElseThrow() {
+    return monad().map(value(), Option::getOrElseThrow);
   }
 
   default Kind<F, Boolean> isEmpty() {
@@ -74,7 +74,7 @@ public interface OptionT<F extends Witness, T> extends OptionTOf<F, T>, Bindable
   static <F extends Witness, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
     checkNonNull(monad);
     checkNonNull(value);
-    return new SealedOptionT<F, T>() {
+    return new OptionT<>() {
 
       @Override
       public Monad<F> monad() { return monad; }

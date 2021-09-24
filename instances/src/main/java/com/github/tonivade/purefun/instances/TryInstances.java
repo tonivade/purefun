@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
@@ -29,14 +28,15 @@ public interface TryInstances {
 
   static <T> Eq<Kind<Try_, T>> eq(Eq<T> eqSuccess) {
     final Eq<Throwable> eqFailure = Eq.throwable();
-    return (a, b) -> Pattern2.<Try<T>, Try<T>, Boolean>build()
-      .when((x, y) -> x.isFailure() && y.isFailure())
-        .then((x, y) -> eqFailure.eqv(x.getCause(), y.getCause()))
-      .when((x, y) -> x.isSuccess() && y.isSuccess())
-        .then((x, y) -> eqSuccess.eqv(x.get(), y.get()))
-      .otherwise()
-        .returns(false)
-      .apply(TryOf.narrowK(a), TryOf.narrowK(b));
+    return (a, b) -> {
+      if (a instanceof Try.Failure<T> failureA && b instanceof Try.Failure<T> failureB) {
+        return eqFailure.eqv(failureA.getCause(), failureB.getCause());
+      }
+      if (a instanceof Try.Success<T> successA && b instanceof Try.Success<T> successB) {
+        return eqSuccess.eqv(successA.getOrElseThrow(), successB.getOrElseThrow());
+      }
+      return false;
+    };
   }
 
   static Functor<Try_> functor() {

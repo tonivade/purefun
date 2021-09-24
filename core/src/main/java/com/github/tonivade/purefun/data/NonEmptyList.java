@@ -7,6 +7,8 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.Validator.greaterThan;
 import static com.github.tonivade.purefun.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -19,6 +21,7 @@ import com.github.tonivade.purefun.Matcher1;
 
 public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
 
+  @Serial
   private static final long serialVersionUID = 3291606155276185601L;
 
   private static final Equal<NonEmptyList<?>> EQUAL = Equal.<NonEmptyList<?>>of().comparing(v -> v.value);

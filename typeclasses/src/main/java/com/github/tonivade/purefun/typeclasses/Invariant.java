@@ -13,7 +13,7 @@ public interface Invariant<F extends Witness> {
   <A, B> Kind<F, B> imap(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map, Function1<? super B, ? extends A> comap);
 
   static <F extends Witness, G extends Witness> Invariant<Nested<F, G>> compose(Invariant<F> f, Invariant<G> g) {
-    return new ComposedInvariant<F, G>() {
+    return new ComposedInvariant<>() {
 
       @Override
       public Invariant<F> f() { return f; }
@@ -24,7 +24,7 @@ public interface Invariant<F extends Witness> {
   }
 
   static <F extends Witness, G extends Witness> Invariant<Nested<F, G>> compose(Invariant<F> f, Functor<G> g) {
-    return new ComposedInvariantCovariant<F, G>() {
+    return new ComposedInvariantCovariant<>() {
 
       @Override
       public Invariant<F> f() { return f; }
@@ -35,7 +35,7 @@ public interface Invariant<F extends Witness> {
   }
 
   static <F extends Witness, G extends Witness> Invariant<Nested<F, G>> compose(Invariant<F> f, Contravariant<G> g) {
-    return new ComposedInvariantContravariant<F, G>() {
+    return new ComposedInvariantContravariant<>() {
 
       @Override
       public Invariant<F> f() { return f; }

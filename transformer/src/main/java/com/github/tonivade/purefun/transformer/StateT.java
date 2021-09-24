@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind(sealed = true)
+@HigherKind
 public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A>, Bindable<Kind<Kind<StateT_, F>, S>, A> {
 
   Monad<F> monad();
@@ -48,7 +48,7 @@ public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A>, Bind
   }
 
   static <F extends Witness, S, A> StateT<F, S, A> state(Monad<F> monad, Function1<S, Kind<F, Tuple2<S, A>>> run) {
-    return new SealedStateT<F, S, A>() {
+    return new StateT<>() {
 
       @Override
       public Monad<F> monad() { return monad; }

@@ -60,7 +60,7 @@ public interface Parallel<F extends Witness, G extends Witness> {
   
   static <F extends Witness, G extends Witness> Parallel<F, G> of(
       Monad<F> monad, Applicative<G> applicative, FunctionK<F, G> to, FunctionK<G, F> from) {
-    return new Parallel<F, G>() {
+    return new Parallel<>() {
       @Override
       public Applicative<G> applicative() { return applicative; }
       
@@ -76,7 +76,7 @@ public interface Parallel<F extends Witness, G extends Witness> {
   }
   
   static <F extends Witness> Parallel<F, F> identity(Monad<F> monad) {
-    return new Parallel<F, F>() {
+    return new Parallel<>() {
       @Override
       public Applicative<F> applicative() { return monad; }
       
