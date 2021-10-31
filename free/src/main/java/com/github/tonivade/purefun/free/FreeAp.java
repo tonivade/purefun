@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind
+@HigherKind(sealed = false) // TODO: should be sealed?
 public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
 
   private FreeAp() {}

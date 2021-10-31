@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
+@HigherKind(sealed = false)
 public interface OptionT<F extends Witness, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT_, F>, T> {
 
   Monad<F> monad();

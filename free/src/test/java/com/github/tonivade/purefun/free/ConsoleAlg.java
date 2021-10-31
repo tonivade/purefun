@@ -5,7 +5,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Unit;
 
 @HigherKind
-public interface ConsoleAlg<T> extends ConsoleAlgOf<T> {
+public sealed interface ConsoleAlg<T> extends ConsoleAlgOf<T> {
 
   record WriteLine(String line) implements ConsoleAlg<Unit> {
     public WriteLine {

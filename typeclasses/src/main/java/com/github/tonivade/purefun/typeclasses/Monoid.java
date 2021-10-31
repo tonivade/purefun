@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator2;
 
-@HigherKind
+@HigherKind(sealed = false)
 public interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
 
   T zero();

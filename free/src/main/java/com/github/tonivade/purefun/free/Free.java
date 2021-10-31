@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
+@HigherKind(sealed = false) // TODO: should be sealed?
 public abstract class Free<F extends Witness, A> implements FreeOf<F, A>, Bindable<Kind<Free_, F>, A> {
 
   private Free() {}

@@ -29,7 +29,7 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
-@HigherKind
+@HigherKind(sealed = false)
 public interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bindable<Sequence_, E> {
 
   int size();

@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
+public sealed interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
   <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper);
 
@@ -198,11 +198,34 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 }
 
-abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
+final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
   
-  private ScheduleImpl() { }
+  private final URIO<R, S> initial;
+  private final Update<R, S, A> update;
+  private final Extract<A, S, B> extract;
   
-  public abstract URIO<R, S> initial();
+  private ScheduleImpl(
+      URIO<R, S> initial, 
+      Update<R, S, A> update,
+      Extract<A, S, B> extract) {
+    this.initial = checkNonNull(initial);
+    this.update = checkNonNull(update);
+    this.extract = checkNonNull(extract);
+  }
+  
+  public URIO<R, S> initial() {
+    return initial;
+  }
+  
+  @Override
+  public PureIO<R, Unit, S> update(A last, S state) {
+    return update.update(last, state);
+  }
+  
+  @Override
+  public B extract(A last, S state) {
+    return extract.extract(last, state);
+  }
 
   @Override
   public <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper) {
@@ -256,11 +279,11 @@ abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.U
 
   @Override
   public Schedule<R, A, B> addDelayM(Function1<B, URIO<R, Duration>> map) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       PureIO<R, Unit, Tuple2<Duration, S>> map2 = 
         PureIO.parMap2(
           map.apply(extract(a, s)).toPureIO(), 
-          update.update(a, s), 
+          u.update(a, s), 
           Tuple::of);
       
       return map2.flatMap(ds -> {
@@ -272,7 +295,7 @@ abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.U
 
   @Override
   public Schedule<R, A, B> untilInputM(Function1<A, UIO<Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       UIO<Boolean> apply = condition.apply(a);
       return apply.<R, Unit>toPureIO()
               .flatMap(test -> test ? PureIO.raiseError(Unit.unit()) : update(a, s));
@@ -281,7 +304,7 @@ abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.U
 
   @Override
   public Schedule<R, A, B> untilOutputM(Function1<B, UIO<Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       UIO<Boolean> apply = condition.apply(extract(a, s));
       return apply.<R, Unit>toPureIO()
         .flatMap(test -> test ? PureIO.raiseError(Unit.unit()) : update(a, s));
@@ -290,9 +313,9 @@ abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.U
 
   @Override
   public Schedule<R, A, B> check(Function2<A, B, UIO<Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       PureIO<R, Unit, Boolean> apply = condition.apply(a, this.extract(a, s)).toPureIO();
-      return apply.flatMap(result -> result != null && result ? update.update(a, s) : PureIO.raiseError(Unit.unit()));
+      return apply.flatMap(result -> result != null && result ? u.update(a, s) : PureIO.raiseError(Unit.unit()));
     });
   }
 
@@ -343,25 +366,6 @@ abstract class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.U
       URIO<R, S> initial, 
       Update<R, S, A> update,
       Extract<A, S, B> extract) {
-    checkNonNull(initial);
-    checkNonNull(update);
-    checkNonNull(extract);
-    return new ScheduleImpl<R, S, A, B>() {
-      
-      @Override
-      public URIO<R, S> initial() {
-        return initial;
-      }
-      
-      @Override
-      public PureIO<R, Unit, S> update(A last, S state) {
-        return update.update(last, state);
-      }
-      
-      @Override
-      public B extract(A last, S state) {
-        return extract.extract(last, state);
-      }
-    };
+    return new ScheduleImpl<>(initial, update, extract);
   }
 }

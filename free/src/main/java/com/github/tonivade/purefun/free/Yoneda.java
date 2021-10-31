@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.Mappable;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
-@HigherKind
+@HigherKind(sealed = false) // TODO: this should be sealed?
 @FunctionalInterface
 public interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
 

@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 
-@HigherKind
+@HigherKind(sealed = false) // TODO: this type should be sealed
 public interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
 
   <R> Result<R> apply(MetaCont<T, R> cont);

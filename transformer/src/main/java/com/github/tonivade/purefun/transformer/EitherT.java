@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
+@HigherKind(sealed = false)
 public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT_, F>, L>, R> {
 
   Monad<F> monad();

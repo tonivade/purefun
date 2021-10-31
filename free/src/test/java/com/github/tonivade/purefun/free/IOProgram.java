@@ -24,7 +24,7 @@ import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public interface IOProgram<T> extends IOProgramOf<T> {
+public sealed interface IOProgram<T> extends IOProgramOf<T> {
 
   static Free<IOProgram_, String> read() {
     return liftF(new IOProgram.Read());

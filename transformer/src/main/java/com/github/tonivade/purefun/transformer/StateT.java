@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
+@HigherKind(sealed = false)
 public interface StateT<F extends Witness, S, A> extends StateTOf<F, S, A>, Bindable<Kind<Kind<StateT_, F>, S>, A> {
 
   Monad<F> monad();

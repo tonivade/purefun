@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 
-@HigherKind
+@HigherKind(sealed = false)
 @FunctionalInterface
 public interface State<S, A> extends StateOf<S, A>, Bindable<Kind<State_, S>, A> {
 

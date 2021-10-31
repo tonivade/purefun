@@ -9,7 +9,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Bindable;
 
-@HigherKind
+@HigherKind(sealed = false)
 @FunctionalInterface
 public interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<Reader_, R>, A> {
 

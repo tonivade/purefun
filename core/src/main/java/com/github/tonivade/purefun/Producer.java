@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.type.Try;
  * but with additional functionality like the ability to memoize the result.
  * @param <T> the returned type
  */
-@HigherKind
+@HigherKind(sealed = false)
 @FunctionalInterface
 public interface Producer<T> extends ProducerOf<T>, Recoverable {
 

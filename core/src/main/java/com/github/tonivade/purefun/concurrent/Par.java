@@ -26,7 +26,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 
-@HigherKind
+@HigherKind(sealed = false)
 @FunctionalInterface
 public interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
 

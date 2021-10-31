@@ -141,7 +141,7 @@ public class FreeApTest {
 }
 
 @HigherKind
-interface DSL<A> extends DSLOf<A> {
+sealed interface DSL<A> extends DSLOf<A> {
 
   A value();
 
