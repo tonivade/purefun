@@ -13,8 +13,8 @@ import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind(sealed = false)
-public interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kind<Kind<Kleisli_, F>, Z>, A> {
+@HigherKind
+public non-sealed interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kind<Kind<Kleisli_, F>, Z>, A> {
 
   Monad<F> monad();
   Kind<F, A> run(Z value);

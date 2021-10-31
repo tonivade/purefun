@@ -21,9 +21,9 @@ import com.github.tonivade.purefun.type.Try;
  * @param <A> type of function parameter
  * @param <R> type of return value
  */
-@HigherKind(sealed = false)
+@HigherKind
 @FunctionalInterface
-public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
+public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
 
   default R apply(A value) {
     try {

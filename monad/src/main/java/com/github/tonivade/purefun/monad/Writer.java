@@ -15,8 +15,8 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-@HigherKind(sealed = false)
-public interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer_, L>, A> {
+@HigherKind
+public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer_, L>, A> {
 
   Monoid<L> monoid();
   Tuple2<L, A> value();

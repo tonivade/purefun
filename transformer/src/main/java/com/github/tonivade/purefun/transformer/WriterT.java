@@ -19,8 +19,8 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-@HigherKind(sealed = false)
-public interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A>, Bindable<Kind<Kind<WriterT_, F>, L>, A> {
+@HigherKind
+public non-sealed interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A>, Bindable<Kind<Kind<WriterT_, F>, L>, A> {
 
   Monoid<L> monoid();
   Monad<F> monad();
