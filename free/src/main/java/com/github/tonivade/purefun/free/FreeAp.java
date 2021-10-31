@@ -21,45 +21,43 @@ import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind(sealed = false) // TODO: should be sealed?
-public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
-
-  private FreeAp() {}
+@HigherKind
+public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
 
   @Override
-  public abstract <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
+  <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
 
   @Override
-  public <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
+  default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure<F, Function1<? super A, ? extends B>> pure) {
       return map(pure.value);
     }
     return apply(this, apply);
   }
 
-  public Kind<F, A> fold(Applicative<F> applicative) {
+  default Kind<F, A> fold(Applicative<F> applicative) {
     return foldMap(FunctionK.identity(), applicative);
   }
 
-  public <G extends Witness> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
+  default <G extends Witness> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
     return foldMap(functionKF(transformer), applicativeF()).fix(toFreeAp());
   }
 
-  public <G extends Witness> FreeAp<G, A> flatCompile(
+  default <G extends Witness> FreeAp<G, A> flatCompile(
       FunctionK<F, Kind<FreeAp_, G>> functionK, Applicative<Kind<FreeAp_, G>> applicative) {
     return foldMap(functionK, applicative).fix(toFreeAp());
   }
 
-  public <M> M analyze(FunctionK<F, Kind<Const_, M>> functionK, Applicative<Kind<Const_, M>> applicative) {
+  default <M> M analyze(FunctionK<F, Kind<Const_, M>> functionK, Applicative<Kind<Const_, M>> applicative) {
     return foldMap(functionK, applicative).fix(toConst()).get();
   }
 
-  public Free<F, A> monad() {
+  default Free<F, A> monad() {
     return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(toFree());
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public <G extends Witness> Kind<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
+  default <G extends Witness> Kind<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
     Deque<FreeAp> argsF = new LinkedList<>(singletonList(this));
     Deque<CurriedFunction> fns = new LinkedList<>();
 
@@ -111,20 +109,20 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
     }
   }
 
-  public static <F extends Witness, T> FreeAp<F, T> pure(T value) {
+  static <F extends Witness, T> FreeAp<F, T> pure(T value) {
     return new FreeAp.Pure<>(value);
   }
 
-  public static <F extends Witness, T> FreeAp<F, T> lift(Kind<F, T> value) {
+  static <F extends Witness, T> FreeAp<F, T> lift(Kind<F, T> value) {
     return new FreeAp.Lift<>(value);
   }
 
-  public static <F extends Witness, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp_, F>, ? extends T> value, 
+  static <F extends Witness, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp_, F>, ? extends T> value, 
       Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> mapper) {
     return new FreeAp.Apply<>(value.fix(toFreeAp()), mapper.fix(toFreeAp()));
   }
 
-  public static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
+  static <F extends Witness, G extends Witness> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<>() {
       @Override
       public <T> FreeAp<G, T> apply(Kind<F, ? extends T> from) {
@@ -134,22 +132,22 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
   }
 
   @SuppressWarnings("unchecked")
-  public static <F extends Witness> Applicative<Kind<FreeAp_, F>> applicativeF() {
+  static <F extends Witness> Applicative<Kind<FreeAp_, F>> applicativeF() {
     return FreeApplicative.INSTANCE;
   }
 
   private static <F extends Witness, G extends Witness, A> Kind<G, A> foldArg(
       FreeAp<F, A> argF, FunctionK<F, G> transformation, Applicative<G> applicative) {
-    if (argF instanceof Pure) {
-      return applicative.pure(((Pure<F, A>) argF).value);
+    if (argF instanceof Pure<F, A> pure) {
+      return applicative.pure(pure.value);
     }
-    if (argF instanceof Lift) {
-      return transformation.apply(((Lift<F, A>) argF).value);
+    if (argF instanceof Lift<F, A> lift) {
+      return transformation.apply(lift.value);
     }
     throw new IllegalStateException();
   }
 
-  private static final class Pure<F extends Witness, A> extends FreeAp<F, A> {
+  final class Pure<F extends Witness, A> implements FreeAp<F, A> {
 
     private final A value;
 
@@ -168,7 +166,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
     }
   }
 
-  private static final class Lift<F extends Witness, A> extends FreeAp<F, A> {
+  final class Lift<F extends Witness, A> implements FreeAp<F, A> {
 
     private final Kind<F, A> value;
 
@@ -187,7 +185,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
     }
   }
 
-  private static final class Apply<F extends Witness, A, B> extends FreeAp<F, B> {
+  final class Apply<F extends Witness, A, B> implements FreeAp<F, B> {
 
     private final FreeAp<F, ? extends A> value;
     private final FreeAp<F, ? extends Function1<? super A, ? extends B>> apply;
@@ -210,7 +208,7 @@ public abstract class FreeAp<F extends Witness, A> implements FreeApOf<F, A>, Ap
     }
   }
 
-  private record CurriedFunction<G extends Witness, A, B>(Kind<G, Function1<A, B>> value, int remaining) {
+  record CurriedFunction<G extends Witness, A, B>(Kind<G, Function1<A, B>> value, int remaining) {
 
     public CurriedFunction {
       checkNonNull(value);
