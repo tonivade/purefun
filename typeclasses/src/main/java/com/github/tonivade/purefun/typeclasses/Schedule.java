@@ -246,7 +246,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     this.extract = checkNonNull(extract);
   }
   
-  protected Kind<F, S> initial() {
+  public Kind<F, S> initial() {
     return initial;
   }
   

@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
@@ -13,8 +14,8 @@ import com.github.tonivade.purefun.Mappable;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
-@HigherKind // TODO: should be sealed
-public non-sealed interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
+@HigherKind
+public sealed interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
 
   <B> Kind<F, B> apply(Function1<? super A, ? extends B> map);
 
@@ -24,20 +25,42 @@ public non-sealed interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>,
 
   @Override
   default <B> Yoneda<F, B> map(Function1<? super A, ? extends B> outer) {
-    return new Yoneda<F, B>() {
-      @Override
-      public <C> Kind<F, C> apply(Function1<? super B, ? extends C> inner) {
-        return Yoneda.this.apply(outer.andThen(inner));
-      }
-    };
+    return new Mapped<>(Yoneda.this, outer);
   }
 
   static <F extends Witness, A> Yoneda<F, A> of(Kind<F, A> value, Functor<F> functor) {
-    return new Yoneda<F, A>() {
-      @Override
-      public <B> Kind<F, B> apply(Function1<? super A, ? extends B> map) {
-        return functor.map(value, map);
-      }
-    };
+    return new Impl<>(value, functor);
+  }
+  
+  final class Impl<F extends Witness, A> implements Yoneda<F, A> {
+    
+    private final Kind<F, A> value;
+    private final Functor<F> functor;
+    
+    private Impl(Kind<F, A> value, Functor<F> functor) {
+      this.value = checkNonNull(value);
+      this.functor = checkNonNull(functor);
+    }
+
+    @Override
+    public <B> Kind<F, B> apply(Function1<? super A, ? extends B> map) {
+      return functor.map(value, map);
+    }
+  }
+  
+  final class Mapped<F extends Witness, A, B> implements Yoneda<F, B> {
+
+    private final Yoneda<F, A> self;
+    private final Function1<? super A, ? extends B> outer;
+
+    private Mapped(Yoneda<F, A> self, Function1<? super A, ? extends B> outer) {
+      this.self = checkNonNull(self);
+      this.outer = checkNonNull(outer);
+    }
+    
+    @Override
+    public <C> Kind<F, C> apply(Function1<? super B, ? extends C> inner) {
+      return self.apply(outer.andThen(inner));
+    }
   }
 }

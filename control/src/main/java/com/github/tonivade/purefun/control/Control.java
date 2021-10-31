@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
 
 @HigherKind
-public non-sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
+public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
 
   <R> Result<R> apply(MetaCont<T, R> cont);
 
@@ -25,22 +25,12 @@ public non-sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, 
 
   @Override
   default <R> Control<R> map(Function1<? super T, ? extends R> mapper) {
-    return new Control<R>() {
-      @Override
-      public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
-        return Control.this.apply(cont.map(mapper));
-      }
-    };
+    return new Mapped<>(Control.this, mapper);
   }
 
   @Override
   default <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
-    return new Control<R>() {
-      @Override
-      public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
-        return Control.this.apply(cont.flatMap(mapper));
-      }
-    };
+    return new FlatMapped<>(Control.this, mapper);
   }
 
   @Override
@@ -75,6 +65,38 @@ public non-sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, 
   static <R> Control<R> delimitCatch(Marker.Catch<R> marker, Control<R> control) {
     return new DelimitCatch<>(marker, control);
   }
+  
+  final class Mapped<T, R> implements Control<R> {
+    
+    private final Control<T> self;
+    private final Function1<? super T, ? extends R> outer;
+    
+    private Mapped(Control<T> self, Function1<? super T, ? extends R> outer) {
+      this.self = checkNonNull(self);
+      this.outer = checkNonNull(outer);
+    }
+
+    @Override
+    public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
+      return self.apply(cont.map(outer));
+    }
+  }
+  
+  final class FlatMapped<T, R> implements Control<R> {
+    
+    private final Control<T> self;
+    private final Function1<? super T, ? extends Kind<Control_, ? extends R>> outer;
+    
+    private FlatMapped(Control<T> self, Function1<? super T, ? extends Kind<Control_, ? extends R>> outer) {
+      this.self = checkNonNull(self);
+      this.outer = checkNonNull(outer);
+    }
+
+    @Override
+    public <R1> Result<R1> apply(MetaCont<R, R1> cont) {
+      return self.apply(cont.flatMap(outer));
+    }
+  }
 
   final class Use<A, R> implements Control<A> {
 
@@ -89,13 +111,24 @@ public non-sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, 
     @Override
     public <R1> Result<R1> apply(MetaCont<A, R1> cont) {
       Tuple2<MetaCont<A, R>, MetaCont<R, R1>> tuple = cont.splitAt(marker);
-      Control<R> handled = cps.apply(value -> new Control<R>() {
-        @Override
-        public <R2> Result<R2> apply(MetaCont<R, R2> other) {
-          return tuple.get1().append(other).apply(value);
-        }
-      });
+      Control<R> handled = cps.apply(value -> new Handle<>(value, tuple.get1()));
       return Result.computation(handled, tuple.get2());
+    }
+  }
+  
+  final class Handle<A, R> implements Control<R> {
+
+    private final A value;
+    private final MetaCont<A, R> cont;
+    
+    private Handle(A value, MetaCont<A, R> cont) {
+      this.value = checkNonNull(value);
+      this.cont = checkNonNull(cont);
+    }
+
+    @Override
+    public <R1> Result<R1> apply(MetaCont<R, R1> other) {
+      return cont.append(other).apply(value);
     }
   }
 
