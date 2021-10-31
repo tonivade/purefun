@@ -25,13 +25,13 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   T get();
 
   default <R> Trampoline<R> map(Function1<? super T, ? extends R> map) {
-    return resume(this)
+    return resume()
         .fold(next -> more(() -> next.map(map)),
               value -> done(map.apply(value)));
   }
 
   default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline_, ? extends R>> map) {
-    return resume(this)
+    return resume()
         .fold(next -> more(() -> next.flatMap(map)), map.andThen(TrampolineOf::narrowK));
   }
 
@@ -40,7 +40,7 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   }
 
   default T run() {
-    return iterate(this).get();
+    return iterate().get();
   }
 
   static <T> Trampoline<T> done(T value) {
@@ -95,12 +95,12 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
       }
   }
 
-  private static <T> Trampoline<T> iterate(Trampoline<T> trampoline) {
-    return Stream.iterate(trampoline, Trampoline::apply)
+  private Trampoline<T> iterate() {
+    return Stream.iterate(this, Trampoline::apply)
             .filter(Trampoline::complete).findFirst().orElseThrow(IllegalStateException::new);
   }
 
-  private static <T> Either<Trampoline<T>, T> resume(Trampoline<T> trampoline) {
-    return trampoline.fold(Either::left, Either::right);
+  private Either<Trampoline<T>, T> resume() {
+    return fold(Either::left, Either::right);
   }
 }

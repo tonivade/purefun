@@ -559,7 +559,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         if (current instanceof FlatMapped) {
           stack.push();
 
-          FlatMapped<R, F, B, E, A> flatMapped = (FlatMapped<R, F, B, E, A>) current;
+          var flatMapped = (FlatMapped<R, F, B, E, A>) current;
           PureIO<R, F, B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
 
           if (source instanceof Async<R, F, B> async) {

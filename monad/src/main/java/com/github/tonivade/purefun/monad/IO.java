@@ -408,10 +408,10 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
         if (current instanceof FlatMapped) {
           stack.push();
 
-          FlatMapped<U, T> flatMapped = (FlatMapped<U, T>) current;
+          var flatMapped = (FlatMapped<U, T>) current;
           IO<U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next)).fix(IOOf::narrowK);
           
-          if (source instanceof Async) {
+          if (source instanceof Async<U> async) {
             Promise<U> nextPromise = Promise.make();
             
             nextPromise.then(u -> {
@@ -419,7 +419,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
               runAsync(andThen.apply(u), connection, stack, promise);
             });
             
-            executeAsync((Async<U>) source, connection, nextPromise);
+            executeAsync(async, connection, nextPromise);
             
             return promise;
           }

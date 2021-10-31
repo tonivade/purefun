@@ -24,7 +24,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
+public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
   
   static <F extends Witness> ScheduleOf<F> of(Monad<F> monad, Timer<F> timer) {
     return new ScheduleOf<F>() {
@@ -230,17 +230,35 @@ public interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
   }
 }
 
-abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
+final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
   
   private final Monad<F> monad;
   private final Timer<F> timer;
+  private final Kind<F, S> initial;
+  private final Update<F, S, A> update;
+  private final Extract<A, S, B> extract;
   
-  private ScheduleImpl(Monad<F> monad, Timer<F> timer) {
+  private ScheduleImpl(Monad<F> monad, Timer<F> timer, Kind<F, S> initial, Update<F, S, A> update, Extract<A, S, B> extract) {
     this.monad = checkNonNull(monad);
     this.timer = checkNonNull(timer);
+    this.initial = checkNonNull(initial);
+    this.update = checkNonNull(update);
+    this.extract = checkNonNull(extract);
   }
   
-  public abstract Kind<F, S> initial();
+  protected Kind<F, S> initial() {
+    return initial;
+  }
+  
+  @Override
+  public Kind<F, Either<Unit, S>> update(A last, S state) {
+    return update.update(last, state);
+  }
+  
+  @Override
+  public B extract(A last, S state) {
+    return extract.extract(last, state);
+  }
   
   @Override
   public Monad<F> monad() {
@@ -309,11 +327,11 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A
 
   @Override
   public Schedule<F, A, B> addDelayM(Function1<B, Kind<F, Duration>> map) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       Kind<F, Either<Unit, Tuple2<Duration, S>>> map2 = 
         monad.mapN(
           map.apply(extract(a, s)), 
-          update.update(a, s), 
+          u.update(a, s), 
           (duration, either) -> either.map(x -> Tuple.of(duration, x)));
       
       return monad.flatMap(map2, (Either<Unit, Tuple2<Duration, S>> either) -> {
@@ -325,7 +343,7 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A
 
   @Override
   public Schedule<F, A, B> untilInputM(Function1<A, Kind<F, Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       Kind<F, Boolean> apply = condition.apply(a);
       return monad.flatMap(apply, test -> test ? monad.pure(Either.left(Unit.unit())) : update(a, s));
     });
@@ -333,7 +351,7 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A
 
   @Override
   public Schedule<F, A, B> untilOutputM(Function1<B, Kind<F, Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       Kind<F, Boolean> apply = condition.apply(extract(a, s));
       return monad.flatMap(apply, test -> test ? monad.pure(Either.<Unit, S>left(Unit.unit())) : update(a, s));
     });
@@ -341,9 +359,9 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A
 
   @Override
   public Schedule<F, A, B> check(Function2<A, B, Kind<F, Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       Kind<F, Boolean> apply = condition.apply(a, extract(a, s));
-      return monad.flatMap(apply, result -> result ? update.update(a, s) : monad.pure(Either.left(Unit.unit())));
+      return monad.flatMap(apply, result -> result ? u.update(a, s) : monad.pure(Either.left(Unit.unit())));
     });
   }
 
@@ -356,8 +374,8 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A
             s -> {
               Kind<F, Either<Unit, Either<S, T>>> orElse =
                   monad.flatMap(other.initial(), t -> {
-                    Kind<F, Either<Unit, T>> update = other.update(a, t);
-                    return monad.map(update, e -> e.map(Either::<S, T>right));
+                    Kind<F, Either<Unit, T>> u = other.update(a, t);
+                    return monad.map(u, e -> e.map(Either::<S, T>right));
                   });
               Kind<F, Either<Unit, Either<S, T>>> map = 
                   monad.map(this.update(a, s), e -> e.map(Either::<S, T>left));
@@ -407,25 +425,6 @@ abstract class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A
       Kind<F, S> initial, 
       Update<F, S, A> update,
       Extract<A, S, B> extract) {
-    checkNonNull(initial);
-    checkNonNull(update);
-    checkNonNull(extract);
-    return new ScheduleImpl<F, S, A, B>(monad, timer) {
-      
-      @Override
-      public Kind<F, S> initial() {
-        return initial;
-      }
-      
-      @Override
-      public Kind<F, Either<Unit, S>> update(A last, S state) {
-        return update.update(last, state);
-      }
-      
-      @Override
-      public B extract(A last, S state) {
-        return extract.extract(last, state);
-      }
-    };
+    return new ScheduleImpl<>(monad, timer, initial, update, extract);
   }
 }
