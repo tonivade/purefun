@@ -230,19 +230,20 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
   @Override
   public <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper) {
     return ScheduleImpl.of(
-      initial(), 
-      this::update, 
+      initial, 
+      update, 
       (a, s) -> mapper.apply(extract(a, s)));
   }
 
   @Override
   public <C> Schedule<R, C, B> contramap(Function1<? super C, ? extends A> comap) {
     return ScheduleImpl.of(
-      initial(), 
+      initial, 
       (c, s) -> update(comap.apply(c), s), 
       (c, s) -> extract(comap.apply(c), s));
   }
 
+  @Override
   public Schedule<R, A, B> andThen(Schedule<R, A, B> next) {
     return andThenEither(next).map(Either::merge);
   }
@@ -267,12 +268,11 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
   @Override
   public <Z> Schedule<R, A, Z> foldM(Z zero, Function2<Z, B, PureIO<R, Unit, Z>> next) {
     return ScheduleImpl.of(
-      initial().map(s -> Tuple.of(s, zero)), 
+      initial.map(s -> Tuple.of(s, zero)), 
       (a, sz) -> {
         PureIO<R, Unit, S> update = update(a, sz.get1());
         PureIO<R, Unit, Z> other = next.apply(sz.get2(), extract(a, sz.get1()));
-        PureIO<R, Unit, Tuple2<S, Z>> zip = update.zip(other);
-        return zip;
+        return update.zip(other);
       }, 
       (a, sz) -> sz.get2());
   }
@@ -321,11 +321,11 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
 
   private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> _andThenEither(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Either<S, T>, A, Either<B, C>>of(
-            initial().map(Either::<S, T>left),
+            initial.map(Either::<S, T>left),
             (a, st) -> st.fold(
                     s -> {
                       PureIO<R, Unit, Either<S, T>> orElse =
-                              other.initial().<Unit>toPureIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
+                              other.initial.<Unit>toPureIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
                       return this.update(a, s).map(Either::<S, T>left).orElse(orElse);
                     },
                     t -> other.update(a, t).map(Either::<S, T>right)),
@@ -336,7 +336,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
 
   private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> _zip(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
-            this.initial().<Unit>toPureIO().zip(other.initial().<Unit>toPureIO()).toURIO(),
+            this.initial.zip(other.initial),
             (a, st) -> {
               PureIO<R, Unit, S> self = this.update(a, st.get1());
               PureIO<R, Unit, T> next = other.update(a, st.get2());
@@ -349,7 +349,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
 
   private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> _compose(ScheduleImpl<R, T, B, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, C>of(
-            this.initial().<Unit>toPureIO().zip(other.initial().<Unit>toPureIO()).toURIO(),
+            this.initial.zip(other.initial),
             (a, st) -> {
               PureIO<R, Unit, S> self = this.update(a, st.get1());
               PureIO<R, Unit, T> next = other.update(this.extract(a, st.get1()), st.get2());
@@ -359,7 +359,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
   }
 
   private ScheduleImpl<R, S, A, B> updated(Function1<Update<R, S, A>, Update<R, S, A>> update) {
-    return ScheduleImpl.of(initial(), update.apply(this::update), this::extract);
+    return ScheduleImpl.of(initial, update.apply(this.update), this.extract);
   }
   
   public static <R, S, A, B> ScheduleImpl<R, S, A, B> of(

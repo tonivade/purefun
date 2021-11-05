@@ -275,8 +275,8 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return ScheduleImpl.of(
       monad,
       timer,
-      initial(), 
-      this::update, 
+      initial, 
+      update, 
       (a, s) -> mapper.apply(extract(a, s)));
   }
 
@@ -285,11 +285,12 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return ScheduleImpl.of(
       monad,
       timer,
-      initial(), 
+      initial, 
       (c, s) -> update(comap.apply(c), s), 
       (c, s) -> extract(comap.apply(c), s));
   }
 
+  @Override
   public Schedule<F, A, B> andThen(Schedule<F, A, B> next) {
     return andThenEither(next).map(Either::merge);
   }
@@ -316,7 +317,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return ScheduleImpl.of(
       monad,
       timer,
-      monad.map(initial(), s -> Tuple.of(s, zero)), 
+      monad.map(initial, s -> Tuple.of(s, zero)), 
       (a, sz) -> {
         Kind<F, Either<Unit, S>> update = update(a, sz.get1());
         Kind<F, Either<Unit, ? extends Z>> other = next.apply(sz.get2(), extract(a, sz.get1()));
@@ -369,11 +370,11 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return ScheduleImpl.<F, Either<S, T>, A, Either<B, C>>of(
         monad,
         timer,
-        monad.map(initial(), Either::<S, T>left),
+        monad.map(initial, Either::<S, T>left),
         (a, st) -> st.fold(
             s -> {
               Kind<F, Either<Unit, Either<S, T>>> orElse =
-                  monad.flatMap(other.initial(), t -> {
+                  monad.flatMap(other.initial, t -> {
                     Kind<F, Either<Unit, T>> u = other.update(a, t);
                     return monad.map(u, e -> e.map(Either::<S, T>right));
                   });
@@ -391,7 +392,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return ScheduleImpl.<F, Tuple2<S, T>, A, Tuple2<B, C>>of(
         monad,
         timer,
-        monad.tuple(this.initial(), other.initial()),
+        monad.tuple(this.initial, other.initial),
         (a, st) -> {
           Kind<F, Either<Unit, S>> self = this.update(a, st.get1());
           Kind<F, Either<Unit, T>> next = other.update(a, st.get2());
@@ -406,7 +407,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return ScheduleImpl.<F, Tuple2<S, T>, A, C>of(
         monad,
         timer,
-        monad.tuple(this.initial(), other.initial()),
+        monad.tuple(this.initial, other.initial),
         (a, st) -> {
           Kind<F, Either<Unit, S>> self = this.update(a, st.get1());
           Kind<F, Either<Unit, T>> next = other.update(this.extract(a, st.get1()), st.get2());
@@ -416,7 +417,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   }
 
   private ScheduleImpl<F, S, A, B> updated(Function1<Update<F, S, A>, Update<F, S, A>> update) {
-    return ScheduleImpl.of(monad, timer, initial(), update.apply(this::update), this::extract);
+    return ScheduleImpl.of(monad, timer, initial, update.apply(this.update), this.extract);
   }
   
   public static <F extends Witness, S, A, B> ScheduleImpl<F, S, A, B> of(
