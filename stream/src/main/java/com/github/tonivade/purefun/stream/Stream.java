@@ -145,7 +145,7 @@ public sealed interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bin
       return sequence.foldLeft(empty(), (acc, a) -> acc.append(monadDefer().pure(a)));
     }
 
-    default <T, S> Stream<F, T> unfold(S seed, Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
+    default <T, S> Stream<F, T> unfold(S seed, Function1<? super S, Option<Tuple2<? extends T, ? extends S>>> function) {
       return suspend(() -> doUnfold(seed, function));
     }
 
@@ -197,7 +197,7 @@ public sealed interface Stream<F extends Witness, T> extends StreamOf<F, T>, Bin
         ));
     }
 
-    private <T, S> Stream<F, T> doUnfold(S seed, Function1<? super S, Option<Tuple2<? extends T, S>>> function) {
+    private <T, S> Stream<F, T> doUnfold(S seed, Function1<? super S, Option<Tuple2<? extends T, ? extends S>>> function) {
       return function.apply(seed)
         .map(tuple -> tuple.applyTo((t, s) -> cons(t, suspend(() -> doUnfold(s, function)))))
         .getOrElse(this::empty);
