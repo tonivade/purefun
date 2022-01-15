@@ -44,6 +44,10 @@ public final class Tuple1<A> implements Tuple, Tuple1Of<A>, Serializable {
     return function.apply(value1);
   }
 
+  public void consume(Consumer1<? super A> consumer) {
+    consumer.accept(value1);
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(value1);

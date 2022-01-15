@@ -60,6 +60,10 @@ public final class Tuple2<A, B> implements Tuple, Tuple2Of<A, B>, Serializable {
     return function.apply(value1, value2);
   }
 
+  public void consume(Consumer2<? super A, ? super B> consumer) {
+    consumer.accept(value1, value2);
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(value1, value2);

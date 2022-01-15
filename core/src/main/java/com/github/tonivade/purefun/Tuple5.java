@@ -93,6 +93,10 @@ public final class Tuple5<A, B, C, D, E> implements Tuple, Serializable {
     return function.apply(value1, value2, value3, value4, value5);
   }
 
+  public void consume(Consumer5<? super A, ? super B, ? super C, ? super D, ? super E> consumer) {
+    consumer.accept(value1, value2, value3, value4, value5);
+  }
+
   public static <A, B, C, D, E> Tuple5<A, B, C, D, E> of(A value1, B value2, C value3, D value4, E value5) {
     return new Tuple5<>(value1, value2, value3, value4, value5);
   }

@@ -67,6 +67,10 @@ public final class Tuple3<A, B, C> implements Tuple, Serializable {
     return function.apply(value1, value2, value3);
   }
 
+  public void consume(Consumer3<? super A, ? super B, ? super C> consumer) {
+    consumer.accept(value1, value2, value3);
+  }
+
   public static <A, B, C> Tuple3<A, B, C> of(A value1, B value2, C value3) {
     return new Tuple3<>(value1, value2, value3);
   }
