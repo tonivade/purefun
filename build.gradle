@@ -170,7 +170,7 @@ task jacocoFullReport(type: JacocoReport, group: 'Coverage reports', dependsOn: 
 }
 
 task fullTestReport(type: TestReport, group: 'Html Report with all the tests', dependsOn: check) {
-  destinationDir = file("$buildDir/reports/allTests")
+  destinationDirectory = file("$buildDir/reports/allTests")
 
-  reportOn subprojects*.test
+  testResults.from = subprojects*.test
 }
