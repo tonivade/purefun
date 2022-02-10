@@ -1,6 +1,7 @@
 plugins {
   id 'java-library'
-  id 'jacoco'
+  id 'jacoco-report-aggregation'
+  id 'test-report-aggregation'
   id 'maven-publish'
   id 'signing'
   id "org.sonarqube" version "${sonarVersion}"
@@ -9,6 +10,50 @@ plugins {
 }
 
 apply plugin: 'org.sonarqube'
+
+dependencies {
+  jacocoAggregation projects.purefunControl
+  jacocoAggregation projects.purefunCore
+  jacocoAggregation projects.purefunEffect
+  jacocoAggregation projects.purefunFree
+  jacocoAggregation projects.purefunGeneric
+  jacocoAggregation projects.purefunInstances
+  jacocoAggregation projects.purefunMonad
+  jacocoAggregation projects.purefunOptics
+  jacocoAggregation projects.purefunProcessor
+  jacocoAggregation projects.purefunStream
+  jacocoAggregation projects.purefunTransformer
+  jacocoAggregation projects.purefunTypeclasses
+
+  testReportAggregation projects.purefunControl
+  testReportAggregation projects.purefunCore
+  testReportAggregation projects.purefunEffect
+  testReportAggregation projects.purefunFree
+  testReportAggregation projects.purefunGeneric
+  testReportAggregation projects.purefunInstances
+  testReportAggregation projects.purefunMonad
+  testReportAggregation projects.purefunOptics
+  testReportAggregation projects.purefunProcessor
+  testReportAggregation projects.purefunStream
+  testReportAggregation projects.purefunTransformer
+  testReportAggregation projects.purefunTypeclasses
+}
+
+reporting {
+  reports {
+    testCodeCoverageReport(JacocoCoverageReport) { 
+      testType = TestSuiteType.UNIT_TEST
+    }
+    testAggregateTestReport(AggregateTestReport) { 
+      testType = TestSuiteType.UNIT_TEST
+    }
+  }
+}
+
+tasks.named('check') {
+  dependsOn tasks.named('testCodeCoverageReport', JacocoReport) 
+  dependsOn tasks.named('testAggregateTestReport', TestReport) 
+}
 
 allprojects {
   apply plugin: 'java-library'
@@ -150,27 +195,4 @@ nexusPublishing {
     maxRetries.set(40)
     delayBetween.set(Duration.ofMillis(3000))
   }
-}
-
-def publishedProjects = subprojects.findAll()
-
-task jacocoFullReport(type: JacocoReport, group: 'Coverage reports', dependsOn: jacocoTestReport) {
-  description = 'Generates an aggregate report from all subprojects'
-
-  additionalSourceDirs.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
-  sourceDirectories.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
-  classDirectories.from = files(publishedProjects.sourceSets.main.output)
-  executionData.from = files(publishedProjects.jacocoTestReport.executionData).findAll { it.exists() }
-
-  reports {
-    html.required = true
-    xml.required = true
-    xml.outputLocation = file("${buildDir}/reports/jacoco/report.xml")
-  }
-}
-
-task fullTestReport(type: TestReport, group: 'Html Report with all the tests', dependsOn: check) {
-  destinationDirectory = file("$buildDir/reports/allTests")
-
-  testResults.from = subprojects*.test
 }
