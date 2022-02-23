@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -13,10 +14,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
+import com.github.tonivade.purefun.Applicable;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.Function2;
+import com.github.tonivade.purefun.Function3;
+import com.github.tonivade.purefun.Function4;
+import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
@@ -25,7 +32,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 
 @HigherKind
-public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
+public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, Applicable<Promise_, T> {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -60,6 +67,9 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
   @Override
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
   
+  @Override
+  <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply);
+
   @Override
   default <R> Promise<R> andThen(Kind<Promise_, ? extends R> next) {
     return PromiseOf.narrowK(Bindable.super.andThen(next));
@@ -100,6 +110,38 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T> {
             value != null ? Try.success(value) : Try.failure(error)), executor);
     return promise;
   }
+
+  static <A, B, C> Promise<C> mapN(Promise<? extends A> fa, Promise<? extends B> fb, 
+      Function2<? super A, ? super B, ? extends C> mapper) {
+    return fb.ap(fa.map(mapper.curried()));
+  }
+
+  static <A, B, C, D> Promise<D> mapN(
+      Promise<? extends A> fa, 
+      Promise<? extends B> fb, 
+      Promise<? extends C> fc, 
+      Function3<? super A, ? super B, ? super C, ? extends D> mapper) {
+    return fc.ap(mapN(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
+  }
+
+  static <A, B, C, D, E> Promise<E> mapN(
+      Promise<? extends A> fa, 
+      Promise<? extends B> fb, 
+      Promise<? extends C> fc, 
+      Promise<? extends D> fd, 
+      Function4<? super A, ? super B, ? super C, ? super D, ? extends E> mapper) {
+    return fd.ap(mapN(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
+  }
+
+  static <A, B, C, D, E, R> Promise<R> mapN(
+      Promise<? extends A> fa, 
+      Promise<? extends B> fb, 
+      Promise<? extends C> fc, 
+      Promise<? extends D> fd, 
+      Promise<? extends E> fe, 
+      Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> mapper) {
+    return fe.ap(mapN(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
+  }
 }
 
 final class PromiseImpl<T> implements Promise<T> {
@@ -112,6 +154,14 @@ final class PromiseImpl<T> implements Promise<T> {
 
   PromiseImpl(Executor executor) {
     this.executor = checkNonNull(executor);
+  }
+
+  @Override
+  public <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply) {
+    Promise<R> result = Promise.make(executor);
+    onComplete(try1 -> PromiseOf.narrowK(apply).onComplete(
+        try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
+    return result;
   }
 
   @Override
