@@ -250,19 +250,19 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
 
   @SuppressWarnings("unchecked")
   public <C> Schedule<R, A, Either<B, C>> andThenEither(Schedule<R, A, C> next) {
-    return _andThenEither((ScheduleImpl<R, ?, A, C>) next);
+    return doAndThenEither((ScheduleImpl<R, ?, A, C>) next);
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, Tuple2<B, C>> zip(Schedule<R, A, C> other) {
-    return _zip((ScheduleImpl<R, ?, A, C>) other);
+    return doZip((ScheduleImpl<R, ?, A, C>) other);
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, C> compose(Schedule<R, B, C> other) {
-    return _compose((ScheduleImpl<R, ?, B, C>) other);
+    return doCompose((ScheduleImpl<R, ?, B, C>) other);
   }
 
   @Override
@@ -319,7 +319,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
     });
   }
 
-  private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> _andThenEither(ScheduleImpl<R, T, A, C> other) {
+  private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> doAndThenEither(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Either<S, T>, A, Either<B, C>>of(
             initial.map(Either::<S, T>left),
             (a, st) -> st.fold(
@@ -334,7 +334,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
                     t -> Either.right(other.extract(a, t))));
   }
 
-  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> _zip(ScheduleImpl<R, T, A, C> other) {
+  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> doZip(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
             this.initial.zip(other.initial),
             (a, st) -> {
@@ -347,7 +347,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
                     other.extract(a, st.get2())));
   }
 
-  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> _compose(ScheduleImpl<R, T, B, C> other) {
+  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> doCompose(ScheduleImpl<R, T, B, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, C>of(
             this.initial.zip(other.initial),
             (a, st) -> {
