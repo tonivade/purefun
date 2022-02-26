@@ -96,7 +96,7 @@
     "allPublicMethods": true
   },
   {
-    "name": "com.github.tonivade.purefun.instances.StreamInstances",
+    "name": "com.github.tonivade.purefun.instances.PureStreamInstances",
     "allPublicMethods": true
   },
   {

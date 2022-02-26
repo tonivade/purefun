@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-public final class Nil<F extends Witness, T> implements Stream<F, T> {
+public final class Nil<F extends Witness, T> implements PureStream<F, T> {
 
   private final MonadDefer<F> monad;
 
@@ -30,53 +30,53 @@ public final class Nil<F extends Witness, T> implements Stream<F, T> {
   }
 
   @Override
-  public Kind<F, Option<Tuple2<Kind<F, T>, Stream<F, T>>>> split() {
+  public Kind<F, Option<Tuple2<Kind<F, T>, PureStream<F, T>>>> split() {
     return monad.pure(Option.none());
   }
 
   @Override
-  public Stream<F, T> take(int n) {
+  public PureStream<F, T> take(int n) {
     return this;
   }
 
   @Override
-  public Stream<F, T> drop(int n) {
+  public PureStream<F, T> drop(int n) {
     return this;
   }
 
   @Override
-  public Stream<F, T> filter(Matcher1<? super T> matcher) {
+  public PureStream<F, T> filter(Matcher1<? super T> matcher) {
     return this;
   }
 
   @Override
-  public Stream<F, T> takeWhile(Matcher1<? super T> matcher) {
+  public PureStream<F, T> takeWhile(Matcher1<? super T> matcher) {
     return this;
   }
 
   @Override
-  public Stream<F, T> dropWhile(Matcher1<? super T> matcher) {
+  public PureStream<F, T> dropWhile(Matcher1<? super T> matcher) {
     return this;
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public Stream<F, T> concat(Stream<F, ? extends T> other) {
-    return (Stream<F, T>) other;
+  public PureStream<F, T> concat(PureStream<F, ? extends T> other) {
+    return (PureStream<F, T>) other;
   }
 
   @Override
-  public Stream<F, T> append(Kind<F, ? extends T> other) {
+  public PureStream<F, T> append(Kind<F, ? extends T> other) {
     return new Cons<>(monad, Kind.<F, T>narrowK(other), this);
   }
 
   @Override
-  public Stream<F, T> prepend(Kind<F, ? extends T> other) {
+  public PureStream<F, T> prepend(Kind<F, ? extends T> other) {
     return append(other);
   }
 
   @Override
-  public <R> Stream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
+  public <R> PureStream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
     return new Nil<>(monad);
   }
 
@@ -102,27 +102,27 @@ public final class Nil<F extends Witness, T> implements Stream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> map(Function1<? super T, ? extends R> map) {
+  public <R> PureStream<F, R> map(Function1<? super T, ? extends R> map) {
     return new Nil<>(monad);
   }
 
   @Override
-  public <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
+  public <R> PureStream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
     return new Nil<>(monad);
   }
 
   @Override
-  public <R> Stream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> map) {
+  public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream_, F>, ? extends R>> map) {
     return new Nil<>(monad);
   }
 
   @Override
-  public Stream<F, T> repeat() {
+  public PureStream<F, T> repeat() {
     return this;
   }
 
   @Override
-  public Stream<F, T> intersperse(Kind<F, ? extends T> value) {
+  public PureStream<F, T> intersperse(Kind<F, ? extends T> value) {
     return this;
   }
 }
