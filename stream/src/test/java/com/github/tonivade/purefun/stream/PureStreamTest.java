@@ -45,7 +45,7 @@ import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.PureStream.StreamOf;
 import com.github.tonivade.purefun.type.Option;
 
-public class StreamTest {
+public class PureStreamTest {
 
   private final StreamOf<IO_> streamOfIO = PureStreamInstances.ofIO();
   private final StreamOf<UIO_> streamOfUIO = PureStreamInstances.ofUIO();
