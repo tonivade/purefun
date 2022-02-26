@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018-2021, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
@@ -15,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-public class PromiseInstances {
+public interface PromiseInstances {
 
   static Functor<Promise_> functor() {
     return PromiseFunctor.INSTANCE;

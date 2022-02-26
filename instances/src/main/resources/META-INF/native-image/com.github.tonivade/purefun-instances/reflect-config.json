@@ -44,6 +44,10 @@
     "allPublicMethods": true
   },
   {
+    "name": "com.github.tonivade.purefun.instances.PromiseInstances",
+    "allPublicMethods": true
+  },
+  {
     "name": "com.github.tonivade.purefun.instances.IOInstances",
     "allPublicMethods": true
   },
