@@ -146,7 +146,7 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
 
 final class PromiseImpl<T> implements Promise<T> {
 
-  private final State state = new State();
+  private final Object lock = new Object();
   private final Queue<Consumer1<? super Try<? extends T>>> consumers = new LinkedList<>();
   private final AtomicReference<Try<? extends T>> reference = new AtomicReference<>();
 
@@ -157,21 +157,13 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   @Override
-  public <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply) {
-    Promise<R> result = Promise.make(executor);
-    onComplete(try1 -> PromiseOf.narrowK(apply).onComplete(
-        try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
-    return result;
-  }
-
-  @Override
   public boolean tryComplete(Try<? extends T> value) {
     if (isEmpty()) {
-      synchronized (state) {
+      synchronized (lock) {
         if (isEmpty()) {
-          state.completed = true;
-          setValue(value);
-          state.notifyAll();
+          reference.set(value);
+          lock.notifyAll();
+          consumers.forEach(consumer -> submit(value, consumer));
           return true;
         }
       }
@@ -183,9 +175,9 @@ final class PromiseImpl<T> implements Promise<T> {
   public Try<T> await() {
     if (isEmpty()) {
       try {
-        synchronized (state) {
-          while (!state.completed) {
-            state.wait();
+        synchronized (lock) {
+          while (isEmpty()) {
+            lock.wait();
           }
         }
       } catch (InterruptedException e) {
@@ -193,16 +185,16 @@ final class PromiseImpl<T> implements Promise<T> {
         return Try.failure(e);
       }
     }
-    return TryOf.narrowK(checkNonNull(reference.get()));
+    return TryOf.narrowK(reference.get());
   }
 
   @Override
   public Try<T> await(Duration timeout) {
     if (isEmpty()) {
       try {
-        synchronized (state) {
-          if (!state.completed) {
-            state.wait(timeout.toMillis());
+        synchronized (lock) {
+          if (isEmpty()) {
+            lock.wait(timeout.toMillis());
           }
         }
       } catch (InterruptedException e) {
@@ -210,14 +202,13 @@ final class PromiseImpl<T> implements Promise<T> {
         return Try.failure(e);
       }
     }
-    Option<Try<T>> option = Option.of(reference::get).map(TryOf::narrowK);
-    return option.getOrElse(Try.failure(new TimeoutException()));
+    return isEmpty() ? Try.failure(new TimeoutException()) : TryOf.narrowK(reference.get());
   }
 
   @Override
   public boolean isCompleted() {
-    synchronized (state) {
-      return state.completed;
+    synchronized (lock) {
+      return !isEmpty();
     }
   }
 
@@ -225,6 +216,14 @@ final class PromiseImpl<T> implements Promise<T> {
   public Promise<T> onComplete(Consumer1<? super Try<? extends T>> consumer) {
     current(consumer).ifPresent(consumer);
     return this;
+  }
+
+  @Override
+  public <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply) {
+    Promise<R> result = new PromiseImpl<>(executor);
+    onComplete(try1 -> PromiseOf.narrowK(apply).onComplete(
+        try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
+    return result;
   }
   
   @Override
@@ -245,32 +244,21 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   private Option<Try<T>> current(Consumer1<? super Try<? extends T>> consumer) {
-    Try<? extends T> current = reference.get();
-    if (current == null) {
-      synchronized (state) {
-        current = reference.get();
-        if (current == null) {
+    if (isEmpty()) {
+      synchronized (lock) {
+        if (isEmpty()) {
           consumers.add(consumer);
         }
       }
     }
-    return Option.of(TryOf.narrowK(current));
+    return Option.of(TryOf.narrowK(reference.get()));
   }
-
-  private void setValue(Try<? extends T> value) {
-    reference.set(value);
-    consumers.forEach(consumer -> submit(value, consumer));
-  }
-
-  private void submit(Try<? extends T> value, Consumer1<? super Try<? extends T>> consumer) {
-    executor.execute(() -> consumer.accept(value));
-  }
-
+  
   private boolean isEmpty() {
     return reference.get() == null;
   }
 
-  private static final class State {
-    private boolean completed = false;
+  private void submit(Try<? extends T> value, Consumer1<? super Try<? extends T>> consumer) {
+    executor.execute(() -> consumer.accept(value));
   }
 }
