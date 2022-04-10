@@ -28,7 +28,9 @@ import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
@@ -88,7 +90,11 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(nothing(), x -> callback.accept(x.map(Either::getRight)));
+    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
+  }
+
+  public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
+    instance.provideAsync(nothing(), executor, x -> callback.accept(x.map(Either::getRight)));
   }
 
   @Override
@@ -328,6 +334,10 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   
+  static <T> UIO<T> fromPromise(Promise<? extends T> promise) {
+    return async(promise::onComplete);
+  }
+  
   public static <A> UIO<A> never() {
     return async(cb -> {});
   }
@@ -340,6 +350,22 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
     return fold(PureIO.cancellable(
         (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
+  }
+
+  static <A, T> UIO<Function1<A, UIO<T>>> memoize(Function1<A, UIO<T>> function) {
+    return memoize(Future.DEFAULT_EXECUTOR, function);
+  }
+  
+  static <A, T> UIO<Function1<A, UIO<T>>> memoize(Executor executor, Function1<A, UIO<T>> function) {
+    var ref = Ref.make(ImmutableMap.<A, Promise<T>>empty());
+    return ref.map(r -> {
+      Function1<A, UIO<UIO<T>>> result = a -> r.modify(map -> map.get(a).fold(() -> {
+        Promise<T> promise = Promise.make();
+        function.apply(a).safeRunAsync(executor, promise::tryComplete);
+        return Tuple.of(UIO.fromPromise(promise), map.put(a, promise));
+      }, promise -> Tuple.of(UIO.fromPromise(promise), map)));
+      return result.andThen(io -> io.flatMap(identity()));
+    });
   }
 
   public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {

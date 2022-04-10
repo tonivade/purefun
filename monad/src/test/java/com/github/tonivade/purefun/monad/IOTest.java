@@ -14,20 +14,24 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
@@ -307,6 +311,23 @@ public class IOTest {
     String orElseThrow = result.runAsync().getOrElseThrow();
 
     assertEquals("hola toni", orElseThrow);
+  }
+  
+  @Test
+  public void memoize() {
+    Function1<String, String> toUpperCase = mock(Function1.class);
+    when(toUpperCase.apply(any()))
+      .thenAnswer(args -> args.getArgument(0, String.class).toUpperCase());
+    
+    IO<Function1<String, IO<String>>> memoized = IO.memoize((String str) -> IO.pure(toUpperCase.apply(str)));
+    
+    IO<String> flatMap = memoized.flatMap(x -> x.apply("hola"));
+    flatMap.unsafeRunSync();
+    flatMap.unsafeRunSync();
+    flatMap.unsafeRunSync();
+    flatMap.unsafeRunSync();
+    
+    verify(toUpperCase).apply("hola");
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {

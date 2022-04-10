@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2021, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.effect;
+package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Unit.unit;
@@ -22,16 +22,16 @@ public final class Ref<A> {
     this.value = checkNonNull(value);
   }
 
-  public UIO<A> get() {
-    return UIO.task(value::get);
+  public IO<A> get() {
+    return IO.task(value::get);
   }
 
-  public UIO<Unit> set(A newValue) {
-    return UIO.task(() -> { value.set(newValue); return unit(); });
+  public IO<Unit> set(A newValue) {
+    return IO.task(() -> { value.set(newValue); return unit(); });
   }
   
-  public <B> UIO<B> modify(Function1<A, Tuple2<B, A>> change) {
-    return UIO.task(() -> {
+  public <B> IO<B> modify(Function1<A, Tuple2<B, A>> change) {
+    return IO.task(() -> {
       var loop = true;
       B result = null;
       while (loop) {
@@ -44,24 +44,24 @@ public final class Ref<A> {
     });
   }
 
-  public UIO<Unit> lazySet(A newValue) {
-    return UIO.task(() -> { value.lazySet(newValue); return unit(); });
+  public IO<Unit> lazySet(A newValue) {
+    return IO.task(() -> { value.lazySet(newValue); return unit(); });
   }
 
-  public UIO<A> getAndSet(A newValue) {
-    return UIO.task(() -> value.getAndSet(newValue));
+  public IO<A> getAndSet(A newValue) {
+    return IO.task(() -> value.getAndSet(newValue));
   }
 
-  public UIO<A> updateAndGet(Operator1<A> update) {
-    return UIO.task(() -> value.updateAndGet(update::apply));
+  public IO<A> updateAndGet(Operator1<A> update) {
+    return IO.task(() -> value.updateAndGet(update::apply));
   }
 
-  public UIO<A> getAndUpdate(Operator1<A> update) {
-    return UIO.task(() -> value.getAndUpdate(update::apply));
+  public IO<A> getAndUpdate(Operator1<A> update) {
+    return IO.task(() -> value.getAndUpdate(update::apply));
   }
   
-  public static <A> UIO<Ref<A>> make(A value) {
-    return UIO.pure(of(value));
+  public static <A> IO<Ref<A>> make(A value) {
+    return IO.pure(of(value));
   }
 
   public static <A> Ref<A> of(A value) {

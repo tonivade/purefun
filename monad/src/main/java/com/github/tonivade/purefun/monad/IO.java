@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -14,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
 import com.github.tonivade.purefun.CheckedRunnable;
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Effect;
@@ -31,6 +33,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
@@ -59,7 +62,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   default void safeRunAsync(Consumer1<? super Try<? extends T>> callback) {
-    runAsync().onComplete(callback);
+    safeRunAsync(Future.DEFAULT_EXECUTOR, callback);
+  }
+
+  default void safeRunAsync(Executor executor, Consumer1<? super Try<? extends T>> callback) {
+    runAsync(executor).onComplete(callback);
   }
 
   @Override
@@ -307,6 +314,22 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
     return new Async<>(callback);
+  }
+
+  static <A, T> IO<Function1<A, IO<T>>> memoize(Function1<A, IO<T>> function) {
+    return memoize(Future.DEFAULT_EXECUTOR, function);
+  }
+
+  static <A, T> IO<Function1<A, IO<T>>> memoize(Executor executor, Function1<A, IO<T>> function) {
+    var ref = Ref.make(ImmutableMap.<A, Promise<T>>empty());
+    return ref.map(r -> {
+      Function1<A, IO<IO<T>>> result = a -> r.modify(map -> map.get(a).fold(() -> {
+        Promise<T> promise = Promise.make();
+        function.apply(a).safeRunAsync(executor, promise::tryComplete);
+        return Tuple.of(IO.fromPromise(promise), map.put(a, promise));
+      }, promise -> Tuple.of(IO.fromPromise(promise), map)));
+      return result.andThen(io -> io.flatMap(identity()));
+    });
   }
 
   static IO<Unit> unit() {

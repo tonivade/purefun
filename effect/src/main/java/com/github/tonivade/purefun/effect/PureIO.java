@@ -63,6 +63,10 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     runAsync(env).onComplete(callback::accept);
   }
 
+  default void provideAsync(R env, Executor executor, Consumer1<? super Try<? extends Either<E, A>>> callback) {
+    runAsync(env, executor).onComplete(callback::accept);
+  }
+
   default PureIO<R, A, E> swap() {
     return foldM(PureIO::pure, PureIO::raiseError);
   }
