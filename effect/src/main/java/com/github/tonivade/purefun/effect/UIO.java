@@ -335,7 +335,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   static <T> UIO<T> fromPromise(Promise<? extends T> promise) {
-    return async(promise::onComplete);
+    Consumer1<Consumer1<? super Try<? extends T>>> consumer = promise::onComplete;
+    return async(consumer);
   }
   
   public static <A> UIO<A> never() {
