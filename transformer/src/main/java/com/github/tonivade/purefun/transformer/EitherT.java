@@ -21,8 +21,8 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind(sealed = true)
-public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT_, F>, L>, R> {
+@HigherKind
+public non-sealed interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT_, F>, L>, R> {
 
   Monad<F> monad();
   Kind<F, Either<L, R>> value();
@@ -100,7 +100,7 @@ public interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R>, Bi
   static <F extends Witness, L, R> EitherT<F, L, R> of(Monad<F> monad, Kind<F, Either<L, R>> value) {
     checkNonNull(monad);
     checkNonNull(value);
-    return new SealedEitherT<F, L, R>() {
+    return new EitherT<>() {
 
       @Override
       public Monad<F> monad() { return monad; }

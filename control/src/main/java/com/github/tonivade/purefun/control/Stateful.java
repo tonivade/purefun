@@ -10,7 +10,7 @@ public abstract class Stateful<R, S, E> extends StateMarker implements Handler<R
 
   private final Field<S> state;
 
-  public Stateful(S init) {
+  protected Stateful(S init) {
     this.state = field(init);
   }
 

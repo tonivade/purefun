@@ -14,6 +14,7 @@ import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -147,7 +148,7 @@ public class UIOTest {
 
     Try<String> repeat = task(computation).repeat().safeRunSync();
 
-    assertEquals("hola", repeat.get());
+    assertEquals("hola", repeat.getOrElseThrow());
     verify(computation, times(2)).get();
   }
 
@@ -226,6 +227,23 @@ public class UIOTest {
   @Test
   public void timeoutSuccess() {
     assertEquals(1, UIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync());
+  }
+  
+  @Test
+  public void memoize() {
+    Function1<String, String> toUpperCase = mock(Function1.class);
+    when(toUpperCase.apply(any()))
+      .thenAnswer(args -> args.getArgument(0, String.class).toUpperCase());
+    
+    UIO<Function1<String, UIO<String>>> memoized = UIO.memoize((String str) -> UIO.pure(toUpperCase.apply(str)));
+    
+    UIO<String> flatMap = memoized.flatMap(x -> x.apply("hola"));
+    flatMap.unsafeRunSync();
+    flatMap.unsafeRunSync();
+    flatMap.unsafeRunSync();
+    flatMap.unsafeRunSync();
+    
+    verify(toUpperCase).apply("hola");
   }
 
   private UIO<Integer> parseInt(String string) {

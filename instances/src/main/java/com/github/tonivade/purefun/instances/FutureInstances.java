@@ -104,7 +104,7 @@ interface FutureMonad extends FuturePure, Monad<Future_> {
   @Override
   default <T, R> Kind<Future_, R> ap(Kind<Future_, ? extends T> value, 
       Kind<Future_, ? extends Function1<? super T, ? extends R>> apply) {
-    return FutureInstances.applicative().ap(value, apply);
+    return FutureInstances.applicative(executor()).ap(value, apply);
   }
 }
 

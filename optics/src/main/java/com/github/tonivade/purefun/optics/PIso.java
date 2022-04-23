@@ -14,7 +14,7 @@ public final class PIso<S, T, A, B> {
   private final Function1<S, A> get;
   private final Function1<B, T> reverseGet;
 
-  protected PIso(Function1<S, A> get, Function1<B, T> reverseGet) {
+  PIso(Function1<S, A> get, Function1<B, T> reverseGet) {
     this.get = checkNonNull(get);
     this.reverseGet = checkNonNull(reverseGet);
   }

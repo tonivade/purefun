@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -37,8 +38,8 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <L> type of the left value, negative case
  * @param <R> type of the right value, positive case
  */
-@HigherKind(sealed = true)
-public interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>, R> {
+@HigherKind
+public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -198,8 +199,9 @@ public interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>,
     return eitherA.flatMap(a -> eitherB.map(b -> mapper.apply(a, b)));
   }
 
-  final class Left<L, R> implements SealedEither<L, R>, Serializable {
+  final class Left<L, R> implements Either<L, R>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 7040154642166638129L;
 
     private static final Equal<Left<?, ?>> EQUAL = Equal.<Left<?, ?>>of().comparing(Left::getLeft);
@@ -246,8 +248,9 @@ public interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>,
     }
   }
 
-  final class Right<L, R> implements SealedEither<L, R>, Serializable {
+  final class Right<L, R> implements Either<L, R>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 164989996450592091L;
 
     private static final Equal<Right<?, ?>> EQUAL = Equal.<Right<?, ?>>of().comparing(Right::getRight);

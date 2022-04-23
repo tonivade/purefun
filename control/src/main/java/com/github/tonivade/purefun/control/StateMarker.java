@@ -35,7 +35,7 @@ class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Obj
 
     @SuppressWarnings("unchecked")
     public Control<T> get() {
-      return Control.later(() -> (T) data.get(this).get());
+      return Control.later(() -> (T) data.get(this).getOrElseThrow());
     }
 
     public Control<Unit> set(T value) {

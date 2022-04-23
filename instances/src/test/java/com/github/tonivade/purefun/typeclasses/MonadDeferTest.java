@@ -119,7 +119,7 @@ public class MonadDeferTest {
         optionTMonadDefer.bracket(OptionT.some(IOInstances.monad(), resource),
                                   r -> OptionT.some(IOInstances.monad(), "done"));
 
-    String result = bracket.fix(OptionTOf::narrowK).get().fix(toIO()).unsafeRunSync();
+    String result = bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -133,7 +133,7 @@ public class MonadDeferTest {
                                   r -> OptionT.some(IOInstances.monad(), "done"));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
-                 () -> bracket.fix(OptionTOf::narrowK).get().fix(toIO()).unsafeRunSync());
+                 () -> bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync());
 
     assertEquals("could not acquire resource", error.getMessage());
     verify(resource, never()).close();
@@ -147,7 +147,7 @@ public class MonadDeferTest {
                                   r -> OptionT.<IO_, String>none(IOInstances.monad()));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
-                 () -> bracket.fix(OptionTOf::narrowK).get().fix(toIO()).unsafeRunSync());
+                 () -> bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync());
 
     assertEquals("get() in none", error.getMessage());
     verify(resource).close();

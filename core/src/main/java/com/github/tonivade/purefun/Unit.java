@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -11,6 +12,7 @@ import java.io.Serializable;
  */
 public final class Unit implements Serializable {
 
+  @Serial
   private static final long serialVersionUID = -8253613036328680583L;
 
   private static final Unit INSTANCE = new Unit();
@@ -26,7 +28,8 @@ public final class Unit implements Serializable {
     return "Unit";
   }
   
-  protected Object readResolve() {
+  @Serial
+  private Object readResolve() {
     return INSTANCE;
   }
 }

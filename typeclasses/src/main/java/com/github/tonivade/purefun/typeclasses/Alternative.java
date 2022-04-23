@@ -9,7 +9,7 @@ import com.github.tonivade.purefun.Witness;
 public interface Alternative<F extends Witness> extends Applicative<F>, MonoidK<F> {
 
   static <F extends Witness, G extends Witness> Alternative<Nested<F, G>> compose(Alternative<F> f, Alternative<G> g) {
-    return new ComposedAlternative<F, G>() {
+    return new ComposedAlternative<>() {
 
       @Override
       public Alternative<F> f() { return f; }

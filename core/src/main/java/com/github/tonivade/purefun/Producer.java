@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public interface Producer<T> extends ProducerOf<T>, Recoverable {
+public non-sealed interface Producer<T> extends ProducerOf<T>, Recoverable {
 
   default T get() {
     try {

@@ -1,4 +1,3 @@
-enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = 'purefun-parent'
@@ -13,12 +12,12 @@ rootProject.children.each { it.name = "purefun-" + it.name }
 dependencyResolutionManagement {
   versionCatalogs {
     libs {
-      alias('junitJupiter').to("org.junit.jupiter:junit-jupiter-engine:$junitEngineVersion")
-      alias('junitRunner').to("org.junit.platform:junit-platform-runner:$junitPlatformVersion")
-      alias('equalsVerifier').to("nl.jqno.equalsverifier:equalsverifier:$equalsVerifierVersion")
-      alias('mockitoCore').to("org.mockito:mockito-core:$mockitoVersion")
-      alias('mockitoJunit').to("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-      alias('compileTesting').to("com.google.testing.compile:compile-testing:$compileTestingVersion")
+      library('junitJupiter', "org.junit.jupiter:junit-jupiter-engine:$junitEngineVersion")
+      library('junitRunner', "org.junit.platform:junit-platform-runner:$junitPlatformVersion")
+      library('equalsVerifier', "nl.jqno.equalsverifier:equalsverifier:$equalsVerifierVersion")
+      library('mockitoCore', "org.mockito:mockito-core:$mockitoVersion")
+      library('mockitoJunit', "org.mockito:mockito-junit-jupiter:$mockitoVersion")
+      library('compileTesting', "com.google.testing.compile:compile-testing:$compileTestingVersion")
     }
   }
 }

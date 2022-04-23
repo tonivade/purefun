@@ -5,6 +5,8 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
@@ -21,6 +23,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 @HigherKind
 public final class EitherK<F extends Witness, G extends Witness, T> implements EitherKOf<F, G, T>, Serializable {
 
+  @Serial
   private static final long serialVersionUID = -2305737717835278018L;
 
   private static final Equal<EitherK<?, ?, ?>> EQUAL =

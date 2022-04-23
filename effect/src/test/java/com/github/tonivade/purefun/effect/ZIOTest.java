@@ -262,7 +262,7 @@ public class ZIOTest {
                 .andThen(currentThread
                     .andThen(currentThread))));
 
-    ImmutableList<String> result = program.runAsync().await().get();
+    ImmutableList<String> result = program.runAsync().await().getOrElseThrow();
 
     assertEquals(5, result.size());
   }

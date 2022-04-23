@@ -154,7 +154,7 @@ public class EIOTest {
 
     verify(callback, timeout(500)).accept(captor.capture());
 
-    assertEquals(NumberFormatException.class, captor.getValue().get().getLeft().getClass());
+    assertEquals(NumberFormatException.class, captor.getValue().getOrElseThrow().getLeft().getClass());
   }
 
   @Test

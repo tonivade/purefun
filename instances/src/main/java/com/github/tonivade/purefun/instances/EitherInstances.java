@@ -9,7 +9,6 @@ import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
@@ -29,14 +28,15 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 public interface EitherInstances {
 
   static <L, R> Eq<Kind<Kind<Either_, L>, R>> eq(Eq<L> leftEq, Eq<R> rightEq) {
-    return (a, b) -> Pattern2.<Either<L, R>, Either<L, R>, Boolean>build()
-      .when((x, y) -> x.isLeft() && y.isLeft())
-        .then((x, y) -> leftEq.eqv(x.getLeft(), y.getLeft()))
-      .when((x, y) -> x.isRight() && y.isRight())
-        .then((x, y) -> rightEq.eqv(x.getRight(), y.getRight()))
-      .otherwise()
-        .returns(false)
-      .apply(EitherOf.narrowK(a), EitherOf.narrowK(b));
+    return (a, b) -> {
+      if (a instanceof Either.Left<L, R> leftA && b instanceof Either.Left<L, R> leftB) {
+        return leftEq.eqv(leftA.getLeft(), leftB.getLeft());
+      }
+      if (a instanceof Either.Right<L, R> rightA && b instanceof Either.Right<L, R> rightB) {
+        return rightEq.eqv(rightA.getRight(), rightB.getRight());
+      }
+      return false;
+    };
   }
 
   static <L> Functor<Kind<Either_, L>> functor() {

@@ -16,7 +16,7 @@ public final class Prism<S, A> {
 
   private final PPrism<S, S, A, A> delegate;
 
-  protected Prism(PPrism<S, S, A, A> delegate) {
+  Prism(PPrism<S, S, A, A> delegate) {
     this.delegate = checkNonNull(delegate);
   }
 

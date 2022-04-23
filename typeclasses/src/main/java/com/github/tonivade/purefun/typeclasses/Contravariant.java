@@ -18,7 +18,7 @@ public interface Contravariant<F extends Witness> extends Invariant<F> {
   }
 
   static <F extends Witness, G extends Witness> Contravariant<Nested<F, G>> compose(Functor<F> f, Contravariant<G> g) {
-    return new ComposedCovariantContravariant<F, G>() {
+    return new ComposedCovariantContravariant<>() {
       @Override
       public Functor<F> f() { return f; }
 
@@ -28,7 +28,7 @@ public interface Contravariant<F extends Witness> extends Invariant<F> {
   }
 
   static <F extends Witness, G extends Witness> Contravariant<Nested<F, G>> compose(Contravariant<F> f, Functor<G> g) {
-    return new ComposedContravariantCovariant<F, G>() {
+    return new ComposedContravariantCovariant<>() {
       @Override
       public Contravariant<F> f() { return f; }
 

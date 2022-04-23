@@ -66,8 +66,8 @@ import com.github.tonivade.purefun.type.TryOf;
  * @see Try
  * @see Promise
  */
-@HigherKind(sealed = true)
-public interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
+@HigherKind
+public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
@@ -281,7 +281,7 @@ public interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
   }
 }
 
-final class FutureImpl<T> implements SealedFuture<T> {
+final class FutureImpl<T> implements Future<T> {
 
   private final Executor executor;
   private final Propagate propagate;
@@ -427,13 +427,13 @@ final class FutureImpl<T> implements SealedFuture<T> {
           promise.onComplete(value -> mapper.andThen(FutureOf::<R>narrowK).apply(value).onComplete(p::tryComplete)), this::cancel);
   }
 
-  protected static <T> Future<T> sync(Executor executor, Try<? extends T> result) {
+  static <T> Future<T> sync(Executor executor, Try<? extends T> result) {
     checkNonNull(executor);
     checkNonNull(result);
     return new FutureImpl<>(executor, (p, c) -> p.tryComplete(result));
   }
 
-  protected static <T> Future<T> task(Executor executor, Producer<? extends Try<? extends T>> producer) {
+  static <T> Future<T> task(Executor executor, Producer<? extends Try<? extends T>> producer) {
     checkNonNull(executor);
     checkNonNull(producer);
     return new FutureImpl<>(executor,
@@ -443,7 +443,7 @@ final class FutureImpl<T> implements SealedFuture<T> {
           }));
   }
 
-  protected static <T> Future<T> async(Executor executor, 
+  static <T> Future<T> async(Executor executor,
       Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
@@ -454,19 +454,19 @@ final class FutureImpl<T> implements SealedFuture<T> {
         }));
   }
 
-  protected static <T> Future<T> from(Executor executor, Promise<? extends T> promise) {
+  static <T> Future<T> from(Executor executor, Promise<? extends T> promise) {
     checkNonNull(executor);
     checkNonNull(promise);
     return new FutureImpl<>(executor, (p, c) -> promise.onComplete(p::tryComplete));
   }
 
-  protected static Future<Unit> sleep(Executor executor, Duration delay) {
+  static Future<Unit> sleep(Executor executor, Duration delay) {
     checkNonNull(executor);
     checkNonNull(delay);
     return from(executor, FutureModule.sleep(executor, delay));
   }
 
-  protected static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire, 
+  static <T, R> Future<R> bracket(Executor executor, Future<? extends T> acquire,
       Function1<? super T, ? extends Future<? extends R>> use, Consumer1<? super T> release) {
     checkNonNull(executor);
     checkNonNull(acquire);

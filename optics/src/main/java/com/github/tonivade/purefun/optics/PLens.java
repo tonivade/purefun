@@ -16,7 +16,7 @@ public final class PLens<S, T, A, B> {
   private final Function1<S, A> getter;
   private final Function1<S, Function1<B, T>> setter;
 
-  protected PLens(Function1<S, A> getter, Function1<S, Function1<B, T>> setter) {
+  PLens(Function1<S, A> getter, Function1<S, Function1<B, T>> setter) {
     this.getter = checkNonNull(getter);
     this.setter = checkNonNull(setter);
   }

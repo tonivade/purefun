@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 import com.github.tonivade.purefun.data.Sequence;
@@ -11,6 +12,7 @@ import com.github.tonivade.purefun.data.Sequence;
 @HigherKind
 public final class Tuple1<A> implements Tuple, Tuple1Of<A>, Serializable {
 
+  @Serial
   private static final long serialVersionUID = 6343431593011527978L;
 
   private static final Equal<Tuple1<?>> EQUAL = Equal.<Tuple1<?>>of().comparing(Tuple1::get1);
@@ -40,6 +42,10 @@ public final class Tuple1<A> implements Tuple, Tuple1Of<A>, Serializable {
 
   public <R> R applyTo(Function1<? super A, ? extends R> function) {
     return function.apply(value1);
+  }
+
+  public void consume(Consumer1<? super A> consumer) {
+    consumer.accept(value1);
   }
 
   @Override

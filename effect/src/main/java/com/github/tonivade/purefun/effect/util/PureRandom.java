@@ -50,21 +50,21 @@ public interface PureRandom {
   }
 
   static PureRandom live() {
-    return new ZRandomImpl(new Random());
+    return new PureRandomImpl(new Random());
   }
 
   static PureRandom test(long seed) {
-    return new ZRandomImpl(new Random(seed));
+    return new PureRandomImpl(new Random(seed));
   }
 }
 
-class ZRandomImpl implements PureRandom {
+class PureRandomImpl implements PureRandom {
 
   private static final String PRINTABLE_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   private final Random random;
 
-  ZRandomImpl(Random random) {
+  PureRandomImpl(Random random) {
     this.random = checkNonNull(random);
   }
 

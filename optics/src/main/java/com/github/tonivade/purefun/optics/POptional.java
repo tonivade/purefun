@@ -17,7 +17,7 @@ public final class POptional<S, T, A, B> {
   private final Function1<S, Function1<B, T>> set;
   private final Function1<S, Either<T, A>> getOrModify;
 
-  protected POptional(Function1<S, Function1<B, T>> set, Function1<S, Either<T, A>> getOrModify) {
+  POptional(Function1<S, Function1<B, T>> set, Function1<S, Either<T, A>> getOrModify) {
     this.set = checkNonNull(set);
     this.getOrModify = checkNonNull(getOrModify);
   }

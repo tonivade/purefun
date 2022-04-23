@@ -31,7 +31,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
   }
 
   static <F extends Witness, G extends Witness> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
-    return new ComposedTraverse<F, G>() {
+    return new ComposedTraverse<>() {
 
       @Override
       public Traverse<F> f() { return f; }

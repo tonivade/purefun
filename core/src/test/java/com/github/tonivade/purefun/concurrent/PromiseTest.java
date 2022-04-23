@@ -5,10 +5,7 @@
 package com.github.tonivade.purefun.concurrent;
 
 import static com.github.tonivade.purefun.Unit.unit;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
@@ -23,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Consumer1;
+import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.type.Try;
 
@@ -156,6 +155,23 @@ class PromiseTest {
     Try<String> result = other.await();
     assertTrue(result.isFailure());
     assertEquals(InterruptedException.class, result.getCause().getClass());
+  }
+  
+  @Test
+  void mapN() throws InterruptedException {
+    Promise<String> one = Promise.make();
+    Promise<String> two = Promise.make();
+    
+    Promise<Tuple2<String, String>> promise = Promise.mapN(one, two, Tuple::of);
+    
+    assertFalse(promise.isCompleted());
+    one.tryComplete(Try.success("one"));
+    assertFalse(promise.isCompleted());
+    two.tryComplete(Try.success("two"));
+    Thread.sleep(100);
+    assertTrue(promise.isCompleted());
+    
+    assertEquals(Try.success(Tuple.of("one", "two")), promise.await());
   }
 
   @Test

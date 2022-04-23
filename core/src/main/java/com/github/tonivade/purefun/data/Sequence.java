@@ -30,7 +30,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
 @HigherKind
-public interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bindable<Sequence_, E> {
+public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bindable<Sequence_, E> {
 
   int size();
 

@@ -41,7 +41,7 @@ public interface Foldable<F extends Witness> {
   }
 
   static <F extends Witness, G extends Witness> Foldable<Nested<F, G>> compose(Foldable<F> f, Foldable<G> g) {
-    return new ComposedFoldable<F, G>() {
+    return new ComposedFoldable<>() {
 
       @Override
       public Foldable<F> f() { return f; }

@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind
-public interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer_, L>, A> {
+public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer_, L>, A> {
 
   Monoid<L> monoid();
   Tuple2<L, A> value();
@@ -64,7 +64,7 @@ public interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer_, L>,
   }
 
   static <L, A> Writer<L, A> writer(Monoid<L> monoid, Tuple2<L, A> value) {
-    return new Writer<L, A>() {
+    return new Writer<>() {
 
       @Override
       public Monoid<L> monoid() { return monoid; }

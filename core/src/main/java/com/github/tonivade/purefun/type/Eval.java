@@ -27,8 +27,8 @@ import com.github.tonivade.purefun.Unit;
  * </ul>
  * @param <A> result of the computation
  */
-@HigherKind(sealed = true)
-public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
+@HigherKind
+public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
@@ -66,11 +66,11 @@ public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     return new Done<>(failure(cons(error)));
   }
 
-  final class Done<A> implements SealedEval<A> {
+  final class Done<A> implements Eval<A> {
 
     private final Producer<? extends A> producer;
 
-    protected Done(Producer<? extends A> producer) {
+    private Done(Producer<? extends A> producer) {
       this.producer = checkNonNull(producer);
     }
 
@@ -90,17 +90,17 @@ public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     }
   }
 
-  final class Defer<A> implements SealedEval<A> {
+  final class Defer<A> implements Eval<A> {
 
     private final Producer<? extends Kind<Eval_, ? extends A>> deferred;
 
-    protected Defer(Producer<? extends Kind<Eval_, ? extends A>> deferred) {
+    private Defer(Producer<? extends Kind<Eval_, ? extends A>> deferred) {
       this.deferred = checkNonNull(deferred);
     }
 
     @Override
     public A value() {
-      return EvalModule.collapse(this).value();
+      return collapse(this).value();
     }
 
     @Override
@@ -109,7 +109,7 @@ public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     }
 
     @SuppressWarnings("unchecked")
-    protected Eval<A> next() {
+    private Eval<A> next() {
       return (Eval<A>) deferred.get();
     }
 
@@ -119,19 +119,19 @@ public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     }
   }
 
-  final class FlatMapped<A, B> implements SealedEval<B> {
+  final class FlatMapped<A, B> implements Eval<B> {
 
     private final Producer<? extends Kind<Eval_, ? extends A>> start;
     private final Function1<? super A, ? extends Kind<Eval_, ? extends B>> run;
 
-    protected FlatMapped(Producer<? extends Kind<Eval_, ? extends A>> start, Function1<? super A, ? extends Kind<Eval_, ? extends B>> run) {
+    private FlatMapped(Producer<? extends Kind<Eval_, ? extends A>> start, Function1<? super A, ? extends Kind<Eval_, ? extends B>> run) {
       this.start = checkNonNull(start);
       this.run = checkNonNull(run);
     }
 
     @Override
     public B value() {
-      return EvalModule.evaluate(this);
+      return evaluate(this);
     }
 
     @Override
@@ -139,11 +139,11 @@ public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
       return new FlatMapped<>(this::start, b -> new FlatMapped<>(() -> run(b), map::apply));
     }
 
-    protected Eval<A> start() {
+    private Eval<A> start() {
       return EvalOf.narrowK(start.get());
     }
 
-    protected Eval<B> run(A value) {
+    private Eval<B> run(A value) {
       Function1<? super A, Eval<B>> andThen = run.andThen(EvalOf::narrowK);
       return andThen.apply(value);
     }
@@ -153,16 +153,12 @@ public interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
       return "FlatMapped(?, ?)";
     }
   }
-}
-
-interface EvalModule {
 
   @SuppressWarnings("unchecked")
-  static <A, X> Eval<A> collapse(Eval<A> self) {
+  private static <A, X> Eval<A> collapse(Eval<A> self) {
     Eval<A> current = self;
     while (true) {
-      if (current instanceof Eval.Defer) {
-        Eval.Defer<A> defer = (Eval.Defer<A>) current;
+      if (current instanceof Eval.Defer<A> defer) {
         current = defer.next();
       } else if (current instanceof Eval.FlatMapped) {
         Eval.FlatMapped<X, A> flatMapped = (Eval.FlatMapped<X, A>) current;
@@ -175,15 +171,13 @@ interface EvalModule {
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  static <A> A evaluate(Eval<A> self) {
+  private static <A> A evaluate(Eval<A> self) {
     Deque<Function1<Object, Eval>> stack = new LinkedList<>();
     Eval<A> current = self;
     while (true) {
-      if (current instanceof Eval.FlatMapped) {
-        Eval.FlatMapped currentFlatMapped = (Eval.FlatMapped) current;
+      if (current instanceof Eval.FlatMapped currentFlatMapped) {
         Eval<A> next = currentFlatMapped.start();
-        if (next instanceof Eval.FlatMapped) {
-          Eval.FlatMapped nextFlatMapped = (Eval.FlatMapped) next;
+        if (next instanceof Eval.FlatMapped nextFlatMapped) {
           current = nextFlatMapped.start();
           stack.push(currentFlatMapped::run);
           stack.push(nextFlatMapped::run);

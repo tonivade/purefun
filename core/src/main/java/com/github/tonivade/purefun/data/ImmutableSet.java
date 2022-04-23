@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.collectingAndThen;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -86,6 +87,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   final class JavaBasedImmutableSet<E> implements ImmutableSet<E>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = -4111867323115030715L;
 
     public static final ImmutableSet<?> EMPTY = new JavaBasedImmutableSet<>(new LinkedHashSet<>());

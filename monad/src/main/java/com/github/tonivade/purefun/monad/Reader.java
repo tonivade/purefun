@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.Bindable;
 
 @HigherKind
 @FunctionalInterface
-public interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<Reader_, R>, A> {
+public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<Reader_, R>, A> {
 
   A eval(R reader);
 

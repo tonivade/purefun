@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.Tuple4;
 import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.type.Option;
 
-public interface HList<L extends HList<L>> {
+public sealed interface HList<L extends HList<L>> {
 
   int size();
 

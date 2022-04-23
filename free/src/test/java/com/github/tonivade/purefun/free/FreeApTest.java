@@ -111,15 +111,17 @@ public class FreeApTest {
 
     String analize = tuple.analyze(constTransform(), ConstInstances.applicative(Monoid.string()));
 
-    assertEquals("ReadInt(2)\n" +
-        "ReadBoolean(false)\n" +
-        "ReadDouble(2.1)\n" +
-        "ReadString(hola mundo)\n" +
-        "ReadUnit(Unit)\n", analize);
+    assertEquals("""
+        ReadInt(2)
+        ReadBoolean(false)
+        ReadDouble(2.1)
+        ReadString(hola mundo)
+        ReadUnit(Unit)
+        """, analize);
   }
 
   private FunctionK<DSL_, Id_> idTransform() {
-    return new FunctionK<DSL_, Id_>() {
+    return new FunctionK<>() {
       @Override
       public <T> Kind<Id_, T> apply(Kind<DSL_, ? extends T> from) {
         return Id.of(from.fix(DSLOf::<T>narrowK).value());
@@ -128,18 +130,18 @@ public class FreeApTest {
   }
 
   private FunctionK<DSL_, Kind<Const_, String>> constTransform() {
-    return new FunctionK<DSL_, Kind<Const_, String>>() {
+    return new FunctionK<>() {
       @Override
       public <T> Const<String, T> apply(Kind<DSL_, ? extends T> from) {
-        DSL<T> dsl = from.fix(DSLOf::<T>narrowK);
-        return Const.<String, T>of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n");
+        DSL<T> dsl = from.fix(DSLOf::narrowK);
+        return Const.of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n");
       }
     };
   }
 }
 
 @HigherKind
-interface DSL<A> extends DSLOf<A> {
+sealed interface DSL<A> extends DSLOf<A> {
 
   A value();
 
@@ -164,60 +166,13 @@ interface DSL<A> extends DSLOf<A> {
   }
 }
 
-final class ReadInt implements DSL<Integer> {
-  private final int value;
+record ReadInt(Integer value) implements DSL<Integer> { }
 
-  ReadInt(int value) {
-    this.value = value;
-  }
+record ReadString(String value) implements DSL<String> { }
 
-  @Override
-  public Integer value() {
-    return value;
-  }
-}
+record ReadBoolean(Boolean value) implements DSL<Boolean> { }
 
-final class ReadString implements DSL<String> {
-
-  private final String value;
-
-  ReadString(String value) {
-    this.value = value;
-  }
-
-  @Override
-  public String value() {
-    return value;
-  }
-}
-
-final class ReadBoolean implements DSL<Boolean> {
-
-  private final boolean value;
-
-  ReadBoolean(boolean value) {
-    this.value = value;
-  }
-
-  @Override
-  public Boolean value() {
-    return value;
-  }
-}
-
-final class ReadDouble implements DSL<Double> {
-
-  private final double value;
-
-  ReadDouble(double value) {
-    this.value = value;
-  }
-
-  @Override
-  public Double value() {
-    return value;
-  }
-}
+record ReadDouble(Double value) implements DSL<Double> { }
 
 final class ReadUnit implements DSL<Unit> {
   @Override

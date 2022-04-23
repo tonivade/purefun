@@ -42,7 +42,7 @@ public class OptionTTest {
 
     OptionT<Id_, String> map = some.map(String::toUpperCase);
 
-    assertEquals(Id.of("ABC"), map.get());
+    assertEquals(Id.of("ABC"), map.getOrElseThrow());
   }
 
   @Test
@@ -51,7 +51,7 @@ public class OptionTTest {
 
     OptionT<Id_, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
 
-    assertEquals(Id.of("ABC"), map.get());
+    assertEquals(Id.of("ABC"), map.getOrElseThrow());
   }
 
   @Test
@@ -61,7 +61,7 @@ public class OptionTTest {
     OptionT<Id_, String> filter = some.filter(String::isEmpty);
     OptionT<Id_, String> orElse = OptionT.some(monad, "not empty");
 
-    assertEquals(orElse.get(), filter.getOrElse("not empty"));
+    assertEquals(orElse.getOrElseThrow(), filter.getOrElse("not empty"));
   }
 
   @Test
@@ -88,7 +88,7 @@ public class OptionTTest {
 
     OptionT<Try_, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success("abc"), TryOf.narrowK(someTry.get()));
+    assertEquals(Try.success("abc"), TryOf.narrowK(someTry.getOrElseThrow()));
   }
 
   @Test

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import static java.util.Collections.unmodifiableNavigableMap;
 import static java.util.stream.Collectors.collectingAndThen;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -152,8 +153,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   static <T, K, V> Collector<T, ?, ImmutableTreeMap<K, V>> toImmutableTreeMap(
       Function1<? super T, ? extends K> keyMapper, Function1<? super T, ? extends V> valueMapper) {
-    Collector<T, ?, ? extends TreeMap<K, V>> toLinkedHashMap = 
-        ImmutableTreeModule.toTreeMap(keyMapper, valueMapper);
+    Collector<T, ?, ? extends TreeMap<K, V>> toLinkedHashMap = ImmutableTreeModule.toTreeMap(keyMapper, valueMapper);
     return collectingAndThen(toLinkedHashMap, JavaBasedImmutableTreeMap::new);
   }
 
@@ -179,6 +179,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   final class JavaBasedImmutableTreeMap<K, V> implements ImmutableTreeMap<K, V>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 8618845296089216532L;
 
     private static final ImmutableTreeMap<?, ?> EMPTY = new JavaBasedImmutableTreeMap<>(new TreeMap<>());

@@ -8,9 +8,11 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 
 public interface Reference<F extends Witness, A> {
@@ -18,6 +20,8 @@ public interface Reference<F extends Witness, A> {
   Kind<F, A> get();
 
   Kind<F, Unit> set(A newValue);
+
+  <B> Kind<F, B> modify(Function1<A, Tuple2<B, A>> change);
 
   Kind<F, A> getAndSet(A newValue);
 
@@ -48,6 +52,21 @@ final class MonadDeferReference<F extends Witness, A> implements Reference<F, A>
   @Override
   public Kind<F, Unit> set(A newValue) {
     return monadF.exec(() -> value.set(newValue));
+  }
+
+  @Override
+  public <B> Kind<F, B> modify(Function1<A, Tuple2<B, A>> change) {
+    return monadF.later(() -> {
+      var loop = true;
+      B result = null;
+      while (loop) {
+        A current = value.get();
+        var tuple = change.apply(current);
+        result = tuple.get1();
+        loop = !value.compareAndSet(current, tuple.get2());
+      }
+      return result;
+    });
   }
 
   @Override

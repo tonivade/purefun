@@ -9,16 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
-import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
-import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 public class FreeTest {
@@ -31,8 +28,7 @@ public class FreeTest {
 
   @Test
   public void interpretState() {
-    Kind<Kind<State_, ImmutableList<String>>, Unit> foldMap =
-        echo.foldMap(StateInstances.monad(), new IOProgramToState());
+    var foldMap = echo.foldMap(StateInstances.monad(), new IOProgramToState());
 
     State<ImmutableList<String>, Unit> state = StateOf.narrowK(foldMap);
 
@@ -43,8 +39,7 @@ public class FreeTest {
 
   @Test
   public void interpretIO() {
-    Kind<IO_, Unit> foldMap =
-        echo.foldMap(IOInstances.monad(), new IOProgramToIO());
+    var foldMap = echo.foldMap(IOInstances.monad(), new IOProgramToIO());
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 

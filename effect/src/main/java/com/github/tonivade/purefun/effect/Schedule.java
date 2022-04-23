@@ -21,8 +21,8 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind(sealed = true)
-public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
+@HigherKind
+public sealed interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
   <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper);
 
@@ -198,69 +198,92 @@ public interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 }
 
-abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
+final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Update<R, S, A>, Schedule.Extract<A, S, B> {
   
-  private ScheduleImpl() { }
+  private final URIO<R, S> initial;
+  private final Update<R, S, A> update;
+  private final Extract<A, S, B> extract;
   
-  public abstract URIO<R, S> initial();
+  private ScheduleImpl(
+      URIO<R, S> initial, 
+      Update<R, S, A> update,
+      Extract<A, S, B> extract) {
+    this.initial = checkNonNull(initial);
+    this.update = checkNonNull(update);
+    this.extract = checkNonNull(extract);
+  }
+  
+  public URIO<R, S> initial() {
+    return initial;
+  }
+  
+  @Override
+  public PureIO<R, Unit, S> update(A last, S state) {
+    return update.update(last, state);
+  }
+  
+  @Override
+  public B extract(A last, S state) {
+    return extract.extract(last, state);
+  }
 
   @Override
   public <C> Schedule<R, A, C> map(Function1<? super B, ? extends C> mapper) {
     return ScheduleImpl.of(
-      initial(), 
-      this::update, 
+      initial, 
+      update, 
       (a, s) -> mapper.apply(extract(a, s)));
   }
 
   @Override
   public <C> Schedule<R, C, B> contramap(Function1<? super C, ? extends A> comap) {
     return ScheduleImpl.of(
-      initial(), 
+      initial, 
       (c, s) -> update(comap.apply(c), s), 
       (c, s) -> extract(comap.apply(c), s));
   }
 
+  @Override
   public Schedule<R, A, B> andThen(Schedule<R, A, B> next) {
     return andThenEither(next).map(Either::merge);
   }
 
   @SuppressWarnings("unchecked")
   public <C> Schedule<R, A, Either<B, C>> andThenEither(Schedule<R, A, C> next) {
-    return _andThenEither((ScheduleImpl<R, ?, A, C>) next);
+    return doAndThenEither((ScheduleImpl<R, ?, A, C>) next);
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, Tuple2<B, C>> zip(Schedule<R, A, C> other) {
-    return _zip((ScheduleImpl<R, ?, A, C>) other);
+    return doZip((ScheduleImpl<R, ?, A, C>) other);
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, C> compose(Schedule<R, B, C> other) {
-    return _compose((ScheduleImpl<R, ?, B, C>) other);
+    return doCompose((ScheduleImpl<R, ?, B, C>) other);
   }
 
   @Override
   public <Z> Schedule<R, A, Z> foldM(Z zero, Function2<Z, B, PureIO<R, Unit, Z>> next) {
     return ScheduleImpl.of(
-      initial().map(s -> Tuple.of(s, zero)), 
+      initial.map(s -> Tuple.of(s, zero)), 
       (a, sz) -> {
         PureIO<R, Unit, S> update = update(a, sz.get1());
         PureIO<R, Unit, Z> other = next.apply(sz.get2(), extract(a, sz.get1()));
-        PureIO<R, Unit, Tuple2<S, Z>> zip = update.zip(other);
-        return zip;
+        return update.zip(other);
       }, 
       (a, sz) -> sz.get2());
   }
 
   @Override
   public Schedule<R, A, B> addDelayM(Function1<B, URIO<R, Duration>> map) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       PureIO<R, Unit, Tuple2<Duration, S>> map2 = 
         PureIO.parMap2(
           map.apply(extract(a, s)).toPureIO(), 
-          update.update(a, s), 
+          u.update(a, s), 
           Tuple::of);
       
       return map2.flatMap(ds -> {
@@ -272,7 +295,7 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
 
   @Override
   public Schedule<R, A, B> untilInputM(Function1<A, UIO<Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       UIO<Boolean> apply = condition.apply(a);
       return apply.<R, Unit>toPureIO()
               .flatMap(test -> test ? PureIO.raiseError(Unit.unit()) : update(a, s));
@@ -281,7 +304,7 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
 
   @Override
   public Schedule<R, A, B> untilOutputM(Function1<B, UIO<Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       UIO<Boolean> apply = condition.apply(extract(a, s));
       return apply.<R, Unit>toPureIO()
         .flatMap(test -> test ? PureIO.raiseError(Unit.unit()) : update(a, s));
@@ -290,19 +313,19 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
 
   @Override
   public Schedule<R, A, B> check(Function2<A, B, UIO<Boolean>> condition) {
-    return updated(update -> (a, s) -> {
+    return updated(u -> (a, s) -> {
       PureIO<R, Unit, Boolean> apply = condition.apply(a, this.extract(a, s)).toPureIO();
-      return apply.flatMap(result -> result != null && result ? update.update(a, s) : PureIO.raiseError(Unit.unit()));
+      return apply.flatMap(result -> result != null && result ? u.update(a, s) : PureIO.raiseError(Unit.unit()));
     });
   }
 
-  private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> _andThenEither(ScheduleImpl<R, T, A, C> other) {
+  private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> doAndThenEither(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Either<S, T>, A, Either<B, C>>of(
-            initial().map(Either::<S, T>left),
+            initial.map(Either::<S, T>left),
             (a, st) -> st.fold(
                     s -> {
                       PureIO<R, Unit, Either<S, T>> orElse =
-                              other.initial().<Unit>toPureIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
+                              other.initial.<Unit>toPureIO().flatMap(t -> other.update(a, t).map(Either::<S, T>right));
                       return this.update(a, s).map(Either::<S, T>left).orElse(orElse);
                     },
                     t -> other.update(a, t).map(Either::<S, T>right)),
@@ -311,9 +334,9 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
                     t -> Either.right(other.extract(a, t))));
   }
 
-  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> _zip(ScheduleImpl<R, T, A, C> other) {
+  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> doZip(ScheduleImpl<R, T, A, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
-            this.initial().<Unit>toPureIO().zip(other.initial().<Unit>toPureIO()).toURIO(),
+            this.initial.zip(other.initial),
             (a, st) -> {
               PureIO<R, Unit, S> self = this.update(a, st.get1());
               PureIO<R, Unit, T> next = other.update(a, st.get2());
@@ -324,9 +347,9 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
                     other.extract(a, st.get2())));
   }
 
-  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> _compose(ScheduleImpl<R, T, B, C> other) {
+  private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> doCompose(ScheduleImpl<R, T, B, C> other) {
     return ScheduleImpl.<R, Tuple2<S, T>, A, C>of(
-            this.initial().<Unit>toPureIO().zip(other.initial().<Unit>toPureIO()).toURIO(),
+            this.initial.zip(other.initial),
             (a, st) -> {
               PureIO<R, Unit, S> self = this.update(a, st.get1());
               PureIO<R, Unit, T> next = other.update(this.extract(a, st.get1()), st.get2());
@@ -336,32 +359,13 @@ abstract class ScheduleImpl<R, S, A, B> implements SealedSchedule<R, A, B>, Sche
   }
 
   private ScheduleImpl<R, S, A, B> updated(Function1<Update<R, S, A>, Update<R, S, A>> update) {
-    return ScheduleImpl.of(initial(), update.apply(this::update), this::extract);
+    return ScheduleImpl.of(initial, update.apply(this.update), this.extract);
   }
   
   public static <R, S, A, B> ScheduleImpl<R, S, A, B> of(
       URIO<R, S> initial, 
       Update<R, S, A> update,
       Extract<A, S, B> extract) {
-    checkNonNull(initial);
-    checkNonNull(update);
-    checkNonNull(extract);
-    return new ScheduleImpl<R, S, A, B>() {
-      
-      @Override
-      public URIO<R, S> initial() {
-        return initial;
-      }
-      
-      @Override
-      public PureIO<R, Unit, S> update(A last, S state) {
-        return update.update(last, state);
-      }
-      
-      @Override
-      public B extract(A last, S state) {
-        return extract.extract(last, state);
-      }
-    };
+    return new ScheduleImpl<>(initial, update, extract);
   }
 }

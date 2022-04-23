@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.nonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -36,8 +37,8 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@HigherKind(sealed = true)
-public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
+@HigherKind
+public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -53,11 +54,7 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   }
 
   static <T> Option<T> of(Producer<? extends T> producer) {
-    T value = producer.get();
-    if (nonNull(value)) {
-      return some(value);
-    }
-    return none();
+    return of(producer.get());
   }
 
   static <T> Option<T> from(Optional<T> optional) {
@@ -71,45 +68,38 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   boolean isPresent();
   boolean isEmpty();
 
-  /**
-   * Returns the value if available. If not, it throws {@code NoSuchElementException}
-   * @return the wrapped value
-   * @throws NoSuchElementException if value is not available
-   */
-  T get();
-
   @Override
   default <R> Option<R> map(Function1<? super T, ? extends R> mapper) {
-    if (isPresent()) {
-      return some(mapper.apply(get()));
+    if (this instanceof Some<T> s) {
+      return some(mapper.apply(s.value));
     }
     return none();
   }
 
   @Override
   default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
-    if (isPresent()) {
-      return map.andThen(OptionOf::<R>narrowK).apply(get());
+    if (this instanceof Some<T> s) {
+      return map.andThen(OptionOf::<R>narrowK).apply(s.value);
     }
     return none();
   }
 
   default Option<T> ifPresent(Consumer1<? super T> consumer) {
-    if (isPresent()) {
-      consumer.accept(get());
+    if (this instanceof Some<T> s) {
+      consumer.accept(s.value);
     }
     return this;
   }
 
   default Option<T> ifEmpty(Runnable run) {
-    if (isEmpty()) {
+    if (this instanceof None<T>) {
       run.run();
     }
     return this;
   }
 
   default Option<T> filter(Matcher1<? super T> matcher) {
-    if (isPresent() && matcher.match(get())) {
+    if (this instanceof Some<T> s && matcher.match(s.value)) {
       return this;
     }
     return none();
@@ -120,7 +110,7 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   }
 
   default Option<T> or(Producer<Kind<Option_, T>> orElse) {
-    if (isEmpty()) {
+    if (this instanceof None) {
       return orElse.andThen(OptionOf::narrowK).get();
     }
     return this;
@@ -143,22 +133,22 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   }
 
   default T getOrElseThrow() {
-    if (isEmpty()) {
-      throw new NoSuchElementException();
+    if (this instanceof Some<T> s) {
+      return s.value;
     }
-    return get();
+    throw new NoSuchElementException();
   }
 
   default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
-    if (isEmpty()) {
-      throw producer.get();
+    if (this instanceof Some<T> s) {
+      return s.value;
     }
-    return get();
+    throw producer.get();
   }
 
   default <U> U fold(Producer<? extends U> orElse, Function1<? super T, ? extends U> mapper) {
-    if (isPresent()) {
-      return mapper.apply(get());
+    if (this instanceof Some<T> s) {
+      return mapper.apply(s.value);
     }
     return orElse.get();
   }
@@ -183,21 +173,17 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     return Try.fromEither(toEither());
   }
 
-  final class Some<T> implements SealedOption<T>, Serializable {
+  final class Some<T> implements Option<T>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 7757183287962895363L;
 
-    private static final Equal<Some<?>> EQUAL = Equal.<Some<?>>of().comparing(Option::get);
+    private static final Equal<Some<?>> EQUAL = Equal.<Some<?>>of().comparing(s -> s.value);
 
     private final T value;
 
     private Some(T value) {
       this.value = checkNonNull(value);
-    }
-
-    @Override
-    public T get() {
-      return value;
     }
 
     @Override
@@ -226,18 +212,14 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     }
   }
 
-  final class None<T> implements SealedOption<T>, Serializable {
+  final class None<T> implements Option<T>, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 7202112931010040785L;
 
     private static final None<?> INSTANCE = new None<>();
 
     private None() { }
-
-    @Override
-    public T get() {
-      throw new NoSuchElementException("get() in none");
-    }
 
     @Override
     public boolean isEmpty() {
@@ -264,7 +246,8 @@ public interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
       return "None";
     }
     
-    protected Object readResolve() {
+    @Serial
+    private Object readResolve() {
       return INSTANCE;
     }
   }

@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
-public class PipingExample {
+class PipingExample {
 
   interface Send {
     Control<Unit> send(int n);
@@ -48,7 +48,7 @@ public class PipingExample {
   }
 
   @Test
-  public void program() {
+  void program() {
     ConsoleExecutor executor = new ConsoleExecutor();
 
     Producer<Unit> program = () -> pipe(this::consumer, this::producer).run();

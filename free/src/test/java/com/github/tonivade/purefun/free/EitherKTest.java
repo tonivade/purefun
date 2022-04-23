@@ -101,9 +101,9 @@ class EitherKTest {
   public void mapK() {
     EitherK<Option_, Try_, String> eitherK = EitherK.right(Try.success("hello"));
 
-    EitherK<Option_, Option_, String> result = eitherK.mapK(new FunctionK<Try_, Option_>() {
+    EitherK<Option_, Option_, String> result = eitherK.mapK(new FunctionK<>() {
       @Override
-      public <T> Kind<Option_, T> apply(Kind<Try_, ? extends T> from) {
+      public <T> Option<T> apply(Kind<Try_, ? extends T> from) {
         return from.fix(TryOf::<T>narrowK).toOption();
       }
     });
@@ -115,10 +115,10 @@ class EitherKTest {
   public void mapLeftK() {
     EitherK<Option_, Try_, String> eitherK = EitherK.left(Option.some("hello"));
 
-    EitherK<Try_, Try_, String> result = eitherK.mapLeftK(new FunctionK<Option_, Try_>() {
+    EitherK<Try_, Try_, String> result = eitherK.mapLeftK(new FunctionK<>() {
       @Override
-      public <T> Kind<Try_, T> apply(Kind<Option_, ? extends T> from) {
-        return from.fix(OptionOf::<T>narrowK).fold(Try::<T>failure, Try::success);
+      public <T> Try<T> apply(Kind<Option_, ? extends T> from) {
+        return from.fix(OptionOf::<T>narrowK).fold(Try::failure, Try::success);
       }
     });
 

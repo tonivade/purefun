@@ -36,7 +36,7 @@ public class FreeAlgTest {
 
   @Test
   public void algebra() {
-    Free<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, Unit> hello =
+    var hello =
         read().flatMap(name -> write("hello " + name))
             .andThen(send("toni@home", "hello"));
 
@@ -50,32 +50,30 @@ public class FreeAlgTest {
   @SuppressWarnings("unchecked")
   private static FunctionK<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, IO_> interpreter() {
     final Console<IO_> console = IOInstances.console();
-    return new FunctionK<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, IO_>() {
+    return new FunctionK<>() {
       @Override
       public <T> Kind<IO_, T> apply(Kind<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, ? extends T> from) {
         return from.fix(EitherKOf::<ConsoleAlg_, EmailAlg_, T>narrowK).foldK(
-          new FunctionK<ConsoleAlg_, IO_>() {
+          new FunctionK<>() {
             @Override
             public <X> Kind<IO_, X> apply(Kind<ConsoleAlg_, ? extends X> kind) {
               ConsoleAlg<X> consoleAlg = kind.fix(ConsoleAlgOf::narrowK);
               if (consoleAlg instanceof ConsoleAlg.ReadLine) {
                 return (Kind<IO_, X>) console.readln();
               }
-              if (consoleAlg instanceof ConsoleAlg.WriteLine) {
-                ConsoleAlg.WriteLine writeLine = (ConsoleAlg.WriteLine) consoleAlg;
-                return (Kind<IO_, X>) console.println(writeLine.getLine());
+              if (consoleAlg instanceof ConsoleAlg.WriteLine writeLine) {
+                return (Kind<IO_, X>) console.println(writeLine.line());
               }
               throw new IllegalStateException();
             }
           },
-            new FunctionK<EmailAlg_, IO_>() {
+            new FunctionK<>() {
               @Override
               public <X> Kind<IO_, X> apply(Kind<EmailAlg_, ? extends X> kind) {
                 EmailAlg<X> emailAlg = kind.fix(EmailAlgOf::narrowK);
-                if (emailAlg instanceof EmailAlg.SendEmail) {
-                  EmailAlg.SendEmail sendEmail = (EmailAlg.SendEmail) emailAlg;
+                if (emailAlg instanceof EmailAlg.SendEmail sendEmail) {
                   return (Kind<IO_, X>) console.println(
-                      "email to " + sendEmail.getTo() + " with content " + sendEmail.getContent());
+                      "email to " + sendEmail.to() + " with content " + sendEmail.content());
                 }
                 throw new IllegalStateException();
               }

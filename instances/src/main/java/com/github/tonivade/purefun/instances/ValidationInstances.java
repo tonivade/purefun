@@ -9,7 +9,6 @@ import static com.github.tonivade.purefun.type.ValidationOf.toValidation;
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.type.ValidationOf;
@@ -27,14 +26,15 @@ import com.github.tonivade.purefun.typeclasses.Semigroup;
 public interface ValidationInstances {
 
   static <E, T> Eq<Kind<Kind<Validation_, E>, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
-    return (a, b) -> Pattern2.<Validation<E, T>, Validation<E, T>, Boolean>build()
-      .when((x, y) -> x.isInvalid() && y.isInvalid())
-        .then((x, y) -> errorEq.eqv(x.getError(), y.getError()))
-      .when((x, y) -> x.isValid() && y.isValid())
-        .then((x, y) -> validEq.eqv(x.get(), y.get()))
-      .otherwise()
-        .returns(false)
-      .apply(ValidationOf.narrowK(a), ValidationOf.narrowK(b));
+    return (a, b) -> {
+      if (a instanceof Validation.Invalid<E, T> invalidA && b instanceof Validation.Invalid<E, T> invalidB) {
+        return errorEq.eqv(invalidA.getError(), invalidB.getError());
+      }
+      if (a instanceof Validation.Valid<E, T> validA && b instanceof Validation.Valid<E, T> validB) {
+        return validEq.eqv(validA.get(), validB.get());
+      }
+      return false;
+    };
   }
 
   static <E> Functor<Kind<Validation_, E>> functor() {

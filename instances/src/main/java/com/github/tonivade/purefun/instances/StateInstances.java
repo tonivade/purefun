@@ -72,11 +72,11 @@ final class StateConsole implements Console<Kind<State_, ImmutableList<String>>>
 
   @Override
   public State<ImmutableList<String>, String> readln() {
-    return State.<ImmutableList<String>, String>state(list -> Tuple.of(list.tail(), list.head().get()));
+    return State.state(list -> Tuple.of(list.tail(), list.head().getOrElseThrow()));
   }
 
   @Override
   public State<ImmutableList<String>, Unit> println(String text) {
-    return State.<ImmutableList<String>, Unit>state(list -> Tuple.of(list.append(text), unit()));
+    return State.state(list -> Tuple.of(list.append(text), unit()));
   }
 }

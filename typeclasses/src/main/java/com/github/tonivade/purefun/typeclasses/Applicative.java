@@ -56,7 +56,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
   }
 
   static <F extends Witness, G extends Witness> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {
-    return new ComposedApplicative<F, G>() {
+    return new ComposedApplicative<>() {
 
       @Override
       public Applicative<F> f() { return f; }

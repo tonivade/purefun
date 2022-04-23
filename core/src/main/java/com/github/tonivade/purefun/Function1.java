@@ -23,7 +23,7 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
+public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
 
   default R apply(A value) {
     try {

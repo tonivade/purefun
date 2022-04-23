@@ -15,5 +15,4 @@ public @interface HigherKind {
 
   String value() default "";
   
-  boolean sealed() default false;
 }

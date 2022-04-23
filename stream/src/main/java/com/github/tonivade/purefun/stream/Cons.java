@@ -18,13 +18,13 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-final class Cons<F extends Witness, T> implements SealedStream<F, T> {
+public final class Cons<F extends Witness, T> implements PureStream<F, T> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, T> head;
-  private final Stream<F, T> tail;
+  private final PureStream<F, T> tail;
 
-  Cons(MonadDefer<F> monad, Kind<F, T> head, Stream<F, T> tail) {
+  Cons(MonadDefer<F> monad, Kind<F, T> head, PureStream<F, T> tail) {
     this.monad = checkNonNull(monad);
     this.head = checkNonNull(head);
     this.tail = checkNonNull(tail);
@@ -36,57 +36,57 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public Kind<F, Option<Tuple2<Kind<F, T>, Stream<F, T>>>> split() {
+  public Kind<F, Option<Tuple2<Kind<F, T>, PureStream<F, T>>>> split() {
     return monad.pure(Option.some(Tuple.of(head, tail)));
   }
 
   @Override
-  public Stream<F, T> concat(Stream<F, ? extends T> other) {
+  public PureStream<F, T> concat(PureStream<F, ? extends T> other) {
     return suspend(() -> cons(head, tail.concat(other)));
   }
 
   @Override
-  public Stream<F, T> append(Kind<F, ? extends T> other) {
+  public PureStream<F, T> append(Kind<F, ? extends T> other) {
     return suspend(() -> cons(head, tail.append(other)));
   }
 
   @Override
-  public Stream<F, T> prepend(Kind<F, ? extends T> other) {
+  public PureStream<F, T> prepend(Kind<F, ? extends T> other) {
     return suspend(() -> cons(Kind.narrowK(other), tail.prepend(head)));
   }
 
   @Override
-  public Stream<F, T> take(int n) {
+  public PureStream<F, T> take(int n) {
     return n > 0 ? suspend(() -> cons(head, tail.take(n - 1))) : empty();
   }
 
   @Override
-  public Stream<F, T> drop(int n) {
+  public PureStream<F, T> drop(int n) {
     return n > 0 ? suspend(() -> tail.drop(n - 1)) : this;
   }
 
   @Override
-  public Stream<F, T> takeWhile(Matcher1<? super T> matcher) {
+  public PureStream<F, T> takeWhile(Matcher1<? super T> matcher) {
     return suspendF(() -> monad.map(head,
         t -> matcher.match(t) ? cons(head, tail.takeWhile(matcher)) : empty()));
   }
 
   @Override
-  public Stream<F, T> dropWhile(Matcher1<? super T> matcher) {
+  public PureStream<F, T> dropWhile(Matcher1<? super T> matcher) {
     return suspendF(() ->
             monad.map(head, t -> matcher.match(t) ?
                 tail.dropWhile(matcher) : this));
   }
 
   @Override
-  public Stream<F, T> filter(Matcher1<? super T> matcher) {
+  public PureStream<F, T> filter(Matcher1<? super T> matcher) {
     return suspendF(() ->
             monad.map(head, t -> matcher.match(t) ?
                 cons(head, tail.filter(matcher)) : tail.filter(matcher)));
   }
 
   @Override
-  public <R> Stream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
+  public <R> PureStream<F, R> collect(PartialFunction1<? super T, ? extends R> partial) {
     return suspendF(() ->
             monad.map(head, t -> partial.isDefinedAt(t) ?
                 cons(monad.map(head, partial::apply), tail.collect(partial)) : tail.collect(partial)));
@@ -114,46 +114,46 @@ final class Cons<F extends Witness, T> implements SealedStream<F, T> {
   }
 
   @Override
-  public <R> Stream<F, R> map(Function1<? super T, ? extends R> map) {
+  public <R> PureStream<F, R> map(Function1<? super T, ? extends R> map) {
     return suspend(() -> cons(monad.map(head, map), suspend(() -> tail.map(map))));
   }
 
   @Override
-  public <R> Stream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
+  public <R> PureStream<F, R> mapEval(Function1<? super T, ? extends Kind<F, ? extends R>> mapper) {
     return suspend(() -> cons(monad.flatMap(head, mapper), suspend(() -> tail.mapEval(mapper))));
   }
 
   @Override
-  public <R> Stream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<Stream_, F>, ? extends R>> map) {
+  public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream_, F>, ? extends R>> map) {
     return suspendF(() ->
         monad.map(
-            monad.map(head, map.andThen(com.github.tonivade.purefun.stream.StreamOf::<F, R>narrowK)),
+            monad.map(head, map.andThen(PureStreamOf::<F, R>narrowK)),
             s -> s.concat(tail.flatMap(map))));
   }
 
   @Override
-  public Stream<F, T> repeat() {
+  public PureStream<F, T> repeat() {
     return concat(suspend(this::repeat));
   }
 
   @Override
-  public Stream<F, T> intersperse(Kind<F, ? extends T> value) {
+  public PureStream<F, T> intersperse(Kind<F, ? extends T> value) {
     return suspend(() -> cons(head, suspend(() -> cons(Kind.narrowK(value), tail.intersperse(value)))));
   }
 
-  private <R> Stream<F, R> cons(Kind<F, R> h, Stream<F, R> t) {
+  private <R> PureStream<F, R> cons(Kind<F, R> h, PureStream<F, R> t) {
     return new Cons<>(monad, h, t);
   }
 
-  private <R> Stream<F, R> suspend(Producer<Stream<F, R>> stream) {
-    return suspendF(stream.map(monad::<Stream<F, R>>pure));
+  private <R> PureStream<F, R> suspend(Producer<PureStream<F, R>> stream) {
+    return suspendF(stream.map(monad::<PureStream<F, R>>pure));
   }
 
-  private <R> Stream<F, R> suspendF(Producer<Kind<F, Stream<F, R>>> stream) {
+  private <R> PureStream<F, R> suspendF(Producer<Kind<F, PureStream<F, R>>> stream) {
     return new Suspend<>(monad, monad.defer(stream));
   }
 
-  private Stream<F, T> empty() {
+  private PureStream<F, T> empty() {
     return new Nil<>(monad);
   }
 }

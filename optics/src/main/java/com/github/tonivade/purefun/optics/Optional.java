@@ -17,7 +17,7 @@ public final class Optional<S, A> {
 
   private final POptional<S, S, A, A> delegate;
 
-  protected Optional(POptional<S, S, A, A> delegate) {
+  Optional(POptional<S, S, A, A> delegate) {
     this.delegate = checkNonNull(delegate);
   }
 

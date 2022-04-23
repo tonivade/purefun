@@ -8,6 +8,7 @@ import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Objects;
@@ -22,6 +23,7 @@ import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqua
 
 public final class Range implements Iterable<Integer>, Serializable {
 
+  @Serial
   private static final long serialVersionUID = 7923835507243835436L;
 
   private static final Equal<Range> EQUAL = 
