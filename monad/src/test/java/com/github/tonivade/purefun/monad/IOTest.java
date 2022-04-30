@@ -9,11 +9,7 @@ import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static com.github.tonivade.purefun.typeclasses.Instance.monad;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -314,8 +310,7 @@ public class IOTest {
   }
   
   @Test
-  public void memoize() {
-    Function1<String, String> toUpperCase = mock(Function1.class);
+  public void memoize(@Mock Function1<String, String> toUpperCase) {
     when(toUpperCase.apply(any()))
       .thenAnswer(args -> args.getArgument(0, String.class).toUpperCase());
     
@@ -328,6 +323,32 @@ public class IOTest {
     flatMap.unsafeRunSync();
     
     verify(toUpperCase).apply("hola");
+  }
+  
+  @Test
+  public void fibonacciTest() {
+    assertAll(
+        () -> assertEquals(1, fib(1).unsafeRunSync()),
+        () -> assertEquals(1, fib(2).unsafeRunSync()),
+        () -> assertEquals(2, fib(3).unsafeRunSync()),
+        () -> assertEquals(3, fib(4).unsafeRunSync()),
+        () -> assertEquals(5, fib(5).unsafeRunSync()),
+        () -> assertEquals(8, fib(6).unsafeRunSync()),
+        () -> assertEquals(13, fib(7).unsafeRunSync()),
+        () -> assertEquals(21, fib(8).unsafeRunSync()),
+        () -> assertEquals(55, fib(10).unsafeRunSync()),
+        () -> assertEquals(317811, fib(28).unsafeRunSync())
+        );
+  }
+
+  private IO<Integer> fib(int number) {
+    if (number < 2) {
+      return IO.pure(number);
+    }
+    IO<Integer> number1 = IO.async(fib(number - 1)::safeRunAsync);
+    IO<Integer> number2 = IO.async(fib(number - 2)::safeRunAsync);
+    return number1
+      .flatMap(x -> number2.map(y -> x + y));
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {

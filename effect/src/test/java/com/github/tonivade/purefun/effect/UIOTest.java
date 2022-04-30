@@ -11,6 +11,7 @@ import static com.github.tonivade.purefun.effect.UIO.task;
 import static com.github.tonivade.purefun.effect.UIO.unit;
 import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import static java.util.concurrent.ThreadLocalRandom.current;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -230,8 +231,7 @@ public class UIOTest {
   }
   
   @Test
-  public void memoize() {
-    Function1<String, String> toUpperCase = mock(Function1.class);
+  public void memoize(@Mock Function1<String, String> toUpperCase) {
     when(toUpperCase.apply(any()))
       .thenAnswer(args -> args.getArgument(0, String.class).toUpperCase());
     
@@ -244,6 +244,32 @@ public class UIOTest {
     flatMap.unsafeRunSync();
     
     verify(toUpperCase).apply("hola");
+  }
+  
+  @Test
+  public void fibonacciTest() {
+    assertAll(
+        () -> assertEquals(1, fib(1).unsafeRunSync()),
+        () -> assertEquals(1, fib(2).unsafeRunSync()),
+        () -> assertEquals(2, fib(3).unsafeRunSync()),
+        () -> assertEquals(3, fib(4).unsafeRunSync()),
+        () -> assertEquals(5, fib(5).unsafeRunSync()),
+        () -> assertEquals(8, fib(6).unsafeRunSync()),
+        () -> assertEquals(13, fib(7).unsafeRunSync()),
+        () -> assertEquals(21, fib(8).unsafeRunSync()),
+        () -> assertEquals(55, fib(10).unsafeRunSync()),
+        () -> assertEquals(317811, fib(28).unsafeRunSync())
+        );
+  }
+
+  private UIO<Integer> fib(int number) {
+    if (number < 2) {
+      return UIO.pure(number);
+    }
+    UIO<Integer> number1 = UIO.async(fib(number - 1)::safeRunAsync);
+    UIO<Integer> number2 = UIO.async(fib(number - 2)::safeRunAsync);
+    return number1
+      .flatMap(x -> number2.map(y -> x + y));
   }
 
   private UIO<Integer> parseInt(String string) {
