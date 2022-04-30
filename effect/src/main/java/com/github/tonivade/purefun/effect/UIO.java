@@ -334,7 +334,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return task.fold(UIO::raiseError, UIO::pure);
   }
   
-  static <T> UIO<T> fromPromise(Promise<? extends T> promise) {
+  public static <T> UIO<T> fromPromise(Promise<? extends T> promise) {
     Consumer1<Consumer1<? super Try<? extends T>>> consumer = promise::onComplete;
     return async(consumer);
   }

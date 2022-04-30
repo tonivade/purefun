@@ -248,18 +248,15 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
     return andThenEither(next).map(Either::merge);
   }
 
-  @SuppressWarnings("unchecked")
   public <C> Schedule<R, A, Either<B, C>> andThenEither(Schedule<R, A, C> next) {
     return doAndThenEither((ScheduleImpl<R, ?, A, C>) next);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, Tuple2<B, C>> zip(Schedule<R, A, C> other) {
     return doZip((ScheduleImpl<R, ?, A, C>) other);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<R, A, C> compose(Schedule<R, B, C> other) {
     return doCompose((ScheduleImpl<R, ?, B, C>) other);
