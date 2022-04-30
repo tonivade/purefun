@@ -295,21 +295,18 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return andThenEither(next).map(Either::merge);
   }
 
-  @SuppressWarnings("unchecked")
   public <C> Schedule<F, A, Either<B, C>> andThenEither(Schedule<F, A, C> next) {
-    return _andThenEither((ScheduleImpl<F, ?, A, C>) next);
+    return doAndThenEither((ScheduleImpl<F, ?, A, C>) next);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<F, A, Tuple2<B, C>> zip(Schedule<F, A, C> other) {
-    return _zip((ScheduleImpl<F, ?, A, C>) other);
+    return doZip((ScheduleImpl<F, ?, A, C>) other);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <C> Schedule<F, A, C> compose(Schedule<F, B, C> other) {
-    return _compose((ScheduleImpl<F, ?, B, C>) other);
+    return doCompose((ScheduleImpl<F, ?, B, C>) other);
   }
 
   @Override
@@ -366,7 +363,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     });
   }
 
-  private <T, C> ScheduleImpl<F, Either<S, T>, A, Either<B, C>> _andThenEither(ScheduleImpl<F, T, A, C> other) {
+  private <T, C> ScheduleImpl<F, Either<S, T>, A, Either<B, C>> doAndThenEither(ScheduleImpl<F, T, A, C> other) {
     return ScheduleImpl.<F, Either<S, T>, A, Either<B, C>>of(
         monad,
         timer,
@@ -388,7 +385,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
             t -> Either.right(other.extract(a, t))));
   }
 
-  private <T, C> ScheduleImpl<F, Tuple2<S, T>, A, Tuple2<B, C>> _zip(ScheduleImpl<F, T, A, C> other) {
+  private <T, C> ScheduleImpl<F, Tuple2<S, T>, A, Tuple2<B, C>> doZip(ScheduleImpl<F, T, A, C> other) {
     return ScheduleImpl.<F, Tuple2<S, T>, A, Tuple2<B, C>>of(
         monad,
         timer,
@@ -403,7 +400,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
             other.extract(a, st.get2())));
   }
 
-  private <T, C> ScheduleImpl<F, Tuple2<S, T>, A, C> _compose(ScheduleImpl<F, T, B, C> other) {
+  private <T, C> ScheduleImpl<F, Tuple2<S, T>, A, C> doCompose(ScheduleImpl<F, T, B, C> other) {
     return ScheduleImpl.<F, Tuple2<S, T>, A, C>of(
         monad,
         timer,

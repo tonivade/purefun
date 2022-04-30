@@ -27,7 +27,6 @@ public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>
     return map(repeatOrElseEither(value, schedule, orElse), Either::merge);
   }
 
-  @SuppressWarnings("unchecked")
   default <A, B, C> Kind<F, Either<C, B>> repeatOrElseEither(
       Kind<F, A> value, Schedule<F, A, B> schedule, Function2<E, Option<B>, Kind<F, C>> orElse) {
     return repeat(value, (ScheduleImpl<F, ?, A, B>) schedule, orElse);
