@@ -336,7 +336,8 @@ public class IOTest {
         () -> assertEquals(8, fib(6).unsafeRunSync()),
         () -> assertEquals(13, fib(7).unsafeRunSync()),
         () -> assertEquals(21, fib(8).unsafeRunSync()),
-        () -> assertEquals(55, fib(10).unsafeRunSync())
+        () -> assertEquals(55, fib(10).unsafeRunSync()),
+        () -> assertEquals(6765, fib(20).unsafeRunSync())
         );
   }
 
@@ -344,10 +345,9 @@ public class IOTest {
     if (number < 2) {
       return IO.pure(number);
     }
-    IO<Integer> number1 = IO.async(fib(number - 1)::safeRunAsync);
-    IO<Integer> number2 = IO.async(fib(number - 2)::safeRunAsync);
-    return number1
-      .flatMap(x -> number2.map(y -> x + y));
+    var number1 = IO.<Integer>async(fib(number - 1)::safeRunAsync);
+    var number2 = IO.<Integer>async(fib(number - 2)::safeRunAsync);
+    return IO.parMap2(number1, number2, Integer::sum);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {

@@ -257,7 +257,8 @@ public class UIOTest {
         () -> assertEquals(8, fib(6).unsafeRunSync()),
         () -> assertEquals(13, fib(7).unsafeRunSync()),
         () -> assertEquals(21, fib(8).unsafeRunSync()),
-        () -> assertEquals(55, fib(10).unsafeRunSync())
+        () -> assertEquals(55, fib(10).unsafeRunSync()),
+        () -> assertEquals(6765, fib(20).unsafeRunSync())
         );
   }
 
@@ -265,8 +266,8 @@ public class UIOTest {
     if (number < 2) {
       return UIO.pure(number);
     }
-    UIO<Integer> number1 = UIO.async(fib(number - 1)::safeRunAsync);
-    UIO<Integer> number2 = UIO.async(fib(number - 2)::safeRunAsync);
+    var number1 = UIO.<Integer>async(fib(number - 1)::safeRunAsync);
+    var number2 = UIO.<Integer>async(fib(number - 2)::safeRunAsync);
     return UIO.parMap2(number1, number2, Integer::sum);
   }
 

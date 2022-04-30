@@ -380,6 +380,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
         (Kind<IO_, Sequence<A>> xs, Kind<IO_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
+  static <A, B, C> IO<C> parMap2(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb,
+                              Function2<? super A, ? super B, ? extends C> mapper) {
+    return parMap2(Future.DEFAULT_EXECUTOR, fa, fb, mapper);
+  }
+
   static <A, B, C> IO<C> parMap2(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb,
                               Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable(callback -> {
