@@ -353,11 +353,11 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
         (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
-  static <A, T> UIO<Function1<A, UIO<T>>> memoize(Function1<A, UIO<T>> function) {
+  public static <A, T> UIO<Function1<A, UIO<T>>> memoize(Function1<A, UIO<T>> function) {
     return memoize(Future.DEFAULT_EXECUTOR, function);
   }
   
-  static <A, T> UIO<Function1<A, UIO<T>>> memoize(Executor executor, Function1<A, UIO<T>> function) {
+  public static <A, T> UIO<Function1<A, UIO<T>>> memoize(Executor executor, Function1<A, UIO<T>> function) {
     var ref = Ref.make(ImmutableMap.<A, Promise<T>>empty());
     return ref.map(r -> {
       Function1<A, UIO<UIO<T>>> result = a -> r.modify(map -> map.get(a).fold(() -> {

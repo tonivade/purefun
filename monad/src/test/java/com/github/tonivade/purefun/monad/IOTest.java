@@ -336,8 +336,7 @@ public class IOTest {
         () -> assertEquals(8, fib(6).unsafeRunSync()),
         () -> assertEquals(13, fib(7).unsafeRunSync()),
         () -> assertEquals(21, fib(8).unsafeRunSync()),
-        () -> assertEquals(55, fib(10).unsafeRunSync()),
-        () -> assertEquals(317811, fib(28).unsafeRunSync())
+        () -> assertEquals(55, fib(10).unsafeRunSync())
         );
   }
 
