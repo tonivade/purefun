@@ -163,7 +163,12 @@ final class PromiseImpl<T> implements Promise<T> {
         if (isEmpty()) {
           reference.set(value);
           lock.notifyAll();
-          consumers.forEach(consumer -> submit(value, consumer));
+          while (true) {
+            var consumer = consumers.poll();
+            if (consumer != null)
+              submit(value, consumer);
+            else break;
+          }
           return true;
         }
       }

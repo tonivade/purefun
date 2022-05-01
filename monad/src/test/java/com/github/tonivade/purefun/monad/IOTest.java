@@ -326,27 +326,52 @@ public class IOTest {
   }
   
   @Test
-  public void fibonacciTest() {
+  public void fibSyncTest() {
     assertAll(
-        () -> assertEquals(1, fib(1).unsafeRunSync()),
-        () -> assertEquals(1, fib(2).unsafeRunSync()),
-        () -> assertEquals(2, fib(3).unsafeRunSync()),
-        () -> assertEquals(3, fib(4).unsafeRunSync()),
-        () -> assertEquals(5, fib(5).unsafeRunSync()),
-        () -> assertEquals(8, fib(6).unsafeRunSync()),
-        () -> assertEquals(13, fib(7).unsafeRunSync()),
-        () -> assertEquals(21, fib(8).unsafeRunSync()),
-        () -> assertEquals(55, fib(10).unsafeRunSync()),
-        () -> assertEquals(6765, fib(20).unsafeRunSync())
+        () -> assertEquals(1, fibSync(1).unsafeRunSync()),
+        () -> assertEquals(1, fibSync(2).unsafeRunSync()),
+        () -> assertEquals(2, fibSync(3).unsafeRunSync()),
+        () -> assertEquals(3, fibSync(4).unsafeRunSync()),
+        () -> assertEquals(5, fibSync(5).unsafeRunSync()),
+        () -> assertEquals(8, fibSync(6).unsafeRunSync()),
+        () -> assertEquals(13, fibSync(7).unsafeRunSync()),
+        () -> assertEquals(21, fibSync(8).unsafeRunSync()),
+        () -> assertEquals(55, fibSync(10).unsafeRunSync()),
+        () -> assertEquals(6765, fibSync(20).unsafeRunSync())
+        );
+  }
+  
+  @Test
+  public void fibAsyncTest() {
+    assertAll(
+        () -> assertEquals(1, fibAsync(1).unsafeRunSync()),
+        () -> assertEquals(1, fibAsync(2).unsafeRunSync()),
+        () -> assertEquals(2, fibAsync(3).unsafeRunSync()),
+        () -> assertEquals(3, fibAsync(4).unsafeRunSync()),
+        () -> assertEquals(5, fibAsync(5).unsafeRunSync()),
+        () -> assertEquals(8, fibAsync(6).unsafeRunSync()),
+        () -> assertEquals(13, fibAsync(7).unsafeRunSync()),
+        () -> assertEquals(21, fibAsync(8).unsafeRunSync()),
+        () -> assertEquals(55, fibAsync(10).unsafeRunSync()),
+        () -> assertEquals(6765, fibAsync(20).unsafeRunSync())
         );
   }
 
-  private IO<Integer> fib(int number) {
+  private IO<Integer> fibSync(int number) {
     if (number < 2) {
       return IO.pure(number);
     }
-    var number1 = IO.<Integer>async(fib(number - 1)::safeRunAsync);
-    var number2 = IO.<Integer>async(fib(number - 2)::safeRunAsync);
+    var number1 = fibSync(number - 1);
+    var number2 = fibSync(number - 2);
+    return number1.flatMap(x -> number2.map(y -> x + y));
+  }
+
+  private IO<Integer> fibAsync(int number) {
+    if (number < 2) {
+      return IO.pure(number);
+    }
+    var number1 = IO.<Integer>async(fibAsync(number - 1)::safeRunAsync);
+    var number2 = IO.<Integer>async(fibAsync(number - 2)::safeRunAsync);
     return IO.parMap2(number1, number2, Integer::sum);
   }
 

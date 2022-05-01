@@ -177,7 +177,6 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
     }
   }
   
-  @SuppressWarnings("unchecked")
   private Free<F, A> step() {
     if (this instanceof Pure<F, A> pure) {
       return pure.step();
@@ -189,7 +188,6 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
     return flatMapped.step();
   }
   
-  @SuppressWarnings("unchecked")
   private <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
     if (this instanceof Pure<F, A> pure) {
       return pure.foldStep(monad, interpreter);
@@ -201,7 +199,6 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
     return flatMapped.foldStep(monad, interpreter);
   }
   
-  @SuppressWarnings("unchecked")
   private Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor) {
     if (this instanceof Pure<F, A> pure) {
       return pure.resume(functor);
