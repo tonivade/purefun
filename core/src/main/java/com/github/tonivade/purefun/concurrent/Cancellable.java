@@ -8,7 +8,7 @@ import static java.util.Objects.nonNull;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.concurrent.CancellationException;
-
+import java.util.concurrent.locks.ReentrantLock;
 import com.github.tonivade.purefun.type.Try;
 
 public sealed interface Cancellable {
@@ -26,7 +26,10 @@ public sealed interface Cancellable {
 
 final class CancellableImpl implements Cancellable {
   
-  private final State state = new State();
+  private final ReentrantLock lock = new ReentrantLock(true);
+  private boolean cancelled = false;
+  private Thread thread = null;
+
   private final Promise<?> promise;
   
   public CancellableImpl(Promise<?> promise) {
@@ -35,39 +38,43 @@ final class CancellableImpl implements Cancellable {
 
   @Override
   public void updateThread() {
-    synchronized (state) {
-      state.thread = Thread.currentThread();
+    try {
+      lock.lock();
+      thread = Thread.currentThread();
+    } finally {
+      lock.unlock();
     }
   }
 
   @Override
   public void cancel(boolean mayThreadInterrupted) {
     if (promise.tryComplete(Try.failure(new CancellationException()))) {
-      synchronized (state) {
-        state.cancelled = true;
+      try {
+        lock.lock();
+        cancelled = true;
         if (mayThreadInterrupted) {
-          state.interrupt();
+          interrupt();
         }
+      } finally {
+        lock.unlock();
       }
     }
   }
 
   @Override
   public boolean isCancelled() {
-    synchronized (state) {
-      return state.cancelled;
+    try {
+      lock.lock();
+      return cancelled;
+    } finally {
+      lock.unlock();
     }
   }
   
-  private static final class State {
-    private boolean cancelled = false;
-    private Thread thread = null;
-
-    private void interrupt() {
-      if (nonNull(thread)) {
-        thread.interrupt();
-        thread = null;
-      }
+  private void interrupt() {
+    if (nonNull(thread)) {
+      thread.interrupt();
+      thread = null;
     }
   }
 }

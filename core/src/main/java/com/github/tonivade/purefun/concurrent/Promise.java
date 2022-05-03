@@ -12,9 +12,11 @@ import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import com.github.tonivade.purefun.Applicable;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.CheckedRunnable;
@@ -146,7 +148,8 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
 
 final class PromiseImpl<T> implements Promise<T> {
 
-  private final Object lock = new Object();
+  private final ReentrantLock lock = new ReentrantLock(true);
+  private final Condition condition = lock.newCondition();
   private final Queue<Consumer1<? super Try<? extends T>>> consumers = new LinkedList<>();
   private final AtomicReference<Try<? extends T>> reference = new AtomicReference<>();
 
@@ -159,10 +162,11 @@ final class PromiseImpl<T> implements Promise<T> {
   @Override
   public boolean tryComplete(Try<? extends T> value) {
     if (isEmpty()) {
-      synchronized (lock) {
+      try {
+        lock.lock();
         if (isEmpty()) {
           reference.set(value);
-          lock.notifyAll();
+          condition.signalAll();
           while (true) {
             var consumer = consumers.poll();
             if (consumer != null)
@@ -171,6 +175,8 @@ final class PromiseImpl<T> implements Promise<T> {
           }
           return true;
         }
+      } finally {
+        lock.unlock();
       }
     }
     return false;
@@ -180,10 +186,13 @@ final class PromiseImpl<T> implements Promise<T> {
   public Try<T> await() {
     if (isEmpty()) {
       try {
-        synchronized (lock) {
+        try {
+          lock.lock();
           while (isEmpty()) {
-            lock.wait();
+            condition.await();
           }
+        } finally {
+          lock.unlock();
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -197,10 +206,13 @@ final class PromiseImpl<T> implements Promise<T> {
   public Try<T> await(Duration timeout) {
     if (isEmpty()) {
       try {
-        synchronized (lock) {
+        try {
+          lock.lock();
           if (isEmpty()) {
-            lock.wait(timeout.toMillis());
+            condition.await(timeout.toMillis(), TimeUnit.MILLISECONDS);
           }
+        } finally {
+          lock.unlock();
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -212,8 +224,11 @@ final class PromiseImpl<T> implements Promise<T> {
 
   @Override
   public boolean isCompleted() {
-    synchronized (lock) {
+    try {
+      lock.lock();
       return !isEmpty();
+    } finally {
+      lock.unlock();
     }
   }
 
@@ -250,10 +265,13 @@ final class PromiseImpl<T> implements Promise<T> {
 
   private Option<Try<T>> current(Consumer1<? super Try<? extends T>> consumer) {
     if (isEmpty()) {
-      synchronized (lock) {
+      try {
+        lock.lock();
         if (isEmpty()) {
           consumers.add(consumer);
         }
+      } finally {
+        lock.unlock();
       }
     }
     return Option.of(TryOf.narrowK(reference.get()));
