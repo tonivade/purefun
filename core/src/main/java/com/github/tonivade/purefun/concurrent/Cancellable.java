@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static java.util.Objects.nonNull;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.util.concurrent.CancellationException;
@@ -38,8 +37,8 @@ final class CancellableImpl implements Cancellable {
 
   @Override
   public void updateThread() {
+    lock.lock();
     try {
-      lock.lock();
       thread = Thread.currentThread();
     } finally {
       lock.unlock();
@@ -49,8 +48,8 @@ final class CancellableImpl implements Cancellable {
   @Override
   public void cancel(boolean mayThreadInterrupted) {
     if (promise.tryComplete(Try.failure(new CancellationException()))) {
+      lock.lock();
       try {
-        lock.lock();
         cancelled = true;
         if (mayThreadInterrupted) {
           interrupt();
@@ -63,8 +62,8 @@ final class CancellableImpl implements Cancellable {
 
   @Override
   public boolean isCancelled() {
+    lock.lock();
     try {
-      lock.lock();
       return cancelled;
     } finally {
       lock.unlock();
@@ -72,7 +71,7 @@ final class CancellableImpl implements Cancellable {
   }
   
   private void interrupt() {
-    if (nonNull(thread)) {
+    if (thread != null) {
       thread.interrupt();
       thread = null;
     }

@@ -162,8 +162,8 @@ final class PromiseImpl<T> implements Promise<T> {
   @Override
   public boolean tryComplete(Try<? extends T> value) {
     if (isEmpty()) {
+      lock.lock();
       try {
-        lock.lock();
         if (isEmpty()) {
           reference.set(value);
           condition.signalAll();
@@ -186,8 +186,8 @@ final class PromiseImpl<T> implements Promise<T> {
   public Try<T> await() {
     if (isEmpty()) {
       try {
+        lock.lock();
         try {
-          lock.lock();
           while (isEmpty()) {
             condition.await();
           }
@@ -206,8 +206,8 @@ final class PromiseImpl<T> implements Promise<T> {
   public Try<T> await(Duration timeout) {
     if (isEmpty()) {
       try {
+        lock.lock();
         try {
-          lock.lock();
           if (isEmpty()) {
             condition.await(timeout.toMillis(), TimeUnit.MILLISECONDS);
           }
@@ -224,8 +224,8 @@ final class PromiseImpl<T> implements Promise<T> {
 
   @Override
   public boolean isCompleted() {
+    lock.lock();
     try {
-      lock.lock();
       return !isEmpty();
     } finally {
       lock.unlock();
