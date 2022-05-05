@@ -370,9 +370,7 @@ public class IOTest {
     if (number < 2) {
       return IO.pure(number);
     }
-    var number1 = IO.<Integer>async(fibAsync(number - 1)::safeRunAsync);
-    var number2 = IO.<Integer>async(fibAsync(number - 2)::safeRunAsync);
-    return IO.parMap2(number1, number2, Integer::sum);
+    return IO.parMap2(fibAsync(number - 1), fibAsync(number - 2), Integer::sum);
   }
 
   private IO<ResultSet> open(ResultSet resultSet) {

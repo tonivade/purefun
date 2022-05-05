@@ -266,9 +266,7 @@ public class UIOTest {
     if (number < 2) {
       return UIO.pure(number);
     }
-    var number1 = UIO.<Integer>async(fib(number - 1)::safeRunAsync);
-    var number2 = UIO.<Integer>async(fib(number - 2)::safeRunAsync);
-    return UIO.parMap2(number1, number2, Integer::sum);
+    return UIO.parMap2(fib(number - 1), fib(number - 2), Integer::sum);
   }
 
   private UIO<Integer> parseInt(String string) {

@@ -25,7 +25,7 @@ public sealed interface Cancellable {
 
 final class CancellableImpl implements Cancellable {
   
-  private final ReentrantLock lock = new ReentrantLock(true);
+  private final ReentrantLock lock = new ReentrantLock();
   private boolean cancelled = false;
   private Thread thread = null;
 

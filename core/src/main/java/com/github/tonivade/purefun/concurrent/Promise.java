@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.concurrent;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -148,9 +148,9 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
 
 final class PromiseImpl<T> implements Promise<T> {
 
-  private final ReentrantLock lock = new ReentrantLock(true);
+  private final ReentrantLock lock = new ReentrantLock();
   private final Condition condition = lock.newCondition();
-  private final Queue<Consumer1<? super Try<? extends T>>> consumers = new LinkedList<>();
+  private final Queue<Consumer1<? super Try<? extends T>>> consumers = new ArrayDeque<>();
   private final AtomicReference<Try<? extends T>> reference = new AtomicReference<>();
 
   private final Executor executor;
