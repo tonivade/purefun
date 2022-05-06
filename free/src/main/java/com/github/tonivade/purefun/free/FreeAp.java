@@ -5,13 +5,12 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static java.util.Collections.singletonList;
 import static com.github.tonivade.purefun.free.FreeApOf.toFreeAp;
 import static com.github.tonivade.purefun.free.FreeOf.toFree;
 import static com.github.tonivade.purefun.type.ConstOf.toConst;
+import static java.util.Collections.singletonList;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
-
 import com.github.tonivade.purefun.Applicable;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
@@ -58,8 +57,8 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   default <G extends Witness> Kind<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
-    Deque<FreeAp> argsF = new LinkedList<>(singletonList(this));
-    Deque<CurriedFunction> fns = new LinkedList<>();
+    Deque<FreeAp> argsF = new ArrayDeque<>(singletonList(this));
+    Deque<CurriedFunction> fns = new ArrayDeque<>();
 
     while (true) {
       FreeAp argF = argsF.pollFirst();

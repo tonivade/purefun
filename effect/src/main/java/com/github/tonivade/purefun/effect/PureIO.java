@@ -12,8 +12,8 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1020,7 +1020,7 @@ final class CallStack<R, E, A> implements Recoverable {
 final class StackItem<R, E, A> {
   
   private int count = 0;
-  private final Deque<PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>>> recover = new LinkedList<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>>> recover = new ArrayDeque<>();
 
   private final StackItem<R, E, A> prev;
 

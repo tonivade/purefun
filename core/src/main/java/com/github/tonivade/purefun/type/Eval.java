@@ -8,8 +8,8 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Producer.failure;
 import static com.github.tonivade.purefun.Unit.unit;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
@@ -172,7 +172,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   private static <A> A evaluate(Eval<A> self) {
-    Deque<Function1<Object, Eval>> stack = new LinkedList<>();
+    Deque<Function1<Object, Eval>> stack = new ArrayDeque<>();
     Eval<A> current = self;
     while (true) {
       if (current instanceof Eval.FlatMapped currentFlatMapped) {

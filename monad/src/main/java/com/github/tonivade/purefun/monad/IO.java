@@ -9,8 +9,8 @@ import static com.github.tonivade.purefun.Matcher1.always;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
@@ -785,7 +785,7 @@ final class CallStack<T> implements Recoverable {
 final class StackItem<T> {
   
   private int count = 0;
-  private final Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new LinkedList<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new ArrayDeque<>();
 
   private final StackItem<T> prev;
 
