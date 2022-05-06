@@ -276,15 +276,15 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return PureIO.<Nothing, A, B>lift(function).andThen(Task::new);
   }
 
-  public static <A, B> Function1<A, Task<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  public static <A, B> Function1<A, Task<B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  public static <A, B> Function1<A, Task<B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  public static <A, B> Function1<A, Task<B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  public static <A, B> Function1<A, Task<B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+  public static <A, B> Function1<A, Task<B>> liftEither(Function1<? super A, ? extends Either<Throwable, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
@@ -313,7 +313,11 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public static Task<Unit> sleep(Duration delay) {
-    return new Task<>(PureIO.sleep(delay));
+    return sleep(Future.DEFAULT_EXECUTOR, delay);
+  }
+
+  public static Task<Unit> sleep(Executor executor, Duration delay) {
+    return new Task<>(PureIO.sleep(executor, delay));
   }
 
   public static Task<Unit> exec(CheckedRunnable task) {

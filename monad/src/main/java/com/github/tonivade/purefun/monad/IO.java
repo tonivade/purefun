@@ -247,15 +247,15 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return task.andThen(IO::pure);
   }
 
-  public static <A, B> Function1<A, IO<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  public static <A, B> Function1<A, IO<B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  public static <A, B> Function1<A, IO<B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  public static <A, B> Function1<A, IO<B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  public static <A, B> Function1<A, IO<B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+  public static <A, B> Function1<A, IO<B>> liftEither(Function1<? super A, ? extends Either<Throwable, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
@@ -281,8 +281,12 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static IO<Unit> sleep(Duration duration) {
+    return sleep(Future.DEFAULT_EXECUTOR, duration);
+  }
+
+  static IO<Unit> sleep(Executor executor, Duration duration) {
     return cancellable(callback -> {
-      Future<Unit> sleep = Future.sleep(duration)
+      Future<Unit> sleep = Future.sleep(executor, duration)
         .onComplete(result -> callback.accept(Try.success(Unit.unit())));
       return IO.exec(() -> sleep.cancel(true));
     });

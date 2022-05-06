@@ -281,22 +281,26 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
 
   public static <R> RIO<R, Unit> sleep(Duration delay) {
-    return new RIO<>(PureIO.sleep(delay));
+    return sleep(Future.DEFAULT_EXECUTOR, delay);
+  }
+
+  public static <R> RIO<R, Unit> sleep(Executor executor, Duration delay) {
+    return new RIO<>(PureIO.sleep(executor, delay));
   }
 
   public static <R, A, B> Function1<A, RIO<R, B>> lift(Function1<? super A, ? extends B> function) {
     return value -> task(() -> function.apply(value));
   }
 
-  public static <R, A, B> Function1<A, RIO<R, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  public static <R, A, B> Function1<A, RIO<R, B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  public static <R, A, B> Function1<A, RIO<R, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  public static <R, A, B> Function1<A, RIO<R, B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  public static <R, A, B> Function1<A, RIO<R, B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+  public static <R, A, B> Function1<A, RIO<R, B>> liftEither(Function1<? super A, ? extends Either<Throwable, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 

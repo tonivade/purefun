@@ -374,15 +374,15 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return value -> pure(function.apply(value));
   }
 
-  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  static <R, A, B> Function1<A, PureIO<R, Throwable, B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  static <R, E, A, B> Function1<A, PureIO<R, E, B>> liftEither(Function1<? super A, Either<E, ? extends B>> function) {
+  static <R, E, A, B> Function1<A, PureIO<R, E, B>> liftEither(Function1<? super A, ? extends Either<E, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
@@ -464,8 +464,12 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   static <R, E> PureIO<R, E, Unit> sleep(Duration delay) {
+    return sleep(Future.DEFAULT_EXECUTOR, delay);
+  }
+
+  static <R, E> PureIO<R, E, Unit> sleep(Executor executor, Duration delay) {
     return cancellable((env, callback) -> {
-      Future<Unit> sleep = Future.sleep(delay)
+      Future<Unit> sleep = Future.sleep(executor, delay)
         .onComplete(result -> callback.accept(Try.success(Either.right(Unit.unit()))));
       return PureIO.exec(() -> sleep.cancel(true));
     });  

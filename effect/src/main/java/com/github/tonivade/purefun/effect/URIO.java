@@ -282,20 +282,24 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return value -> task(() -> function.apply(value));
   }
 
-  public static <R, A, B> Function1<A, URIO<R, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  public static <R, A, B> Function1<A, URIO<R, B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  public static <R, A, B> Function1<A, URIO<R, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  public static <R, A, B> Function1<A, URIO<R, B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  public static <R, A, B> Function1<A, URIO<R, B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+  public static <R, A, B> Function1<A, URIO<R, B>> liftEither(Function1<? super A, ? extends Either<Throwable, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
   public static <R> URIO<R, Unit> sleep(Duration delay) {
-    return fold(PureIO.sleep(delay));
+    return sleep(Future.DEFAULT_EXECUTOR, delay);
+  }
+
+  public static <R> URIO<R, Unit> sleep(Executor executor, Duration delay) {
+    return fold(PureIO.sleep(executor, delay));
   }
 
   public static <R> URIO<R, Unit> exec(CheckedRunnable task) {

@@ -286,20 +286,24 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return value -> task(() -> function.apply(value));
   }
 
-  public static <A, B> Function1<A, UIO<B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  public static <A, B> Function1<A, UIO<B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  public static <A, B> Function1<A, UIO<B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  public static <A, B> Function1<A, UIO<B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  public static <A, B> Function1<A, UIO<B>> liftEither(Function1<? super A, Either<Throwable, ? extends B>> function) {
+  public static <A, B> Function1<A, UIO<B>> liftEither(Function1<? super A, ? extends Either<Throwable, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
   public static UIO<Unit> sleep(Duration delay) {
-    return fold(PureIO.sleep(delay));
+    return sleep(Future.DEFAULT_EXECUTOR, delay);
+  }
+
+  public static UIO<Unit> sleep(Executor executor, Duration delay) {
+    return fold(PureIO.sleep(executor, delay));
   }
 
   public static UIO<Unit> exec(CheckedRunnable task) {

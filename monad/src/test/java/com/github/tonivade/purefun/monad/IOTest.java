@@ -115,9 +115,9 @@ public class IOTest {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
 
-    IO<Try<String>> bracket = IO.bracket(open(resultSet), IO.lift(tryGetString("id")));
+    IO<String> bracket = IO.bracket(open(resultSet), IO.liftTry(tryGetString("id")));
 
-    assertEquals(Try.success("value"), bracket.unsafeRunSync());
+    assertEquals("value", bracket.unsafeRunSync());
     verify(resultSet).close();
   }
 

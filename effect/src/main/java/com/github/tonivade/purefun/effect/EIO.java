@@ -280,15 +280,15 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return PureIO.<Nothing, A, B>lift(function).andThen(EIO::new);
   }
 
-  public static <A, B> Function1<A, EIO<Throwable, B>> liftOption(Function1<? super A, Option<? extends B>> function) {
+  public static <A, B> Function1<A, EIO<Throwable, B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
     return value -> fromOption(function.apply(value));
   }
 
-  public static <A, B> Function1<A, EIO<Throwable, B>> liftTry(Function1<? super A, Try<? extends B>> function) {
+  public static <A, B> Function1<A, EIO<Throwable, B>> liftTry(Function1<? super A, ? extends Try<? extends B>> function) {
     return value -> fromTry(function.apply(value));
   }
 
-  public static <E, A, B> Function1<A, EIO<E, B>> liftEither(Function1<? super A, Either<E, ? extends B>> function) {
+  public static <E, A, B> Function1<A, EIO<E, B>> liftEither(Function1<? super A, ? extends Either<E, ? extends B>> function) {
     return value -> fromEither(function.apply(value));
   }
 
@@ -317,7 +317,11 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public static <E> EIO<E, Unit> sleep(Duration delay) {
-    return new EIO<>(PureIO.sleep(delay));
+    return sleep(Future.DEFAULT_EXECUTOR, delay);
+  }
+
+  public static <E> EIO<E, Unit> sleep(Executor executor, Duration delay) {
+    return new EIO<>(PureIO.sleep(executor, delay));
   }
 
   public static EIO<Throwable, Unit> exec(CheckedRunnable task) {
