@@ -638,24 +638,9 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 }
 
-interface IOConnection {
+sealed interface IOConnection {
   
-  IOConnection UNCANCELLABLE = new IOConnection() {
-    @Override
-    public boolean isCancellable() { return false; }
-
-    @Override
-    public void setCancelToken(IO<Unit> cancel) { }
-
-    @Override
-    public void cancelNow() { }
-
-    @Override
-    public void cancel() { }
-
-    @Override
-    public StateIO updateState(Operator1<StateIO> update) { return StateIO.INITIAL; }
-  };
+  IOConnection UNCANCELLABLE = new Uncancellable();
   
   boolean isCancellable();
 
@@ -668,34 +653,74 @@ interface IOConnection {
   StateIO updateState(Operator1<StateIO> update);
   
   static IOConnection cancellable() {
-    return new IOConnection() {
-      
-      private IO<Unit> cancelToken;
-      private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
-      
-      @Override
-      public boolean isCancellable() { return true; }
-      
-      @Override
-      public void setCancelToken(IO<Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
-      
-      @Override
-      public void cancelNow() { cancelToken.runAsync(); }
-      
-      @Override
-      public void cancel() {
-        if (state.getAndUpdate(StateIO::cancellingNow).isCancelable()) {
-          cancelNow();
-        
-          state.set(StateIO.CANCELLED);
-        }
+    return new Cancellable();
+  }
+  
+  static final class Uncancellable implements IOConnection {
+    
+    private Uncancellable() { }
+
+    @Override
+    public boolean isCancellable() {
+      return false;
+    }
+
+    @Override
+    public void setCancelToken(IO<Unit> cancel) {
+      // uncancellable
+    }
+
+    @Override
+    public void cancelNow() {
+      // uncancellable
+    }
+
+    @Override
+    public void cancel() {
+      // uncancellable
+    }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) {
+      return StateIO.INITIAL;
+    }
+  }
+  
+  static final class Cancellable implements IOConnection {
+
+    private IO<Unit> cancelToken;
+    private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
+
+    private Cancellable() { }
+
+    @Override
+    public boolean isCancellable() {
+      return true;
+    }
+
+    @Override
+    public void setCancelToken(IO<Unit> cancel) {
+      this.cancelToken = checkNonNull(cancel);
+    }
+
+    @Override
+    public void cancelNow() {
+      cancelToken.runAsync();
+    }
+
+    @Override
+    public void cancel() {
+      if (state.getAndUpdate(StateIO::cancellingNow).isCancelable()) {
+        cancelNow();
+
+        state.set(StateIO.CANCELLED);
       }
-      
-      @Override
-      public StateIO updateState(Operator1<StateIO> update) {
-        return state.updateAndGet(update::apply);
-      }
-    };
+    }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) {
+      return state.updateAndGet(update::apply);
+    }
   }
 }
 

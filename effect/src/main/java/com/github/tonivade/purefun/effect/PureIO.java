@@ -871,26 +871,9 @@ final class Retry<R, E, A, B, S> {
   }
 }
 
-interface PureIOConnection {
+sealed interface PureIOConnection {
   
-  PureIOConnection UNCANCELLABLE = new PureIOConnection() {
-    @Override
-    public boolean isCancellable() { return false; }
-
-    @Override
-    public void setCancelToken(PureIO<?, ?, Unit> cancel) { /* nothing to do */ }
-
-    @Override
-    public void cancelNow() { /* nothing to do */ }
-
-    @Override
-    public void cancel() { /* nothing to do */ }
-
-    @Override
-    public StateIO updateState(Operator1<StateIO> update) {
-      return StateIO.INITIAL;
-    }
-  };
+  PureIOConnection UNCANCELLABLE = new Cancellable();
   
   boolean isCancellable();
   
@@ -903,82 +886,94 @@ interface PureIOConnection {
   StateIO updateState(Operator1<StateIO> update);
   
   static PureIOConnection cancellable() {
-    return new PureIOConnection() {
-      
-      private PureIO<?, ?, Unit> cancelToken;
-      private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
-      
-      @Override
-      public boolean isCancellable() { return true; }
-      
-      @Override
-      public void setCancelToken(PureIO<?, ?, Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
-      
-      @Override
-      public void cancelNow() { cancelToken.runAsync(null); }
-      
-      @Override
-      public void cancel() {
-        if (state.getAndUpdate(StateIO::cancellingNow).isCancelable()) {
-          cancelNow();
-        
-          state.set(StateIO.CANCELLED);
-        }
+    return new Cancellable();
+  }
+  
+  static final class Uncancellable implements PureIOConnection {
+    
+    private Uncancellable() { }
+
+    @Override
+    public boolean isCancellable() {
+      return false;
+    }
+
+    @Override
+    public void setCancelToken(PureIO<?, ?, Unit> cancel) {
+      /* nothing to do */ 
+    }
+
+    @Override
+    public void cancelNow() {
+      /* nothing to do */ 
+    }
+
+    @Override
+    public void cancel() {
+      /* nothing to do */ 
+    }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) {
+      return StateIO.INITIAL;
+    }
+  }
+  
+  static final class Cancellable implements PureIOConnection {
+    
+    private Cancellable() { }
+
+    private PureIO<?, ?, Unit> cancelToken;
+    private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
+
+    @Override
+    public boolean isCancellable() { return true; }
+
+    @Override
+    public void setCancelToken(PureIO<?, ?, Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
+
+    @Override
+    public void cancelNow() { cancelToken.runAsync(null); }
+
+    @Override
+    public void cancel() {
+      if (state.getAndUpdate(StateIO::cancellingNow).isCancelable()) {
+        cancelNow();
+
+        state.set(StateIO.CANCELLED);
       }
-      
-      @Override
-      public StateIO updateState(Operator1<StateIO> update) {
-        return state.updateAndGet(update::apply);
-      }
-    };
+    }
+
+    @Override
+    public StateIO updateState(Operator1<StateIO> update) {
+      return state.updateAndGet(update::apply);
+    }
   }
 }
 
-final class StateIO {
+record StateIO(boolean isCancelled, boolean isCancellingNow, boolean isStartingNow) {
   
-  public static final StateIO INITIAL = new StateIO(false, false, false);
-  public static final StateIO CANCELLED = new StateIO(true, false, false);
+  static final StateIO INITIAL = new StateIO(false, false, false);
+  static final StateIO CANCELLED = new StateIO(true, false, false);
   
-  private final boolean isCancelled;
-  private final boolean cancellingNow;
-  private final boolean startingNow;
-  
-  public StateIO(boolean isCancelled, boolean cancellingNow, boolean startingNow) {
-    this.isCancelled = isCancelled;
-    this.cancellingNow = cancellingNow;
-    this.startingNow = startingNow;
+  StateIO cancellingNow() {
+    return new StateIO(isCancelled, true, isStartingNow);
   }
   
-  public boolean isCancelled() {
-    return isCancelled;
+  StateIO startingNow() {
+    return new StateIO(isCancelled, isCancellingNow, true);
   }
   
-  public boolean isCancellingNow() {
-    return cancellingNow;
+  StateIO notStartingNow() {
+    return new StateIO(isCancelled, isCancellingNow, false);
   }
   
-  public boolean isStartingNow() {
-    return startingNow;
+  boolean isCancelable() {
+    return !isCancelled && !isCancellingNow && !isStartingNow;
   }
   
-  public StateIO cancellingNow() {
-    return new StateIO(isCancelled, true, startingNow);
-  }
-  
-  public StateIO startingNow() {
-    return new StateIO(isCancelled, cancellingNow, true);
-  }
-  
-  public StateIO notStartingNow() {
-    return new StateIO(isCancelled, cancellingNow, false);
-  }
-  
-  public boolean isCancelable() {
-    return !isCancelled && !cancellingNow && !startingNow;
-  }
-  
-  public boolean isRunnable() {
-    return !isCancelled && !cancellingNow;
+  boolean isRunnable() {
+    return !isCancelled && !isCancellingNow;
   }
 }
 
