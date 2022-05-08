@@ -497,6 +497,8 @@ With higher kinded types simulation we can implement typeclases.
                         Defer -- MonadDefer -- Timer
                                      |
                                    Async
+                                     |
+                                 Concurrent
 ```
 
 ### Functor
