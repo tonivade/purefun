@@ -14,7 +14,9 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Equal;
@@ -143,17 +145,17 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   static <K, V> ImmutableTreeMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
     return new JavaBasedImmutableTreeMap<>(entries.stream()
-        .collect(ImmutableTreeModule.toTreeMap(Tuple2::get1, Tuple2::get2)));
+        .collect(toTreeMap(Tuple2::get1, Tuple2::get2)));
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Set<Map.Entry<K, V>> entries) {
     return new JavaBasedImmutableTreeMap<>(entries.stream()
-        .collect(ImmutableTreeModule.toTreeMap(Map.Entry::getKey, Map.Entry::getValue)));
+        .collect(toTreeMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
   static <T, K, V> Collector<T, ?, ImmutableTreeMap<K, V>> toImmutableTreeMap(
       Function1<? super T, ? extends K> keyMapper, Function1<? super T, ? extends V> valueMapper) {
-    Collector<T, ?, ? extends TreeMap<K, V>> toLinkedHashMap = ImmutableTreeModule.toTreeMap(keyMapper, valueMapper);
+    Collector<T, ?, ? extends TreeMap<K, V>> toLinkedHashMap = toTreeMap(keyMapper, valueMapper);
     return collectingAndThen(toLinkedHashMap, JavaBasedImmutableTreeMap::new);
   }
 
@@ -314,5 +316,15 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     private TreeMap<K, V> copy() {
       return new TreeMap<>(backend);
     }
+  }
+  
+  private static <T, K, V> Collector<T, ?, ? extends TreeMap<K, V>> toTreeMap(
+      Function1<? super T, ? extends K> keyMapper,
+      Function1<? super T, ? extends V> valueMapper) {
+    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), TreeMap::new);
+  }
+
+  private static <V> BinaryOperator<V> throwingMerge() {
+    return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
   }
 }

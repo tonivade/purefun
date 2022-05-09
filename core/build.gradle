@@ -1,4 +1,5 @@
 dependencies {
   annotationProcessor projects.purefunProcessor
   api projects.purefunAnnotation
+  implementation libs.pcollections
 }

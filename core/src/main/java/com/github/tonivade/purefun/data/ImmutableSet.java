@@ -4,19 +4,24 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableSet;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.pcollections.HashTreePSet;
+import org.pcollections.PSet;
 
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
@@ -68,7 +73,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   static <T> ImmutableSet<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableSet<>(stream.collect(Collectors.toCollection(LinkedHashSet::new)));
+    ArrayList<T> collect = stream.collect(Collectors.toCollection(ArrayList::new));
+    return new PImmutableSet<>(collect);
   }
 
   @SafeVarargs
@@ -78,27 +84,30 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   @SuppressWarnings("unchecked")
   static <T> ImmutableSet<T> empty() {
-    return (ImmutableSet<T>) JavaBasedImmutableSet.EMPTY;
+    return (ImmutableSet<T>) PImmutableSet.EMPTY;
   }
 
   static <E> Collector<E, ?, ImmutableSet<E>> toImmutableSet() {
-    return collectingAndThen(Collectors.toCollection(LinkedHashSet::new), JavaBasedImmutableSet::new);
+    return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableSet::new);
   }
-
-  final class JavaBasedImmutableSet<E> implements ImmutableSet<E>, Serializable {
-
+  
+  final class PImmutableSet<E> implements ImmutableSet<E>, Serializable {
+    
     @Serial
-    private static final long serialVersionUID = -4111867323115030715L;
+    private static final long serialVersionUID = -8988192488466183450L;
 
-    public static final ImmutableSet<?> EMPTY = new JavaBasedImmutableSet<>(new LinkedHashSet<>());
+    private static final ImmutableSet<?> EMPTY = new PImmutableSet<>(HashTreePSet.empty());
 
-    private static final Equal<JavaBasedImmutableSet<?>> EQUAL = 
-        Equal.<JavaBasedImmutableSet<?>>of().comparing(x -> x.backend);
+    private static final Equal<PImmutableSet<?>> EQUAL = Equal.<PImmutableSet<?>>of().comparing(x -> x.backend);
 
-    private final Set<E> backend;
+    private final PSet<E> backend;
+    
+    private PImmutableSet(Collection<E> backend) {
+      this(HashTreePSet.from(backend));
+    }
 
-    private JavaBasedImmutableSet(LinkedHashSet<E> backend) {
-      this.backend = unmodifiableSet(backend);
+    private PImmutableSet(PSet<E> backend) {
+      this.backend = checkNonNull(backend);
     }
 
     @Override
@@ -112,65 +121,56 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableSet<E> reverse() {
-      return this;
-    }
-
-    @Override
-    public ImmutableSet<E> append(E element) {
-      LinkedHashSet<E> newSet = copy();
-      newSet.add(element);
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
-    public ImmutableSet<E> remove(E element) {
-      LinkedHashSet<E> newSet = copy();
-      newSet.remove(element);
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
-    public ImmutableSet<E> appendAll(Sequence<? extends E> other) {
-      LinkedHashSet<E> newSet = copy();
-      newSet.addAll(other.toCollection());
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
-    public ImmutableSet<E> removeAll(Sequence<? extends E> other) {
-      LinkedHashSet<E> newSet = copy();
-      newSet.removeAll(other.toCollection());
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
-    public ImmutableSet<E> union(ImmutableSet<? extends E> other) {
-      return appendAll(other);
-    }
-
-    @Override
-    public ImmutableSet<E> intersection(ImmutableSet<? extends E> other) {
-      LinkedHashSet<E> newSet = copy();
-      newSet.retainAll(other.toCollection());
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
-    public ImmutableSet<E> difference(ImmutableSet<? extends E> other) {
-      LinkedHashSet<E> newSet = copy();
-      newSet.removeAll(other.toCollection());
-      return new JavaBasedImmutableSet<>(newSet);
-    }
-
-    @Override
     public Iterator<E> iterator() {
       return backend.iterator();
     }
 
     @Override
     public Set<E> toSet() {
-      return copy();
+      return new HashSet<>(backend);
+    }
+
+    @Override
+    public ImmutableSet<E> append(E element) {
+      return new PImmutableSet<>(backend.plus(element));
+    }
+
+    @Override
+    public ImmutableSet<E> remove(E element) {
+      return new PImmutableSet<>(backend.minus(element));
+    }
+
+    @Override
+    public ImmutableSet<E> appendAll(Sequence<? extends E> other) {
+      return new PImmutableSet<>(backend.plusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableSet<E> removeAll(Sequence<? extends E> other) {
+      return new PImmutableSet<>(backend.minusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableSet<E> reverse() {
+      return this;
+    }
+
+    @Override
+    public ImmutableSet<E> union(ImmutableSet<? extends E> other) {
+      return new PImmutableSet<>(backend.plusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableSet<E> intersection(ImmutableSet<? extends E> other) {
+      // TODO: reimplement when retainingAll will be implemented
+      Set<E> copy = new HashSet<>(backend);
+      copy.retainAll(other.toCollection());
+      return new PImmutableSet<>(copy);
+    }
+
+    @Override
+    public ImmutableSet<E> difference(ImmutableSet<? extends E> other) {
+      return new PImmutableSet<>(backend.minusAll(other.toCollection()));
     }
 
     @Override
@@ -186,10 +186,6 @@ public interface ImmutableSet<E> extends Sequence<E> {
     @Override
     public String toString() {
       return "ImmutableSet(" + backend + ")";
-    }
-
-    private LinkedHashSet<E> copy() {
-      return new LinkedHashSet<>(backend);
     }
   }
 }
