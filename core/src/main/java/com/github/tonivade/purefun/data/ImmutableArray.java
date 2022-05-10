@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableList;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -19,7 +19,8 @@ import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import org.pcollections.PVector;
+import org.pcollections.TreePVector;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -77,7 +78,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableArray<>(stream.collect(Collectors.toCollection(ArrayList::new)));
+    ArrayList<T> collect = stream.collect(Collectors.toCollection(ArrayList::new));
+    return new PImmutableArray<>(collect);
   }
 
   @SafeVarargs
@@ -87,27 +89,30 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
   @SuppressWarnings("unchecked")
   static <T> ImmutableArray<T> empty() {
-    return (ImmutableArray<T>) JavaBasedImmutableArray.EMPTY;
+    return (ImmutableArray<T>) PImmutableArray.EMPTY;
   }
 
   static <E> Collector<E, ?, ImmutableArray<E>> toImmutableArray() {
-    return collectingAndThen(Collectors.toCollection(ArrayList::new), JavaBasedImmutableArray::new);
+    return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableArray::new);
   }
+  
+  final class PImmutableArray<E> implements ImmutableArray<E>, Serializable {
+    
+    private static final ImmutableArray<?> EMPTY = new PImmutableArray<>(TreePVector.empty());
 
-  final class JavaBasedImmutableArray<E> implements ImmutableArray<E>, Serializable {
+    private static final Equal<PImmutableArray<?>> EQUAL = Equal.<PImmutableArray<?>>of().comparing(a -> a.backend);
 
     @Serial
-    private static final long serialVersionUID = 5728385935547829871L;
+    private static final long serialVersionUID = -6967820945086954257L;
     
-    private static final ImmutableArray<?> EMPTY = new JavaBasedImmutableArray<>(new ArrayList<>());
+    private PVector<E> backend;
+    
+    private PImmutableArray(Collection<E> collection) {
+      this(TreePVector.from(collection));
+    }
 
-    private static final Equal<JavaBasedImmutableArray<?>> EQUAL = 
-        Equal.<JavaBasedImmutableArray<?>>of().comparing(a -> a.backend);
-
-    private final List<E> backend;
-
-    private JavaBasedImmutableArray(ArrayList<E> backend) {
-      this.backend = unmodifiableList(backend);
+    private PImmutableArray(PVector<E> backend) {
+      this.backend = checkNonNull(backend);
     }
 
     @Override
@@ -121,50 +126,47 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableArray<E> reverse() {
-      ArrayList<E> list = copy();
-      Collections.reverse(list);
-      return new JavaBasedImmutableArray<>(list);
-    }
-
-    @Override
-    public ImmutableArray<E> sort(Comparator<? super E> comparator) {
-      ArrayList<E> list = copy();
-      list.sort(comparator);
-      return new JavaBasedImmutableArray<>(list);
-    }
-
-    @Override
     public Iterator<E> iterator() {
       return backend.iterator();
     }
 
     @Override
+    public List<E> toList() {
+      return new ArrayList<>(backend);
+    }
+
+    @Override
     public ImmutableArray<E> append(E element) {
-      ArrayList<E> list = copy();
-      list.add(element);
-      return new JavaBasedImmutableArray<>(list);
+      return new PImmutableArray<>(backend.plus(element));
     }
 
     @Override
     public ImmutableArray<E> remove(E element) {
-      ArrayList<E> list = copy();
-      list.remove(element);
-      return new JavaBasedImmutableArray<>(list);
+      return new PImmutableArray<>(backend.minus(element));
     }
 
     @Override
     public ImmutableArray<E> appendAll(Sequence<? extends E> other) {
-      ArrayList<E> list = copy();
-      list.addAll(other.toCollection());
-      return new JavaBasedImmutableArray<>(list);
+      return new PImmutableArray<>(backend.plusAll(other.toCollection()));
     }
 
     @Override
     public ImmutableArray<E> removeAll(Sequence<? extends E> other) {
-      ArrayList<E> list = copy();
-      list.removeAll(other.toCollection());
-      return new JavaBasedImmutableArray<>(list);
+      return new PImmutableArray<>(backend.minusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableArray<E> reverse() {
+      var copy = new ArrayList<>(backend);
+      Collections.reverse(copy);
+      return new PImmutableArray<>(copy);
+    }
+
+    @Override
+    public ImmutableArray<E> sort(Comparator<? super E> comparator) {
+      var copy = new ArrayList<>(backend);
+      copy.sort(comparator);
+      return new PImmutableArray<>(copy);
     }
 
     @Override
@@ -173,55 +175,46 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableArray<E> replace(int position, E element) {
-      ArrayList<E> list = copy();
-      list.set(position, element);
-      return new JavaBasedImmutableArray<>(list);
+    public ImmutableArray<E> remove(int position) {
+      return new PImmutableArray<>(backend.minus(position));
     }
 
     @Override
-    public ImmutableArray<E> remove(int position) {
-      ArrayList<E> list = copy();
-      list.remove(position);
-      return new JavaBasedImmutableArray<>(list);
+    public ImmutableArray<E> replace(int position, E element) {
+      return new PImmutableArray<>(backend.with(position, element));
     }
 
     @Override
     public ImmutableArray<E> insert(int position, E element) {
-      ArrayList<E> list = copy();
-      list.add(position, element);
-      return new JavaBasedImmutableArray<>(list);
+      return new PImmutableArray<>(backend.plus(position, element));
     }
 
     @Override
     public ImmutableArray<E> insertAll(int position, Sequence<? extends E> elements) {
-      ArrayList<E> list = copy();
-      list.addAll(position, elements.toCollection());
-      return new JavaBasedImmutableArray<>(list);
+      return new PImmutableArray<>(backend.plusAll(position, elements.toCollection()));
     }
-
-    @Override
-    public List<E> toList() {
-      return copy();
-    }
-
+    
     @Override
     public int hashCode() {
       return Objects.hash(backend);
     }
-
+    
     @Override
     public boolean equals(Object obj) {
       return EQUAL.applyTo(this, obj);
     }
-
+    
     @Override
     public String toString() {
       return "ImmutableArray(" + backend + ")";
     }
-
-    private ArrayList<E> copy() {
-      return new ArrayList<>(backend);
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
     }
   }
 }

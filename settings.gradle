@@ -18,6 +18,7 @@ dependencyResolutionManagement {
       library('mockitoCore', "org.mockito:mockito-core:$mockitoVersion")
       library('mockitoJunit', "org.mockito:mockito-junit-jupiter:$mockitoVersion")
       library('compileTesting', "com.google.testing.compile:compile-testing:$compileTestingVersion")
+      library('pcollections', "org.pcollections:pcollections:$pcollectionsVersion")
     }
   }
 }

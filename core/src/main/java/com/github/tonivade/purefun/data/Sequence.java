@@ -154,6 +154,10 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     return ImmutableSet.empty();
   }
 
+  static <E> ImmutableTree<E> emptyTree() {
+    return ImmutableTree.empty();
+  }
+
   @SafeVarargs
   static <E> ImmutableArray<E> arrayOf(E... elements) {
     return ImmutableArray.of(elements);

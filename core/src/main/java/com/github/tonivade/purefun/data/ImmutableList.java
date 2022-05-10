@@ -4,21 +4,23 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableList;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.pcollections.PVector;
+import org.pcollections.TreePVector;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -79,7 +81,8 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   static <T> ImmutableList<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableList<>(stream.collect(Collectors.toCollection(LinkedList::new)));
+    ArrayList<T> collect = stream.collect(Collectors.toCollection(ArrayList::new));
+    return new PImmutableList<>(collect);
   }
 
   @SafeVarargs
@@ -89,27 +92,30 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   @SuppressWarnings("unchecked")
   static <T> ImmutableList<T> empty() {
-    return (ImmutableList<T>) JavaBasedImmutableList.EMPTY;
+    return (ImmutableList<T>) PImmutableList.EMPTY;
   }
 
   static <E> Collector<E, ?, ImmutableList<E>> toImmutableList() {
-    return collectingAndThen(Collectors.toCollection(LinkedList::new), JavaBasedImmutableList::new);
+    return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableList::new);
   }
+  
+  final class PImmutableList<E> implements ImmutableList<E>, Serializable {
+    
+    private static final ImmutableList<?> EMPTY = new PImmutableList<>(TreePVector.empty());
 
-  final class JavaBasedImmutableList<E> implements ImmutableList<E>, Serializable {
+    private static final Equal<PImmutableList<?>> EQUAL = Equal.<PImmutableList<?>>of().comparing(a -> a.backend);
 
     @Serial
-    private static final long serialVersionUID = -7468103369804662814L;
+    private static final long serialVersionUID = 8986736870796940350L;
 
-    private static final ImmutableList<?> EMPTY = new JavaBasedImmutableList<>(new LinkedList<>());
-
-    private static final Equal<JavaBasedImmutableList<?>> EQUAL = 
-        Equal.<JavaBasedImmutableList<?>>of().comparing(a -> a.backend);
-
-    private final List<E> backend;
-
-    private JavaBasedImmutableList(LinkedList<E> backend) {
-      this.backend = unmodifiableList(backend);
+    private PVector<E> backend;
+    
+    private PImmutableList(Collection<E> backend) {
+      this(TreePVector.from(backend));
+    }
+    
+    private PImmutableList(PVector<E> backend) {
+      this.backend = checkNonNull(backend);
     }
 
     @Override
@@ -123,74 +129,70 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableList<E> reverse() {
-      LinkedList<E> newList = copy();
-      Collections.reverse(newList);
-      return new JavaBasedImmutableList<>(newList);
-    }
-
-    @Override
-    public ImmutableList<E> sort(Comparator<? super E> comparator) {
-      LinkedList<E> newList = copy();
-      newList.sort(comparator);
-      return new JavaBasedImmutableList<>(newList);
-    }
-
-    @Override
-    public ImmutableList<E> append(E element) {
-      LinkedList<E> newList = copy();
-      newList.add(element);
-      return new JavaBasedImmutableList<>(newList);
-    }
-
-    @Override
-    public ImmutableList<E> remove(E element) {
-      LinkedList<E> newList = copy();
-      newList.remove(element);
-      return new JavaBasedImmutableList<>(newList);
-    }
-
-    @Override
-    public ImmutableList<E> appendAll(Sequence<? extends E> other) {
-      LinkedList<E> newList = copy();
-      newList.addAll(other.toCollection());
-      return new JavaBasedImmutableList<>(newList);
-    }
-
-    @Override
-    public ImmutableList<E> removeAll(Sequence<? extends E> other) {
-      LinkedList<E> newList = copy();
-      newList.removeAll(other.toCollection());
-      return new JavaBasedImmutableList<>(newList);
-    }
-
-    @Override
     public Iterator<E> iterator() {
       return backend.iterator();
     }
 
     @Override
     public List<E> toList() {
-      return copy();
+      return new ArrayList<>(backend);
     }
 
+    @Override
+    public ImmutableList<E> append(E element) {
+      return new PImmutableList<>(backend.plus(element));
+    }
+
+    @Override
+    public ImmutableList<E> remove(E element) {
+      return new PImmutableList<>(backend.minus(element));
+    }
+
+    @Override
+    public ImmutableList<E> appendAll(Sequence<? extends E> other) {
+      return new PImmutableList<>(backend.plusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableList<E> removeAll(Sequence<? extends E> other) {
+      return new PImmutableList<>(backend.minusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableList<E> reverse() {
+      var copy = new ArrayList<>(backend);
+      Collections.reverse(copy);
+      return new PImmutableList<>(copy);
+    }
+
+    @Override
+    public ImmutableList<E> sort(Comparator<? super E> comparator) {
+      var copy = new ArrayList<>(backend);
+      copy.sort(comparator);
+      return new PImmutableList<>(copy);
+    }
+    
     @Override
     public int hashCode() {
       return Objects.hash(backend);
     }
-
+    
     @Override
     public boolean equals(Object obj) {
       return EQUAL.applyTo(this, obj);
     }
-
+    
     @Override
     public String toString() {
       return "ImmutableList(" + backend + ")";
     }
-
-    private LinkedList<E> copy() {
-      return new LinkedList<>(backend);
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
     }
   }
 }

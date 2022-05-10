@@ -4,9 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableMap;
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -15,12 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import org.pcollections.HashTreePMap;
+import org.pcollections.PMap;
 import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
@@ -118,7 +117,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
   @SuppressWarnings("unchecked")
   static <K, V> ImmutableMap<K, V> empty() {
-    return (ImmutableMap<K, V>) JavaBasedImmutableMap.EMPTY;
+    return (ImmutableMap<K, V>) PImmutableMap.EMPTY;
   }
 
   static <K, V> ImmutableMap<K, V> from(Iterable<? extends Tuple2<K, V>> entries) {
@@ -130,19 +129,19 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   }
 
   static <K, V> ImmutableMap<K, V> from(ImmutableSet<? extends Tuple2<K, V>> entries) {
-    return new JavaBasedImmutableMap<>(entries.stream()
-        .collect(ImmutableTreeModule.toLinkedHashMap(Tuple2::get1, Tuple2::get2)));
+    LinkedHashMap<K, V> collect = entries.stream().collect(toLinkedHashMap(Tuple2::get1, Tuple2::get2));
+    return new PImmutableMap<>(collect);
   }
 
   static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<K, V>> entries) {
-    return new JavaBasedImmutableMap<>(entries.stream()
-        .collect(ImmutableTreeModule.toLinkedHashMap(Map.Entry::getKey, Map.Entry::getValue)));
+    LinkedHashMap<K, V> collect = entries.stream().collect(toLinkedHashMap(Map.Entry::getKey, Map.Entry::getValue));
+    return new PImmutableMap<>(collect);
   }
 
   static <T, K, V> Collector<T, ?, ImmutableMap<K, V>> toImmutableMap(
       Function1<? super T, ? extends K> keyMapper, Function1<? super T, ? extends V> valueMapper) {
-    Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap = ImmutableTreeModule.toLinkedHashMap(keyMapper, valueMapper);
-    return collectingAndThen(toLinkedHashMap, JavaBasedImmutableMap::new);
+    Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap = toLinkedHashMap(keyMapper, valueMapper);
+    return collectingAndThen(toLinkedHashMap, PImmutableMap::new);
   }
 
   static <K, V> Builder<K, V> builder() {
@@ -165,64 +164,50 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
       return ImmutableMap.from(map);
     }
   }
-
-  final class JavaBasedImmutableMap<K, V> implements ImmutableMap<K, V>, Serializable {
-
+  
+  final class PImmutableMap<K, V> implements ImmutableMap<K, V>, Serializable {
+    
     @Serial
-    private static final long serialVersionUID = -1236334562860351635L;
+    private static final long serialVersionUID = -7846127227891259826L;
 
-    private static final ImmutableMap<?, ?> EMPTY = new JavaBasedImmutableMap<>(new LinkedHashMap<>());
+    private static final ImmutableMap<?, ?> EMPTY = new PImmutableMap<>(HashTreePMap.empty());
+    
+    private static final Equal<PImmutableMap<?, ?>> EQUAL =
+        Equal.<PImmutableMap<?, ?>>of().comparing(a -> a.backend);
 
-    private static final Equal<JavaBasedImmutableMap<?, ?>> EQUAL =
-        Equal.<JavaBasedImmutableMap<?, ?>>of().comparing(a -> a.backend);
+    private PMap<K, V> backend;
 
-    private final Map<K, V> backend;
+    private PImmutableMap(Map<K, V> backend) {
+      this(HashTreePMap.from(backend));
+    }
 
-    private JavaBasedImmutableMap(LinkedHashMap<K, V> backend) {
-      this.backend = unmodifiableMap(backend);
+    private PImmutableMap(PMap<K, V> backend) {
+      this.backend = checkNonNull(backend);
     }
 
     @Override
     public Map<K, V> toMap() {
-      return copy();
-    }
-
-    @Override
-    public int size() {
-      return backend.size();
+      return new HashMap<>(backend);
     }
 
     @Override
     public ImmutableMap<K, V> put(K key, V value) {
-      LinkedHashMap<K, V> newMap = copy();
-      newMap.put(key, value);
-      return new JavaBasedImmutableMap<>(newMap);
+      return new PImmutableMap<>(backend.plus(key, value));
     }
 
     @Override
     public ImmutableMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
-      LinkedHashMap<K, V> newMap = copy();
-      newMap.putAll(other.toMap());
-      return new JavaBasedImmutableMap<>(newMap);
+      return new PImmutableMap<>(backend.plusAll(other.toMap()));
     }
 
     @Override
     public ImmutableMap<K, V> remove(K key) {
-      LinkedHashMap<K, V> newMap = copy();
-      newMap.remove(key);
-      return new JavaBasedImmutableMap<>(newMap);
+      return new PImmutableMap<>(backend.minus(key));
     }
 
     @Override
     public Option<V> get(K key) {
       return Option.of(() -> backend.get(key));
-    }
-
-    @Override
-    public ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
-      LinkedHashMap<K, V> newMap = copy();
-      newMap.merge(key, value, merger::apply);
-      return new JavaBasedImmutableMap<>(newMap);
     }
 
     @Override
@@ -241,6 +226,18 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     }
 
     @Override
+    public ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
+      LinkedHashMap<K, V> newMap = new LinkedHashMap<>(backend);
+      newMap.merge(key, value, merger::apply);
+      return new PImmutableMap<>(newMap);
+    }
+
+    @Override
+    public int size() {
+      return backend.size();
+    }
+    
+    @Override
     public int hashCode() {
       return Objects.hash(backend);
     }
@@ -254,28 +251,23 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public String toString() {
       return "ImmutableMap(" + backend + ")";
     }
-
-    private LinkedHashMap<K, V> copy() {
-      return new LinkedHashMap<>(backend);
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
     }
   }
-}
 
-interface ImmutableTreeModule {
-
-  static <T, K, V> Collector<T, ?, ? extends TreeMap<K, V>> toTreeMap(
-      Function1<? super T, ? extends K> keyMapper,
-      Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), TreeMap::new);
-  }
-
-  static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
+  private static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
     return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), LinkedHashMap::new);
   }
 
-  static <V> BinaryOperator<V> throwingMerge() {
+  private static <V> BinaryOperator<V> throwingMerge() {
     return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
   }
 }
