@@ -316,6 +316,14 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     private TreeMap<K, V> copy() {
       return new TreeMap<>(backend);
     }
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
+    }
   }
   
   private static <T, K, V> Collector<T, ?, ? extends TreeMap<K, V>> toTreeMap(

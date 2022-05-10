@@ -11,15 +11,18 @@ import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
@@ -82,5 +85,26 @@ public class ImmutableSetTest {
               () -> assertEquals(ImmutableSet.empty(), set.map(toUpperCase)),
               () -> assertEquals(ImmutableSet.empty(), set.flatMap(toUpperCase.sequence())),
               () -> assertEquals(ImmutableSet.empty(), set.filter(e -> e.length() > 1)));
+  }
+  
+  @Test
+  void serialization() throws IOException, ClassNotFoundException {
+    ImmutableSet<Integer> set = setOf(1, 2, 3, 4, 5);
+
+    var output = new ByteArrayOutputStream();
+    try (var objectOutputStream = new ObjectOutputStream(output)) {
+      objectOutputStream.writeObject(set);
+      objectOutputStream.writeObject(Sequence.emptySet());
+    }
+    
+    Object result = null;
+    Object empty = null;
+    try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
+      result = objectInputStream.readObject();
+      empty = objectInputStream.readObject();
+    }
+    
+    assertEquals(set, result);
+    assertSame(Sequence.emptySet(), empty);
   }
 }

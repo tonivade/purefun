@@ -13,15 +13,18 @@ import static java.util.Collections.emptyNavigableSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeSet;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.type.Option;
@@ -104,5 +107,26 @@ public class ImmutableTreeTest {
               () -> assertEquals(Option.none(), tree.ceiling("a")),
               () -> assertEquals(Option.none(), tree.ceiling("c"))
               );
+  }
+  
+  @Test
+  void serialization() throws IOException, ClassNotFoundException {
+    ImmutableTree<Integer> tree = treeOf(1, 2, 3, 4, 5);
+
+    var output = new ByteArrayOutputStream();
+    try (var objectOutputStream = new ObjectOutputStream(output)) {
+      objectOutputStream.writeObject(tree);
+      objectOutputStream.writeObject(Sequence.emptyTree());
+    }
+    
+    Object result = null;
+    Object empty = null;
+    try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
+      result = objectInputStream.readObject();
+      empty = objectInputStream.readObject();
+    }
+    
+    assertEquals(tree, result);
+    assertSame(Sequence.emptyTree(), empty);
   }
 }

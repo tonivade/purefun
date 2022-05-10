@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,10 +18,8 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.pcollections.HashTreePSet;
 import org.pcollections.PSet;
-
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -100,7 +97,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     private static final Equal<PImmutableSet<?>> EQUAL = Equal.<PImmutableSet<?>>of().comparing(x -> x.backend);
 
-    private final PSet<E> backend;
+    private PSet<E> backend;
     
     private PImmutableSet(Collection<E> backend) {
       this(HashTreePSet.from(backend));
@@ -186,6 +183,14 @@ public interface ImmutableSet<E> extends Sequence<E> {
     @Override
     public String toString() {
       return "ImmutableSet(" + backend + ")";
+    }
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
     }
   }
 }

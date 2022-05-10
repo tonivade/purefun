@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,10 +19,8 @@ import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.pcollections.PVector;
 import org.pcollections.TreePVector;
-
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -188,6 +185,14 @@ public interface ImmutableList<E> extends Sequence<E> {
     @Override
     public String toString() {
       return "ImmutableList(" + backend + ")";
+    }
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
     }
   }
 }

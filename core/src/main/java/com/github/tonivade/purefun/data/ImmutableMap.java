@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -19,10 +18,8 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.pcollections.HashTreePMap;
 import org.pcollections.PMap;
-
 import com.github.tonivade.purefun.Consumer2;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
@@ -178,7 +175,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     private static final Equal<PImmutableMap<?, ?>> EQUAL =
         Equal.<PImmutableMap<?, ?>>of().comparing(a -> a.backend);
 
-    private final PMap<K, V> backend;
+    private PMap<K, V> backend;
 
     private PImmutableMap(Map<K, V> backend) {
       this(HashTreePMap.from(backend));
@@ -255,6 +252,13 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
       return "ImmutableMap(" + backend + ")";
     }
     
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
+    }
   }
 
   private static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(

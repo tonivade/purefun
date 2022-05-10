@@ -219,5 +219,13 @@ public interface ImmutableTree<E> extends Sequence<E> {
     private TreeSet<E> copy() {
       return new TreeSet<>(backend);
     }
+    
+    @Serial
+    private Object readResolve() {
+      if (backend.isEmpty()) {
+        return EMPTY;
+      }
+      return this;
+    }
   }
 }
