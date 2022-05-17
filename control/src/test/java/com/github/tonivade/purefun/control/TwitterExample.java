@@ -6,11 +6,11 @@ package com.github.tonivade.purefun.control;
 
 import static com.github.tonivade.purefun.control.ControlOf.toControl;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.typeclasses.Instance.monad;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.data.ImmutableList;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 class TwitterExample {
   
@@ -36,7 +36,7 @@ class TwitterExample {
   }
   
   private Control<ImmutableList<Tweet>> program(Twitter twitter) {
-    return monad(Control_.class).use()
+    return Instances.<Control_>monad().use()
       .then(twitter.userTweets("12345"))
       .then(twitter.userTweets("54321"))
       .yield(ImmutableList::appendAll)

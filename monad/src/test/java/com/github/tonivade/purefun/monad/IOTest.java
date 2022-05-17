@@ -8,26 +8,26 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
 import static com.github.tonivade.purefun.monad.IOOf.narrowK;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static com.github.tonivade.purefun.typeclasses.Instance.monad;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
@@ -299,7 +299,7 @@ public class IOTest {
   
   @Test
   public void fork() {
-    IO<String> result = For.with(monad(IO_.class))
+    IO<String> result = For.<IO_>with()
       .then(IO.pure("hola"))
       .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
       .flatMap(Fiber::join).fix(toIO());

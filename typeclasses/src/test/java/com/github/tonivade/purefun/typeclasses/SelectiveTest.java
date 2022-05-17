@@ -36,7 +36,7 @@ import com.github.tonivade.purefun.type.Validation_;
 @ExtendWith(MockitoExtension.class)
 public class SelectiveTest {
 
-  private final Selective<IO_> monad = Instance.monad(IO_.class);
+  private final Selective<IO_> monad = Instances.<IO_>monad();
 
   @Test
   public void apply() {

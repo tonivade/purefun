@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.type.EvalOf.toEval;
-import static com.github.tonivade.purefun.typeclasses.Instance.applicative;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -18,6 +17,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Eval_;
 import com.github.tonivade.purefun.typeclasses.Functor;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
@@ -62,7 +62,7 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappa
 
   public <B> Eval<B> fold(Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
     Eval<Kind<F, B>> eval =
-        traverse.traverse(applicative(Eval_.class), tailForced(), c -> c.fold(traverse, mapper))
+        traverse.traverse(Instances.<Eval_>applicative(), tailForced(), c -> c.fold(traverse, mapper))
             .fix(toEval());
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }

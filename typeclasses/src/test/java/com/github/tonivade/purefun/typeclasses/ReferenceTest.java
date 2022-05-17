@@ -4,9 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.typeclasses.Instance.monad;
-import static com.github.tonivade.purefun.typeclasses.Instance.monadDefer;
-import static com.github.tonivade.purefun.typeclasses.Instance.runtime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
@@ -21,15 +18,15 @@ public abstract class ReferenceTest<F extends Witness> {
   }
 
   protected <T> Reference<F, T> makeRef(T value) {
-    return monadDefer(type).ref(value);
+    return Instances.monadDefer(type).ref(value);
   }
   
   protected <T, R> Kind<F, R> doAndThen(Kind<F, T> value, Kind<F, R> next) {
-    return monad(type).andThen(value, () -> next);
+    return Instances.monad(type).andThen(value, () -> next);
   }
   
   protected <T> T run(Kind<F, T> value) {
-    return runtime(type).run(value);
+    return Instances.runtime(type).run(value);
   }
 
   @Test

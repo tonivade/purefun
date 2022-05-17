@@ -117,89 +117,12 @@ public abstract class Instance<F extends Witness> {
     return load(this, Traverse.class, params);
   }
 
-  public static <F extends Witness> Functor<F> functor(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.functor(params);
-  }
-
-  public static <F extends Witness> Bifunctor<F> bifunctor(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.bifunctor(params);
-  }
-
-  public static <F extends Witness> Applicative<F> applicative(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.applicative(params);
-  }
-
-  public static <F extends Witness> Monad<F> monad(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monad(params);
-  }
-
-  public static <F extends Witness, R> MonadReader<F, R> monadReader(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadReader(params);
-  }
-
-  public static <F extends Witness, S> MonadState<F, S> monadState(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadState(params);
-  }
-
-  public static <F extends Witness, W> MonadWriter<F, W> monadWriter(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadWriter(params);
-  }
-
-  public static <F extends Witness> Comonad<F> comonad(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.comonad(params);
-  }
-
-  public static <F extends Witness> Selective<F> selective(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.selective(params);
-  }
-
-  public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.applicativeError(params);
-  }
-
-  public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadError(params);
-  }
-
-  public static <F extends Witness> MonadThrow<F> monadThrow(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadThrow(params);
-  }
-
-  public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadDefer(params);
-  }
-
-  public static <F extends Witness> Async<F> async(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.async(params);
-  }
-
-  public static <F extends Witness> Concurrent<F> concurrent(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.concurrent(params);
-  }
-
-  public static <F extends Witness> Runtime<F> runtime(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.runtime(params);
-  }
-
-  public static <F extends Witness> Console<F> console(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.console(params);
-  }
-
-  public static <F extends Witness> Foldable<F> foldable(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.foldable(params);
-  }
-
-  public static <F extends Witness> Traverse<F> traverse(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.traverse(params);
-  }
-
   protected String instanceName() {
     return "com.github.tonivade.purefun.instances." + kindType.getSimpleName().replace("_", "Instances");
   }
   
   private static Type genericType(Type type) {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
+    if (type instanceof ParameterizedType parameterizedType) {
       return parameterizedType.getActualTypeArguments()[0];
     }
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
@@ -207,8 +130,7 @@ public abstract class Instance<F extends Witness> {
 
   @SuppressWarnings("unchecked")
   private static Class<? extends Witness> kindType(Type type) {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
+    if (type instanceof ParameterizedType parameterizedType) {
       if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
         return kindType(parameterizedType.getActualTypeArguments()[0]);
       }

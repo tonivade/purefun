@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static com.github.tonivade.purefun.typeclasses.Instance.concurrent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
@@ -28,7 +27,7 @@ public class ConcurrentTest {
 
   @Test
   public void ioRaceA() {
-    Concurrent<IO_> concurrent = concurrent(IO_.class);
+    Concurrent<IO_> concurrent = Instances.<IO_>concurrent();
     
     Kind<IO_, Either<Integer, String>> race = concurrent.race(
         IO.delay(Duration.ofMillis(10), () -> 10),
@@ -41,7 +40,7 @@ public class ConcurrentTest {
 
   @Test
   public void ioRaceB() {
-    Concurrent<IO_> concurrent = concurrent(IO_.class);
+    Concurrent<IO_> concurrent = Instances.<IO_>concurrent();
     
     Kind<IO_, Either<Integer, String>> race = concurrent.race(
         IO.delay(Duration.ofMillis(100), () -> 10),

@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.type.IdOf.toId;
-import static com.github.tonivade.purefun.typeclasses.Instance.applicative;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
@@ -26,7 +25,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
 
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
-    Kind<Id_, Kind<F, R>> traverse = traverse(applicative(Id_.class), value, t -> Id.of(map.apply(t)));
+    Kind<Id_, Kind<F, R>> traverse = traverse(Instances.<Id_>applicative(), value, t -> Id.of(map.apply(t)));
     return traverse.fix(toId()).get();
   }
 

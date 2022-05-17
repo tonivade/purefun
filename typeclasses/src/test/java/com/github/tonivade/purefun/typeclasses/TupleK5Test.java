@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.type.Option_;
 
 public class TupleK5Test {
 
-  private final Functor<Option_> functor = Instance.functor(Option_.class);
+  private final Functor<Option_> functor = Instances.<Option_>functor();
 
   @Test
   public void tuple() {

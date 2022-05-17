@@ -10,12 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.instances.EitherInstances;
-import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
-import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
+import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Option_;
+import com.github.tonivade.purefun.type.Try_;
 
 public class MonadTest {
 
@@ -23,17 +23,17 @@ public class MonadTest {
 
   @Test
   public void idMonad() {
-    verifyLaws(IdInstances.monad());
+    verifyLaws(Instances.<Id_>monad());
   }
 
   @Test
   public void optionMonad() {
-    verifyLaws(OptionInstances.monad());
+    verifyLaws(Instances.<Option_>monad());
   }
 
   @Test
   public void tryMonad() {
-    verifyLaws(TryInstances.monad());
+    verifyLaws(Instances.<Try_>monad());
   }
 
   @Test

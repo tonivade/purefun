@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static com.github.tonivade.purefun.type.IdOf.toId;
-import static com.github.tonivade.purefun.typeclasses.Instance.monad;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,7 +57,7 @@ public class ForTest {
 
   @Test
   public void flatMap() {
-    Monad<Id_> monad = monad(Id_.class);
+    Monad<Id_> monad = Instances.<Id_>monad();
     Id<String> result = For.with(monad)
         .andThen(() -> monad.pure("value"))
         .flatMap(string -> monad.pure(string.toUpperCase()))

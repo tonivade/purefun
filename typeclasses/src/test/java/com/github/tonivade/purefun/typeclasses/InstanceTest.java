@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.Nothing.nothing;
 import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.type.EitherOf.toEither;
 import static com.github.tonivade.purefun.type.IdOf.toId;
-import static com.github.tonivade.purefun.typeclasses.Instance.functor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -27,7 +26,7 @@ public class InstanceTest {
 
   @Test
   public void testSimple() {
-    Id<Integer> result = functor(Id_.class).map(Id.of(1), x -> x + 1).fix(toId());
+    Id<Integer> result = Instances.<Id_>functor().map(Id.of(1), x -> x + 1).fix(toId());
     
     assertEquals(Id.of(2), result);
   }
@@ -52,9 +51,9 @@ public class InstanceTest {
   
   @Test
   public void notFoundSimple() {
-    InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> Instance.monadError(Id.class));
+    InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> Instances.<Id_, String>monadError());
     
-    assertEquals("instance of type MonadError for type com.github.tonivade.purefun.type.Id not found", exception.getMessage());
+    assertEquals("instance of type MonadError for type com.github.tonivade.purefun.type.Id_ not found", exception.getMessage());
   }
   
   @Test
