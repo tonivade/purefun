@@ -13,8 +13,8 @@ public interface Handler<R, E> extends Marker.Cont<R>, Effect<E> {
   }
 
   default Control<R> apply(Function1<E, Control<R>> program) {
-    if (this instanceof StateMarker) {
-      return Control.delimitState((Marker.State<?>) this,
+    if (this instanceof StateMarker stateMarker){
+      return Control.delimitState(stateMarker,
           Control.delimitCont(this, h -> program.apply(effect())));
     }
     return Control.delimitCont(this, h -> program.apply(effect()));

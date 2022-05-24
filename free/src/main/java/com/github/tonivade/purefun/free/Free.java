@@ -141,13 +141,11 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
 
     @SuppressWarnings("unchecked")
     public Either<Kind<F, Free<F, B>>, B> resume(Functor<F> functor) {
-      if (value instanceof Free.Suspend) {
-        Free.Suspend<F, A> suspend = (Free.Suspend<F, A>) value;
+      if (value instanceof Free.Suspend<F, ? extends A> suspend) {
         Kind<F, Free<F, B>> map = functor.map(suspend.value, next.andThen(x -> (Free<F, B>) x));
         return Either.left(map);
       }
-      if (value instanceof Free.Pure) {
-        Free.Pure<F, A> pure = (Free.Pure<F, A>) value;
+      if (value instanceof Free.Pure<F, ? extends A> pure) {
         Free<F, B> apply = (Free<F, B>) next.apply(pure.value);
         return apply.resume(functor);
       }
@@ -161,8 +159,7 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
         Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;
         return flatMapped.value.flatMap(x -> flatMapped.next.andThen(FreeOf::<F, A>narrowK).apply(x).flatMap(next)).step();
       }
-      if (value instanceof Pure) {
-        Free.Pure<F, A> pure = (Free.Pure<F, A>) value;
+      if (value instanceof Pure<F, ? extends A> pure) {
         Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
         return andThen.apply(pure.value).step();
       }

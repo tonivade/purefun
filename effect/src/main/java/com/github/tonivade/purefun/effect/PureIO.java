@@ -255,8 +255,8 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   
   default URIO<R, A> toURIO() {
     return new URIO<>(mapError(error -> {
-      if (error instanceof Throwable) {
-        throw (Throwable) error;
+      if (error instanceof Throwable throwable) {
+        throw throwable;
       }
       throw new ClassCastException(error.getClass() + " is not throwable");
     }));
