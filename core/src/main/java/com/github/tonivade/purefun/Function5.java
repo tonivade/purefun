@@ -53,5 +53,25 @@ public interface Function5<A, B, C, D, E, R> extends Recoverable {
   static <A, B, C, D, E, R> Function5<A, B, C, D, E, R> cons(R value) {
     return (a, b, c, d, e) -> value;
   }
+
+  static <A, B, C, D, E> Function5<A, B, C, D, E, A> first() {
+    return (a, b, c, d, e) -> a;
+  }
+
+  static <A, B, C, D, E> Function5<A, B, C, D, E, B> second() {
+    return (a, b, c, d, e) -> b;
+  }
+
+  static <A, B, C, D, E> Function5<A, B, C, D, E, C> third() {
+    return (a, b, c, d, e) -> c;
+  }
+
+  static <A, B, C, D, E> Function5<A, B, C, D, E, D> fourth() {
+    return (a, b, c, d, e) -> d;
+  }
+
+  static <A, B, C, D, E> Function5<A, B, C, D, E, E> fifth() {
+    return (a, b, c, d, e) -> e;
+  }
 }
 

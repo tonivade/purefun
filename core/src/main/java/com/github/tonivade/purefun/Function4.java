@@ -51,5 +51,21 @@ public interface Function4<A, B, C, D, R> extends Recoverable {
   static <A, B, C, D, R> Function4<A, B, C, D, R> cons(R value) {
     return (a, b, c, d) -> value;
   }
+
+  static <A, B, C, D> Function4<A, B, C, D, A> first() {
+    return (a, b, c, d) -> a;
+  }
+
+  static <A, B, C, D> Function4<A, B, C, D, B> second() {
+    return (a, b, c, d) -> b;
+  }
+
+  static <A, B, C, D> Function4<A, B, C, D, C> third() {
+    return (a, b, c, d) -> c;
+  }
+
+  static <A, B, C, D> Function4<A, B, C, D, D> fourth() {
+    return (a, b, c, d) -> d;
+  }
 }
 

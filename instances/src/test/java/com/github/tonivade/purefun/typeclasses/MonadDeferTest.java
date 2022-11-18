@@ -12,12 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.instances.EitherTInstances;
@@ -34,6 +39,7 @@ import com.github.tonivade.purefun.transformer.OptionTOf;
 import com.github.tonivade.purefun.transformer.OptionT_;
 import com.github.tonivade.purefun.type.Either;
 
+@ExtendWith(MockitoExtension.class)
 public class MonadDeferTest {
 
   private MonadDefer<IO_> ioMonadDefer = IOInstances.monadDefer();
@@ -45,6 +51,18 @@ public class MonadDeferTest {
       OptionTInstances.monadDefer(ioMonadDefer);
 
   private AutoCloseable resource = Mockito.mock(AutoCloseable.class);
+
+  @Test
+  public void ioLater(@Mock Producer<String> task) throws Exception {
+    when(task.get()).thenReturn("hola toni");
+
+    Kind<IO_, String> later = ioMonadDefer.later(task);
+
+    String result = later.fix(toIO()).unsafeRunSync();
+
+    assertEquals("hola toni", result);
+    verify(task).get();
+  }
 
   @Test
   public void ioBracket() throws Exception {
@@ -108,7 +126,7 @@ public class MonadDeferTest {
                                                 r -> EitherT.<IO_, Throwable, String>left(IOInstances.monad(), new UnsupportedOperationException()));
 
     Either<Throwable, String> unsafeRunSync = bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync();
-    
+
     assertTrue(unsafeRunSync.getLeft() instanceof UnsupportedOperationException);
     verify(resource).close();
   }

@@ -49,4 +49,16 @@ public interface Function3<A, B, C, R> extends Recoverable {
   static <A, B, C, R> Function3<A, B, C, R> cons(R value) {
     return (a, b, c) -> value;
   }
+
+  static <A, B, C> Function3<A, B, C, A> first() {
+    return (a, b, c) -> a;
+  }
+
+  static <A, B, C> Function3<A, B, C, B> second() {
+    return (a, b, c) -> b;
+  }
+
+  static <A, B, C> Function3<A, B, C, C> third() {
+    return (a, b, c) -> c;
+  }
 }
