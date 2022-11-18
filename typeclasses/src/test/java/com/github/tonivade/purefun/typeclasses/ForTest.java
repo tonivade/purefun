@@ -110,7 +110,7 @@ public class ForTest {
         .and(4)
         .and(5);
 
-    IO<Integer> yield = program1.yield((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
+    IO<Integer> yield = program1.apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
 
     IO<Integer> apply = program2.apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
 
