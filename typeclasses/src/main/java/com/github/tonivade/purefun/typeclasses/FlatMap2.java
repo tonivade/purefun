@@ -30,6 +30,7 @@ public final class FlatMap2<F extends Witness, A, B> extends AbstractFlatMap<F, 
     return apply(Tuple2::of);
   }
 
+  @Deprecated
   public <R> Kind<F, R> yield(Function2<? super A, ? super B, ? extends R> combine) {
     return apply(combine);
   }
