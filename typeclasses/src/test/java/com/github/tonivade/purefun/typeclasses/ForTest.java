@@ -19,10 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple5;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
@@ -46,7 +44,7 @@ public class ForTest {
     when(mapper.apply(anyString())).thenReturn("called");
     when(mapper.andThen(any())).thenCallRealMethod();
 
-    Kind<Id_, Unit> result = For.with(Id_.class)
+    var result = For.with(Id_.class)
         .and("hola mundo!")
         .map(mapper)
         .returns(unit());
@@ -57,19 +55,35 @@ public class ForTest {
 
   @Test
   public void flatMap() {
-    Monad<Id_> monad = Instances.<Id_>monad();
-    Id<String> result = For.with(monad)
-        .andThen(() -> monad.pure("value"))
-        .flatMap(string -> monad.pure(string.toUpperCase()))
+    Id<String> result = For.with(Instances.<Id_>monad())
+        .andThen(() -> Instances.<Id_>monad().pure("value"))
+        .flatMap(string -> Instances.<Id_>monad().pure(string.toUpperCase()))
         .fix(toId());
 
     assertEquals(Id.of("VALUE"), result);
   }
 
   @Test
+  public void applyBug(@Mock Producer<String> task1, @Mock Producer<String> task2) {
+    when(task1.get()).thenReturn("hola toni");
+    when(task2.get()).thenReturn("adios toni");
+
+    Applicative<IO_> monad = Instances.applicative(IO_.class);
+    var result = For.with(monad)
+      .then(IO.task(task1))
+      .then(IO.task(task2))
+      .apply(String::concat)
+      .fix(toIO())
+      .unsafeRunSync();
+
+    assertEquals("hola toniadios toni", result);
+    verify(task1).get();
+    verify(task2).get();
+  }
+
+  @Test
   public void apply() {
-    Id<Tuple5<String, String, String, String, String>> result =
-        For.with(Id_.class)
+    var result = For.with(Id_.class)
           .and("a")
           .and("b")
           .and("c")
@@ -83,21 +97,22 @@ public class ForTest {
 
   @Test
   public void applyVsYield() {
-    For5<IO_, Integer, Integer, Integer, Integer, Integer> program =
-      For.with(IO_.class)
+    var program1 = For.with(Instances.<IO_>monad())
         .and(1)
-        .map(a -> 1 + a)
-        .map(b -> 1 + b)
-        .map(c -> 1 + c)
-        .map(d -> 1 + d);
+        .and(2)
+        .and(3)
+        .and(4)
+        .and(5);
+    var program2 = For.with(Instances.<IO_>applicative())
+        .and(1)
+        .and(2)
+        .and(3)
+        .and(4)
+        .and(5);
 
-    IO<Integer> yield =
-      program
-        .yield((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
+    IO<Integer> yield = program1.apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
 
-    IO<Integer> apply =
-      program
-        .apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
+    IO<Integer> apply = program2.apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
 
     assertEquals(15, yield.unsafeRunSync());
     assertEquals(15, apply.unsafeRunSync());

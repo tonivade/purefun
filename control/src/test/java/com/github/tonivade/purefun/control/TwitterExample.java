@@ -39,7 +39,7 @@ class TwitterExample {
     return Instances.<Control_>monad().use()
       .then(twitter.userTweets("12345"))
       .then(twitter.userTweets("54321"))
-      .yield(ImmutableList::appendAll)
+      .apply(ImmutableList::appendAll)
       .fix(toControl());
   }
   

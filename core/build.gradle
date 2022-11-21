@@ -1,3 +1,33 @@
+sourceSets {
+  java19 {
+    java {
+      srcDirs = ['src/main/java19']
+    }
+  }
+}
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+  
+  withJavadocJar()
+  withSourcesJar()
+}
+
+compileJava19Java {
+  sourceCompatibility = JavaVersion.VERSION_19
+  targetCompatibility = JavaVersion.VERSION_19
+  
+  options.compilerArgs << '--enable-preview'
+}
+
+jar {
+  into('META-INF/versions/19') {
+    from sourceSets.java19.output
+  }
+  manifest.attributes('Multi-Release': 'true')
+}
+
 dependencies {
   annotationProcessor projects.purefunProcessor
   api projects.purefunAnnotation

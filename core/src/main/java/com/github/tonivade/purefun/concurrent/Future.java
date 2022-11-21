@@ -69,7 +69,7 @@ import com.github.tonivade.purefun.type.TryOf;
 @HigherKind
 public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
 
-  Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+  Executor DEFAULT_EXECUTOR = DefaultExecutor.EXECUTOR;
 
   Try<T> await();
   Try<T> await(Duration timeout);

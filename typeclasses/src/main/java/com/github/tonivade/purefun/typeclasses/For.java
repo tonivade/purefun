@@ -15,51 +15,69 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 
-public final class For<F extends Witness> {
-
-  private final Monad<F> monad;
-
-  private For(Monad<F> monad) {
-    this.monad = checkNonNull(monad);
-  }
-
-  public <T> For1<F, T> and(T next) {
-    return For.with(monad, monad.pure(next));
-  }
-
-  public <T> For1<F, T> then(Kind<F, T> next) {
-    return For.with(monad, next);
-  }
-
-  public <T> For1<F, T> andThen(Producer<? extends Kind<F, ? extends T>> next) {
-    return For.with(monad, monad.andThen(monad.pure(unit()), next));
-  }
+public sealed interface For<F extends Witness> {
 
   @SafeVarargs
   @SuppressWarnings("unchecked")
-  public static <F extends Witness> For<F> with(F...reified) {
+  @Deprecated
+  static <F extends Witness> FlatMap<F> with(F...reified) {
     return with((Class<F>) reified.getClass().getComponentType());
   }
 
-  public static <F extends Witness> For<F> with(Class<F> type) {
-    return new For<>(Instances.monad(type));
+  @Deprecated
+  static <F extends Witness> FlatMap<F> with(Class<F> type) {
+    return new FlatMap<>(Instances.monad(type));
   }
 
-  public static <F extends Witness> For<F> with(Monad<F> monad) {
-    return new For<>(monad);
+  static <F extends Witness> FlatMap<F> with(Monad<F> monad) {
+    return new FlatMap<>(monad);
   }
 
-  public static <F extends Witness, T> For1<F, T> with(Monad<F> monad, Kind<F, ? extends T> value1) {
-    return new For1<>(monad, cons(value1));
+  static <F extends Witness> Apply<F> with(Applicative<F> applicative) {
+    return new Apply<>(applicative);
   }
+
+  static <F extends Witness, T> FlatMap1<F, T> with(Monad<F> monad, Kind<F, ? extends T> value1) {
+    return new FlatMap1<>(monad, cons(value1));
+  }
+
+  static <F extends Witness, T> Apply1<F, T> with(Applicative<F> applicative, Kind<F, ? extends T> value1) {
+    return new Apply1<>(applicative, cons(value1));
+  }
+
+  static record FlatMap<F extends Witness>(Monad<F> monad) implements For<F> {
+
+    public <T> FlatMap1<F, T> and(T next) {
+      return For.with(monad, monad.pure(next));
+    }
+
+    public <T> FlatMap1<F, T> then(Kind<F, T> next) {
+      return For.with(monad, next);
+    }
+
+    public <T> FlatMap1<F, T> andThen(Producer<? extends Kind<F, ? extends T>> next) {
+      return For.with(monad, monad.andThen(monad.pure(unit()), next));
+    }
+  }
+
+  static record Apply<F extends Witness>(Applicative<F> applicative) implements For<F> {
+
+    public <T> Apply1<F, T> and(T next) {
+      return For.with(applicative, applicative.pure(next));
+    }
+
+    public <T> Apply1<F, T> then(Kind<F, T> next) {
+      return For.with(applicative, next);
+    }
+ }
 }
 
-abstract class AbstractFor<F extends Witness, A, B> {
+abstract class AbstractFlatMap<F extends Witness, A, B> {
 
   protected final Monad<F> monad;
   protected final Function1<? super A, ? extends Kind<F, ? extends B>> value;
 
-  protected AbstractFor(Monad<F> monad, Function1<? super A, ? extends Kind<F, ? extends B>> value) {
+  protected AbstractFlatMap(Monad<F> monad, Function1<? super A, ? extends Kind<F, ? extends B>> value) {
     this.monad = checkNonNull(monad);
     this.value = checkNonNull(value);
   }
@@ -76,5 +94,30 @@ abstract class AbstractFor<F extends Witness, A, B> {
 
   public <R> Kind<F, R> returns(R other) {
     return monad.map(run(), ignore -> other);
+  }
+}
+
+abstract class AbstractApply<F extends Witness, A> {
+
+  protected final Applicative<F> applicative;
+  protected final Producer<? extends Kind<F, ? extends A>> value;
+
+  protected AbstractApply(Applicative<F> applicative, Producer<? extends Kind<F, ? extends A>> value) {
+    this.applicative = checkNonNull(applicative);
+    this.value = checkNonNull(value);
+  }
+
+  public abstract Kind<F, A> run();
+
+  public <R> R fix(Fixer<Kind<F, A>, R> fixer) {
+    return fixer.apply(run());
+  }
+
+  public void end(Consumer1<? super Kind<F, A>> consumer) {
+    consumer.accept(run());
+  }
+
+  public <R> Kind<F, R> returns(R other) {
+    return applicative.map(run(), ignore -> other);
   }
 }

@@ -15,8 +15,8 @@ import com.github.tonivade.purefun.type.Either;
 public interface Monad<F extends Witness> extends Selective<F> {
 
   <T, R> Kind<F, R> flatMap(Kind<F, ? extends T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
-  
-  default For<F> use() {
+
+  default For.FlatMap<F> use() {
     return For.with(this);
   }
 
@@ -29,7 +29,7 @@ public interface Monad<F extends Witness> extends Selective<F> {
   default <T, R> Kind<F, R> andThen(Kind<F, ? extends T> value, Producer<? extends Kind<F, ? extends R>> next) {
     return flatMap(value, ignore -> next.get());
   }
-  
+
   default <T> Kind<F, T> flatten(Kind<F, Kind<F, ? extends T>> value) {
     return flatMap(value, identity());
   }
