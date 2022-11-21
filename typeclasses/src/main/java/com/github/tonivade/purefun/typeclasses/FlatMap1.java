@@ -21,7 +21,7 @@ public final class FlatMap1<F extends Witness, A> extends AbstractFlatMap<F, Uni
   }
 
   public Kind<F, Tuple1<A>> tuple() {
-    return monad.map(value.apply(Unit.unit()), Tuple1::of);
+    return monad.map(value.apply(unit()), Tuple1::of);
   }
 
   public <R> FlatMap2<F, A, R> map(Function1<? super A, ? extends R> mapper) {
@@ -46,6 +46,6 @@ public final class FlatMap1<F extends Witness, A> extends AbstractFlatMap<F, Uni
 
   @Override
   public Kind<F, A> run() {
-    return value.apply(Unit.unit()).fix(Kind::narrowK);
+    return value.apply(unit()).fix(Kind::narrowK);
   }
 }
