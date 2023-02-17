@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Witness;
 
 public final class Instances {
-  
+
   private Instances() { }
 
   public static <F extends Witness> Functor<F> functor(Class<F> type, Object...params) {
@@ -15,9 +15,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Functor<F> functor(F...reified) {
-    return functor((Class<F>) reified.getClass().getComponentType());
+    return functor(getClassOf(reified));
   }
 
   public static <F extends Witness> Bifunctor<F> bifunctor(Class<F> type, Object...params) {
@@ -25,9 +24,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Bifunctor<F> bifunctor(F...reified) {
-    return bifunctor((Class<F>) reified.getClass().getComponentType());
+    return bifunctor(getClassOf(reified));
   }
 
   public static <F extends Witness> Applicative<F> applicative(Class<F> type, Object...params) {
@@ -35,9 +33,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Applicative<F> applicative(F...reified) {
-    return applicative((Class<F>) reified.getClass().getComponentType());
+    return applicative(getClassOf(reified));
   }
 
   public static <F extends Witness> Monad<F> monad(Class<F> type, Object...params) {
@@ -45,9 +42,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Monad<F> monad(F...reified) {
-    return monad((Class<F>) reified.getClass().getComponentType());
+    return monad(getClassOf(reified));
   }
 
   public static <F extends Witness, R> MonadReader<F, R> monadReader(Class<F> type, Object...params) {
@@ -55,9 +51,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness, R> MonadReader<F, R> monadReader(F...reified) {
-    return monadReader((Class<F>) reified.getClass().getComponentType());
+    return monadReader(getClassOf(reified));
   }
 
   public static <F extends Witness, S> MonadState<F, S> monadState(Class<F> type, Object...params) {
@@ -65,9 +60,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness, S> MonadState<F, S> monadState(F...reified) {
-    return monadState((Class<F>) reified.getClass().getComponentType());
+    return monadState(getClassOf(reified));
   }
 
   public static <F extends Witness, W> MonadWriter<F, W> monadWriter(Class<F> type, Object...params) {
@@ -75,9 +69,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness, W> MonadWriter<F, W> monadWriter(F...reified) {
-    return monadWriter((Class<F>) reified.getClass().getComponentType());
+    return monadWriter(getClassOf(reified));
   }
 
   public static <F extends Witness> Comonad<F> comonad(Class<F> type, Object...params) {
@@ -85,9 +78,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Comonad<F> comonad(F...reified) {
-    return comonad((Class<F>) reified.getClass().getComponentType());
+    return comonad(getClassOf(reified));
   }
 
   public static <F extends Witness> Selective<F> selective(Class<F> type, Object...params) {
@@ -95,9 +87,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Selective<F> selective(F...reified) {
-    return selective((Class<F>) reified.getClass().getComponentType());
+    return selective(getClassOf(reified));
   }
 
   public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(Class<F> type, Object...params) {
@@ -105,9 +96,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(F...reified) {
-    return applicativeError((Class<F>) reified.getClass().getComponentType());
+    return applicativeError(getClassOf(reified));
   }
 
   public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type, Object...params) {
@@ -115,9 +105,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness, E> MonadError<F, E> monadError(F...reified) {
-    return monadError((Class<F>) reified.getClass().getComponentType());
+    return monadError(getClassOf(reified));
   }
 
   public static <F extends Witness> MonadThrow<F> monadThrow(Class<F> type, Object...params) {
@@ -125,9 +114,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> MonadThrow<F> monadThrow(F...reified) {
-    return monadThrow((Class<F>) reified.getClass().getComponentType());
+    return monadThrow(getClassOf(reified));
   }
 
   public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type, Object...params) {
@@ -135,9 +123,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> MonadDefer<F> monadDefer(F...reified) {
-    return monadDefer((Class<F>) reified.getClass().getComponentType());
+    return monadDefer(getClassOf(reified));
   }
 
   public static <F extends Witness> Async<F> async(Class<F> type, Object...params) {
@@ -145,9 +132,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Async<F> async(F...reified) {
-    return async((Class<F>) reified.getClass().getComponentType());
+    return async(getClassOf(reified));
   }
 
   public static <F extends Witness> Concurrent<F> concurrent(Class<F> type, Object...params) {
@@ -155,9 +141,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Concurrent<F> concurrent(F...reified) {
-    return concurrent((Class<F>) reified.getClass().getComponentType());
+    return concurrent(getClassOf(reified));
   }
 
   public static <F extends Witness> Runtime<F> runtime(Class<F> type, Object...params) {
@@ -165,9 +150,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Runtime<F> runtime(F...reified) {
-    return runtime((Class<F>) reified.getClass().getComponentType());
+    return runtime(getClassOf(reified));
   }
 
   public static <F extends Witness> Console<F> console(Class<F> type, Object...params) {
@@ -175,9 +159,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Console<F> console(F...reified) {
-    return console((Class<F>) reified.getClass().getComponentType());
+    return console(getClassOf(reified));
   }
 
   public static <F extends Witness> Foldable<F> foldable(Class<F> type, Object...params) {
@@ -185,9 +168,8 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Foldable<F> foldable(F...reified) {
-    return foldable((Class<F>) reified.getClass().getComponentType());
+    return foldable(getClassOf(reified));
   }
 
   public static <F extends Witness> Traverse<F> traverse(Class<F> type, Object...params) {
@@ -195,9 +177,15 @@ public final class Instances {
   }
 
   @SafeVarargs
-  @SuppressWarnings("unchecked")
   public static <F extends Witness> Traverse<F> traverse(F...reified) {
-    return traverse((Class<F>) reified.getClass().getComponentType());
+    return traverse(getClassOf(reified));
   }
 
+  @SuppressWarnings("unchecked")
+  private static <F> Class<F> getClassOf(F... reified) {
+    if (reified.length > 0) {
+      throw new IllegalArgumentException("do not pass arguments to this function, it's just a trick to get refied types");
+    }
+    return (Class<F>) reified.getClass().getComponentType();
+  }
 }
