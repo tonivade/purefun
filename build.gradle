@@ -25,6 +25,7 @@ dependencies {
   jacocoAggregation projects.purefunStream
   jacocoAggregation projects.purefunTransformer
   jacocoAggregation projects.purefunTypeclasses
+  jacocoAggregation projects.purefunRefined
 
   testReportAggregation projects.purefunControl
   testReportAggregation projects.purefunCore
@@ -38,6 +39,7 @@ dependencies {
   testReportAggregation projects.purefunStream
   testReportAggregation projects.purefunTransformer
   testReportAggregation projects.purefunTypeclasses
+  testReportAggregation projects.purefunRefined
 }
 
 reporting {
