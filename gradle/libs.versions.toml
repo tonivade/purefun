@@ -1,0 +1,16 @@
+[versions]
+pcollectionsVersion = "4.0.1"
+junitEngineVersion = "5.10.0"
+junitPlatformVersion = "1.10.0"
+equalsVerifierVersion = "3.15.1"
+mockitoVersion = "5.5.0"
+compileTestingVersion = "0.21.0"
+
+[libraries]
+junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
+junitRunner = { group = "org.junit.platform", name = "junit-platform-runner", version.ref = "junitPlatformVersion" }
+equalsVerifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsVerifierVersion" }
+mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoVersion" }
+mockitoJunit = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockitoVersion" }
+compileTesting = { group = "com.google.testing.compile", name = "compile-testing", version.ref = "compileTestingVersion" }
+pcollections = { group = "org.pcollections", name = "pcollections", version.ref = "pcollectionsVersion" }

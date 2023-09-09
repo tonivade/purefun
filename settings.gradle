@@ -8,17 +8,3 @@ include "core", "monad", "stream", "typeclasses",
         "generic", "control"
 
 rootProject.children.each { it.name = "purefun-" + it.name }
-
-dependencyResolutionManagement {
-  versionCatalogs {
-    libs {
-      library('junitJupiter', "org.junit.jupiter:junit-jupiter-engine:$junitEngineVersion")
-      library('junitRunner', "org.junit.platform:junit-platform-runner:$junitPlatformVersion")
-      library('equalsVerifier', "nl.jqno.equalsverifier:equalsverifier:$equalsVerifierVersion")
-      library('mockitoCore', "org.mockito:mockito-core:$mockitoVersion")
-      library('mockitoJunit', "org.mockito:mockito-junit-jupiter:$mockitoVersion")
-      library('compileTesting', "com.google.testing.compile:compile-testing:$compileTestingVersion")
-      library('pcollections', "org.pcollections:pcollections:$pcollectionsVersion")
-    }
-  }
-}
