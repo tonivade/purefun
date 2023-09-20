@@ -1,7 +1,7 @@
 sourceSets {
-  java20 {
+  java21 {
     java {
-      srcDirs = ['src/main/java20']
+      srcDirs = ['src/main/java21']
     }
   }
 }
@@ -14,16 +14,14 @@ java {
   withSourcesJar()
 }
 
-compileJava20Java {
-  sourceCompatibility = JavaVersion.VERSION_20
-  targetCompatibility = JavaVersion.VERSION_20
-  
-  options.compilerArgs << '--enable-preview'
+compileJava21Java {
+  sourceCompatibility = JavaVersion.VERSION_21
+  targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
-  into('META-INF/versions/20') {
-    from sourceSets.java20.output
+  into('META-INF/versions/21') {
+    from sourceSets.java21.output
   }
   manifest.attributes('Multi-Release': 'true')
 }

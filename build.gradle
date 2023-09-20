@@ -67,7 +67,7 @@ allprojects {
 
   java {
     toolchain {
-      languageVersion = JavaLanguageVersion.of(20)
+      languageVersion = JavaLanguageVersion.of(21)
     }
   }
 
@@ -82,7 +82,7 @@ allprojects {
   }
 
   jacoco {
-    toolVersion = "0.8.9"
+    toolVersion = "0.8.10"
   }
 
   compileJava {
@@ -115,9 +115,7 @@ subprojects {
   }
 
   test {
-    useJUnitPlatform() {
-      jvmArgs(['--enable-preview'])
-    }
+    useJUnitPlatform()
 
     jacoco {
       destinationFile = file("${buildDir}/jacoco/test.exec")
@@ -127,8 +125,8 @@ subprojects {
   }
 
   tasks.withType(JavaCompile).each {
-    if (it.getName().contains("Java19")) {
-      it.options.release = 19
+    if (it.getName().contains("Java21")) {
+      it.options.release = 21
     } else {
       it.options.release = 17
     }
