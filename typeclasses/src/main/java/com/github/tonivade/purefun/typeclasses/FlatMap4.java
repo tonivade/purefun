@@ -4,16 +4,16 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Function4.fourth;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.Producer.cons;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function4;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple4;
+import com.github.tonivade.purefun.Witness;
 
 public final class FlatMap4<F extends Witness, A, B, C, D> extends AbstractFlatMap<F, C, D> {
 
@@ -34,11 +34,6 @@ public final class FlatMap4<F extends Witness, A, B, C, D> extends AbstractFlatM
 
   public Kind<F, Tuple4<A, B, C, D>> tuple() {
     return apply(Tuple4::of);
-  }
-
-  @Deprecated
-  public <R> Kind<F, R> yield(Function4<A, B, C, D, R> combine) {
-    return apply(combine);
   }
 
   public <R> Kind<F, R> apply(Function4<A, B, C, D, R> combine) {
