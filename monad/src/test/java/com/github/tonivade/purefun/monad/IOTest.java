@@ -19,15 +19,18 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Producer;
@@ -42,7 +45,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Fiber;
-import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Reference;
 
 @ExtendWith(MockitoExtension.class)
@@ -299,7 +302,7 @@ public class IOTest {
   
   @Test
   public void fork() {
-    IO<String> result = For.<IO_>with()
+    IO<String> result = Instances.<IO_>monad().use()
       .then(IO.pure("hola"))
       .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
       .flatMap(Fiber::join).fix(toIO());

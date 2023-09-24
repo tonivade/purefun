@@ -4,30 +4,18 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Fixer;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.Witness;
 
 public sealed interface For<F extends Witness> {
-
-  @SafeVarargs
-  @SuppressWarnings("unchecked")
-  @Deprecated
-  static <F extends Witness> FlatMap<F> with(F...reified) {
-    return with((Class<F>) reified.getClass().getComponentType());
-  }
-
-  @Deprecated
-  static <F extends Witness> FlatMap<F> with(Class<F> type) {
-    return new FlatMap<>(Instances.monad(type));
-  }
 
   static <F extends Witness> FlatMap<F> with(Monad<F> monad) {
     return new FlatMap<>(monad);
@@ -45,7 +33,7 @@ public sealed interface For<F extends Witness> {
     return new Apply1<>(applicative, cons(value1));
   }
 
-  static record FlatMap<F extends Witness>(Monad<F> monad) implements For<F> {
+  static record FlatMap<F extends Witness>(Monad<F> monad) implements For {
 
     public <T> FlatMap1<F, T> and(T next) {
       return For.with(monad, monad.pure(next));
@@ -60,7 +48,7 @@ public sealed interface For<F extends Witness> {
     }
   }
 
-  static record Apply<F extends Witness>(Applicative<F> applicative) implements For<F> {
+  static record Apply<F extends Witness>(Applicative<F> applicative) implements For {
 
     public <T> Apply1<F, T> and(T next) {
       return For.with(applicative, applicative.pure(next));

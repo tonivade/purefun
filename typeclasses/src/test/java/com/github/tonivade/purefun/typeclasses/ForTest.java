@@ -29,9 +29,11 @@ import com.github.tonivade.purefun.type.Id_;
 @ExtendWith(MockitoExtension.class)
 public class ForTest {
 
+  final Monad<Id_> monad = Instances.<Id_>monad();
+
   @Test
   public void map() {
-    Id<String> result = For.with(Id_.class)
+    Id<String> result = monad.use()
         .andThen(() -> Id.of("value"))
         .map(String::toUpperCase)
         .fix(toId());
@@ -44,7 +46,7 @@ public class ForTest {
     when(mapper.apply(anyString())).thenReturn("called");
     when(mapper.andThen(any())).thenCallRealMethod();
 
-    var result = For.with(Id_.class)
+    var result = monad.use()
         .and("hola mundo!")
         .map(mapper)
         .returns(unit());
@@ -83,7 +85,7 @@ public class ForTest {
 
   @Test
   public void apply() {
-    var result = For.with(Id_.class)
+    var result = monad.use()
           .and("a")
           .and("b")
           .and("c")

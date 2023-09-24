@@ -9,12 +9,13 @@ import static com.github.tonivade.purefun.control.Control.pure;
 import static com.github.tonivade.purefun.control.ControlOf.toControl;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.ControlInstances;
-import com.github.tonivade.purefun.typeclasses.For;
 
 public class ControlTest {
 
@@ -53,7 +54,7 @@ public class ControlTest {
   }
 
   private Control<Integer> program(State<Integer> state, Amb amb) {
-    return For.with(ControlInstances.monad())
+    return ControlInstances.monad().use()
         .then(state.get())
         .flatMap(x -> amb.flip().flatMap(b -> b ? state.set(x + 1) : pure(unit())))
         .then(state.get())
