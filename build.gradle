@@ -129,6 +129,12 @@ subprojects {
 
     reports.html.required = true
   }
+  
+  javadoc {
+    modularity.inferModulePath = false
+    
+    exclude "module-info.java"
+  }
 
   tasks.withType(JavaCompile).each {
     if (it.getName().contains("Java21")) {
