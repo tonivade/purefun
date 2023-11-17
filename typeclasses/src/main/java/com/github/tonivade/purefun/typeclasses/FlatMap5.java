@@ -9,10 +9,10 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function5;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple5;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public final class FlatMap5<F extends Witness, A, B, C, D, E> extends AbstractFlatMap<F, D, E> {
 

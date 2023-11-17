@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.processor;
 
 import static com.google.common.truth.Truth.assert_;
 import static com.google.testing.compile.JavaFileObjects.forSourceLines;
@@ -15,10 +15,10 @@ public class HigherKindProcessorTest {
   private final JavaFileObject witness = forSourceLines("test.Foo_",
         "package test;",
 
-        "import com.github.tonivade.purefun.Witness;",
+        "import com.github.tonivade.purefun.annotation.Witness;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public final class Foo_ implements Witness {",
         "private Foo_() {}",
         "}");
@@ -28,7 +28,7 @@ public class HigherKindProcessorTest {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public final class Foo<T> implements FooOf<T> {",
@@ -37,11 +37,11 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Fixer;",
+        "import com.github.tonivade.purefun.annotation.Kind;",
+        "import com.github.tonivade.purefun.annotation.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A> extends Kind<Foo_, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -63,18 +63,18 @@ public class HigherKindProcessorTest {
   @Test
   public void compilesKind1NoPackage() {
     JavaFileObject file = forSourceLines("test.Foo",
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public final class Foo<T> implements FooOf<T> {",
         "}");
 
     JavaFileObject generated = forSourceLines("test.FooOf",
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Fixer;",
+        "import com.github.tonivade.purefun.annotation.Kind;",
+        "import com.github.tonivade.purefun.annotation.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A> extends Kind<Foo_, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -89,10 +89,10 @@ public class HigherKindProcessorTest {
         "}");
 
     JavaFileObject generatedWitness = forSourceLines("Foo_",
-        "import com.github.tonivade.purefun.Witness;",
+        "import com.github.tonivade.purefun.annotation.Witness;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public final class Foo_ implements Witness {",
         "private Foo_() {}",
         "}");
@@ -106,7 +106,7 @@ public class HigherKindProcessorTest {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public final class Foo<T extends String> implements FooOf<T> {",
@@ -115,11 +115,11 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Fixer;",
+        "import com.github.tonivade.purefun.annotation.Kind;",
+        "import com.github.tonivade.purefun.annotation.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo_, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -143,7 +143,7 @@ public class HigherKindProcessorTest {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public final class Foo {",
@@ -159,7 +159,7 @@ public class HigherKindProcessorTest {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public class Foo<T extends String> implements FooOf<T> {",
@@ -175,7 +175,7 @@ public class HigherKindProcessorTest {
     JavaFileObject file = forSourceLines("test.Foo",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public final class Foo<A, B> implements FooOf<A, B> {",
@@ -184,11 +184,11 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("test.FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Fixer;",
+        "import com.github.tonivade.purefun.annotation.Kind;",
+        "import com.github.tonivade.purefun.annotation.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A, B> extends Kind<Kind<Foo_, A>, B> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -212,7 +212,7 @@ public class HigherKindProcessorTest {
     JavaFileObject file = forSourceLines("Foo",
         "package test;",
 
-        "import com.github.tonivade.purefun.HigherKind;",
+        "import com.github.tonivade.purefun.annotation.HigherKind;",
 
         "@HigherKind",
         "public final class Foo<A, B, C> implements FooOf<A, B, C> {",
@@ -221,11 +221,11 @@ public class HigherKindProcessorTest {
     JavaFileObject generated = forSourceLines("FooOf",
         "package test;",
 
-        "import com.github.tonivade.purefun.Kind;",
-        "import com.github.tonivade.purefun.Fixer;",
+        "import com.github.tonivade.purefun.annotation.Kind;",
+        "import com.github.tonivade.purefun.annotation.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo_, A>, B>, C> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",

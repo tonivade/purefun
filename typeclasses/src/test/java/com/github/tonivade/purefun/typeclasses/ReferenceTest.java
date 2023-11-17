@@ -6,8 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public abstract class ReferenceTest<F extends Witness> {
   

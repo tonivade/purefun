@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.typeclasses.Conested.counnest;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function1Of;
 import com.github.tonivade.purefun.Function1_;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Conested;
 import com.github.tonivade.purefun.typeclasses.Contravariant;

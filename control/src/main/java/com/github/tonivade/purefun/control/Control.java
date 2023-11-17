@@ -8,11 +8,11 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.annotation.HigherKind;
+import com.github.tonivade.purefun.annotation.Kind;
 
 @HigherKind
 public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {

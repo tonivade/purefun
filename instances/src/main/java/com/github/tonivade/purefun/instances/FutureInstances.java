@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;

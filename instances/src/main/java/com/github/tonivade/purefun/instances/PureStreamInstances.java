@@ -6,8 +6,8 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.RIO_;
 import com.github.tonivade.purefun.effect.Task_;

@@ -7,6 +7,9 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.Function2.first;
 import static com.github.tonivade.purefun.Function2.second;
 
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
+
 public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
 
   @Override

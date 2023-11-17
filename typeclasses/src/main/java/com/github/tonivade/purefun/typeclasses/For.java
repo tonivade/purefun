@@ -9,11 +9,11 @@ import static com.github.tonivade.purefun.Producer.cons;
 import static com.github.tonivade.purefun.Unit.unit;
 
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Fixer;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Fixer;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 @SuppressWarnings("unused")
 public sealed interface For<F extends Witness> {

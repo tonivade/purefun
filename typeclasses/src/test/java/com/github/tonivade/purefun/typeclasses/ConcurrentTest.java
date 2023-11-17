@@ -13,8 +13,8 @@ import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.monad.IO;

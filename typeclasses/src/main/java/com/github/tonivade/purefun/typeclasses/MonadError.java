@@ -5,13 +5,13 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.Matcher1;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>, Monad<F> {
 

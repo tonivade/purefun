@@ -7,8 +7,8 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.annotation.HigherKind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.Bindable;
 
 /**

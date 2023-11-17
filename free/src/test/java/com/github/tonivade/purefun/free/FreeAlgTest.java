@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;

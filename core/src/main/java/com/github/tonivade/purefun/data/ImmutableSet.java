@@ -22,8 +22,8 @@ import org.pcollections.HashTreePSet;
 import org.pcollections.PSet;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.annotation.Kind;
 
 public interface ImmutableSet<E> extends Sequence<E> {
 

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function1Of;
 import com.github.tonivade.purefun.Function1_;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.Function1Instances;
 import com.github.tonivade.purefun.instances.IdInstances;

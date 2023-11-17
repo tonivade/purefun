@@ -6,6 +6,9 @@ package com.github.tonivade.purefun;
 
 import java.time.Duration;
 
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
+
 public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable<F, A> {
   
   @Override

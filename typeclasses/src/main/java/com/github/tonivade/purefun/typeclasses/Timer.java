@@ -6,9 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public interface Timer<F extends Witness> {
 

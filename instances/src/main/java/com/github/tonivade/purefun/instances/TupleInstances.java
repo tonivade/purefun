@@ -5,12 +5,12 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Tuple1Of;
 import com.github.tonivade.purefun.Tuple1_;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Tuple2Of;
 import com.github.tonivade.purefun.Tuple2_;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 

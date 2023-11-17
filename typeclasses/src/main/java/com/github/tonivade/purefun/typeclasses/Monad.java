@@ -7,9 +7,9 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.Function1.identity;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.type.Either;
 
 public interface Monad<F extends Witness> extends Selective<F> {

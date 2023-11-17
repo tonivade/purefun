@@ -9,10 +9,10 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.annotation.HigherKind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind

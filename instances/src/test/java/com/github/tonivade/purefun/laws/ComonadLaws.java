@@ -7,8 +7,8 @@ package com.github.tonivade.purefun.laws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 
 public class ComonadLaws {

@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.annotation.Kind;
 
 public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
 

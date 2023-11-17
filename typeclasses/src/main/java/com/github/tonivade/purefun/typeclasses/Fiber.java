@@ -6,9 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public interface Fiber<F extends Witness, A> {
 

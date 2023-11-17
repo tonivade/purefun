@@ -14,7 +14,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.type.Try;
 
 public abstract class Instance<F extends Witness> {

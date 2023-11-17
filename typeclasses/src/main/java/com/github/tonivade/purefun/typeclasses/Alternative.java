@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public interface Alternative<F extends Witness> extends Applicative<F>, MonoidK<F> {
 

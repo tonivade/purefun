@@ -6,9 +6,9 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.typeclasses.MonoidOf.toMonoid;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Operator2;
+import com.github.tonivade.purefun.annotation.HigherKind;
+import com.github.tonivade.purefun.annotation.Kind;
 
 @HigherKind
 public non-sealed interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {

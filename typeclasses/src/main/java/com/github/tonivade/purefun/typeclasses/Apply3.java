@@ -8,10 +8,10 @@ import static com.github.tonivade.purefun.Function3.third;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import com.github.tonivade.purefun.Function3;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple3;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public final class Apply3<F extends Witness, A, B, C> extends AbstractApply<F, C> {
 

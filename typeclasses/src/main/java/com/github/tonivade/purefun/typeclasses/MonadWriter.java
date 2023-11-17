@@ -7,12 +7,12 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.Unit.unit;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Operator1;
 import com.github.tonivade.purefun.Tuple;
 import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public interface MonadWriter<F extends Witness, W> extends Monad<F> {
 

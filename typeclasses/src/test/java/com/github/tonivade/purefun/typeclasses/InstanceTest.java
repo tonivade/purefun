@@ -13,9 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.type.Either;
@@ -63,7 +63,7 @@ public class InstanceTest {
 
     InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> instance.monadDefer());
 
-    assertEquals("instance of type MonadDefer for type com.github.tonivade.purefun.Kind<com.github.tonivade.purefun.type.Either_, java.lang.String> not found",
+    assertEquals("instance of type MonadDefer for type com.github.tonivade.purefun.annotation.Kind<com.github.tonivade.purefun.type.Either_, java.lang.String> not found",
         exception.getMessage());
   }
 

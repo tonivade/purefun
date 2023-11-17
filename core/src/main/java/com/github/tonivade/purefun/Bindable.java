@@ -4,6 +4,9 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
+
 public interface Bindable<F extends Witness, A> extends Mappable<F, A> {
   
   @Override

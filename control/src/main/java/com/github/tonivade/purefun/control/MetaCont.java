@@ -7,9 +7,9 @@ package com.github.tonivade.purefun.control;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;

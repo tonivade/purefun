@@ -7,6 +7,8 @@ package com.github.tonivade.purefun;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+
+import com.github.tonivade.purefun.annotation.HigherKind;
 import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind

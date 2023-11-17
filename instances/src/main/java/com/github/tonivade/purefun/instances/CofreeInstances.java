@@ -5,8 +5,8 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.free.Cofree;
 import com.github.tonivade.purefun.free.CofreeOf;
 import com.github.tonivade.purefun.free.Cofree_;

@@ -2,14 +2,16 @@
  * Copyright (c) 2018-2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.processor;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -20,17 +22,19 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
+import com.github.tonivade.purefun.annotation.HigherKind;
+
+@SupportedAnnotationTypes("com.github.tonivade.purefun.annotation.HigherKind")
 public class HigherKindProcessor extends AbstractProcessor {
 
-  private static final String GENERATED = "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")";
+  private static final String GENERATED = "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")";
 
   private static final String JAVAX_ANNOTATION_GENERATED = "javax.annotation.Generated";
   private static final String JAVAX_ANNOTATION_PROCESSING_GENERATED = "javax.annotation.processing.Generated";
 
-  private static final String KIND = "com.github.tonivade.purefun.Kind";
-  private static final String WITNESS = "com.github.tonivade.purefun.Witness";
-  private static final String FIXER = "com.github.tonivade.purefun.Fixer";
+  private static final String KIND = "com.github.tonivade.purefun.annotation.Kind";
+  private static final String WITNESS = "com.github.tonivade.purefun.annotation.Witness";
+  private static final String FIXER = "com.github.tonivade.purefun.annotation.Fixer";
   private static final String END = "}";
 
   @Override

@@ -13,10 +13,10 @@ import java.util.NoSuchElementException;
 
 import com.github.tonivade.purefun.Eq;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.transformer.OptionT;
 import com.github.tonivade.purefun.transformer.OptionTOf;
 import com.github.tonivade.purefun.transformer.OptionT_;

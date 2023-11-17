@@ -9,10 +9,10 @@ import static com.github.tonivade.purefun.Function4.fourth;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Function4;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Tuple4;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 
 public final class Apply4<F extends Witness, A, B, C, D> extends AbstractApply<F, D> {
 

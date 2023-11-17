@@ -4,6 +4,9 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
+
 public interface Mappable<F extends Witness, A> extends Kind<F, A> {
   
   <R> Mappable<F, R> map(Function1<? super A, ? extends R> mapper);

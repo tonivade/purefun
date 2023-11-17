@@ -7,6 +7,8 @@ package com.github.tonivade.purefun;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import com.github.tonivade.purefun.annotation.HigherKind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;

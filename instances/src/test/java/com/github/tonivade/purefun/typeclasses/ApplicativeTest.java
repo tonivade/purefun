@@ -8,8 +8,9 @@ import static com.github.tonivade.purefun.laws.ApplicativeLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Kind;
+
 import com.github.tonivade.purefun.Operator5;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.IdInstances;

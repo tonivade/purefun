@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.control.ControlOf.toControl;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.control.Control;
 import com.github.tonivade.purefun.control.ControlOf;
 import com.github.tonivade.purefun.control.Control_;

@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.concurrent.PromiseOf.toPromise;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.annotation.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.concurrent.PromiseOf;

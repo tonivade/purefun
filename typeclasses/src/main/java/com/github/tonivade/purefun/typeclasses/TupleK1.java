@@ -9,8 +9,8 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.util.Objects;
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.annotation.Kind;
+import com.github.tonivade.purefun.annotation.Witness;
 import com.github.tonivade.purefun.data.Sequence;
 
 public class TupleK1<F extends Witness, A> implements TupleK<F> {

@@ -11,11 +11,11 @@ import static com.github.tonivade.purefun.Unit.unit;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.annotation.HigherKind;
+import com.github.tonivade.purefun.annotation.Kind;
 
 /**
  * <p>This is a monad that allows to control the evaluation of a computation or a value.</p>

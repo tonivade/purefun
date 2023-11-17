@@ -4,6 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.annotation.HigherKind;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;

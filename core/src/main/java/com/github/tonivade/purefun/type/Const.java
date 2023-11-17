@@ -6,7 +6,11 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.HigherKind;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Objects;
+import com.github.tonivade.purefun.Equal;
+import com.github.tonivade.purefun.annotation.HigherKind;
 
 @HigherKind
 public record Const<T, A>(T value) implements ConstOf<T, A> {
