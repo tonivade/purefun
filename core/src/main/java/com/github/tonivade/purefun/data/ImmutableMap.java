@@ -175,7 +175,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     private static final Equal<PImmutableMap<?, ?>> EQUAL =
         Equal.<PImmutableMap<?, ?>>of().comparing(a -> a.backend);
 
-    private PMap<K, V> backend;
+    private final PMap<K, V> backend;
 
     private PImmutableMap(Map<K, V> backend) {
       this(HashTreePMap.from(backend));

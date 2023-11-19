@@ -169,7 +169,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
   
   public UIO<Fiber<UIO_, A>> fork() {
-    return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Nothing>, UIO_>() {
+    return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
       public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
         return new UIO<>(from.fix(PureIOOf::narrowK));
@@ -228,7 +228,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   @Override
   public UIO<A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
+    return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
   public <B> UIO<A> retry(Schedule<Nothing, Throwable, B> schedule) {
@@ -269,12 +269,12 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     PureIO<Nothing, Nothing, A> instance1 = fa.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
     PureIO<Nothing, Nothing, B> instance2 = fb.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
     return new UIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Nothing>, UIO_>() {
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Nothing>, UIO_>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::narrowK));

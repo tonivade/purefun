@@ -19,7 +19,7 @@ public interface PartialFunction2<A, B, R> {
   static <A, B, R> PartialFunction2<A, B, R> of(
       Matcher2<? super A, ? super B> isDefined, 
       Function2<? super A, ? super B, ? extends R> apply) {
-    return new PartialFunction2<A, B, R>() {
+    return new PartialFunction2<>() {
 
       @Override
       public boolean isDefinedAt(A a, B b) {

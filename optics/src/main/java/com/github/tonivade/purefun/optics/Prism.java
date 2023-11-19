@@ -21,7 +21,7 @@ public final class Prism<S, A> {
   }
 
   public static <S, A> Prism<S, A> of(Function1<S, Option<A>> getOption, Function1<A, S> reverseGet) {
-    return new Prism<>(PPrism.<S, S, A, A>of(
+    return new Prism<>(PPrism.of(
         target -> getOption.apply(target).fold(cons(Either.left(target)), Either::right), reverseGet));
   }
 

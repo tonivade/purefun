@@ -60,7 +60,7 @@ public sealed interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   <C> Schedule<R, A, C> compose(Schedule<R, B, C> other);
 
   default Schedule<R, A, Sequence<B>> collectAll() {
-    return this.<Sequence<B>>fold(ImmutableList.<B>empty(), Sequence::append);
+    return this.fold(ImmutableList.empty(), Sequence::append);
   }
 
   default <Z> Schedule<R, A, Z> fold(Z zero, Function2<Z, B, Z> next) {
@@ -105,7 +105,7 @@ public sealed interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
   Schedule<R, A, B> check(Function2<A, B, UIO<Boolean>> condition);
 
-  public static <R, A> Schedule<R, A, Unit> once() {
+  static <R, A> Schedule<R, A, Unit> once() {
     return Schedule.<R, A>recurs(1).unit();
   }
 
@@ -134,13 +134,13 @@ public sealed interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
   }
 
   static <R, A> Schedule<R, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times) {
-    return Schedule.<R, A>recurs(times).zip(Schedule.<R, A>spaced(delay));
+    return Schedule.<R, A>recurs(times).zip(Schedule.spaced(delay));
   }
 
   static <R, A> Schedule<R, A, Unit> never() {
     return ScheduleImpl.of(
             URIO.unit(),
-            (a, s) -> PureIO.<R, Unit, Unit>raiseError(Unit.unit()),
+            (a, s) -> PureIO.raiseError(Unit.unit()),
             (a, s) -> s);
   }
 
@@ -180,7 +180,7 @@ public sealed interface Schedule<R, A, B> extends ScheduleOf<R, A, B> {
 
   static <R, A, B> Schedule<R, A, B> unfoldM(
           URIO<R, B> initial, Function1<B, PureIO<R, Unit, B>> next) {
-    return ScheduleImpl.<R, B, A, B>of(initial, (a, s) -> next.apply(s), (a, s) -> s);
+    return ScheduleImpl.of(initial, (a, s) -> next.apply(s), (a, s) -> s);
   }
 
   @FunctionalInterface
@@ -317,7 +317,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
   }
 
   private <T, C> ScheduleImpl<R, Either<S, T>, A, Either<B, C>> doAndThenEither(ScheduleImpl<R, T, A, C> other) {
-    return ScheduleImpl.<R, Either<S, T>, A, Either<B, C>>of(
+    return ScheduleImpl.of(
             initial.map(Either::<S, T>left),
             (a, st) -> st.fold(
                     s -> {
@@ -332,7 +332,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
   }
 
   private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, Tuple2<B, C>> doZip(ScheduleImpl<R, T, A, C> other) {
-    return ScheduleImpl.<R, Tuple2<S, T>, A, Tuple2<B, C>>of(
+    return ScheduleImpl.of(
             this.initial.zip(other.initial),
             (a, st) -> {
               PureIO<R, Unit, S> self = this.update(a, st.get1());
@@ -345,7 +345,7 @@ final class ScheduleImpl<R, S, A, B> implements Schedule<R, A, B>, Schedule.Upda
   }
 
   private <T, C> ScheduleImpl<R, Tuple2<S, T>, A, C> doCompose(ScheduleImpl<R, T, B, C> other) {
-    return ScheduleImpl.<R, Tuple2<S, T>, A, C>of(
+    return ScheduleImpl.of(
             this.initial.zip(other.initial),
             (a, st) -> {
               PureIO<R, Unit, S> self = this.update(a, st.get1());

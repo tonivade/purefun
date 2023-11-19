@@ -23,7 +23,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
 
   private final PureIO<R, E, Tuple2<A, Consumer1<? super A>>> resource;
 
-  protected Managed(PureIO<R, E, Tuple2<A, Consumer1<? super A>>> resource) {
+  private Managed(PureIO<R, E, Tuple2<A, Consumer1<? super A>>> resource) {
     this.resource = checkNonNull(resource);
   }
   
@@ -160,7 +160,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   
   public static <R, E, A> Managed<R, E, A> fromM(
       Function1<? super R, ? extends PureIO<R, E, ? extends A>> mapper, Consumer1<? super A> release) {
-    return new Managed<>(PureIO.<R, E, A>accessM(mapper).map(y -> Tuple.of(y, release)));
+    return new Managed<>(PureIO.accessM(mapper).map(y -> Tuple.of(y, release)));
   }
 
   private static <X, T, R> Consumer1<X> releaseAndThen(

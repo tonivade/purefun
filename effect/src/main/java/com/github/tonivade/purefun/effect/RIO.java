@@ -151,7 +151,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
   
   public RIO<R, Fiber<Kind<RIO_, R>, A>> fork() {
-    return new RIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Throwable>, Kind<RIO_, R>>() {
+    return new RIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
       public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends T> from) {
         return new RIO<>(from.fix(PureIOOf::narrowK));
@@ -210,7 +210,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
 
   @Override
   public RIO<R, A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
+    return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
   public <B> RIO<R, A> retry(Schedule<R, Throwable, B> schedule) {
@@ -267,12 +267,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     PureIO<R, Throwable, A> instance1 = fa.fix(RIOOf.toRIO()).instance.fix(PureIOOf::narrowK);
     PureIO<R, Throwable, B> instance2 = fb.fix(RIOOf.toRIO()).instance.fix(PureIOOf::narrowK);
     return new RIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Throwable>, Kind<RIO_, R>>() {
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends T> from) {
           return new RIO<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Throwable>, Kind<RIO_, R>>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends T> from) {
           return new RIO<>(from.fix(PureIOOf::narrowK));

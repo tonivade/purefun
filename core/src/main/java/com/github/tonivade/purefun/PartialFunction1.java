@@ -40,7 +40,7 @@ public interface PartialFunction1<A, R> {
   }
 
   static <A, R> PartialFunction1<A, R> of(Matcher1<? super A> isDefined, Function1<? super A, ? extends R> apply) {
-    return new PartialFunction1<A, R>() {
+    return new PartialFunction1<>() {
 
       @Override
       public boolean isDefinedAt(A value) {

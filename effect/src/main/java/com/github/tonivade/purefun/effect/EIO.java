@@ -155,7 +155,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
   
   public EIO<E, Fiber<Kind<EIO_, E>, A>> fork() {
-    return new EIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, E>, Kind<EIO_, E>>() {
+    return new EIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
       public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Nothing>, E>, ? extends T> from) {
         return new EIO<>(from.fix(PureIOOf::narrowK));
@@ -168,7 +168,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
   
   public EIO<E, A> timeout(Executor executor, Duration duration) {
-    return racePair(executor, this, EIO.<E>sleep(duration)).flatMap(either -> either.fold(
+    return racePair(executor, this, EIO.sleep(duration)).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(EIOOf.toEIO()).map(x -> ta.get1()),
         tb -> tb.get1().cancel().fix(EIOOf.toEIO()).flatMap(x -> EIO.throwError(new TimeoutException()))));
   }
@@ -214,7 +214,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
 
   @Override
   public EIO<E, A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.<Nothing, E>recursSpaced(delay, maxRetries));
+    return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
   public <S> EIO<E, A> retry(Schedule<Nothing, E, S> schedule) {
@@ -259,12 +259,12 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     PureIO<Nothing, E, A> instance1 = fa.fix(EIOOf.toEIO()).instance.fix(PureIOOf::narrowK);
     PureIO<Nothing, E, B> instance2 = fb.fix(EIOOf.toEIO()).instance.fix(PureIOOf::narrowK);
     return new EIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, E>, Kind<EIO_, E>>() {
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Nothing>, E>, ? extends T> from) {
           return new EIO<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, E>, Kind<EIO_, E>>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Nothing>, E>, ? extends T> from) {
           return new EIO<>(from.fix(PureIOOf::narrowK));

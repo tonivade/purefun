@@ -108,7 +108,7 @@ public interface ImmutableList<E> extends Sequence<E> {
     @Serial
     private static final long serialVersionUID = 8986736870796940350L;
 
-    private PVector<E> backend;
+    private final PVector<E> backend;
     
     private PImmutableList(Collection<E> backend) {
       this(TreePVector.from(backend));

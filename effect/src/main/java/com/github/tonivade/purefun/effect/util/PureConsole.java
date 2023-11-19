@@ -35,7 +35,7 @@ public interface PureConsole {
 
       @Override
       public <R extends PureConsole> Service<R> console() {
-        return new PureConsole.Service<R>() {
+        return new PureConsole.Service<>() {
 
           @Override
           public RIO<R, String> readln() {
@@ -56,7 +56,7 @@ public interface PureConsole {
 
       @Override
       public <R extends PureConsole> Service<R> console() {
-        return new PureConsole.Service<R>() {
+        return new PureConsole.Service<>() {
 
           @Override
           public RIO<R, String> readln() {

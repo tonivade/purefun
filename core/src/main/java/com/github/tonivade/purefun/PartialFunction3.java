@@ -19,7 +19,7 @@ public interface PartialFunction3<A, B, C, R> {
   static <A, B, C, R> PartialFunction3<A, B, C, R> of(
       Matcher3<? super A, ? super B, ? super C> matcher, 
       PartialFunction3<? super A, ? super B, ? super C, ? extends R> apply) {
-    return new PartialFunction3<A, B, C, R>() {
+    return new PartialFunction3<>() {
 
       @Override
       public boolean isDefinedAt(A a, B b, C c) {

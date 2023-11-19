@@ -70,7 +70,7 @@ class PureRandomImpl implements PureRandom {
 
   @Override
   public <R extends PureRandom> PureRandom.Service<R> random() {
-    return new PureRandom.Service<R>() {
+    return new PureRandom.Service<>() {
 
       @Override
       public URIO<R, Integer> nextInt() {

@@ -36,7 +36,7 @@ public interface PureClock {
     return new PureClock() {
       @Override
       public <R extends PureClock> Service<R> clock() {
-        return new Service<R>() {
+        return new Service<>() {
 
           @Override
           public URIO<R, Long> currentTime() {

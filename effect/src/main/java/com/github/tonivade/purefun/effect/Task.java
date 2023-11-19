@@ -112,7 +112,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public <B> UIO<B> fold(
       Function1<? super Throwable, ? extends B> mapError, Function1<? super A, ? extends B> map) {
-    return new UIO<>(instance.fold(mapError, map).<Nothing>toPureIO());
+    return new UIO<>(instance.fold(mapError, map).toPureIO());
   }
 
   @SuppressWarnings("unchecked")
@@ -126,7 +126,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public UIO<A> recover(Function1<? super Throwable, ? extends A> mapError) {
-    return new UIO<>(instance.recover(mapError).<Nothing>toPureIO());
+    return new UIO<>(instance.recover(mapError).toPureIO());
   }
 
   public Task<A> orElse(Kind<Task_, ? extends A> other) {
@@ -155,7 +155,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
   
   public Task<Fiber<Task_, A>> fork() {
-    return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Throwable>, Task_>() {
+    return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
       public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
         return new Task<>(from.fix(PureIOOf::narrowK));
@@ -214,7 +214,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   @Override
   public Task<A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.<Nothing, Throwable>recursSpaced(delay, maxRetries));
+    return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
   public <B> Task<A> retry(Schedule<Nothing, Throwable, B> schedule) {
@@ -255,12 +255,12 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     PureIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
     PureIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
     return new Task<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Throwable>, Task_>() {
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
           return new Task<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, Nothing>, Throwable>, Task_>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
           return new Task<>(from.fix(PureIOOf::narrowK));

@@ -97,7 +97,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     private static final Equal<PImmutableSet<?>> EQUAL = Equal.<PImmutableSet<?>>of().comparing(x -> x.backend);
 
-    private PSet<E> backend;
+    private final PSet<E> backend;
     
     private PImmutableSet(Collection<E> backend) {
       this(HashTreePSet.from(backend));

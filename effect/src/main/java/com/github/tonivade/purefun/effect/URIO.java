@@ -153,7 +153,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
   
   public URIO<R, Fiber<Kind<URIO_, R>, A>> fork() {
-    return new URIO<>(instance.fork().map(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Nothing>, Kind<URIO_, R>>() {
+    return new URIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
       public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
         return new URIO<>(from.fix(PureIOOf::narrowK));
@@ -212,7 +212,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   @Override
   public URIO<R, A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.<R, Throwable>recursSpaced(delay, maxRetries));
+    return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
   public <B> URIO<R, A> retry(Schedule<R, Throwable, B> schedule) {
@@ -265,12 +265,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     PureIO<R, Nothing, A> instance1 = fa.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
     PureIO<R, Nothing, B> instance2 = fb.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
     return new URIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Nothing>, Kind<URIO_, R>>() {
+      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
           return new URIO<>(from.fix(PureIOOf::narrowK));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<Kind<Kind<PureIO_, R>, Nothing>, Kind<URIO_, R>>() {
+      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
         public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
           return new URIO<>(from.fix(PureIOOf::narrowK));

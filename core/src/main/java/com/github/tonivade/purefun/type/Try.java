@@ -10,6 +10,7 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -330,7 +331,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
 
     @Override
     public int hashCode() {
-      return Objects.hash(cause.getMessage(), cause.getStackTrace());
+      return Objects.hash(cause.getMessage(), Arrays.hashCode(cause.getStackTrace()));
     }
 
     @Override

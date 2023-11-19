@@ -86,11 +86,11 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default <B> PureIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends B>> map) {
-    return foldM(PureIO::<R, E, B>raiseError, map.andThen(PureIOOf::narrowK));
+    return foldM(PureIO::raiseError, map.andThen(PureIOOf::narrowK));
   }
 
   default <F> PureIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends A>> map) {
-    return foldM(map, PureIO::<R, F, A>pure);
+    return foldM(map, PureIO::pure);
   }
 
   default <F, B> PureIO<R, F, B> foldM(
@@ -196,7 +196,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default PureIO<R, E, A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.<R, E>recursSpaced(delay, maxRetries));
+    return retry(Schedule.recursSpaced(delay, maxRetries));
   }
   
   default <B> PureIO<R, E, A> retry(Schedule<R, E, B> schedule) {
@@ -344,7 +344,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         Fiber<Kind<Kind<PureIO_, R>, E>, B> fiberB = Fiber.of(fromPromiseB, cancelB);
         callback.accept(result.map(
           either -> either.map(
-            a -> Either.<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>left(Tuple.of(a, fiberB)))));
+            a -> Either.left(Tuple.of(a, fiberB)))));
       });
       
       promiseB.onComplete(result -> {
@@ -353,7 +353,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         Fiber<Kind<Kind<PureIO_, R>, E>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
         callback.accept(result.map(
           either -> either.map(
-            b -> Either.<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>right(Tuple.of(fiberA, b)))));
+            b -> Either.right(Tuple.of(fiberA, b)))));
       });
 
       return PureIO.exec(() -> {
@@ -828,10 +828,10 @@ final class Repeat<R, S, E, A, B, C> {
   
   PureIO<R, E, Either<C, B>> run() {
     return current.foldM(error -> {
-      PureIO<R, E, C> apply = orElse.apply(error, Option.<B>none());
+      PureIO<R, E, C> apply = orElse.apply(error, Option.none());
       return apply.map(Either::<C, B>left);
     }, value -> {
-      PureIO<R, E, S> zio = schedule.initial().<E>toPureIO();
+      PureIO<R, E, S> zio = schedule.initial().toPureIO();
       return zio.flatMap(s -> loop(value, s));
     });
   }
@@ -873,7 +873,7 @@ final class Retry<R, E, A, B, S> {
 
 sealed interface PureIOConnection {
   
-  PureIOConnection UNCANCELLABLE = new Cancellable();
+  PureIOConnection UNCANCELLABLE = new Uncancellable();
   
   boolean isCancellable();
   
@@ -889,7 +889,7 @@ sealed interface PureIOConnection {
     return new Cancellable();
   }
   
-  static final class Uncancellable implements PureIOConnection {
+  final class Uncancellable implements PureIOConnection {
     
     private Uncancellable() { }
 
@@ -919,7 +919,7 @@ sealed interface PureIOConnection {
     }
   }
   
-  static final class Cancellable implements PureIOConnection {
+  final class Cancellable implements PureIOConnection {
     
     private Cancellable() { }
 

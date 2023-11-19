@@ -97,7 +97,7 @@ public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverab
   }
 
   default PartialFunction1<A, R> partial(Matcher1<? super A> isDefined) {
-    return new PartialFunction1<A, R>() {
+    return new PartialFunction1<>() {
       @Override
       public boolean isDefinedAt(A value) {
         return isDefined.match(value);
