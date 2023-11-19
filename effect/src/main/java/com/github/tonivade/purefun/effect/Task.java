@@ -104,7 +104,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public <B> Task<B> foldM(
       Function1<? super Throwable, ? extends Kind<Task_, ? extends B>> mapError, 
-      Function1<? super A, ? extends Task<? extends B>> map) {
+      Function1<? super A, ? extends Kind<Task_, ? extends B>> map) {
     return new Task<>(instance.foldM(
         error -> mapError.andThen(TaskOf::narrowK).apply(error).instance, 
         value -> map.andThen(TaskOf::narrowK).apply(value).instance));
@@ -354,13 +354,13 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     return new Task<>(PureIO.raiseError(error));
   }
 
-  public static <A> Task<Sequence<A>> traverse(Sequence<? extends Task<A>> sequence) {
+  public static <A> Task<Sequence<A>> traverse(Sequence<? extends Kind<Task_, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <A> Task<Sequence<A>> traverse(Executor executor, Sequence<? extends Task<A>> sequence) {
+  public static <A> Task<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Task_, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (Task<Sequence<A>> xs, Task<A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Task_, Sequence<A>> xs, Kind<Task_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <A extends AutoCloseable, B> Task<B> bracket(

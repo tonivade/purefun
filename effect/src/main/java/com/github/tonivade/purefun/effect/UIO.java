@@ -373,13 +373,13 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     });
   }
 
-  public static <A> UIO<Sequence<A>> traverse(Sequence<? extends UIO<A>> sequence) {
+  public static <A> UIO<Sequence<A>> traverse(Sequence<? extends Kind<UIO_, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <A> UIO<Sequence<A>> traverse(Executor executor, Sequence<? extends UIO<A>> sequence) {
+  public static <A> UIO<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<UIO_, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (UIO<Sequence<A>> xs, UIO<A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<UIO_, Sequence<A>> xs, Kind<UIO_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(

@@ -360,17 +360,17 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
     return new EIO<>(PureIO.throwError(error));
   }
 
-  public static <E, A> EIO<E, Sequence<A>> traverse(Sequence<? extends EIO<E, A>> sequence) {
+  public static <E, A> EIO<E, Sequence<A>> traverse(Sequence<? extends Kind<Kind<EIO_, E>, ? extends A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <E, A> EIO<E, Sequence<A>> traverse(Executor executor, Sequence<? extends EIO<E, A>> sequence) {
+  public static <E, A> EIO<E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<EIO_, E>, ? extends A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (EIO<E, Sequence<A>> xs, EIO<E, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Kind<EIO_, E>, ? extends Sequence<A>> xs, Kind<Kind<EIO_, E>, ? extends A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(Kind<Kind<EIO_, E>, ? extends A> acquire, 
-      Function1<? super A, ? extends EIO<E, ? extends B>> use) {
+      Function1<? super A, ? extends Kind<Kind<EIO_, E>, ? extends B>> use) {
     return new EIO<>(PureIO.bracket(acquire.fix(EIOOf::narrowK).instance, 
         resource -> use.andThen(EIOOf::<E, B>narrowK).apply(resource).instance));
   }

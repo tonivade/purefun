@@ -226,8 +226,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends RIO<R, ? extends A>> map) {
-    return new RIO<>(PureIO.accessM(map.andThen(RIO::toPureIO)));
+  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends Kind<Kind<RIO_, R>, A>> map) {
+    return new RIO<>(PureIO.accessM(map.andThen(RIOOf::narrowK).andThen(RIO::toPureIO)));
   }
 
   public static <R, A> RIO<R, A> access(Function1<? super R, ? extends A> map) {
@@ -362,13 +362,13 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
       (env, cb1) -> consumer.andThen(RIO::toPureIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
   }
 
-  public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends RIO<R, A>> sequence) {
+  public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends Kind<Kind<RIO_, R>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <R, A> RIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends RIO<R, A>> sequence) {
+  public static <R, A> RIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<RIO_, R>, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (RIO<R, Sequence<A>> xs, RIO<R, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Kind<RIO_, R>, Sequence<A>> xs, Kind<Kind<RIO_, R>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire, 

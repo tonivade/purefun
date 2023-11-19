@@ -228,8 +228,8 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <R, A> URIO<R, A> accessM(Function1<? super R, ? extends URIO<R, ? extends A>> map) {
-    return new URIO<>(PureIO.accessM(map.andThen(URIO::toPureIO)));
+  public static <R, A> URIO<R, A> accessM(Function1<? super R, ? extends Kind<Kind<URIO_, R>, ? extends A>> map) {
+    return new URIO<>(PureIO.accessM(map.andThen(URIOOf::narrowK).andThen(URIO::toPureIO)));
   }
 
   public static <R, A> URIO<R, A> access(Function1<? super R, ? extends A> map) {
@@ -348,13 +348,13 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
         (env, cb1) -> consumer.andThen(URIO::<Throwable>toPureIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
   }
 
-  public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends URIO<R, A>> sequence) {
+  public static <R, A> URIO<R, Sequence<A>> traverse(Sequence<? extends Kind<Kind<URIO_, R>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <R, A> URIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends URIO<R, A>> sequence) {
+  public static <R, A> URIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<URIO_, R>, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()), 
-        (URIO<R, Sequence<A>> xs, URIO<R, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Kind<URIO_, R>, Sequence<A>> xs, Kind<Kind<URIO_, R>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <R, A extends AutoCloseable, B> URIO<R, B> bracket(
