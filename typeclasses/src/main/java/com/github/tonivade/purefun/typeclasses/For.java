@@ -33,7 +33,7 @@ public sealed interface For<F extends Witness> {
     return new Apply1<>(applicative, cons(value1));
   }
 
-  static record FlatMap<F extends Witness>(Monad<F> monad) implements For {
+  record FlatMap<F extends Witness>(Monad<F> monad) implements For<F> {
 
     public <T> FlatMap1<F, T> and(T next) {
       return For.with(monad, monad.pure(next));
@@ -48,7 +48,7 @@ public sealed interface For<F extends Witness> {
     }
   }
 
-  static record Apply<F extends Witness>(Applicative<F> applicative) implements For {
+  record Apply<F extends Witness>(Applicative<F> applicative) implements For<F> {
 
     public <T> Apply1<F, T> and(T next) {
       return For.with(applicative, applicative.pure(next));

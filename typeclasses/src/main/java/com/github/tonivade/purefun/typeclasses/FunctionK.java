@@ -32,11 +32,6 @@ public interface FunctionK<F extends Witness, G extends Witness> {
   }
 
   static <F extends Witness> FunctionK<F, F> identity() {
-    return new FunctionK<F, F>() {
-      @Override
-      public <T> Kind<F, T> apply(Kind<F, ? extends T> from) {
-        return Kind.narrowK(from);
-      }
-    };
+    return Kind::narrowK;
   }
 }
