@@ -226,7 +226,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends Kind<Kind<RIO_, R>, A>> map) {
+  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends Kind<Kind<RIO_, R>, ? extends A>> map) {
     return new RIO<>(PureIO.accessM(map.andThen(RIOOf::narrowK).andThen(RIO::toPureIO)));
   }
 

@@ -30,7 +30,7 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
     return flatMap(t -> pure(monad, mapper.andThen(monad::<R>pure).apply(t)));
   }
   
-  public <R> Resource<F, R> flatMap(Function1<? super T, ? extends Resource<F, ? extends R>> mapper) {
+  public <R> Resource<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<Resource_, F>, ? extends R>> mapper) {
     return new Resource<>(monad, monad.flatMap(resource, 
         t -> monad.map(mapper.andThen(ResourceOf::narrowK).apply(t.get1()).resource, 
             r -> Tuple.of(r.get1(), (Consumer1<R>) ignore -> releaseAndThen(t, r)))));

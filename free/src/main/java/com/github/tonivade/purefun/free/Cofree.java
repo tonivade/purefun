@@ -15,7 +15,6 @@ import com.github.tonivade.purefun.Mappable;
 import com.github.tonivade.purefun.Operator2;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.Eval_;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -78,7 +77,7 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappa
   }
 
   public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, 
-      Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
+      Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree_, F>, ? extends B>> tailMap) {
     return of(functor, transformHead(headMap), transformTail(tailMap));
   }
 
@@ -87,7 +86,7 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappa
   }
 
   private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(
-      Function1<? super Cofree<F, ? extends A>, ? extends Cofree<F, ? extends B>> tailMap) {
+      Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree_, F>, ? extends B>> tailMap) {
     return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::narrowK)));
   }
 

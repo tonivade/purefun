@@ -15,6 +15,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Witness;
 
+@SuppressWarnings("unused")
 public sealed interface For<F extends Witness> {
 
   static <F extends Witness> FlatMap<F> with(Monad<F> monad) {
