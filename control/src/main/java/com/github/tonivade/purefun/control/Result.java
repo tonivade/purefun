@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Recoverable;
 
 public sealed interface Result<T> {
 
-//  @SuppressWarnings("unchecked")
   static <T> T trampoline(Result<T> apply) {
     Result<T> result = apply;
 
