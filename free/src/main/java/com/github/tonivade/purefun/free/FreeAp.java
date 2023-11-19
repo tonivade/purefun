@@ -94,7 +94,7 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
                 if (function.remaining > 1) {
                   fns.addFirst(new CurriedFunction(res, function.remaining - 1));
                 }
-              } while (function.remaining == 1 && fns.size() > 0);
+              } while (function.remaining == 1 && !fns.isEmpty());
             }
 
             if (fns.isEmpty()) {

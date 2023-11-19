@@ -46,7 +46,7 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
     return FreeMonad.INSTANCE;
   }
 
-  public static <F extends Witness, G extends Witness> FunctionK<F, Kind<Free_, G>> functionKF(FunctionK<F, G> functionK) {
+  static <F extends Witness, G extends Witness> FunctionK<F, Kind<Free_, G>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<>() {
       @Override
       public <T> Free<G, T> apply(Kind<F, ? extends T> from) {
