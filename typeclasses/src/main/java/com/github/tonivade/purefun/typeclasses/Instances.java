@@ -11,7 +11,7 @@ public final class Instances {
   private Instances() { }
 
   public static <F extends Witness> Functor<F> functor(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.functor(params);
+    return new Instance<>(type) {}.functor(params);
   }
 
   @SafeVarargs
@@ -20,7 +20,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Bifunctor<F> bifunctor(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.bifunctor(params);
+    return new Instance<>(type) {}.bifunctor(params);
   }
 
   @SafeVarargs
@@ -29,7 +29,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Applicative<F> applicative(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.applicative(params);
+    return new Instance<>(type) {}.applicative(params);
   }
 
   @SafeVarargs
@@ -38,7 +38,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Monad<F> monad(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monad(params);
+    return new Instance<>(type) {}.monad(params);
   }
 
   @SafeVarargs
@@ -47,7 +47,7 @@ public final class Instances {
   }
 
   public static <F extends Witness, R> MonadReader<F, R> monadReader(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadReader(params);
+    return new Instance<>(type) {}.monadReader(params);
   }
 
   @SafeVarargs
@@ -56,7 +56,7 @@ public final class Instances {
   }
 
   public static <F extends Witness, S> MonadState<F, S> monadState(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadState(params);
+    return new Instance<>(type) {}.monadState(params);
   }
 
   @SafeVarargs
@@ -65,7 +65,7 @@ public final class Instances {
   }
 
   public static <F extends Witness, W> MonadWriter<F, W> monadWriter(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadWriter(params);
+    return new Instance<>(type) {}.monadWriter(params);
   }
 
   @SafeVarargs
@@ -74,7 +74,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Comonad<F> comonad(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.comonad(params);
+    return new Instance<>(type) {}.comonad(params);
   }
 
   @SafeVarargs
@@ -83,7 +83,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Selective<F> selective(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.selective(params);
+    return new Instance<>(type) {}.selective(params);
   }
 
   @SafeVarargs
@@ -92,7 +92,7 @@ public final class Instances {
   }
 
   public static <F extends Witness, E> ApplicativeError<F, E> applicativeError(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.applicativeError(params);
+    return new Instance<>(type) {}.applicativeError(params);
   }
 
   @SafeVarargs
@@ -101,7 +101,7 @@ public final class Instances {
   }
 
   public static <F extends Witness, E> MonadError<F, E> monadError(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadError(params);
+    return new Instance<>(type) {}.monadError(params);
   }
 
   @SafeVarargs
@@ -110,7 +110,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> MonadThrow<F> monadThrow(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadThrow(params);
+    return new Instance<>(type) {}.monadThrow(params);
   }
 
   @SafeVarargs
@@ -119,7 +119,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> MonadDefer<F> monadDefer(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.monadDefer(params);
+    return new Instance<>(type) {}.monadDefer(params);
   }
 
   @SafeVarargs
@@ -128,7 +128,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Async<F> async(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.async(params);
+    return new Instance<>(type) {}.async(params);
   }
 
   @SafeVarargs
@@ -137,7 +137,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Concurrent<F> concurrent(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.concurrent(params);
+    return new Instance<>(type) {}.concurrent(params);
   }
 
   @SafeVarargs
@@ -146,7 +146,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Runtime<F> runtime(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.runtime(params);
+    return new Instance<>(type) {}.runtime(params);
   }
 
   @SafeVarargs
@@ -155,7 +155,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Console<F> console(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.console(params);
+    return new Instance<>(type) {}.console(params);
   }
 
   @SafeVarargs
@@ -164,7 +164,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Foldable<F> foldable(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.foldable(params);
+    return new Instance<>(type) {}.foldable(params);
   }
 
   @SafeVarargs
@@ -173,7 +173,7 @@ public final class Instances {
   }
 
   public static <F extends Witness> Traverse<F> traverse(Class<F> type, Object...params) {
-    return new Instance<F>(type) {}.traverse(params);
+    return new Instance<>(type) {}.traverse(params);
   }
 
   @SafeVarargs

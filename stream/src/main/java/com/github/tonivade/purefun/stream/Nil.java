@@ -67,7 +67,7 @@ public final class Nil<F extends Witness, T> implements PureStream<F, T> {
 
   @Override
   public PureStream<F, T> append(Kind<F, ? extends T> other) {
-    return new Cons<>(monad, Kind.<F, T>narrowK(other), this);
+    return new Cons<>(monad, Kind.narrowK(other), this);
   }
 
   @Override

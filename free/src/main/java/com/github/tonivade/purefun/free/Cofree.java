@@ -62,7 +62,7 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappa
 
   public <B> Eval<B> fold(Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
     Eval<Kind<F, B>> eval =
-        traverse.traverse(Instances.<Eval_>applicative(), tailForced(), c -> c.fold(traverse, mapper))
+        traverse.traverse(Instances.applicative(), tailForced(), c -> c.fold(traverse, mapper))
             .fix(toEval());
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }

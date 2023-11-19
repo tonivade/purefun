@@ -4,10 +4,12 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
+import java.io.Serial;
 import java.lang.reflect.Type;
 
 public class InstanceNotFoundException extends RuntimeException {
   
+  @Serial
   private static final long serialVersionUID = 1L;
 
   public InstanceNotFoundException(Type kind, Class<?> typeClass, Throwable cause) {

@@ -155,7 +155,7 @@ sealed interface MetaCont<A, B> {
     public <R1> Tuple2<MetaCont<R, R1>, MetaCont<R1, A>> splitAt(Marker.Cont<R1> cont) {
       if (cont.getClass().isAssignableFrom(marker.getClass())) {
         Handler<R, R1> handler = new Handler<>(marker, new Return());
-        // XXX: does not match, don't now how it compiles on scala
+        // XXX: does not match, don't know how it compiles on scala
         Tuple2<MetaCont<R, R1>, MetaCont<R, A>> tuple = Tuple2.of(handler, tail);
         return (Tuple2) tuple;
       }

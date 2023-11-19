@@ -8,15 +8,13 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Recoverable;
 
-sealed interface Result<T> {
+public sealed interface Result<T> {
 
-  @SuppressWarnings("unchecked")
+//  @SuppressWarnings("unchecked")
   static <T> T trampoline(Result<T> apply) {
     Result<T> result = apply;
 
-    while (result.isComputation()) {
-      Computation<T, ?> current = (Computation<T, ?>) result;
-
+    while (result instanceof Computation<T, ?> current) {
       try {
         result = current.apply();
       } catch (Throwable t) {
@@ -28,10 +26,6 @@ sealed interface Result<T> {
   }
 
   T value();
-
-  default boolean isComputation() {
-    return false;
-  }
 
   static <T> Result<T> value(T value) {
     return new Value<>(value);
@@ -91,11 +85,6 @@ sealed interface Result<T> {
     private Computation(Control<R> control, MetaCont<R, T> continuation) {
       this.control = checkNonNull(control);
       this.continuation = checkNonNull(continuation);
-    }
-
-    @Override
-    public boolean isComputation() {
-      return true;
     }
 
     @Override

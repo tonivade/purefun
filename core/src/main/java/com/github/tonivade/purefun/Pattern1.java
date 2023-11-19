@@ -44,7 +44,7 @@ public final class Pattern1<A, R> implements PartialFunction1<A, R> {
     return function.isDefinedAt(value);
   }
 
-  protected Pattern1<A, R> add(Matcher1<A> matcher, Function1<A, R> handler) {
+  Pattern1<A, R> add(Matcher1<A> matcher, Function1<A, R> handler) {
     return new Pattern1<>(function.orElse(PartialFunction1.of(matcher, handler)));
   }
   

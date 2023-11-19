@@ -23,7 +23,7 @@ public interface Fiber<F extends Witness, A> {
   static <F extends Witness, A> Fiber<F, A> of(Kind<F, A> join, Kind<F, Unit> cancel) {
     checkNonNull(join);
     checkNonNull(cancel);
-    return new Fiber<F, A>() {
+    return new Fiber<>() {
       @Override
       public Kind<F, A> join() { return join; }
       

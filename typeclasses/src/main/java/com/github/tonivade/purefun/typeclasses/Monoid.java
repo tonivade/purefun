@@ -24,11 +24,11 @@ public non-sealed interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
   }
 
   static Monoid<Integer> integer() {
-    return Monoid.of(0, (a, b) -> a + b);
+    return Monoid.of(0, Integer::sum);
   }
 
   static <T> Monoid<T> of(T zero, Operator2<T> combinator) {
-    return new Monoid<T>() {
+    return new Monoid<>() {
 
       @Override
       public T zero() {
@@ -51,7 +51,7 @@ interface MonoidInvariant extends Invariant<Monoid_> {
   default <A, B> Kind<Monoid_, B> imap(Kind<Monoid_, ? extends A> value,
                                        Function1<? super A, ? extends B> map,
                                        Function1<? super B, ? extends A> comap) {
-    return new Monoid<B>() {
+    return new Monoid<>() {
 
       @Override
       public B zero() {

@@ -27,7 +27,7 @@ import com.github.tonivade.purefun.type.Either;
 public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
   
   static <F extends Witness> ScheduleOf<F> of(Monad<F> monad, Timer<F> timer) {
-    return new ScheduleOf<F>() {
+    return new ScheduleOf<>() {
       @Override
       public Monad<F> monad() { return monad; }
       
@@ -80,7 +80,7 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
   <C> Schedule<F, A, C> compose(Schedule<F, B, C> other);
 
   default Schedule<F, A, Sequence<B>> collectAll() {
-    return this.<Sequence<B>>fold(ImmutableList.<B>empty(), Sequence::append);
+    return this.fold(ImmutableList.empty(), Sequence::append);
   }
 
   default <Z> Schedule<F, A, Z> fold(Z zero, Function2<? super Z, ? super B, ? extends Z> next) {
@@ -160,7 +160,7 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     }
 
     default <A> Schedule<F, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times) {
-      return this.<A>recurs(times).zip(this.<A>spaced(delay));
+      return this.<A>recurs(times).zip(this.spaced(delay));
     }
 
     default <A> Schedule<F, A, Unit> never() {
@@ -211,7 +211,7 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
 
     default <A, B> Schedule<F, A, B> unfoldM(
         Kind<F, B> initial, Function1<B, Kind<F, Either<Unit, B>>> next) {
-      return ScheduleImpl.<F, B, A, B>of(monad(), timer(), initial, (a, s) -> next.apply(s), (a, s) -> s);
+      return ScheduleImpl.of(monad(), timer(), initial, (a, s) -> next.apply(s), (a, s) -> s);
     }
   }
 
