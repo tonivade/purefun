@@ -98,7 +98,7 @@ interface EitherPure<L> extends Applicative<Kind<Either_, L>> {
 
   @Override
   default <T> Either<L, T> pure(T value) {
-    return Either.<L, T>right(value);
+    return Either.right(value);
   }
 }
 
@@ -133,13 +133,13 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Kind<Either_, L
 
   @Override
   default <A> Either<L, A> raiseError(L error) {
-    return Either.<L, A>left(error);
+    return Either.left(error);
   }
 
   @Override
   default <A> Either<L, A> handleErrorWith(Kind<Kind<Either_, L>, A> value,
       Function1<? super L, ? extends Kind<Kind<Either_, L>, ? extends A>> handler) {
-    return EitherOf.narrowK(value).fold(handler.andThen(EitherOf::narrowK), Either::<L, A>right);
+    return EitherOf.narrowK(value).fold(handler.andThen(EitherOf::narrowK), Either::right);
   }
 }
 
@@ -180,7 +180,7 @@ interface EitherTraverse<L> extends Traverse<Kind<Either_, L>>, EitherFoldable<L
       l -> applicative.pure(Either.<L, R>left(l).kind()),
       t -> {
         Kind<G, ? extends R> apply = mapper.apply(t);
-        return applicative.map(apply, r -> Either.<L, R>right(r));
+        return applicative.map(apply, Either::<L, R>right);
       });
   }
 }

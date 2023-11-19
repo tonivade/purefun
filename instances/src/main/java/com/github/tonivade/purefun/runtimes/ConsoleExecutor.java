@@ -32,7 +32,7 @@ public final class ConsoleExecutor {
   }
   
   public String getOutput() {
-    return new String(output.toByteArray(), UTF_8);
+    return output.toString(UTF_8);
   }
   
   public <R, E, T> Function1<R, Either<E, T>> run(PureIO<R, E, T> program) {

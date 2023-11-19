@@ -94,7 +94,7 @@ interface EIOPure<E> extends Applicative<Kind<EIO_, E>> {
 
   @Override
   default <A> EIO<E, A> pure(A value) {
-    return EIO.<E, A>pure(value);
+    return EIO.pure(value);
   }
 }
 
@@ -131,7 +131,7 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<Kind<EIO_, E>, E> {
 
   @Override
   default <A> EIO<E, A> raiseError(E error) {
-    return EIO.<E, A>raiseError(error);
+    return EIO.raiseError(error);
   }
 
   @Override
@@ -180,7 +180,7 @@ interface EIOMonadDefer
 
   @Override
   default EIO<Throwable, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).<Throwable>toEIO();
+    return UIO.sleep(duration).toEIO();
   }
 }
 

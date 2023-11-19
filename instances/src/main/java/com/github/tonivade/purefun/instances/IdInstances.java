@@ -132,6 +132,6 @@ interface IdTraverse extends Traverse<Id_>, IdFoldable {
       Applicative<G> applicative, Kind<Id_, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     Kind<G, ? extends R> apply = mapper.apply(value.fix(toId()).get());
-    return applicative.map(apply, a -> Id.of(a));
+    return applicative.map(apply, Id::of);
   }
 }

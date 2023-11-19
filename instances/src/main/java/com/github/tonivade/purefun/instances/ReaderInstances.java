@@ -31,7 +31,7 @@ interface ReaderMonad<R> extends Monad<Kind<Reader_, R>> {
 
   @Override
   default <T> Reader<R, T> pure(T value) {
-    return Reader.<R, T>pure(value);
+    return Reader.pure(value);
   }
 
   @Override
@@ -48,6 +48,6 @@ interface ReaderMonadReader<R> extends MonadReader<Kind<Reader_, R>, R>, ReaderM
 
   @Override
   default Kind<Kind<Reader_, R>, R> ask() {
-    return Reader.<R>env();
+    return Reader.env();
   }
 }

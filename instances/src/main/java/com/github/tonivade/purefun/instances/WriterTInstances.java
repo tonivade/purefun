@@ -40,13 +40,17 @@ public interface WriterTInstances {
 interface WriterTMonad<F extends Witness, L> extends Monad<Kind<Kind<WriterT_, F>, L>> {
 
   static <F extends Witness, L> Monad<Kind<Kind<WriterT_, F>, L>> instance(Monoid<L> monoid, Monad<F> monadF) {
-    return new WriterTMonad<F, L>() {
+    return new WriterTMonad<>() {
 
       @Override
-      public Monoid<L> monoid() { return monoid; }
+      public Monoid<L> monoid() {
+        return monoid;
+      }
 
       @Override
-      public Monad<F> monadF() { return monadF; }
+      public Monad<F> monadF() {
+        return monadF;
+      }
     };
   }
 
@@ -69,13 +73,17 @@ interface WriterTMonadWriter<F extends Witness, L>
     extends MonadWriter<Kind<Kind<WriterT_, F>, L>, L>, WriterTMonad<F, L> {
 
   static <F extends Witness, L> MonadWriter<Kind<Kind<WriterT_, F>, L>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
-    return new WriterTMonadWriter<F, L>() {
+    return new WriterTMonadWriter<>() {
 
       @Override
-      public Monoid<L> monoid() { return monoid; }
+      public Monoid<L> monoid() {
+        return monoid;
+      }
 
       @Override
-      public Monad<F> monadF() { return monadF; }
+      public Monad<F> monadF() {
+        return monadF;
+      }
     };
   }
 
@@ -106,13 +114,17 @@ interface WriterTMonadError<F extends Witness, L, E>
 
   static <F extends Witness, L, E> MonadError<Kind<Kind<WriterT_, F>, L>, E> instance(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
-    return new WriterTMonadError<F, L, E>() {
+    return new WriterTMonadError<>() {
 
       @Override
-      public Monoid<L> monoid() { return monoid; }
+      public Monoid<L> monoid() {
+        return monoid;
+      }
 
       @Override
-      public MonadError<F, E> monadF() { return monadErrorF; }
+      public MonadError<F, E> monadF() {
+        return monadErrorF;
+      }
     };
   }
 

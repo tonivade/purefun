@@ -64,7 +64,7 @@ public interface SequenceInstances {
     return SequenceApplicative.INSTANCE;
   }
 
-  static SequenceMonad monad() {
+  static Monad<Sequence_> monad() {
     return SequenceMonad.INSTANCE;
   }
 
@@ -83,7 +83,8 @@ public interface SequenceInstances {
 
 interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 
-  SequenceSemigroup<?> INSTANCE = new SequenceSemigroup<Object>() {};
+  SequenceSemigroup<?> INSTANCE = new SequenceSemigroup<>() {
+  };
 
   @Override
   default Sequence<T> combine(Sequence<T> t1, Sequence<T> t2) {
@@ -93,7 +94,8 @@ interface SequenceSemigroup<T> extends Semigroup<Sequence<T>> {
 
 interface SequenceMonoid<T> extends SequenceSemigroup<T>, Monoid<Sequence<T>> {
 
-  SequenceMonoid<?> INSTANCE = new SequenceMonoid<Object>() {};
+  SequenceMonoid<?> INSTANCE = new SequenceMonoid<>() {
+  };
 
   @Override
   default Sequence<T> zero() {
@@ -117,7 +119,7 @@ interface SequenceMonoidK extends MonoidK<Sequence_>, SequenceSemigroupK {
 
   @Override
   default <T> Kind<Sequence_, T> zero() {
-    return ImmutableList.<T>empty();
+    return ImmutableList.empty();
   }
 }
 
@@ -193,7 +195,7 @@ interface SequenceTraverse extends Traverse<Sequence_>, SequenceFoldable {
       Applicative<G> applicative, Kind<Sequence_, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return value.fix(toSequence()).foldLeft(
-      applicative.pure(Sequence.<R>emptyList()),
+      applicative.pure(Sequence.emptyList()),
       (acc, a) -> {
         Kind<G, ? extends R> apply = mapper.apply(a);
         return applicative.mapN(apply, acc, 

@@ -127,7 +127,7 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
 
   @Override
   default <A> UIO<A> raiseError(Throwable error) {
-    return UIO.<A>raiseError(error);
+    return UIO.raiseError(error);
   }
 
   @Override

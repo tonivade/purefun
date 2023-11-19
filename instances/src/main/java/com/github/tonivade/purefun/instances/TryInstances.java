@@ -114,7 +114,7 @@ interface TryMonadError extends TryMonad, MonadError<Try_, Throwable> {
 
   @Override
   default <A> Kind<Try_, A> raiseError(Throwable error) {
-    return Try.<A>failure(error);
+    return Try.failure(error);
   }
 
   @Override
@@ -159,7 +159,7 @@ interface TryTraverse extends Traverse<Try_>, TryFoldable {
         t -> applicative.pure(Try.<R>failure(t).kind()),
         t -> {
           Kind<G, ? extends R> apply = mapper.apply(t);
-          return applicative.map(apply, x -> Try.success(x));
+          return applicative.map(apply, Try::success);
         });
   }
 }

@@ -95,7 +95,7 @@ interface RIOPure<R> extends Applicative<Kind<RIO_, R>> {
 
   @Override
   default <A> RIO<R, A> pure(A value) {
-    return RIO.<R, A>pure(value);
+    return RIO.pure(value);
   }
 }
 
@@ -128,11 +128,12 @@ interface RIOMonad<R> extends RIOPure<R>, Monad<Kind<RIO_, R>> {
 interface RIOMonadError<R> extends RIOMonad<R>, MonadError<Kind<RIO_, R>, Throwable> {
 
   @SuppressWarnings("rawtypes")
-  RIOMonadError INSTANCE = new RIOMonadError<Object>() {};
+  RIOMonadError INSTANCE = new RIOMonadError<>() {
+  };
 
   @Override
   default <A> RIO<R, A> raiseError(Throwable error) {
-    return RIO.<R, A>raiseError(error);
+    return RIO.raiseError(error);
   }
 
   @Override
@@ -151,7 +152,8 @@ interface RIOMonadThrow<R>
     extends RIOMonadError<R>,
             MonadThrow<Kind<RIO_, R>> {
   @SuppressWarnings("rawtypes")
-  RIOMonadThrow INSTANCE = new RIOMonadThrow<Object>() {};
+  RIOMonadThrow INSTANCE = new RIOMonadThrow<>() {
+  };
 }
 
 interface RIODefer<R> extends Defer<Kind<RIO_, R>> {
@@ -178,18 +180,20 @@ interface RIOMonadDefer<R>
     extends MonadDefer<Kind<RIO_, R>>, RIODefer<R>, RIOBracket<R> {
 
   @SuppressWarnings("rawtypes")
-  RIOMonadDefer INSTANCE = new RIOMonadDefer<Object>() {};
+  RIOMonadDefer INSTANCE = new RIOMonadDefer<>() {
+  };
 
   @Override
   default RIO<R, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).<R>toRIO();
+    return UIO.sleep(duration).toRIO();
   }
 }
 
 interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
 
   @SuppressWarnings("rawtypes")
-  RIOAsync INSTANCE = new RIOAsync<Object>() {};
+  RIOAsync INSTANCE = new RIOAsync<>() {
+  };
   
   @Override
   default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO_, R>, Unit>> consumer) {
@@ -227,12 +231,12 @@ final class RIOConsole<R> implements Console<Kind<RIO_, R>> {
 
   @Override
   public RIO<R, String> readln() {
-    return RIO.<R, String>task(console::readln);
+    return RIO.task(console::readln);
   }
 
   @Override
   public RIO<R, Unit> println(String text) {
-    return RIO.<R>exec(() -> console.println(text));
+    return RIO.exec(() -> console.println(text));
   }
 }
 

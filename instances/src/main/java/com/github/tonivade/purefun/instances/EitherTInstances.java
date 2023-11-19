@@ -77,7 +77,7 @@ interface EitherTMonad<F extends Witness, L> extends Monad<Kind<Kind<EitherT_, F
 
   @Override
   default <T> EitherT<F, L, T> pure(T value) {
-    return EitherT.<F, L, T>right(monadF(), value);
+    return EitherT.right(monadF(), value);
   }
 
   @Override
@@ -96,17 +96,17 @@ interface EitherTMonadErrorFromMonad<F extends Witness, E>
 
   @Override
   default <A> EitherT<F, E, A> raiseError(E error) {
-    return EitherT.<F, E, A>left(monadF(), error);
+    return EitherT.left(monadF(), error);
   }
 
   @Override
   default <A> EitherT<F, E, A> handleErrorWith(Kind<Kind<Kind<EitherT_, F>, E>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<EitherT_, F>, E>, ? extends A>> handler) {
     return EitherT.of(monadF(),
-        monadF().flatMap(EitherTOf.<F, E, A>narrowK(value).value(),
+        monadF().flatMap(EitherTOf.narrowK(value).value(),
             either -> either.fold(
                 e -> handler.andThen(EitherTOf::<F, E, A>narrowK).apply(e).value(),
-                a -> monadF().pure(Either.<E, A>right(a)))));
+                a -> monadF().pure(Either.right(a)))));
   }
 }
 
@@ -123,14 +123,14 @@ interface EitherTMonadErrorFromMonadError<F extends Witness, E>
 
   @Override
   default <A> EitherT<F, E, A> raiseError(E error) {
-    return EitherT.<F, E, A>of(monadF(), monadF().raiseError(error));
+    return EitherT.of(monadF(), monadF().raiseError(error));
   }
 
   @Override
   default <A> EitherT<F, E, A> handleErrorWith(Kind<Kind<Kind<EitherT_, F>, E>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<EitherT_, F>, E>, ? extends A>> handler) {
     return EitherT.of(monadF(),
-                      monadF().handleErrorWith(EitherTOf.<F, E, A>narrowK(value).value(),
+                      monadF().handleErrorWith(EitherTOf.narrowK(value).value(),
                                                error -> handler.andThen(EitherTOf::<F, E, A>narrowK).apply(error).value()));
   }
 }
@@ -182,7 +182,7 @@ interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT
                 value -> use.andThen(EitherTOf::<F, E, B>narrowK).apply(value).value()),
             either -> {
               Kind<Kind<Kind<EitherT_, F>, E>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release::apply);
-              Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::<F, E, Unit>narrowK).value();
+              Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::narrowK).value();
               return monadF().map(value, x -> x.fold(cons(unit()), identity()));
             });
     return EitherT.of(monadF(), bracket);
@@ -195,7 +195,7 @@ interface EitherTTimer<F extends Witness> extends Timer<Kind<Kind<EitherT_, F>, 
 
   @Override
   default EitherT<F, Throwable, Unit> sleep(Duration duration) {
-    return EitherT.<F, Throwable, Unit>of(monadF(), monadF().map(monadF().sleep(duration), Either::right));
+    return EitherT.of(monadF(), monadF().map(monadF().sleep(duration), Either::right));
   }
 }
 

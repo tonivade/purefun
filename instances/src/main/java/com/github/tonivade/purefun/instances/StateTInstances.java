@@ -47,7 +47,7 @@ interface StateTMonad<F extends Witness, S> extends Monad<Kind<Kind<StateT_, F>,
 
   @Override
   default <T> StateT<F, S, T> pure(T value) {
-    return StateT.<F, S, T>pure(monadF(), value);
+    return StateT.pure(monadF(), value);
   }
 
   @Override
@@ -69,7 +69,7 @@ interface StateTMonadError<F extends Witness, S, E> extends MonadError<Kind<Kind
   @Override
   default <A> StateT<F, S, A> raiseError(E error) {
     Kind<F, A> raiseError = monadF().raiseError(error);
-    return StateT.<F, S, A>state(monadF(), state -> monadF().map(raiseError, value -> Tuple.of(state, value)));
+    return StateT.state(monadF(), state -> monadF().map(raiseError, value -> Tuple.of(state, value)));
   }
 
   @Override
@@ -77,7 +77,7 @@ interface StateTMonadError<F extends Witness, S, E> extends MonadError<Kind<Kind
       Kind<Kind<Kind<StateT_, F>, S>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<StateT_, F>, S>, ? extends A>> handler) {
     StateT<F, S, A> stateT = value.fix(StateTOf::narrowK);
-    return StateT.<F, S, A>state(monadF(),
+    return StateT.state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
             error -> handler.apply(error).fix(StateTOf::<F, S, A>narrowK).run(state)));
   }
@@ -91,7 +91,7 @@ interface StateTMonadState<F extends Witness, S> extends MonadState<Kind<Kind<St
 
   @Override
   default StateT<F, S, S> get() {
-    return StateT.<F, S>get(monadF());
+    return StateT.get(monadF());
   }
 
   @Override
@@ -111,6 +111,6 @@ interface StateTMonadReader<F extends Witness, S, R> extends MonadReader<Kind<Ki
 
   @Override
   default StateT<F, S, R> ask() {
-    return StateT.<F, S, R>state(monadF(), state -> monadF().map(monadF().ask(), reader -> Tuple.of(state, reader)));
+    return StateT.state(monadF(), state -> monadF().map(monadF().ask(), reader -> Tuple.of(state, reader)));
   }
 }

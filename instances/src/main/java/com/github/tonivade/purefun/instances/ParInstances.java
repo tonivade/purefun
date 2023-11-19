@@ -111,7 +111,7 @@ interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
 
   @Override
   default <A> Par<A> raiseError(Throwable error) {
-    return Par.<A>failure(error);
+    return Par.failure(error);
   }
 
   @Override

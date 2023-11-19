@@ -17,7 +17,7 @@ class TwitterExample {
   record Tweet(String userId, String message) {}
   
   interface Twitter {
-    Control<ImmutableList<Tweet>> userTweets(String usuerId);
+    Control<ImmutableList<Tweet>> userTweets(String userId);
   }
   
   static final class TwitterImpl<R> implements Handler<R, Twitter>, Twitter {

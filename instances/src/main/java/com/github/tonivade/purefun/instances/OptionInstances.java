@@ -132,7 +132,7 @@ interface OptionMonoidK extends OptionSemigroupK, MonoidK<Option_> {
 
   @Override
   default <T> Kind<Option_, T> zero() {
-    return Option.<T>none();
+    return Option.none();
   }
 }
 
@@ -147,7 +147,7 @@ interface OptionMonadError extends OptionMonad, MonadError<Option_, Unit> {
 
   @Override
   default <A> Kind<Option_, A> raiseError(Unit error) {
-    return Option.<A>none();
+    return Option.none();
   }
 
   @Override

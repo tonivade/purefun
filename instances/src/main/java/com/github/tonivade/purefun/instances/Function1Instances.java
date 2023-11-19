@@ -59,7 +59,7 @@ interface Function1Pure<T> extends Applicative<Kind<Function1_, T>> {
 
   @Override
   default <A> Function1<T, A> pure(A value) {
-    return Function1.<T, A>cons(value);
+    return Function1.cons(value);
   }
 }
 

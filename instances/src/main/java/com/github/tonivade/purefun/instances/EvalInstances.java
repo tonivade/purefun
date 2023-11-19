@@ -55,7 +55,7 @@ interface EvalFunctor extends Functor<Eval_> {
   EvalFunctor INSTANCE = new EvalFunctor() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> map(Kind<Eval_, ? extends T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Eval<R> map(Kind<Eval_, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return EvalOf.narrowK(value).map(mapper);
   }
 }
@@ -73,7 +73,7 @@ interface EvalApplicative extends EvalPure {
   EvalApplicative INSTANCE = new EvalApplicative() {};
 
   @Override
-  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, ? extends T> value, 
+  default <T, R> Kind<Eval_, R> ap(Kind<Eval_, ? extends T> value,
       Kind<Eval_, ? extends Function1<? super T, ? extends R>> apply) {
     return EvalOf.narrowK(value).flatMap(t -> EvalOf.narrowK(apply).map(f -> f.apply(t)));
   }
@@ -95,7 +95,7 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval_, Throwable> {
 
   @Override
   default <A> Kind<Eval_, A> raiseError(Throwable error) {
-    return Eval.<A>raiseError(error);
+    return Eval.raiseError(error);
   }
 
   @Override

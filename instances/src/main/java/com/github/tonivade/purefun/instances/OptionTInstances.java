@@ -89,14 +89,14 @@ interface OptionTMonadErrorFromMonad<F extends Witness>
 
   @Override
   default <A> OptionT<F, A> raiseError(Unit error) {
-    return OptionT.<F, A>none(monadF());
+    return OptionT.none(monadF());
   }
 
   @Override
   default <A> OptionT<F, A> handleErrorWith(Kind<Kind<OptionT_, F>, A> value,
       Function1<? super Unit, ? extends Kind<Kind<OptionT_, F>, ? extends A>> handler) {
     return OptionT.of(monadF(),
-        monadF().flatMap(OptionTOf.<F, A>narrowK(value).value(),
+        monadF().flatMap(OptionTOf.narrowK(value).value(),
             option -> option.fold(
               () -> handler.andThen(OptionTOf::<F, A>narrowK).apply(unit()).value(),
               a -> monadF().pure(Option.some(a)))));
@@ -115,7 +115,7 @@ interface OptionTMonadErrorFromMonadError<F extends Witness, E>
 
   @Override
   default <A> OptionT<F, A> raiseError(E error) {
-    return OptionT.<F, A>of(monadF(), monadF().raiseError(error));
+    return OptionT.of(monadF(), monadF().raiseError(error));
   }
 
   @Override
@@ -123,7 +123,7 @@ interface OptionTMonadErrorFromMonadError<F extends Witness, E>
       Function1<? super E, ? extends Kind<Kind<OptionT_, F>, ? extends A>> handler) {
     return OptionT.of(monadF(),
       monadF().handleErrorWith(
-        OptionTOf.<F, A>narrowK(value).value(), error -> handler.andThen(OptionTOf::<F, A>narrowK).apply(error).value()));
+        OptionTOf.narrowK(value).value(), error -> handler.andThen(OptionTOf::<F, A>narrowK).apply(error).value()));
   }
 }
 
@@ -163,7 +163,7 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
                 value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
             option -> {
               Kind<Kind<OptionT_, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release::apply);
-              Kind<F, Option<Unit>> value = fold.fix(OptionTOf::<F, Unit>narrowK).value();
+              Kind<F, Option<Unit>> value = fold.fix(OptionTOf::narrowK).value();
               return monadF().map(value, x -> x.fold(Unit::unit, identity()));
             });
     return OptionT.of(monadF(), bracket);

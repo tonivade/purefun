@@ -93,7 +93,7 @@ interface ValidationPure<E> extends Applicative<Kind<Validation_, E>> {
 
   @Override
   default <T> Validation<E, T> pure(T value) {
-    return Validation.<E, T>valid(value);
+    return Validation.valid(value);
   }
 }
 
@@ -112,14 +112,14 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Kind<V
     Validation<E, Function1<? super T, ? extends R>> validationF = apply.fix(ValidationOf::narrowK);
 
     if (validation.isValid() && validationF.isValid()) {
-      return Validation.<E, R>valid(validationF.get().apply(validation.get()));
+      return Validation.valid(validationF.get().apply(validation.get()));
     } else if (validation.isInvalid() && validationF.isValid()) {
-      return Validation.<E, R>invalid(validation.getError());
+      return Validation.invalid(validation.getError());
     } else if (validation.isValid() && validationF.isInvalid()) {
-      return Validation.<E, R>invalid(validationF.getError());
+      return Validation.invalid(validationF.getError());
     }
 
-    return Validation.<E, R>invalid(semigroup().combine(validation.getError(), validationF.getError()));
+    return Validation.invalid(semigroup().combine(validation.getError(), validationF.getError()));
   }
 }
 
@@ -155,13 +155,13 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Kind<Va
 
   @Override
   default <A> Validation<E, A> raiseError(E error) {
-    return Validation.<E, A>invalid(error);
+    return Validation.invalid(error);
   }
 
   @Override
   default <A> Validation<E, A> handleErrorWith(Kind<Kind<Validation_, E>, A> value,
       Function1<? super E, ? extends Kind<Kind<Validation_, E>, ? extends A>> handler) {
-    return ValidationOf.narrowK(value).fold(handler.andThen(ValidationOf::narrowK), Validation::<E, A>valid);
+    return ValidationOf.narrowK(value).fold(handler.andThen(ValidationOf::narrowK), Validation::valid);
   }
 }
 

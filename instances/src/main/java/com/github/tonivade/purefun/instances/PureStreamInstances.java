@@ -54,18 +54,18 @@ public interface PureStreamInstances {
 
   @SuppressWarnings("unchecked")
   static <F extends Witness> Functor<Kind<PureStream_, F>> functor() {
-    return StreamFunctor.INSTANCE;
+    return PureStreamFunctor.INSTANCE;
   }
 
   static <F extends Witness> Monad<Kind<PureStream_, F>> monad(PureStream.StreamOf<F> streamOf) {
-    return StreamMonad.instance(checkNonNull(streamOf));
+    return PureStreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
-interface StreamFunctor<F extends Witness> extends Functor<Kind<PureStream_, F>> {
+interface PureStreamFunctor<F extends Witness> extends Functor<Kind<PureStream_, F>> {
 
   @SuppressWarnings("rawtypes")
-  StreamFunctor INSTANCE = new StreamFunctor() {};
+  PureStreamFunctor INSTANCE = new PureStreamFunctor() {};
 
   @Override
   default <T, R> PureStream<F, R> map(Kind<Kind<PureStream_, F>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
@@ -73,7 +73,7 @@ interface StreamFunctor<F extends Witness> extends Functor<Kind<PureStream_, F>>
   }
 }
 
-interface StreamPure<F extends Witness> extends Applicative<Kind<PureStream_, F>> {
+interface PureStreamPure<F extends Witness> extends Applicative<Kind<PureStream_, F>> {
 
   PureStream.StreamOf<F> streamOf();
 
@@ -83,9 +83,9 @@ interface StreamPure<F extends Witness> extends Applicative<Kind<PureStream_, F>
   }
 }
 
-interface StreamMonad<F extends Witness> extends Monad<Kind<PureStream_, F>>, StreamPure<F> {
+interface PureStreamMonad<F extends Witness> extends Monad<Kind<PureStream_, F>>, PureStreamPure<F> {
 
-  static <F extends Witness> StreamMonad<F> instance(PureStream.StreamOf<F> streamOf) {
+  static <F extends Witness> PureStreamMonad<F> instance(PureStream.StreamOf<F> streamOf) {
     return () -> streamOf;
   }
 

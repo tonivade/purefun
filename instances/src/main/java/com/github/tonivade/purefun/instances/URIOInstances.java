@@ -95,7 +95,7 @@ interface URIOPure<R> extends Applicative<Kind<URIO_, R>> {
 
   @Override
   default <A> URIO<R, A> pure(A value) {
-    return URIO.<R, A>pure(value);
+    return URIO.pure(value);
   }
 }
 
@@ -128,11 +128,12 @@ interface URIOMonad<R> extends URIOPure<R>, Monad<Kind<URIO_, R>> {
 interface URIOMonadError<R> extends URIOMonad<R>, MonadError<Kind<URIO_, R>, Throwable> {
 
   @SuppressWarnings("rawtypes")
-  URIOMonadError INSTANCE = new URIOMonadError<Object>() {};
+  URIOMonadError INSTANCE = new URIOMonadError<>() {
+  };
 
   @Override
   default <A> URIO<R, A> raiseError(Throwable error) {
-    return URIO.<R, A>raiseError(error);
+    return URIO.raiseError(error);
   }
 
   @Override
@@ -151,7 +152,8 @@ interface URIOMonadThrow<R>
     extends URIOMonadError<R>,
             MonadThrow<Kind<URIO_, R>> {
   @SuppressWarnings("rawtypes")
-  URIOMonadThrow INSTANCE = new URIOMonadThrow<Object>() {};
+  URIOMonadThrow INSTANCE = new URIOMonadThrow<>() {
+  };
 }
 
 interface URIODefer<R> extends Defer<Kind<URIO_, R>> {
@@ -178,18 +180,20 @@ interface URIOMonadDefer<R>
     extends MonadDefer<Kind<URIO_, R>>, URIODefer<R>, URIOBracket<R> {
 
   @SuppressWarnings("rawtypes")
-  URIOMonadDefer INSTANCE = new URIOMonadDefer<Object>() {};
+  URIOMonadDefer INSTANCE = new URIOMonadDefer<>() {
+  };
 
   @Override
   default URIO<R, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).<R>toURIO();
+    return UIO.sleep(duration).toURIO();
   }
 }
 
 interface URIOAsync<R> extends Async<Kind<URIO_, R>>, URIOMonadDefer<R> {
 
   @SuppressWarnings("rawtypes")
-  URIOAsync INSTANCE = new URIOAsync<Object>() {};
+  URIOAsync INSTANCE = new URIOAsync<>() {
+  };
   
   @Override
   default <A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<URIO_, R>, Unit>> consumer) {
@@ -228,12 +232,12 @@ final class URIOConsole<R> implements Console<Kind<URIO_, R>> {
 
   @Override
   public URIO<R, String> readln() {
-    return URIO.<R, String>task(console::readln);
+    return URIO.task(console::readln);
   }
 
   @Override
   public URIO<R, Unit> println(String text) {
-    return URIO.<R>exec(() -> console.println(text));
+    return URIO.exec(() -> console.println(text));
   }
 }
 

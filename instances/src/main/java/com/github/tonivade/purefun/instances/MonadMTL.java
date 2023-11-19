@@ -75,7 +75,7 @@ public class MonadMTL<F extends Witness, S, R, E>
 
   @Override
   public <A> EffectS<F, S, R, E, A> raiseError(E error) {
-    return new EffectS<>(monadErrorS.<A>raiseError(error));
+    return new EffectS<>(monadErrorS.raiseError(error));
   }
 
   @Override
@@ -96,11 +96,11 @@ public class MonadMTL<F extends Witness, S, R, E>
   }
 
   public <A> EffectR<F, R, E, A> effectR(EffectE<F, E, A> effect0) {
-    return new EffectR<>(Kleisli.<EffectE_, R, A>of(monadErrorE, config -> effect0));
+    return new EffectR<>(Kleisli.of(monadErrorE, config -> effect0));
   }
 
   public <A> EffectS<F, S, R, E, A> effectS(EffectR<F, R, E, A> effect1) {
-    return new EffectS<>(StateT.<EffectR_, S, A>state(monadR, state -> monadR.map(effect1, x -> Tuple.of(state, x))));
+    return new EffectS<>(StateT.state(monadR, state -> monadR.map(effect1, x -> Tuple.of(state, x))));
   }
 
   public <A> EffectS<F, S, R, E, A> effect(Kind<F, Either<E, A>> value) {
@@ -201,7 +201,7 @@ class EffectEMonadError<F extends Witness, E> implements MonadError<EffectE_, E>
 
   @Override
   public <A> EffectE<F, E, A> raiseError(E error) {
-    return new EffectE<>(monad.<A>raiseError(error));
+    return new EffectE<>(monad.raiseError(error));
   }
 
   @Override
@@ -255,12 +255,12 @@ class EffectRMonadError<F extends Witness, R, E> extends EffectRMonad<F, R, E> i
 
   public EffectRMonadError(Monad<F> monad) {
     super(monad);
-    this.monadError = KleisliInstances.monadError(new EffectEMonadError<F, E>(monad));
+    this.monadError = KleisliInstances.monadError(new EffectEMonadError<>(monad));
   }
 
   @Override
   public <A> EffectR<F, R, E, A> raiseError(E error) {
-    return new EffectR<>(monadError.<A>raiseError(error));
+    return new EffectR<>(monadError.raiseError(error));
   }
 
   @Override

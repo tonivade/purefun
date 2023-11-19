@@ -100,7 +100,7 @@ interface PureIOPure<R, E> extends Applicative<Kind<Kind<PureIO_, R>, E>> {
 
   @Override
   default <A> PureIO<R, E, A> pure(A value) {
-    return PureIO.<R, E, A>pure(value);
+    return PureIO.pure(value);
   }
 }
 
@@ -137,7 +137,7 @@ interface PureIOMonadError<R, E> extends PureIOMonad<R, E>, MonadError<Kind<Kind
 
   @Override
   default <A> PureIO<R, E, A> raiseError(E error) {
-    return PureIO.<R, E, A>raiseError(error);
+    return PureIO.raiseError(error);
   }
 
   @Override
@@ -186,14 +186,15 @@ interface PureIOMonadDefer<R>
 
   @Override
   default PureIO<R, Throwable, Unit> sleep(Duration duration) {
-    return UIO.sleep(duration).<R, Throwable>toPureIO();
+    return UIO.sleep(duration).toPureIO();
   }
 }
 
 interface PureIOAsync<R> extends Async<Kind<Kind<PureIO_, R>, Throwable>>, PureIOMonadDefer<R> {
 
   @SuppressWarnings("rawtypes")
-  PureIOAsync INSTANCE = new PureIOAsync<Object>() {};
+  PureIOAsync INSTANCE = new PureIOAsync<>() {
+  };
   
   @Override
   default <A> PureIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<Kind<PureIO_, R>, Throwable>, Unit>> consumer) {
@@ -225,18 +226,18 @@ interface PureIOConcurrent<R> extends Concurrent<Kind<Kind<PureIO_, R>, Throwabl
 final class PureIOConsole<R> implements Console<Kind<Kind<PureIO_, R>, Throwable>> {
 
   @SuppressWarnings("rawtypes")
-  protected static final PureIOConsole INSTANCE = new PureIOConsole();
+  static final PureIOConsole INSTANCE = new PureIOConsole();
 
   private final SystemConsole console = new SystemConsole();
 
   @Override
   public PureIO<R, Throwable, String> readln() {
-    return PureIO.<R, String>task(console::readln);
+    return PureIO.task(console::readln);
   }
 
   @Override
   public PureIO<R, Throwable, Unit> println(String text) {
-    return PureIO.<R>exec(() -> console.println(text));
+    return PureIO.exec(() -> console.println(text));
   }
 }
 

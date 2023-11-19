@@ -48,7 +48,7 @@ interface KleisliMonad<F extends Witness, Z> extends Monad<Kind<Kind<Kleisli_, F
 
   @Override
   default <T> Kleisli<F, Z, T> pure(T value) {
-    return Kleisli.<F, Z, T>pure(monadF(), value);
+    return Kleisli.pure(monadF(), value);
   }
 
   @Override
@@ -69,7 +69,7 @@ interface KleisliMonadError<F extends Witness, R, E> extends MonadError<Kind<Kin
 
   @Override
   default <A> Kleisli<F, R, A> raiseError(E error) {
-    return Kleisli.<F, R, A>of(monadF(), reader -> monadF().raiseError(error));
+    return Kleisli.of(monadF(), reader -> monadF().raiseError(error));
   }
 
   @Override
@@ -77,7 +77,7 @@ interface KleisliMonadError<F extends Witness, R, E> extends MonadError<Kind<Kin
       Kind<Kind<Kind<Kleisli_, F>, R>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<Kleisli_, F>, R>, ? extends A>> handler) {
     Kleisli<F, R, A> kleisli = value.fix(KleisliOf::narrowK);
-    return Kleisli.<F, R, A>of(monadF(),
+    return Kleisli.of(monadF(),
         reader -> monadF().handleErrorWith(kleisli.run(reader),
             error -> handler.apply(error).fix(KleisliOf::narrowK).run(reader)));
   }
@@ -91,7 +91,7 @@ interface KleisliMonadReader<F extends Witness, R> extends MonadReader<Kind<Kind
 
   @Override
   default Kleisli<F, R, R> ask() {
-    return Kleisli.<F, R>env(monadF());
+    return Kleisli.env(monadF());
   }
 }
 
@@ -106,11 +106,11 @@ interface KleisliMonadState<F extends Witness, R, S> extends MonadState<Kind<Kin
 
   @Override
   default Kleisli<F, R, Unit> set(S state) {
-    return Kleisli.<F, R, Unit>of(monadF(), reader -> monadF().set(state));
+    return Kleisli.of(monadF(), reader -> monadF().set(state));
   }
 
   @Override
   default Kleisli<F, R, S> get() {
-    return Kleisli.<F, R, S>of(monadF(), reader -> monadF().get());
+    return Kleisli.of(monadF(), reader -> monadF().get());
   }
 }

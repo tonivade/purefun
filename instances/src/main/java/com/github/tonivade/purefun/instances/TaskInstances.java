@@ -143,7 +143,7 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
 
   @Override
   default <A> Task<A> raiseError(Throwable error) {
-    return Task.<A>raiseError(error);
+    return Task.raiseError(error);
   }
 
   @Override
@@ -168,7 +168,7 @@ interface TaskDefer extends Defer<Task_> {
   @Override
   default <A> Task<A>
           defer(Producer<? extends Kind<Task_, ? extends A>> defer) {
-    return Task.defer(() -> defer.get());
+    return Task.defer(defer::get);
   }
 }
 
