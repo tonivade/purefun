@@ -13,11 +13,8 @@ import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static java.util.Objects.nonNull;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -55,8 +52,8 @@ public class PureStreamTest {
 
   @Test
   public void map() {
-    PureStream<IO_, String> pure1 = streamOfIO.pure("hola");
-    PureStream<IO_, String> pure2 = streamOfIO.pure(" mundo");
+    PureStream<IO_, String> pure1 = PureStream.pure("hola");
+    PureStream<IO_, String> pure2 = PureStream.pure(" mundo");
 
     PureStream<IO_, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
@@ -68,10 +65,10 @@ public class PureStreamTest {
 
   @Test
   public void flatMap() {
-    PureStream<IO_, String> pure1 = streamOfIO.pure("hola");
-    PureStream<IO_, String> pure2 = streamOfIO.pure(" mundo");
+    PureStream<IO_, String> pure1 = PureStream.pure("hola");
+    PureStream<IO_, String> pure2 = PureStream.pure(" mundo");
 
-    PureStream<IO_, String> result = pure1.concat(pure2).flatMap(string -> streamOfIO.pure(string.toUpperCase()));
+    PureStream<IO_, String> result = pure1.concat(pure2).flatMap(string -> PureStream.pure(string.toUpperCase()));
 
     IO<String> foldLeft = result.asString().fix(toIO());
 
@@ -80,7 +77,7 @@ public class PureStreamTest {
 
   @Test
   public void mapEval() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
     PureStream<IO_, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2));
 
@@ -89,7 +86,7 @@ public class PureStreamTest {
 
   @Test
   public void append() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
     PureStream<IO_, Integer> result = stream.append(IO.pure(4));
 
@@ -98,7 +95,7 @@ public class PureStreamTest {
 
   @Test
   public void prepend() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
     PureStream<IO_, Integer> result = stream.prepend(IO.pure(0));
 
@@ -107,7 +104,7 @@ public class PureStreamTest {
 
   @Test
   public void take() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
     PureStream<IO_, Integer> result = stream.take(2);
 
@@ -116,7 +113,7 @@ public class PureStreamTest {
 
   @Test
   public void drop() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
     PureStream<IO_, Integer> result = stream.drop(2);
 
@@ -125,7 +122,7 @@ public class PureStreamTest {
 
   @Test
   public void takeWhile() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3, 4, 5));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3, 4, 5));
 
     PureStream<IO_, Integer> result = stream.takeWhile(t -> t < 4);
 
@@ -134,7 +131,7 @@ public class PureStreamTest {
 
   @Test
   public void dropWhile() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf(1, 2, 3, 4, 5));
+    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3, 4, 5));
 
     PureStream<IO_, Integer> result = stream.dropWhile(t -> t < 4);
 
@@ -143,7 +140,7 @@ public class PureStreamTest {
 
   @Test
   public void filter() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(java.util.stream.Stream.of(1, 2, 3, 4, 5));
+    PureStream<IO_, Integer> stream = PureStream.from(java.util.stream.Stream.of(1, 2, 3, 4, 5));
 
     PureStream<IO_, Integer> result = stream.filter(t -> (t % 2) == 0);
 
@@ -152,7 +149,7 @@ public class PureStreamTest {
 
   @Test
   public void collect() {
-    PureStream<IO_, Integer> stream = streamOfIO.of(1, 2, 3, 4, 5);
+    PureStream<IO_, Integer> stream = PureStream.of(IO_.class).of(1, 2, 3, 4, 5);
 
     PureStream<IO_, Integer> result = stream.collect(PartialFunction1.of(t -> (t % 2) == 0, x -> x * 2));
 
@@ -161,7 +158,7 @@ public class PureStreamTest {
 
   @Test
   public void iterate() {
-    PureStream<IO_, Integer> stream = streamOfIO.iterate(0, i -> i + 1);
+    PureStream<IO_, Integer> stream = PureStream.iterate(0, i -> i + 1);
 
     PureStream<IO_, Integer> result = stream.takeWhile(t -> t < 4).dropWhile(t -> t < 2);
 
@@ -170,7 +167,7 @@ public class PureStreamTest {
 
   @Test
   public void repeat() {
-    PureStream<IO_, Integer> stream = streamOfIO.of(1, 2, 3);
+    PureStream<IO_, Integer> stream = PureStream.<IO_>of().of(1, 2, 3);
 
     PureStream<IO_, Integer> result = stream.repeat().take(7);
 
@@ -179,7 +176,7 @@ public class PureStreamTest {
 
   @Test
   public void intersperse() {
-    PureStream<IO_, Integer> stream = streamOfIO.of(1, 2);
+    PureStream<IO_, Integer> stream = PureStream.<IO_>of().of(1, 2);
 
     PureStream<IO_, Integer> result = stream.intersperse(IO.pure(0));
 
@@ -188,26 +185,26 @@ public class PureStreamTest {
 
   @Test
   public void zip() {
-    PureStream<IO_, String> stream = streamOfIO.from(listOf("a", "b", "c"));
+    PureStream<IO_, String> stream = PureStream.from(listOf("a", "b", "c"));
 
-    IO<Sequence<Tuple2<String, Integer>>> zip = streamOfIO.zipWithIndex(stream).asSequence().fix(toIO());
+    IO<Sequence<Tuple2<String, Integer>>> zip = PureStream.zipWithIndex(stream).asSequence().fix(toIO());
 
     assertEquals(listOf(Tuple2.of("a", 0), Tuple2.of("b", 1), Tuple2.of("c", 2)), zip.unsafeRunSync());
   }
 
   @Test
   public void merge() {
-    PureStream<IO_, Integer> stream1 = streamOfIO.of(1, 2, 3);
-    PureStream<IO_, Integer> stream2 = streamOfIO.of(4, 5, 6, 7);
+    PureStream<IO_, Integer> stream1 = PureStream.<IO_>of().of(1, 2, 3);
+    PureStream<IO_, Integer> stream2 = PureStream.<IO_>of().of(4, 5, 6, 7);
 
-    PureStream<IO_, Integer> merge = streamOfIO.merge(stream1, stream2);
+    PureStream<IO_, Integer> merge = PureStream.merge(stream1, stream2);
 
     assertEquals(listOf(1, 4, 2, 5, 3, 6), run(merge.asSequence()));
   }
 
   @Test
   public void forAll() {
-    PureStream<IO_, String> stream = streamOfIO.from(listOf("a", "b", "c"));
+    PureStream<IO_, String> stream = PureStream.from(listOf("a", "b", "c"));
 
     Kind<IO_, Boolean> all = stream.exists(x -> x.toLowerCase().equals(x));
     Kind<IO_, Boolean> notAll = stream.exists(x -> x.toUpperCase().equals(x));
@@ -218,7 +215,7 @@ public class PureStreamTest {
 
   @Test
   public void exists() {
-    PureStream<IO_, String> stream = streamOfIO.from(listOf("a", "b", "c"));
+    PureStream<IO_, String> stream = PureStream.from(listOf("a", "b", "c"));
 
     Kind<IO_, Boolean> exists = stream.exists(x -> "c".equals(x));
     Kind<IO_, Boolean> notExists = stream.exists(x -> "z".equals(x));
@@ -231,7 +228,7 @@ public class PureStreamTest {
   public void foldLeftLazyness() {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
-    IO<String> result = streamOfIO.eval(fail).asString().fix(toIO());
+    IO<String> result = PureStream.eval(fail).asString().fix(toIO());
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
@@ -240,7 +237,7 @@ public class PureStreamTest {
   public void foldRightLazyness() {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
-    IO<String> result = streamOfIO.eval(fail)
+    IO<String> result = PureStream.eval(fail)
       .foldRight(IO.pure(""), (a, b) -> b.fix(toIO()).map(x -> a + x))
       .fix(toIO());
 

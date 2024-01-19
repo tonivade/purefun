@@ -28,18 +28,16 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.typeclasses.Schedule.ScheduleOf;
 
 @ExtendWith(MockitoExtension.class)
 public class ScheduleTest {
 
-  private final ScheduleOf<IO_> scheduleOfIO = IOInstances.monadDefer().scheduleOf();
   private final MonadError<IO_,Throwable> monadError = IOInstances.monadError();
 
   @Test
   public void repeat(@Mock Consumer1<String> console) {
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
-    Schedule<IO_, Unit, Unit> schedule = scheduleOfIO.<Unit>recurs(2).zipRight(scheduleOfIO.identity());
+    Schedule<IO_, Unit, Unit> schedule = Schedule.<IO_, Unit>recurs(2).zipRight(Schedule.identity());
     
     IO<Unit> repeat = monadError.repeat(print, schedule).fix(toIO());
     
@@ -52,8 +50,8 @@ public class ScheduleTest {
   @Test
   public void repeatDelay(@Mock Consumer1<String> console) {
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
-    Schedule<IO_, Unit, Unit> recurs = scheduleOfIO.<Unit>recurs(2).zipRight(scheduleOfIO.identity());
-    Schedule<IO_, Unit, Integer> spaced = scheduleOfIO.spaced(Duration.ofMillis(500));
+    Schedule<IO_, Unit, Unit> recurs = Schedule.<IO_, Unit>recurs(2).zipRight(Schedule.identity());
+    Schedule<IO_, Unit, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
     Schedule<IO_, Unit, Unit> schedule = recurs.zipLeft(spaced);
 
     IO<Unit> repeat = monadError.repeat(print, schedule).fix(toIO());
@@ -68,7 +66,7 @@ public class ScheduleTest {
   @Test
   public void noRepeat(@Mock Consumer1<String> console) {
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
-    IO<Unit> repeat = monadError.repeat(print, scheduleOfIO.never()).fix(toIO());
+    IO<Unit> repeat = monadError.repeat(print, Schedule.never()).fix(toIO());
     
     Unit result = repeat.unsafeRunSync();
     
@@ -83,7 +81,7 @@ public class ScheduleTest {
       .thenReturn("hola");
 
     IO<String> read = IO.task(console::get);
-    IO<String> retry = monadError.retry(read, scheduleOfIO.recurs(1)).fix(toIO());
+    IO<String> retry = monadError.retry(read, Schedule.recurs(1)).fix(toIO());
     
     String provide = retry.unsafeRunSync();
     
@@ -96,8 +94,8 @@ public class ScheduleTest {
     when(console.get()).thenThrow(RuntimeException.class).thenReturn("hola");
 
     IO<String> read = IO.task(console::get);
-    Schedule<IO_, Throwable, Integer> recurs = scheduleOfIO.recurs(2);
-    Schedule<IO_, Throwable, Integer> spaced = scheduleOfIO.spaced(Duration.ofMillis(500));
+    Schedule<IO_, Throwable, Integer> recurs = Schedule.recurs(2);
+    Schedule<IO_, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
     IO<Tuple2<Duration, String>> retry = monadError.retry(read, recurs.zip(spaced)).fix(toIO()).timed();
     
     Tuple2<Duration, String> result = retry.unsafeRunSync();
@@ -112,7 +110,7 @@ public class ScheduleTest {
     when(console.get()).thenThrow(UnsupportedOperationException.class).thenReturn("hola");
     
     IO<String> read = IO.task(console::get);
-    IO<String> retry = monadError.retry(read, scheduleOfIO.never()).fix(toIO());
+    IO<String> retry = monadError.retry(read, Schedule.never()).fix(toIO());
     
     assertThrows(UnsupportedOperationException.class, retry::unsafeRunSync);
   }
@@ -120,7 +118,7 @@ public class ScheduleTest {
   @Test
   public void andThen(@Mock Consumer1<String> console) {
     Schedule<IO_, Unit, Integer> two =
-        scheduleOfIO.<Unit>recurs(1).andThen(scheduleOfIO.<Unit>recurs(1));
+        Schedule.<IO_, Unit>recurs(1).andThen(Schedule.<IO_, Unit>recurs(1));
 
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     IO<Integer> repeat = monadError.repeat(print, two).fix(toIO());
@@ -135,7 +133,7 @@ public class ScheduleTest {
   @Disabled("I don't understand very well this")
   public void compose(@Mock Consumer1<String> console) {
     Schedule<IO_, Unit, Integer> two =
-      scheduleOfIO.<Unit>recurs(1).compose(scheduleOfIO.<Integer>recurs(1));
+      Schedule.<IO_, Unit>recurs(1).compose(Schedule.<IO_, Integer>recurs(1));
 
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     IO<Integer> repeat = monadError.repeat(print, two).fix(toIO());
@@ -150,7 +148,7 @@ public class ScheduleTest {
   public void collect() {
     IO<Unit> pure = IO.unit();
     
-    Schedule<IO_, Unit, Sequence<Integer>> schedule = scheduleOfIO.<Unit>recurs(5).collectAll().zipLeft(scheduleOfIO.identity());
+    Schedule<IO_, Unit, Sequence<Integer>> schedule = Schedule.<IO_, Unit>recurs(5).collectAll().zipLeft(Schedule.identity());
     IO<Sequence<Integer>> repeat = monadError.repeat(pure, schedule).fix(toIO());
     
     Sequence<Integer> result = repeat.unsafeRunSync();

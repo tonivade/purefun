@@ -182,7 +182,7 @@ public final class Instances {
   }
 
   @SuppressWarnings("unchecked")
-  private static <F> Class<F> getClassOf(F... reified) {
+  private static <F extends Witness> Class<F> getClassOf(F... reified) {
     if (reified.length > 0) {
       throw new IllegalArgumentException("do not pass arguments to this function, it's just a trick to get refied types");
     }

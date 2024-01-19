@@ -40,6 +40,15 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     return of(monad, monad);
   }
   
+  static <F extends Witness> ScheduleOf<F> of(Class<F> type) {
+    return of(Instances.monadDefer(type));
+  }
+  
+  @SafeVarargs
+  static <F extends Witness> ScheduleOf<F> of(F...reified) {
+    return of(getClassOf(reified));
+  }
+  
   Monad<F> monad();
   
   Timer<F> timer();
@@ -124,6 +133,97 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
   Schedule<F, A, B> untilOutputM(Function1<B, Kind<F, Boolean>> condition);
 
   Schedule<F, A, B> check(Function2<A, B, Kind<F, Boolean>> condition);
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Unit> once(F...reified) {
+    return of(getClassOf(reified)).once();
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Integer> recurs(int times, F...reified) {
+    return of(getClassOf(reified)).recurs(times);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Integer> spaced(Duration delay, F...reified) {
+    return of(getClassOf(reified)).spaced(delay);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Duration> linear(Duration delay, F...reified) {
+    return of(getClassOf(reified)).linear(delay);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Duration> exponential(Duration delay, F...reified) {
+    return of(getClassOf(reified)).exponential(delay);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Duration> exponential(Duration delay, double factor, F...reified) {
+    return of(getClassOf(reified)).exponential(delay, factor);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Duration> delayed(Schedule<F, A, Duration> schedule, F...reified) {
+    return of(getClassOf(reified)).delayed(schedule);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times, F...reified) {
+    return of(getClassOf(reified)).recursSpaced(delay, times);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Unit> never(F...reified) {
+    return of(getClassOf(reified)).never();
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, Integer> forever(F...reified) {
+    return of(getClassOf(reified)).forever();
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A, B> Schedule<F, A, B> succeed(B value, F...reified) {
+    return of(getClassOf(reified)).succeed(value);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, A> identity(F...reified) {
+    return of(getClassOf(reified)).identity();
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, A> doWhile(Matcher1<A> condition, F...reified) {
+    return of(getClassOf(reified)).doWhile(condition);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, A> doWhileM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
+    return of(getClassOf(reified)).doWhileM(condition);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, A> doUntil(Matcher1<A> condition, F...reified) {
+    return of(getClassOf(reified)).doUntil(condition);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> Schedule<F, A, A> doUntilM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
+    return of(getClassOf(reified)).doUntilM(condition);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A, B> Schedule<F, A, B> unfold(B initial, Operator1<B> next, F...reified) {
+    return of(getClassOf(reified)).unfold(initial, next);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A, B> Schedule<F, A, B> unfoldM(
+      Kind<F, B> initial, Function1<B, Kind<F, Either<Unit, B>>> next, F...reified) {
+    return of(getClassOf(reified)).unfoldM(initial, next);
+  }
   
   interface ScheduleOf<F extends Witness> {
     
@@ -228,6 +328,14 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     B extract(A last, S state);
 
   }
+
+  @SuppressWarnings("unchecked")
+  private static <F extends Witness> Class<F> getClassOf(F... reified) {
+    if (reified.length > 0) {
+      throw new IllegalArgumentException("do not pass arguments to this function, it's just a trick to get refied types");
+    }
+    return (Class<F>) reified.getClass().getComponentType();
+  }
 }
 
 final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
@@ -295,6 +403,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
     return andThenEither(next).map(Either::merge);
   }
 
+  @Override
   public <C> Schedule<F, A, Either<B, C>> andThenEither(Schedule<F, A, C> next) {
     return doAndThenEither((ScheduleImpl<F, ?, A, C>) next);
   }

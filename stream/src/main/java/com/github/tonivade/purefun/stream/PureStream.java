@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.asStream;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
@@ -25,10 +26,13 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public sealed interface PureStream<F extends Witness, T> extends PureStreamOf<F, T>, Bindable<Kind<PureStream_, F>, T> permits Cons, Suspend, Nil {
+public sealed interface PureStream<F extends Witness, T> 
+  extends PureStreamOf<F, T>, Bindable<Kind<PureStream_, F>, T> 
+    permits Cons, Suspend, Nil {
 
   default PureStream<F, T> head() {
     return take(1);
@@ -102,8 +106,94 @@ public sealed interface PureStream<F extends Witness, T> extends PureStreamOf<F,
     return () -> monad;
   }
 
-  interface StreamOf<F extends Witness> {
+  static <F extends Witness> StreamOf<F> of(Class<F> type) {
+    return of(Instances.monadDefer(type));
+  }
 
+  @SafeVarargs
+  static <F extends Witness> StreamOf<F> of(F...reified) {
+    return of(getClassOf(reified));
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> empty(F... reified) {
+    return of(getClassOf(reified)).empty();
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> pure(T value, F...reified) {
+    return of(getClassOf(reified)).pure(value);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> cons(T head, PureStream<F, ? extends T> tail, F...reified) {
+    return of(getClassOf(reified)).cons(head, tail);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> suspend(Producer<? extends PureStream<F, ? extends T>> lazy, F...reified) {
+    return of(getClassOf(reified)).suspend(lazy);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> eval(Kind<F, ? extends T> value, F...reified) {
+    return of(getClassOf(reified)).eval(value);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> from(Iterable<? extends T> iterable, F...reified) {
+    return of(getClassOf(reified)).from(iterable);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> from(Stream<? extends T> stream, F...reified) {
+    return of(getClassOf(reified)).from(stream);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> from(Sequence<? extends T> sequence, F...reified) {
+    return of(getClassOf(reified)).from(sequence);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T, S> PureStream<F, T> unfold(
+      S seed, Function1<? super S, Option<Tuple2<? extends T, ? extends S>>> function, F...reified) {
+    return of(getClassOf(reified)).unfold(seed, function);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> iterate(T seed, Operator1<T> generator, F...reified) {
+    return of(getClassOf(reified)).iterate(seed, generator);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, T> PureStream<F, T> iterate(Producer<? extends T> generator, F...reified) {
+    return of(getClassOf(reified)).iterate(generator);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2, 
+      Function2<? super A, ? super B, ? extends R> combinator, F...reified) {
+    return of(getClassOf(reified)).zipWith(s1, s2, combinator);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A, B> PureStream<F, Tuple2<A, B>> zip(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2, F...reified) {
+    return of(getClassOf(reified)).zip(s1, s2);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> PureStream<F, Tuple2<A, Integer>> zipWithIndex(PureStream<F, ? extends A> stream, F...reified) {
+    return of(getClassOf(reified)).zipWithIndex(stream);
+  }
+
+  @SafeVarargs
+  static <F extends Witness, A> PureStream<F, A> merge(PureStream<F, A> s1, PureStream<F, A> s2, F...reified) {
+    return of(getClassOf(reified)).merge(s1, s2);
+  }
+
+  interface StreamOf<F extends Witness> {
+    
     MonadDefer<F> monadDefer();
 
     default <T> PureStream<F, T> empty() {
@@ -202,5 +292,13 @@ public sealed interface PureStream<F extends Witness, T> extends PureStreamOf<F,
         .map(tuple -> tuple.applyTo((t, s) -> cons(t, suspend(() -> doUnfold(s, function)))))
         .getOrElse(this::empty);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <F extends Witness> Class<F> getClassOf(F... reified) {
+    if (reified.length > 0) {
+      throw new IllegalArgumentException("do not pass arguments to this function, it's just a trick to get refied types");
+    }
+    return (Class<F>) reified.getClass().getComponentType();
   }
 }
