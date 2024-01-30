@@ -54,16 +54,36 @@ public class TupleK4<F extends Witness, A, B, C, D> implements TupleK<F> {
     return value4;
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> TupleK4<F, R, B, C, D> map1(Function1<? super A, ? extends R> mapper, F...reified) {
+    return map1(Instances.functor(reified), mapper);
+  }
+
   public <R> TupleK4<F, R, B, C, D> map1(Functor<F> functor, Function1<? super A, ? extends R> mapper) {
     return new TupleK4<>(functor.map(value1, mapper), value2, value3, value4);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <R> TupleK4<F, A, R, C, D> map2(Function1<? super B, ? extends R> mapper, F...reified) {
+    return map2(Instances.functor(reified), mapper);
   }
 
   public <R> TupleK4<F, A, R, C, D> map2(Functor<F> functor, Function1<? super B, ? extends R> mapper) {
     return new TupleK4<>(value1, functor.map(value2, mapper), value3, value4);
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> TupleK4<F, A, B, R, D> map3(Function1<? super C, ? extends R> mapper, F...reified) {
+    return map3(Instances.functor(reified), mapper);
+  }
+
   public <R> TupleK4<F, A, B, R, D> map3(Functor<F> functor, Function1<? super C, ? extends R> mapper) {
     return new TupleK4<>(value1, value2, functor.map(value3, mapper), value4);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <R> TupleK4<F, A, B, C, R> map4(Function1<? super D, ? extends R> mapper, F...reified) {
+    return map4(Instances.functor(reified), mapper);
   }
 
   public <R> TupleK4<F, A, B, C, R> map4(Functor<F> functor, Function1<? super D, ? extends R> mapper) {

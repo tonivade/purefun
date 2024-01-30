@@ -16,17 +16,15 @@ import com.github.tonivade.purefun.type.Option_;
 
 public class TupleK3Test {
 
-  private final Functor<Option_> functor = Instances.<Option_>functor();
-  
   @Test
   public void tuple() {
 
     TupleK3<Option_, String, Integer, LocalDate> tuple = TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)));
 
     assertAll(() -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5))), tuple),
-              () -> assertEquals(TupleK.of(some("VALUE"), some(10), some(LocalDate.of(2018, 11, 5))), tuple.map1(functor, String::toUpperCase)),
-              () -> assertEquals(TupleK.of(some("value"), some(100), some(LocalDate.of(2018, 11, 5))), tuple.map2(functor, i -> i * i)),
-              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 6))), tuple.map3(functor, date -> date.plusDays(1))),
+              () -> assertEquals(TupleK.of(some("VALUE"), some(10), some(LocalDate.of(2018, 11, 5))), tuple.map1(String::toUpperCase)),
+              () -> assertEquals(TupleK.of(some("value"), some(100), some(LocalDate.of(2018, 11, 5))), tuple.map2(i -> i * i)),
+              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 6))), tuple.map3(date -> date.plusDays(1))),
               () -> assertEquals(some("value"), tuple.get1()),
               () -> assertEquals(some(10), tuple.get2()),
               () -> assertEquals(some(LocalDate.of(2018, 11, 5)), tuple.get3()),

@@ -40,8 +40,18 @@ public class TupleK2<F extends Witness, A, B> implements TupleK<F> {
     return value2;
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> TupleK2<F, R, B> map1(Function1<? super A, ? extends R> mapper, F...reified) {
+    return map1(Instances.functor(reified), mapper);
+  }
+
   public <R> TupleK2<F, R, B> map1(Functor<F> functor, Function1<? super A, ? extends R> mapper) {
     return new TupleK2<>(functor.map(value1, mapper), value2);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <R> TupleK2<F, A, R> map2(Function1<? super B, ? extends R> mapper, F...reified) {
+    return map2(Instances.functor(reified), mapper);
   }
 
   public <R> TupleK2<F, A, R> map2(Functor<F> functor, Function1<? super B, ? extends R> mapper) {

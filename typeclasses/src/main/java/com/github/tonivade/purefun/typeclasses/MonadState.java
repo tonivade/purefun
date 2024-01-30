@@ -26,7 +26,7 @@ public interface MonadState<F extends Witness, S> extends Monad<F> {
     return map(get(), mapper);
   }
 
-  default <A> Kind<F, A> state(Function1<? super S, ? extends Tuple2<S, ? extends A>> mapper) {
+  default <A> Kind<F, A> state(Function1<? super S, Tuple2<S, ? extends A>> mapper) {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
   }
 

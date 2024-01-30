@@ -47,12 +47,27 @@ public class TupleK3<F extends Witness, A, B, C> implements TupleK<F> {
     return value3;
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> TupleK3<F, R, B, C> map1(Function1<? super A, ? extends R> mapper, F...reified) {
+    return map1(Instances.functor(reified), mapper);
+  }
+
   public <R> TupleK3<F, R, B, C> map1(Functor<F> functor, Function1<? super A, ? extends R> mapper) {
     return new TupleK3<>(functor.map(value1, mapper), value2, value3);
   }
 
+  @SuppressWarnings("unchecked")
+  public <R> TupleK3<F, A, R, C> map2(Function1<? super B, ? extends R> mapper, F...reified) {
+    return map2(Instances.functor(reified), mapper);
+  }
+
   public <R> TupleK3<F, A, R, C> map2(Functor<F> functor, Function1<? super B, ? extends R> mapper) {
     return new TupleK3<>(value1, functor.map(value2, mapper), value3);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <R> TupleK3<F, A, B, R> map3(Function1<? super C, ? extends R> mapper, F...reified) {
+    return map3(Instances.functor(reified), mapper);
   }
 
   public <R> TupleK3<F, A, B, R> map3(Functor<F> functor, Function1<? super C, ? extends R> mapper) {

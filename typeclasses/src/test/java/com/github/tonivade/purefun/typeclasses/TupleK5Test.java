@@ -18,19 +18,17 @@ import com.github.tonivade.purefun.type.Option_;
 
 public class TupleK5Test {
 
-  private final Functor<Option_> functor = Instances.<Option_>functor();
-
   @Test
   public void tuple() {
     TupleK5<Option_, String, Integer, LocalDate, Unit, Double> tuple =
         TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0));
 
     assertAll(() -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple),
-              () -> assertEquals(TupleK.of(some("VALUE"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple.map1(functor, String::toUpperCase)),
-              () -> assertEquals(TupleK.of(some("value"), some(100), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple.map2(functor, i -> i * i)),
-              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 6)), none(), some(1.0)), tuple.map3(functor, date -> date.plusDays(1))),
-              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple.map4(functor, Object::toString)),
-              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(2.0)), tuple.map5(functor, d -> d + d)),
+              () -> assertEquals(TupleK.of(some("VALUE"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple.map1(String::toUpperCase)),
+              () -> assertEquals(TupleK.of(some("value"), some(100), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple.map2(i -> i * i)),
+              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 6)), none(), some(1.0)), tuple.map3(date -> date.plusDays(1))),
+              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple.map4(Object::toString)),
+              () -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(2.0)), tuple.map5(d -> d + d)),
               () -> assertEquals(some("value"), tuple.get1()),
               () -> assertEquals(some(10), tuple.get2()),
               () -> assertEquals(some(LocalDate.of(2018, 11, 5)), tuple.get3()),
