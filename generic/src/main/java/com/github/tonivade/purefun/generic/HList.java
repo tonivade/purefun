@@ -24,8 +24,6 @@ public sealed interface HList<L extends HList<L>> {
 
   <E> Option<E> find(Class<? extends E> clazz);
 
-  HListModule getModule();
-
   default boolean isEmpty() {
     return size() == 0;
   }
@@ -107,11 +105,6 @@ public sealed interface HList<L extends HList<L>> {
     }
 
     @Override
-    public HListModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
       return "HNil";
     }
@@ -158,11 +151,6 @@ public sealed interface HList<L extends HList<L>> {
     }
 
     @Override
-    public HListModule getModule() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int hashCode() {
       return Objects.hash(head, tail);
     }
@@ -178,5 +166,3 @@ public sealed interface HList<L extends HList<L>> {
     }
   }
 }
-
-interface HListModule {}
