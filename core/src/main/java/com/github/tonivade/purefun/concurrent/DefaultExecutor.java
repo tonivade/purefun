@@ -9,5 +9,6 @@ import java.util.concurrent.Executors;
 
 final class DefaultExecutor {
 
-  static final Executor EXECUTOR = Executors.newCachedThreadPool();
+  static final Executor EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
+
 }

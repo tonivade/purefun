@@ -1,30 +1,3 @@
-sourceSets {
-  java21 {
-    java {
-      srcDirs = ['src/main/java21']
-    }
-  }
-}
-
-java {
-  sourceCompatibility = JavaVersion.VERSION_17
-  targetCompatibility = JavaVersion.VERSION_17
-  
-  withJavadocJar()
-  withSourcesJar()
-}
-
-compileJava21Java {
-  sourceCompatibility = JavaVersion.VERSION_21
-  targetCompatibility = JavaVersion.VERSION_21
-}
-
-jar {
-  into('META-INF/versions/21') {
-    from sourceSets.java21.output
-  }
-  manifest.attributes('Multi-Release': 'true')
-}
 
 dependencies {
   annotationProcessor projects.purefunProcessor
