@@ -64,29 +64,29 @@ public class IOTest {
             pure.flatMap(string -> IO.task(() -> string.split(" "))).unsafeRunSync()),
         () -> assertEquals(Integer.valueOf(100), pure.andThen(IO.task(() -> 100)).unsafeRunSync()));
   }
-  
+
   @Test
   public void asyncSuccess() {
     IO<String> async = IO.async(callback -> {
-      System.out.println(Thread.currentThread().getName());
+      System.out.println(Thread.currentThread().threadId());
       Thread.sleep(100);
       callback.accept(Try.success("1"));
     });
-    
+
     Future<String> foldMap = IO.forked().andThen(async).runAsync();
-    
+
     assertEquals("1", foldMap.getOrElseThrow());
   }
-  
+
   @Test
   public void asyncFailure() {
     IO<String> async = IO.async(callback -> {
       Thread.sleep(100);
       callback.accept(Try.failure(new UnsupportedOperationException()));
     });
-    
+
     Future<String> foldMap = IO.forked().andThen(async).runAsync();
-   
+
     assertThrows(UnsupportedOperationException.class, foldMap::getOrElseThrow);
   }
 
@@ -257,24 +257,24 @@ public class IOTest {
     assertEquals(705082704, result.get2());
     assertTrue(result.get1().toMillis() > 0);
   }
-  
+
   @Test
   public void timeoutFail() {
     assertThrows(TimeoutException.class, IO.never().timeout(Duration.ofSeconds(1))::unsafeRunSync);
   }
-  
+
   @Test
   public void timeoutSuccess() {
     assertEquals(1, IO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync());
   }
-  
+
   @Test
   public void traverse() {
     IO<String> left = IO.task(() -> "left");
     IO<String> right = IO.task(() -> "right");
-    
+
     IO<Sequence<String>> traverse = IO.traverse(listOf(left, right));
-    
+
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
   }
 
@@ -283,9 +283,9 @@ public class IOTest {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(10), () -> 10),
         IO.delay(Duration.ofMillis(100), () -> "b"));
-    
+
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
-    
+
     assertEquals(Either.left(10), orElseThrow);
   }
 
@@ -294,40 +294,40 @@ public class IOTest {
     IO<Either<Integer, String>> race = IO.race(
         IO.delay(Duration.ofMillis(100), () -> 10),
         IO.delay(Duration.ofMillis(10), () -> "b"));
-    
+
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
-    
+
     assertEquals(Either.right("b"), orElseThrow);
   }
-  
+
   @Test
   public void fork() {
     IO<String> result = Instances.<IO_>monad().use()
       .then(IO.pure("hola"))
       .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
       .flatMap(Fiber::join).fix(toIO());
-    
+
     String orElseThrow = result.runAsync().getOrElseThrow();
 
     assertEquals("hola toni", orElseThrow);
   }
-  
+
   @Test
   public void memoize(@Mock Function1<String, String> toUpperCase) {
     when(toUpperCase.apply(any()))
       .thenAnswer(args -> args.getArgument(0, String.class).toUpperCase());
-    
+
     IO<Function1<String, IO<String>>> memoized = IO.memoize((String str) -> IO.pure(toUpperCase.apply(str)));
-    
+
     IO<String> flatMap = memoized.flatMap(x -> x.apply("hola"));
     flatMap.unsafeRunSync();
     flatMap.unsafeRunSync();
     flatMap.unsafeRunSync();
     flatMap.unsafeRunSync();
-    
+
     verify(toUpperCase).apply("hola");
   }
-  
+
   @Test
   public void fibSyncTest() {
     assertAll(
@@ -343,7 +343,7 @@ public class IOTest {
         () -> assertEquals(6765, fibSync(20).unsafeRunSync())
         );
   }
-  
+
   @Test
   public void fibAsyncTest() {
     assertAll(
@@ -398,7 +398,7 @@ public class IOTest {
   private IO<ImmutableList<String>> currentThreadIO() {
     Reference<IO_, ImmutableList<String>> ref = IOInstances.monadDefer().ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName())).fix(toIO());
+        ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix(toIO());
 
     return currentThread
         .andThen(currentThread

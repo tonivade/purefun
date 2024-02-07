@@ -40,27 +40,27 @@ import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
 public class ZIOTest {
-  
+
   @Test
   public void recover() {
     PureIO<Nothing, Nothing, String> ups = PureIO.fromEither(() -> {
       throw new RuntimeException("ups!");
     });
-    
+
     assertEquals("ups!", PureIO.redeem(ups).provide(nothing()).getLeft().getMessage());
   }
-  
+
   @Test
   public void accessM() {
     PureIO<String, Nothing, String> access = PureIO.<String, Nothing, String>access(a -> a.toUpperCase());
-    
+
     assertEquals(Either.right("HELLO WORLD"), access.provide("hello world"));
   }
-  
+
   @Test
   public void pure() {
     Either<Nothing, String> result = PureIO.<Nothing, Nothing, String>pure("hello world").provide(nothing());
-    
+
     assertEquals(Either.right("hello world"), result);
   }
 
@@ -81,38 +81,38 @@ public class ZIOTest {
   @Test
   public void swapRight() {
     Either<String, Integer> result = PureIO.<Nothing, Integer, String>pure("value").swap().provide(nothing());
-    
+
     assertEquals(Either.left("value"), result);
   }
-  
+
   @Test
   public void task() {
     Either<Throwable, String> result = PureIO.<Nothing, String>task(() -> "hello world").provide(nothing());
 
     assertEquals(Either.right("hello world"), result);
   }
-  
+
   @Test
   public void laterRight() {
     Either<Throwable, String> result = PureIO.<Nothing, Throwable, String>fromEither(() -> Either.right("hello world")).provide(nothing());
 
     assertEquals(Either.right("hello world"), result);
   }
-  
+
   @Test
   public void laterLeft() {
     Either<String, Throwable> result = PureIO.<Nothing, String, Throwable>fromEither(() -> Either.left("hello world")).provide(nothing());
 
     assertEquals(Either.left("hello world"), result);
   }
-  
+
   @Test
   public void deferRight() {
     Either<Throwable, String> result = PureIO.<Nothing, Throwable, String>defer(() -> PureIO.pure("hello world")).provide(nothing());
 
     assertEquals(Either.right("hello world"), result);
   }
-  
+
   @Test
   public void deferLeft() {
     Either<String, Throwable> result = PureIO.<Nothing, String, Throwable>defer(() -> PureIO.raiseError("hello world")).provide(nothing());
@@ -225,28 +225,28 @@ public class ZIOTest {
     assertEquals(Either.right("value"), bracket.provide(nothing()));
     verify(resultSet).close();
   }
-  
+
   @Test
   public void asyncSuccess() {
     PureIO<Nothing, Throwable, String> async = PureIO.async((env, callback) -> {
       Thread.sleep(100);
       callback.accept(Try.success(Either.right("1")));
     });
-    
+
     Either<Throwable, String> result = async.provide(nothing());
-    
+
     assertEquals("1", result.get());
   }
-  
+
   @Test
   public void asyncFailure() {
     PureIO<Nothing, Throwable, String> async = PureIO.async((env, callback) -> {
       Thread.sleep(100);
       callback.accept(Try.success(Either.left(new UnsupportedOperationException())));
     });
-    
+
     Either<Throwable, String> result = async.provide(nothing());
-   
+
     assertTrue(result.getLeft() instanceof UnsupportedOperationException);
   }
 
@@ -254,7 +254,7 @@ public class ZIOTest {
   public void safeRunAsync() {
     Ref<ImmutableList<String>> ref = Ref.of(ImmutableList.empty());
     UIO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append(Thread.currentThread().getName()));
+        ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId()));
 
     UIO<ImmutableList<String>> program = currentThread
         .andThen(currentThread
@@ -324,13 +324,13 @@ public class ZIOTest {
     assertTrue(provide.isLeft());
     verify(computation, times(4)).get();
   }
-  
+
   @Test
   public void timed() {
     PureIO<Nothing, Throwable, Tuple2<Duration, Unit>> timed = PureIO.<Nothing, Throwable>sleep(Duration.ofMillis(100)).timed();
-    
+
     Either<Throwable, Tuple2<Duration, Unit>> provide = timed.provide(nothing());
-    
+
     assertTrue(provide.getRight().get1().toMillis() >= 100);
   }
 
@@ -354,48 +354,48 @@ public class ZIOTest {
     assertEquals(705082704, sum.unsafeRunSync());
     assertEquals(Try.success(705082704), futureSum.await());
   }
-  
+
   @Test
   public void refineOrDie() {
     PureIO<Nothing, Throwable, String> error = PureIO.raiseError(new IOException());
-    
+
     PureIO<Nothing, IOException, String> refine = error.refineOrDie(IOException.class);
     PureIO<Nothing, UnsupportedOperationException, String> die = error.refineOrDie(UnsupportedOperationException.class);
-    
+
     assertEquals(IOException.class, refine.provide(nothing()).getLeft().getClass());
     assertThrows(ClassCastException.class, () -> die.provide(nothing()));
   }
-  
+
   @Test
   public void toURIO() {
     PureIO<Nothing, Integer, String> unsupported = PureIO.raiseError(3);
     PureIO<Nothing, Throwable, String> error = PureIO.raiseError(new IOException());
     PureIO<Nothing, Throwable, String> success = PureIO.pure("hola");
-    
+
     assertEquals("hola", success.toURIO().unsafeRunSync(nothing()));
     assertThrows(IOException.class, () -> error.toURIO().unsafeRunSync(nothing()));
     assertThrows(ClassCastException.class, () -> unsupported.toURIO().unsafeRunSync(nothing()));
   }
-  
+
   @Test
   public void toRIO() {
     PureIO<Nothing, Integer, String> unsupported = PureIO.raiseError(3);
     IOException exception = new IOException();
     PureIO<Nothing, Throwable, String> error = PureIO.raiseError(exception);
     PureIO<Nothing, Throwable, String> success = PureIO.pure("hola");
-    
+
     assertEquals(Try.success("hola"), success.toRIO().safeRunSync(nothing()));
     assertEquals(Try.failure(exception), error.toRIO().safeRunSync(nothing()));
     assertThrows(ClassCastException.class, () -> unsupported.toRIO().safeRunSync(nothing()));
   }
-  
+
   @Test
   public void traverse() {
     PureIO<Nothing, Throwable, String> left = PureIO.task(() -> "left");
     PureIO<Nothing, Throwable, String> right = PureIO.task(() -> "right");
-    
+
     PureIO<Nothing, Throwable, Sequence<String>> traverse = PureIO.traverse(listOf(left, right));
-    
+
     assertEquals(Either.right(listOf("left", "right")), traverse.provide(nothing()));
   }
 
@@ -404,9 +404,9 @@ public class ZIOTest {
     PureIO<Nothing, Nothing, Either<Integer, String>> race = PureIO.race(
         PureIO.<Nothing, Nothing>sleep(Duration.ofMillis(10)).map(x -> 10),
         PureIO.<Nothing, Nothing>sleep(Duration.ofMillis(100)).map(x -> "b"));
-    
+
     Either<Integer, String> orElseThrow = race.provide(nothing()).get();
-    
+
     assertEquals(Either.left(10), orElseThrow);
   }
 
@@ -415,12 +415,12 @@ public class ZIOTest {
     PureIO<Nothing, Nothing, Either<Integer, String>> race = PureIO.race(
         PureIO.<Nothing, Nothing>sleep(Duration.ofMillis(100)).map(x -> 10),
         PureIO.<Nothing, Nothing>sleep(Duration.ofMillis(10)).map(x -> "b"));
-    
+
     Either<Integer, String> orElseThrow = race.provide(nothing()).get();
-    
+
     assertEquals(Either.right("b"), orElseThrow);
   }
-  
+
   @Test
   public void fork() {
     PureIO<Nothing, Throwable, String> result = For.with(PureIOInstances.<Nothing, Throwable>monad())
@@ -431,17 +431,17 @@ public class ZIOTest {
         return sleep.andThen(task).fork();
       })
       .flatMap(Fiber::join).fix(toPureIO());
-    
+
     Either<Throwable, String> orElseThrow = result.runAsync(nothing()).getOrElseThrow();
 
     assertEquals(Either.right("hola toni"), orElseThrow);
   }
-  
+
   @Test
   public void timeoutFail() {
     assertThrows(TimeoutException.class, () -> PureIO.never().timeout(Duration.ofSeconds(1)).provide(nothing()));
   }
-  
+
   @Test
   public void timeoutSuccess() {
     assertEquals(Either.right(1), PureIO.pure(1).timeout(Duration.ofSeconds(1)).provide(nothing()));
