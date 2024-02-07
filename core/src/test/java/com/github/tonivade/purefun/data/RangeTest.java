@@ -4,14 +4,11 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RangeTest {
 
@@ -30,5 +27,10 @@ public class RangeTest {
         () -> assertTrue(range.contains(1)),
         () -> assertEquals(arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9), range.collect())
     );
+  }
+
+  @Test
+  public void validRange() {
+    assertThrows(IllegalArgumentException.class, () -> Range.of(10, 1));
   }
 }
