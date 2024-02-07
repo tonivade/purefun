@@ -9,21 +9,19 @@ import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.Producer.cons;
 import static java.util.Objects.nonNull;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -70,36 +68,36 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
 
   @Override
   default <R> Option<R> map(Function1<? super T, ? extends R> mapper) {
-    if (this instanceof Some<T> s) {
-      return some(mapper.apply(s.value));
-    }
-    return none();
+    return switch (this) {
+      case Some<T>(var value) -> some(mapper.apply(value));
+      case None n -> none();
+    };
   }
 
   @Override
   default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
-    if (this instanceof Some<T> s) {
-      return map.andThen(OptionOf::<R>narrowK).apply(s.value);
-    }
-    return none();
+    return switch (this) {
+      case Some<T>(var value) -> map.andThen(OptionOf::<R>narrowK).apply(value);
+      case None n -> none();
+    };
   }
 
   default Option<T> ifPresent(Consumer1<? super T> consumer) {
-    if (this instanceof Some<T> s) {
-      consumer.accept(s.value);
+    if (this instanceof Some<T>(var value)) {
+      consumer.accept(value);
     }
     return this;
   }
 
   default Option<T> ifEmpty(Runnable run) {
-    if (this instanceof None<T>) {
+    if (this instanceof None) {
       run.run();
     }
     return this;
   }
 
   default Option<T> filter(Matcher1<? super T> matcher) {
-    if (this instanceof Some<T> s && matcher.match(s.value)) {
+    if (this instanceof Some<T>(var value) && matcher.match(value)) {
       return this;
     }
     return none();
@@ -115,7 +113,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     }
     return this;
   }
-  
+
   default Option<T> orElse(Kind<Option_, T> orElse) {
     return or(cons(orElse));
   }
@@ -133,24 +131,21 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   }
 
   default T getOrElseThrow() {
-    if (this instanceof Some<T> s) {
-      return s.value;
-    }
-    throw new NoSuchElementException();
+    return getOrElseThrow(NoSuchElementException::new);
   }
 
   default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
-    if (this instanceof Some<T> s) {
-      return s.value;
+    if (this instanceof Some<T>(var value)) {
+      return value;
     }
     throw producer.get();
   }
 
   default <U> U fold(Producer<? extends U> orElse, Function1<? super T, ? extends U> mapper) {
-    if (this instanceof Some<T> s) {
-      return mapper.apply(s.value);
-    }
-    return orElse.get();
+    return switch (this) {
+      case Some<T>(var value) -> mapper.apply(value);
+      case None n -> orElse.get();
+    };
   }
 
   default Stream<T> stream() {
@@ -173,17 +168,10 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     return Try.fromEither(toEither());
   }
 
-  final class Some<T> implements Option<T>, Serializable {
+  record Some<T>(T value) implements Option<T>, Serializable {
 
-    @Serial
-    private static final long serialVersionUID = 7757183287962895363L;
-
-    private static final Equal<Some<?>> EQUAL = Equal.<Some<?>>of().comparing(s -> s.value);
-
-    private final T value;
-
-    private Some(T value) {
-      this.value = checkNonNull(value);
+    public Some {
+      checkNonNull(value);
     }
 
     @Override
@@ -194,16 +182,6 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     @Override
     public boolean isPresent() {
       return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return EQUAL.applyTo(this, obj);
     }
 
     @Override
@@ -212,14 +190,8 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     }
   }
 
-  final class None<T> implements Option<T>, Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 7202112931010040785L;
-
-    private static final None<?> INSTANCE = new None<>();
-
-    private None() { }
+  enum None implements Option<Nothing> {
+    INSTANCE;
 
     @Override
     public boolean isEmpty() {
@@ -232,23 +204,8 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     }
 
     @Override
-    public int hashCode() {
-      return 1;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return this == obj;
-    }
-
-    @Override
     public String toString() {
       return "None";
-    }
-    
-    @Serial
-    private Object readResolve() {
-      return INSTANCE;
     }
   }
 }

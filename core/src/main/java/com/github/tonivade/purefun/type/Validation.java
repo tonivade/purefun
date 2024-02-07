@@ -83,20 +83,20 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
   @Override
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> map(Function1<? super T, ? extends R> mapper) {
-    if (this instanceof Valid<E, T> v) {
-      return valid(mapper.apply(v.value));
+    if (this instanceof Valid<E, T>(var value)) {
+      return valid(mapper.apply(value));
     }
     return (Validation<E, R>) this;
   }
 
   @SuppressWarnings("unchecked")
   default <U> Validation<U, T> mapError(Function1<? super E, ? extends U> mapper) {
-    if (this instanceof Invalid<E, T> v) {
-      return invalid(mapper.apply(v.error));
+    if (this instanceof Invalid<E, T>(var error)) {
+      return invalid(mapper.apply(error));
     }
     return (Validation<U, T>) this;
   }
-  
+
   default <U, R>  Validation<U, R> bimap(Function1<? super E, ? extends U> error, Function1<? super T, ? extends R> mapper) {
     Validation<U, T> mapError = mapError(error);
     return mapError.map(mapper);
@@ -105,14 +105,17 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
   @Override
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Kind<Kind<Validation_, E>, ? extends R>> mapper) {
-    if (this instanceof Valid<E, T> v) {
-      return mapper.andThen(ValidationOf::<E, R>narrowK).apply(v.value);
+    if (this instanceof Valid<E, T>(var value)) {
+      return mapper.andThen(ValidationOf::<E, R>narrowK).apply(value);
     }
     return (Validation<E, R>) this;
   }
 
   default Option<Validation<E, T>> filter(Matcher1<? super T> matcher) {
-    if (this instanceof Invalid || (this instanceof Valid<E, T> v && matcher.match(v.value))) {
+    if (this instanceof Invalid) {
+      return Option.some(this);
+    }
+    if (this instanceof Valid<E, T>(var value) && matcher.match(value)) {
       return Option.some(this);
     }
     return Option.none();
@@ -123,7 +126,10 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
   }
 
   default Validation<E, T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Kind<Validation_, E>, T>> orElse) {
-    if (this instanceof Invalid || (this instanceof Valid<E, T> v && matcher.match(v.value))) {
+    if (this instanceof Invalid) {
+      return this;
+    }
+    if (this instanceof Valid<E, T>(var value) && matcher.match(value)) {
       return this;
     }
     return orElse.andThen(ValidationOf::narrowK).get();
@@ -157,18 +163,18 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
   }
 
   default <X extends Throwable> T getOrElseThrow(Function1<? super E, ? extends X> mapper) throws X {
-    if (this instanceof Valid<E, T> v) {
-      return v.value;
+    if (this instanceof Valid<E, T>(var value)) {
+      return value;
     }
     throw mapper.apply(getError());
   }
 
   default <U> U fold(Function1<? super E, ? extends U> invalidMap, Function1<? super T, ? extends U> validMap) {
-    if (this instanceof Valid<E, T> v) {
-      return validMap.apply(v.value);
+    if (this instanceof Valid<E, T>(var value)) {
+      return validMap.apply(value);
     }
-    if (this instanceof Invalid<E, T> i) {
-      return invalidMap.apply(i.error);
+    if (this instanceof Invalid<E, T>(var error)) {
+      return invalidMap.apply(error);
     }
     throw new UnsupportedOperationException();
   }
@@ -256,17 +262,10 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     return nonNullAnd(lowerThanOrEqual(x, () -> "require " + value + " <= " + x)).validate(value);
   }
 
-  final class Valid<E, T> implements Validation<E, T>, Serializable {
+  record Valid<E, T>(T value) implements Validation<E, T> {
 
-    @Serial
-    private static final long serialVersionUID = -4276395187736455243L;
-
-    private static final Equal<Valid<?, ?>> EQUAL = Equal.<Valid<?, ?>>of().comparing(Valid::get);
-
-    private final T value;
-
-    private Valid(T value) {
-      this.value = checkNonNull(value);
+    public Valid {
+      checkNonNull(value);
     }
 
     @Override
@@ -290,32 +289,15 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     }
 
     @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return EQUAL.applyTo(this, obj);
-    }
-
-    @Override
     public String toString() {
       return "Valid(" + value + ")";
     }
   }
 
-  final class Invalid<E, T> implements Validation<E, T>, Serializable {
+  record Invalid<E, T>(E error) implements Validation<E, T> {
 
-    @Serial
-    private static final long serialVersionUID = -5116403366555721062L;
-
-    private static final Equal<Invalid<?, ?>> EQUAL = Equal.<Invalid<?, ?>>of().comparing(Invalid::getError);
-
-    private final E error;
-
-    private Invalid(E error) {
-      this.error = Objects.requireNonNull(error);
+    public Invalid {
+      checkNonNull(error);
     }
 
     @Override
@@ -336,16 +318,6 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     @Override
     public E getError() {
       return error;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(error);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return EQUAL.applyTo(this, obj);
     }
 
     @Override

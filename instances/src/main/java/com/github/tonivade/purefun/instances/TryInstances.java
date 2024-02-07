@@ -29,11 +29,11 @@ public interface TryInstances {
   static <T> Eq<Kind<Try_, T>> eq(Eq<T> eqSuccess) {
     final Eq<Throwable> eqFailure = Eq.throwable();
     return (a, b) -> {
-      if (a instanceof Try.Failure<T> failureA && b instanceof Try.Failure<T> failureB) {
-        return eqFailure.eqv(failureA.getCause(), failureB.getCause());
+      if (a instanceof Try.Failure(var causeA) && b instanceof Try.Failure(var causeB)) {
+        return eqFailure.eqv(causeA, causeB);
       }
-      if (a instanceof Try.Success<T> successA && b instanceof Try.Success<T> successB) {
-        return eqSuccess.eqv(successA.getOrElseThrow(), successB.getOrElseThrow());
+      if (a instanceof Try.Success<T>(var valueA) && b instanceof Try.Success<T>(var valueB)) {
+        return eqSuccess.eqv(valueA, valueB);
       }
       return false;
     };
@@ -91,7 +91,7 @@ interface TryApplicative extends TryPure {
   TryApplicative INSTANCE = new TryApplicative() {};
 
   @Override
-  default <T, R> Kind<Try_, R> ap(Kind<Try_, ? extends T> value, 
+  default <T, R> Kind<Try_, R> ap(Kind<Try_, ? extends T> value,
       Kind<Try_, ? extends Function1<? super T, ? extends R>> apply) {
     return TryOf.narrowK(value).flatMap(t -> TryOf.narrowK(apply).map(f -> f.apply(t)));
   }
@@ -142,7 +142,7 @@ interface TryFoldable extends Foldable<Try_> {
   default <A, B> Eval<B> foldRight(Kind<Try_, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
     return TryOf.<A>narrowK(value).fold(
-        cons(initial).andThen(EvalOf::<B>narrowK), 
+        cons(initial).andThen(EvalOf::<B>narrowK),
         a -> mapper.andThen(EvalOf::<B>narrowK).apply(a, initial));
   }
 }

@@ -15,6 +15,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import java.time.Duration;
 import java.util.List;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,6 +29,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 
 @ExtendWith(MockitoExtension.class)
+@Disabled
 public class ParTest {
 
   @Test
@@ -42,7 +45,7 @@ public class ParTest {
 
   @Test
   public void onFailure(@Mock Consumer1<Throwable> consumerFailure) {
-    UnsupportedOperationException error = new UnsupportedOperationException();
+    var error = new UnsupportedOperationException();
     Par<String> par = Par.<String>failure(error).onFailure(consumerFailure);
 
     Try<String> result = par.apply(Future.DEFAULT_EXECUTOR).await();

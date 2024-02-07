@@ -26,7 +26,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
     Kind<Id_, Kind<F, R>> traverse = traverse(Instances.<Id_>applicative(), value, t -> Id.of(map.apply(t)));
-    return traverse.fix(toId()).get();
+    return traverse.fix(toId()).value();
   }
 
   static <F extends Witness, G extends Witness> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {

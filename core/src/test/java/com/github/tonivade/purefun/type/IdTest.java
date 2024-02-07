@@ -20,7 +20,7 @@ public class IdTest {
     Id<String> id = Id.of("hola mundo!");
 
     assertAll(
-        () -> assertEquals("hola mundo!", id.get()),
+        () -> assertEquals("hola mundo!", id.value()),
         () -> assertEquals(Id.of("HOLA MUNDO!"), id.map(toUpperCase)),
         () -> assertEquals(Id.of("HOLA MUNDO!"), id.flatMap(toUpperCase.andThen(Id::of))));
   }

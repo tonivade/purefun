@@ -27,11 +27,11 @@ public interface ValidationInstances {
 
   static <E, T> Eq<Kind<Kind<Validation_, E>, T>> eq(Eq<E> errorEq, Eq<T> validEq) {
     return (a, b) -> {
-      if (a instanceof Validation.Invalid<E, T> invalidA && b instanceof Validation.Invalid<E, T> invalidB) {
-        return errorEq.eqv(invalidA.getError(), invalidB.getError());
+      if (a instanceof Validation.Invalid<E, T>(var invalidA) && b instanceof Validation.Invalid<E, T>(var invalidB)) {
+        return errorEq.eqv(invalidA, invalidB);
       }
-      if (a instanceof Validation.Valid<E, T> validA && b instanceof Validation.Valid<E, T> validB) {
-        return validEq.eqv(validA.get(), validB.get());
+      if (a instanceof Validation.Valid<E, T>(var validA) && b instanceof Validation.Valid<E, T>(var validB)) {
+        return validEq.eqv(validA, validB);
       }
       return false;
     };
@@ -72,7 +72,7 @@ interface ValidationFunctor<E> extends Functor<Kind<Validation_, E>> {
   ValidationFunctor INSTANCE = new ValidationFunctor() {};
 
   @Override
-  default <T, R> Validation<E, R> map(Kind<Kind<Validation_, E>, ? extends T> value, 
+  default <T, R> Validation<E, R> map(Kind<Kind<Validation_, E>, ? extends T> value,
       Function1<? super T, ? extends R> map) {
     return ValidationOf.narrowK(value).map(map);
   }

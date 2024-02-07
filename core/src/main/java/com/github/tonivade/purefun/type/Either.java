@@ -8,13 +8,9 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
@@ -51,12 +47,14 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
 
   boolean isLeft();
   boolean isRight();
+
   /**
    * Returns the left value if available. If not, it throws {@code NoSuchElementException}
    * @return the left value
    * @throws NoSuchElementException if left value is not available
    */
   L getLeft();
+
   /**
    * Returns the right value if available. If not, it throws {@code NoSuchElementException}
    * @return the right value
@@ -65,38 +63,38 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   R getRight();
 
   default R get() {
-    if (isRight()) {
-      return getRight();
+    if (this instanceof Right<L, R>(var right)) {
+      return right;
     }
     throw new NoSuchElementException("get() on left");
   }
 
   default Option<L> left() {
-    if (isLeft()) {
-      return Option.some(getLeft());
+    if (this instanceof Left<L, R>(var left)) {
+      return Option.some(left);
     }
     return Option.none();
   }
 
   default Option<R> right() {
-    if (isRight()) {
-      return Option.some(getRight());
+    if (this instanceof Right<L, R>(var right)) {
+      return Option.some(right);
     }
     return Option.none();
   }
 
   default Either<R, L> swap() {
-    if (isRight()) {
-      return left(getRight());
-    }
-    return right(getLeft());
+    return switch (this) {
+      case Right<L, R>(var right) -> left(right);
+      case Left<L, R>(var left) -> right(left);
+    };
   }
 
   default <T, U> Either<T, U> bimap(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends U> rightMapper) {
-    if (isRight()) {
-      return right(rightMapper.apply(getRight()));
-    }
-    return left(leftMapper.apply(getLeft()));
+    return switch (this) {
+      case Right<L, R>(var right) -> right(rightMapper.apply(right));
+      case Left<L, R>(var left) -> left(leftMapper.apply(left));
+    };
   }
 
   @Override
@@ -111,22 +109,22 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   @Override
   @SuppressWarnings("unchecked")
   default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Kind<Either_, L>, ? extends T>> map) {
-    if (isRight()) {
-      return map.andThen(EitherOf::<L, T>narrowK).apply(getRight());
+    if (this instanceof Right<L, R>(var right)) {
+      return map.andThen(EitherOf::<L, T>narrowK).apply(right);
     }
     return (Either<L, T>) this;
   }
 
   @SuppressWarnings("unchecked")
   default <T> Either<T, R> flatMapLeft(Function1<? super L, ? extends Either<? extends T, R>> map) {
-    if (isLeft()) {
-      return (Either<T, R>) map.apply(getLeft());
+    if (this instanceof Left<L, R>(var left)) {
+      return (Either<T, R>) map.apply(left);
     }
     return (Either<T, R>) this;
   }
 
   default Option<Either<L, R>> filter(Matcher1<? super R> matcher) {
-    if (isRight() && matcher.match(getRight())) {
+    if (this instanceof Right<L, R>(var right) && matcher.match(right)) {
       return Option.some(this);
     }
     return Option.none();
@@ -137,14 +135,17 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   }
 
   default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Kind<Kind<Either_, L>, R>> orElse) {
-    if (isLeft() || matcher.match(getRight())) {
+    if (this instanceof Left) {
+      return this;
+    }
+    if (this instanceof Right<L, R>(var right) && matcher.match(right)) {
       return this;
     }
     return orElse.andThen(EitherOf::narrowK).get();
   }
 
   default Either<L, R> or(Producer<Kind<Kind<Either_, L>, R>> orElse) {
-    if (isLeft()) {
+    if (this instanceof Left) {
       return orElse.andThen(EitherOf::narrowK).get();
     }
     return this;
@@ -167,10 +168,10 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   }
 
   default <T> T fold(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends T> rightMapper) {
-    if (isRight()) {
-      return rightMapper.apply(getRight());
-    }
-    return leftMapper.apply(getLeft());
+    return switch (this) {
+      case Right<L, R>(var right) -> rightMapper.apply(right);
+      case Left<L, R>(var left) -> leftMapper.apply(left);
+    };
   }
 
   default Stream<R> stream() {
@@ -188,28 +189,21 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   default Validation<L, R> toValidation() {
     return fold(Validation::invalid, Validation::valid);
   }
-  
+
   static <A> A merge(Either<A, A> either) {
     return either.fold(identity(), identity());
   }
 
   static <L, A, B, Z> Either<L, Z> map2(
-      Either<L, ? extends A> eitherA, Either<L, ? extends B> eitherB, 
+      Either<L, ? extends A> eitherA, Either<L, ? extends B> eitherB,
       Function2<? super A, ? super B, ? extends Z> mapper) {
     return eitherA.flatMap(a -> eitherB.map(b -> mapper.apply(a, b)));
   }
 
-  final class Left<L, R> implements Either<L, R>, Serializable {
+  record Left<L, R>(L value) implements Either<L, R> {
 
-    @Serial
-    private static final long serialVersionUID = 7040154642166638129L;
-
-    private static final Equal<Left<?, ?>> EQUAL = Equal.<Left<?, ?>>of().comparing(Left::getLeft);
-
-    private final L value;
-
-    private Left(L value) {
-      this.value = checkNonNull(value);
+    public Left {
+      checkNonNull(value);
     }
 
     @Override
@@ -233,32 +227,15 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     }
 
     @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return EQUAL.applyTo(this, obj);
-    }
-
-    @Override
     public String toString() {
       return "Left(" + value + ")";
     }
   }
 
-  final class Right<L, R> implements Either<L, R>, Serializable {
+  record Right<L, R>(R value) implements Either<L, R> {
 
-    @Serial
-    private static final long serialVersionUID = 164989996450592091L;
-
-    private static final Equal<Right<?, ?>> EQUAL = Equal.<Right<?, ?>>of().comparing(Right::getRight);
-
-    private final R value;
-
-    private Right(R value) {
-      this.value = checkNonNull(value);
+    public Right {
+      checkNonNull(value);
     }
 
     @Override
@@ -279,16 +256,6 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     @Override
     public R getRight() {
       return value;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return EQUAL.applyTo(this, obj);
     }
 
     @Override

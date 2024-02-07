@@ -8,8 +8,6 @@ import static com.github.tonivade.purefun.Function1.cons;
 import static com.github.tonivade.purefun.Function1.identity;
 import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -23,6 +21,7 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Bindable;
 import com.github.tonivade.purefun.Matcher1;
+import com.github.tonivade.purefun.Nothing;
 import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Recoverable;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -53,8 +52,9 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return failure(new RuntimeException());
   }
 
+  @SuppressWarnings("unchecked")
   static <T> Try<T> failure(Throwable error) {
-    return new Failure<>(error);
+    return (Try<T>) new Failure(error);
   }
 
   static <T> Try<T> noSuchElementException() {
@@ -120,48 +120,46 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   }
 
   default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
-    if (this instanceof Failure<T> f) {
-      return failure(mapper.apply(f.cause));
-    }
-    return this;
+    return switch (this) {
+      case Failure(var cause) -> failure(mapper.apply(cause));
+      case Success<T> s -> this;
+    };
   }
 
   @Override
   @SuppressWarnings("unchecked")
   default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try_, ? extends R>> mapper) {
-    if (this instanceof Success<T> s) {
-      return mapper.andThen(TryOf::<R>narrowK).apply(s.value);
-    }
-    return (Try<R>) this;
+    return switch (this) {
+      case Success<T>(var value) -> mapper.andThen(TryOf::<R>narrowK).apply(value);
+      case Failure f -> (Try<R>) this;
+    };
   }
 
   default Try<T> onFailure(Consumer1<? super Throwable> consumer) {
-    if (this instanceof Failure<T> f) {
-      consumer.accept(f.cause);
+    if (this instanceof Failure(var cause)) {
+      consumer.accept(cause);
     }
     return this;
   }
 
   default Try<T> onSuccess(Consumer1<? super T> consumer) {
-    if (this instanceof Success<T> s) {
-      consumer.accept(s.value);
+    if (this instanceof Success<T>(var value)) {
+      consumer.accept(value);
     }
     return this;
   }
 
   default Try<T> recover(Function1<? super Throwable, ? extends T> mapper) {
-    if (this instanceof Failure<T> f) {
-      return Try.of(() -> mapper.apply(f.cause));
+    if (this instanceof Failure(var cause)) {
+      return Try.of(() -> mapper.apply(cause));
     }
     return this;
   }
 
   @SuppressWarnings("unchecked")
   default <X extends Throwable> Try<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
-    if (this instanceof Failure<T> f) {
-      if (type.isAssignableFrom(f.cause.getClass())) {
-        return Try.of(() -> mapper.apply((X) getCause()));
-      }
+    if (this instanceof Failure(var cause) && type.isAssignableFrom(cause.getClass())) {
+      return Try.of(() -> mapper.apply((X) cause));
     }
     return this;
   }
@@ -175,17 +173,20 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   }
 
   default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Try_, ? extends T>> producer) {
-    if (this instanceof Failure || (this instanceof Success<T> s && matcher.match(s.value))) {
+    if (this instanceof Failure) {
+      return this;
+    }
+    if (this instanceof Success<T>(var value) && matcher.match(value)) {
       return this;
     }
     return producer.andThen(TryOf::<T>narrowK).get();
   }
 
   default <U> U fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
-    if (this instanceof Success<T> s) {
-      return successMapper.apply(s.value);
-    }
-    return failureMapper.apply(getCause());
+    return switch (this) {
+      case Success<T>(var value) -> successMapper.apply(value);
+      case Failure(var cause) -> failureMapper.apply(cause);
+    };
   }
 
   default Try<T> or(Producer<Kind<Try_, T>> orElse) {
@@ -212,8 +213,8 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   }
 
   default <X extends Throwable> T getOrElseThrow(Producer<? extends X> producer) throws X {
-    if (this instanceof Success<T> s) {
-      return s.value;
+    if (this instanceof Success<T>(var value)) {
+      return value;
     }
     throw producer.get();
   }
@@ -238,17 +239,10 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return fold(map.andThen(Validation::invalid), Validation::valid);
   }
 
-  final class Success<T> implements Try<T>, Serializable {
+  record Success<T>(T value) implements Try<T> {
 
-    @Serial
-    private static final long serialVersionUID = -3934628369477099278L;
-
-    private static final Equal<Success<?>> EQUAL = Equal.<Success<?>>of().comparing(s -> s.value);
-
-    private final T value;
-
-    private Success(T value) {
-      this.value = checkNonNull(value);
+    public Success {
+      checkNonNull(value);
     }
 
     @Override
@@ -272,33 +266,18 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
 
     @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return EQUAL.applyTo(this, obj);
-    }
-
-    @Override
     public String toString() {
       return "Success(" + value + ")";
     }
   }
 
-  final class Failure<T> implements Try<T>, Serializable, Recoverable {
+  record Failure(Throwable cause) implements Try<Nothing>, Recoverable {
 
-    @Serial
-    private static final long serialVersionUID = -8155444386075553318L;
+    private static final Equal<Failure> EQUAL =
+        Equal.<Failure>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
 
-    private static final Equal<Failure<?>> EQUAL =
-        Equal.<Failure<?>>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
-
-    private final Throwable cause;
-
-    private Failure(Throwable cause) {
-      this.cause = checkNonNull(cause);
+    public Failure {
+      checkNonNull(cause);
     }
 
     @Override
@@ -312,7 +291,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
 
     @Override
-    public T getOrElseThrow() {
+    public Nothing getOrElseThrow() {
       return sneakyThrow(cause);
     }
 
