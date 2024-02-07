@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Duration;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,7 +28,6 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class ParTest {
 
   @Test
@@ -147,13 +145,13 @@ public class ParTest {
   }
 
   private String currentThread() throws InterruptedException {
-    String name = Thread.currentThread().getName();
+    var id = "thread-" + Thread.currentThread().threadId();
     Thread.sleep(100);
-    return name;
+    return id;
   }
 
   private void currentThread(Consumer1<String> consumer) throws InterruptedException {
-    consumer.accept(Thread.currentThread().getName());
+    consumer.accept("thread-" + Thread.currentThread().threadId());
     Thread.sleep(100);
   }
 }
