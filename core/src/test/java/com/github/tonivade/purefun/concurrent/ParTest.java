@@ -15,6 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import java.time.Duration;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,7 +43,7 @@ public class ParTest {
 
   @Test
   public void onFailure(@Mock Consumer1<Throwable> consumerFailure) {
-    UnsupportedOperationException error = new UnsupportedOperationException();
+    var error = new UnsupportedOperationException();
     Par<String> par = Par.<String>failure(error).onFailure(consumerFailure);
 
     Try<String> result = par.apply(Future.DEFAULT_EXECUTOR).await();
@@ -144,13 +145,13 @@ public class ParTest {
   }
 
   private String currentThread() throws InterruptedException {
-    String name = Thread.currentThread().getName();
+    var id = "thread-" + Thread.currentThread().threadId();
     Thread.sleep(100);
-    return name;
+    return id;
   }
 
   private void currentThread(Consumer1<String> consumer) throws InterruptedException {
-    consumer.accept(Thread.currentThread().getName());
+    consumer.accept("thread-" + Thread.currentThread().threadId());
     Thread.sleep(100);
   }
 }

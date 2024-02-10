@@ -4,45 +4,25 @@
  */
 package com.github.tonivade.purefun.data;
 
-import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Tuple;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.Precondition.check;
+import static com.github.tonivade.purefun.Precondition.greaterThanOrEquals;
 import static com.github.tonivade.purefun.type.Validation.mapN;
 import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEqual;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqual;
 
-public final class Range implements Iterable<Integer>, Serializable {
+public record Range(int begin, int end) implements Iterable<Integer> {
 
-  @Serial
-  private static final long serialVersionUID = 7923835507243835436L;
-
-  private static final Equal<Range> EQUAL = 
-      Equal.<Range>of().comparing(x -> x.begin).comparing(x -> x.end);
-
-  private final int begin;
-  private final int end;
-
-  private Range(int begin, int end) {
-    this.begin = begin;
-    this.end = end;
-  }
-
-  public int begin() {
-    return begin;
-  }
-
-  public int end() {
-    return end;
+  public Range {
+    check(greaterThanOrEquals(end, begin));
   }
 
   public boolean contains(int value) {
@@ -74,16 +54,6 @@ public final class Range implements Iterable<Integer>, Serializable {
   @Override
   public Iterator<Integer> iterator() {
     return intStream().iterator();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return EQUAL.applyTo(this, obj);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(begin, end);
   }
 
   @Override

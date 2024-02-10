@@ -82,17 +82,23 @@ allprojects {
   }
 
   jacoco {
-    toolVersion = "0.8.10"
+    toolVersion = "0.8.11"
+  }
+
+  javadoc.options {
+    addStringOption('-release', '21')
   }
 
   compileJava {
     options.compilerArgs << '-Xlint:unchecked'
     options.compilerArgs << '-Xlint:rawtypes'
+    options.release = 21
   }
 
   compileTestJava {
     options.compilerArgs << '-Xlint:unchecked'
     options.compilerArgs << '-Xlint:rawtypes'
+    options.release = 21
   }
 
   jacocoTestReport {
@@ -107,8 +113,8 @@ allprojects {
 subprojects {
 
   java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     
     withJavadocJar()
     withSourcesJar()
@@ -128,7 +134,7 @@ subprojects {
     if (it.getName().contains("Java21")) {
       it.options.release = 21
     } else {
-      it.options.release = 17
+      it.options.release = 21
     }
   }
 

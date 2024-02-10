@@ -94,7 +94,7 @@ public class FreeApTest {
     FreeAp<Id_, Integer> compile = readInt.compile(idTransform());
     Id<Integer> fold = compile.fold(IdInstances.applicative()).fix(toId());
 
-    assertEquals(5, fold.get());
+    assertEquals(5, fold.value());
   }
 
   @Test

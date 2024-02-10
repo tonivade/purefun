@@ -45,7 +45,7 @@ public class CofreeTest {
           .flatMap(Cofree::tailForced)
           .tuple().fix(toId());
 
-    assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.get().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
+    assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.value().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
   }
 
   @Test

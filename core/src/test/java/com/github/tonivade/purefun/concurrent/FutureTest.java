@@ -294,6 +294,6 @@ public class FutureTest {
   }
 
   private Future<Unit> currentThread(Executor executor, List<String> result) {
-    return Future.exec(executor, () -> result.add(Thread.currentThread().getName()));
+    return Future.exec(executor, () -> result.add("thread-" + Thread.currentThread().threadId()));
   }
 }

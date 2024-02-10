@@ -69,7 +69,7 @@ import com.github.tonivade.purefun.type.TryOf;
 @HigherKind
 public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
 
-  Executor DEFAULT_EXECUTOR = DefaultExecutor.EXECUTOR;
+  Executor DEFAULT_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
   Try<T> await();
   Try<T> await(Duration timeout);
@@ -133,7 +133,7 @@ public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
   <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper);
 
   <U> Future<U> fold(
-      Function1<? super Throwable, ? extends U> failureMapper, 
+      Function1<? super Throwable, ? extends U> failureMapper,
       Function1<? super T, ? extends U> successMapper);
 
   default CompletableFuture<T> toCompletableFuture() {
@@ -233,41 +233,41 @@ public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
     return task(executor, producer::get);
   }
 
-  static <T extends AutoCloseable, R> Future<R> bracket(Future<? extends T> acquire, 
+  static <T extends AutoCloseable, R> Future<R> bracket(Future<? extends T> acquire,
       Function1<? super T, ? extends Future<? extends R>> use) {
     return bracket(DEFAULT_EXECUTOR, acquire, use);
   }
 
-  static <T extends AutoCloseable, R> Future<R> bracket(Executor executor, 
-      Future<? extends T> acquire, 
+  static <T extends AutoCloseable, R> Future<R> bracket(Executor executor,
+      Future<? extends T> acquire,
       Function1<? super T, ? extends Future<? extends R>> use) {
     return FutureImpl.bracket(executor, acquire, use, AutoCloseable::close);
   }
 
-  static <T, R> Future<R> bracket(Future<? extends T> acquire, 
-      Function1<? super T, ? extends Future<? extends R>> use, 
+  static <T, R> Future<R> bracket(Future<? extends T> acquire,
+      Function1<? super T, ? extends Future<? extends R>> use,
       Consumer1<? super T> release) {
     return bracket(DEFAULT_EXECUTOR, acquire, use, release);
   }
 
-  static <T, R> Future<R> bracket(Executor executor, 
-      Future<? extends T> acquire, 
-      Function1<? super T, ? extends Future<? extends R>> use, 
+  static <T, R> Future<R> bracket(Executor executor,
+      Future<? extends T> acquire,
+      Function1<? super T, ? extends Future<? extends R>> use,
       Consumer1<? super T> release) {
     return FutureImpl.bracket(executor, acquire, use, release);
   }
 
   // TODO
   static <A> Future<Sequence<A>> traverse(Sequence<Future<A>> sequence) {
-    return sequence.foldLeft(success(ImmutableList.empty()), 
+    return sequence.foldLeft(success(ImmutableList.empty()),
         (Future<Sequence<A>> xs, Future<A> a) -> map2(xs, a, Sequence::append));
   }
-  
-  static <T, V, R> Future<R> map2(Future<? extends T> fa, Future<? extends V> fb, 
+
+  static <T, V, R> Future<R> map2(Future<? extends T> fa, Future<? extends V> fb,
       Function2<? super T, ? super V, ? extends R> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
-  
+
   static <T, V> Future<Tuple2<T, V>> tuple(Future<T> fa, Future<V> fb) {
     return map2(fa, fb, Tuple2::of);
   }
@@ -287,7 +287,7 @@ final class FutureImpl<T> implements Future<T> {
   private final Propagate propagate;
   private final Promise<T> promise;
   private final Cancellable cancellable;
-  
+
   private final UUID uuid;
 
   private FutureImpl(Executor executor, Callback<T> callback) {
@@ -345,7 +345,7 @@ final class FutureImpl<T> implements Future<T> {
   public <R> Future<R> map(Function1<? super T, ? extends R> mapper) {
     return transform(value -> value.map(mapper));
   }
-  
+
   @Override
   public Future<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
     return transform(value -> value.mapError(mapper));
@@ -360,11 +360,11 @@ final class FutureImpl<T> implements Future<T> {
   public <R> Future<R> andThen(Future<? extends R> next) {
     return flatMap(ignore -> next);
   }
-  
+
   @Override
   public <R> Future<R> ap(Future<Function1<? super T, ? extends R>> apply) {
     checkNonNull(apply);
-    return new FutureImpl<>(executor, 
+    return new FutureImpl<>(executor,
         (p, c) -> promise.onComplete(try1 -> apply.onComplete(
             try2 -> p.tryComplete(Try.map2(try2, try1, Function1::apply)))), this::cancel);
   }
@@ -406,7 +406,7 @@ final class FutureImpl<T> implements Future<T> {
   public Promise<T> toPromise() {
     return promise;
   }
-  
+
   @Override
   public String toString() {
     return "Future(" + uuid + ')';
@@ -447,7 +447,7 @@ final class FutureImpl<T> implements Future<T> {
       Consumer1<Consumer1<? super Try<? extends T>>> consumer) {
     checkNonNull(executor);
     checkNonNull(consumer);
-    return new FutureImpl<>(executor, 
+    return new FutureImpl<>(executor,
         (p, c) -> Future.later(executor, () -> {
           c.updateThread();
           return consumer.asFunction().apply(p::tryComplete);
@@ -494,7 +494,7 @@ interface FutureModule {
 }
 
 interface Callback<T> {
-  
+
   void accept(Promise<T> promise, Cancellable cancellable);
 }
 

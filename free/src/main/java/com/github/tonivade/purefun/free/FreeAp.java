@@ -48,7 +48,7 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
   }
 
   default <M> M analyze(FunctionK<F, Kind<Const_, M>> functionK, Applicative<Kind<Const_, M>> applicative) {
-    return foldMap(functionK, applicative).fix(toConst()).get();
+    return foldMap(functionK, applicative).fix(toConst()).value();
   }
 
   default Free<F, A> monad() {

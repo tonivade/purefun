@@ -29,11 +29,11 @@ public interface EitherInstances {
 
   static <L, R> Eq<Kind<Kind<Either_, L>, R>> eq(Eq<L> leftEq, Eq<R> rightEq) {
     return (a, b) -> {
-      if (a instanceof Either.Left<L, R> leftA && b instanceof Either.Left<L, R> leftB) {
-        return leftEq.eqv(leftA.getLeft(), leftB.getLeft());
+      if (a instanceof Either.Left<L, R>(var leftA) && b instanceof Either.Left<L, R>(var leftB)) {
+        return leftEq.eqv(leftA, leftB);
       }
-      if (a instanceof Either.Right<L, R> rightA && b instanceof Either.Right<L, R> rightB) {
-        return rightEq.eqv(rightA.getRight(), rightB.getRight());
+      if (a instanceof Either.Right<L, R>(var rightA) && b instanceof Either.Right<L, R>(var rightB)) {
+        return rightEq.eqv(rightA, rightB);
       }
       return false;
     };
@@ -162,7 +162,7 @@ interface EitherFoldable<L> extends Foldable<Kind<Either_, L>> {
   default <A, B> Eval<B> foldRight(Kind<Kind<Either_, L>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
     return EitherOf.<L, A>narrowK(value).fold(
-        cons(initial).andThen(EvalOf::<B>narrowK), 
+        cons(initial).andThen(EvalOf::<B>narrowK),
         a -> mapper.andThen(EvalOf::<B>narrowK).apply(a, initial));
   }
 }

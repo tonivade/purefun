@@ -25,7 +25,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 public interface ConstInstances {
 
   static <T, A> Eq<Kind<Kind<Const_, T>, A>> eq(Eq<T> eq) {
-    return (a, b) -> eq.eqv(a.fix(ConstOf::narrowK).get(), a.fix(ConstOf::narrowK).get());
+    return (a, b) -> eq.eqv(a.fix(ConstOf::narrowK).value(), a.fix(ConstOf::narrowK).value());
   }
 
   static <T> Functor<Kind<Const_, T>> functor() {
@@ -78,8 +78,8 @@ interface ConstApplicative<T> extends Applicative<Kind<Const_, T>> {
       Kind<Kind<Const_, T>, ? extends A> value, 
       Kind<Kind<Const_, T>, ? extends Function1<? super A, ? extends B>> apply) {
     return Const.of(monoid().combine(
-            apply.fix(ConstOf::narrowK).<B>retag().get(),
-            value.fix(ConstOf::narrowK).<B>retag().get()));
+            apply.fix(ConstOf::narrowK).<B>retag().value(),
+            value.fix(ConstOf::narrowK).<B>retag().value()));
   }
 }
 

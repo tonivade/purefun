@@ -36,10 +36,10 @@ public interface OptionInstances {
 
   static <T> Eq<Kind<Option_, T>> eq(Eq<T> eqSome) {
     return (a, b) -> {
-      if (a instanceof Option.Some<T> someA && b instanceof Option.Some<T> someB) {
-        return eqSome.eqv(someA.getOrElseThrow(), someB.getOrElseThrow());
+      if (a instanceof Option.Some<T>(var valueA) && b instanceof Option.Some<T>(var valueB)) {
+        return eqSome.eqv(valueA, valueB);
       }
-      return a instanceof Option.None<T> && b instanceof Option.None<T>;
+      return a instanceof Option.None && b instanceof Option.None;
     };
   }
 
@@ -99,7 +99,7 @@ interface OptionApplicative extends OptionPure {
   OptionApplicative INSTANCE = new OptionApplicative() {};
 
   @Override
-  default <T, R> Kind<Option_, R> ap(Kind<Option_, ? extends T> value, 
+  default <T, R> Kind<Option_, R> ap(Kind<Option_, ? extends T> value,
       Kind<Option_, ? extends Function1<? super T, ? extends R>> apply) {
     return value.fix(toOption()).flatMap(t -> OptionOf.narrowK(apply).map(f -> f.apply(t)));
   }

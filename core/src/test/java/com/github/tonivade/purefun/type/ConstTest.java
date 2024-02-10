@@ -17,6 +17,6 @@ public class ConstTest {
     Const<String, Float> retag = val.retag();
 
     assertEquals(retag, val);
-    assertEquals(retag.get(), val.get());
+    assertEquals(retag.value(), val.value());
   }
 }
