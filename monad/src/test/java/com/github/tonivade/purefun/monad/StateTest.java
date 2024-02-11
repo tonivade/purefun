@@ -4,17 +4,17 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.State.state;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Option;

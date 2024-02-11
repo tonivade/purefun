@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.generic;
 
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.generic.HList.HCons;
 import com.github.tonivade.purefun.generic.HList.HNil;
 

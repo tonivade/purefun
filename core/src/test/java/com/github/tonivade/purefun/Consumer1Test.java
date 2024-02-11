@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,6 +13,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Unit;
 
 public class Consumer1Test {
 

@@ -4,20 +4,20 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.control.ConsOf.toCons;
 import static com.github.tonivade.purefun.control.ProdOf.toProd;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 
 class PipingExample {

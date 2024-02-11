@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.type.Eval.FALSE;
 import static com.github.tonivade.purefun.type.Eval.ONE;
 import static com.github.tonivade.purefun.type.Eval.TRUE;
@@ -18,11 +18,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.tonivade.purefun.Producer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.github.tonivade.purefun.core.Producer;
 
 @ExtendWith(MockitoExtension.class)
 public class EvalTest {

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.ImmutableTree.toImmutableTree;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
@@ -25,8 +25,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
+
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableTreeTest {

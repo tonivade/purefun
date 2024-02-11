@@ -4,14 +4,15 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Function1;
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Producer.cons;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple1;
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Producer.cons;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple1;
 
 public final class Apply1<F extends Witness, A> extends AbstractApply<F, A> {
 

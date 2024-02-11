@@ -4,14 +4,21 @@
  */
 package com.github.tonivade.purefun;
 
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Tuple3;
+import com.github.tonivade.purefun.core.Tuple4;
+import com.github.tonivade.purefun.core.Tuple5;
+import com.github.tonivade.purefun.core.Validator;
 import com.github.tonivade.purefun.type.Validation;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.type.Validation.Result;
 
 import java.util.Objects;
 
-import static com.github.tonivade.purefun.Validator.join;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Validator.join;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

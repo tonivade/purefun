@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.free.TrampolineOf;
 import com.github.tonivade.purefun.free.Trampoline_;

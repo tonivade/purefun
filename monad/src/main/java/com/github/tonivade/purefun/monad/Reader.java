@@ -4,10 +4,10 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.Function1;
 
 @HigherKind
 @FunctionalInterface

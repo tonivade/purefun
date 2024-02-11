@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.generic;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.generic.HList.HCons;
 
 @FunctionalInterface

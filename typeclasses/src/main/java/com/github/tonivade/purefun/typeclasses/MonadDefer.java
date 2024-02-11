@@ -6,15 +6,15 @@ package com.github.tonivade.purefun.typeclasses;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.CheckedRunnable;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.CheckedRunnable;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {

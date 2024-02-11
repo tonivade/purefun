@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.stream;
 
-import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.core.Function1.cons;
+import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
 import static com.github.tonivade.purefun.effect.TaskOf.toTask;
@@ -22,10 +22,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.PartialFunction1;
-import com.github.tonivade.purefun.Tuple2;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.core.Nothing;
+import com.github.tonivade.purefun.core.PartialFunction1;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.EIO;
 import com.github.tonivade.purefun.effect.EIO_;

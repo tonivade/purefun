@@ -4,12 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import com.github.tonivade.purefun.Function1;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.StateT;
 import com.github.tonivade.purefun.transformer.StateTOf;
 import com.github.tonivade.purefun.transformer.StateT_;

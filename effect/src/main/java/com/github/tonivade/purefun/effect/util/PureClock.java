@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.effect.util;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.effect.URIO;
 
 public interface PureClock {

@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.PartialFunction2;
+
 public class PartialFunction2Test {
 
   @Test

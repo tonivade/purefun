@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Tuple2;
+
 public class Function2Test {
   
   private Function2<String, String, String> concat = (a, b) -> a + b;

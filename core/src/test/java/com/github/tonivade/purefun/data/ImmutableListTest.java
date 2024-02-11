@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static java.util.Arrays.asList;
@@ -22,8 +22,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
+
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableListTest {

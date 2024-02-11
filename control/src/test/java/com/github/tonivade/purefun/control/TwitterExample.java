@@ -8,7 +8,8 @@ import static com.github.tonivade.purefun.control.ControlOf.toControl;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
+
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.typeclasses.Instances;
 

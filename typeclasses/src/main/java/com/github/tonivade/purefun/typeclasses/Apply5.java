@@ -4,13 +4,14 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Function5;
+import static com.github.tonivade.purefun.core.Function5.fifth;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple5;
-import static com.github.tonivade.purefun.Function5.fifth;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import com.github.tonivade.purefun.core.Function5;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple5;
 
 public final class Apply5<F extends Witness, A, B, C, D, E> extends AbstractApply<F, E> {
 

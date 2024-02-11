@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 

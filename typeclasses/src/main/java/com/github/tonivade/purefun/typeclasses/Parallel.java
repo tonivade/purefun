@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Function3;
-import com.github.tonivade.purefun.Function4;
-import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Function3;
+import com.github.tonivade.purefun.core.Function4;
+import com.github.tonivade.purefun.core.Function5;
 
 public interface Parallel<F extends Witness, G extends Witness> {
   

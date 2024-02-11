@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Matcher1.always;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Matcher1.always;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -16,22 +16,22 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tonivade.purefun.CheckedRunnable;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Effect;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Operator1;
-import com.github.tonivade.purefun.PartialFunction1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Recoverable;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
+import com.github.tonivade.purefun.core.CheckedRunnable;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Effect;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Operator1;
+import com.github.tonivade.purefun.core.PartialFunction1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Recoverable;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.data.Sequence;

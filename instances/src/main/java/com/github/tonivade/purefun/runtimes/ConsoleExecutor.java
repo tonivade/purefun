@@ -10,12 +10,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.effect.RIO;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;

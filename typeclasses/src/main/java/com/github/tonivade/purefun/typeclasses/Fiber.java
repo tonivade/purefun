@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Unit;
 
 public interface Fiber<F extends Witness, A> {
 

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableList.toImmutableList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;

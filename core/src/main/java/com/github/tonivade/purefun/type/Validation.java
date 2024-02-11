@@ -4,15 +4,15 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Validator.greaterThan;
-import static com.github.tonivade.purefun.Validator.greaterThanOrEqual;
-import static com.github.tonivade.purefun.Validator.lowerThan;
-import static com.github.tonivade.purefun.Validator.lowerThanOrEqual;
-import static com.github.tonivade.purefun.Validator.nonEmpty;
-import static com.github.tonivade.purefun.Validator.nonNullAnd;
-import static com.github.tonivade.purefun.Validator.positive;
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Validator.greaterThan;
+import static com.github.tonivade.purefun.core.Validator.greaterThanOrEqual;
+import static com.github.tonivade.purefun.core.Validator.lowerThan;
+import static com.github.tonivade.purefun.core.Validator.lowerThanOrEqual;
+import static com.github.tonivade.purefun.core.Validator.nonEmpty;
+import static com.github.tonivade.purefun.core.Validator.nonNullAnd;
+import static com.github.tonivade.purefun.core.Validator.positive;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 
 import java.io.Serial;
@@ -21,18 +21,18 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Function3;
-import com.github.tonivade.purefun.Function4;
-import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Validator;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Function3;
+import com.github.tonivade.purefun.core.Function4;
+import com.github.tonivade.purefun.core.Function5;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Validator;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 

@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Unit;
 
 public class RefTest {
 

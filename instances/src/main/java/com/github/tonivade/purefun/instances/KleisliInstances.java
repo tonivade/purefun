@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.Kleisli;
 import com.github.tonivade.purefun.transformer.KleisliOf;
 import com.github.tonivade.purefun.transformer.Kleisli_;

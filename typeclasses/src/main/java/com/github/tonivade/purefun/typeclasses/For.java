@@ -4,16 +4,16 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Producer.cons;
+import static com.github.tonivade.purefun.core.Unit.unit;
 
-import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Fixer;
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
 
 @SuppressWarnings("unused")
 public sealed interface For<F extends Witness> {

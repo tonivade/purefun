@@ -4,15 +4,15 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Unit.unit;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Operator1;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Operator1;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 
 public final class Ref<A> {
 

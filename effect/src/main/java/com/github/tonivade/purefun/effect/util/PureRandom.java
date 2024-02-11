@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Random;

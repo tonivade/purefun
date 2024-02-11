@@ -4,13 +4,14 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.util.Objects;
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function1;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.data.Sequence;
 
 public class TupleK1<F extends Witness, A> implements TupleK<F> {

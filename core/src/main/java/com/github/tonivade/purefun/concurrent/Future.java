@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Function1.cons;
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.time.Duration;
@@ -18,17 +18,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.github.tonivade.purefun.CheckedRunnable;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.CheckedRunnable;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;

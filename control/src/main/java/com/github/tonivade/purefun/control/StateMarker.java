@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Unit.unit;
 
-import com.github.tonivade.purefun.Operator1;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Operator1;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableMap;
 
 class StateMarker implements Marker.State<ImmutableMap<StateMarker.Field<?>, Object>> {

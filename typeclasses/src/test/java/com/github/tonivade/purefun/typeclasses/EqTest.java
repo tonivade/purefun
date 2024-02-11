@@ -9,8 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Eq;
+
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.control;
 
-import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.core.Function1;
 
 public abstract class Stateful<R, S, E> extends StateMarker implements Handler<R, E> {
 

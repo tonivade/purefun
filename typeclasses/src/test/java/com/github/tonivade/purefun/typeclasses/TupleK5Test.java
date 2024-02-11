@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Option_;
 
 public class TupleK5Test {

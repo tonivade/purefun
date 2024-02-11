@@ -4,15 +4,17 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import java.util.concurrent.Executor;
-import com.github.tonivade.purefun.Function1;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -21,8 +21,9 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
+
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableArrayTest {

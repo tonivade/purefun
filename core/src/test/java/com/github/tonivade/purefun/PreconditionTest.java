@@ -6,11 +6,11 @@ package com.github.tonivade.purefun;
 
 import org.junit.jupiter.api.Test;
 
-import static com.github.tonivade.purefun.Precondition.checkNegative;
-import static com.github.tonivade.purefun.Precondition.checkNonEmpty;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Precondition.checkPositive;
-import static com.github.tonivade.purefun.Precondition.checkRange;
+import static com.github.tonivade.purefun.core.Precondition.checkNegative;
+import static com.github.tonivade.purefun.core.Precondition.checkNonEmpty;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkPositive;
+import static com.github.tonivade.purefun.core.Precondition.checkRange;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

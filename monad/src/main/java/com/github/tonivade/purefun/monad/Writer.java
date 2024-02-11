@@ -4,15 +4,15 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import static com.github.tonivade.purefun.Function1.cons;
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.cons;
+import static com.github.tonivade.purefun.core.Function1.identity;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind

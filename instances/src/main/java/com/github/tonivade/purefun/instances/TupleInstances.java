@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Tuple1Of;
-import com.github.tonivade.purefun.Tuple1_;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Tuple2Of;
-import com.github.tonivade.purefun.Tuple2_;
+import com.github.tonivade.purefun.core.Tuple1Of;
+import com.github.tonivade.purefun.core.Tuple1_;
+import com.github.tonivade.purefun.core.Tuple2Of;
+import com.github.tonivade.purefun.core.Tuple2_;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 

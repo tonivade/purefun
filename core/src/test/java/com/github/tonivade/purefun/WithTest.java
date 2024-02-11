@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.With.with;
+import static com.github.tonivade.purefun.core.With.with;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.github.tonivade.purefun.core.Consumer1;
 
 @ExtendWith(MockitoExtension.class)
 public class WithTest {

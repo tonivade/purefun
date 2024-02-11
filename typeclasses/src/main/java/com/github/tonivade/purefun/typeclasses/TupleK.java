@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Consumer1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.data.Sequence;
 
 public interface TupleK<F extends Witness> {

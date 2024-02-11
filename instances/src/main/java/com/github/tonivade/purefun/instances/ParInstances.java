@@ -4,18 +4,18 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.concurrent.ParOf;
 import com.github.tonivade.purefun.concurrent.Par_;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;

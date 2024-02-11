@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.locks.ReentrantLock;

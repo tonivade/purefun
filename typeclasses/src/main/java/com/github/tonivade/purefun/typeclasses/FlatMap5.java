@@ -4,15 +4,15 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Function5.fifth;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Function5.fifth;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function5;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple5;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function5;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple5;
 
 public final class FlatMap5<F extends Witness, A, B, C, D, E> extends AbstractFlatMap<F, D, E> {
 

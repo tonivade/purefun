@@ -3,7 +3,8 @@ package com.github.tonivade.purefun.typeclasses;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Tuple;
+
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Option_;

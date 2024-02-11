@@ -4,13 +4,15 @@
  */
 package com.github.tonivade.purefun;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.core.Producer;
 
 public class ProducerTest {
 

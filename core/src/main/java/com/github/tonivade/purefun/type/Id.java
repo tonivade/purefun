@@ -4,12 +4,12 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.Function1;
 
 /**
  * <p>This is the identity monad. It only wraps the value and nothing more.</p>

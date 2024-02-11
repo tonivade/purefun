@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.type.Eval.FALSE;
 import static com.github.tonivade.purefun.type.Eval.TRUE;
 

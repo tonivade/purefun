@@ -12,7 +12,7 @@ import java.util.Queue;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.effect.util.PureConsole;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 

@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static com.github.tonivade.purefun.Matcher1.instanceOf;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Matcher1.instanceOf;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.free.Free.liftF;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Pattern1;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Pattern1;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;

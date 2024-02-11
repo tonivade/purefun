@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.control;
 
-import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.core.Function1;
 
 public interface Handler<R, E> extends Marker.Cont<R>, Effect<E> {
 

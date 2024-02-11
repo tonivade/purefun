@@ -6,9 +6,10 @@ package com.github.tonivade.purefun.laws;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.github.tonivade.purefun.Function1;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class MonadLaws {

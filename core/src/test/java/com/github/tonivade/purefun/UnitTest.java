@@ -14,6 +14,8 @@ import java.io.ObjectOutputStream;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Unit;
+
 public class UnitTest {
 
   @Test

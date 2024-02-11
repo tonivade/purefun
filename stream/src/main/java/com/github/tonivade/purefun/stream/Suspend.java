@@ -4,18 +4,18 @@
  */
 package com.github.tonivade.purefun.stream;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.Matcher1;
-import com.github.tonivade.purefun.PartialFunction1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.PartialFunction1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
-
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
 
 public final class Suspend<F extends Witness, T> implements PureStream<F, T> {
 

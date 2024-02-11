@@ -11,7 +11,7 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Equal;
+import com.github.tonivade.purefun.core.Equal;
 
 public class LensTest {
 

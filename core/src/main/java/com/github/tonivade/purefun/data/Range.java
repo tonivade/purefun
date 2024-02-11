@@ -4,16 +4,16 @@
  */
 package com.github.tonivade.purefun.data;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
-
 import java.util.Iterator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Precondition.check;
-import static com.github.tonivade.purefun.Precondition.greaterThanOrEquals;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
+
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Precondition.check;
+import static com.github.tonivade.purefun.core.Precondition.greaterThanOrEquals;
 import static com.github.tonivade.purefun.type.Validation.mapN;
 import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEqual;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;

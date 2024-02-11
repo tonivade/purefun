@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -17,18 +17,19 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import com.github.tonivade.purefun.Applicable;
-import com.github.tonivade.purefun.Bindable;
-import com.github.tonivade.purefun.CheckedRunnable;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
-import com.github.tonivade.purefun.Function3;
-import com.github.tonivade.purefun.Function4;
-import com.github.tonivade.purefun.Function5;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Applicable;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.CheckedRunnable;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Function3;
+import com.github.tonivade.purefun.core.Function4;
+import com.github.tonivade.purefun.core.Function5;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;

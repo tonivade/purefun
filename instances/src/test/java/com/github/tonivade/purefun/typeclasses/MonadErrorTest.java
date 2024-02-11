@@ -4,21 +4,16 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Matcher1.always;
-import static com.github.tonivade.purefun.Matcher1.is;
-import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.PartialFunction1;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.core.Nothing;
+import com.github.tonivade.purefun.core.PartialFunction1;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.TaskOf;
@@ -37,6 +32,12 @@ import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.instances.PureIOInstances;
+
+import static com.github.tonivade.purefun.core.Matcher1.always;
+import static com.github.tonivade.purefun.core.Matcher1.is;
+import static com.github.tonivade.purefun.core.Nothing.nothing;
+import static com.github.tonivade.purefun.core.Producer.cons;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;

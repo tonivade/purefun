@@ -4,15 +4,16 @@
  */
 package com.github.tonivade.purefun.type;
 
-import com.github.tonivade.purefun.Operator2;
-import com.github.tonivade.purefun.Operator3;
-import com.github.tonivade.purefun.Operator4;
-import com.github.tonivade.purefun.Operator5;
 import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.core.Operator2;
+import com.github.tonivade.purefun.core.Operator3;
+import com.github.tonivade.purefun.core.Operator4;
+import com.github.tonivade.purefun.core.Operator5;
 
 import java.util.NoSuchElementException;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.type.Option.none;
 import static com.github.tonivade.purefun.type.Option.some;
 import static com.github.tonivade.purefun.type.Validation.invalid;

@@ -4,12 +4,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Function1.cons;
-import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
+import static com.github.tonivade.purefun.core.Function1.cons;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Eq;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Either_;

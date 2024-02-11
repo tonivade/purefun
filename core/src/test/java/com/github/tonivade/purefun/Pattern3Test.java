@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Pattern3;
+
 public class Pattern3Test {
 
   @Test

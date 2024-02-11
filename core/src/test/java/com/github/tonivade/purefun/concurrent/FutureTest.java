@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.concurrent;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Producer.failure;
+import static com.github.tonivade.purefun.core.Producer.cons;
+import static com.github.tonivade.purefun.core.Producer.failure;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,9 +33,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 @ExtendWith(MockitoExtension.class)

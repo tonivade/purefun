@@ -4,16 +4,16 @@
  */
 package com.github.tonivade.purefun.generic;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.util.Objects;
 
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Tuple1;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Tuple3;
-import com.github.tonivade.purefun.Tuple4;
-import com.github.tonivade.purefun.Tuple5;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Tuple1;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Tuple3;
+import com.github.tonivade.purefun.core.Tuple4;
+import com.github.tonivade.purefun.core.Tuple5;
 import com.github.tonivade.purefun.type.Option;
 
 public sealed interface HList<L extends HList<L>> {

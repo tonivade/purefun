@@ -4,29 +4,29 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.Function2.first;
-import static com.github.tonivade.purefun.Function2.second;
-import static com.github.tonivade.purefun.Nothing.nothing;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.core.Function2.first;
+import static com.github.tonivade.purefun.core.Function2.second;
+import static com.github.tonivade.purefun.core.Nothing.nothing;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Producer.cons;
 
 import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
-import com.github.tonivade.purefun.CheckedRunnable;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Effect;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.Future;
+import com.github.tonivade.purefun.core.CheckedRunnable;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Effect;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Nothing;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;

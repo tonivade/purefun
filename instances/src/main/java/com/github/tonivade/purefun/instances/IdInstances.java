@@ -6,11 +6,11 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.type.IdOf.toId;
 
-import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Eq;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Id;

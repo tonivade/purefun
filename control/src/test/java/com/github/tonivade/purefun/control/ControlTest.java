@@ -4,16 +4,16 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.Unit.unit;
 import static com.github.tonivade.purefun.control.Control.pure;
 import static com.github.tonivade.purefun.control.ControlOf.toControl;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.ControlInstances;
 

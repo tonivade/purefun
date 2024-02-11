@@ -4,10 +4,10 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.PartialFunction1;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.type.Either;
 
 public interface ApplicativeError<F extends Witness, E> extends Applicative<F> {

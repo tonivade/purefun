@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.control;
 
-import com.github.tonivade.purefun.PartialFunction1;
+import com.github.tonivade.purefun.core.PartialFunction1;
 
 interface Marker {
 

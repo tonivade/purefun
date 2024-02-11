@@ -15,6 +15,8 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.data.ImmutableMap;
 import com.github.tonivade.purefun.type.Option;
 

@@ -6,10 +6,11 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function1Of;
-import com.github.tonivade.purefun.Function1_;
+
+import com.github.tonivade.purefun.core.Function1Of;
+import com.github.tonivade.purefun.core.Function1_;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.instances.Function1Instances;
 
 public class ProfunctorTest {

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static com.github.tonivade.purefun.type.IdOf.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,9 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;

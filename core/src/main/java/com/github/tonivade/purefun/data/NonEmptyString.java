@@ -4,13 +4,13 @@
  */
 package com.github.tonivade.purefun.data;
 
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Operator1;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Operator1;
 
 import static com.github.tonivade.purefun.type.Validation.requireNonEmpty;
 

@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.Recoverable;
+import com.github.tonivade.purefun.core.Recoverable;
 
 public sealed interface Result<T> {
 

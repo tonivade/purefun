@@ -11,6 +11,9 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple3;
+
 public class Tuple3Test {
   
   @Test

@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.Producer;
+import com.github.tonivade.purefun.core.Producer;
 
 public interface Defer<F extends Witness> {
 

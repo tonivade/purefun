@@ -4,10 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import com.github.tonivade.purefun.Function1;
+import static com.github.tonivade.purefun.core.Function1.identity;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
 
 public interface Bifunctor<F extends Witness> {
 

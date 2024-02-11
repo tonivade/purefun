@@ -4,16 +4,17 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
 import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
 import static com.github.tonivade.purefun.transformer.StateTOf.toStateT;
-import com.github.tonivade.purefun.Function1;
+
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectE;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectE_;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectR;

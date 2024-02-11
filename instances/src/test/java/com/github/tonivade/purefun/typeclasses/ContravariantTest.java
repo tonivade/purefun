@@ -10,10 +10,11 @@ import static com.github.tonivade.purefun.typeclasses.Conested.counnest;
 import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function1Of;
-import com.github.tonivade.purefun.Function1_;
+
+import com.github.tonivade.purefun.core.Function1Of;
+import com.github.tonivade.purefun.core.Function1_;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.Function1Instances;
 import com.github.tonivade.purefun.instances.IdInstances;

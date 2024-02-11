@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Eq;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.ConstOf;
 import com.github.tonivade.purefun.type.Const_;

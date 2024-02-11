@@ -4,15 +4,15 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Producer.cons;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Producer.cons;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple2;
 
 @HigherKind
 public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {

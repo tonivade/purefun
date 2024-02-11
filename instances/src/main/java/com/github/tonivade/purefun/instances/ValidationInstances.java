@@ -6,9 +6,9 @@ package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.type.ValidationOf.toValidation;
 
-import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Eq;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.type.ValidationOf;

@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.generic;
 
-import static com.github.tonivade.purefun.Function1.identity;
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Function1.identity;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.generic.HAppend.append;
 import static com.github.tonivade.purefun.generic.HApply.combine;
 import static com.github.tonivade.purefun.generic.HApply.compose;
@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.generic.HList.HCons;
 import com.github.tonivade.purefun.generic.HList.HNil;
 

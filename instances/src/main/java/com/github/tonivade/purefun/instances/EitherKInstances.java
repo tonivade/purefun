@@ -3,13 +3,13 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.Eq;
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Pattern2;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Eq;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Pattern2;
 import com.github.tonivade.purefun.free.EitherK;
 import com.github.tonivade.purefun.free.EitherKOf;
 import com.github.tonivade.purefun.free.EitherK_;

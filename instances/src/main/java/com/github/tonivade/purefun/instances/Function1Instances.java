@@ -4,13 +4,14 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.Function1Of.toFunction1;
+import static com.github.tonivade.purefun.core.Function1Of.toFunction1;
 import static com.github.tonivade.purefun.typeclasses.Conested.conest;
 import static com.github.tonivade.purefun.typeclasses.Conested.counnest;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function1Of;
-import com.github.tonivade.purefun.Function1_;
+
+import com.github.tonivade.purefun.core.Function1Of;
+import com.github.tonivade.purefun.core.Function1_;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Conested;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
@@ -48,7 +49,7 @@ interface Function1Functor<T> extends Functor<Kind<Function1_, T>> {
   Function1Functor INSTANCE = new Function1Functor() {};
 
   @Override
-  default <A, R> Function1<T, R> map(Kind<Kind<Function1_, T>, ? extends A> value, 
+  default <A, R> Function1<T, R> map(Kind<Kind<Function1_, T>, ? extends A> value,
       Function1<? super A, ? extends R> map) {
     Function1<T, A> function = value.fix(Function1Of::narrowK);
     return function.andThen(map);
@@ -69,7 +70,7 @@ interface Function1Applicative<T> extends Function1Pure<T> {
   Function1Applicative INSTANCE = new Function1Applicative() {};
 
   @Override
-  default <A, R> Function1<T, R> ap(Kind<Kind<Function1_, T>, ? extends A> value, 
+  default <A, R> Function1<T, R> ap(Kind<Kind<Function1_, T>, ? extends A> value,
       Kind<Kind<Function1_, T>, ? extends Function1<? super A, ? extends R>> apply) {
     return value.fix(toFunction1())
         .flatMap(a -> apply.fix(Function1Of::narrowK).andThen(f -> f.apply(a)));
@@ -82,7 +83,7 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Kind<Function1_, T>>
   Function1Monad INSTANCE = new Function1Monad() {};
 
   @Override
-  default <A, R> Function1<T, R> flatMap(Kind<Kind<Function1_, T>, ? extends A> value, 
+  default <A, R> Function1<T, R> flatMap(Kind<Kind<Function1_, T>, ? extends A> value,
       Function1<? super A, ? extends Kind<Kind<Function1_, T>, ? extends R>> map) {
     Function1<T, A> function = value.fix(Function1Of::narrowK);
     return function.flatMap(map.andThen(Function1Of::narrowK));

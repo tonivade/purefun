@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Producer.cons;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Operator1;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 

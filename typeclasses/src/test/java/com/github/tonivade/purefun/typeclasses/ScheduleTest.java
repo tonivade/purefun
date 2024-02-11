@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,10 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Tuple2;
-import com.github.tonivade.purefun.Unit;
+
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;

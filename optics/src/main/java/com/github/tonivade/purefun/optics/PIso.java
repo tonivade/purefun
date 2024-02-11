@@ -4,9 +4,9 @@
  */
 package com.github.tonivade.purefun.optics;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.Function1;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Either;
 
 public final class PIso<S, T, A, B> {

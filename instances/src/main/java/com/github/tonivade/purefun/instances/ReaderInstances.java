@@ -4,8 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.monad.Reader;
 import com.github.tonivade.purefun.monad.ReaderOf;
 import com.github.tonivade.purefun.monad.Reader_;

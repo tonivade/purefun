@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import com.github.tonivade.purefun.Function1;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.ProducerOf;
-import com.github.tonivade.purefun.Producer_;
+import com.github.tonivade.purefun.core.ProducerOf;
+import com.github.tonivade.purefun.core.Producer_;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -56,7 +56,7 @@ interface ProducerApplicative extends ProducerPure {
   ProducerApplicative INSTANCE = new ProducerApplicative() {};
 
   @Override
-  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, ? extends T> value, 
+  default <T, R> Kind<Producer_, R> ap(Kind<Producer_, ? extends T> value,
       Kind<Producer_, ? extends Function1<? super T, ? extends R>> apply) {
     return ProducerOf.narrowK(value).flatMap(t -> ProducerOf.narrowK(apply).map(f -> f.apply(t)));
   }

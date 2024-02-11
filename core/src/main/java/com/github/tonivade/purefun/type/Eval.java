@@ -4,18 +4,20 @@
  */
 package com.github.tonivade.purefun.type;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.Producer.cons;
-import static com.github.tonivade.purefun.Producer.failure;
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Producer.cons;
+import static com.github.tonivade.purefun.core.Producer.failure;
+import static com.github.tonivade.purefun.core.Unit.unit;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
-import com.github.tonivade.purefun.Function1;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Bindable;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Bindable;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Unit;
 
 /**
  * <p>This is a monad that allows to control the evaluation of a computation or a value.</p>

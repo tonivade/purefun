@@ -4,18 +4,19 @@
  */
 package com.github.tonivade.purefun.transformer;
 
-import static com.github.tonivade.purefun.Unit.unit;
+import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Eq;
+
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Unit;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.core.Eq;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;

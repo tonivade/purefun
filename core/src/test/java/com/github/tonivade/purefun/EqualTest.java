@@ -11,6 +11,8 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.core.Equal;
+
 import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class EqualTest {

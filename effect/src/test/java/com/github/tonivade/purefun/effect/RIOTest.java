@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.Nothing.nothing;
+import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.RIO.pure;
 import static com.github.tonivade.purefun.effect.RIO.raiseError;
@@ -30,11 +30,11 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.github.tonivade.purefun.Consumer1;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Nothing;
-import com.github.tonivade.purefun.Producer;
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Nothing;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.RIOInstances;
 import com.github.tonivade.purefun.type.Either;

@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Queue;
 
-import com.github.tonivade.purefun.Unit;
+import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.effect.RIO;
 
 public interface PureConsole {

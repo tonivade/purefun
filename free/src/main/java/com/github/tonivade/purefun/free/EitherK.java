@@ -4,16 +4,17 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static com.github.tonivade.purefun.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
-import com.github.tonivade.purefun.Equal;
-import com.github.tonivade.purefun.Function1;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;

@@ -7,10 +7,10 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static com.github.tonivade.purefun.typeclasses.Nested.unnest;
 
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Function2;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Eval;
 
 interface ComposedFunctor<F extends Witness, G extends Witness> extends Functor<Nested<F, G>> {

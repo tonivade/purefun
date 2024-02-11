@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static com.github.tonivade.purefun.Function1.identity;
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableSet.toImmutableSet;
 import static com.github.tonivade.purefun.data.Sequence.setOf;
 import static java.util.Collections.emptySet;
@@ -23,8 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.Function1;
-import com.github.tonivade.purefun.Tuple;
+
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.type.Option;
 
 public class ImmutableSetTest {

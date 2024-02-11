@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.Tuple2;
+import com.github.tonivade.purefun.core.Tuple2;
 
 public interface Semigroupal<F extends Witness> {
 
