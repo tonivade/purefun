@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.instances.ControlInstances;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 public class ControlTest {
 
@@ -54,7 +54,7 @@ public class ControlTest {
   }
 
   private Control<Integer> program(State<Integer> state, Amb amb) {
-    return ControlInstances.monad().use()
+    return Instances.monad(Control_.class).use()
         .then(state.get())
         .flatMap(x -> amb.flip().flatMap(b -> b ? state.set(x + 1) : pure(unit())))
         .then(state.get())
