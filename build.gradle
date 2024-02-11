@@ -7,7 +7,6 @@ plugins {
   alias(libs.plugins.sonar)
   alias(libs.plugins.nexus)
   alias(libs.plugins.versions)
-  alias(libs.plugins.eclipse)
 }
 
 apply plugin: 'org.sonarqube'
