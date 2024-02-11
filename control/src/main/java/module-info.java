@@ -1,8 +1,8 @@
 module com.github.tonivade.purefun.control {
   exports com.github.tonivade.purefun.control;
 
-  requires com.github.tonivade.purefun;
-  requires com.github.tonivade.purefun.core;
-  requires com.github.tonivade.purefun.typeclasses;
-  requires java.compiler;
+  requires transitive com.github.tonivade.purefun;
+  requires transitive com.github.tonivade.purefun.core;
+  requires transitive com.github.tonivade.purefun.typeclasses;
+  requires transitive java.compiler;
 }
