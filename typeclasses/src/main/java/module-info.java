@@ -2,7 +2,7 @@
 module com.github.tonivade.purefun.typeclasses {
   exports com.github.tonivade.purefun.typeclasses;
 
-  requires com.github.tonivade.purefun;
-  requires com.github.tonivade.purefun.core;
-  requires java.compiler;
+  requires transitive com.github.tonivade.purefun;
+  requires transitive com.github.tonivade.purefun.core;
+  requires transitive java.compiler;
 }

@@ -4,7 +4,7 @@ module com.github.tonivade.purefun.core {
   exports com.github.tonivade.purefun.core;
   exports com.github.tonivade.purefun.type;
 
-  requires com.github.tonivade.purefun;
-  requires java.compiler;
+  requires transitive com.github.tonivade.purefun;
+  requires transitive java.compiler;
   requires org.pcollections;
 }
