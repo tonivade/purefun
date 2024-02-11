@@ -60,7 +60,6 @@ allprojects {
   apply plugin: 'jacoco'
   apply plugin: 'maven-publish'
   apply plugin: 'signing'
-  apply plugin: 'com.diffplug.eclipse.apt'
 
   group = 'com.github.tonivade'
 
