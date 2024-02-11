@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.control;
 
 import com.github.tonivade.purefun.core.PartialFunction1;
 
-interface Marker {
+public interface Marker {
 
   interface Cont<R> {}
 

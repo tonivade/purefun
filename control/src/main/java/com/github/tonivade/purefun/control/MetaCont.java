@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.type.Option;
 
-sealed interface MetaCont<A, B> {
+public sealed interface MetaCont<A, B> {
 
   Result<B> apply(A value);
 
