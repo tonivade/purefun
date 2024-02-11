@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.processor;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -20,10 +20,12 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
+import com.github.tonivade.purefun.HigherKind;
+
 @SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
 public class HigherKindProcessor extends AbstractProcessor {
 
-  private static final String GENERATED = "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")";
+  private static final String GENERATED = "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")";
 
   private static final String JAVAX_ANNOTATION_GENERATED = "javax.annotation.Generated";
   private static final String JAVAX_ANNOTATION_PROCESSING_GENERATED = "javax.annotation.processing.Generated";
@@ -59,9 +61,9 @@ public class HigherKindProcessor extends AbstractProcessor {
     int lastIndexOf = qualifiedName.lastIndexOf('.');
     String packageName;
     String className;
-    
+
     HigherKind annotation = element.getAnnotation(HigherKind.class);
-    
+
     if (lastIndexOf > 0) {
       packageName =  qualifiedName.substring(0, lastIndexOf);
       className = qualifiedName.substring(lastIndexOf + 1);
@@ -215,7 +217,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   private static void narrowK3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt) {
     narrowK(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
   }
-  
+
   private static void narrowK(PrintWriter writer, String types, String returnType, String param) {
     writer.println("  @SuppressWarnings(\"unchecked\")");
     writer.println("  static " + types + " " + returnType + " narrowK(" + param + " hkt) {");
@@ -223,15 +225,15 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println("  }");
     writer.println();
   }
-  
+
   private static void toTypeOf1(PrintWriter writer, String className, String aType, String hkt, String typeOf) {
     toTypeOf(writer, "<" + aType + ">", className + "<A>", hkt, typeOf, className);
   }
-  
+
   private static void toTypeOf2(PrintWriter writer, String className, String aType, String bType, String hkt, String typeOf) {
     toTypeOf(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt, typeOf, className);
   }
-  
+
   private static void toTypeOf3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt, String typeOf) {
     toTypeOf(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt, typeOf, className);
   }

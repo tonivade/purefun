@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.processor;
 
 import static com.google.common.truth.Truth.assert_;
 import static com.google.testing.compile.JavaFileObjects.forSourceLines;
@@ -18,7 +18,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Witness;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public final class Foo_ implements Witness {",
         "private Foo_() {}",
         "}");
@@ -41,7 +41,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A> extends Kind<Foo_, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -74,7 +74,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A> extends Kind<Foo_, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -92,7 +92,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Witness;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public final class Foo_ implements Witness {",
         "private Foo_() {}",
         "}");
@@ -119,7 +119,7 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo_, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
@@ -188,14 +188,14 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A, B> extends Kind<Kind<Foo_, A>, B> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
         "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo_, A>, ? extends B> hkt) {",
         "return (Foo<A, B>) hkt;",
         "}",
-        
+
         "static <A, B> Fixer<Kind<Kind<Foo_, A>, B>, Foo<A, B>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
@@ -225,14 +225,14 @@ public class HigherKindProcessorTest {
         "import com.github.tonivade.purefun.Fixer;",
         "import javax.annotation.processing.Generated;",
 
-        "@Generated(\"com.github.tonivade.purefun.HigherKindProcessor\")",
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo_, A>, B>, C> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
         "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo_, A>, B>, ? extends C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
         "}",
-        
+
         "static <A, B, C> Fixer<Kind<Kind<Kind<Foo_, A>, B>, C>, Foo<A, B, C>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
