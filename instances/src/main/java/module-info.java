@@ -4,11 +4,11 @@ module com.github.tonivade.purefun.instances {
 
   requires transitive com.github.tonivade.purefun;
   requires transitive com.github.tonivade.purefun.core;
-  requires transitive com.github.tonivade.purefun.effect;
-  requires transitive com.github.tonivade.purefun.free;
-  requires transitive com.github.tonivade.purefun.monad;
-  requires transitive com.github.tonivade.purefun.stream;
-  requires transitive com.github.tonivade.purefun.transformer;
-  requires transitive com.github.tonivade.purefun.typeclasses;
-  requires transitive com.github.tonivade.purefun.control;
+  requires com.github.tonivade.purefun.effect;
+  requires com.github.tonivade.purefun.free;
+  requires com.github.tonivade.purefun.monad;
+  requires com.github.tonivade.purefun.stream;
+  requires com.github.tonivade.purefun.transformer;
+  requires com.github.tonivade.purefun.typeclasses;
+  requires com.github.tonivade.purefun.control;
 }
