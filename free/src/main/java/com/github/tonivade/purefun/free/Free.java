@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
-import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -38,7 +37,7 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
 
   static <F extends Witness, T> Free<F, T> defer(Producer<? extends Free<F, ? extends T>> value) {
     Free<F, Unit> pure = pure(unit());
-    return pure.flatMap(ignore -> value.get());
+    return pure.flatMap(value.asFunction());
   }
 
   @SuppressWarnings("unchecked")
@@ -59,7 +58,7 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
   default <R> Free<F, R> map(Function1<? super A, ? extends R> map) {
     return flatMap(map.andThen(Free::pure));
   }
-  
+
   @Override
   <R> Free<F, R> flatMap(Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends R>> mapper);
 
@@ -69,69 +68,38 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
   }
 
   default <G extends Witness> Kind<G, A> foldMap(Monad<G> monad, FunctionK<F, G> interpreter) {
-    return monad.tailRecM(this, value -> value.step().foldStep(monad, interpreter));
+    return monad.tailRecM(this, value -> value.foldStep(monad, interpreter));
   }
 
-  final class Pure<F extends Witness, A> implements Free<F, A> {
+  record Pure<F extends Witness, A>(A value) implements Free<F, A> {
 
-    private final A value;
-
-    private Pure(A value) {
-      this.value = checkNonNull(value);
+    public Pure {
+      checkNonNull(value);
     }
 
     @Override
     public <B> Free<F, B> flatMap(Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends B>> map) {
       return new FlatMapped<>(this, map);
     }
-
-    public Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor) {
-      return Either.right(value);
-    }
-
-    public Free<F, A> step() {
-      return this;
-    }
-
-    private <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
-      return monad.pure(Either.right(value));
-    }
   }
 
-  final class Suspend<F extends Witness, A> implements Free<F, A> {
+  record Suspend<F extends Witness, A>(Kind<F, ? extends A> value) implements Free<F, A> {
 
-    private final Kind<F, ? extends A> value;
-
-    private Suspend(Kind<F, ? extends A> value) {
-      this.value = checkNonNull(value);
+    public Suspend {
+      checkNonNull(value);
     }
 
     @Override
     public <B> Free<F, B> flatMap(Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends B>> map) {
       return new FlatMapped<>(this, map);
     }
-
-    public Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor) {
-      return Either.left(functor.map(value, Free::pure));
-    }
-
-    public Free<F, A> step() {
-      return this;
-    }
-
-    private <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
-      return monad.map(interpreter.apply(value), Either::right);
-    }
   }
 
-  final class FlatMapped<F extends Witness, X, A, B> implements Free<F, B> {
+  record FlatMapped<F extends Witness, A, B>(Free<F, ? extends A> value, Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends B>> next) implements Free<F, B> {
 
-    private final Free<F, ? extends A> value;
-    private final Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends B>> next;
-
-    private FlatMapped(Free<F, ? extends A> value, Function1<? super A, ? extends Kind<Kind<Free_, F>, ? extends B>> next) {
-      this.value = checkNonNull(value);
-      this.next = checkNonNull(next);
+    public FlatMapped {
+      checkNonNull(value);
+      checkNonNull(next);
     }
 
     @Override
@@ -139,72 +107,17 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
       return new FlatMapped<>(value, free -> new FlatMapped<>(next.andThen(FreeOf::<F, B>narrowK).apply(free), map));
     }
 
-    @SuppressWarnings("unchecked")
-    public Either<Kind<F, Free<F, B>>, B> resume(Functor<F> functor) {
-      if (value instanceof Free.Suspend<F, ? extends A> suspend) {
-        Kind<F, Free<F, B>> map = functor.map(suspend.value, next.andThen(x -> (Free<F, B>) x));
-        return Either.left(map);
-      }
-      if (value instanceof Free.Pure<F, ? extends A> pure) {
-        Free<F, B> apply = (Free<F, B>) next.apply(pure.value);
-        return apply.resume(functor);
-      }
-      Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;
-      return flatMapped.value.flatMap(x -> flatMapped.next.andThen(FreeOf::<F, A>narrowK).apply(x).flatMap(next)).resume(functor);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Free<F, B> step() {
-      if (value instanceof FlatMapped) {
-        Free.FlatMapped<F, ?, X, A> flatMapped = (Free.FlatMapped<F, ?, X, A>) value;
-        return flatMapped.value.flatMap(x -> flatMapped.next.andThen(FreeOf::<F, A>narrowK).apply(x).flatMap(next)).step();
-      }
-      if (value instanceof Pure<F, ? extends A> pure) {
-        Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
-        return andThen.apply(pure.value).step();
-      }
-      return this;
-    }
-
-    @SuppressWarnings("unchecked")
     private <G extends Witness> Kind<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
-      Kind<G, A> foldMap = (Kind<G, A>) value.foldMap(monad, interpreter);
-      Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
-      return monad.map(foldMap, andThen.andThen(Either::left));
+      return monad.map(value.foldMap(monad, interpreter), next.andThen(FreeOf::narrowK).andThen(Either::left));
     }
   }
-  
-  private Free<F, A> step() {
-    if (this instanceof Pure<F, A> pure) {
-      return pure.step();
-    }
-    if (this instanceof Suspend<F, A> suspend) {
-      return suspend.step();
-    }
-    var flatMapped = (Free.FlatMapped<F, ?, ?, A>) this;
-    return flatMapped.step();
-  }
-  
+
   private <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
-    if (this instanceof Pure<F, A> pure) {
-      return pure.foldStep(monad, interpreter);
-    }
-    if (this instanceof Suspend<F, A> suspend) {
-      return suspend.foldStep(monad, interpreter);
-    }
-    var flatMapped = (Free.FlatMapped<F, ?, ?, A>) this;
-    return flatMapped.foldStep(monad, interpreter);
-  }
-  
-  private Either<Kind<F, Free<F, A>>, A> resume(Functor<F> functor) {
-    if (this instanceof Pure<F, A> pure) {
-      return pure.resume(functor);
-    }
-    if (this instanceof Suspend<F, A> suspend) {
-      return suspend.resume(functor);
-    }
-    var flatMapped = (Free.FlatMapped<F, ?, ?, A>) this;
-    return flatMapped.resume(functor);
+    return switch (this) {
+      case Pure<F, A>(var value) -> monad.pure(Either.right(value));
+      case Suspend<F, A>(var value) -> monad.map(interpreter.apply(value), Either::right);
+      case Free.FlatMapped<F, ?, A> flatMapped -> flatMapped.foldStep(monad, interpreter);
+    };
   }
 }
 
