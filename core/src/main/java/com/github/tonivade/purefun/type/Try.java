@@ -22,7 +22,6 @@ import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Recoverable;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -53,9 +52,8 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return failure(new RuntimeException());
   }
 
-  @SuppressWarnings("unchecked")
   static <T> Try<T> failure(Throwable error) {
-    return (Try<T>) new Failure(error);
+    return new Failure<>(error);
   }
 
   static <T> Try<T> noSuchElementException() {
@@ -132,7 +130,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try_, ? extends R>> mapper) {
     return switch (this) {
       case Success<T>(var value) -> mapper.andThen(TryOf::<R>narrowK).apply(value);
-      case Failure f -> (Try<R>) this;
+      case Failure<T> f -> (Try<R>) this;
     };
   }
 
@@ -272,10 +270,10 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
   }
 
-  record Failure(Throwable cause) implements Try<Nothing>, Recoverable, Serializable {
+  record Failure<T>(Throwable cause) implements Try<T>, Recoverable, Serializable {
 
-    private static final Equal<Failure> EQUAL =
-        Equal.<Failure>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
+    private static final Equal<Failure<?>> EQUAL =
+        Equal.<Failure<?>>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);
 
     public Failure {
       checkNonNull(cause);
@@ -292,7 +290,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
 
     @Override
-    public Nothing getOrElseThrow() {
+    public T getOrElseThrow() {
       return sneakyThrow(cause);
     }
 

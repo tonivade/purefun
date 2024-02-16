@@ -11,6 +11,8 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.free.Trampoline;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Try;
@@ -105,6 +107,19 @@ interface TryMonad extends TryPure, Monad<Try_> {
   default <T, R> Kind<Try_, R> flatMap(Kind<Try_, ? extends T> value,
       Function1<? super T, ? extends Kind<Try_, ? extends R>> map) {
     return TryOf.narrowK(value).flatMap(map.andThen(TryOf::narrowK));
+  }
+
+  @Override
+  default <T, R> Kind<Try_, R> tailRecM(T value, Function1<T, ? extends Kind<Try_, Either<T, R>>> map) {
+    return loop(value, map).run();
+  }
+
+  private <T, R> Trampoline<Kind<Try_, R>> loop(T value, Function1<T, ? extends Kind<Try_, Either<T, R>>> map) {
+    return switch (map.andThen(TryOf::narrowK).apply(value)) {
+      case Try.Failure<Either<T, R>>(var error) -> Trampoline.done(Try.failure(error));
+      case Try.Success<Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Try.success(right));
+      case Try.Success<Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
+    };
   }
 }
 
