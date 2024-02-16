@@ -6,10 +6,12 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
+import java.io.Serializable;
+
 import com.github.tonivade.purefun.HigherKind;
 
 @HigherKind
-public record Const<T, A>(T value) implements ConstOf<T, A> {
+public record Const<T, A>(T value) implements ConstOf<T, A>, Serializable {
 
   public Const {
     checkNonNull(value);

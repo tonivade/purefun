@@ -170,11 +170,11 @@ public class OptionTest {
 
     assertTrue(option.isPresent());
   }
-  
+
   @Test
   public void noneSerializable() throws IOException, ClassNotFoundException {
     Option<Unit> option = Option.none();
-    
+
     byte[] bytes;
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(baos)) {
@@ -183,13 +183,34 @@ public class OptionTest {
 
       bytes = baos.toByteArray();
     }
-    
+
     Object result;
     try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
       result = in.readObject();
     }
-   
+
     assertSame(option, result);
+  }
+
+  @Test
+  public void someSerializable() throws IOException, ClassNotFoundException {
+    Option<String> option = Option.some("value");
+
+    byte[] bytes;
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(baos)) {
+      out.writeObject(option);
+      out.flush();
+
+      bytes = baos.toByteArray();
+    }
+
+    Object result;
+    try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+      result = in.readObject();
+    }
+
+    assertEquals(option, result);
   }
 
   private String message() {

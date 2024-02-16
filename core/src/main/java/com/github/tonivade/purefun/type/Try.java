@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -239,7 +240,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return fold(map.andThen(Validation::invalid), Validation::valid);
   }
 
-  record Success<T>(T value) implements Try<T> {
+  record Success<T>(T value) implements Try<T>, Serializable {
 
     public Success {
       checkNonNull(value);
@@ -271,7 +272,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     }
   }
 
-  record Failure(Throwable cause) implements Try<Nothing>, Recoverable {
+  record Failure(Throwable cause) implements Try<Nothing>, Recoverable, Serializable {
 
     private static final Equal<Failure> EQUAL =
         Equal.<Failure>of().comparing(Failure::getMessage).comparingArray(Failure::getStackTrace);

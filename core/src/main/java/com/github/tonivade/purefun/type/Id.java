@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
+import java.io.Serializable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -18,7 +20,7 @@ import com.github.tonivade.purefun.core.Function1;
  * @param <T> the wrapped value
  */
 @HigherKind
-public record Id<T>(T value) implements IdOf<T>, Bindable<Id_, T> {
+public record Id<T>(T value) implements IdOf<T>, Bindable<Id_, T>, Serializable {
 
   public Id {
     checkNonNull(value);

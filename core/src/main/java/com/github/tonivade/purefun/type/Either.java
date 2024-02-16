@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -200,7 +201,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     return eitherA.flatMap(a -> eitherB.map(b -> mapper.apply(a, b)));
   }
 
-  record Left<L, R>(L value) implements Either<L, R> {
+  record Left<L, R>(L value) implements Either<L, R>, Serializable {
 
     public Left {
       checkNonNull(value);
@@ -232,7 +233,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     }
   }
 
-  record Right<L, R>(R value) implements Either<L, R> {
+  record Right<L, R>(R value) implements Either<L, R>, Serializable {
 
     public Right {
       checkNonNull(value);

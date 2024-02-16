@@ -262,7 +262,7 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     return nonNullAnd(lowerThanOrEqual(x, () -> "require " + value + " <= " + x)).validate(value);
   }
 
-  record Valid<E, T>(T value) implements Validation<E, T> {
+  record Valid<E, T>(T value) implements Validation<E, T>, Serializable {
 
     public Valid {
       checkNonNull(value);
@@ -294,7 +294,7 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     }
   }
 
-  record Invalid<E, T>(E error) implements Validation<E, T> {
+  record Invalid<E, T>(E error) implements Validation<E, T>, Serializable {
 
     public Invalid {
       checkNonNull(error);
