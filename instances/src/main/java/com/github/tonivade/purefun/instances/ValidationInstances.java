@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.type.ValidationOf.toValidation;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.type.ValidationOf;
@@ -145,6 +146,20 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Kind<Validation_, 
   default <T, R> Validation<E, R> flatMap(Kind<Kind<Validation_, E>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Validation_, E>, ? extends R>> map) {
     return ValidationOf.narrowK(value).flatMap(map.andThen(ValidationOf::narrowK));
+  }
+
+  @Override
+  default <T, R> Kind<Kind<Validation_, E>, R> tailRecM(T value,
+      Function1<T, ? extends Kind<Kind<Validation_, E>, Either<T, R>>> map) {
+    return loop(value, map).run();
+  }
+
+  private <T, R> Trampoline<Kind<Kind<Validation_, E>, R>> loop(T value, Function1<T, ? extends Kind<Kind<Validation_, E>, Either<T, R>>> map) {
+    return switch (map.andThen(ValidationOf::narrowK).apply(value)) {
+      case Validation.Invalid<E, Either<T, R>>(var error) -> Trampoline.done(Validation.invalid(error));
+      case Validation.Valid<E, Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Validation.valid(right));
+      case Validation.Valid<E, Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
+    };
   }
 }
 
