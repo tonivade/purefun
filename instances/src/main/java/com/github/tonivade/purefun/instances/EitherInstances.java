@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.free.Trampoline;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Either_;
@@ -124,6 +125,20 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Kind<Either_, L>> {
   default <T, R> Either<L, R> flatMap(Kind<Kind<Either_, L>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Either_, L>, ? extends R>> map) {
     return EitherOf.narrowK(value).flatMap(map.andThen(EitherOf::narrowK));
+  }
+
+  @Override
+  default <T, R> Kind<Kind<Either_, L>, R> tailRecM(T value,
+      Function1<T, ? extends Kind<Kind<Either_, L>, Either<T, R>>> map) {
+    return loop(value, map).run();
+  }
+
+  private <T, R> Trampoline<Kind<Kind<Either_, L>, R>> loop(T value, Function1<T, ? extends Kind<Kind<Either_, L>, Either<T, R>>> map) {
+    return switch (map.andThen(EitherOf::narrowK).apply(value)) {
+      case Either.Left<L, Either<T, R>>(var left) -> Trampoline.done(Either.left(left));
+      case Either.Right<L, Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Either.right(right));
+      case Either.Right<L, Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
+    };
   }
 }
 
