@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 import static java.util.Objects.nonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -21,7 +22,6 @@ import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.data.Sequence;
 
@@ -70,7 +70,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   default <R> Option<R> map(Function1<? super T, ? extends R> mapper) {
     return switch (this) {
       case Some<T>(var value) -> some(mapper.apply(value));
-      case None n -> none();
+      case None<T> n -> none();
     };
   }
 
@@ -78,7 +78,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
     return switch (this) {
       case Some<T>(var value) -> map.andThen(OptionOf::<R>narrowK).apply(value);
-      case None n -> none();
+      case None<T> n -> none();
     };
   }
 
@@ -144,7 +144,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
   default <U> U fold(Producer<? extends U> orElse, Function1<? super T, ? extends U> mapper) {
     return switch (this) {
       case Some<T>(var value) -> mapper.apply(value);
-      case None n -> orElse.get();
+      case None<T> n -> orElse.get();
     };
   }
 
@@ -190,8 +190,14 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     }
   }
 
-  enum None implements Option<Nothing> {
-    INSTANCE;
+  final class None<T> implements Option<T>, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 7202112931010040785L;
+
+    private static final None<?> INSTANCE = new None<>();
+
+    private None() { }
 
     @Override
     public boolean isEmpty() {
@@ -204,8 +210,23 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     }
 
     @Override
+    public int hashCode() {
+      return 1;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return this == obj;
+    }
+
+    @Override
     public String toString() {
       return "None";
+    }
+
+    @Serial
+    private Object readResolve() {
+      return INSTANCE;
     }
   }
 }

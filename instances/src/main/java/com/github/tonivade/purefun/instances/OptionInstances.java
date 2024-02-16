@@ -16,6 +16,8 @@ import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
+import com.github.tonivade.purefun.free.Trampoline;
+import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Option;
@@ -113,6 +115,19 @@ interface OptionMonad extends OptionPure, Monad<Option_> {
   default <T, R> Kind<Option_, R> flatMap(Kind<Option_, ? extends T> value,
       Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
     return value.fix(toOption()).flatMap(map.andThen(OptionOf::narrowK));
+  }
+
+  @Override
+  default <T, R> Kind<Option_, R> tailRecM(T value, Function1<T, ? extends Kind<Option_, Either<T, R>>> map) {
+    return loop(value, map).run();
+  }
+
+  private <T, R> Trampoline<Kind<Option_, R>> loop(T value, Function1<T, ? extends Kind<Option_, Either<T, R>>> map) {
+    return switch (map.andThen(OptionOf::narrowK).apply(value)) {
+      case Option.None<Either<T, R>> n -> Trampoline.done(Option.none());
+      case Option.Some<Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Option.some(right));
+      case Option.Some<Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
+    };
   }
 }
 

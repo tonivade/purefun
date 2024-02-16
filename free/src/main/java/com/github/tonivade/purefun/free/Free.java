@@ -108,8 +108,9 @@ public sealed interface Free<F extends Witness, A> extends FreeOf<F, A>, Bindabl
     }
 
     private <G extends Witness> Kind<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
-      return monad.map(value.foldMap(monad, interpreter), next.andThen(FreeOf::narrowK).andThen(Either::left));
-    }
+      Kind<G, ? extends A> foldMap = value.foldMap(monad, interpreter);
+      Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
+      return monad.map(foldMap, andThen.andThen(Either::left));    }
   }
 
   private <G extends Witness> Kind<G, Either<Free<F, A>, A>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
