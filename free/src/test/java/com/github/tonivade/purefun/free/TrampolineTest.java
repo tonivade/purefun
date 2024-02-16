@@ -6,34 +6,22 @@ package com.github.tonivade.purefun.free;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
 
 public class TrampolineTest {
 
   @Test
   public void done() {
-    Trampoline<String> done = Trampoline.done("done");
+    var done = Trampoline.done("done");
 
-    assertAll(
-        () -> assertEquals("done", done.get()),
-        () -> assertTrue(done.complete()),
-        () -> assertThrows(UnsupportedOperationException.class, done::apply)
-        );
+    assertEquals("done", done.run());
   }
 
   @Test
   public void more() {
-    Trampoline<String> more = Trampoline.more(() -> Trampoline.done("done"));
+    var more = Trampoline.more(() -> Trampoline.done("done"));
 
-    assertAll(
-        () -> assertEquals("done", more.apply().get()),
-        () -> assertFalse(more.complete()),
-        () -> assertThrows(UnsupportedOperationException.class, more::get)
-        );
+    assertEquals("done", more.run());
   }
 
   @Test
