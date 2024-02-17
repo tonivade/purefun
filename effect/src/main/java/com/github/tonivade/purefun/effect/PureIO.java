@@ -94,7 +94,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   default <F, B> PureIO<R, F, B> foldM(
-      Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> left, 
+      Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> left,
       Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> right) {
     return new FlatMapped<>(this, left.andThen(PureIOOf::narrowK), right.andThen(PureIOOf::narrowK));
   }
@@ -121,24 +121,24 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   default PureIO<R, E, A> orElse(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
-  
+
   @Override
   default <B> PureIO<R, E, Tuple2<A, B>> zip(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
-  
+
   @Override
   default <B> PureIO<R, E, A> zipLeft(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other) {
     return zipWith(other, first());
   }
-  
+
   @Override
   default <B> PureIO<R, E, B> zipRight(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other) {
     return zipWith(other, second());
   }
-  
+
   @Override
-  default <B, C> PureIO<R, E, C> zipWith(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other, 
+  default <B, C> PureIO<R, E, C> zipWith(Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(PureIOOf.toPureIO()), mapper);
   }
@@ -162,11 +162,11 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   default PureIO<R, E, A> repeat(Duration delay, int times) {
     return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
   }
-  
+
   default <B> PureIO<R, E, B> repeat(Schedule<R, A, B> schedule) {
     return repeatOrElse(schedule, (e, b) -> raiseError(e));
   }
-  
+
   default <B> PureIO<R, E, B> repeatOrElse(
       Schedule<R, A, B> schedule,
       Function2<E, Option<B>, Kind<Kind<Kind<PureIO_, R>, E>, B>> orElse) {
@@ -198,7 +198,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   default PureIO<R, E, A> retry(Duration delay, int maxRetries) {
     return retry(Schedule.recursSpaced(delay, maxRetries));
   }
-  
+
   default <B> PureIO<R, E, A> retry(Schedule<R, E, B> schedule) {
     return retryOrElse(schedule, (e, b) -> raiseError(e));
   }
@@ -220,15 +220,15 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return PureIO.<R, E, Long>later(System::nanoTime).flatMap(
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
-  
+
   default PureIO<R, E, Fiber<Kind<Kind<PureIO_, R>, E>, A>> fork() {
     return async((env, callback) -> {
       PureIOConnection connection = PureIOConnection.cancellable();
       Promise<Either<E, A>> promise = runAsync(env, this, connection);
-      
+
       PureIO<R, E, A> join = fromPromise(promise);
       PureIO<R, E, Unit> cancel = run(connection::cancel);
-      
+
       callback.accept(Try.success(Either.right(Fiber.of(join, cancel))));
     });
   }
@@ -236,13 +236,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   default PureIO<R, E, A> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }
-  
+
   default PureIO<R, E, A> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(PureIOOf.toPureIO()).map(x -> ta.get1()),
         tb -> tb.get1().cancel().fix(PureIOOf.toPureIO()).flatMap(x -> PureIO.throwError(new TimeoutException()))));
   }
-  
+
   @SuppressWarnings("unchecked")
   default <X extends Throwable> PureIO<R, X, A> refineOrDie(Class<X> type) {
     return flatMapError(error -> {
@@ -252,7 +252,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       return PureIO.throwError(new ClassCastException(error.getClass() + " not asignable to " + type));
     });
   }
-  
+
   default URIO<R, A> toURIO() {
     return new URIO<>(mapError(error -> {
       if (error instanceof Throwable throwable) {
@@ -261,15 +261,15 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       throw new ClassCastException(error.getClass() + " is not throwable");
     }));
   }
-  
+
   default RIO<R, A> toRIO() {
     return new RIO<>(refineOrDie(Throwable.class));
   }
-  
+
   default Managed<R, E, A> toManaged() {
     return Managed.pure(this);
   }
-  
+
   default Managed<R, E, A> toManaged(Consumer1<? super A> release) {
     return Managed.from(this, release);
   }
@@ -285,29 +285,29 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   static <R, E> PureIO<R, E, R> env() {
     return access(identity());
   }
-  
+
   static <R, E> PureIO<R, E, Unit> forked(Executor executor) {
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Either.right(Unit.unit())))));
   }
 
-  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> zb, 
+  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> zb, 
+  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable((env, callback) -> {
-      
+
       PureIOConnection connection1 = PureIOConnection.cancellable();
       PureIOConnection connection2 = PureIOConnection.cancellable();
-      
+
       Promise<Either<E, A>> promiseA = runAsync(env, PureIO.<R, E>forked(executor).andThen(za), connection1);
       Promise<Either<E, B>> promiseB = runAsync(env, PureIO.<R, E>forked(executor).andThen(zb), connection2);
-      
+
       promiseA.onComplete(a -> promiseB.onComplete(
         b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.narrowK(Either.map2(e1, e2, mapper))))));
-      
+
       return PureIO.exec(() -> {
         try {
           connection1.cancel();
@@ -317,27 +317,27 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       });
     });
   }
-  
+
   static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
-  
+
   static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(PureIOOf.toPureIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(PureIOOf.toPureIO()).map(x -> Either.right(tb.get2()))));
   }
-  
-  static <R, E, A, B> PureIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>> 
+
+  static <R, E, A, B> PureIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<PureIO_, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO_, R>, E>, A>, B>>>
       racePair(Executor executor, Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, E>, ? extends B> fb) {
     return cancellable((env, callback) -> {
-      
+
       PureIOConnection connection1 = PureIOConnection.cancellable();
       PureIOConnection connection2 = PureIOConnection.cancellable();
-      
+
       Promise<Either<E, A>> promiseA = runAsync(env, PureIO.<R, E>forked(executor).andThen(fa), connection1);
       Promise<Either<E, B>> promiseB = runAsync(env, PureIO.<R, E>forked(executor).andThen(fb), connection2);
-      
+
       promiseA.onComplete(result -> {
         PureIO<R, E, B> fromPromiseB = PureIO.fromPromise(promiseB);
         PureIO<R, E, Unit> cancelB = PureIO.run(connection2::cancel);
@@ -346,7 +346,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
           either -> either.map(
             a -> Either.left(Tuple.of(a, fiberB)))));
       });
-      
+
       promiseB.onComplete(result -> {
         PureIO<R, E, A> fromPromiseA = PureIO.fromPromise(promiseA);
         PureIO<R, E, Unit> cancelA = PureIO.run(connection2::cancel);
@@ -409,7 +409,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   static <R, E, A> PureIO<R, E, A> fromEither(Producer<Either<E, ? extends A>> task) {
     return new Delay<>(task);
   }
-  
+
   static <R, E, A> PureIO<R, E, A> fromPromise(Promise<? extends Either<E, ? extends A>> promise) {
     Consumer1<Consumer1<? super Try<? extends Either<E, ? extends A>>>> callback = promise::onComplete;
     return async((env, cb) -> callback.accept(cb));
@@ -438,15 +438,15 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   static <R, E, A> PureIO<R, E, A> later(Producer<? extends A> task) {
     return fromEither(task.andThen(Either::right));
   }
-  
+
   static <R, E, A> PureIO<R, E, A> never() {
     return async((env, cb) -> {});
   }
-  
+
   static <R, E, A> PureIO<R, E, A> async(Consumer2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>> consumer) {
     return cancellable(consumer.asFunction().andThen(PureIO::pure));
   }
-  
+
   static <R, E, A> PureIO<R, E, A> cancellable(Function2<R, Consumer1<? super Try<? extends Either<E, ? extends A>>>, PureIO<R, ?, Unit>> consumer) {
     return new Async<>(consumer);
   }
@@ -472,7 +472,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       Future<Unit> sleep = Future.sleep(executor, delay)
         .onComplete(result -> callback.accept(Try.success(Either.right(Unit.unit()))));
       return PureIO.exec(() -> sleep.cancel(true));
-    });  
+    });
   }
 
   static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Sequence<? extends Kind<Kind<Kind<PureIO_, R>, E>, A>> sequence) {
@@ -500,11 +500,11 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
                                            Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, Unit>> release) {
     // TODO: cancel
     return cancellable((env, callback) -> {
-      
+
       PureIOConnection cancellable = PureIOConnection.cancellable();
-      
+
       Promise<Either<E, A>> promise = runAsync(env, acquire.fix(PureIOOf::narrowK), cancellable);
-      
+
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
         .onSuccess(either -> either.fold(error -> {
@@ -513,13 +513,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         }, resource -> {
           Function1<? super A, PureIO<R, E, B>> andThen = use.andThen(PureIOOf::narrowK);
           Promise<Either<E, B>> runAsync = runAsync(env, andThen.apply(resource), cancellable);
-          
+
           runAsync
             .onFailure(e -> callback.accept(Try.failure(e)))
             .onSuccess(result -> {
 
               Promise<Either<E, Unit>> run = runAsync(env, release.andThen(PureIOOf::narrowK).apply(resource), cancellable);
-              
+
               run.onComplete(ignore -> result.fold(error -> {
                 callback.accept(Try.success(Either.left(error)));
                 return Unit.unit();
@@ -638,8 +638,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       } else if (current instanceof Delay<R, E, A> delay) {
         Either<E, ? extends A> value = delay.task.get();
         return value.fold(PureIO::raiseError, PureIO::pure);
-      } else if (current instanceof Attempt) {
-        Attempt<R, A> attempt = (Attempt<R, A>) current;
+      } else if (current instanceof Attempt<R, E, A> attempt) {
         Either<E, ? extends A> either = (Either<E, ? extends A>) attempt.current.liftEither().get();
         return either.fold(PureIO::raiseError, PureIO::pure);
       } else {
@@ -768,7 +767,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     }
   }
 
-  final class Attempt<R, A> implements PureIO<R, Throwable, A> {
+  final class Attempt<R, E, A> implements PureIO<R, E, A> {
 
     private final Producer<? extends A> current;
 
@@ -812,9 +811,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     }
   }
 }
-  
+
 final class Repeat<R, S, E, A, B, C> {
-  
+
   private final PureIO<R, E, A> current;
   private final ScheduleImpl<R, S, A, B> schedule;
   private final Function2<E, Option<B>, PureIO<R, E, C>> orElse;
@@ -825,7 +824,7 @@ final class Repeat<R, S, E, A, B, C> {
     this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
     this.orElse = checkNonNull(orElse);
   }
-  
+
   PureIO<R, E, Either<C, B>> run() {
     return current.foldM(error -> {
       PureIO<R, E, C> apply = orElse.apply(error, Option.none());
@@ -838,9 +837,9 @@ final class Repeat<R, S, E, A, B, C> {
 
   private PureIO<R, E, Either<C, B>> loop(A later, S state) {
     return schedule.update(later, state)
-      .foldM(error -> PureIO.pure(Either.right(schedule.extract(later, state))), 
+      .foldM(error -> PureIO.pure(Either.right(schedule.extract(later, state))),
         s -> current.foldM(
-          e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left), 
+          e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left),
           a -> loop(a, s)));
   }
 }
@@ -872,25 +871,25 @@ final class Retry<R, E, A, B, S> {
 }
 
 sealed interface PureIOConnection {
-  
+
   PureIOConnection UNCANCELLABLE = new Uncancellable();
-  
+
   boolean isCancellable();
-  
+
   void setCancelToken(PureIO<?, ?, Unit> cancel);
-  
+
   void cancelNow();
-  
+
   void cancel();
-  
+
   StateIO updateState(Operator1<StateIO> update);
-  
+
   static PureIOConnection cancellable() {
     return new Cancellable();
   }
-  
+
   final class Uncancellable implements PureIOConnection {
-    
+
     private Uncancellable() { }
 
     @Override
@@ -900,17 +899,17 @@ sealed interface PureIOConnection {
 
     @Override
     public void setCancelToken(PureIO<?, ?, Unit> cancel) {
-      /* nothing to do */ 
+      /* nothing to do */
     }
 
     @Override
     public void cancelNow() {
-      /* nothing to do */ 
+      /* nothing to do */
     }
 
     @Override
     public void cancel() {
-      /* nothing to do */ 
+      /* nothing to do */
     }
 
     @Override
@@ -918,9 +917,9 @@ sealed interface PureIOConnection {
       return StateIO.INITIAL;
     }
   }
-  
+
   final class Cancellable implements PureIOConnection {
-    
+
     private Cancellable() { }
 
     private PureIO<?, ?, Unit> cancelToken;
@@ -952,35 +951,35 @@ sealed interface PureIOConnection {
 }
 
 record StateIO(boolean isCancelled, boolean isCancellingNow, boolean isStartingNow) {
-  
+
   static final StateIO INITIAL = new StateIO(false, false, false);
   static final StateIO CANCELLED = new StateIO(true, false, false);
-  
+
   StateIO cancellingNow() {
     return new StateIO(isCancelled, true, isStartingNow);
   }
-  
+
   StateIO startingNow() {
     return new StateIO(isCancelled, isCancellingNow, true);
   }
-  
+
   StateIO notStartingNow() {
     return new StateIO(isCancelled, isCancellingNow, false);
   }
-  
+
   boolean isCancelable() {
     return !isCancelled && !isCancellingNow && !isStartingNow;
   }
-  
+
   boolean isRunnable() {
     return !isCancelled && !isCancellingNow;
   }
 }
 
 final class CallStack<R, E, A> implements Recoverable {
-  
+
   private StackItem<R, E, A> top = new StackItem<>();
-  
+
   public void push() {
     top.push();
   }
@@ -992,7 +991,7 @@ final class CallStack<R, E, A> implements Recoverable {
       top = top.prev();
     }
   }
-  
+
   public void add(PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError) {
     if (top.count() > 0) {
       top.pop();
@@ -1000,12 +999,12 @@ final class CallStack<R, E, A> implements Recoverable {
     }
     top.add(mapError);
   }
-  
+
   public Option<PureIO<R, E, A>> tryHandle(Throwable error) {
     while (top != null) {
       top.reset();
       Option<PureIO<R, E, A>> result = top.tryHandle(error);
-      
+
       if (result.isPresent()) {
         return result;
       } else {
@@ -1017,7 +1016,7 @@ final class CallStack<R, E, A> implements Recoverable {
 }
 
 final class StackItem<R, E, A> {
-  
+
   private int count = 0;
   private final Deque<PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>>> recover = new ArrayDeque<>();
 
@@ -1030,27 +1029,27 @@ final class StackItem<R, E, A> {
   public StackItem(StackItem<R, E, A> prev) {
     this.prev = prev;
   }
-  
+
   public StackItem<R, E, A> prev() {
     return prev;
   }
-  
+
   public int count() {
     return count;
   }
-  
+
   public void push() {
     count++;
   }
-  
+
   public void pop() {
     count--;
   }
-  
+
   public void reset() {
     count = 0;
   }
-  
+
   public void add(PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError) {
     recover.addFirst(mapError);
   }

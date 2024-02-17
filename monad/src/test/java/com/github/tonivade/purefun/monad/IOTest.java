@@ -208,6 +208,16 @@ public class IOTest {
   }
 
   @Test
+  public void repeatStackSafe(@Mock Producer<String> computation) {
+    when(computation.get()).thenReturn("hola");
+
+    Try<String> repeat = IO.task(computation).repeat(10000).safeRunSync();
+
+    assertEquals("hola", repeat.getOrElseThrow());
+    verify(computation, times(4)).get();
+  }
+
+  @Test
   public void repeatFailure(@Mock Producer<String> computation) {
     when(computation.get()).thenReturn("hola").thenThrow(UnsupportedOperationException.class);
 
