@@ -12,11 +12,12 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
+import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 public class FreeTest {
 
@@ -39,9 +40,9 @@ public class FreeTest {
 
   @Test
   public void interpretIO() {
-    var foldMap = echo.foldMap(IOInstances.monad(), new IOProgramToIO());
+    var foldMap = echo.foldMap(Instances.<IO_>monad(), new IOProgramToIO());
 
-    ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
+    var executor = new ConsoleExecutor().read("Toni");
 
     executor.run(foldMap.fix(toIO()));
 
