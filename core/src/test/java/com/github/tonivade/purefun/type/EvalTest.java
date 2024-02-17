@@ -104,10 +104,8 @@ public class EvalTest {
 
   @Test
   public void stackSafety() {
-    Eval<Integer> sum = sum(100000, 0);
-
     assertThrows(StackOverflowError.class, () -> sumImpure(100000, 0));
-    assertEquals(705082704, sum.value());
+    assertEquals(705082704, sum(100000, 0).value());
   }
 
   private Eval<Integer> sum(int n, int sum) {
@@ -121,6 +119,6 @@ public class EvalTest {
     if (n == 0) {
       return sum;
     }
-    return sumImpure( n - 1, sum + n);
+    return sumImpure(n - 1, sum + n);
   }
 }
