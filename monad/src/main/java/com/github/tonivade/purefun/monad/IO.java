@@ -52,7 +52,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default Future<T> runAsync(Executor executor) {
     return forked(executor).andThen(this).runAsync();
   }
-  
+
   default T unsafeRunSync() {
     return safeRunSync().getOrElseThrow();
   }
@@ -120,7 +120,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default <X extends Throwable> IO<T> recover(Class<X> type, Function1<? super X, ? extends T> function) {
     return recoverWith(PartialFunction1.of(error -> error.getClass().equals(type), t -> function.andThen(IO::pure).apply((X) t)));
   }
-  
+
   default IO<T> recoverWith(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapper) {
     return new Recover<>(this, mapper.andThen(IOOf::narrowK));
   }
@@ -130,15 +130,15 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return IO.task(System::nanoTime).flatMap(
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
-  
+
   default IO<Fiber<IO_, T>> fork() {
     return async(callback -> {
       IOConnection connection = IOConnection.cancellable();
       Promise<T> promise = runAsync(this, connection);
-      
+
       IO<T> join = fromPromise(promise);
       IO<Unit> cancel = exec(connection::cancel);
-      
+
       callback.accept(Try.success(Fiber.of(join, cancel)));
     });
   }
@@ -146,7 +146,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   default IO<T> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }
-  
+
   default IO<T> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> ta.get1()),
@@ -196,23 +196,23 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <T> IO<T> pure(T value) {
     return new Pure<>(value);
   }
-  
+
   static <A, B> IO<Either<A, B>> race(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
-  
+
   static <A, B> IO<Either<A, B>> race(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(IOOf.toIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(IOOf.toIO()).map(x -> Either.right(tb.get2()))));
   }
-  
+
   static <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
     return cancellable(callback -> {
-      
+
       IOConnection connection1 = IOConnection.cancellable();
       IOConnection connection2 = IOConnection.cancellable();
-      
+
       Promise<A> promiseA = runAsync(IO.forked(executor).andThen(fa), connection1);
       Promise<B> promiseB = runAsync(IO.forked(executor).andThen(fb), connection2);
 
@@ -270,12 +270,12 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <T> IO<T> fromEither(Either<Throwable, ? extends T> task) {
     return task.fold(IO::raiseError, IO::pure);
   }
-  
+
   static <T> IO<T> fromPromise(Promise<? extends T> promise) {
     Consumer1<Consumer1<? super Try<? extends T>>> callback = promise::onComplete;
     return async(callback);
   }
-  
+
   static <T> IO<T> fromCompletableFuture(CompletableFuture<? extends T> promise) {
     return fromPromise(Promise.from(promise));
   }
@@ -303,11 +303,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <T> IO<T> never() {
     return async(callback -> {});
   }
-  
+
   static IO<Unit> forked() {
     return forked(Future.DEFAULT_EXECUTOR);
   }
-  
+
   static IO<Unit> forked(Executor executor) {
     return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
@@ -340,38 +340,38 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return UNIT;
   }
 
-  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire,
       Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Function1<? super T, ? extends Kind<IO_, Unit>> release) {
     return cancellable(callback -> {
-      
+
       IOConnection cancellable = IOConnection.cancellable();
-      
+
       Promise<? extends T> promise = runAsync(acquire.fix(IOOf::narrowK), cancellable);
-      
+
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
         .onSuccess(resource -> runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
           .onComplete(result -> runAsync(release.andThen(IOOf::narrowK).apply(resource), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
-      
+
       return IO.exec(cancellable::cancel);
     });
   }
 
-  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+  static <T, R> IO<R> bracket(Kind<IO_, ? extends T> acquire,
       Function1<? super T, ? extends Kind<IO_, ? extends R>> use, Consumer1<? super T> release) {
     return bracket(acquire, use, release.asFunction().andThen(IO::pure));
   }
 
-  static <T extends AutoCloseable, R> IO<R> bracket(Kind<IO_, ? extends T> acquire, 
+  static <T extends AutoCloseable, R> IO<R> bracket(Kind<IO_, ? extends T> acquire,
       Function1<? super T, ? extends Kind<IO_, ? extends R>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
   static IO<Unit> sequence(Sequence<? extends Kind<IO_, ?>> sequence) {
     Kind<IO_, ?> initial = IO.unit().kind();
-    return sequence.foldLeft(initial, 
+    return sequence.foldLeft(initial,
         (Kind<IO_, ?> a, Kind<IO_, ?> b) -> a.fix(IOOf::narrowK).andThen(b.fix(IOOf::narrowK))).fix(IOOf::narrowK).andThen(IO.unit());
   }
 
@@ -380,7 +380,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <A> IO<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<IO_, A>> sequence) {
-    return sequence.foldLeft(pure(ImmutableList.empty()), 
+    return sequence.foldLeft(pure(ImmutableList.empty()),
         (Kind<IO_, Sequence<A>> xs, Kind<IO_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
@@ -392,15 +392,15 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   static <A, B, C> IO<C> parMap2(Executor executor, Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb,
                               Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable(callback -> {
-      
+
       IOConnection connection1 = IOConnection.cancellable();
       IOConnection connection2 = IOConnection.cancellable();
-      
+
       Promise<A> promiseA = runAsync(IO.forked(executor).andThen(fa), connection1);
       Promise<B> promiseB = runAsync(IO.forked(executor).andThen(fb), connection2);
-      
+
       promiseA.onComplete(a -> promiseB.onComplete(b -> callback.accept(Try.map2(a, b, mapper))));
-      
+
       return IO.exec(() -> {
         try {
           connection1.cancel();
@@ -428,31 +428,31 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     while (true) {
       try {
         current = unwrap(current, stack, identity());
-        
+
         if (current instanceof Pure<T> pure) {
           return promise.succeeded(pure.value);
         }
-        
+
         if (current instanceof Async<T> async) {
           return executeAsync(async, connection, promise);
         }
-        
+
         if (current instanceof FlatMapped) {
           stack.push();
 
           var flatMapped = (FlatMapped<U, T>) current;
           IO<U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next)).fix(IOOf::narrowK);
-          
+
           if (source instanceof Async<U> async) {
             Promise<U> nextPromise = Promise.make();
-            
+
             nextPromise.then(u -> {
               Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
               runAsync(andThen.apply(u), connection, stack, promise);
             });
-            
+
             executeAsync(async, connection, nextPromise);
-            
+
             return promise;
           }
 
@@ -468,7 +468,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
         }
       } catch (Throwable error) {
         Option<IO<T>> result = stack.tryHandle(error);
-        
+
         if (result.isPresent()) {
           current = result.getOrElseThrow();
         } else {
@@ -506,11 +506,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
-    
+
     connection.setCancelToken(current.callback.apply(promise::tryComplete));
-    
+
     promise.thenRun(() -> connection.setCancelToken(UNIT));
-    
+
     if (connection.isCancellable() && connection.updateState(StateIO::notStartingNow).isCancellingNow()) {
       connection.cancelNow();
     }
@@ -522,7 +522,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return self.redeemWith(IO::raiseError, value -> {
       if (times > 0) {
         return pause.andThen(repeat(self, pause, times - 1));
-      } else return IO.pure(value);
+      }
+      return IO.pure(value);
     });
   }
 
@@ -530,7 +531,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return self.redeemWith(error -> {
       if (maxRetries > 0) {
         return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
-      } else return IO.raiseError(error);
+      }
+      return IO.raiseError(error);
     }, IO::pure);
   }
 
@@ -639,25 +641,25 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 }
 
 sealed interface IOConnection {
-  
+
   IOConnection UNCANCELLABLE = new Uncancellable();
-  
+
   boolean isCancellable();
 
   void setCancelToken(IO<Unit> cancel);
-  
+
   void cancelNow();
-  
+
   void cancel();
-  
+
   StateIO updateState(Operator1<StateIO> update);
-  
+
   static IOConnection cancellable() {
     return new Cancellable();
   }
-  
+
   final class Uncancellable implements IOConnection {
-    
+
     private Uncancellable() { }
 
     @Override
@@ -685,7 +687,7 @@ sealed interface IOConnection {
       return StateIO.INITIAL;
     }
   }
-  
+
   final class Cancellable implements IOConnection {
 
     private IO<Unit> cancelToken;
@@ -725,57 +727,57 @@ sealed interface IOConnection {
 }
 
 final class StateIO {
-  
+
   public static final StateIO INITIAL = new StateIO(false, false, false);
   public static final StateIO CANCELLED = new StateIO(true, false, false);
-  
+
   private final boolean isCancelled;
   private final boolean cancellingNow;
   private final boolean startingNow;
-  
+
   public StateIO(boolean isCancelled, boolean cancellingNow, boolean startingNow) {
     this.isCancelled = isCancelled;
     this.cancellingNow = cancellingNow;
     this.startingNow = startingNow;
   }
-  
+
   public boolean isCancelled() {
     return isCancelled;
   }
-  
+
   public boolean isCancellingNow() {
     return cancellingNow;
   }
-  
+
   public boolean isStartingNow() {
     return startingNow;
   }
-  
+
   public StateIO cancellingNow() {
     return new StateIO(isCancelled, true, startingNow);
   }
-  
+
   public StateIO startingNow() {
     return new StateIO(isCancelled, cancellingNow, true);
   }
-  
+
   public StateIO notStartingNow() {
     return new StateIO(isCancelled, cancellingNow, false);
   }
-  
+
   public boolean isCancelable() {
     return !isCancelled && !cancellingNow && !startingNow;
   }
-  
+
   public boolean isRunnable() {
     return !isCancelled && !cancellingNow;
   }
 }
 
 final class CallStack<T> implements Recoverable {
-  
+
   private StackItem<T> top = new StackItem<>();
-  
+
   public void push() {
     top.push();
   }
@@ -787,7 +789,7 @@ final class CallStack<T> implements Recoverable {
       top = top.prev();
     }
   }
-  
+
   public void add(PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError) {
     if (top.count() > 0) {
       top.pop();
@@ -795,12 +797,12 @@ final class CallStack<T> implements Recoverable {
     }
     top.add(mapError);
   }
-  
+
   public Option<IO<T>> tryHandle(Throwable error) {
     while (top != null) {
       top.reset();
       Option<IO<T>> result = top.tryHandle(error);
-      
+
       if (result.isPresent()) {
         return result;
       } else {
@@ -812,7 +814,7 @@ final class CallStack<T> implements Recoverable {
 }
 
 final class StackItem<T> {
-  
+
   private int count = 0;
   private final Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new ArrayDeque<>();
 
@@ -825,27 +827,27 @@ final class StackItem<T> {
   public StackItem(StackItem<T> prev) {
     this.prev = prev;
   }
-  
+
   public StackItem<T> prev() {
     return prev;
   }
-  
+
   public int count() {
     return count;
   }
-  
+
   public void push() {
     count++;
   }
-  
+
   public void pop() {
     count--;
   }
-  
+
   public void reset() {
     count = 0;
   }
-  
+
   public void add(PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError) {
     recover.addFirst(mapError);
   }
