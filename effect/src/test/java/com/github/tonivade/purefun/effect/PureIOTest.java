@@ -40,7 +40,7 @@ import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
 
 @ExtendWith(MockitoExtension.class)
-public class ZIOTest {
+public class PureIOTest {
 
   @Test
   public void recover() {

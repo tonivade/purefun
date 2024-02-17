@@ -2,15 +2,15 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.effect;
+package com.github.tonivade.purefun.effect.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.effect.util.PureRandom;
+import com.github.tonivade.purefun.effect.URIO;
 
-public class ZRandomTest {
+public class PureRandomTest {
 
   @Test
   public void nextInt() {
