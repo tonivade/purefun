@@ -39,11 +39,24 @@ public class ScheduleTest {
   public void repeat(@Mock Consumer1<String> console) {
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     Schedule<IO_, Unit, Unit> schedule = Schedule.<IO_, Unit>recurs(2).zipRight(Schedule.identity());
-    
+
     IO<Unit> repeat = monadError.repeat(print, schedule).fix(toIO());
-    
+
     Unit result = repeat.unsafeRunSync();
-    
+
+    assertEquals(unit(), result);
+    verify(console, times(3)).accept("hola");
+  }
+
+  @Test
+  public void repeatStackSafe(@Mock Consumer1<String> console) {
+    IO<Unit> print = IO.exec(() -> console.accept("hola"));
+    Schedule<IO_, Unit, Unit> schedule = Schedule.<IO_, Unit>recurs(10000).zipRight(Schedule.identity());
+
+    IO<Unit> repeat = monadError.repeat(print, schedule).fix(toIO());
+
+    Unit result = repeat.unsafeRunSync();
+
     assertEquals(unit(), result);
     verify(console, times(3)).accept("hola");
   }
@@ -57,20 +70,20 @@ public class ScheduleTest {
 
     IO<Unit> repeat = monadError.repeat(print, schedule).fix(toIO());
     IO<Tuple2<Duration, Unit>> timed = repeat.timed();
-    
+
     Tuple2<Duration, Unit> result = timed.unsafeRunSync();
-    
+
     assertTrue(result.get1().toMillis() > 1000);
     verify(console, times(3)).accept("hola");
   }
-  
+
   @Test
   public void noRepeat(@Mock Consumer1<String> console) {
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     IO<Unit> repeat = monadError.repeat(print, Schedule.never()).fix(toIO());
-    
+
     Unit result = repeat.unsafeRunSync();
-    
+
     assertEquals(unit(), result);
     verify(console).accept("hola");
   }
@@ -83,9 +96,9 @@ public class ScheduleTest {
 
     IO<String> read = IO.task(console::get);
     IO<String> retry = monadError.retry(read, Schedule.recurs(1)).fix(toIO());
-    
+
     String provide = retry.unsafeRunSync();
-    
+
     assertEquals("hola", provide);
     verify(console, times(2)).get();
   }
@@ -98,24 +111,24 @@ public class ScheduleTest {
     Schedule<IO_, Throwable, Integer> recurs = Schedule.recurs(2);
     Schedule<IO_, Throwable, Integer> spaced = Schedule.spaced(Duration.ofMillis(500));
     IO<Tuple2<Duration, String>> retry = monadError.retry(read, recurs.zip(spaced)).fix(toIO()).timed();
-    
+
     Tuple2<Duration, String> result = retry.unsafeRunSync();
-    
+
     assertTrue(result.get1().toMillis() > 500);
     assertEquals("hola", result.get2());
     verify(console, times(2)).get();
   }
-  
+
   @Test
   public void noRetry(@Mock Producer<String> console) {
     when(console.get()).thenThrow(UnsupportedOperationException.class).thenReturn("hola");
-    
+
     IO<String> read = IO.task(console::get);
     IO<String> retry = monadError.retry(read, Schedule.never()).fix(toIO());
-    
+
     assertThrows(UnsupportedOperationException.class, retry::unsafeRunSync);
   }
-  
+
   @Test
   public void andThen(@Mock Consumer1<String> console) {
     Schedule<IO_, Unit, Integer> two =
@@ -123,13 +136,13 @@ public class ScheduleTest {
 
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     IO<Integer> repeat = monadError.repeat(print, two).fix(toIO());
-    
+
     Integer provide = repeat.unsafeRunSync();
-    
+
     assertEquals(1, provide);
     verify(console, times(3)).accept("hola");
   }
-  
+
   @Test
   @Disabled("I don't understand very well this")
   public void compose(@Mock Consumer1<String> console) {
@@ -138,22 +151,22 @@ public class ScheduleTest {
 
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     IO<Integer> repeat = monadError.repeat(print, two).fix(toIO());
-    
+
     Integer provide = repeat.unsafeRunSync();
-    
+
     assertEquals(Either.right(1), provide);
     verify(console, times(3)).accept("hola");
   }
-  
+
   @Test
   public void collect() {
     IO<Unit> pure = IO.unit();
-    
+
     Schedule<IO_, Unit, Sequence<Integer>> schedule = Schedule.<IO_, Unit>recurs(5).collectAll().zipLeft(Schedule.identity());
     IO<Sequence<Integer>> repeat = monadError.repeat(pure, schedule).fix(toIO());
-    
+
     Sequence<Integer> result = repeat.unsafeRunSync();
-    
+
     assertEquals(listOf(0, 1, 2, 3, 4), result);
   }
 }
