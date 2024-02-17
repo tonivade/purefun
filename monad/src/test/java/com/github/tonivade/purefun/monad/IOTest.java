@@ -214,7 +214,7 @@ public class IOTest {
     Try<String> repeat = IO.task(computation).repeat(10000).safeRunSync();
 
     assertEquals("hola", repeat.getOrElseThrow());
-    verify(computation, times(4)).get();
+    verify(computation, times(10001)).get();
   }
 
   @Test
