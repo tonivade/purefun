@@ -76,7 +76,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-    return new FlatMapped<>(this, map.andThen(IOOf::narrowK));
+    return new FlatMapped<>(this, value -> map.apply(value).fix(IOOf::narrowK));
   }
 
   @Override
@@ -240,7 +240,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   static <T> IO<T> suspend(Producer<? extends Kind<IO_, ? extends T>> lazy) {
-    return new Suspend<>(lazy.andThen(IOOf::narrowK));
+    return new Suspend<>(() -> lazy.get().fix(IOOf::narrowK));
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -350,8 +350,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
-        .onSuccess(resource -> runAsync(use.andThen(IOOf::narrowK).apply(resource), cancellable)
-          .onComplete(result -> runAsync(release.andThen(IOOf::narrowK).apply(resource), cancellable)
+        .onSuccess(resource -> runAsync(use.apply(resource).fix(IOOf::narrowK), cancellable)
+          .onComplete(result -> runAsync(release.apply(resource).fix(IOOf::narrowK), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
 
@@ -446,10 +446,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
           if (source instanceof Async<U> async) {
             Promise<U> nextPromise = Promise.make();
 
-            nextPromise.then(u -> {
-              Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
-              runAsync(andThen.apply(u), connection, stack, promise);
-            });
+            nextPromise.then(u -> runAsync(flatMapped.next.apply(u).fix(IOOf::narrowK), connection, stack, promise));
 
             executeAsync(async, connection, nextPromise);
 
@@ -457,8 +454,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
           }
 
           if (source instanceof Pure<U> pure) {
-            Function1<? super U, IO<T>> andThen = flatMapped.next.andThen(IOOf::narrowK);
-            current = andThen.apply(pure.value);
+            current = flatMapped.next.apply(pure.value).fix(IOOf::narrowK);
           } else if (source instanceof FlatMapped) {
             FlatMapped<V, U> flatMapped2 = (FlatMapped<V, U>) source;
             current = flatMapped2.current.flatMap(a -> flatMapped2.next.apply(a).flatMap(flatMapped.next));
@@ -486,8 +482,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
         stack.add(recover.mapper.andThen(next));
         current = recover.current;
       } else if (current instanceof Suspend<T> suspend) {
-        Producer<IO<T>> andThen = (suspend).lazy.andThen(IOOf::narrowK);
-        current = andThen.get();
+        current = suspend.lazy.get().fix(IOOf::narrowK);
       } else if (current instanceof Delay<T> delay) {
         return IO.pure(delay.task.get());
       } else if (current instanceof Pure) {
@@ -856,7 +851,7 @@ final class StackItem<T> {
     while (!recover.isEmpty()) {
       var mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        return Option.some(mapError.andThen(IOOf::<T>narrowK).apply(error));
+        return Option.some(mapError.apply(error).fix(IOOf::narrowK));
       }
     }
     return Option.none();

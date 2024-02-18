@@ -441,7 +441,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
           u.update(a, s), 
           (duration, either) -> either.map(x -> Tuple.of(duration, x)));
       
-      return monad.flatMap(map2, (Either<Unit, Tuple2<Duration, S>> either) -> {
+      return monad.flatMap(map2, either -> {
         Kind<F, Unit> fold = either.fold(monad::pure, tuple -> timer().sleep(tuple.get1()));
         return monad.map(fold, ignore -> either.map(Tuple2<Duration, S>::get2));
       });
