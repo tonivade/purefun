@@ -25,7 +25,9 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.IOInstances;
+import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.UIOOf;
+import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
@@ -33,7 +35,7 @@ import com.github.tonivade.purefun.type.Either;
 @ExtendWith(MockitoExtension.class)
 public class ScheduleTest {
 
-  private final MonadError<IO_,Throwable> monadError = IOInstances.monadError();
+  private final MonadError<IO_, Throwable> monadError = Instances.<IO_, Throwable>monadError();
 
   @Test
   public void repeat(@Mock Consumer1<String> console) {
@@ -49,11 +51,24 @@ public class ScheduleTest {
   }
 
   @Test
-  public void repeatStackSafe(@Mock Consumer1<String> console) {
+  public void repeatStackSafeIO(@Mock Consumer1<String> console) {
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     Schedule<IO_, Unit, Unit> schedule = Schedule.<IO_, Unit>recurs(10000).zipRight(Schedule.identity());
 
     IO<Unit> repeat = monadError.repeat(print, schedule).fix(toIO());
+
+    Unit result = repeat.unsafeRunSync();
+
+    assertEquals(unit(), result);
+    verify(console, times(3)).accept("hola");
+  }
+
+  @Test
+  public void repeatStackSafeUIO(@Mock Consumer1<String> console) {
+    UIO<Unit> print = UIO.exec(() -> console.accept("hola"));
+    Schedule<UIO_, Unit, Unit> schedule = Schedule.<UIO_, Unit>recurs(10000).zipRight(Schedule.identity());
+
+    UIO<Unit> repeat = Instances.<UIO_, Throwable>monadError().repeat(print, schedule).fix(UIOOf.toUIO());
 
     Unit result = repeat.unsafeRunSync();
 
