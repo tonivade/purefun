@@ -150,7 +150,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default PureIO<R, E, A> repeat(int times) {
-    return repeat(Schedule.<R, A>recurs(times).zipRight(Schedule.identity()));
+    return repeat(this, unit(), times);
   }
 
   @Override
@@ -160,23 +160,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default PureIO<R, E, A> repeat(Duration delay, int times) {
-    return repeat(Schedule.<R, A>recursSpaced(delay, times).zipRight(Schedule.identity()));
-  }
-
-  default <B> PureIO<R, E, B> repeat(Schedule<R, A, B> schedule) {
-    return repeatOrElse(schedule, (e, b) -> raiseError(e));
-  }
-
-  default <B> PureIO<R, E, B> repeatOrElse(
-      Schedule<R, A, B> schedule,
-      Function2<E, Option<B>, Kind<Kind<Kind<PureIO_, R>, E>, B>> orElse) {
-    return repeatOrElseEither(schedule, orElse).map(Either::merge);
-  }
-
-  default <B, C> PureIO<R, E, Either<C, B>> repeatOrElseEither(
-      Schedule<R, A, B> schedule,
-      Function2<E, Option<B>, Kind<Kind<Kind<PureIO_, R>, E>, C>> orElse) {
-    return new Repeat<>(this, schedule, orElse.andThen(PureIOOf::narrowK)).run();
+    return repeat(this, sleep(delay), times);
   }
 
   @Override
@@ -186,7 +170,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default PureIO<R, E, A> retry(int maxRetries) {
-    return retry(Schedule.recurs(maxRetries));
+    return retry(this, unit(), maxRetries);
   }
 
   @Override
@@ -196,23 +180,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default PureIO<R, E, A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.recursSpaced(delay, maxRetries));
-  }
-
-  default <B> PureIO<R, E, A> retry(Schedule<R, E, B> schedule) {
-    return retryOrElse(schedule, (e, b) -> raiseError(e));
-  }
-
-  default <B> PureIO<R, E, A> retryOrElse(
-      Schedule<R, E, B> schedule,
-      Function2<E, B, Kind<Kind<Kind<PureIO_, R>, E>, A>> orElse) {
-    return retryOrElseEither(schedule, orElse).map(Either::merge);
-  }
-
-  default <B, C> PureIO<R, E, Either<B, A>> retryOrElseEither(
-      Schedule<R, E, C> schedule,
-      Function2<E, C, Kind<Kind<Kind<PureIO_, R>, E>, B>> orElse) {
-    return new Retry<>(this, schedule, orElse.andThen(PureIOOf::narrowK)).run();
+    return retry(this, sleep(delay), maxRetries);
   }
 
   @Override
@@ -810,63 +778,23 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       return "AccessM(?)";
     }
   }
-}
 
-final class Repeat<R, S, E, A, B, C> {
-
-  private final PureIO<R, E, A> current;
-  private final ScheduleImpl<R, S, A, B> schedule;
-  private final Function2<E, Option<B>, PureIO<R, E, C>> orElse;
-
-  @SuppressWarnings("unchecked")
-  Repeat(PureIO<R, E, A> current, Schedule<R, A, B> schedule, Function2<E, Option<B>, PureIO<R, E, C>> orElse) {
-    this.current = checkNonNull(current);
-    this.schedule = (ScheduleImpl<R, S, A, B>) checkNonNull(schedule);
-    this.orElse = checkNonNull(orElse);
-  }
-
-  PureIO<R, E, Either<C, B>> run() {
-    return current.foldM(error -> {
-      PureIO<R, E, C> apply = orElse.apply(error, Option.none());
-      return apply.map(Either::<C, B>left);
-    }, value -> {
-      PureIO<R, E, S> zio = schedule.initial().toPureIO();
-      return zio.flatMap(s -> loop(value, s));
+  private static <R, E, A> PureIO<R, E, A> repeat(PureIO<R, E, A> self, PureIO<R, E, Unit> pause, int times) {
+    return self.foldM(PureIO::raiseError, value -> {
+      if (times > 0) {
+        return pause.andThen(repeat(self, pause, times - 1));
+      }
+      return PureIO.pure(value);
     });
   }
 
-  private PureIO<R, E, Either<C, B>> loop(A later, S state) {
-    return schedule.update(later, state)
-      .foldM(error -> PureIO.pure(Either.right(schedule.extract(later, state))),
-        s -> current.foldM(
-          e -> orElse.apply(e, Option.some(schedule.extract(later, state))).map(Either::<C, B>left),
-          a -> loop(a, s)));
-  }
-}
-
-final class Retry<R, E, A, B, S> {
-
-  private final PureIO<R, E, A> current;
-  private final ScheduleImpl<R, S, E, S> schedule;
-  private final Function2<E, S, PureIO<R, E, B>> orElse;
-
-  @SuppressWarnings("unchecked")
-  Retry(PureIO<R, E, A> current, Schedule<R, E, S> schedule, Function2<E, S, PureIO<R, E, B>> orElse) {
-    this.current = checkNonNull(current);
-    this.schedule = (ScheduleImpl<R, S, E, S>) checkNonNull(schedule);
-    this.orElse = checkNonNull(orElse);
-  }
-
-  public PureIO<R, E, Either<B, A>> run() {
-    return schedule.initial().<E>toPureIO().flatMap(this::loop);
-  }
-
-  private PureIO<R, E, Either<B, A>> loop(S state) {
-    return current.foldM(error -> {
-      PureIO<R, Unit, S> update = schedule.update(error, state);
-      return update.foldM(
-        e -> orElse.apply(error, state).map(Either::<B, A>left), this::loop);
-    }, value -> PureIO.pure(Either.right(value)));
+  private static <R, E, A> PureIO<R, E, A> retry(PureIO<R, E, A> self, PureIO<R, E, Unit> pause, int maxRetries) {
+    return self.foldM(error -> {
+      if (maxRetries > 0) {
+        return pause.andThen(retry(self, pause.repeat(), maxRetries - 1));
+      }
+      return PureIO.raiseError(error);
+    }, PureIO::pure);
   }
 }
 

@@ -60,7 +60,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public <R> RIO<R, A> toURIO() {
     return new RIO<>((PureIO<R, Throwable, A>)instance);
   }
-  
+
   public UIO<A> toUIO() {
     return recover(this::sneakyThrow);
   }
@@ -105,10 +105,10 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public <B> Task<B> foldM(
-      Function1<? super Throwable, ? extends Kind<Task_, ? extends B>> mapError, 
+      Function1<? super Throwable, ? extends Kind<Task_, ? extends B>> mapError,
       Function1<? super A, ? extends Kind<Task_, ? extends B>> map) {
     return new Task<>(instance.foldM(
-        error -> mapError.andThen(TaskOf::narrowK).apply(error).instance, 
+        error -> mapError.andThen(TaskOf::narrowK).apply(error).instance,
         value -> map.andThen(TaskOf::narrowK).apply(value).instance));
   }
 
@@ -134,28 +134,28 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public Task<A> orElse(Kind<Task_, ? extends A> other) {
     return new Task<>(instance.orElse(other.fix(TaskOf.toTask()).instance));
   }
-  
+
   @Override
   public <B> Task<Tuple2<A, B>> zip(Kind<Task_, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
-  
+
   @Override
   public <B> Task<A> zipLeft(Kind<Task_, ? extends B> other) {
     return zipWith(other, first());
   }
-  
+
   @Override
   public <B> Task<B> zipRight(Kind<Task_, ? extends B> other) {
     return zipWith(other, second());
   }
-  
+
   @Override
-  public <B, C> Task<C> zipWith(Kind<Task_, ? extends B> other, 
+  public <B, C> Task<C> zipWith(Kind<Task_, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(TaskOf.toTask()), mapper);
   }
-  
+
   public Task<Fiber<Task_, A>> fork() {
     return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
@@ -168,7 +168,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public Task<A> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }
-  
+
   public Task<A> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(TaskOf.toTask()).map(x -> ta.get1()),
@@ -194,10 +194,6 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public Task<A> repeat(Duration delay, int times) {
     return new Task<>(instance.repeat(delay, times));
   }
-  
-  public <B> Task<B> repeat(Schedule<Nothing, A, B> schedule) {
-    return new Task<>(instance.repeat(schedule));
-  }
 
   @Override
   public Task<A> retry() {
@@ -206,7 +202,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   @Override
   public Task<A> retry(int maxRetries) {
-    return retry(Schedule.recurs(maxRetries));
+    return new Task<>(instance.retry(maxRetries));
   }
 
   @Override
@@ -216,43 +212,39 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   @Override
   public Task<A> retry(Duration delay, int maxRetries) {
-    return retry(Schedule.recursSpaced(delay, maxRetries));
-  }
-  
-  public <B> Task<A> retry(Schedule<Nothing, Throwable, B> schedule) {
-    return new Task<>(instance.retry(schedule));
+    return new Task<>(instance.retry(delay, maxRetries));
   }
 
   @Override
   public Task<Tuple2<Duration, A>> timed() {
     return new Task<>(instance.timed());
   }
-  
+
   public static Task<Unit> forked(Executor executor) {
     return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <A, B, C> Task<C> parMap2(Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb, 
+  public static <A, B, C> Task<C> parMap2(Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  public static <A, B, C> Task<C> parMap2(Executor executor, Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb, 
+  public static <A, B, C> Task<C> parMap2(Executor executor, Kind<Task_, ? extends A> za, Kind<Task_, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return new Task<>(PureIO.parMap2(executor, za.fix(TaskOf::narrowK).instance, zb.fix(TaskOf::narrowK).instance, mapper));
   }
-  
+
   public static <A, B> Task<Either<A, B>> race(Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
-  
+
   public static <A, B> Task<Either<A, B>> race(Executor executor, Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(TaskOf.toTask()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(TaskOf.toTask()).map(x -> Either.right(tb.get2()))));
   }
-  
-  public static <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> 
+
+  public static <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>>
       racePair(Executor executor, Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
     PureIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
     PureIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
@@ -337,16 +329,16 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public static <A> Task<A> task(Producer<? extends A> task) {
     return new Task<>(PureIO.task(task));
   }
-  
+
   public static <A> Task<A> never() {
     return async(cb -> {});
   }
-  
+
   public static <A> Task<A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return new Task<>(PureIO.async(
       (env, cb1) -> consumer.accept(result -> cb1.accept(result.map(Either::right)))));
   }
-  
+
   public static <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Task<Unit>> consumer) {
     return new Task<>(PureIO.cancellable(
       (env, cb1) -> consumer.andThen(Task::<Nothing>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
@@ -361,7 +353,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public static <A> Task<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Task_, A>> sequence) {
-    return sequence.foldLeft(pure(ImmutableList.empty()), 
+    return sequence.foldLeft(pure(ImmutableList.empty()),
         (Kind<Task_, Sequence<A>> xs, Kind<Task_, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 

@@ -313,6 +313,16 @@ public class PureIOTest {
   }
 
   @Test
+  public void repeatStackSafe(@Mock Producer<Either<Throwable, ? extends String>> computation) {
+    Mockito.<Either<Throwable, ? extends String>>when(computation.get()).thenReturn(Either.right("hola"));
+
+    Either<Throwable, String> provide = PureIO.fromEither(computation).repeat(10000).provide(nothing());
+
+    assertEquals("hola", provide.get());
+    verify(computation, times(10001)).get();
+  }
+
+  @Test
   public void repeatFailure(@Mock Producer<Either<Throwable, ? extends String>> computation) {
     Mockito.<Either<Throwable, ? extends String>>when(computation.get())
         .thenReturn(Either.right("hola"))
