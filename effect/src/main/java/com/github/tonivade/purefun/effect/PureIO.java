@@ -86,7 +86,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @Override
   default <B> PureIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends B>> map) {
-    return foldM(PureIO::raiseError, value -> map.apply(value).fix(PureIOOf::narrowK));
+    return foldM(PureIO::raiseError, map);
   }
 
   default <F> PureIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends A>> map) {
@@ -96,7 +96,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   default <F, B> PureIO<R, F, B> foldM(
       Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> left,
       Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> right) {
-    return new FlatMapped<>(this, error -> left.apply(error).fix(PureIOOf::narrowK), value -> right.apply(value).fix(PureIOOf::narrowK));
+    return new FlatMapped<>(this, left, right);
   }
 
   @Override
@@ -514,7 +514,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   @SuppressWarnings("unchecked")
-  private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+  private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
         current = unwrap(env, current, stack, identity());
@@ -535,7 +535,8 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
           stack.push();
 
           var flatMapped = (FlatMapped<R, F, B, E, A>) current;
-          PureIO<R, F, B> source = unwrap(env, flatMapped.current, stack, b -> b.foldM(flatMapped.nextError, flatMapped.next));
+          Kind<Kind<Kind<PureIO_, R>, F>, B> source = unwrap(env, flatMapped.current, stack,
+              b -> b.fix(PureIOOf::narrowK).foldM(flatMapped.nextError, flatMapped.next));
 
           if (source instanceof Async<R, F, B> async) {
             Promise<Either<F, B>> nextPromise = Promise.make();
@@ -559,9 +560,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
           } else if (source instanceof FlatMapped) {
             FlatMapped<R, G, C, F, B> flatMapped2 = (FlatMapped<R, G, C, F, B>) source;
 
-            current = flatMapped2.current.foldM(
-                e -> flatMapped2.nextError.apply(e).foldM(flatMapped.nextError, flatMapped.next),
-                a -> flatMapped2.next.apply(a).foldM(flatMapped.nextError, flatMapped.next));
+            current = flatMapped2.current.fix(PureIOOf::narrowK).foldM(
+                e -> flatMapped2.nextError.apply(e).fix(PureIOOf::narrowK).foldM(flatMapped.nextError, flatMapped.next),
+                a -> flatMapped2.next.apply(a).fix(PureIOOf::narrowK).foldM(flatMapped.nextError, flatMapped.next));
           }
         } else {
           stack.pop();
@@ -579,7 +580,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   @SuppressWarnings("unchecked")
-  private static <R, E, F, A, B> PureIO<R, E, A> unwrap(R env, PureIO<R, E, A> current, CallStack<R, F, B> stack, Function1<PureIO<R, E, ? extends A>, PureIO<R, F, ? extends B>> next) {
+  private static <R, E, F, A, B> Kind<Kind<Kind<PureIO_, R>, E>, A> unwrap(
+      R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
+      Function1<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>, Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> next) {
     while (true) {
       if (current instanceof Failure) {
         return current;
@@ -670,13 +673,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class FlatMapped<R, E, A, F, B> implements PureIO<R, F, B> {
 
-    private final PureIO<R, E, A> current;
-    private final Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError;
-    private final Function1<? super A, ? extends PureIO<R, F, ? extends B>> next;
+    private final Kind<Kind<Kind<PureIO_, R>, E>, A> current;
+    private final Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> nextError;
+    private final Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> next;
 
     private FlatMapped(PureIO<R, E, A> current,
-                         Function1<? super E, ? extends PureIO<R, F, ? extends B>> nextError,
-                         Function1<? super A, ? extends PureIO<R, F, ? extends B>> next) {
+                         Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> nextError,
+                         Function1<? super A, ? extends Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> next) {
       this.current = checkNonNull(current);
       this.nextError = checkNonNull(nextError);
       this.next = checkNonNull(next);
@@ -704,9 +707,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class Suspend<R, E, A> implements PureIO<R, E, A> {
 
-    private final Producer<PureIO<R, E, ? extends A>> lazy;
+    private final Producer<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> lazy;
 
-    private Suspend(Producer<PureIO<R, E, ? extends A>> lazy) {
+    private Suspend(Producer<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -762,9 +765,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class AccessM<R, E, A> implements PureIO<R, E, A> {
 
-    private final Function1<? super R, ? extends PureIO<R, E, ? extends A>> function;
+    private final Function1<? super R, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> function;
 
-    private AccessM(Function1<? super R, ? extends PureIO<R, E, ? extends A>> function) {
+    private AccessM(Function1<? super R, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> function) {
       this.function = checkNonNull(function);
     }
 
@@ -849,13 +852,19 @@ sealed interface PureIOConnection {
     private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
 
     @Override
-    public boolean isCancellable() { return true; }
+    public boolean isCancellable() {
+      return true;
+    }
 
     @Override
-    public void setCancelToken(PureIO<?, ?, Unit> cancel) { this.cancelToken = checkNonNull(cancel); }
+    public void setCancelToken(PureIO<?, ?, Unit> cancel) {
+      this.cancelToken = checkNonNull(cancel);
+    }
 
     @Override
-    public void cancelNow() { cancelToken.runAsync(null); }
+    public void cancelNow() {
+      cancelToken.fix(PureIOOf::narrowK).runAsync(null);
+    }
 
     @Override
     public void cancel() {
@@ -915,7 +924,7 @@ final class CallStack<R, E, A> implements Recoverable {
     }
   }
 
-  public void add(PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> mapError) {
     if (top.count() > 0) {
       top.pop();
       top = new StackItem<>(top);
@@ -941,7 +950,7 @@ final class CallStack<R, E, A> implements Recoverable {
 final class StackItem<R, E, A> {
 
   private int count = 0;
-  private final Deque<PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>>> recover = new ArrayDeque<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>>> recover = new ArrayDeque<>();
 
   private final StackItem<R, E, A> prev;
 
@@ -973,7 +982,7 @@ final class StackItem<R, E, A> {
     count = 0;
   }
 
-  public void add(PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> mapError) {
     recover.addFirst(mapError);
   }
 

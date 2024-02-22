@@ -76,7 +76,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   @Override
   default <R> IO<R> flatMap(Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
-    return new FlatMapped<>(this, value -> map.apply(value).fix(IOOf::narrowK));
+    return new FlatMapped<>(this, map);
   }
 
   @Override
@@ -316,7 +316,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     return cancellable(callback.asFunction().andThen(IO::pure));
   }
 
-  static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+  static <T> IO<T> cancellable(Function1<Consumer1<? super Try<? extends T>>, Kind<IO_, Unit>> callback) {
     return new Async<>(callback);
   }
 
@@ -424,7 +424,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T, U, V> Promise<T> runAsync(IO<T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
+  private static <T, U, V> Promise<T> runAsync(Kind<IO_, T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
     while (true) {
       try {
         current = unwrap(current, stack, identity());
@@ -441,7 +441,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
           stack.push();
 
           var flatMapped = (FlatMapped<U, T>) current;
-          IO<U> source = unwrap(flatMapped.current, stack, u -> u.flatMap(flatMapped.next)).fix(IOOf::narrowK);
+          IO<U> source = unwrap(flatMapped.current, stack, u -> u.fix(IOOf::narrowK).flatMap(flatMapped.next)).fix(IOOf::narrowK);
 
           if (source instanceof Async<U> async) {
             Promise<U> nextPromise = Promise.make();
@@ -456,8 +456,10 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
           if (source instanceof Pure<U> pure) {
             current = flatMapped.next.apply(pure.value).fix(IOOf::narrowK);
           } else if (source instanceof FlatMapped) {
-            FlatMapped<V, U> flatMapped2 = (FlatMapped<V, U>) source;
-            current = flatMapped2.current.flatMap(a -> flatMapped2.next.apply(a).flatMap(flatMapped.next));
+            var flatMapped2 = (FlatMapped<V, U>) source;
+            current = flatMapped2.current.fix(IOOf::narrowK)
+                .flatMap(a -> flatMapped2.next.apply(a).fix(IOOf::narrowK)
+                    .flatMap(flatMapped.next));
           }
         } else {
           stack.pop();
@@ -474,7 +476,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     }
   }
 
-  private static <T, U> IO<T> unwrap(IO<T> current, CallStack<U> stack, Function1<IO<? extends T>, IO<? extends U>> next) {
+  private static <T, U> Kind<IO_,T> unwrap(Kind<IO_, T> current, CallStack<U> stack, Function1<Kind<IO_, ? extends T>, Kind<IO_, ? extends U>> next) {
     while (true) {
       if (current instanceof Failure<T> failure) {
         return stack.sneakyThrow(failure.error);
@@ -561,11 +563,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   final class FlatMapped<T, R> implements IO<R> {
 
-    private final IO<? extends T> current;
-    private final Function1<? super T, ? extends IO<? extends R>> next;
+    private final Kind<IO_, ? extends T> current;
+    private final Function1<? super T, ? extends Kind<IO_, ? extends R>> next;
 
     private FlatMapped(IO<? extends T> current,
-                         Function1<? super T, ? extends IO<? extends R>> next) {
+                         Function1<? super T, ? extends Kind<IO_, ? extends R>> next) {
       this.current = checkNonNull(current);
       this.next = checkNonNull(next);
     }
@@ -592,9 +594,9 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   final class Async<T> implements IO<T> {
 
-    private final Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback;
+    private final Function1<Consumer1<? super Try<? extends T>>, Kind<IO_, Unit>> callback;
 
-    private Async(Function1<Consumer1<? super Try<? extends T>>, IO<Unit>> callback) {
+    private Async(Function1<Consumer1<? super Try<? extends T>>, Kind<IO_, Unit>> callback) {
       this.callback = checkNonNull(callback);
     }
 
@@ -606,9 +608,9 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   final class Suspend<T> implements IO<T> {
 
-    private final Producer<? extends IO<? extends T>> lazy;
+    private final Producer<? extends Kind<IO_, ? extends T>> lazy;
 
-    private Suspend(Producer<? extends IO<? extends T>> lazy) {
+    private Suspend(Producer<? extends Kind<IO_, ? extends T>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -620,10 +622,10 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
 
   final class Recover<T> implements IO<T> {
 
-    private final IO<T> current;
-    private final PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper;
+    private final Kind<IO_, T> current;
+    private final PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapper;
 
-    private Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapper) {
+    private Recover(IO<T> current, PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapper) {
       this.current = checkNonNull(current);
       this.mapper = checkNonNull(mapper);
     }
@@ -641,7 +643,7 @@ sealed interface IOConnection {
 
   boolean isCancellable();
 
-  void setCancelToken(IO<Unit> cancel);
+  void setCancelToken(Kind<IO_, Unit> cancel);
 
   void cancelNow();
 
@@ -663,7 +665,7 @@ sealed interface IOConnection {
     }
 
     @Override
-    public void setCancelToken(IO<Unit> cancel) {
+    public void setCancelToken(Kind<IO_, Unit> cancel) {
       // uncancellable
     }
 
@@ -685,7 +687,7 @@ sealed interface IOConnection {
 
   final class Cancellable implements IOConnection {
 
-    private IO<Unit> cancelToken;
+    private Kind<IO_, Unit> cancelToken;
     private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
 
     private Cancellable() { }
@@ -696,13 +698,13 @@ sealed interface IOConnection {
     }
 
     @Override
-    public void setCancelToken(IO<Unit> cancel) {
+    public void setCancelToken(Kind<IO_, Unit> cancel) {
       this.cancelToken = checkNonNull(cancel);
     }
 
     @Override
     public void cancelNow() {
-      cancelToken.runAsync();
+      cancelToken.fix(IOOf::narrowK).runAsync();
     }
 
     @Override
@@ -785,7 +787,7 @@ final class CallStack<T> implements Recoverable {
     }
   }
 
-  public void add(PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapError) {
     if (top.count() > 0) {
       top.pop();
       top = new StackItem<>(top);
@@ -811,7 +813,7 @@ final class CallStack<T> implements Recoverable {
 final class StackItem<T> {
 
   private int count = 0;
-  private final Deque<PartialFunction1<? super Throwable, ? extends IO<? extends T>>> recover = new ArrayDeque<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>>> recover = new ArrayDeque<>();
 
   private final StackItem<T> prev;
 
@@ -843,7 +845,7 @@ final class StackItem<T> {
     count = 0;
   }
 
-  public void add(PartialFunction1<? super Throwable, ? extends IO<? extends T>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapError) {
     recover.addFirst(mapError);
   }
 

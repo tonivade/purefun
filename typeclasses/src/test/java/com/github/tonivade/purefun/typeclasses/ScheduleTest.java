@@ -60,7 +60,7 @@ public class ScheduleTest {
     Unit result = repeat.unsafeRunSync();
 
     assertEquals(unit(), result);
-    verify(console, times(3)).accept("hola");
+    verify(console, times(10001)).accept("hola");
   }
 
   @Test
@@ -73,7 +73,7 @@ public class ScheduleTest {
     Unit result = repeat.unsafeRunSync();
 
     assertEquals(unit(), result);
-    verify(console, times(3)).accept("hola");
+    verify(console, times(10001)).accept("hola");
   }
 
   @Test
