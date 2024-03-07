@@ -98,7 +98,7 @@ public class ParTest {
 
     sequence.apply(Future.DEFAULT_EXECUTOR).await();
 
-    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> captor = ArgumentCaptor.captor();
     verify(consumer, times(3)).accept(captor.capture());
 
     List<String> values = captor.getAllValues();

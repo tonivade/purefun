@@ -66,10 +66,10 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
   default Promise<T> onFailure(Consumer1<? super Throwable> consumer) {
     return onComplete(value -> value.onFailure(consumer));
   }
-  
+
   @Override
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
-  
+
   @Override
   <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply);
 
@@ -77,14 +77,14 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
   default <R> Promise<R> andThen(Kind<Promise_, ? extends R> next) {
     return PromiseOf.narrowK(Bindable.super.andThen(next));
   }
-  
+
   @Override
   <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper);
-  
+
   default Promise<Unit> then(Consumer1<? super T> next) {
     return map(next.asFunction());
   }
-  
+
   default Promise<Unit> thenRun(CheckedRunnable next) {
     return map(next.asProducer().asFunction());
   }
@@ -114,34 +114,34 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
     return promise;
   }
 
-  static <A, B, C> Promise<C> mapN(Promise<? extends A> fa, Promise<? extends B> fb, 
+  static <A, B, C> Promise<C> mapN(Promise<? extends A> fa, Promise<? extends B> fb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
 
   static <A, B, C, D> Promise<D> mapN(
-      Promise<? extends A> fa, 
-      Promise<? extends B> fb, 
-      Promise<? extends C> fc, 
+      Promise<? extends A> fa,
+      Promise<? extends B> fb,
+      Promise<? extends C> fc,
       Function3<? super A, ? super B, ? super C, ? extends D> mapper) {
     return fc.ap(mapN(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
   }
 
   static <A, B, C, D, E> Promise<E> mapN(
-      Promise<? extends A> fa, 
-      Promise<? extends B> fb, 
-      Promise<? extends C> fc, 
-      Promise<? extends D> fd, 
+      Promise<? extends A> fa,
+      Promise<? extends B> fb,
+      Promise<? extends C> fc,
+      Promise<? extends D> fd,
       Function4<? super A, ? super B, ? super C, ? super D, ? extends E> mapper) {
     return fd.ap(mapN(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
   }
 
   static <A, B, C, D, E, R> Promise<R> mapN(
-      Promise<? extends A> fa, 
-      Promise<? extends B> fb, 
-      Promise<? extends C> fc, 
-      Promise<? extends D> fd, 
-      Promise<? extends E> fe, 
+      Promise<? extends A> fa,
+      Promise<? extends B> fb,
+      Promise<? extends C> fc,
+      Promise<? extends D> fd,
+      Promise<? extends E> fe,
       Function5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends R> mapper) {
     return fe.ap(mapN(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
@@ -186,18 +186,16 @@ final class PromiseImpl<T> implements Promise<T> {
   @Override
   public Try<T> await() {
     if (isEmpty()) {
+      lock.lock();
       try {
-        lock.lock();
-        try {
-          while (isEmpty()) {
-            condition.await();
-          }
-        } finally {
-          lock.unlock();
+        while (isEmpty()) {
+          condition.await();
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         return Try.failure(e);
+      } finally {
+        lock.unlock();
       }
     }
     return TryOf.narrowK(reference.get());
@@ -206,21 +204,19 @@ final class PromiseImpl<T> implements Promise<T> {
   @Override
   public Try<T> await(Duration timeout) {
     if (isEmpty()) {
+      lock.lock();
       try {
-        lock.lock();
-        try {
-          if (isEmpty()) {
-            condition.await(timeout.toMillis(), TimeUnit.MILLISECONDS);
-          }
-        } finally {
-          lock.unlock();
+        if (isEmpty() && !condition.await(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+          return Try.failure(new TimeoutException());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         return Try.failure(e);
+      } finally {
+        lock.unlock();
       }
     }
-    return isEmpty() ? Try.failure(new TimeoutException()) : TryOf.narrowK(reference.get());
+    return TryOf.narrowK(reference.get());
   }
 
   @Override
@@ -246,7 +242,7 @@ final class PromiseImpl<T> implements Promise<T> {
         try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
     return result;
   }
-  
+
   @Override
   public <R> Promise<R> map(Function1<? super T, ? extends R> mapper) {
     Promise<R> other = new PromiseImpl<>(executor);
@@ -259,7 +255,9 @@ final class PromiseImpl<T> implements Promise<T> {
     Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> {
       Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::narrowK));
-      map.fold(error -> other.tryComplete(Try.failure(error)), next -> next.onComplete(other::tryComplete));
+      map.fold(
+        error -> other.tryComplete(Try.failure(error)),
+        next -> next.onComplete(other::tryComplete));
     });
     return other;
   }
@@ -277,7 +275,7 @@ final class PromiseImpl<T> implements Promise<T> {
     }
     return Option.of(TryOf.narrowK(reference.get()));
   }
-  
+
   private boolean isEmpty() {
     return reference.get() == null;
   }
