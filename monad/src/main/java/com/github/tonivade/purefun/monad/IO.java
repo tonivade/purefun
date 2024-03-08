@@ -143,6 +143,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
     });
   }
 
+  @Override
   default IO<T> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }

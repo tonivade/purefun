@@ -165,6 +165,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
     })));
   }
 
+  @Override
   public Task<A> timeout(Duration duration) {
     return timeout(Future.DEFAULT_EXECUTOR, duration);
   }

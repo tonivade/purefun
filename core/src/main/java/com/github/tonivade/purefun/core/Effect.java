@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 
 public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable<F, A> {
-  
+
   @Override
   <R> Effect<F, R> map(Function1<? super A, ? extends R> mapper);
 
@@ -47,6 +47,8 @@ public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable
 
   Effect<F, Tuple2<Duration, A>> timed();
 
+  Effect<F, A> timeout(Duration duration);
+
   default Effect<F, A> repeat() {
     return repeat(1);
   }
@@ -70,7 +72,7 @@ public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable
   }
 
   Effect<F, A> retry(Duration delay, int maxRetries);
-  
+
   @SuppressWarnings("unchecked")
   static <F extends Witness, A> Effect<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Effect<F, A>) kind;

@@ -20,8 +20,6 @@ public interface Monad<F extends Witness> extends Selective<F> {
     return For.with(this);
   }
 
-  // XXX: this method in not stack safe. In fact, now I don't really know how to do it stack safe
-  // without real tail recursion optimization
   default <T, R> Kind<F, R> tailRecM(T value, Function1<T, ? extends Kind<F, Either<T, R>>> map) {
     return flatMap(map.apply(value), either -> either.fold(left -> tailRecM(left, map), this::<R>pure));
   }
