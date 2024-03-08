@@ -96,7 +96,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
 
   @Override
-  public <B> RIO<R, B> ap(Kind<Kind<RIO_, R>, Function1<? super A, ? extends B>> apply) {
+  public <B> RIO<R, B> ap(Kind<Kind<RIO_, R>, ? extends Function1<? super A, ? extends B>> apply) {
     return new RIO<>(instance.ap(apply.fix(RIOOf.toRIO()).instance));
   }
 

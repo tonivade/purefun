@@ -100,7 +100,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   @Override
-  public <B> Task<B> ap(Kind<Task_, Function1<? super A, ? extends B>> apply) {
+  public <B> Task<B> ap(Kind<Task_, ? extends Function1<? super A, ? extends B>> apply) {
     return new Task<>(instance.ap(apply.fix(TaskOf.toTask()).instance));
   }
 

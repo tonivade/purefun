@@ -78,7 +78,7 @@ public interface PureIOInstances {
   static <R> Console<Kind<Kind<PureIO_, R>, Throwable>> console() {
     return PureIOConsole.INSTANCE;
   }
-  
+
   static <R, E> Runtime<Kind<Kind<PureIO_, R>, E>> runtime(R env) {
     return PureIORuntime.instance(env);
   }
@@ -91,7 +91,7 @@ interface PureIOFunctor<R, E> extends Functor<Kind<Kind<PureIO_, R>, E>> {
 
   @Override
   default <A, B> PureIO<R, E, B> map(
-      Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> value, 
+      Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> value,
       Function1<? super A, ? extends B> map) {
     return PureIOOf.narrowK(value).map(map);
   }
@@ -114,7 +114,7 @@ interface PureIOApplicative<R, E> extends PureIOPure<R, E> {
   default <A, B> PureIO<R, E, B>
           ap(Kind<Kind<Kind<PureIO_, R>, E>, ? extends A> value,
              Kind<Kind<Kind<PureIO_, R>, E>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(PureIOOf::<R, E, A>narrowK).ap(apply.fix(PureIOOf::narrowK));
+    return value.fix(PureIOOf::<R, E, A>narrowK).ap(apply);
   }
 }
 
@@ -145,11 +145,7 @@ interface PureIOMonadError<R, E> extends PureIOMonad<R, E>, MonadError<Kind<Kind
   default <A> PureIO<R, E, A> handleErrorWith(
       Kind<Kind<Kind<PureIO_, R>, E>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> handler) {
-    // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<? super E, PureIO<R, E, A>> mapError = handler.andThen(PureIOOf::narrowK);
-    Function1<A, PureIO<R, E, A>> map = PureIO::pure;
-    PureIO<R, E, A> PureIO = PureIOOf.narrowK(value);
-    return PureIO.foldM(mapError, map);
+    return PureIOOf.narrowK(value).foldM(handler, PureIO::pure);
   }
 }
 
@@ -196,7 +192,7 @@ interface PureIOAsync<R> extends Async<Kind<Kind<PureIO_, R>, Throwable>>, PureI
   @SuppressWarnings("rawtypes")
   PureIOAsync INSTANCE = new PureIOAsync<>() {
   };
-  
+
   @Override
   default <A> PureIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<Kind<PureIO_, R>, Throwable>, Unit>> consumer) {
     return PureIO.cancellable((env, cb) -> consumer.andThen(PureIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
@@ -204,11 +200,11 @@ interface PureIOAsync<R> extends Async<Kind<Kind<PureIO_, R>, Throwable>>, PureI
 }
 
 interface PureIOConcurrent<R> extends Concurrent<Kind<Kind<PureIO_, R>, Throwable>>, PureIOAsync<R> {
-  
+
   static <R> PureIOConcurrent<R> instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
 
   @Override
@@ -216,11 +212,10 @@ interface PureIOConcurrent<R> extends Concurrent<Kind<Kind<PureIO_, R>, Throwabl
       Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends A> fa, Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends B> fb) {
     return PureIO.racePair(executor(), fa, fb);
   }
-  
+
   @Override
   default <A> PureIO<R, Throwable, Fiber<Kind<Kind<PureIO_, R>, Throwable>, A>> fork(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends A> value) {
-    PureIO<R, Throwable, A> fix = value.fix(PureIOOf::narrowK);
-    return fix.fork();
+    return value.fix(PureIOOf::<R, Throwable, A>narrowK).fork();
   }
 }
 
@@ -243,7 +238,7 @@ final class PureIOConsole<R> implements Console<Kind<Kind<PureIO_, R>, Throwable
 }
 
 interface PureIORuntime<R, E> extends Runtime<Kind<Kind<PureIO_, R>, E>> {
-  
+
   static <R, E> PureIORuntime<R, E> instance(R env) {
     return () -> env;
   }
@@ -254,19 +249,19 @@ interface PureIORuntime<R, E> extends Runtime<Kind<Kind<PureIO_, R>, E>> {
   default <T> T run(Kind<Kind<Kind<PureIO_, R>, E>, T> value) {
     return value.fix(toPureIO()).provide(env()).getRight();
   }
-  
+
   @Override
   default <T> Sequence<T> run(Sequence<Kind<Kind<Kind<PureIO_, R>, E>, T>> values) {
-    return run(PureIO.traverse(values.map(PureIOOf::<R, E, T>narrowK)));
+    return run(PureIO.traverse(values));
   }
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<Kind<PureIO_, R>, E>, T> value, Executor executor) {
     return value.fix(toPureIO()).runAsync(env()).map(Either::get);
   }
-  
+
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<Kind<PureIO_, R>, E>, T>> values, Executor executor) {
-    return parRun(PureIO.traverse(values.map(PureIOOf::<R, E, T>narrowK)), executor);
+    return parRun(PureIO.traverse(values), executor);
   }
 }

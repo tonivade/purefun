@@ -100,7 +100,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   }
 
   @Override
-  public <B> URIO<R, B> ap(Kind<Kind<URIO_, R>, Function1<? super A, ? extends B>> apply) {
+  public <B> URIO<R, B> ap(Kind<Kind<URIO_, R>, ? extends Function1<? super A, ? extends B>> apply) {
     return new URIO<>(instance.ap(apply.fix(URIOOf.toURIO()).instance));
   }
 

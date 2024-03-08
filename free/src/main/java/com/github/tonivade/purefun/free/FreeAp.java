@@ -28,8 +28,8 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
   <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
 
   @Override
-  default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, Function1<? super A, ? extends B>> apply) {
-    if (apply instanceof Pure<F, Function1<? super A, ? extends B>> pure) {
+  default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply) {
+    if (apply instanceof Pure<F, ? extends Function1<? super A, ? extends B>> pure) {
       return map(pure.value);
     }
     return apply(this, apply);

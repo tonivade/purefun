@@ -85,7 +85,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO_, T>, Recoverable {
   }
 
   @Override
-  default <R> IO<R> ap(Kind<IO_, Function1<? super T, ? extends R>> apply) {
+  default <R> IO<R> ap(Kind<IO_, ? extends Function1<? super T, ? extends R>> apply) {
     return parMap2(Future.DEFAULT_EXECUTOR, this, apply, (v, a) -> a.apply(v));
   }
 

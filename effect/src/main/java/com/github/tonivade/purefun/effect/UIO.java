@@ -116,7 +116,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   @Override
-  public <B> UIO<B> ap(Kind<UIO_, Function1<? super A, ? extends B>> apply) {
+  public <B> UIO<B> ap(Kind<UIO_, ? extends Function1<? super A, ? extends B>> apply) {
     return new UIO<>(instance.ap(apply.fix(UIOOf.toUIO()).instance));
   }
 

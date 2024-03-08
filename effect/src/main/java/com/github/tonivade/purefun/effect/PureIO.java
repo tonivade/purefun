@@ -105,7 +105,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   @Override
-  default <B> PureIO<R, E, B> ap(Kind<Kind<Kind<PureIO_, R>, E>, Function1<? super A, ? extends B>> apply) {
+  default <B> PureIO<R, E, B> ap(Kind<Kind<Kind<PureIO_, R>, E>, ? extends Function1<? super A, ? extends B>> apply) {
     return parMap2(this, apply.fix(PureIOOf.toPureIO()), (v, a) -> a.apply(v));
   }
 

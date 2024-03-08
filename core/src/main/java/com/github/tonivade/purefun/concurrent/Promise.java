@@ -71,7 +71,7 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
 
   @Override
-  <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply);
+  <R> Promise<R> ap(Kind<Promise_, ? extends Function1<? super T, ? extends R>> apply);
 
   @Override
   default <R> Promise<R> andThen(Kind<Promise_, ? extends R> next) {
@@ -236,7 +236,7 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   @Override
-  public <R> Promise<R> ap(Kind<Promise_, Function1<? super T, ? extends R>> apply) {
+  public <R> Promise<R> ap(Kind<Promise_, ? extends Function1<? super T, ? extends R>> apply) {
     Promise<R> result = new PromiseImpl<>(executor);
     onComplete(try1 -> PromiseOf.narrowK(apply).onComplete(
         try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));

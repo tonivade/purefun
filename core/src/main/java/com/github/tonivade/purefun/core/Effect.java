@@ -15,7 +15,7 @@ public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable
   <R> Effect<F, R> map(Function1<? super A, ? extends R> mapper);
 
   @Override
-  <R> Effect<F, R> ap(Kind<F, Function1<? super A, ? extends R>> apply);
+  <R> Effect<F, R> ap(Kind<F, ? extends Function1<? super A, ? extends R>> apply);
 
   @Override
   <R> Effect<F, R> flatMap(Function1<? super A, ? extends Kind<F, ? extends R>> mapper);

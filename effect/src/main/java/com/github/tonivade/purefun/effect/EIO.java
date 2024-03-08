@@ -90,7 +90,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   @Override
-  public <B> EIO<E, B> ap(Kind<Kind<EIO_, E>, Function1<? super A, ? extends B>> apply) {
+  public <B> EIO<E, B> ap(Kind<Kind<EIO_, E>, ? extends Function1<? super A, ? extends B>> apply) {
     return new EIO<>(instance.ap(apply.fix(EIOOf.toEIO()).toPureIO()));
   }
 
