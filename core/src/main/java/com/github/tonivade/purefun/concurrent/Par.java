@@ -82,12 +82,12 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return fold(recover, identity());
   }
 
-  default <X extends Throwable> Par<T> recoverWith(Class<X> type, 
+  default <X extends Throwable> Par<T> recoverWith(Class<X> type,
       Function1<? super X, ? extends T> mapper) {
     return executor -> apply(executor).recoverWith(type, mapper);
   }
 
-  default <R> Par<R> fold(Function1<? super Throwable, ? extends R> failureMapper, 
+  default <R> Par<R> fold(Function1<? super Throwable, ? extends R> failureMapper,
       Function1<? super T, ? extends R> successMapper) {
     return executor -> apply(executor).fold(failureMapper, successMapper);
   }
@@ -112,11 +112,11 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
   }
 
   static <T> Par<T> later(Producer<? extends T> producer) {
-    return executor -> Future.later(executor, producer::get);
+    return executor -> Future.later(executor, producer);
   }
 
   static <T> Par<T> delay(Duration delay, Producer<? extends T> producer) {
-    return executor -> Future.delay(executor, delay, producer::get);
+    return executor -> Future.delay(executor, delay, producer);
   }
 
   static Par<Unit> exec(CheckedRunnable runnable) {
@@ -131,12 +131,12 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return executor -> Future.sleep(executor, delay);
   }
 
-  static <A, B> Par<B> bracket(Par<? extends A> acquire, 
+  static <A, B> Par<B> bracket(Par<? extends A> acquire,
       Function1<? super A, ? extends Par<? extends B>> use, Consumer1<? super A> release) {
     return executor -> Future.bracket(acquire.apply(executor), a -> use.apply(a).apply(executor), release);
   }
 
-  static <A, B, C> Par<C> map2(Par<? extends A> parA, Par<? extends B> parB, 
+  static <A, B, C> Par<C> map2(Par<? extends A> parA, Par<? extends B> parB,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parB.ap(parA.map(mapper.curried()));
   }

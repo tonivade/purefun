@@ -17,6 +17,8 @@ import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.annotation.Nonnull;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -61,7 +63,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   Sequence<E> filter(Matcher1<? super E> matcher);
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
-  
+
   default Collection<E> toCollection() {
     return new SequenceCollection<>(this);
   }
@@ -101,7 +103,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   @SuppressWarnings("unchecked")
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
-    return (ImmutableMap<G, ImmutableList<E>>) 
+    return (ImmutableMap<G, ImmutableList<E>>)
         ImmutableMap.from(stream().collect(groupingBy(selector::apply))).mapValues(ImmutableList::from);
   }
 
@@ -141,15 +143,15 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     }
     return array;
   }
-  
+
   static <E> ImmutableArray<E> emptyArray() {
     return ImmutableArray.empty();
   }
-  
+
   static <E> ImmutableList<E> emptyList() {
     return ImmutableList.empty();
   }
-  
+
   static <E> ImmutableSet<E> emptySet() {
     return ImmutableSet.empty();
   }
@@ -221,7 +223,7 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
 
   @Override
   public boolean hasNext() {
-    return first.hasNext() || second.hasNext();
+    return first.hasNext() && second.hasNext();
   }
 
   @Override
@@ -229,11 +231,12 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
     if (!hasNext()) {
       throw new NoSuchElementException();
     }
-    return Tuple.of(_next(first), _next(second));
+    return Tuple.of(nextItem(first), nextItem(second));
   }
 
-  private static <Z> Z _next(Iterator<Z> it) {
-    return it.hasNext() ? it.next() : null;
+  @Nonnull
+  private static <Z> Z nextItem(Iterator<Z> it) {
+    return it.next();
   }
 }
 

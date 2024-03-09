@@ -14,7 +14,6 @@ import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Either;
@@ -60,14 +59,14 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
     return PureIO.bracket(resource, a -> use.apply(a.get1()), release());
   }
 
-  public <B> Managed<R, Nothing, B> fold(
+  public <B> Managed<R, Void, B> fold(
       Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> mapper) {
     return foldM(
-        mapError.andThen(Managed::<R, Nothing, B>pure),
-        mapper.andThen(Managed::<R, Nothing, B>pure));
+        mapError.andThen(Managed::<R, Void, B>pure),
+        mapper.andThen(Managed::<R, Void, B>pure));
   }
 
-  public Managed<R, Nothing, A> recover(Function1<? super E, ? extends A> mapError) {
+  public Managed<R, Void, A> recover(Function1<? super E, ? extends A> mapError) {
     return fold(mapError, identity());
   }
 

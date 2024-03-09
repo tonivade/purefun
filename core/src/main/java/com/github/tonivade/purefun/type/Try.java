@@ -14,6 +14,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -203,8 +205,12 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
     return getOrElse(Producer.cons(value));
   }
 
+  @Nullable
   default T getOrElseNull() {
-    return getOrElse(Producer.cons(null));
+    return switch (this) {
+      case Success<T>(var value) -> value;
+      case Failure<T> f -> null;
+    };
   }
 
   default T getOrElse(Producer<? extends T> producer) {
@@ -299,8 +305,8 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
       return cause;
     }
 
-    private String getMessage() {
-      return cause.getMessage();
+    private Option<String> getMessage() {
+      return Option.of(cause.getMessage());
     }
 
     private StackTraceElement[] getStackTrace() {

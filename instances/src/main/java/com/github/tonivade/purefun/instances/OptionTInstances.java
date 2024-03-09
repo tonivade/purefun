@@ -162,7 +162,7 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
                 value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
             option -> {
-              Kind<Kind<OptionT_, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release::apply);
+              Kind<Kind<OptionT_, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release);
               Kind<F, Option<Unit>> value = fold.fix(OptionTOf::narrowK).value();
               return monadF().map(value, x -> x.fold(Unit::unit, identity()));
             });

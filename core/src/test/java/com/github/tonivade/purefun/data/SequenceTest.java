@@ -29,7 +29,7 @@ public class SequenceTest {
     ImmutableList<Tuple2<Integer, String>> zipped =
         zip(listOf(0, 1, 2), listOf("a", "b")).collect(toImmutableList());
 
-    assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, null)), zipped);
+    assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b")), zipped);
   }
 
   @Test

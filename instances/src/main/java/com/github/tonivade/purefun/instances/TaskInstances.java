@@ -78,19 +78,19 @@ public interface TaskInstances {
   static <A> Reference<Task_, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
-  
+
   static <A extends AutoCloseable> Resource<Task_, A> resource(Task<A> acquire) {
     return resource(acquire, AutoCloseable::close);
   }
-  
+
   static <A> Resource<Task_, A> resource(Task<A> acquire, Consumer1<A> release) {
     return Resource.from(monadDefer(), acquire, release);
   }
-  
+
   static Console<Task_> console() {
     return TaskConsole.INSTANCE;
   }
-  
+
   static Runtime<Task_> runtime() {
     return TaskRuntime.INSTANCE;
   }
@@ -169,7 +169,7 @@ interface TaskDefer extends Defer<Task_> {
   @Override
   default <A> Task<A>
           defer(Producer<? extends Kind<Task_, ? extends A>> defer) {
-    return Task.defer(defer::get);
+    return Task.defer(defer);
   }
 }
 
@@ -198,7 +198,7 @@ interface TaskMonadDefer
 interface TaskAsync extends Async<Task_>, TaskMonadDefer {
 
   TaskAsync INSTANCE = new TaskAsync() {};
-  
+
   @Override
   default <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Task_, Unit>> consumer) {
     return Task.asyncF(consumer.andThen(TaskOf::narrowK));
@@ -206,25 +206,25 @@ interface TaskAsync extends Async<Task_>, TaskMonadDefer {
 }
 
 interface TaskConcurrent extends TaskAsync, Concurrent<Task_> {
-  
+
   static TaskConcurrent instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
-  
+
   @Override
   default <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> racePair(Kind<Task_, ? extends A> fa,
     Kind<Task_, ? extends B> fb) {
     return Task.racePair(executor(), fa, fb);
   }
-  
+
   @Override
   default <A> Task<Fiber<Task_, A>> fork(Kind<Task_, ? extends A> value) {
     Task<A> fix = value.fix(TaskOf::narrowK);
     return fix.fork();
   }
-  
+
 }
 
 final class TaskConsole implements Console<Task_> {
@@ -245,14 +245,14 @@ final class TaskConsole implements Console<Task_> {
 }
 
 interface TaskRuntime extends Runtime<Task_> {
-  
+
   TaskRuntime INSTANCE = new TaskRuntime() {};
 
   @Override
   default <T> T run(Kind<Task_, T> value) {
     return value.fix(toTask()).safeRunSync().getOrElseThrow();
   }
-  
+
   @Override
   default <T> Sequence<T> run(Sequence<Kind<Task_, T>> values) {
     return run(Task.traverse(values.map(TaskOf::<T>narrowK)));
@@ -262,7 +262,7 @@ interface TaskRuntime extends Runtime<Task_> {
   default <T> Future<T> parRun(Kind<Task_, T> value, Executor executor) {
     return value.fix(toTask()).runAsync();
   }
-  
+
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<Task_, T>> values, Executor executor) {
     return parRun(Task.traverse(values.map(TaskOf::<T>narrowK)), executor);

@@ -12,6 +12,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Precondition.checkPositive;
 import static com.github.tonivade.purefun.type.Validation.mapN;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import com.github.tonivade.purefun.type.Validation;
@@ -271,7 +272,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> upper(Producer<String> message) {
-    return from(value -> value.toUpperCase().equals(value), message);
+    return from(value -> value.toUpperCase(Locale.ROOT).equals(value), message);
   }
 
   static Validator<String, String> lower() {
@@ -279,7 +280,7 @@ public interface Validator<E, T> {
   }
 
   static Validator<String, String> lower(Producer<String> message) {
-    return from(value -> value.toLowerCase().equals(value), message);
+    return from(value -> value.toLowerCase(Locale.ROOT).equals(value), message);
   }
 
   static Validator<String, String> startsWith(String prefix) {

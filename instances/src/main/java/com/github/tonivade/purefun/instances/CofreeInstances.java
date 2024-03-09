@@ -49,6 +49,6 @@ interface CofreeComonad<F extends Witness> extends Comonad<Kind<Cofree_, F>>, Co
   @Override
   default <A, B> Cofree<F, B> coflatMap(
       Kind<Kind<Cofree_, F>, ? extends A> value, Function1<? super Kind<Kind<Cofree_, F>, ? extends A>, ? extends B> map) {
-    return value.fix(CofreeOf::narrowK).coflatMap(map::apply);
+    return value.fix(CofreeOf::narrowK).coflatMap(map);
   }
 }

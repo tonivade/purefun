@@ -23,7 +23,6 @@ import com.github.tonivade.purefun.core.Consumer2;
 import com.github.tonivade.purefun.core.Effect;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Recoverable;
 import com.github.tonivade.purefun.core.Tuple;
@@ -58,7 +57,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
 
   @SuppressWarnings("unchecked")
   public <E> EIO<E, A> toEIO() {
-    return new EIO<>((PureIO<Nothing, E, A>) instance);
+    return new EIO<>((PureIO<Void, E, A>) instance);
   }
 
   public URIO<R, A> toURIO() {

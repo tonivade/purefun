@@ -8,29 +8,32 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.type.Try;
 
 public sealed interface Cancellable {
-  
+
   void updateThread();
-  
+
   void cancel(boolean mayTreadInterrupted);
 
   boolean isCancelled();
-  
+
   static Cancellable from(Promise<?> promise) {
     return new CancellableImpl(promise);
   }
 }
 
 final class CancellableImpl implements Cancellable {
-  
+
   private final ReentrantLock lock = new ReentrantLock();
   private boolean cancelled = false;
-  private Thread thread = null;
+  private @Nullable Thread thread = null;
 
   private final Promise<?> promise;
-  
+
   public CancellableImpl(Promise<?> promise) {
     this.promise = checkNonNull(promise);
   }
@@ -69,7 +72,7 @@ final class CancellableImpl implements Cancellable {
       lock.unlock();
     }
   }
-  
+
   private void interrupt() {
     if (thread != null) {
       thread.interrupt();

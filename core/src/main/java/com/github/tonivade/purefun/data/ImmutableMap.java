@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -165,14 +164,14 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
       return ImmutableMap.from(map);
     }
   }
-  
+
   final class PImmutableMap<K, V> implements ImmutableMap<K, V>, Serializable {
-    
+
     @Serial
     private static final long serialVersionUID = -7846127227891259826L;
 
     private static final ImmutableMap<?, ?> EMPTY = new PImmutableMap<>(HashTreePMap.empty());
-    
+
     private static final Equal<PImmutableMap<?, ?>> EQUAL =
         Equal.<PImmutableMap<?, ?>>of().comparing(a -> a.backend);
 
@@ -208,7 +207,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public Option<V> get(K key) {
-      return Option.of(() -> backend.get(key));
+      return Option.of(backend.get(key));
     }
 
     @Override
@@ -237,7 +236,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public int size() {
       return backend.size();
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hash(backend);
@@ -252,7 +251,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public String toString() {
       return "ImmutableMap(" + backend + ")";
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {
@@ -265,10 +264,10 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   private static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), LinkedHashMap::new);
+    return Collectors.toMap(keyMapper::apply, valueMapper::apply, ImmutableMap::throwingMerge, LinkedHashMap::new);
   }
 
-  private static <V> BinaryOperator<V> throwingMerge() {
-    return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
+  private static <V> V throwingMerge(V a, V b) {
+    throw new IllegalArgumentException("conflict detected");
   }
 }

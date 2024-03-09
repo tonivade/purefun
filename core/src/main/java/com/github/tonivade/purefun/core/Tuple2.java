@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.core;
 
+import static com.github.tonivade.purefun.core.Function1.identity;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -43,11 +45,11 @@ public final class Tuple2<A, B> implements Tuple, Tuple2Of<A, B>, Serializable {
   }
 
   public <C> Tuple2<C, B> map1(Function1<? super A, ? extends C> mapper) {
-    return map(mapper, Function1.identity());
+    return map(mapper, identity());
   }
 
   public <C> Tuple2<A, C> map2(Function1<? super B, ? extends C> mapper) {
-    return map(Function1.identity(), mapper);
+    return map(identity(), mapper);
   }
 
   public <C, D> Tuple2<C, D> map(Function1<? super A, ? extends C> mapper1, Function1<? super B, ? extends D> mapper2) {

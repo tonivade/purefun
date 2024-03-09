@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.effect;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Function2.first;
 import static com.github.tonivade.purefun.core.Function2.second;
-import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.time.Duration;
@@ -23,7 +22,6 @@ import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Effect;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Recoverable;
 import com.github.tonivade.purefun.core.Tuple;
@@ -43,14 +41,14 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   private static final UIO<Unit> UNIT = new UIO<>(PureIO.unit());
 
-  private final PureIO<Nothing, Nothing, A> instance;
+  private final PureIO<Void, Void, A> instance;
 
-  UIO(PureIO<Nothing, Nothing, A> value) {
+  UIO(PureIO<Void, Void, A> value) {
     this.instance = checkNonNull(value);
   }
 
   public Future<A> runAsync() {
-    return instance.runAsync(nothing()).map(Either::getRight);
+    return instance.runAsync(null).map(Either::getRight);
   }
 
   public Future<A> runAsync(Executor executor) {
@@ -58,7 +56,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   public A unsafeRunSync() {
-    return instance.provide(nothing()).get();
+    return instance.provide(null).get();
   }
 
   public Try<A> safeRunSync() {
@@ -72,7 +70,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   @SuppressWarnings("unchecked")
   public <E> EIO<E, A> toEIO() {
-    return new EIO<>((PureIO<Nothing, E, A>) instance);
+    return new EIO<>((PureIO<Void, E, A>) instance);
   }
 
   @SuppressWarnings("unchecked")
@@ -82,7 +80,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   @SuppressWarnings("unchecked")
   public <R> URIO<R, A> toURIO() {
-    return new URIO<>((PureIO<R, Nothing, A>) instance);
+    return new URIO<>((PureIO<R, Void, A>) instance);
   }
 
   public Task<A> toTask() {
@@ -94,7 +92,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   public void safeRunAsync(Executor executor, Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(nothing(), executor, x -> callback.accept(x.map(Either::getRight)));
+    instance.provideAsync(null, executor, x -> callback.accept(x.map(Either::getRight)));
   }
 
   @Override
@@ -171,7 +169,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   public UIO<Fiber<UIO_, A>> fork() {
     return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
+      public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Void>, Void>, ? extends T> from) {
         return new UIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
@@ -259,17 +257,17 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>>
       racePair(Executor executor, Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
-    PureIO<Nothing, Nothing, A> instance1 = fa.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
-    PureIO<Nothing, Nothing, B> instance2 = fb.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<Void, Void, A> instance1 = fa.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<Void, Void, B> instance2 = fb.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
     return new UIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Void>, Void>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::narrowK));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Nothing>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Void>, Void>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));
@@ -347,7 +345,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
 
   public static <A> UIO<A> cancellable(Function1<Consumer1<? super Try<? extends A>>, UIO<Unit>> consumer) {
     return fold(PureIO.cancellable(
-        (env, cb1) -> consumer.andThen(UIO::<Nothing, Throwable>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
+        (env, cb1) -> consumer.andThen(UIO::<Void, Throwable>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A, T> UIO<Function1<A, UIO<T>>> memoize(Function1<A, UIO<T>> function) {
@@ -397,7 +395,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return UNIT;
   }
 
-  private static <A> UIO<A> fold(PureIO<Nothing, Throwable, A> zio) {
+  private static <A> UIO<A> fold(PureIO<Void, Throwable, A> zio) {
     return new UIO<>(zio.foldM(error -> UIO.<A>raiseError(error).instance, value -> UIO.pure(value).instance));
   }
 

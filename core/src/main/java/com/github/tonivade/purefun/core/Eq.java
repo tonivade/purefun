@@ -7,6 +7,8 @@ package com.github.tonivade.purefun.core;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.github.tonivade.purefun.type.Option;
+
 /**
  * <p>This interface represents a function that verify if two instances of a type are equivalent.</p>
  * <p>{@code Eq} instances can be composed using {@code and()} method</p>
@@ -30,7 +32,7 @@ public interface Eq<T> {
   }
 
   static Eq<Throwable> throwable() {
-    return comparing(Throwable::getMessage)
+    return comparing((Throwable t) -> Option.of(t.getMessage()))
         .and(comparingArray(Throwable::getStackTrace));
   }
 

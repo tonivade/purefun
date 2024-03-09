@@ -49,7 +49,7 @@ public non-sealed interface Producer<T> extends ProducerOf<T>, Recoverable {
   }
 
   default Producer<Try<T>> liftTry() {
-    return () -> Try.of(this::get);
+    return () -> Try.of(this);
   }
 
   default Producer<Either<Throwable, T>> liftEither() {

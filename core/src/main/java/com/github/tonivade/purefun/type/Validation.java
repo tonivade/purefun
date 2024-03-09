@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -150,8 +152,12 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     return getOrElse(Producer.cons(value));
   }
 
+  @Nullable
   default T getOrElseNull() {
-    return getOrElse(Producer.cons(null));
+    return switch (this) {
+      case Valid<E, T>(var value) -> value;
+      case Invalid<E, T> i -> null;
+    };
   }
 
   default T getOrElse(Producer<? extends T> orElse) {

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -77,14 +79,14 @@ public class HigherKindProcessor extends AbstractProcessor {
     writeTypeOf(packageName, className, typeOfName, witnessName, element.getTypeParameters());
   }
 
-  private void writeWitness(String packageName, String witnessName) throws IOException {
+  private void writeWitness(@Nullable String packageName, String witnessName) throws IOException {
     JavaFileObject witnessFile = createFile(packageName, witnessName);
     try (PrintWriter writer = new PrintWriter(witnessFile.openWriter())) {
       witness(writer, packageName, witnessName);
     }
   }
 
-  private void writeTypeOf(String packageName, String className, String typeOfName, String witnessName,
+  private void writeTypeOf(@Nullable String packageName, String className, String typeOfName, String witnessName,
     List<? extends TypeParameterElement> types) throws IOException {
     JavaFileObject typeOfFile = createFile(packageName, typeOfName);
     try (PrintWriter writer = new PrintWriter(typeOfFile.openWriter())) {
@@ -100,7 +102,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
   }
 
-  private void witness(PrintWriter writer, String packageName, String witnessName) {
+  private void witness(PrintWriter writer, @Nullable String packageName, String witnessName) {
     if (packageName != null) {
       writer.println(packageName(packageName));
       writer.println();
@@ -116,7 +118,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(END);
   }
 
-  private void generate1(PrintWriter writer, String packageName, String className,
+  private void generate1(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<" + kindName + ", A>";
     String higher1Wildcard = "Kind<" + kindName + ", ? extends A>";
@@ -139,7 +141,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(END);
   }
 
-  private void generate2(PrintWriter writer, String packageName, String className,
+  private void generate2(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher2 = "Kind<Kind<" + kindName + ", A>, B>";
     String higher1Wildcard = "Kind<Kind<" + kindName + ", A>, ? extends B>";
@@ -164,7 +166,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(END);
   }
 
-  private void generate3(PrintWriter writer, String packageName, String className,
+  private void generate3(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher3 = "Kind<Kind<Kind<" + kindName + ", A>, B>, C>";
     String higher1Wildcard = "Kind<Kind<Kind<" + kindName + ", A>, B>, ? extends C>";
@@ -190,7 +192,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(END);
   }
 
-  private JavaFileObject createFile(String packageName, String className) throws IOException {
+  private JavaFileObject createFile(@Nullable String packageName, String className) throws IOException {
     String qualifiedName = packageName != null ? packageName + "." + className : className;
     return processingEnv.getFiler().createSourceFile(qualifiedName);
   }

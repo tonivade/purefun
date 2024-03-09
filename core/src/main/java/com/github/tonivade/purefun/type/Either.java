@@ -12,6 +12,8 @@ import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -160,8 +162,12 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     return getOrElse(Producer.cons(value));
   }
 
+  @Nullable
   default R getOrElseNull() {
-    return getOrElse(Producer.cons(null));
+    return switch (this) {
+      case Left<L, R> l -> null;
+      case Right<L, R>(var value) -> value;
+    };
   }
 
   default R getOrElse(Producer<? extends R> orElse) {

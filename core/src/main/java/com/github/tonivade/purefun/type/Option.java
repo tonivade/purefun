@@ -15,6 +15,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -47,7 +49,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     return (Option<T>) None.INSTANCE;
   }
 
-  static <T> Option<T> of(T value) {
+  static <T> Option<T> of(@Nullable T value) {
     return nonNull(value) ? some(value) : none();
   }
 
@@ -122,8 +124,12 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     return getOrElse(cons(value));
   }
 
+  @Nullable
   default T getOrElseNull() {
-    return getOrElse(cons(null));
+    return switch (this) {
+      case None<T> n -> null;
+      case Some<T>(var value) -> value;
+    };
   }
 
   default T getOrElse(Producer<? extends T> producer) {

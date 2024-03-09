@@ -230,7 +230,7 @@ public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
   }
 
   static <T> Future<T> later(Executor executor, Producer<? extends T> producer) {
-    return task(executor, producer::get);
+    return task(executor, producer);
   }
 
   static <T extends AutoCloseable, R> Future<R> bracket(Future<? extends T> acquire,

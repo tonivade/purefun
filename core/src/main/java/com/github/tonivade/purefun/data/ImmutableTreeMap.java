@@ -186,7 +186,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     private static final ImmutableTreeMap<?, ?> EMPTY = new JavaBasedImmutableTreeMap<>(new TreeMap<>());
 
-    private static final Equal<JavaBasedImmutableTreeMap<?, ?>> EQUAL = 
+    private static final Equal<JavaBasedImmutableTreeMap<?, ?>> EQUAL =
         Equal.<JavaBasedImmutableTreeMap<?, ?>>of().comparing(a -> a.backend);
 
     private final NavigableMap<K, V> backend;
@@ -211,7 +211,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
       newMap.put(key, value);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
-    
+
     @Override
     public ImmutableTreeMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
       TreeMap<K, V> newMap = copy();
@@ -228,7 +228,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public Option<V> get(K key) {
-      return Option.of(() -> backend.get(key));
+      return Option.of(backend.get(key));
     }
 
     @Override
@@ -316,7 +316,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     private TreeMap<K, V> copy() {
       return new TreeMap<>(backend);
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {
@@ -325,7 +325,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
       return this;
     }
   }
-  
+
   private static <T, K, V> Collector<T, ?, ? extends TreeMap<K, V>> toTreeMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {

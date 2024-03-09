@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.type.EitherOf.toEither;
 import static com.github.tonivade.purefun.type.IdOf.toId;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.type.Either;
@@ -43,11 +41,11 @@ public class InstanceTest {
 
   @Test
   public void testPureIO() {
-    Instance<Kind<Kind<PureIO_, Nothing>, String>> instance = new Instance<Kind<Kind<PureIO_, Nothing>, String>>(){};
+    Instance<Kind<Kind<PureIO_, Void>, String>> instance = new Instance<Kind<Kind<PureIO_, Void>, String>>(){};
 
-    PureIO<Nothing, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(toPureIO());
+    PureIO<Void, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(toPureIO());
 
-    assertEquals(Either.right(2), result.provide(nothing()));
+    assertEquals(Either.right(2), result.provide(null));
   }
 
   @Test

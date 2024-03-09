@@ -22,7 +22,6 @@ import com.github.tonivade.purefun.core.Consumer2;
 import com.github.tonivade.purefun.core.Effect;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Recoverable;
 import com.github.tonivade.purefun.core.Tuple;
@@ -41,9 +40,9 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   private static final URIO<?, Unit> UNIT = new URIO<>(PureIO.unit());
 
-  private final PureIO<R, Nothing, A> instance;
+  private final PureIO<R, Void, A> instance;
 
-  URIO(PureIO<R, Nothing, A> value) {
+  URIO(PureIO<R, Void, A> value) {
     this.instance = checkNonNull(value);
   }
 
@@ -62,7 +61,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   @SuppressWarnings("unchecked")
   public <E> EIO<E, A> toEIO() {
-    return new EIO<>((PureIO<Nothing, E, A>) instance);
+    return new EIO<>((PureIO<Void, E, A>) instance);
   }
 
   public RIO<R, A> toRIO() {
@@ -156,7 +155,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
   public URIO<R, Fiber<Kind<URIO_, R>, A>> fork() {
     return new URIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
+      public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Void>, ? extends T> from) {
         return new URIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
@@ -256,17 +255,17 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<Kind<URIO_, R>, A>
 
   public static <R, A, B> URIO<R, Either<Tuple2<A, Fiber<Kind<URIO_, R>, B>>, Tuple2<Fiber<Kind<URIO_, R>, A>, B>>>
       racePair(Executor executor, Kind<Kind<URIO_, R>, ? extends A> fa, Kind<Kind<URIO_, R>, ? extends B> fb) {
-    PureIO<R, Nothing, A> instance1 = fa.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
-    PureIO<R, Nothing, B> instance2 = fb.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<R, Void, A> instance1 = fa.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<R, Void, B> instance2 = fb.fix(URIOOf.toURIO()).instance.fix(PureIOOf::narrowK);
     return new URIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
+        public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Void>, ? extends T> from) {
           return new URIO<>(from.fix(PureIOOf::narrowK));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends T> from) {
+        public <T> URIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Void>, ? extends T> from) {
           return new URIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));

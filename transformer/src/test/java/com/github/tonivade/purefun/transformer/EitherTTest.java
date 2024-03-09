@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future_;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.EitherTInstances;
 import com.github.tonivade.purefun.instances.FutureInstances;
@@ -36,28 +35,28 @@ public class EitherTTest {
 
   @Test
   public void map() {
-    EitherT<Id_, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id_, Nothing, String> map = right.map(String::toUpperCase);
+    EitherT<Id_, Void, String> map = right.map(String::toUpperCase);
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void flatMap() {
-    EitherT<Id_, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id_, Nothing, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
+    EitherT<Id_, Void, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void filterOrElse() {
-    EitherT<Id_, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id_, Nothing, String> filter = right.filterOrElse(String::isEmpty, cons(Either.right("not empty")));
-    EitherT<Id_, Nothing, String> orElse = EitherT.right(monad, "not empty");
+    EitherT<Id_, Void, String> filter = right.filterOrElse(String::isEmpty, cons(Either.right("not empty")));
+    EitherT<Id_, Void, String> orElse = EitherT.right(monad, "not empty");
 
     assertEquals(orElse.get(), filter.getOrElse("not empty"));
   }
@@ -74,7 +73,7 @@ public class EitherTTest {
 
   @Test
   public void right() {
-    EitherT<Id_, Nothing, String> right = EitherT.right(monad, "abc");
+    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
 
     assertAll(
         () -> assertEquals(Id.of(false), right.isLeft()),
@@ -84,9 +83,9 @@ public class EitherTTest {
 
   @Test
   public void mapK() {
-    EitherT<IO_, Nothing, String> rightIo = EitherT.right(IOInstances.monad(), "abc");
+    EitherT<IO_, Void, String> rightIo = EitherT.right(IOInstances.monad(), "abc");
 
-    EitherT<Try_, Nothing, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    EitherT<Try_, Void, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), TryOf.narrowK(rightTry.get()));
   }
