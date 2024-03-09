@@ -16,6 +16,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -688,7 +690,7 @@ sealed interface IOConnection {
 
   final class Cancellable implements IOConnection {
 
-    private Kind<IO_, Unit> cancelToken;
+    private Kind<IO_, Unit> cancelToken = IO.UNIT;
     private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
 
     private Cancellable() { }
@@ -774,13 +776,19 @@ final class StateIO {
 
 final class CallStack<T> implements Recoverable {
 
+  @Nullable
   private StackItem<T> top = new StackItem<>();
 
   public void push() {
-    top.push();
+    if (top != null) {
+      top.push();
+    }
   }
 
   public void pop() {
+    if (top == null) {
+      return;
+    }
     if (top.count() > 0) {
       top.pop();
     } else {
@@ -789,6 +797,9 @@ final class CallStack<T> implements Recoverable {
   }
 
   public void add(PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>> mapError) {
+    if (top == null) {
+      return;
+    }
     if (top.count() > 0) {
       top.pop();
       top = new StackItem<>(top);
@@ -816,16 +827,18 @@ final class StackItem<T> {
   private int count = 0;
   private final Deque<PartialFunction1<? super Throwable, ? extends Kind<IO_, ? extends T>>> recover = new ArrayDeque<>();
 
+  @Nullable
   private final StackItem<T> prev;
 
   public StackItem() {
     this(null);
   }
 
-  public StackItem(StackItem<T> prev) {
+  public StackItem(@Nullable StackItem<T> prev) {
     this.prev = prev;
   }
 
+  @Nullable
   public StackItem<T> prev() {
     return prev;
   }

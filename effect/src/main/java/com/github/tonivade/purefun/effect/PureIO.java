@@ -18,6 +18,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -47,23 +49,23 @@ import com.github.tonivade.purefun.typeclasses.Fiber;
 @HigherKind
 public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<PureIO_, R>, E>, A> {
 
-  default Either<E, A> provide(R env) {
+  default Either<E, A> provide(@Nullable R env) {
     return runAsync(env).getOrElseThrow();
   }
 
-  default Future<Either<E, A>> runAsync(R env) {
+  default Future<Either<E, A>> runAsync(@Nullable R env) {
     return Future.from(runAsync(env, this, PureIOConnection.UNCANCELLABLE));
   }
 
-  default Future<Either<E, A>> runAsync(R env, Executor executor) {
+  default Future<Either<E, A>> runAsync(@Nullable R env, Executor executor) {
     return PureIO.<R, E>forked(executor).andThen(this).runAsync(env);
   }
 
-  default void provideAsync(R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
+  default void provideAsync(@Nullable R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     runAsync(env).onComplete(callback::accept);
   }
 
-  default void provideAsync(R env, Executor executor, Consumer1<? super Try<? extends Either<E, A>>> callback) {
+  default void provideAsync(@Nullable R env, Executor executor, Consumer1<? super Try<? extends Either<E, A>>> callback) {
     runAsync(env, executor).onComplete(callback::accept);
   }
 
@@ -510,12 +512,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
 
-  private static <R, E, A> Promise<Either<E, A>> runAsync(R env, PureIO<R, E, A> current, PureIOConnection connection) {
-    return runAsync(env, current, connection, new CallStack<>(), Promise.make());
+  private static <R, E, A> Promise<Either<E, A>> runAsync(@Nullable R env, PureIO<R, E, A> current, PureIOConnection connection) {
+    return runAsync(Option.of(env), current, connection, new CallStack<>(), Promise.make());
   }
 
   @SuppressWarnings("unchecked")
-  private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+  private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(
+      Option<R> env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
         current = unwrap(env, current, stack, identity());
@@ -582,7 +585,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @SuppressWarnings("unchecked")
   private static <R, E, F, A, B> Kind<Kind<Kind<PureIO_, R>, E>, A> unwrap(
-      R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
+      Option<R> env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
       Function1<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>, Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> next) {
     while (true) {
       if (current instanceof Failure) {
@@ -599,7 +602,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         stack.add(recover.mapper.andThen(next));
         current = (PureIO<R, E, A>) recover.current;
       } else if (current instanceof AccessM<R, E, A> accessM) {
-        current = accessM.function.apply(env).fix(PureIOOf::narrowK);
+        current = accessM.function.apply(env.getOrElseNull()).fix(PureIOOf::narrowK);
       } else if (current instanceof Suspend<R, E, A> suspend) {
         current = suspend.lazy.get().fix(PureIOOf::narrowK);
       } else if (current instanceof Delay<R, E, A> delay) {
@@ -614,12 +617,12 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     }
   }
 
-  private static <R, E, A> Promise<Either<E, A>> executeAsync(R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
+  private static <R, E, A> Promise<Either<E, A>> executeAsync(Option<R> env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
 
-    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
+    connection.setCancelToken(current.callback.apply(env.getOrElseNull(), result -> promise.tryComplete(result.map(EitherOf::narrowK))));
 
     promise.thenRun(() -> connection.setCancelToken(UNIT));
 
@@ -849,7 +852,7 @@ sealed interface PureIOConnection {
 
     private Cancellable() { }
 
-    private PureIO<?, ?, Unit> cancelToken;
+    private PureIO<?, ?, Unit> cancelToken = PureIO.UNIT;
     private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
 
     @Override
@@ -911,13 +914,19 @@ record StateIO(boolean isCancelled, boolean isCancellingNow, boolean isStartingN
 
 final class CallStack<R, E, A> implements Recoverable {
 
+  @Nullable
   private StackItem<R, E, A> top = new StackItem<>();
 
   public void push() {
-    top.push();
+    if (top != null) {
+      top.push();
+    }
   }
 
   public void pop() {
+    if (top == null) {
+      return;
+    }
     if (top.count() > 0) {
       top.pop();
     } else {
@@ -926,6 +935,9 @@ final class CallStack<R, E, A> implements Recoverable {
   }
 
   public void add(PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>> mapError) {
+    if (top == null) {
+      return;
+    }
     if (top.count() > 0) {
       top.pop();
       top = new StackItem<>(top);
@@ -953,16 +965,18 @@ final class StackItem<R, E, A> {
   private int count = 0;
   private final Deque<PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>>> recover = new ArrayDeque<>();
 
+  @Nullable
   private final StackItem<R, E, A> prev;
 
   public StackItem() {
     this(null);
   }
 
-  public StackItem(StackItem<R, E, A> prev) {
+  public StackItem(@Nullable StackItem<R, E, A> prev) {
     this.prev = prev;
   }
 
+  @Nullable
   public StackItem<R, E, A> prev() {
     return prev;
   }

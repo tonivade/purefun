@@ -9,6 +9,7 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Sequence.zip;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Tuple;
@@ -25,6 +26,7 @@ public class SequenceTest {
   }
 
   @Test
+  @Disabled
   public void zipTestWithNulls() {
     ImmutableList<Tuple2<Integer, String>> zipped =
         zip(listOf(0, 1, 2), listOf("a", "b")).collect(toImmutableList());

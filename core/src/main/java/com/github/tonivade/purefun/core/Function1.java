@@ -44,7 +44,7 @@ public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverab
   default <B> Function1<B, R> compose(Function1<? super B, ? extends A> before) {
     return value -> apply(before.apply(value));
   }
-  
+
   default <B, Z> Function1<B, Z> dimap(Function1<? super B, ? extends A> before, Function1<? super R, ? extends Z> after) {
     Function1<B, R> compose = compose(before);
     return compose.andThen(after);

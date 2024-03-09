@@ -131,11 +131,10 @@ subprojects {
   }
   
   tasks.withType(JavaCompile) {
-    if (!name.toLowerCase().contains("test")) {
-      options.errorprone {
-        check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        option("NullAway:AnnotatedPackages", "com.github.tonivade")
-      }
+    options.errorprone {
+      check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+      option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun[az.]+")
+      option("NullAway:ExcludedPaths", "*/src/test/java/.*")
     }
   }
 
