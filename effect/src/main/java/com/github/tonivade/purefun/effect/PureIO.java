@@ -517,7 +517,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @SuppressWarnings("unchecked")
   private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(
-      R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+      @Nullable R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
         current = unwrap(env, current, stack, identity());
@@ -584,7 +584,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @SuppressWarnings("unchecked")
   private static <R, E, F, A, B> Kind<Kind<Kind<PureIO_, R>, E>, A> unwrap(
-      R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
+      @Nullable R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
       Function1<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>, Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> next) {
     while (true) {
       if (current instanceof Failure) {
@@ -601,7 +601,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         stack.add(recover.mapper.andThen(next));
         current = (PureIO<R, E, A>) recover.current;
       } else if (current instanceof AccessM<R, E, A> accessM) {
-        current = accessM.function.apply(env).fix(PureIOOf::narrowK);
+        current = accessM(env, accessM);
       } else if (current instanceof Suspend<R, E, A> suspend) {
         current = suspend.lazy.get().fix(PureIOOf::narrowK);
       } else if (current instanceof Delay<R, E, A> delay) {
@@ -616,12 +616,19 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     }
   }
 
-  private static <R, E, A> Promise<Either<E, A>> executeAsync(R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
+  @SuppressWarnings("NullAway")
+  static <R, E, A> Kind<Kind<Kind<PureIO_, R>, E>, A> accessM(@Nullable R env, AccessM<R, E, A> accessM) {
+    Kind<Kind<Kind<PureIO_, R>, E>, A> current;
+    current = accessM.function.apply(env).fix(PureIOOf::narrowK);
+    return current;
+  }
+
+  private static <R, E, A> Promise<Either<E, A>> executeAsync(@Nullable R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
 
-    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
+    setCancelToken(env, current, connection, promise);
 
     promise.thenRun(() -> connection.setCancelToken(UNIT));
 
@@ -630,6 +637,12 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     }
 
     return promise;
+  }
+
+  @SuppressWarnings("NullAway")
+  private static <R, E, A> void setCancelToken(
+      @Nullable R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
+    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
   }
 
   final class Pure<R, E, A> implements PureIO<R, E, A> {

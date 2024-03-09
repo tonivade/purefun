@@ -90,7 +90,8 @@ final class MonadDeferReference<F extends Witness, A> implements Reference<F, A>
     return String.format("Reference(%s)", value.get());
   }
 
+  @SuppressWarnings("NullAway")
   private A safeGet() {
-    return Option.of(value.get()).getOrElseThrow();
+    return value.get();
   }
 }

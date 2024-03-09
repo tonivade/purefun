@@ -73,7 +73,7 @@ public interface EIOInstances {
   static Concurrent<Kind<EIO_, Throwable>> concurrent(Executor executor) {
     return EIOConcurrent.instance(executor);
   }
-  
+
   static <E> Runtime<Kind<EIO_, E>> runtime() {
     return EIORuntime.INSTANCE;
   }
@@ -188,7 +188,7 @@ interface EIOMonadDefer
 interface EIOAsync extends Async<Kind<EIO_, Throwable>>, EIOMonadDefer {
 
   EIOAsync INSTANCE = new EIOAsync() {};
-  
+
   @Override
   default <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<EIO_, Throwable>, Unit>> consumer) {
     return EIO.cancellable(cb -> consumer.andThen(EIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
@@ -196,13 +196,13 @@ interface EIOAsync extends Async<Kind<EIO_, Throwable>>, EIOMonadDefer {
 }
 
 interface EIOConcurrent extends EIOAsync, Concurrent<Kind<EIO_, Throwable>> {
-  
+
   static EIOConcurrent instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
-  
+
   @Override
   default <A, B> EIO<Throwable, Either<Tuple2<A, Fiber<Kind<EIO_, Throwable>, B>>, Tuple2<Fiber<Kind<EIO_, Throwable>, A>, B>>> racePair(
     Kind<Kind<EIO_, Throwable>, ? extends A> fa, Kind<Kind<EIO_, Throwable>, ? extends B> fb) {
@@ -211,13 +211,13 @@ interface EIOConcurrent extends EIOAsync, Concurrent<Kind<EIO_, Throwable>> {
 
   @Override
   default <A> EIO<Throwable, Fiber<Kind<EIO_, Throwable>, A>> fork(Kind<Kind<EIO_, Throwable>, ? extends A> value) {
-    // TODO Auto-generated method stub
-    return null;
+    EIO<Throwable, A> fix = value.fix(EIOOf::narrowK);
+    return fix.fork();
   }
 }
 
 interface EIORuntime<E> extends Runtime<Kind<EIO_, E>> {
-  
+
   @SuppressWarnings("rawtypes")
   EIORuntime INSTANCE = new EIORuntime() {};
 
@@ -225,7 +225,7 @@ interface EIORuntime<E> extends Runtime<Kind<EIO_, E>> {
   default <T> T run(Kind<Kind<EIO_, E>, T> value) {
     return value.fix(toEIO()).safeRunSync().getRight();
   }
-  
+
   @Override
   default <T> Sequence<T> run(Sequence<Kind<Kind<EIO_, E>, T>> values) {
     return run(EIO.traverse(values.map(EIOOf::<E, T>narrowK)));
@@ -235,7 +235,7 @@ interface EIORuntime<E> extends Runtime<Kind<EIO_, E>> {
   default <T> Future<T> parRun(Kind<Kind<EIO_, E>, T> value, Executor executor) {
     return value.fix(toEIO()).runAsync().map(Either::get);
   }
-  
+
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<EIO_, E>, T>> values, Executor executor) {
     return parRun(EIO.traverse(values.map(EIOOf::<E, T>narrowK)), executor);

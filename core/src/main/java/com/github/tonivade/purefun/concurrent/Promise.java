@@ -198,7 +198,7 @@ final class PromiseImpl<T> implements Promise<T> {
         lock.unlock();
       }
     }
-    return get();
+    return safeGet();
   }
 
   @Override
@@ -216,7 +216,7 @@ final class PromiseImpl<T> implements Promise<T> {
         lock.unlock();
       }
     }
-    return get();
+    return safeGet();
   }
 
   @Override
@@ -273,16 +273,12 @@ final class PromiseImpl<T> implements Promise<T> {
         lock.unlock();
       }
     }
-    return getValue();
+    return Option.of(safeGet());
   }
 
-  private Try<T> get() {
-    return getValue().getOrElse(
-        () -> Try.failure(new IllegalStateException("promise not completed")));
-  }
-  
-  private Option<Try<T>> getValue() {
-    return Option.of(reference.get()).map(TryOf::narrowK);
+  @SuppressWarnings("NullAway")
+  private Try<T> safeGet() {
+    return TryOf.narrowK(reference.get());
   }
 
   private void set(Try<? extends T> value) {

@@ -74,7 +74,8 @@ public final class Ref<A> {
     return String.format("Ref(%s)", value.get());
   }
 
+  @SuppressWarnings("NullAway")
   private A safeGet() {
-    return Option.of(value.get()).getOrElseThrow();
+    return value.get();
   }
 }
