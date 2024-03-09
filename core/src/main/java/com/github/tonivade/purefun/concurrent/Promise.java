@@ -35,7 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 
 @HigherKind
-public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, Applicable<Promise_, T> {
+public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, Applicable<Promise_, T> permits PromiseImpl {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -166,7 +166,7 @@ final class PromiseImpl<T> implements Promise<T> {
       lock.lock();
       try {
         if (isEmpty()) {
-          reference.set(value);
+          set(value);
           condition.signalAll();
           while (true) {
             var consumer = consumers.poll();
@@ -193,12 +193,12 @@ final class PromiseImpl<T> implements Promise<T> {
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        return Try.failure(e);
+        set(Try.failure(e));
       } finally {
         lock.unlock();
       }
     }
-    return TryOf.narrowK(reference.get());
+    return get();
   }
 
   @Override
@@ -207,16 +207,16 @@ final class PromiseImpl<T> implements Promise<T> {
       lock.lock();
       try {
         if (isEmpty() && !condition.await(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
-          return Try.failure(new TimeoutException());
+          set(Try.failure(new TimeoutException()));
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        return Try.failure(e);
+        set(Try.failure(e));
       } finally {
         lock.unlock();
       }
     }
-    return TryOf.narrowK(reference.get());
+    return get();
   }
 
   @Override
@@ -273,7 +273,20 @@ final class PromiseImpl<T> implements Promise<T> {
         lock.unlock();
       }
     }
-    return Option.of(TryOf.narrowK(reference.get()));
+    return getValue();
+  }
+
+  private Option<Try<T>> getValue() {
+    return Option.of(reference.get()).map(TryOf::narrowK);
+  }
+
+  private Try<T> get() {
+    return getValue().getOrElse(
+        () -> Try.failure(new IllegalStateException("promise not completed")));
+  }
+
+  private void set(Try<? extends T> value) {
+    reference.set(value);
   }
 
   private boolean isEmpty() {

@@ -124,8 +124,12 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
     return getOrElse(cons(value));
   }
 
+  @Nullable
   default T getOrElseNull() {
-    return getOrElse(cons(null));
+    return switch (this) {
+      case None<T> n -> null;
+      case Some<T>(var value) -> value;
+    };
   }
 
   default T getOrElse(Producer<? extends T> producer) {

@@ -14,6 +14,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
+import com.github.tonivade.purefun.type.Option;
 
 public interface Reference<F extends Witness, A> {
 
@@ -30,7 +31,7 @@ public interface Reference<F extends Witness, A> {
   Kind<F, A> getAndUpdate(Operator1<A> update);
 
   static <F extends Witness, A> Reference<F, A> of(MonadDefer<F> monadF, A value) {
-    return new MonadDeferReference<>(monadF, new AtomicReference<>(value));
+    return new MonadDeferReference<>(monadF, value);
   }
 }
 
@@ -39,14 +40,14 @@ final class MonadDeferReference<F extends Witness, A> implements Reference<F, A>
   private final MonadDefer<F> monadF;
   private final AtomicReference<A> value;
 
-  MonadDeferReference(MonadDefer<F> monadF, AtomicReference<A> value) {
+  MonadDeferReference(MonadDefer<F> monadF, A value) {
     this.monadF = checkNonNull(monadF);
-    this.value = checkNonNull(value);
+    this.value = new AtomicReference<>(checkNonNull(value));
   }
 
   @Override
   public Kind<F, A> get() {
-    return monadF.later(value::get);
+    return monadF.later(this::safeGet);
   }
 
   @Override
@@ -60,12 +61,12 @@ final class MonadDeferReference<F extends Witness, A> implements Reference<F, A>
       var loop = true;
       B result = null;
       while (loop) {
-        A current = value.get();
+        A current = safeGet();
         var tuple = change.apply(current);
         result = tuple.get1();
         loop = !value.compareAndSet(current, tuple.get2());
       }
-      return result;
+      return Option.of(result).getOrElseThrow();
     });
   }
 
@@ -87,5 +88,9 @@ final class MonadDeferReference<F extends Witness, A> implements Reference<F, A>
   @Override
   public String toString() {
     return String.format("Reference(%s)", value.get());
+  }
+
+  private A safeGet() {
+    return Option.of(value.get()).getOrElseThrow();
   }
 }

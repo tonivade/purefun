@@ -165,14 +165,14 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
       return ImmutableMap.from(map);
     }
   }
-  
+
   final class PImmutableMap<K, V> implements ImmutableMap<K, V>, Serializable {
-    
+
     @Serial
     private static final long serialVersionUID = -7846127227891259826L;
 
     private static final ImmutableMap<?, ?> EMPTY = new PImmutableMap<>(HashTreePMap.empty());
-    
+
     private static final Equal<PImmutableMap<?, ?>> EQUAL =
         Equal.<PImmutableMap<?, ?>>of().comparing(a -> a.backend);
 
@@ -208,7 +208,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public Option<V> get(K key) {
-      return Option.of(() -> backend.get(key));
+      return Option.of(backend.get(key));
     }
 
     @Override
@@ -237,7 +237,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public int size() {
       return backend.size();
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hash(backend);
@@ -252,7 +252,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     public String toString() {
       return "ImmutableMap(" + backend + ")";
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {
