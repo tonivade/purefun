@@ -30,7 +30,6 @@ import com.github.tonivade.purefun.core.Consumer2;
 import com.github.tonivade.purefun.core.Effect;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Producer;
@@ -430,7 +429,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return new Throw<>(error);
   }
 
-  static <R, A> PureIO<R, Throwable, A> redeem(Kind<Kind<Kind<PureIO_, R>, Nothing>, ? extends A> value) {
+  static <R, A> PureIO<R, Throwable, A> redeem(Kind<Kind<Kind<PureIO_, R>, Void>, ? extends A> value) {
     return new Recover<>(value.fix(PureIOOf::narrowK), PartialFunction1.of(always(), PureIO::raiseError));
   }
 
@@ -513,12 +512,12 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
 
   private static <R, E, A> Promise<Either<E, A>> runAsync(@Nullable R env, PureIO<R, E, A> current, PureIOConnection connection) {
-    return runAsync(Option.of(env), current, connection, new CallStack<>(), Promise.make());
+    return runAsync(env, current, connection, new CallStack<>(), Promise.make());
   }
 
   @SuppressWarnings("unchecked")
   private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(
-      Option<R> env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+      R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
         current = unwrap(env, current, stack, identity());
@@ -585,7 +584,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @SuppressWarnings("unchecked")
   private static <R, E, F, A, B> Kind<Kind<Kind<PureIO_, R>, E>, A> unwrap(
-      Option<R> env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
+      R env, Kind<Kind<Kind<PureIO_, R>, E>, A> current, CallStack<R, F, B> stack,
       Function1<Kind<Kind<Kind<PureIO_, R>, E>, ? extends A>, Kind<Kind<Kind<PureIO_, R>, F>, ? extends B>> next) {
     while (true) {
       if (current instanceof Failure) {
@@ -602,7 +601,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
         stack.add(recover.mapper.andThen(next));
         current = (PureIO<R, E, A>) recover.current;
       } else if (current instanceof AccessM<R, E, A> accessM) {
-        current = accessM.function.apply(env.getOrElseNull()).fix(PureIOOf::narrowK);
+        current = accessM.function.apply(env).fix(PureIOOf::narrowK);
       } else if (current instanceof Suspend<R, E, A> suspend) {
         current = suspend.lazy.get().fix(PureIOOf::narrowK);
       } else if (current instanceof Delay<R, E, A> delay) {
@@ -617,12 +616,12 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     }
   }
 
-  private static <R, E, A> Promise<Either<E, A>> executeAsync(Option<R> env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
+  private static <R, E, A> Promise<Either<E, A>> executeAsync(R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
     if (connection.isCancellable() && !connection.updateState(StateIO::startingNow).isRunnable()) {
       return promise.cancel();
     }
 
-    connection.setCancelToken(current.callback.apply(env.getOrElseNull(), result -> promise.tryComplete(result.map(EitherOf::narrowK))));
+    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::narrowK))));
 
     promise.thenRun(() -> connection.setCancelToken(UNIT));
 

@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIO_;
@@ -43,7 +41,7 @@ import com.github.tonivade.purefun.type.Either;
 public class MonadDeferTest {
 
   private MonadDefer<IO_> ioMonadDefer = IOInstances.monadDefer();
-  private MonadDefer<Kind<Kind<PureIO_, Nothing>, Throwable>> PureIOMonadDefer =
+  private MonadDefer<Kind<Kind<PureIO_, Void>, Throwable>> PureIOMonadDefer =
       PureIOInstances.monadDefer();
   private MonadDefer<Kind<Kind<EitherT_, IO_>, Throwable>> eitherTMonadDefer =
       EitherTInstances.monadDefer(ioMonadDefer);
@@ -173,11 +171,11 @@ public class MonadDeferTest {
 
   @Test
   public void PureIOBracket() throws Exception {
-    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> bracket =
-        PureIOMonadDefer.bracket(PureIO.<Nothing, Throwable, AutoCloseable>pure(resource),
-                              r -> PureIO.<Nothing, Throwable, String>pure("done"));
+    Kind<Kind<Kind<PureIO_, Void>, Throwable>, String> bracket =
+        PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>pure(resource),
+                              r -> PureIO.<Void, Throwable, String>pure("done"));
 
-    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(nothing());
+    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(null);
 
     assertEquals(Either.right("done"), result);
     verify(resource).close();
@@ -185,11 +183,11 @@ public class MonadDeferTest {
 
   @Test
   public void PureIOBracketAcquireError() throws Exception {
-    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> bracket =
-        PureIOMonadDefer.bracket(PureIO.<Nothing, Throwable, AutoCloseable>raiseError(new IllegalStateException()),
-                              r -> PureIO.<Nothing, Throwable, String>pure("done"));
+    Kind<Kind<Kind<PureIO_, Void>, Throwable>, String> bracket =
+        PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>raiseError(new IllegalStateException()),
+                              r -> PureIO.<Void, Throwable, String>pure("done"));
 
-    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(nothing());
+    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(null);
 
     assertTrue(result.isLeft());
     verify(resource, never()).close();
@@ -197,11 +195,11 @@ public class MonadDeferTest {
 
   @Test
   public void PureIOBracketUseError() throws Exception {
-    Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, String> bracket =
-        PureIOMonadDefer.bracket(PureIO.<Nothing, Throwable, AutoCloseable>pure(resource),
-                              r -> PureIO.<Nothing, Throwable, String>raiseError(new UnsupportedOperationException()));
+    Kind<Kind<Kind<PureIO_, Void>, Throwable>, String> bracket =
+        PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>pure(resource),
+                              r -> PureIO.<Void, Throwable, String>raiseError(new UnsupportedOperationException()));
 
-    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(nothing());
+    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(null);
 
     assertTrue(result.isLeft());
     verify(resource).close();

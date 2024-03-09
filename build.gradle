@@ -131,10 +131,16 @@ subprojects {
   }
   
   tasks.withType(JavaCompile) {
-    options.errorprone {
-      check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-      option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun[az.]+")
-      option("NullAway:ExcludedPaths", "*/src/test/java/.*")
+    if (!name.toLowerCase().contains("test")) {
+      options.errorprone {
+        check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun")
+      }
+    } else {
+      options.errorprone {
+        option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun")
+        option("ExcludedPaths", ".*/src/test/java/.*")
+      }
     }
   }
 

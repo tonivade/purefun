@@ -276,13 +276,13 @@ final class PromiseImpl<T> implements Promise<T> {
     return getValue();
   }
 
-  private Option<Try<T>> getValue() {
-    return Option.of(reference.get()).map(TryOf::narrowK);
-  }
-
   private Try<T> get() {
     return getValue().getOrElse(
         () -> Try.failure(new IllegalStateException("promise not completed")));
+  }
+  
+  private Option<Try<T>> getValue() {
+    return Option.of(reference.get()).map(TryOf::narrowK);
   }
 
   private void set(Try<? extends T> value) {

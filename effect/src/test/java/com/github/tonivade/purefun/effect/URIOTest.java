@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.effect;
 
-import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.URIO.pure;
 import static com.github.tonivade.purefun.effect.URIO.raiseError;
@@ -31,7 +30,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
@@ -49,42 +47,42 @@ public class URIOTest {
 
   @Test
   public void mapRight() {
-    Integer result = parseInt("1").map(x -> x + 1).unsafeRunSync(nothing());
+    Integer result = parseInt("1").map(x -> x + 1).unsafeRunSync(null);
 
     assertEquals(2, result);
   }
 
   @Test
   public void mapLeft() {
-    URIO<Nothing, Integer> result = parseInt("lskjdf").map(x -> x + 1);
+    URIO<Void, Integer> result = parseInt("lskjdf").map(x -> x + 1);
 
-    assertThrows(NumberFormatException.class, () -> result.unsafeRunSync(nothing()));
+    assertThrows(NumberFormatException.class, () -> result.unsafeRunSync(null));
   }
 
   @Test
   public void flatMapRight() {
-    Integer result = parseInt("1").flatMap(x -> pure(x + 1)).unsafeRunSync(nothing());
+    Integer result = parseInt("1").flatMap(x -> pure(x + 1)).unsafeRunSync(null);
 
     assertEquals(2, result);
   }
 
   @Test
   public void flatMapLeft() {
-    URIO<Nothing, Integer> result = parseInt("kjere").flatMap(x -> pure(x + 1));
+    URIO<Void, Integer> result = parseInt("kjere").flatMap(x -> pure(x + 1));
 
-    assertThrows(NumberFormatException.class, () -> result.unsafeRunSync(nothing()));
+    assertThrows(NumberFormatException.class, () -> result.unsafeRunSync(null));
   }
 
   @Test
   public void redeemRight() {
-    Integer result = parseInt("1").recover(e -> -1).unsafeRunSync(nothing());
+    Integer result = parseInt("1").recover(e -> -1).unsafeRunSync(null);
 
     assertEquals(1, result);
   }
 
   @Test
   public void redeemLeft() {
-    Integer result = parseInt("kjsdfdf").recover(e -> -1).unsafeRunSync(nothing());
+    Integer result = parseInt("kjsdfdf").recover(e -> -1).unsafeRunSync(null);
 
     assertEquals(-1, result);
   }
@@ -94,29 +92,29 @@ public class URIOTest {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getString("id")).thenReturn("value");
 
-    URIO<Nothing, String> bracket = URIO.bracket(open(resultSet), getString("id"));
+    URIO<Void, String> bracket = URIO.bracket(open(resultSet), getString("id"));
 
-    assertEquals("value", bracket.unsafeRunSync(nothing()));
+    assertEquals("value", bracket.unsafeRunSync(null));
     verify(resultSet).close();
   }
 
   @Test
   public void bracketError() {
-    URIO<Nothing, String> bracket = URIO.bracket(openError(), getString("id"));
+    URIO<Void, String> bracket = URIO.bracket(openError(), getString("id"));
 
-    assertThrows(SQLException.class, () -> bracket.unsafeRunSync(nothing()));
+    assertThrows(SQLException.class, () -> bracket.unsafeRunSync(null));
   }
 
   @Test
   public void asyncRight(@Mock Consumer1<? super Try<? extends Integer>> callback) {
-    parseInt("1").safeRunAsync(nothing(), callback);
+    parseInt("1").safeRunAsync(null, callback);
 
     verify(callback, timeout(1000)).accept(Try.success(1));
   }
 
   @Test
   public void asyncLeft(@Mock Consumer1<? super Try<? extends Integer>> callback) {
-    parseInt("kjsdf").safeRunAsync(nothing(), callback);
+    parseInt("kjsdf").safeRunAsync(null, callback);
 
     verify(callback, timeout(1000)).accept(captor.capture());
 
@@ -129,7 +127,7 @@ public class URIOTest {
     when(computation.liftTry()).thenCallRealMethod();
     when(computation.liftEither()).thenCallRealMethod();
 
-    Try<String> retry = task(computation).retry().safeRunSync(nothing());
+    Try<String> retry = task(computation).retry().safeRunSync(null);
 
     assertTrue(retry.isFailure());
     verify(computation, times(2)).get();
@@ -141,7 +139,7 @@ public class URIOTest {
     when(computation.liftTry()).thenCallRealMethod();
     when(computation.liftEither()).thenCallRealMethod();
 
-    Try<String> repeat = task(computation).repeat().safeRunSync(nothing());
+    Try<String> repeat = task(computation).repeat().safeRunSync(null);
 
     assertEquals("hola", repeat.getOrElseThrow());
     verify(computation, times(2)).get();
@@ -149,85 +147,85 @@ public class URIOTest {
 
   @Test
   public void testCompositionWithZIO() {
-    PureIO<Environment, Nothing, Integer> getValue = PureIO.access(Environment::getValue);
-    PureIO<Environment, Nothing, Integer> result = URIO.<Environment>unit().<Nothing>toPureIO().andThen(getValue);
+    PureIO<Environment, Void, Integer> getValue = PureIO.access(Environment::getValue);
+    PureIO<Environment, Void, Integer> result = URIO.<Environment>unit().<Void>toPureIO().andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
   }
-  
+
   @Test
   public void traverse() {
-    URIO<Nothing, String> left = task(() -> "left");
-    URIO<Nothing, String> right = task(() -> "right");
-    
-    URIO<Nothing, Sequence<String>> traverse = URIO.traverse(listOf(left, right));
-    
-    assertEquals(listOf("left", "right"), traverse.unsafeRunSync(nothing()));
+    URIO<Void, String> left = task(() -> "left");
+    URIO<Void, String> right = task(() -> "right");
+
+    URIO<Void, Sequence<String>> traverse = URIO.traverse(listOf(left, right));
+
+    assertEquals(listOf("left", "right"), traverse.unsafeRunSync(null));
   }
 
   @Test
   public void raceA() {
-    URIO<Nothing, Either<Integer, String>> race = URIO.race(
-        URIO.<Nothing>sleep(Duration.ofMillis(10)).map(x -> 10),
-        URIO.<Nothing>sleep(Duration.ofMillis(100)).map(x -> "b"));
-    
-    Either<Integer, String> orElseThrow = race.unsafeRunSync(nothing());
-    
+    URIO<Void, Either<Integer, String>> race = URIO.race(
+        URIO.<Void>sleep(Duration.ofMillis(10)).map(x -> 10),
+        URIO.<Void>sleep(Duration.ofMillis(100)).map(x -> "b"));
+
+    Either<Integer, String> orElseThrow = race.unsafeRunSync(null);
+
     assertEquals(Either.left(10), orElseThrow);
   }
 
   @Test
   public void raceB() {
-    URIO<Nothing, Either<Integer, String>> race = URIO.race(
-        URIO.<Nothing>sleep(Duration.ofMillis(100)).map(x -> 10),
-        URIO.<Nothing>sleep(Duration.ofMillis(10)).map(x -> "b"));
-    
-    Either<Integer, String> orElseThrow = race.unsafeRunSync(nothing());
-    
+    URIO<Void, Either<Integer, String>> race = URIO.race(
+        URIO.<Void>sleep(Duration.ofMillis(100)).map(x -> 10),
+        URIO.<Void>sleep(Duration.ofMillis(10)).map(x -> "b"));
+
+    Either<Integer, String> orElseThrow = race.unsafeRunSync(null);
+
     assertEquals(Either.right("b"), orElseThrow);
   }
-  
+
   @Test
   public void fork() {
-    URIO<Nothing, String> result = For.with(URIOInstances.<Nothing>monad())
-      .then(URIO.<Nothing, String>pure("hola"))
+    URIO<Void, String> result = For.with(URIOInstances.<Void>monad())
+      .then(URIO.<Void, String>pure("hola"))
       .flatMap(hello -> {
-        URIO<Nothing, Unit> sleep = URIO.sleep(Duration.ofSeconds(1));
-        URIO<Nothing, String> task = URIO.task(() -> hello + " toni");
+        URIO<Void, Unit> sleep = URIO.sleep(Duration.ofSeconds(1));
+        URIO<Void, String> task = URIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
       .flatMap(Fiber::join).fix(URIOOf.toURIO());
-    
-    String orElseThrow = result.unsafeRunSync(nothing());
+
+    String orElseThrow = result.unsafeRunSync(null);
 
     assertEquals("hola toni", orElseThrow);
   }
-  
+
   @Test
   public void timeoutFail() {
-    assertThrows(TimeoutException.class, () -> URIO.never().timeout(Duration.ofSeconds(1)).unsafeRunSync(nothing()));
-  }
-  
-  @Test
-  public void timeoutSuccess() {
-    assertEquals(1, URIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync(nothing()));
+    assertThrows(TimeoutException.class, () -> URIO.never().timeout(Duration.ofSeconds(1)).unsafeRunSync(null));
   }
 
-  private URIO<Nothing, Integer> parseInt(String string) {
+  @Test
+  public void timeoutSuccess() {
+    assertEquals(1, URIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync(null));
+  }
+
+  private URIO<Void, Integer> parseInt(String string) {
     return task(() -> Integer.parseInt(string));
   }
 
-  private URIO<Nothing, ResultSet> open(ResultSet resultSet) {
+  private URIO<Void, ResultSet> open(ResultSet resultSet) {
     return pure(resultSet);
   }
 
-  private URIO<Nothing, ResultSet> openError() {
+  private URIO<Void, ResultSet> openError() {
     return raiseError(new SQLException("error"));
   }
 
-  private Function1<ResultSet, URIO<Nothing, String>> getString(String column) {
+  private Function1<ResultSet, URIO<Void, String>> getString(String column) {
     return resultSet -> task(() -> resultSet.getString(column));
   }
 }

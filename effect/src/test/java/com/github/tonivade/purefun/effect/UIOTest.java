@@ -36,7 +36,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
@@ -155,30 +154,30 @@ public class UIOTest {
 
   @Test
   public void testCompositionWithZIO() {
-    PureIO<Environment, Nothing, Integer> getValue = PureIO.access(Environment::getValue);
-    PureIO<Environment, Nothing, Integer> result = unit().<Environment, Nothing>toPureIO().andThen(getValue);
+    PureIO<Environment, Void, Integer> getValue = PureIO.access(Environment::getValue);
+    PureIO<Environment, Void, Integer> result = unit().<Environment, Void>toPureIO().andThen(getValue);
 
     Environment env = new Environment(current().nextInt());
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
   }
-  
+
   @Test
   public void timed() {
     UIO<Tuple2<Duration, Unit>> timed = UIO.sleep(Duration.ofMillis(100)).timed();
-    
+
     Tuple2<Duration, Unit> provide = timed.unsafeRunSync();
-    
+
     assertTrue(provide.get1().toMillis() >= 100);
   }
-  
+
   @Test
   public void traverse() {
     UIO<String> left = task(() -> "left");
     UIO<String> right = task(() -> "right");
-    
+
     UIO<Sequence<String>> traverse = UIO.traverse(listOf(left, right));
-    
+
     assertEquals(listOf("left", "right"), traverse.unsafeRunSync());
   }
 
@@ -187,9 +186,9 @@ public class UIOTest {
     UIO<Either<Integer, String>> race = UIO.race(
         UIO.sleep(Duration.ofMillis(10)).map(x -> 10),
         UIO.sleep(Duration.ofMillis(100)).map(x -> "b"));
-    
+
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
-    
+
     assertEquals(Either.left(10), orElseThrow);
   }
 
@@ -198,12 +197,12 @@ public class UIOTest {
     UIO<Either<Integer, String>> race = UIO.race(
         UIO.sleep(Duration.ofMillis(100)).map(x -> 10),
         UIO.sleep(Duration.ofMillis(10)).map(x -> "b"));
-    
+
     Either<Integer, String> orElseThrow = race.unsafeRunSync();
-    
+
     assertEquals(Either.right("b"), orElseThrow);
   }
-  
+
   @Test
   public void fork() {
     UIO<String> result = For.with(UIOInstances.monad())
@@ -214,38 +213,38 @@ public class UIOTest {
         return sleep.andThen(task).fork();
       })
       .flatMap(Fiber::join).fix(toUIO());
-    
+
     String orElseThrow = result.unsafeRunSync();
 
     assertEquals("hola toni", orElseThrow);
   }
-  
+
   @Test
   public void timeoutFail() {
     assertThrows(TimeoutException.class, () -> UIO.never().timeout(Duration.ofSeconds(1)).unsafeRunSync());
   }
-  
+
   @Test
   public void timeoutSuccess() {
     assertEquals(1, UIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync());
   }
-  
+
   @Test
   public void memoize(@Mock Function1<String, String> toUpperCase) {
     when(toUpperCase.apply(any()))
       .thenAnswer(args -> args.getArgument(0, String.class).toUpperCase());
-    
+
     UIO<Function1<String, UIO<String>>> memoized = UIO.memoize((String str) -> UIO.pure(toUpperCase.apply(str)));
-    
+
     UIO<String> flatMap = memoized.flatMap(x -> x.apply("hola"));
     flatMap.unsafeRunSync();
     flatMap.unsafeRunSync();
     flatMap.unsafeRunSync();
     flatMap.unsafeRunSync();
-    
+
     verify(toUpperCase).apply("hola");
   }
-  
+
   @Test
   public void fibonacciTest() {
     assertAll(

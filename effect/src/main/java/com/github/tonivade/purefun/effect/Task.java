@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.core.Function2.first;
 import static com.github.tonivade.purefun.core.Function2.second;
-import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
@@ -22,7 +21,6 @@ import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Effect;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Recoverable;
 import com.github.tonivade.purefun.core.Tuple;
@@ -41,9 +39,9 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   private static final Task<Unit> UNIT = new Task<>(PureIO.unit());
 
-  private final PureIO<Nothing, Throwable, A> instance;
+  private final PureIO<Void, Throwable, A> instance;
 
-  Task(PureIO<Nothing, Throwable, A> value) {
+  Task(PureIO<Void, Throwable, A> value) {
     this.instance = checkNonNull(value);
   }
 
@@ -66,11 +64,11 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public Try<A> safeRunSync() {
-    return Try.fromEither(instance.provide(nothing()));
+    return Try.fromEither(instance.provide(null));
   }
 
   public Future<A> runAsync() {
-    return instance.runAsync(nothing()).flatMap(e -> e.fold(Future::failure, Future::success));
+    return instance.runAsync(null).flatMap(e -> e.fold(Future::failure, Future::success));
   }
 
   public Future<A> runAsync(Executor executor) {
@@ -78,7 +76,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public void safeRunAsync(Consumer1<? super Try<? extends A>> callback) {
-    instance.provideAsync(nothing(), result -> callback.accept(result.flatMap(Try::fromEither)));
+    instance.provideAsync(null, result -> callback.accept(result.flatMap(Try::fromEither)));
   }
 
   @Override
@@ -159,7 +157,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   public Task<Fiber<Task_, A>> fork() {
     return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
+      public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Void>, Throwable>, ? extends T> from) {
         return new Task<>(from.fix(PureIOOf::narrowK));
       }
     })));
@@ -247,17 +245,17 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public static <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>>
       racePair(Executor executor, Kind<Task_, ? extends A> fa, Kind<Task_, ? extends B> fb) {
-    PureIO<Nothing, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
-    PureIO<Nothing, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
+    PureIO<Void, Throwable, A> instance1 = fa.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
+    PureIO<Void, Throwable, B> instance2 = fb.fix(TaskOf.toTask()).instance.fix(PureIOOf::narrowK);
     return new Task<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
+        public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Void>, Throwable>, ? extends T> from) {
           return new Task<>(from.fix(PureIOOf::narrowK));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Nothing>, Throwable>, ? extends T> from) {
+        public <T> Task<T> apply(Kind<Kind<Kind<PureIO_, Void>, Throwable>, ? extends T> from) {
           return new Task<>(from.fix(PureIOOf::narrowK));
         }
       })))));
@@ -268,7 +266,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
   }
 
   public static <A, B> Function1<A, Task<B>> lift(Function1<? super A, ? extends B> function) {
-    return PureIO.<Nothing, A, B>lift(function).andThen(Task::new);
+    return PureIO.<Void, A, B>lift(function).andThen(Task::new);
   }
 
   public static <A, B> Function1<A, Task<B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
@@ -342,7 +340,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task_, A>, Recoverable {
 
   public static <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Task<Unit>> consumer) {
     return new Task<>(PureIO.cancellable(
-      (env, cb1) -> consumer.andThen(Task::<Nothing>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
+      (env, cb1) -> consumer.andThen(Task::<Void>toPureIO).apply(result -> cb1.accept(result.map(Either::right)))));
   }
 
   public static <A> Task<A> raiseError(Throwable error) {

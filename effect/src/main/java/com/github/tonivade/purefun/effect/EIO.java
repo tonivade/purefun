@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.core.Function2.first;
 import static com.github.tonivade.purefun.core.Function2.second;
-import static com.github.tonivade.purefun.core.Nothing.nothing;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
@@ -22,7 +21,6 @@ import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Effect;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Nothing;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -40,9 +38,9 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
 
   private static final EIO<?, Unit> UNIT = new EIO<>(PureIO.unit());
 
-  private final PureIO<Nothing, E, A> instance;
+  private final PureIO<Void, E, A> instance;
 
-  EIO(PureIO<Nothing, E, A> value) {
+  EIO(PureIO<Void, E, A> value) {
     this.instance = checkNonNull(value);
   }
 
@@ -56,11 +54,11 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public Either<E, A> safeRunSync() {
-    return instance.provide(nothing());
+    return instance.provide(null);
   }
 
   public Future<Either<E, A>> runAsync() {
-    return instance.runAsync(nothing());
+    return instance.runAsync(null);
   }
 
   public Future<Either<E, A>> runAsync(Executor executor) {
@@ -68,7 +66,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public void safeRunAsync(Consumer1<? super Try<? extends Either<E, ? extends A>>> callback) {
-    instance.provideAsync(nothing(), callback);
+    instance.provideAsync(null, callback);
   }
 
   @Override
@@ -157,7 +155,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   public EIO<E, Fiber<Kind<EIO_, E>, A>> fork() {
     return new EIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Nothing>, E>, ? extends T> from) {
+      public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Void>, E>, ? extends T> from) {
         return new EIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
@@ -249,17 +247,17 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
 
   public static <E, A, B> EIO<E, Either<Tuple2<A, Fiber<Kind<EIO_, E>, B>>, Tuple2<Fiber<Kind<EIO_, E>, A>, B>>>
       racePair(Executor executor, Kind<Kind<EIO_, E>, ? extends A> fa, Kind<Kind<EIO_, E>, ? extends B> fb) {
-    PureIO<Nothing, E, A> instance1 = fa.fix(EIOOf.toEIO()).instance.fix(PureIOOf::narrowK);
-    PureIO<Nothing, E, B> instance2 = fb.fix(EIOOf.toEIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<Void, E, A> instance1 = fa.fix(EIOOf.toEIO()).instance.fix(PureIOOf::narrowK);
+    PureIO<Void, E, B> instance2 = fb.fix(EIOOf.toEIO()).instance.fix(PureIOOf::narrowK);
     return new EIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Nothing>, E>, ? extends T> from) {
+        public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Void>, E>, ? extends T> from) {
           return new EIO<>(from.fix(PureIOOf::narrowK));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Nothing>, E>, ? extends T> from) {
+        public <T> EIO<E, T> apply(Kind<Kind<Kind<PureIO_, Void>, E>, ? extends T> from) {
           return new EIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));
@@ -270,7 +268,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public static <A, B> Function1<A, EIO<Throwable, B>> lift(Function1<? super A, ? extends B> function) {
-    return PureIO.<Nothing, A, B>lift(function).andThen(EIO::new);
+    return PureIO.<Void, A, B>lift(function).andThen(EIO::new);
   }
 
   public static <A, B> Function1<A, EIO<Throwable, B>> liftOption(Function1<? super A, ? extends Option<? extends B>> function) {
@@ -342,7 +340,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<Kind<EIO_, E>, A> {
   }
 
   public static <E, A> EIO<E, A> cancellable(Function1<Consumer1<? super Try<? extends Either<E, ? extends A>>>, EIO<E, Unit>> consumer) {
-    return new EIO<>(PureIO.cancellable((env, cb) -> consumer.andThen(EIO::<Nothing>toPureIO).apply(cb)));
+    return new EIO<>(PureIO.cancellable((env, cb) -> consumer.andThen(EIO::<Void>toPureIO).apply(cb)));
   }
 
   public static <E, A> EIO<E, A> raiseError(E error) {
