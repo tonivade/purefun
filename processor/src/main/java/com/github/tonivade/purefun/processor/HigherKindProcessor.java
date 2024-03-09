@@ -55,7 +55,7 @@ public class HigherKindProcessor extends AbstractProcessor {
         }
       }
     }
-    return true;
+    return false;
   }
 
   private void generate(TypeElement element) throws IOException {
