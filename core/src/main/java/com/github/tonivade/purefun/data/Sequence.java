@@ -17,8 +17,6 @@ import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.annotation.Nonnull;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -234,7 +232,6 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
     return Tuple.of(nextItem(first), nextItem(second));
   }
 
-  @Nonnull
   private static <Z> Z nextItem(Iterator<Z> it) {
     return it.next();
   }

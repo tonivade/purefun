@@ -12,10 +12,9 @@ import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;

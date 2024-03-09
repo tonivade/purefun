@@ -9,8 +9,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
-
+import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.type.Try;
 
 public sealed interface Cancellable {
@@ -30,7 +29,8 @@ final class CancellableImpl implements Cancellable {
 
   private final ReentrantLock lock = new ReentrantLock();
   private boolean cancelled = false;
-  private @Nullable Thread thread = null;
+  @Nullable
+  private Thread thread = null;
 
   private final Promise<?> promise;
 

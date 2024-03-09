@@ -11,7 +11,6 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -23,6 +22,7 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Nullable;
 
 @SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
 public class HigherKindProcessor extends AbstractProcessor {

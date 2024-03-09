@@ -194,7 +194,6 @@ subprojects {
   dependencies {
     errorprone libs.nullaway
     errorprone libs.errorprone
-    compileOnly libs.jsr305
     testImplementation libs.junitJupiter
     testRuntimeOnly libs.junitRunner
     testImplementation libs.equalsVerifier
