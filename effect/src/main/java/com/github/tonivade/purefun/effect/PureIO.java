@@ -61,11 +61,11 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   default void provideAsync(@Nullable R env, Consumer1<? super Try<? extends Either<E, A>>> callback) {
-    runAsync(env).onComplete(callback::accept);
+    runAsync(env).onComplete(callback);
   }
 
   default void provideAsync(@Nullable R env, Executor executor, Consumer1<? super Try<? extends Either<E, A>>> callback) {
-    runAsync(env, executor).onComplete(callback::accept);
+    runAsync(env, executor).onComplete(callback);
   }
 
   default PureIO<R, A, E> swap() {
@@ -862,10 +862,10 @@ sealed interface PureIOConnection {
 
   final class Cancellable implements PureIOConnection {
 
-    private Cancellable() { }
-
     private PureIO<?, ?, Unit> cancelToken = PureIO.UNIT;
     private final AtomicReference<StateIO> state = new AtomicReference<>(StateIO.INITIAL);
+
+    private Cancellable() { }
 
     @Override
     public boolean isCancellable() {

@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.effect.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -69,11 +71,11 @@ public interface PureConsole {
           }
 
           private BufferedReader reader() {
-            return new BufferedReader(new InputStreamReader(System.in));
+            return new BufferedReader(new InputStreamReader(System.in, UTF_8));
           }
 
           private PrintWriter writer() {
-            return new PrintWriter(System.out, true);
+            return new PrintWriter(System.out, true, UTF_8);
           }
         };
       }

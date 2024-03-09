@@ -69,7 +69,7 @@ interface StateMonadState<S> extends MonadState<Kind<State_, S>, S>, StateMonad<
 
 final class StateConsole implements Console<Kind<State_, ImmutableList<String>>> {
 
-  protected static final StateConsole INSTANCE = new StateConsole();
+  static final StateConsole INSTANCE = new StateConsole();
 
   @Override
   public State<ImmutableList<String>, String> readln() {

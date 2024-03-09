@@ -123,7 +123,7 @@ interface EitherKComonad<F extends Witness, G extends Witness>
   default <A, B> EitherK<F, G, B> coflatMap(
       Kind<Kind<Kind<EitherK_, F>, G>, ? extends A> value,
       Function1<? super Kind<Kind<Kind<EitherK_, F>, G>, ? extends A>, ? extends B> map) {
-    return value.fix(EitherKOf::narrowK).coflatMap(f(), g(), map::apply);
+    return value.fix(EitherKOf::narrowK).coflatMap(f(), g(), map);
   }
 
   @Override

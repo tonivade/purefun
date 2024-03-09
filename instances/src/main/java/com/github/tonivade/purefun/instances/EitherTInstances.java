@@ -181,7 +181,7 @@ interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT
                 this::acquireRecover,
                 value -> use.andThen(EitherTOf::<F, E, B>narrowK).apply(value).value()),
             either -> {
-              Kind<Kind<Kind<EitherT_, F>, E>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release::apply);
+              Kind<Kind<Kind<EitherT_, F>, E>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release);
               Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::narrowK).value();
               return monadF().map(value, x -> x.fold(cons(unit()), identity()));
             });
@@ -190,7 +190,7 @@ interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT
 }
 
 interface EitherTTimer<F extends Witness> extends Timer<Kind<Kind<EitherT_, F>, Throwable>> {
-  
+
   MonadDefer<F> monadF();
 
   @Override

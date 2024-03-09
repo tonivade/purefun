@@ -5,8 +5,10 @@
 package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+import static com.github.tonivade.purefun.effect.URIO.never;
 import static com.github.tonivade.purefun.effect.URIO.pure;
 import static com.github.tonivade.purefun.effect.URIO.raiseError;
+import static com.github.tonivade.purefun.effect.URIO.sleep;
 import static com.github.tonivade.purefun.effect.URIO.task;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -192,8 +194,8 @@ public class URIOTest {
     URIO<Void, String> result = For.with(URIOInstances.<Void>monad())
       .then(URIO.<Void, String>pure("hola"))
       .flatMap(hello -> {
-        URIO<Void, Unit> sleep = URIO.sleep(Duration.ofSeconds(1));
-        URIO<Void, String> task = URIO.task(() -> hello + " toni");
+        URIO<Void, Unit> sleep = sleep(Duration.ofSeconds(1));
+        URIO<Void, String> task = task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
       .flatMap(Fiber::join).fix(URIOOf.toURIO());
@@ -205,12 +207,12 @@ public class URIOTest {
 
   @Test
   public void timeoutFail() {
-    assertThrows(TimeoutException.class, () -> URIO.never().timeout(Duration.ofSeconds(1)).unsafeRunSync(null));
+    assertThrows(TimeoutException.class, () -> never().timeout(Duration.ofSeconds(1)).unsafeRunSync(null));
   }
 
   @Test
   public void timeoutSuccess() {
-    assertEquals(1, URIO.pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync(null));
+    assertEquals(1, pure(1).timeout(Duration.ofSeconds(1)).unsafeRunSync(null));
   }
 
   private URIO<Void, Integer> parseInt(String string) {

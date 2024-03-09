@@ -34,11 +34,11 @@ public non-sealed interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F
   }
 
   default <X> Kleisli<F, X, A> local(Function1<? super X, ? extends Z> map) {
-    return Kleisli.of(monad(), map.andThen(this::run)::apply);
+    return Kleisli.of(monad(), map.andThen(this::run));
   }
 
   static <F extends Witness, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<? super A, ? extends B> map) {
-    return Kleisli.of(monad, map.andThen(monad::<B>pure)::apply);
+    return Kleisli.of(monad, map.andThen(monad::<B>pure));
   }
 
   static <F extends Witness, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
@@ -49,7 +49,7 @@ public non-sealed interface Kleisli<F extends Witness, Z, A> extends KleisliOf<F
     return Kleisli.of(monad, a -> monad.pure(value));
   }
 
-  static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad, 
+  static <F extends Witness, A, B> Kleisli<F, A, B> of(Monad<F> monad,
       Function1<? super A, ? extends Kind<F, ? extends B>> run) {
     checkNonNull(monad);
     checkNonNull(run);

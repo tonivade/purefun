@@ -6,7 +6,9 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.RIO.pure;
+import static com.github.tonivade.purefun.effect.RIO.race;
 import static com.github.tonivade.purefun.effect.RIO.raiseError;
+import static com.github.tonivade.purefun.effect.RIO.sleep;
 import static com.github.tonivade.purefun.effect.RIO.task;
 import static com.github.tonivade.purefun.effect.RIOOf.toRIO;
 import static java.util.concurrent.ThreadLocalRandom.current;
@@ -169,7 +171,7 @@ public class RIOTest {
 
   @Test
   void raceA() {
-    RIO<Void, Either<Integer, String>> race = RIO.race(
+    RIO<Void, Either<Integer, String>> race = race(
         RIO.<Void>sleep(Duration.ofMillis(10)).map(x -> 10),
         RIO.<Void>sleep(Duration.ofMillis(100)).map(x -> "b"));
 
@@ -180,7 +182,7 @@ public class RIOTest {
 
   @Test
   void raceB() {
-    RIO<Void, Either<Integer, String>> race = RIO.race(
+    RIO<Void, Either<Integer, String>> race = race(
         RIO.<Void>sleep(Duration.ofMillis(100)).map(x -> 10),
         RIO.<Void>sleep(Duration.ofMillis(10)).map(x -> "b"));
 
@@ -194,8 +196,8 @@ public class RIOTest {
     RIO<Void, String> result = For.with(RIOInstances.<Void>monad())
       .then(RIO.<Void, String>pure("hola"))
       .flatMap(hello -> {
-        RIO<Void, Unit> sleep = RIO.sleep(Duration.ofSeconds(1));
-        RIO<Void, String> task = RIO.task(() -> hello + " toni");
+        RIO<Void, Unit> sleep = sleep(Duration.ofSeconds(1));
+        RIO<Void, String> task = task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
       .flatMap(Fiber::join).fix(toRIO());
@@ -214,7 +216,7 @@ public class RIOTest {
 
   @Test
   void timeoutSuccess() {
-    assertEquals(Try.success(1), RIO.pure(1).timeout(Duration.ofSeconds(1)).safeRunSync(null));
+    assertEquals(Try.success(1), pure(1).timeout(Duration.ofSeconds(1)).safeRunSync(null));
   }
 
   private RIO<Void, Integer> parseInt(String string) {

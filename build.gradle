@@ -135,6 +135,7 @@ subprojects {
       options.errorprone {
         check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
         option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun")
+        option("NullAway:SuggestSuppressions", "true")
       }
     } else {
       options.errorprone {

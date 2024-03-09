@@ -43,15 +43,15 @@ public interface ParInstances {
   static MonadDefer<Par_> monadDefer() {
     return ParMonadDefer.INSTANCE;
   }
-  
+
   static <A> Reference<Par_, A> reference(A value) {
     return Reference.of(monadDefer(), value);
   }
-  
+
   static <A extends AutoCloseable> Resource<Par_, A> resource(Par<A> acquire) {
     return resource(acquire, AutoCloseable::close);
   }
-  
+
   static <A> Resource<Par_, A> resource(Par<A> acquire, Consumer1<A> release) {
     return Resource.from(monadDefer(), acquire, release);
   }
@@ -79,7 +79,7 @@ interface PureApplicative extends ParPure {
   PureApplicative INSTANCE = new PureApplicative() {};
 
   @Override
-  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value, 
+  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value,
       Kind<Par_, ? extends Function1<? super T, ? extends R>> apply) {
     return value.fix(ParOf::<T>narrowK).ap(apply.fix(ParOf::narrowK));
   }
@@ -99,7 +99,7 @@ interface ParMonad extends ParPure, Monad<Par_> {
    * applicative version of the ap method
    */
   @Override
-  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value, 
+  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value,
       Kind<Par_, ? extends Function1<? super T, ? extends R>> apply) {
     return ParInstances.applicative().ap(value, apply).fix(ParOf::narrowK);
   }
@@ -125,7 +125,7 @@ interface ParDefer extends Defer<Par_> {
 
   @Override
   default <A> Par<A> defer(Producer<? extends Kind<Par_, ? extends A>> defer) {
-    return Par.defer(defer.map(ParOf::<A>narrowK)::get);
+    return Par.defer(defer.map(ParOf::<A>narrowK));
   }
 }
 
@@ -133,8 +133,8 @@ interface ParBracket extends Bracket<Par_, Throwable> {
 
   @Override
   default <A, B> Par<B> bracket(
-      Kind<Par_, ? extends A> acquire, 
-      Function1<? super A, ? extends Kind<Par_, ? extends B>> use, 
+      Kind<Par_, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Par_, ? extends B>> use,
       Function1<? super A, ? extends Kind<Par_, Unit>> release) {
     return Par.bracket(ParOf.narrowK(acquire), use.andThen(ParOf::narrowK), release::apply);
   }

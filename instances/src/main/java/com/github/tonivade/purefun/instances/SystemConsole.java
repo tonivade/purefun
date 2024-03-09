@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.instances;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,12 +15,12 @@ import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 
 final class SystemConsole {
-  
-  protected void println(String message) {
+
+  void println(String message) {
     writer(System.out).println(message);
   }
 
-  protected String readln() {
+  String readln() {
     try {
       return reader(System.in).readLine();
     } catch (IOException e) {
@@ -27,10 +29,10 @@ final class SystemConsole {
   }
 
   private static BufferedReader reader(InputStream stream) {
-    return new BufferedReader(new InputStreamReader(stream));
+    return new BufferedReader(new InputStreamReader(stream, UTF_8));
   }
 
   private static PrintWriter writer(PrintStream stream) {
-    return new PrintWriter(stream, true);
+    return new PrintWriter(stream, true, UTF_8);
   }
 }

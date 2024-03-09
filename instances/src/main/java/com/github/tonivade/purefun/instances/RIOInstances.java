@@ -74,7 +74,7 @@ public interface RIOInstances {
   static <R> Console<Kind<Kind<RIO_, R>, Throwable>> console() {
     return RIOConsole.INSTANCE;
   }
-  
+
   static <R> Runtime<Kind<RIO_, R>> runtime(R env) {
     return RIORuntime.instance(env);
   }
@@ -195,7 +195,7 @@ interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
   @SuppressWarnings("rawtypes")
   RIOAsync INSTANCE = new RIOAsync<>() {
   };
-  
+
   @Override
   default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO_, R>, Unit>> consumer) {
     return RIO.cancellable((env, cb) -> consumer.andThen(RIOOf::narrowK).apply(cb));
@@ -203,13 +203,13 @@ interface RIOAsync<R> extends Async<Kind<RIO_, R>>, RIOMonadDefer<R> {
 }
 
 interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<Kind<RIO_, R>> {
-  
+
   static <R> RIOConcurrent<R> instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
-  
+
   @Override
   default <A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO_, R>, B>>, Tuple2<Fiber<Kind<RIO_, R>, A>, B>>> racePair(
     Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
@@ -226,7 +226,7 @@ interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<Kind<RIO_, R>> {
 final class RIOConsole<R> implements Console<Kind<RIO_, R>> {
 
   @SuppressWarnings("rawtypes")
-  protected static final RIOConsole INSTANCE = new RIOConsole();
+  static final RIOConsole INSTANCE = new RIOConsole();
 
   private final SystemConsole console = new SystemConsole();
 
@@ -242,7 +242,7 @@ final class RIOConsole<R> implements Console<Kind<RIO_, R>> {
 }
 
 interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
-  
+
   static <R> RIORuntime<R> instance(R env) {
     return () -> env;
   }
@@ -253,7 +253,7 @@ interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
   default <T> T run(Kind<Kind<RIO_, R>, T> value) {
     return value.fix(toRIO()).safeRunSync(env()).getOrElseThrow();
   }
-  
+
   @Override
   default <T> Sequence<T> run(Sequence<Kind<Kind<RIO_, R>, T>> values) {
     return run(RIO.traverse(values.map(RIOOf::<R, T>narrowK)));
@@ -263,7 +263,7 @@ interface RIORuntime<R> extends Runtime<Kind<RIO_, R>> {
   default <T> Future<T> parRun(Kind<Kind<RIO_, R>, T> value, Executor executor) {
     return value.fix(toRIO()).runAsync(env());
   }
-  
+
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<RIO_, R>, T>> values, Executor executor) {
     return parRun(RIO.traverse(values.map(RIOOf::<R, T>narrowK)), executor);

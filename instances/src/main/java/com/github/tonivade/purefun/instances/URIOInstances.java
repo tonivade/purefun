@@ -74,7 +74,7 @@ public interface URIOInstances {
   static <R> Console<Kind<Kind<URIO_, R>, Throwable>> console() {
     return URIOConsole.INSTANCE;
   }
-  
+
   static <R> Runtime<Kind<URIO_, R>> runtime(R env) {
     return URIORuntime.instance(env);
   }
@@ -86,7 +86,7 @@ interface URIOFunctor<R> extends Functor<Kind<URIO_, R>> {
   URIOFunctor INSTANCE = new URIOFunctor() {};
 
   @Override
-  default <A, B> URIO<R, B> map(Kind<Kind<URIO_, R>, ? extends A> value, 
+  default <A, B> URIO<R, B> map(Kind<Kind<URIO_, R>, ? extends A> value,
       Function1<? super A, ? extends B> map) {
     return URIOOf.narrowK(value).map(map);
   }
@@ -195,7 +195,7 @@ interface URIOAsync<R> extends Async<Kind<URIO_, R>>, URIOMonadDefer<R> {
   @SuppressWarnings("rawtypes")
   URIOAsync INSTANCE = new URIOAsync<>() {
   };
-  
+
   @Override
   default <A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<URIO_, R>, Unit>> consumer) {
     return URIO.cancellable((env, cb) -> consumer.andThen(URIOOf::narrowK).apply(cb));
@@ -203,31 +203,31 @@ interface URIOAsync<R> extends Async<Kind<URIO_, R>>, URIOMonadDefer<R> {
 }
 
 interface URIOConcurrent<R> extends URIOAsync<R>, Concurrent<Kind<URIO_, R>> {
-  
+
   static <R> URIOConcurrent<R> instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
-  
+
   @Override
   default <A, B> URIO<R, Either<Tuple2<A, Fiber<Kind<URIO_, R>, B>>, Tuple2<Fiber<Kind<URIO_, R>, A>, B>>> racePair(
     Kind<Kind<URIO_, R>, ? extends A> fa, Kind<Kind<URIO_, R>, ? extends B> fb) {
     return URIO.racePair(executor(), fa, fb);
   }
-  
+
   @Override
   default <A> URIO<R, Fiber<Kind<URIO_, R>, A>> fork(Kind<Kind<URIO_, R>, ? extends A> value) {
     URIO<R, A> fix = value.fix(URIOOf::narrowK);
     return fix.fork();
   }
-  
+
 }
 
 final class URIOConsole<R> implements Console<Kind<URIO_, R>> {
 
   @SuppressWarnings("rawtypes")
-  protected static final URIOConsole INSTANCE = new URIOConsole();
+  static final URIOConsole INSTANCE = new URIOConsole();
 
   private final SystemConsole console = new SystemConsole();
 
@@ -243,7 +243,7 @@ final class URIOConsole<R> implements Console<Kind<URIO_, R>> {
 }
 
 interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
-  
+
   static <R> URIORuntime<R> instance(R env) {
     return () -> env;
   }
@@ -254,7 +254,7 @@ interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
   default <T> T run(Kind<Kind<URIO_, R>, T> value) {
     return value.fix(toURIO()).safeRunSync(env()).getOrElseThrow();
   }
-  
+
   @Override
   default <T> Sequence<T> run(Sequence<Kind<Kind<URIO_, R>, T>> values) {
     return run(URIO.traverse(values.map(URIOOf::<R, T>narrowK)));
@@ -264,7 +264,7 @@ interface URIORuntime<R> extends Runtime<Kind<URIO_, R>> {
   default <T> Future<T> parRun(Kind<Kind<URIO_, R>, T> value, Executor executor) {
     return value.fix(toURIO()).runAsync(env());
   }
-  
+
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<URIO_, R>, T>> values, Executor executor) {
     return parRun(URIO.traverse(values.map(URIOOf::<R, T>narrowK)), executor);

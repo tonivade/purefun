@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -265,10 +264,10 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   private static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), LinkedHashMap::new);
+    return Collectors.toMap(keyMapper::apply, valueMapper::apply, ImmutableMap::throwingMerge, LinkedHashMap::new);
   }
 
-  private static <V> BinaryOperator<V> throwingMerge() {
-    return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
+  private static <V> V throwingMerge(V a, V b) {
+    throw new IllegalArgumentException("conflict detected");
   }
 }
