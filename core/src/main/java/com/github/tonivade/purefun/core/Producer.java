@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.core;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
@@ -60,7 +62,7 @@ public non-sealed interface Producer<T> extends ProducerOf<T>, Recoverable {
     return new MemoizedProducer<>(this);
   }
 
-  static <T> Producer<T> cons(T value) {
+  static <T> Producer<T> cons(@Nullable T value) {
     return () -> value;
   }
 

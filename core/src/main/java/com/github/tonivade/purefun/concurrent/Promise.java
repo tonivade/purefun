@@ -264,8 +264,8 @@ final class PromiseImpl<T> implements Promise<T> {
 
   private Option<Try<T>> current(Consumer1<? super Try<? extends T>> consumer) {
     if (isEmpty()) {
+      lock.lock();
       try {
-        lock.lock();
         if (isEmpty()) {
           consumers.add(consumer);
         }

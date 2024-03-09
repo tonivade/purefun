@@ -8,6 +8,10 @@ compileTestingVersion = "0.21.0"
 sonarVersion = "4.4.1.3373"
 versionsVersion = "0.51.0"
 nexusVersion = "1.3.0"
+errorproneVersion = "2.25.0"
+errorpronePluginVersion = "3.1.0"
+nullawayVersion = "0.10.24"
+jsr305Version = "3.0.2"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
@@ -17,8 +21,12 @@ mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "moc
 mockitoJunit = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockitoVersion" }
 compileTesting = { group = "com.google.testing.compile", name = "compile-testing", version.ref = "compileTestingVersion" }
 pcollections = { group = "org.pcollections", name = "pcollections", version.ref = "pcollectionsVersion" }
+nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullawayVersion" }
+errorprone = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorproneVersion" }
+jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "jsr305Version" }
 
 [plugins]
 sonar = { id = "org.sonarqube", version.ref = "sonarVersion" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsVersion" }
 nexus = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusVersion" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorpronePluginVersion"}

@@ -14,6 +14,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
@@ -299,6 +301,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
       return cause;
     }
 
+    @Nullable
     private String getMessage() {
       return cause.getMessage();
     }
