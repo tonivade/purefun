@@ -223,7 +223,7 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
 
   @Override
   public boolean hasNext() {
-    return first.hasNext() || second.hasNext();
+    return first.hasNext() && second.hasNext();
   }
 
   @Override
