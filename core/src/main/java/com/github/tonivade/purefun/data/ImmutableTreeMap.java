@@ -14,7 +14,6 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -329,10 +328,10 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   private static <T, K, V> Collector<T, ?, ? extends TreeMap<K, V>> toTreeMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper::apply, valueMapper::apply, throwingMerge(), TreeMap::new);
+    return Collectors.toMap(keyMapper::apply, valueMapper::apply, ImmutableTreeMap::throwingMerge, TreeMap::new);
   }
 
-  private static <V> BinaryOperator<V> throwingMerge() {
-    return (a, b) -> { throw new IllegalArgumentException("conflict detected"); };
+  private static <V> V throwingMerge(V a, V b) {
+    throw new IllegalArgumentException("conflict detected");
   }
 }
