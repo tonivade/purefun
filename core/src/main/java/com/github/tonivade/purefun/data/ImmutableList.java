@@ -99,9 +99,9 @@ public interface ImmutableList<E> extends Sequence<E> {
   static <E> Collector<E, ?, ImmutableList<E>> toImmutableList() {
     return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableList::new);
   }
-  
+
   final class PImmutableList<E> implements ImmutableList<E>, Serializable {
-    
+
     private static final ImmutableList<?> EMPTY = new PImmutableList<>(TreePVector.empty());
 
     private static final Equal<PImmutableList<?>> EQUAL = Equal.<PImmutableList<?>>of().comparing(a -> a.backend);
@@ -110,11 +110,11 @@ public interface ImmutableList<E> extends Sequence<E> {
     private static final long serialVersionUID = 8986736870796940350L;
 
     private final PVector<E> backend;
-    
+
     private PImmutableList(Collection<E> backend) {
       this(TreePVector.from(backend));
     }
-    
+
     private PImmutableList(PVector<E> backend) {
       this.backend = checkNonNull(backend);
     }
@@ -125,7 +125,7 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public boolean contains(E element) {
+    public boolean contains(Object element) {
       return backend.contains(element);
     }
 
@@ -172,22 +172,22 @@ public interface ImmutableList<E> extends Sequence<E> {
       copy.sort(comparator);
       return new PImmutableList<>(copy);
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hash(backend);
     }
-    
+
     @Override
     public boolean equals(Object obj) {
       return EQUAL.applyTo(this, obj);
     }
-    
+
     @Override
     public String toString() {
       return "ImmutableList(" + backend + ")";
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {

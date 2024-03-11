@@ -69,7 +69,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public boolean contains(E element) {
+  public boolean contains(Object element) {
     return value.contains(element);
   }
 

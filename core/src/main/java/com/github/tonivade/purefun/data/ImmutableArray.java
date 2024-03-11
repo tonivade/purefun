@@ -96,18 +96,18 @@ public interface ImmutableArray<E> extends Sequence<E> {
   static <E> Collector<E, ?, ImmutableArray<E>> toImmutableArray() {
     return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableArray::new);
   }
-  
+
   final class PImmutableArray<E> implements ImmutableArray<E>, Serializable {
-    
+
     private static final ImmutableArray<?> EMPTY = new PImmutableArray<>(TreePVector.empty());
 
     private static final Equal<PImmutableArray<?>> EQUAL = Equal.<PImmutableArray<?>>of().comparing(a -> a.backend);
 
     @Serial
     private static final long serialVersionUID = -6967820945086954257L;
-    
+
     private final PVector<E> backend;
-    
+
     private PImmutableArray(Collection<E> collection) {
       this(TreePVector.from(collection));
     }
@@ -122,7 +122,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public boolean contains(E element) {
+    public boolean contains(Object element) {
       return backend.contains(element);
     }
 
@@ -194,22 +194,22 @@ public interface ImmutableArray<E> extends Sequence<E> {
     public ImmutableArray<E> insertAll(int position, Sequence<? extends E> elements) {
       return new PImmutableArray<>(backend.plusAll(position, elements.toCollection()));
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hash(backend);
     }
-    
+
     @Override
     public boolean equals(Object obj) {
       return EQUAL.applyTo(this, obj);
     }
-    
+
     @Override
     public String toString() {
       return "ImmutableArray(" + backend + ")";
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {

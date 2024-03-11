@@ -88,9 +88,9 @@ public interface ImmutableSet<E> extends Sequence<E> {
   static <E> Collector<E, ?, ImmutableSet<E>> toImmutableSet() {
     return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableSet::new);
   }
-  
+
   final class PImmutableSet<E> implements ImmutableSet<E>, Serializable {
-    
+
     @Serial
     private static final long serialVersionUID = -8988192488466183450L;
 
@@ -99,7 +99,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
     private static final Equal<PImmutableSet<?>> EQUAL = Equal.<PImmutableSet<?>>of().comparing(x -> x.backend);
 
     private final PSet<E> backend;
-    
+
     private PImmutableSet(Collection<E> backend) {
       this(HashTreePSet.from(backend));
     }
@@ -114,7 +114,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public boolean contains(E element) {
+    public boolean contains(Object element) {
       return backend.contains(element);
     }
 
@@ -185,7 +185,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
     public String toString() {
       return "ImmutableSet(" + backend + ")";
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {

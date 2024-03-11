@@ -140,7 +140,7 @@ subprojects {
     } else {
       options.errorprone {
         option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun")
-        option("ExcludedPaths", ".*/src/test/java/.*")
+        excludedPaths = ".*/src/test/java/.*"
       }
     }
   }

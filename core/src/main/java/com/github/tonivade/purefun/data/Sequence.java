@@ -8,12 +8,14 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.SequencedCollection;
 import java.util.Spliterator;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -34,10 +36,10 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   int size();
 
-  boolean contains(E element);
+  boolean contains(Object element);
 
-  default boolean containsAll(Sequence<? extends E> elements) {
-    for (E e : elements) {
+  default boolean containsAll(Iterable<?> elements) {
+    for (var e : elements) {
       if (!contains(e)) {
         return false;
       }
@@ -63,6 +65,10 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
   default Collection<E> toCollection() {
+    return toSequencedCollection();
+  }
+
+  default SequencedCollection<E> toSequencedCollection() {
     return new SequenceCollection<>(this);
   }
 
@@ -70,7 +76,6 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     return Option.from(stream().reduce(operator::apply));
   }
 
-  // TODO
   default E fold(E initial, Operator2<E> operator) {
     return stream().reduce(initial, operator::apply);
   }
@@ -85,6 +90,10 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   default <U> U foldRight(U initial, Function2<? super E, ? super U, ? extends U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
+  }
+
+  default String join() {
+    return join("");
   }
 
   default String join(String separator) {
@@ -237,7 +246,7 @@ final class PairIterator<A, B> implements Iterator<Tuple2<A, B>> {
   }
 }
 
-final class SequenceCollection<E> implements Collection<E> {
+final class SequenceCollection<E> implements SequencedCollection<E> {
 
   private final Sequence<E> sequence;
 
@@ -256,9 +265,8 @@ final class SequenceCollection<E> implements Collection<E> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public boolean contains(Object o) {
-    return sequence.contains((E) o);
+    return sequence.contains(o);
   }
 
   @Override
@@ -276,13 +284,41 @@ final class SequenceCollection<E> implements Collection<E> {
     return array;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public <T> T[] toArray(T[] a) {
-    throw new UnsupportedOperationException();
+  public <T> T[] toArray(T[] array) {
+    if (array.length < sequence.size()) {
+      return (T[]) Arrays.copyOf(toArray(), sequence.size(), array.getClass());
+    }
+    System.arraycopy(toArray(), 0, array, 0, sequence.size());
+    if (array.length > sequence.size()) {
+      array[sequence.size()] = null;
+    }
+    return array;
+  }
+
+  @Override
+  public SequencedCollection<E> reversed() {
+    return new SequenceCollection<>(sequence.reverse());
+  }
+
+  @Override
+  public boolean containsAll(Collection<?> c) {
+    return sequence.containsAll(c);
   }
 
   @Override
   public boolean add(E e) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void addFirst(E e) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void addLast(E e) {
     throw new UnsupportedOperationException();
   }
 
@@ -292,10 +328,18 @@ final class SequenceCollection<E> implements Collection<E> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public boolean containsAll(Collection<?> c) {
-    Sequence<?> from = ImmutableList.from(c);
-    return sequence.containsAll((Sequence<E>) from);
+  public E removeFirst() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public E removeLast() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean removeIf(Predicate<? super E> filter) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

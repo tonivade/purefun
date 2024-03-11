@@ -96,10 +96,10 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Serial
     private static final long serialVersionUID = -328223831102407507L;
-    
+
     private static final ImmutableTree<?> EMPTY = new JavaBasedImmutableTree<>(new TreeSet<>());
 
-    private static final Equal<JavaBasedImmutableTree<?>> EQUAL = 
+    private static final Equal<JavaBasedImmutableTree<?>> EQUAL =
         Equal.<JavaBasedImmutableTree<?>>of().comparing(a -> a.backend);
 
     private final NavigableSet<E> backend;
@@ -114,7 +114,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     }
 
     @Override
-    public boolean contains(E element) {
+    public boolean contains(Object element) {
       return backend.contains(element);
     }
 
@@ -219,7 +219,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     private TreeSet<E> copy() {
       return new TreeSet<>(backend);
     }
-    
+
     @Serial
     private Object readResolve() {
       if (backend.isEmpty()) {
