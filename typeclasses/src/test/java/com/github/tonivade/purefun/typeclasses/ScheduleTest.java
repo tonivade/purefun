@@ -14,7 +14,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.time.Duration;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,7 +29,6 @@ import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
-import com.github.tonivade.purefun.type.Either;
 
 @ExtendWith(MockitoExtension.class)
 public class ScheduleTest {
@@ -159,17 +157,16 @@ public class ScheduleTest {
   }
 
   @Test
-  @Disabled("I don't understand very well this")
   public void compose(@Mock Consumer1<String> console) {
     Schedule<IO_, Unit, Integer> two =
-      Schedule.<IO_, Unit>recurs(1).compose(Schedule.<IO_, Integer>recurs(1));
+      Schedule.<IO_, Unit>recurs(2).compose(Schedule.<IO_, Integer>recurs(2));
 
     IO<Unit> print = IO.exec(() -> console.accept("hola"));
     IO<Integer> repeat = monadError.repeat(print, two).fix(toIO());
 
     Integer provide = repeat.unsafeRunSync();
 
-    assertEquals(Either.right(1), provide);
+    assertEquals(2, provide);
     verify(console, times(3)).accept("hola");
   }
 
