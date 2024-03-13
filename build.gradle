@@ -138,10 +138,7 @@ subprojects {
         option("NullAway:SuggestSuppressions", "true")
       }
     } else {
-      options.errorprone {
-        option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun")
-        excludedPaths = ".*/src/test/java/.*"
-      }
+      options.errorprone.enabled = false
     }
   }
 
