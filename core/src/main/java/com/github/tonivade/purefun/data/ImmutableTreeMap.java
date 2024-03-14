@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.SequencedMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collector;
@@ -31,6 +32,10 @@ import com.github.tonivade.purefun.type.Try;
 public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   NavigableMap<K, V> toNavigableMap();
+
+  default SequencedMap<K, V> toSequencedMap() {
+    return toNavigableMap();
+  }
 
   @Override
   ImmutableTreeMap<K, V> put(K key, V value);

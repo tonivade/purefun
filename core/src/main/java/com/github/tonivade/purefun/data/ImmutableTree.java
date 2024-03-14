@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Objects;
+import java.util.SequencedSet;
 import java.util.TreeSet;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -28,6 +29,10 @@ import com.github.tonivade.purefun.type.Try;
 public interface ImmutableTree<E> extends Sequence<E> {
 
   NavigableSet<E> toNavigableSet();
+
+  default SequencedSet<E> toSequencedSet() {
+    return toNavigableSet();
+  }
 
   @Override
   ImmutableTree<E> append(E element);
