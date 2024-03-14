@@ -120,15 +120,15 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return (ImmutableMap<K, V>) PImmutableMap.EMPTY;
   }
 
-  static <K, V> ImmutableMap<K, V> from(Iterable<? extends Tuple2<K, V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(Iterable<Tuple2<K, V>> entries) {
     return from(ImmutableSet.from(entries));
   }
 
-  static <K, V> ImmutableMap<K, V> from(Stream<? extends Tuple2<K, V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(Stream<Tuple2<K, V>> entries) {
     return from(ImmutableSet.from(entries));
   }
 
-  static <K, V> ImmutableMap<K, V> from(ImmutableSet<? extends Tuple2<K, V>> entries) {
+  static <K, V> ImmutableMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
     LinkedHashMap<K, V> collect = entries.stream().collect(toLinkedHashMap(Tuple2::get1, Tuple2::get2));
     return new PImmutableMap<>(collect);
   }
