@@ -10,6 +10,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -128,6 +129,10 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   default ImmutableTree<E> asTree() {
     return ImmutableTree.from(stream());
+  }
+
+  default ImmutableTree<E> asTree(Comparator<? super E> comparator) {
+    return ImmutableTree.from(comparator, stream());
   }
 
   default Stream<E> stream() {

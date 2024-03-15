@@ -4,33 +4,42 @@
  */
 package com.github.tonivade.purefun.data;
 
-import static java.util.Collections.unmodifiableNavigableSet;
+import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NavigableSet;
-import java.util.Objects;
-import java.util.SequencedSet;
-import java.util.TreeSet;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NavigableSet;
+import java.util.Objects;
+import java.util.SequencedSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.pcollections.PSortedSet;
+import org.pcollections.TreePSet;
 
 public interface ImmutableTree<E> extends Sequence<E> {
+
+  Comparator<E> comparator();
 
   NavigableSet<E> toNavigableSet();
 
   default SequencedSet<E> toSequencedSet() {
+    return toNavigableSet();
+  }
+
+  default SortedSet<E> toSortedSet() {
     return toNavigableSet();
   }
 
@@ -57,17 +66,25 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableTree.from(stream().map(mapper::apply));
+    return ImmutableTree.from(naturalOrder(), stream().map(mapper::apply));
+  }
+
+  default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
+    return ImmutableTree.from(comparator, stream().map(mapper::apply));
   }
 
   @Override
   default <R> ImmutableTree<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
-    return ImmutableTree.from(stream().flatMap(mapper.andThen(SequenceOf::narrowK).andThen(Sequence::stream)::apply));
+    return ImmutableTree.from(naturalOrder(), stream().flatMap(mapper.andThen(SequenceOf::narrowK).andThen(Sequence::stream)::apply));
+  }
+
+  default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
+    return ImmutableTree.from(comparator, stream().flatMap(mapper.andThen(SequenceOf::narrowK).andThen(Sequence::stream)::apply));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableTree.from(stream().filter(matcher::match));
+    return ImmutableTree.from(comparator(), stream().filter(matcher::match));
   }
 
   @Override
@@ -76,41 +93,68 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Iterable<? extends T> iterable) {
-    return from(Sequence.asStream(iterable.iterator()));
+    return from(naturalOrder(), Sequence.asStream(iterable.iterator()));
+  }
+
+  static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Iterable<? extends T> iterable) {
+    return from(comparator, Sequence.asStream(iterable.iterator()));
   }
 
   static <T> ImmutableTree<T> from(Stream<? extends T> stream) {
-    return new JavaBasedImmutableTree<>(stream.collect(Collectors.toCollection(TreeSet::new)));
+    return new PImmutableTree<>(naturalOrder(), stream.collect(Collectors.toCollection(TreeSet::new)));
+  }
+
+  static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Stream<? extends T> stream) {
+    return new PImmutableTree<>(comparator, stream.collect(Collectors.toCollection(TreeSet::new)));
   }
 
   @SafeVarargs
-  static <T> ImmutableTree<T> of(T... elements) {
-    return new JavaBasedImmutableTree<>(new TreeSet<>(Arrays.asList(elements)));
+  static <T extends Comparable<? super T>> ImmutableTree<T> of(T... elements) {
+    return new PImmutableTree<>(naturalOrder(), Arrays.asList(elements));
   }
 
   @SuppressWarnings("unchecked")
   static <T> ImmutableTree<T> empty() {
-    return (ImmutableTree<T>) JavaBasedImmutableTree.EMPTY;
+    return (ImmutableTree<T>) PImmutableTree.EMPTY;
   }
 
   static <E> Collector<E, ?, ImmutableTree<E>> toImmutableTree() {
-    return collectingAndThen(Collectors.toCollection(TreeSet::new), JavaBasedImmutableTree::new);
+    return collectingAndThen(Collectors.toCollection(TreeSet::new), PImmutableTree::new);
   }
 
-  final class JavaBasedImmutableTree<E> implements ImmutableTree<E>, Serializable {
+  @SuppressWarnings("unchecked")
+  private static <R> Comparator<R> naturalOrder() {
+    return (Comparator<R>) Comparator.naturalOrder();
+  }
+
+  final class PImmutableTree<E> implements ImmutableTree<E>, Serializable {
 
     @Serial
-    private static final long serialVersionUID = -328223831102407507L;
+    private static final long serialVersionUID = 3964148260438348347L;
 
-    private static final ImmutableTree<?> EMPTY = new JavaBasedImmutableTree<>(new TreeSet<>());
+    private static final ImmutableTree<?> EMPTY = new PImmutableTree<>(TreePSet.empty(naturalOrder()));
 
-    private static final Equal<JavaBasedImmutableTree<?>> EQUAL =
-        Equal.<JavaBasedImmutableTree<?>>of().comparing(a -> a.backend);
+    private static final Equal<PImmutableTree<?>> EQUAL =
+        Equal.<PImmutableTree<?>>of().comparing(a -> a.backend);
 
-    private final NavigableSet<E> backend;
+    private final PSortedSet<E> backend;
 
-    private JavaBasedImmutableTree(TreeSet<E> backend) {
-      this.backend = unmodifiableNavigableSet(backend);
+    private PImmutableTree(Comparator<? super E> comparator, Collection<? extends E> backend) {
+      this(TreePSet.from(comparator, backend));
+    }
+
+    private PImmutableTree(SortedSet<E> backend) {
+      this(TreePSet.fromSortedSet(backend));
+    }
+
+    private PImmutableTree(PSortedSet<E> backend) {
+      this.backend = checkNonNull(backend);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Comparator<E> comparator() {
+      return (Comparator<E>) backend.comparator();
     }
 
     @Override
@@ -125,35 +169,27 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public ImmutableTree<E> reverse() {
-      return this;
+      return new PImmutableTree<>(backend.descendingSet());
     }
 
     @Override
     public ImmutableTree<E> append(E element) {
-      TreeSet<E> newSet = copy();
-      newSet.add(element);
-      return new JavaBasedImmutableTree<>(newSet);
+      return new PImmutableTree<>(backend.plus(element));
     }
 
     @Override
     public ImmutableTree<E> remove(E element) {
-      TreeSet<E> newSet = copy();
-      newSet.remove(element);
-      return new JavaBasedImmutableTree<>(newSet);
+      return new PImmutableTree<>(backend.minus(element));
     }
 
     @Override
     public ImmutableTree<E> appendAll(Sequence<? extends E> other) {
-      TreeSet<E> newSet = copy();
-      newSet.addAll(other.toCollection());
-      return new JavaBasedImmutableTree<>(newSet);
+      return new PImmutableTree<>(backend.plusAll(other.toCollection()));
     }
 
     @Override
     public ImmutableTree<E> removeAll(Sequence<? extends E> other) {
-      TreeSet<E> newSet = copy();
-      newSet.removeAll(other.toCollection());
-      return new JavaBasedImmutableTree<>(newSet);
+      return new PImmutableTree<>(backend.minusAll(other.toCollection()));
     }
 
     @Override
@@ -168,12 +204,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public ImmutableTree<E> headTree(E toElement) {
-      return new JavaBasedImmutableTree<>(new TreeSet<>(backend.headSet(toElement, false)));
+      return new PImmutableTree<>(backend.headSet(toElement, false));
     }
 
     @Override
     public ImmutableTree<E> tailTree(E fromElement) {
-      return new JavaBasedImmutableTree<>(new TreeSet<>(backend.tailSet(fromElement, false)));
+      return new PImmutableTree<>(backend.tailSet(fromElement, false));
     }
 
     @Override
@@ -219,10 +255,6 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public String toString() {
       return "ImmutableTree(" + backend + ")";
-    }
-
-    private TreeSet<E> copy() {
-      return new TreeSet<>(backend);
     }
 
     @Serial

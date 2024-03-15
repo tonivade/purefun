@@ -195,7 +195,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     private final NavigableMap<K, V> backend;
 
-    private JavaBasedImmutableTreeMap(TreeMap<K, V> backend) {
+    private JavaBasedImmutableTreeMap(NavigableMap<K, V> backend) {
       this.backend = unmodifiableNavigableMap(backend);
     }
 
@@ -211,21 +211,21 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public ImmutableTreeMap<K, V> put(K key, V value) {
-      TreeMap<K, V> newMap = copy();
+      NavigableMap<K, V> newMap = copy();
       newMap.put(key, value);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
 
     @Override
     public ImmutableTreeMap<K, V> putAll(ImmutableMap<? extends K, ? extends V> other) {
-      TreeMap<K, V> newMap = copy();
+      NavigableMap<K, V> newMap = copy();
       newMap.putAll(other.toMap());
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
 
     @Override
     public ImmutableTreeMap<K, V> remove(K key) {
-      TreeMap<K, V> newMap = copy();
+      NavigableMap<K, V> newMap = copy();
       newMap.remove(key);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
@@ -237,7 +237,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public ImmutableTreeMap<K, V> merge(K key, V value, Operator2<V> merger) {
-      TreeMap<K, V> newMap = copy();
+      NavigableMap<K, V> newMap = copy();
       newMap.merge(key, value, merger::apply);
       return new JavaBasedImmutableTreeMap<>(newMap);
     }
@@ -317,7 +317,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
       return "ImmutableTreeMap(" + backend + ")";
     }
 
-    private TreeMap<K, V> copy() {
+    private NavigableMap<K, V> copy() {
       return new TreeMap<>(backend);
     }
 

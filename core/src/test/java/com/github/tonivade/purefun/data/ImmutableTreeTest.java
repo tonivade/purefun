@@ -42,9 +42,15 @@ public class ImmutableTreeTest {
               () -> assertFalse(tree.isEmpty()),
               () -> assertTrue(tree.contains("a")),
               () -> assertFalse(tree.contains("z")),
+              () -> assertEquals(tree, tree.reverse()),
+              () -> assertEquals(ImmutableTree.of("a", "b", "c"), tree),
+              () -> assertEquals(ImmutableTree.of("a", "b", "c"), tree.reverse()),
               () -> assertEquals("abc", tree.fold("", (a, b) -> a + b)),
-              () -> assertEquals("cba", tree.foldRight("", (a, b) -> a + b)),
+              () -> assertEquals("cba", tree.reverse().fold("", (a, b) -> a + b)),
+              () -> assertEquals("abc", tree.foldRight("", (a, b) -> a + b)),
+              () -> assertEquals("cba", tree.reverse().foldRight("", (a, b) -> a + b)),
               () -> assertEquals("abc", tree.foldLeft("", (a, b) -> a + b)),
+              () -> assertEquals("cba", tree.reverse().foldLeft("", (a, b) -> a + b)),
               () -> assertEquals(Option.some("abc"), tree.reduce((a, b) -> a + b)),
               () -> assertEquals(treeOf("a", "b", "c"), tree),
               () -> assertEquals(ImmutableTree.from(Arrays.asList("a", "b", "c")), tree),
@@ -84,7 +90,9 @@ public class ImmutableTreeTest {
     assertAll(() -> assertEquals(0, tree.size()),
               () -> assertTrue(tree.isEmpty()),
               () -> assertFalse(tree.contains("z")),
+              () -> assertEquals(tree, tree.reverse()),
               () -> assertEquals("", tree.fold("", (a, b) -> a + b)),
+              () -> assertEquals("", tree.reverse().fold("", (a, b) -> a + b)),
               () -> assertEquals(Option.none(), tree.reduce((a, b) -> a + b)),
               () -> assertEquals(ImmutableTree.empty(), tree),
               () -> assertEquals(ImmutableTree.from(Collections.emptyList()), tree),
@@ -109,7 +117,7 @@ public class ImmutableTreeTest {
               () -> assertEquals(Option.none(), tree.ceiling("c"))
               );
   }
-  
+
   @Test
   void serialization() throws IOException, ClassNotFoundException {
     ImmutableTree<Integer> tree = treeOf(1, 2, 3, 4, 5);
@@ -119,14 +127,14 @@ public class ImmutableTreeTest {
       objectOutputStream.writeObject(tree);
       objectOutputStream.writeObject(Sequence.emptyTree());
     }
-    
+
     Object result = null;
     Object empty = null;
     try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
       result = objectInputStream.readObject();
       empty = objectInputStream.readObject();
     }
-    
+
     assertEquals(tree, result);
     assertSame(Sequence.emptyTree(), empty);
   }
