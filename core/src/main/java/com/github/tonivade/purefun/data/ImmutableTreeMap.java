@@ -31,6 +31,11 @@ import java.util.stream.Stream;
 import org.pcollections.PSortedMap;
 import org.pcollections.TreePMap;
 
+/**
+ * Similar to a TreeMap
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
+ */
 public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   Comparator<K> comparator();

@@ -29,6 +29,10 @@ import java.util.stream.Stream;
 import org.pcollections.PSortedSet;
 import org.pcollections.TreePSet;
 
+/**
+ * Similar to a TreeSet
+ * @param <E> the type of elements in this tree
+ */
 public interface ImmutableTree<E> extends Sequence<E> {
 
   Comparator<E> comparator();

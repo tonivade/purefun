@@ -79,6 +79,11 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
+  public NonEmptyList<E> prepend(E element) {
+    return of(value.prepend(element));
+  }
+
+  @Override
   public ImmutableList<E> remove(E element) {
     return value.remove(element);
   }
@@ -86,6 +91,11 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   @Override
   public NonEmptyList<E> appendAll(Sequence<? extends E> other) {
     return of(value.appendAll(other));
+  }
+
+  @Override
+  public NonEmptyList<E> prependAll(Sequence<? extends E> other) {
+    return of(value.prependAll(other));
   }
 
   @Override

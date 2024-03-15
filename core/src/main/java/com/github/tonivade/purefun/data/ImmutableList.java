@@ -26,16 +26,22 @@ import java.util.stream.Stream;
 import org.pcollections.ConsPStack;
 import org.pcollections.PStack;
 
+/**
+ * Similar to a LinkedList
+ * @param <E> the type of elements in this list
+ */
 public interface ImmutableList<E> extends Sequence<E> {
 
   List<E> toList();
 
   @Override
   ImmutableList<E> append(E element);
+  ImmutableList<E> prepend(E element);
   @Override
   ImmutableList<E> remove(E element);
   @Override
   ImmutableList<E> appendAll(Sequence<? extends E> other);
+  ImmutableList<E> prependAll(Sequence<? extends E> other);
   @Override
   ImmutableList<E> removeAll(Sequence<? extends E> other);
 
@@ -143,13 +149,23 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
+    public ImmutableList<E> prepend(E element) {
+      return new PImmutableList<>(backend.plus(element));
+    }
+
+    @Override
     public ImmutableList<E> remove(E element) {
       return new PImmutableList<>(backend.minus(element));
     }
 
     @Override
     public ImmutableList<E> appendAll(Sequence<? extends E> other) {
-      return new PImmutableList<>(backend.plusAll(backend.size(), other.toCollection()));
+      return new PImmutableList<>(backend.plusAll(backend.size(), other.toSequencedCollection().reversed()));
+    }
+
+    @Override
+    public ImmutableList<E> prependAll(Sequence<? extends E> other) {
+      return new PImmutableList<>(backend.plusAll(other.toCollection()));
     }
 
     @Override

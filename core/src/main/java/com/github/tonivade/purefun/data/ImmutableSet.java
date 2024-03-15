@@ -26,6 +26,10 @@ import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 
+/**
+ * Similar to a HashSet
+ * @param <E> the type of elements in this set
+ */
 public interface ImmutableSet<E> extends Sequence<E> {
 
   Set<E> toSet();

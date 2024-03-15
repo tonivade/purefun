@@ -26,6 +26,10 @@ import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 
+/**
+ * Similar to a ArrayList
+ * @param <E> the type of elements in this array
+ */
 public interface ImmutableArray<E> extends Sequence<E> {
 
   List<E> toList();
