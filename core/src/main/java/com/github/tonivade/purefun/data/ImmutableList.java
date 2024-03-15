@@ -6,12 +6,16 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.type.Option;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -19,14 +23,8 @@ import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.pcollections.PVector;
-import org.pcollections.TreePVector;
-
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.type.Option;
+import org.pcollections.ConsPStack;
+import org.pcollections.PStack;
 
 public interface ImmutableList<E> extends Sequence<E> {
 
@@ -102,20 +100,20 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   final class PImmutableList<E> implements ImmutableList<E>, Serializable {
 
-    private static final ImmutableList<?> EMPTY = new PImmutableList<>(TreePVector.empty());
+    private static final ImmutableList<?> EMPTY = new PImmutableList<>(ConsPStack.empty());
 
     private static final Equal<PImmutableList<?>> EQUAL = Equal.<PImmutableList<?>>of().comparing(a -> a.backend);
 
     @Serial
     private static final long serialVersionUID = 8986736870796940350L;
 
-    private final PVector<E> backend;
+    private final PStack<E> backend;
 
     private PImmutableList(Collection<E> backend) {
-      this(TreePVector.from(backend));
+      this(ConsPStack.from(backend));
     }
 
-    private PImmutableList(PVector<E> backend) {
+    private PImmutableList(PStack<E> backend) {
       this.backend = checkNonNull(backend);
     }
 
@@ -141,7 +139,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public ImmutableList<E> append(E element) {
-      return new PImmutableList<>(backend.plus(element));
+      return new PImmutableList<>(backend.plus(backend.size(), element));
     }
 
     @Override
@@ -151,7 +149,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public ImmutableList<E> appendAll(Sequence<? extends E> other) {
-      return new PImmutableList<>(backend.plusAll(other.toCollection()));
+      return new PImmutableList<>(backend.plusAll(backend.size(), other.toCollection()));
     }
 
     @Override
@@ -161,9 +159,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public ImmutableList<E> reverse() {
-      var copy = new ArrayList<>(backend);
-      Collections.reverse(copy);
-      return new PImmutableList<>(copy);
+      return new PImmutableList<>(backend.reversed());
     }
 
     @Override

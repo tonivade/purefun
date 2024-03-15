@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -158,9 +157,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public ImmutableArray<E> reverse() {
-      var copy = new ArrayList<>(backend);
-      Collections.reverse(copy);
-      return new PImmutableArray<>(copy);
+      return new PImmutableArray<>(backend.reversed());
     }
 
     @Override
