@@ -64,7 +64,7 @@ public class ImmutableMapTest {
               () -> assertEquals(ImmutableSet.empty(), map.entries()),
               () -> assertEquals(ImmutableMap.of(entry("a", "aaa")), map.put("a", "aaa")),
               () -> assertEquals(ImmutableMap.of(entry("A", "AAA")),
-                                 map.put("a", "aaa").map(String::toUpperCase, String::toUpperCase)),
+                                 map.put("a", "aaa").bimap(String::toUpperCase, String::toUpperCase)),
               () -> assertEquals(ImmutableMap.of(entry("A", "aaa")),
                                  map.put("a", "aaa").mapKeys(String::toUpperCase)),
               () -> assertEquals(ImmutableMap.of(entry("a", "AAA")),

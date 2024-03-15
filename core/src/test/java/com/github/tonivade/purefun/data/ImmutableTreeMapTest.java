@@ -80,7 +80,7 @@ public class ImmutableTreeMapTest {
               () -> assertEquals(ImmutableSet.empty(), treeMap.entries()),
               () -> assertEquals(ImmutableTreeMap.of(entry("a", "aaa")), treeMap.put("a", "aaa")),
               () -> assertEquals(ImmutableTreeMap.of(entry("A", "AAA")),
-                                 treeMap.put("a", "aaa").map(String::toUpperCase, String::toUpperCase)),
+                                 treeMap.put("a", "aaa").bimap(String::toUpperCase, String::toUpperCase)),
               () -> assertEquals(ImmutableTreeMap.of(entry("A", "aaa")),
                                  treeMap.put("a", "aaa").mapKeys(String::toUpperCase)),
               () -> assertEquals(ImmutableTreeMap.of(entry("a", "AAA")),

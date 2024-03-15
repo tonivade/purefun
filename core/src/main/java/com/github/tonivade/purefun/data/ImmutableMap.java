@@ -61,7 +61,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     entries().forEach(tuple -> consumer.accept(tuple.get1(), tuple.get2()));
   }
 
-  default <A, B> ImmutableMap<A, B> map(
+  default <A, B> ImmutableMap<A, B> bimap(
       Function1<? super K, ? extends A> keyMapper,
       Function1<? super V, ? extends B> valueMapper) {
     return ImmutableMap.from(entries().map(tuple -> tuple.map(keyMapper, valueMapper)));
@@ -227,9 +227,12 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public ImmutableMap<K, V> merge(K key, V value, Operator2<V> merger) {
-      LinkedHashMap<K, V> newMap = new LinkedHashMap<>(backend);
-      newMap.merge(key, value, merger::apply);
-      return new PImmutableMap<>(newMap);
+      var oldValue = backend.get(key);
+      var newValue = oldValue == null ? value : merger.apply(oldValue, value);
+      if (newValue == null) {
+        return new PImmutableMap<>(backend.minus(key));
+      }
+      return new PImmutableMap<>(backend.plus(key, newValue));
     }
 
     @Override
