@@ -13,7 +13,7 @@ public interface Kind<F extends Witness, A> extends Witness {
   default Kind<F, A> kind() {
     return this;
   }
-  
+
   @SuppressWarnings("unchecked")
   static <F extends Witness, A> Kind<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Kind<F, A>) kind;

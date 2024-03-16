@@ -878,7 +878,7 @@ sealed interface PureIOConnection {
 
     @Override
     public void cancelNow() {
-      cancelToken.fix(PureIOOf::narrowK).runAsync(null);
+      cancelToken.runAsync(null);
     }
 
     @Override

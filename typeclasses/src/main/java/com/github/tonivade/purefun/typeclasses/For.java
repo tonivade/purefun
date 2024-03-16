@@ -74,7 +74,7 @@ abstract class AbstractFlatMap<F extends Witness, A, B> {
   public abstract Kind<F, B> run();
 
   public <R> R fix(Fixer<Kind<F, B>, R> fixer) {
-    return fixer.apply(run());
+    return run().fix(fixer);
   }
 
   public void end(Consumer1<? super Kind<F, B>> consumer) {
@@ -99,7 +99,7 @@ abstract class AbstractApply<F extends Witness, A> {
   public abstract Kind<F, A> run();
 
   public <R> R fix(Fixer<Kind<F, A>, R> fixer) {
-    return fixer.apply(run());
+    return run().fix(fixer);
   }
 
   public void end(Consumer1<? super Kind<F, A>> consumer) {
