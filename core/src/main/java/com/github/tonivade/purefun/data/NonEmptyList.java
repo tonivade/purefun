@@ -130,6 +130,16 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
+  public ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
+    return value.dropWhile(matcher);
+  }
+
+  @Override
+  public ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
+    return value.takeWhile(matcher);
+  }
+
+  @Override
   public int hashCode() {
     return Objects.hash(value);
   }

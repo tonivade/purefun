@@ -57,6 +57,9 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   ImmutableList<E> drop(int n);
 
+  ImmutableList<E> dropWhile(Matcher1<? super E> matcher);
+  ImmutableList<E> takeWhile(Matcher1<? super E> matcher);
+
   @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
     return ImmutableList.from(stream().map(mapper::apply));
@@ -68,9 +71,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   @Override
-  default ImmutableList<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableList.from(stream().filter(matcher::match));
-  }
+  ImmutableList<E> filter(Matcher1<? super E> matcher);
 
   @Override
   default ImmutableList<E> filterNot(Matcher1<? super E> matcher) {
@@ -188,6 +189,35 @@ public interface ImmutableList<E> extends Sequence<E> {
         return empty();
       }
       return new PImmutableList<>(backend.subList(n));
+    }
+
+    @Override
+    public ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
+      var current = backend;
+      while (!current.isEmpty() && matcher.match(current.get(0))) {
+        current = current.minus(0);
+      }
+      return new PImmutableList<>(current);
+    }
+
+    @Override
+    public ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
+      var current = ConsPStack.<E>empty();
+      for (int i = 0; !backend.isEmpty() && matcher.match(backend.get(i)); i++) {
+        current = current.plus(current.size(), backend.get(i));
+      }
+      return new PImmutableList<>(current);
+    }
+
+    @Override
+    public ImmutableList<E> filter(Matcher1<? super E> matcher) {
+      var current = ConsPStack.<E>empty();
+      for (E item : backend) {
+        if (matcher.match(item)) {
+          current = current.plus(current.size(), item);
+        }
+      }
+      return new PImmutableList<>(current);
     }
 
     @Override
