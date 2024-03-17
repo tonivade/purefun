@@ -84,7 +84,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   static <T> ImmutableList<T> from(Stream<? extends T> stream) {
     ArrayList<T> collect = stream.collect(Collectors.toCollection(ArrayList::new));
-    return new PImmutableList<>(collect);
+    return PImmutableList.from(collect);
   }
 
   @SafeVarargs
@@ -98,7 +98,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   static <E> Collector<E, ?, ImmutableList<E>> toImmutableList() {
-    return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableList::new);
+    return collectingAndThen(Collectors.toCollection(ArrayList::new), PImmutableList::from);
   }
 
   final class PImmutableList<E> implements ImmutableList<E>, Serializable {
@@ -112,8 +112,15 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     private final PStack<E> backend;
 
-    private PImmutableList(Collection<E> backend) {
-      this(ConsPStack.from(backend));
+    static <E> ImmutableList<E> from(Collection<E> backend) {
+      return from(ConsPStack.from(backend));
+    }
+
+    static <E> ImmutableList<E> from(PStack<E> backend) {
+      if (backend.isEmpty()) {
+        return empty();
+      }
+      return new PImmutableList<>(backend);
     }
 
     private PImmutableList(PStack<E> backend) {
@@ -142,37 +149,37 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public ImmutableList<E> append(E element) {
-      return new PImmutableList<>(backend.plus(backend.size(), element));
+      return from(backend.plus(backend.size(), element));
     }
 
     @Override
     public ImmutableList<E> prepend(E element) {
-      return new PImmutableList<>(backend.plus(element));
+      return from(backend.plus(element));
     }
 
     @Override
     public ImmutableList<E> remove(E element) {
-      return new PImmutableList<>(backend.minus(element));
+      return from(backend.minus(element));
     }
 
     @Override
     public ImmutableList<E> appendAll(Sequence<? extends E> other) {
-      return new PImmutableList<>(backend.plusAll(backend.size(), other.toSequencedCollection().reversed()));
+      return from(backend.plusAll(backend.size(), other.toSequencedCollection().reversed()));
     }
 
     @Override
     public ImmutableList<E> prependAll(Sequence<? extends E> other) {
-      return new PImmutableList<>(backend.plusAll(other.toCollection()));
+      return from(backend.plusAll(other.toCollection()));
     }
 
     @Override
     public ImmutableList<E> removeAll(Sequence<? extends E> other) {
-      return new PImmutableList<>(backend.minusAll(other.toCollection()));
+      return from(backend.minusAll(other.toCollection()));
     }
 
     @Override
     public ImmutableList<E> reverse() {
-      return new PImmutableList<>(backend.reversed());
+      return from(backend.reversed());
     }
 
     @Override
@@ -188,7 +195,7 @@ public interface ImmutableList<E> extends Sequence<E> {
       if (n >= backend.size()) {
         return empty();
       }
-      return new PImmutableList<>(backend.subList(n));
+      return from(backend.subList(n));
     }
 
     @Override
@@ -197,7 +204,7 @@ public interface ImmutableList<E> extends Sequence<E> {
       while (!current.isEmpty() && matcher.match(current.get(0))) {
         current = current.minus(0);
       }
-      return new PImmutableList<>(current);
+      return from(current);
     }
 
     @Override
@@ -206,7 +213,7 @@ public interface ImmutableList<E> extends Sequence<E> {
       for (int i = 0; !backend.isEmpty() && matcher.match(backend.get(i)); i++) {
         current = current.plus(current.size(), backend.get(i));
       }
-      return new PImmutableList<>(current);
+      return from(current);
     }
 
     @Override
@@ -217,14 +224,14 @@ public interface ImmutableList<E> extends Sequence<E> {
           current = current.plus(current.size(), item);
         }
       }
-      return new PImmutableList<>(current);
+      return from(current);
     }
 
     @Override
     public ImmutableList<E> sort(Comparator<? super E> comparator) {
       var copy = new ArrayList<>(backend);
       copy.sort(comparator);
-      return new PImmutableList<>(copy);
+      return PImmutableList.from(copy);
     }
 
     @Override
