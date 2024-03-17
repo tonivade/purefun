@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.type.Option;
 
 public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
 
@@ -116,6 +117,16 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   @Override
   public Iterator<E> iterator() {
     return value.iterator();
+  }
+
+  @Override
+  public Option<E> head() {
+    return value.head();
+  }
+
+  @Override
+  public ImmutableList<E> drop(int n) {
+    return value.drop(n);
   }
 
   @Override

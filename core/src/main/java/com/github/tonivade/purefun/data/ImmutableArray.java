@@ -53,9 +53,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> insert(int position, E element);
   ImmutableArray<E> insertAll(int position, Sequence<? extends E> elements);
 
-  default ImmutableArray<E> drop(int n) {
-    return ImmutableArray.from(stream().skip(n));
-  }
+  ImmutableArray<E> drop(int n);
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
@@ -157,6 +155,14 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> removeAll(Sequence<? extends E> other) {
       return new PImmutableArray<>(backend.minusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableArray<E> drop(int n) {
+      if (n >= backend.size()) {
+        return empty();
+      }
+      return new PImmutableArray<>(backend.subList(n, backend.size()));
     }
 
     @Override

@@ -49,17 +49,13 @@ public interface ImmutableList<E> extends Sequence<E> {
   ImmutableList<E> reverse();
   ImmutableList<E> sort(Comparator<? super E> comparator);
 
-  default Option<E> head() {
-    return Option.from(stream().findFirst());
-  }
+  Option<E> head();
 
   default ImmutableList<E> tail() {
     return drop(1);
   }
 
-  default ImmutableList<E> drop(int n) {
-    return ImmutableList.from(stream().skip(n));
-  }
+  ImmutableList<E> drop(int n);
 
   @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
@@ -176,6 +172,22 @@ public interface ImmutableList<E> extends Sequence<E> {
     @Override
     public ImmutableList<E> reverse() {
       return new PImmutableList<>(backend.reversed());
+    }
+
+    @Override
+    public Option<E> head() {
+      if (isEmpty()) {
+        return Option.none();
+      }
+      return Option.some(backend.getFirst());
+    }
+
+    @Override
+    public ImmutableList<E> drop(int n) {
+      if (n >= backend.size()) {
+        return empty();
+      }
+      return new PImmutableList<>(backend.subList(n));
     }
 
     @Override

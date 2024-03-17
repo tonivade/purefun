@@ -103,7 +103,7 @@ public class ImmutableListTest {
       () -> assertEquals(ImmutableList.empty(), list.filterNot(e -> e.length() > 1))
     );
   }
-  
+
   @Test
   void serialization() throws IOException, ClassNotFoundException {
     ImmutableList<Integer> list = listOf(1, 2, 3, 4, 5);
@@ -113,14 +113,14 @@ public class ImmutableListTest {
       objectOutputStream.writeObject(list);
       objectOutputStream.writeObject(Sequence.emptyList());
     }
-    
+
     Object result = null;
     Object empty = null;
     try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
       result = objectInputStream.readObject();
       empty = objectInputStream.readObject();
     }
-    
+
     assertEquals(list, result);
     assertSame(Sequence.emptyList(), empty);
   }
