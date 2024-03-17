@@ -617,9 +617,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @SuppressWarnings("NullAway")
   static <R, E, A> Kind<Kind<Kind<PureIO_, R>, E>, A> accessM(@Nullable R env, AccessM<R, E, A> accessM) {
-    Kind<Kind<Kind<PureIO_, R>, E>, A> current;
-    current = accessM.function.apply(env).fix(PureIOOf::narrowK);
-    return current;
+    return accessM.function.apply(env).fix(PureIOOf::<R, E, A>narrowK);
   }
 
   private static <R, E, A> Promise<Either<E, A>> executeAsync(@Nullable R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
