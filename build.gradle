@@ -8,6 +8,7 @@ plugins {
   alias(libs.plugins.nexus)
   alias(libs.plugins.versions)
   alias(libs.plugins.errorprone)
+  alias(libs.plugins.eclipse)
 }
 
 apply plugin: 'org.sonarqube'
@@ -62,6 +63,7 @@ allprojects {
   apply plugin: 'maven-publish'
   apply plugin: 'signing'
   apply plugin: 'net.ltgt.errorprone'
+  apply plugin: 'com.diffplug.eclipse.apt'
 
   group = 'com.github.tonivade'
 
