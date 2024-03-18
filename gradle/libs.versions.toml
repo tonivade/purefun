@@ -1,5 +1,5 @@
 [versions]
-pcollectionsVersion = "4.0.1"
+pcollectionsVersion = "4.0.2"
 junitEngineVersion = "5.10.2"
 junitPlatformVersion = "1.10.2"
 equalsVerifierVersion = "3.15.8"
