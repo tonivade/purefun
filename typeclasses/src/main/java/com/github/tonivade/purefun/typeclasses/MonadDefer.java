@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Try;
 
 public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
-  
+
   @Override
   default Kind<F, Long> currentNanos() {
     return later(System::nanoTime);
@@ -31,14 +31,14 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
   default Kind<F, Unit> exec(CheckedRunnable later) {
     return later(later.asProducer());
   }
-  
+
   default <A> Kind<F, Tuple2<Duration, A>> timed(Kind<F, A> value) {
     return summarized(value, currentNanos(), (t1, t2) -> Duration.ofNanos(t2 - t1));
   }
-  
-  default <A, B, C> Kind<F, Tuple2<C, A>> summarized(Kind<F, A> value, Kind<F, B> summary, 
+
+  default <A, B, C> Kind<F, Tuple2<C, A>> summarized(Kind<F, A> value, Kind<F, B> summary,
       Function2<? super B, ? super B, ? extends C> combinator) {
-    return For.with(this)
+    return use()
       .then(summary)
       .then(value)
       .then(summary)
@@ -52,11 +52,11 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
   default Schedule.ScheduleOf<F> scheduleOf() {
     return Schedule.of(this);
   }
-  
+
   default <A extends AutoCloseable> Resource<F, A> resource(Kind<F, A> acquire) {
     return resource(acquire, AutoCloseable::close);
   }
-  
+
   default <A> Resource<F, A> resource(Kind<F, A> acquire, Consumer1<A> release) {
     return Resource.from(this, acquire, release);
   }

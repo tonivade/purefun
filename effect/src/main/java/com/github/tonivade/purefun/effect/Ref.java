@@ -28,7 +28,7 @@ public final class Ref<A> {
   }
 
   public UIO<Unit> set(A newValue) {
-    return UIO.task(() -> { value.set(newValue); return unit(); });
+    return UIO.exec(() -> value.set(newValue));
   }
 
   public <B> UIO<B> modify(Function1<A, Tuple2<B, A>> change) {

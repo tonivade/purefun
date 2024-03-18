@@ -762,10 +762,10 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class Recover<R, E, A> implements PureIO<R, E, A> {
 
-    private final PureIO<R, ?, A> current;
+    private final PureIO<R, Void, A> current;
     private final PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper;
 
-    private Recover(PureIO<R, ?, A> current, PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper) {
+    private Recover(PureIO<R, Void, A> current, PartialFunction1<? super Throwable, ? extends PureIO<R, E, ? extends A>> mapper) {
       this.current = checkNonNull(current);
       this.mapper = checkNonNull(mapper);
     }

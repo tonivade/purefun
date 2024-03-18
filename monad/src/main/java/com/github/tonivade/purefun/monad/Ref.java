@@ -28,7 +28,7 @@ public final class Ref<A> {
   }
 
   public IO<Unit> set(A newValue) {
-    return IO.task(() -> { value.set(newValue); return unit(); });
+    return IO.exec(() -> value.set(newValue));
   }
 
   public <B> IO<B> modify(Function1<A, Tuple2<B, A>> change) {
