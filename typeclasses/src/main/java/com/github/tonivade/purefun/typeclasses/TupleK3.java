@@ -12,25 +12,26 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple3;
 import com.github.tonivade.purefun.data.Sequence;
 
-public class TupleK3<F extends Witness, A, B, C> implements TupleK<F> {
-  
+public final class TupleK3<F extends Witness, A, B, C> implements TupleK<F> {
+
   private static final Equal<TupleK3<?, ?, ?, ?>> EQUAL = Equal.<TupleK3<?, ?, ?, ?>>of()
     .comparing(TupleK3::get1)
     .comparing(TupleK3::get2)
     .comparing(TupleK3::get3);
-  
+
   private final Kind<F, A> value1;
   private final Kind<F, B> value2;
   private final Kind<F, C> value3;
-  
+
   public TupleK3(Kind<F, A> value1, Kind<F, B> value2, Kind<F, C> value3) {
     this.value1 = checkNonNull(value1);
     this.value2 = checkNonNull(value2);
     this.value3 = checkNonNull(value3);
   }
-  
+
   @Override
   public Sequence<Kind<F, ?>> toSequence() {
     return listOf(value1, value2, value3);
@@ -43,7 +44,7 @@ public class TupleK3<F extends Witness, A, B, C> implements TupleK<F> {
   public Kind<F, B> get2() {
     return value2;
   }
-  
+
   public Kind<F, C> get3() {
     return value3;
   }
@@ -74,12 +75,21 @@ public class TupleK3<F extends Witness, A, B, C> implements TupleK<F> {
   public <R> TupleK3<F, A, B, R> map3(Functor<F> functor, Function1<? super C, ? extends R> mapper) {
     return new TupleK3<>(value1, value2, functor.map(value3, mapper));
   }
-  
+
+  @SafeVarargs
+  public final Kind<F, Tuple3<A, B, C>> apply(F...reified) {
+    return apply(Instances.applicative(reified));
+  }
+
+  public Kind<F, Tuple3<A, B, C>> apply(Applicative<F> applicative) {
+    return applicative.tuple(value1, value2, value3);
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(value1, value2, value3);
   }
-  
+
   @Override
   public boolean equals(Object obj) {
     return EQUAL.applyTo(this, obj);

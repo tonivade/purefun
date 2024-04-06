@@ -12,23 +12,24 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple5;
 import com.github.tonivade.purefun.data.Sequence;
 
-public class TupleK5<F extends Witness, A, B, C, D, E> implements TupleK<F> {
-  
+public final class TupleK5<F extends Witness, A, B, C, D, E> implements TupleK<F> {
+
   private static final Equal<TupleK5<?, ?, ?, ?, ?, ?>> EQUAL = Equal.<TupleK5<?, ?, ?, ?, ?, ?>>of()
     .comparing(TupleK5::get1)
     .comparing(TupleK5::get2)
     .comparing(TupleK5::get3)
     .comparing(TupleK5::get4)
     .comparing(TupleK5::get5);
-  
+
   private final Kind<F, A> value1;
   private final Kind<F, B> value2;
   private final Kind<F, C> value3;
   private final Kind<F, D> value4;
   private final Kind<F, E> value5;
-  
+
   public TupleK5(Kind<F, A> value1, Kind<F, B> value2, Kind<F, C> value3, Kind<F, D> value4, Kind<F, E> value5) {
     this.value1 = checkNonNull(value1);
     this.value2 = checkNonNull(value2);
@@ -36,7 +37,7 @@ public class TupleK5<F extends Witness, A, B, C, D, E> implements TupleK<F> {
     this.value4 = checkNonNull(value4);
     this.value5 = checkNonNull(value5);
   }
-  
+
   @Override
   public Sequence<Kind<F, ?>> toSequence() {
     return listOf(value1, value2, value3, value4, value5);
@@ -49,15 +50,15 @@ public class TupleK5<F extends Witness, A, B, C, D, E> implements TupleK<F> {
   public Kind<F, B> get2() {
     return value2;
   }
-  
+
   public Kind<F, C> get3() {
     return value3;
   }
-  
+
   public Kind<F, D> get4() {
     return value4;
   }
-  
+
   public Kind<F, E> get5() {
     return value5;
   }
@@ -106,12 +107,21 @@ public class TupleK5<F extends Witness, A, B, C, D, E> implements TupleK<F> {
   public <R> TupleK5<F, A, B, C, D, R> map5(Functor<F> functor, Function1<? super E, ? extends R> mapper) {
     return new TupleK5<>(value1, value2, value3, value4, functor.map(value5, mapper));
   }
-  
+
+  @SafeVarargs
+  public final Kind<F, Tuple5<A, B, C, D, E>> apply(F...reified) {
+    return apply(Instances.applicative(reified));
+  }
+
+  public Kind<F, Tuple5<A, B, C, D, E>> apply(Applicative<F> applicative) {
+    return applicative.tuple(value1, value2, value3, value4, value5);
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(value1, value2, value3, value4, value5);
   }
-  
+
   @Override
   public boolean equals(Object obj) {
     return EQUAL.applyTo(this, obj);

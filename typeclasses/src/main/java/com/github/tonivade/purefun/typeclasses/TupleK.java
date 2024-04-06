@@ -9,14 +9,14 @@ import com.github.tonivade.purefun.Witness;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface TupleK<F extends Witness> {
+public sealed interface TupleK<F extends Witness> permits TupleK1, TupleK2, TupleK3, TupleK4, TupleK5 {
 
   Sequence<Kind<F, ?>> toSequence();
 
   default void forEach(Consumer1<? super Kind<F, ?>> consumer) {
     toSequence().forEach(consumer::accept);
   }
-  
+
   static <F extends Witness, A> TupleK1<F, A> of(Kind<F, A> value1) {
     return new TupleK1<>(value1);
   }
