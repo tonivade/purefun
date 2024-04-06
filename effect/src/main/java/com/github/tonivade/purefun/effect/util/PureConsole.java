@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.util.Queue;
 
 import com.github.tonivade.purefun.core.Unit;
+import com.github.tonivade.purefun.data.NonEmptyList;
 import com.github.tonivade.purefun.effect.RIO;
 
 public interface PureConsole {
@@ -27,9 +28,18 @@ public interface PureConsole {
   }
 
   interface Service<R extends PureConsole> {
+
     RIO<R, String> readln();
 
     RIO<R, Unit> println(String text);
+
+    default RIO<R, Unit> println(Object text, Object ... args) {
+      return println(NonEmptyList.of(text, args).join(","));
+    }
+
+    default RIO<R, Unit> printf(String template, Object...args) {
+      return println(String.format(template, args));
+    }
   }
 
   static PureConsole test(final Queue<String> input, final Queue<String> output) {

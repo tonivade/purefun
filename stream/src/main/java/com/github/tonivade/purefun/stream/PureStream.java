@@ -30,8 +30,8 @@ import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public sealed interface PureStream<F extends Witness, T> 
-  extends PureStreamOf<F, T>, Bindable<Kind<PureStream_, F>, T> 
+public sealed interface PureStream<F extends Witness, T>
+  extends PureStreamOf<F, T>, Bindable<Kind<PureStream_, F>, T>
     permits Cons, Suspend, Nil {
 
   default PureStream<F, T> head() {
@@ -62,7 +62,7 @@ public sealed interface PureStream<F extends Witness, T>
 
   <R> PureStream<F, R> collect(PartialFunction1<? super T, ? extends R> partial);
   <R> Kind<F, R> foldLeft(R begin, Function2<? super R, ? super T, ? extends R> combinator);
-  <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+  <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin,
       Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator);
 
   @Override
@@ -172,7 +172,7 @@ public sealed interface PureStream<F extends Witness, T>
   }
 
   @SafeVarargs
-  static <F extends Witness, A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2, 
+  static <F extends Witness, A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2,
       Function2<? super A, ? super B, ? extends R> combinator, F...reified) {
     return of(getClassOf(reified)).zipWith(s1, s2, combinator);
   }
@@ -193,7 +193,7 @@ public sealed interface PureStream<F extends Witness, T>
   }
 
   interface StreamOf<F extends Witness> {
-    
+
     MonadDefer<F> monadDefer();
 
     default <T> PureStream<F, T> empty() {
@@ -214,7 +214,7 @@ public sealed interface PureStream<F extends Witness, T>
     }
 
     default <T> PureStream<F, T> suspend(Producer<? extends PureStream<F, ? extends T>> lazy) {
-      return new Suspend<>(monadDefer(), 
+      return new Suspend<>(monadDefer(),
           monadDefer().defer(
               lazy.andThen(PureStreamOf::<F, T>narrowK).map(monadDefer()::<PureStream<F, T>>pure)));
     }
@@ -247,14 +247,14 @@ public sealed interface PureStream<F extends Witness, T>
       return unfold(unit(), unit -> Option.of(generator).map(next -> Tuple.of(next, unit)));
     }
 
-    default <A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2, 
+    default <A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2,
         Function2<? super A, ? super B, ? extends R> combinator) {
       return new Suspend<>(monadDefer(), monadDefer().defer(
-        () -> monadDefer().mapN(s1.split(), s2.split(),
+        () -> monadDefer().mapN(s1.split(), s2.split()).apply(
           (op1, op2) -> {
             Option<PureStream<F, R>> result = Option.map2(op1, op2,
               (t1, t2) -> {
-                Kind<F, R> head = monadDefer().mapN(t1.get1(), t2.get1(), combinator);
+                Kind<F, R> head = monadDefer().mapN(t1.get1(), t2.get1()).apply(combinator);
                 PureStream<F, R> tail = zipWith(t1.get2(), t2.get2(), combinator);
                 return new Cons<>(monadDefer(), head, tail);
               });
@@ -274,7 +274,7 @@ public sealed interface PureStream<F extends Witness, T>
     // TODO: generics
     default <A> PureStream<F, A> merge(PureStream<F, A> s1, PureStream<F, A> s2) {
       return new Suspend<>(monadDefer(), monadDefer().defer(
-        () -> monadDefer().mapN(s1.split(), s2.split(),
+        () -> monadDefer().mapN(s1.split(), s2.split()).apply(
           (opt1, opt2) -> {
             Option<PureStream<F, A>> result = Option.map2(opt1, opt2,
               (t1, t2) -> {

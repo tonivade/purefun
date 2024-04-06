@@ -146,7 +146,7 @@ interface SequenceApplicative extends SequencePure, Applicative<Sequence_> {
   SequenceApplicative INSTANCE = new SequenceApplicative() {};
 
   @Override
-  default <T, R> Kind<Sequence_, R> ap(Kind<Sequence_, ? extends T> value, 
+  default <T, R> Kind<Sequence_, R> ap(Kind<Sequence_, ? extends T> value,
       Kind<Sequence_, ? extends Function1<? super T, ? extends R>> apply) {
     return SequenceOf.narrowK(apply).flatMap(map -> SequenceOf.narrowK(value).map(map));
   }
@@ -179,7 +179,7 @@ interface SequenceFoldable extends Foldable<Sequence_> {
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Sequence_, ? extends A> value, Eval<? extends B> initial, 
+  default <A, B> Eval<B> foldRight(Kind<Sequence_, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
     Eval<? extends B> foldRight = SequenceOf.narrowK(value).foldRight(initial, mapper);
     return EvalOf.narrowK(foldRight);
@@ -198,8 +198,8 @@ interface SequenceTraverse extends Traverse<Sequence_>, SequenceFoldable {
       applicative.pure(Sequence.emptyList()),
       (acc, a) -> {
         Kind<G, ? extends R> apply = mapper.apply(a);
-        return applicative.mapN(apply, acc, 
-            (e, seq) -> seq.fix(toSequence()).append(e));
+        return applicative.mapN(apply, acc)
+            .apply((e, seq) -> seq.fix(toSequence()).append(e));
       });
   }
 }
