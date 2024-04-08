@@ -49,7 +49,7 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
     return Reference.of(this, value);
   }
 
-  default Schedule.ScheduleOf<F> scheduleOf() {
+  default Schedule.ScheduleWithMonad<F> scheduleOf() {
     return Schedule.of(this);
   }
 

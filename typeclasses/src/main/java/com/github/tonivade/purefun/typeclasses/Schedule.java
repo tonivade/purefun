@@ -26,32 +26,20 @@ import com.github.tonivade.purefun.type.Either;
 @HigherKind
 public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
 
-  static <F extends Witness> ScheduleOf<F> of(Monad<F> monad, Timer<F> timer) {
-    return new ScheduleOf<>() {
-      @Override
-      public Monad<F> monad() { return monad; }
-
-      @Override
-      public Timer<F> timer() { return timer; }
-    };
+  static <F extends Witness> ScheduleWithMonad<F> of(MonadDefer<F> monad) {
+    return () -> monad;
   }
 
-  static <F extends Witness> ScheduleOf<F> of(MonadDefer<F> monad) {
-    return of(monad, monad);
-  }
-
-  static <F extends Witness> ScheduleOf<F> of(Class<F> type) {
+  static <F extends Witness> ScheduleWithMonad<F> of(Class<F> type) {
     return of(Instances.monadDefer(type));
   }
 
   @SafeVarargs
-  static <F extends Witness> ScheduleOf<F> of(F...reified) {
-    return of(getClassOf(reified));
+  static <F extends Witness> ScheduleWithMonad<F> of(F...reified) {
+    return of(Instances.monadDefer(reified));
   }
 
-  Monad<F> monad();
-
-  Timer<F> timer();
+  MonadDefer<F> monadDefer();
 
   <C> Schedule<F, A, C> map(Function1<? super B, ? extends C> mapper);
 
@@ -93,19 +81,19 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
   }
 
   default <Z> Schedule<F, A, Z> fold(Z zero, Function2<? super Z, ? super B, ? extends Z> next) {
-    return foldM(zero, (z, b) -> monad().pure(next.andThen(Either::<Unit, Z>right).apply(z, b)));
+    return foldM(zero, (z, b) -> monadDefer().pure(next.andThen(Either::<Unit, Z>right).apply(z, b)));
   }
 
   <Z> Schedule<F, A, Z> foldM(Z zero, Function2<? super Z, ? super B, ? extends Kind<F, Either<Unit, ? extends Z>>> next);
 
   default Schedule<F, A, B> addDelay(Function1<B, Duration> map) {
-    return addDelayM(map.andThen(monad()::pure));
+    return addDelayM(map.andThen(monadDefer()::pure));
   }
 
   Schedule<F, A, B> addDelayM(Function1<B, Kind<F, Duration>> map);
 
   default Schedule<F, A, B> whileInput(Matcher1<A> condition) {
-    return whileInputM(condition.asFunction().andThen(monad()::pure));
+    return whileInputM(condition.asFunction().andThen(monadDefer()::pure));
   }
 
   default Schedule<F, A, B> whileInputM(Function1<A, Kind<F, Boolean>> condition) {
@@ -113,7 +101,7 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
   }
 
   default Schedule<F, A, B> whileOutput(Matcher1<B> condition) {
-    return whileOutputM(condition.asFunction().andThen(monad()::pure));
+    return whileOutputM(condition.asFunction().andThen(monadDefer()::pure));
   }
 
   default Schedule<F, A, B> whileOutputM(Function1<B, Kind<F, Boolean>> condition) {
@@ -121,13 +109,13 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
   }
 
   default Schedule<F, A, B> untilInput(Matcher1<A> condition) {
-    return untilInputM(condition.asFunction().andThen(monad()::pure));
+    return untilInputM(condition.asFunction().andThen(monadDefer()::pure));
   }
 
   Schedule<F, A, B> untilInputM(Function1<A, Kind<F, Boolean>> condition);
 
   default Schedule<F, A, B> untilOutput(Matcher1<B> condition) {
-    return untilOutputM(condition.asFunction().andThen(monad()::pure));
+    return untilOutputM(condition.asFunction().andThen(monadDefer()::pure));
   }
 
   Schedule<F, A, B> untilOutputM(Function1<B, Kind<F, Boolean>> condition);
@@ -136,100 +124,98 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Unit> once(F...reified) {
-    return of(getClassOf(reified)).once();
+    return of(reified).once();
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Integer> recurs(int times, F...reified) {
-    return of(getClassOf(reified)).recurs(times);
+    return of(reified).recurs(times);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Integer> spaced(Duration delay, F...reified) {
-    return of(getClassOf(reified)).spaced(delay);
+    return of(reified).spaced(delay);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Duration> linear(Duration delay, F...reified) {
-    return of(getClassOf(reified)).linear(delay);
+    return of(reified).linear(delay);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Duration> exponential(Duration delay, F...reified) {
-    return of(getClassOf(reified)).exponential(delay);
+    return of(reified).exponential(delay);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Duration> exponential(Duration delay, double factor, F...reified) {
-    return of(getClassOf(reified)).exponential(delay, factor);
+    return of(reified).exponential(delay, factor);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Duration> delayed(Schedule<F, A, Duration> schedule, F...reified) {
-    return of(getClassOf(reified)).delayed(schedule);
+    return of(reified).delayed(schedule);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times, F...reified) {
-    return of(getClassOf(reified)).recursSpaced(delay, times);
+    return of(reified).recursSpaced(delay, times);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Unit> never(F...reified) {
-    return of(getClassOf(reified)).never();
+    return of(reified).never();
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, Integer> forever(F...reified) {
-    return of(getClassOf(reified)).forever();
+    return of(reified).forever();
   }
 
   @SafeVarargs
   static <F extends Witness, A, B> Schedule<F, A, B> succeed(B value, F...reified) {
-    return of(getClassOf(reified)).succeed(value);
+    return of(reified).succeed(value);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, A> identity(F...reified) {
-    return of(getClassOf(reified)).identity();
+    return of(reified).identity();
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, A> doWhile(Matcher1<A> condition, F...reified) {
-    return of(getClassOf(reified)).doWhile(condition);
+    return of(reified).doWhile(condition);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, A> doWhileM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
-    return of(getClassOf(reified)).doWhileM(condition);
+    return of(reified).doWhileM(condition);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, A> doUntil(Matcher1<A> condition, F...reified) {
-    return of(getClassOf(reified)).doUntil(condition);
+    return of(reified).doUntil(condition);
   }
 
   @SafeVarargs
   static <F extends Witness, A> Schedule<F, A, A> doUntilM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
-    return of(getClassOf(reified)).doUntilM(condition);
+    return of(reified).doUntilM(condition);
   }
 
   @SafeVarargs
   static <F extends Witness, A, B> Schedule<F, A, B> unfold(B initial, Operator1<B> next, F...reified) {
-    return of(getClassOf(reified)).unfold(initial, next);
+    return of(reified).unfold(initial, next);
   }
 
   @SafeVarargs
   static <F extends Witness, A, B> Schedule<F, A, B> unfoldM(
       Kind<F, B> initial, Function1<B, Kind<F, Either<Unit, B>>> next, F...reified) {
-    return of(getClassOf(reified)).unfoldM(initial, next);
+    return of(reified).unfoldM(initial, next);
   }
 
-  interface ScheduleOf<F extends Witness> {
+  interface ScheduleWithMonad<F extends Witness> {
 
-    Monad<F> monad();
-
-    Timer<F> timer();
+    MonadDefer<F> monad();
 
     default <A> Schedule<F, A, Unit> once() {
       return this.<A>recurs(1).unit();
@@ -266,7 +252,6 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     default <A> Schedule<F, A, Unit> never() {
       return ScheduleImpl.of(
           monad(),
-          timer(),
           monad().pure(Unit.unit()),
           (a, s) -> monad().pure(Either.left(Unit.unit())),
           (a, s) -> s);
@@ -283,7 +268,6 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     default <A> Schedule<F, A, A> identity() {
       return ScheduleImpl.of(
           monad(),
-          timer(),
           monad().pure(Unit.unit()),
           (a, s) -> monad().pure(Either.right(Unit.unit())),
           (a, s) -> a);
@@ -311,7 +295,7 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
 
     default <A, B> Schedule<F, A, B> unfoldM(
         Kind<F, B> initial, Function1<B, Kind<F, Either<Unit, B>>> next) {
-      return ScheduleImpl.of(monad(), timer(), initial, (a, s) -> next.apply(s), (a, s) -> s);
+      return ScheduleImpl.of(monad(), initial, (a, s) -> next.apply(s), (a, s) -> s);
     }
   }
 
@@ -328,27 +312,17 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     B extract(A last, S state);
 
   }
-
-  @SuppressWarnings("unchecked")
-  private static <F extends Witness> Class<F> getClassOf(F... reified) {
-    if (reified.length > 0) {
-      throw new IllegalArgumentException("do not pass arguments to this function, it's just a trick to get refied types");
-    }
-    return (Class<F>) reified.getClass().getComponentType();
-  }
 }
 
 final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
 
-  private final Monad<F> monad;
-  private final Timer<F> timer;
+  private final MonadDefer<F> monad;
   private final Kind<F, S> initial;
   private final Update<F, S, A> update;
   private final Extract<A, S, B> extract;
 
-  private ScheduleImpl(Monad<F> monad, Timer<F> timer, Kind<F, S> initial, Update<F, S, A> update, Extract<A, S, B> extract) {
+  private ScheduleImpl(MonadDefer<F> monad, Kind<F, S> initial, Update<F, S, A> update, Extract<A, S, B> extract) {
     this.monad = checkNonNull(monad);
-    this.timer = checkNonNull(timer);
     this.initial = checkNonNull(initial);
     this.update = checkNonNull(update);
     this.extract = checkNonNull(extract);
@@ -369,20 +343,14 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   }
 
   @Override
-  public Monad<F> monad() {
+  public MonadDefer<F> monadDefer() {
     return monad;
-  }
-
-  @Override
-  public Timer<F> timer() {
-    return timer;
   }
 
   @Override
   public <C> Schedule<F, A, C> map(Function1<? super B, ? extends C> mapper) {
     return ScheduleImpl.of(
       monad,
-      timer,
       initial,
       update,
       (a, s) -> mapper.apply(extract(a, s)));
@@ -392,7 +360,6 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   public <C> Schedule<F, C, B> contramap(Function1<? super C, ? extends A> comap) {
     return ScheduleImpl.of(
       monad,
-      timer,
       initial,
       (c, s) -> update(comap.apply(c), s),
       (c, s) -> extract(comap.apply(c), s));
@@ -422,7 +389,6 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   public <Z> Schedule<F, A, Z> foldM(Z zero, Function2<? super Z, ? super B, ? extends Kind<F, Either<Unit, ? extends Z>>> next) {
     return ScheduleImpl.of(
       monad,
-      timer,
       monad.map(initial, s -> Tuple.of(s, zero)),
       (a, sz) -> {
         Kind<F, Either<Unit, S>> update = update(a, sz.get1());
@@ -440,7 +406,7 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
               (duration, either) -> either.map(x -> Tuple.of(duration, x)));
 
       return monad.flatMap(map2, either -> {
-        Kind<F, Unit> fold = either.fold(monad::pure, tuple -> timer().sleep(tuple.get1()));
+        Kind<F, Unit> fold = either.fold(monad::pure, tuple -> monadDefer().sleep(tuple.get1()));
         return monad.map(fold, ignore -> either.map(Tuple2<Duration, S>::get2));
       });
     });
@@ -473,7 +439,6 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   private <T, C> ScheduleImpl<F, Either<S, T>, A, Either<B, C>> doAndThenEither(ScheduleImpl<F, T, A, C> other) {
     return ScheduleImpl.<F, Either<S, T>, A, Either<B, C>>of(
         monad,
-        timer,
         monad.map(initial, Either::<S, T>left),
         (a, st) -> st.fold(
             s -> {
@@ -495,7 +460,6 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   private <T, C> ScheduleImpl<F, Tuple2<S, T>, A, Tuple2<B, C>> doZip(ScheduleImpl<F, T, A, C> other) {
     return ScheduleImpl.<F, Tuple2<S, T>, A, Tuple2<B, C>>of(
         monad,
-        timer,
         monad.tuple(this.initial, other.initial),
         (a, st) -> {
           Kind<F, Either<Unit, S>> self = this.update(a, st.get1());
@@ -510,7 +474,6 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   private <T, C> ScheduleImpl<F, Tuple2<S, T>, A, C> doCompose(ScheduleImpl<F, T, B, C> other) {
     return ScheduleImpl.<F, Tuple2<S, T>, A, C>of(
         monad,
-        timer,
         monad.tuple(this.initial, other.initial),
         (a, st) -> {
           Kind<F, Either<Unit, S>> self = this.update(a, st.get1());
@@ -521,15 +484,14 @@ final class ScheduleImpl<F extends Witness, S, A, B> implements Schedule<F, A, B
   }
 
   private ScheduleImpl<F, S, A, B> updated(Function1<Update<F, S, A>, Update<F, S, A>> update) {
-    return ScheduleImpl.of(monad, timer, initial, update.apply(this.update), this.extract);
+    return ScheduleImpl.of(monad, initial, update.apply(this.update), this.extract);
   }
 
   public static <F extends Witness, S, A, B> ScheduleImpl<F, S, A, B> of(
-      Monad<F> monad,
-      Timer<F> timer,
+      MonadDefer<F> monad,
       Kind<F, S> initial,
       Update<F, S, A> update,
       Extract<A, S, B> extract) {
-    return new ScheduleImpl<>(monad, timer, initial, update, extract);
+    return new ScheduleImpl<>(monad, initial, update, extract);
   }
 }

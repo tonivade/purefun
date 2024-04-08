@@ -25,31 +25,31 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface PureStreamInstances {
 
-  static PureStream.StreamOf<IO_> ofIO() {
+  static PureStream.StreamWithMonad<IO_> ofIO() {
     return PureStream.of(IOInstances.monadDefer());
   }
 
-  static <R> PureStream.StreamOf<Kind<Kind<PureIO_, R>, Throwable>> ofPureIO() {
+  static <R> PureStream.StreamWithMonad<Kind<Kind<PureIO_, R>, Throwable>> ofPureIO() {
     return PureStream.of(PureIOInstances.monadDefer());
   }
 
-  static PureStream.StreamOf<UIO_> ofUIO() {
+  static PureStream.StreamWithMonad<UIO_> ofUIO() {
     return PureStream.of(UIOInstances.monadDefer());
   }
 
-  static PureStream.StreamOf<Kind<EIO_, Throwable>> ofEIO() {
+  static PureStream.StreamWithMonad<Kind<EIO_, Throwable>> ofEIO() {
     return PureStream.of(EIOInstances.monadDefer());
   }
 
-  static PureStream.StreamOf<Task_> ofTask() {
+  static PureStream.StreamWithMonad<Task_> ofTask() {
     return PureStream.of(TaskInstances.monadDefer());
   }
 
-  static <R> PureStream.StreamOf<Kind<URIO_, R>> ofURIO() {
+  static <R> PureStream.StreamWithMonad<Kind<URIO_, R>> ofURIO() {
     return PureStream.of(URIOInstances.monadDefer());
   }
 
-  static <R> PureStream.StreamOf<Kind<RIO_, R>> ofRIO() {
+  static <R> PureStream.StreamWithMonad<Kind<RIO_, R>> ofRIO() {
     return PureStream.of(RIOInstances.monadDefer());
   }
 
@@ -58,7 +58,7 @@ public interface PureStreamInstances {
     return PureStreamFunctor.INSTANCE;
   }
 
-  static <F extends Witness> Monad<Kind<PureStream_, F>> monad(PureStream.StreamOf<F> streamOf) {
+  static <F extends Witness> Monad<Kind<PureStream_, F>> monad(PureStream.StreamWithMonad<F> streamOf) {
     return PureStreamMonad.instance(checkNonNull(streamOf));
   }
 }
@@ -76,7 +76,7 @@ interface PureStreamFunctor<F extends Witness> extends Functor<Kind<PureStream_,
 
 interface PureStreamPure<F extends Witness> extends Applicative<Kind<PureStream_, F>> {
 
-  PureStream.StreamOf<F> streamOf();
+  PureStream.StreamWithMonad<F> streamOf();
 
   @Override
   default <T> PureStream<F, T> pure(T value) {
@@ -86,7 +86,7 @@ interface PureStreamPure<F extends Witness> extends Applicative<Kind<PureStream_
 
 interface PureStreamMonad<F extends Witness> extends Monad<Kind<PureStream_, F>>, PureStreamPure<F> {
 
-  static <F extends Witness> PureStreamMonad<F> instance(PureStream.StreamOf<F> streamOf) {
+  static <F extends Witness> PureStreamMonad<F> instance(PureStream.StreamWithMonad<F> streamOf) {
     return () -> streamOf;
   }
 
