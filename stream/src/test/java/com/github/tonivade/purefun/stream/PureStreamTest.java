@@ -37,16 +37,16 @@ import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.instances.PureStreamInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
-import com.github.tonivade.purefun.stream.PureStream.StreamWithMonad;
+import com.github.tonivade.purefun.stream.PureStream.Of;
 import com.github.tonivade.purefun.type.Option;
 
 public class PureStreamTest {
 
-  private final StreamWithMonad<IO_> streamOfIO = PureStreamInstances.ofIO();
-  private final StreamWithMonad<UIO_> streamOfUIO = PureStreamInstances.ofUIO();
-  private final StreamWithMonad<Task_> streamOfTask = PureStreamInstances.ofTask();
-  private final StreamWithMonad<Kind<EIO_, Throwable>> streamOfEIO = PureStreamInstances.ofEIO();
-  private final StreamWithMonad<Kind<Kind<PureIO_, Void>, Throwable>> streamOfPureIO = PureStreamInstances.ofPureIO();
+  private final Of<IO_> streamOfIO = PureStreamInstances.ofIO();
+  private final Of<UIO_> streamOfUIO = PureStreamInstances.ofUIO();
+  private final Of<Task_> streamOfTask = PureStreamInstances.ofTask();
+  private final Of<Kind<EIO_, Throwable>> streamOfEIO = PureStreamInstances.ofEIO();
+  private final Of<Kind<Kind<PureIO_, Void>, Throwable>> streamOfPureIO = PureStreamInstances.ofPureIO();
 
   @Test
   public void map() {

@@ -102,16 +102,16 @@ public sealed interface PureStream<F extends Witness, T>
     return mapEval(ignore -> next);
   }
 
-  static <F extends Witness> StreamWithMonad<F> of(MonadDefer<F> monad) {
+  static <F extends Witness> PureStream.Of<F> of(MonadDefer<F> monad) {
     return () -> monad;
   }
 
-  static <F extends Witness> StreamWithMonad<F> of(Class<F> type) {
+  static <F extends Witness> PureStream.Of<F> of(Class<F> type) {
     return of(Instances.monadDefer(type));
   }
 
   @SafeVarargs
-  static <F extends Witness> StreamWithMonad<F> of(F...reified) {
+  static <F extends Witness> PureStream.Of<F> of(F...reified) {
     return of(Instances.monadDefer(reified));
   }
 
@@ -192,7 +192,7 @@ public sealed interface PureStream<F extends Witness, T>
     return of(Instances.monadDefer(reified)).merge(s1, s2);
   }
 
-  interface StreamWithMonad<F extends Witness> {
+  interface Of<F extends Witness> {
 
     MonadDefer<F> monadDefer();
 

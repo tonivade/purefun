@@ -26,16 +26,16 @@ import com.github.tonivade.purefun.type.Either;
 @HigherKind
 public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, A, B> {
 
-  static <F extends Witness> ScheduleWithMonad<F> of(MonadDefer<F> monad) {
+  static <F extends Witness> Schedule.Of<F> of(MonadDefer<F> monad) {
     return () -> monad;
   }
 
-  static <F extends Witness> ScheduleWithMonad<F> of(Class<F> type) {
+  static <F extends Witness> Schedule.Of<F> of(Class<F> type) {
     return of(Instances.monadDefer(type));
   }
 
   @SafeVarargs
-  static <F extends Witness> ScheduleWithMonad<F> of(F...reified) {
+  static <F extends Witness> Schedule.Of<F> of(F...reified) {
     return of(Instances.monadDefer(reified));
   }
 
@@ -213,7 +213,7 @@ public sealed interface Schedule<F extends Witness, A, B> extends ScheduleOf<F, 
     return of(reified).unfoldM(initial, next);
   }
 
-  interface ScheduleWithMonad<F extends Witness> {
+  interface Of<F extends Witness> {
 
     MonadDefer<F> monad();
 
