@@ -24,33 +24,29 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.type.Validation_;
 
 @ExtendWith(MockitoExtension.class)
-public class SelectiveTest {
+class SelectiveTest {
 
   private final Selective<IO_> monad = Instances.<IO_>monad();
 
   @Test
-  public void apply() {
+  void apply() {
     Selective<Kind<Validation_, Sequence<String>>> selective =
         ValidationInstances.selective(SequenceInstances.semigroup());
 
-    Kind<Kind<Validation_, Sequence<String>>, Integer> validValue =
-        Validation.<Sequence<String>, Integer>valid(1);
-    Kind<Kind<Validation_, Sequence<String>>, Integer> invalidValue =
-        Validation.<Sequence<String>, Integer>invalid(listOf("error 1"));
-    Kind<Kind<Validation_, Sequence<String>>, Function1<? super Integer, ? extends String>> apply =
-        Validation.<Sequence<String>, Function1<? super Integer, ? extends String>>valid(Function1.of(String::valueOf));
-    Kind<Kind<Validation_, Sequence<String>>, Function1<? super Integer, ? extends String>> invalidApply =
-        Validation.<Sequence<String>, Function1<? super Integer, ? extends String>>invalid(listOf("error 2"));
+    var validValue = Validation.<Sequence<String>, Integer>valid(1);
+    var invalidValue = Validation.<Sequence<String>, Integer>invalid(listOf("error 1"));
+    var apply = Validation.<Sequence<String>, Function1<? super Integer, ? extends String>>valid(Function1.of(String::valueOf));
+    var invalidApply = Validation.<Sequence<String>, Function1<? super Integer, ? extends String>>invalid(listOf("error 2"));
 
     assertEquals(Validation.valid("1"), selective.ap(validValue, apply).fix(toValidation()));
     assertEquals(Validation.invalid(listOf("error 1", "error 2")), selective.ap(invalidValue, invalidApply).fix(toValidation()));
@@ -59,11 +55,11 @@ public class SelectiveTest {
   }
 
   @Test
-  public void select() {
+  void select() {
     Function1<String, Integer> parseInt = Integer::parseInt;
 
-    Kind<IO_, Integer> left = monad.select(monad.pure(Either.left("1")), monad.pure(parseInt));
-    Kind<IO_, Integer> right = monad.select(monad.pure(Either.right(-1)), monad.pure(parseInt));
+    var left = monad.select(monad.pure(Either.left("1")), monad.pure(parseInt));
+    var right = monad.select(monad.pure(Either.right(-1)), monad.pure(parseInt));
 
     assertAll(
         () -> assertEquals(1, left.fix(toIO()).unsafeRunSync()),
@@ -72,13 +68,13 @@ public class SelectiveTest {
   }
 
   @Test
-  public void branch() {
+  void branch() {
     Function1<String, Integer> parseInt = Integer::parseInt;
     Function1<String, Integer> countLetters = String::length;
 
-    Kind<IO_, Integer> left = 
+    var left =
         monad.branch(monad.pure(Either.left("1")), monad.pure(parseInt), monad.pure(countLetters));
-    Kind<IO_, Integer> right = 
+    var right =
         monad.branch(monad.pure(Either.right("asdfg")), monad.pure(parseInt), monad.pure(countLetters));
 
     assertAll(
@@ -88,7 +84,7 @@ public class SelectiveTest {
   }
 
   @Test
-  public void whenS(@Mock Producer<Unit> left, @Mock Producer<Unit> right) {
+  void whenS(@Mock Producer<Unit> left, @Mock Producer<Unit> right) {
     when(left.get()).thenReturn(unit());
 
     IO<Unit> io1 = IO.task(left);
@@ -102,9 +98,9 @@ public class SelectiveTest {
   }
 
   @Test
-  public void ifS() {
-    Kind<IO_, String> left = monad.ifS(monad.pure(true), monad.pure("left"), monad.pure("right"));
-    Kind<IO_, String> right = monad.ifS(monad.pure(false), monad.pure("left"), monad.pure("right"));
+  void ifS() {
+    var left = monad.ifS(monad.pure(true), monad.pure("left"), monad.pure("right"));
+    var right = monad.ifS(monad.pure(false), monad.pure("left"), monad.pure("right"));
 
     assertAll(
         () -> assertEquals("left", left.fix(toIO()).unsafeRunSync()),
@@ -113,11 +109,11 @@ public class SelectiveTest {
   }
 
   @Test
-  public void andS() {
-    Kind<IO_, Boolean> and00 = monad.andS(monad.pure(false), monad.pure(false));
-    Kind<IO_, Boolean> and01 = monad.andS(monad.pure(false), monad.pure(true));
-    Kind<IO_, Boolean> and10 = monad.andS(monad.pure(true), monad.pure(false));
-    Kind<IO_, Boolean> and11 = monad.andS(monad.pure(true), monad.pure(true));
+  void andS() {
+    var and00 = monad.andS(monad.pure(false), monad.pure(false));
+    var and01 = monad.andS(monad.pure(false), monad.pure(true));
+    var and10 = monad.andS(monad.pure(true), monad.pure(false));
+    var and11 = monad.andS(monad.pure(true), monad.pure(true));
 
     assertAll(
         () -> assertEquals(false, and00.fix(toIO()).unsafeRunSync()),
@@ -128,11 +124,11 @@ public class SelectiveTest {
   }
 
   @Test
-  public void orS() {
-    Kind<IO_, Boolean> or00 = monad.orS(monad.pure(false), monad.pure(false));
-    Kind<IO_, Boolean> or01 = monad.orS(monad.pure(false), monad.pure(true));
-    Kind<IO_, Boolean> or10 = monad.orS(monad.pure(true), monad.pure(false));
-    Kind<IO_, Boolean> or11 = monad.orS(monad.pure(true), monad.pure(true));
+  void orS() {
+    var or00 = monad.orS(monad.pure(false), monad.pure(false));
+    var or01 = monad.orS(monad.pure(false), monad.pure(true));
+    var or10 = monad.orS(monad.pure(true), monad.pure(false));
+    var or11 = monad.orS(monad.pure(true), monad.pure(true));
 
     assertAll(
         () -> assertEquals(false, or00.fix(toIO()).unsafeRunSync()),
@@ -143,12 +139,10 @@ public class SelectiveTest {
   }
 
   @Test
-  public void allS() {
-    Eval<Kind<IO_, Boolean>> match =
-        monad.allS(SequenceInstances.foldable(),
+  void allS() {
+    var match = monad.<Sequence_, String>allS(
             listOf("a", "b", "c"), a -> monad.pure(a.length() == 1));
-    Eval<Kind<IO_, Boolean>> notMatch =
-        monad.allS(SequenceInstances.foldable(),
+    var notMatch = monad.<Sequence_, String>allS(
             listOf("a", "b", "cd"), a -> monad.pure(a.length() == 1));
 
     assertAll(
@@ -158,12 +152,10 @@ public class SelectiveTest {
   }
 
   @Test
-  public void anyS() {
-    Eval<Kind<IO_, Boolean>> match =
-        monad.anyS(SequenceInstances.foldable(),
+  void anyS() {
+    var match = monad.<Sequence_, String>anyS(
             listOf("a", "b", "cd"), a -> monad.pure(a.length() > 1));
-    Eval<Kind<IO_, Boolean>> notMatch =
-        monad.anyS(SequenceInstances.foldable(),
+    var notMatch = monad.<Sequence_, String>anyS(
             listOf("a", "b", "c"), a -> monad.pure(a.length() > 1));
 
     assertAll(

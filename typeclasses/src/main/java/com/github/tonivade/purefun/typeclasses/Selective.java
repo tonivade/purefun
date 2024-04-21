@@ -44,15 +44,25 @@ public interface Selective<F extends Witness> extends Applicative<F> {
     return ifS(condition, fa, pure(false));
   }
 
-  default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable,
-                                                             Kind<G, ? extends A> values,
-                                                             Function1<? super A, ? extends Kind<F, Boolean>> condition) {
+  @SuppressWarnings("unchecked")
+  default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Kind<G, ? extends A> values,
+      Function1<? super A, ? extends Kind<F, Boolean>> condition, G...reified) {
+    return anyS(Instances.foldable(reified), values, condition);
+  }
+
+  default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable, Kind<G, ? extends A> values,
+      Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, FALSE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> orS(b, condition.apply(a))));
   }
 
-  default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable,
-                                                             Kind<G, ? extends A> values,
-                                                             Function1<? super A, ? extends Kind<F, Boolean>> condition) {
+  @SuppressWarnings("unchecked")
+  default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Kind<G, ? extends A> values,
+      Function1<? super A, ? extends Kind<F, Boolean>> condition, G...reified) {
+    return allS(Instances.foldable(reified), values, condition);
+  }
+
+  default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable, Kind<G, ? extends A> values,
+      Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, TRUE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> andS(b, condition.apply(a))));
   }
 
