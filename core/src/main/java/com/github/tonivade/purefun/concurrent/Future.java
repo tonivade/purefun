@@ -500,9 +500,9 @@ interface Callback<T> {
 
 interface Propagate {
 
-  void accept(boolean value);
+  void accept(boolean mayInterruptThread);
 
   static Propagate noop() {
-    return Consumer1.noop()::accept;
+    return mayInterruptThread -> {};
   }
 }
