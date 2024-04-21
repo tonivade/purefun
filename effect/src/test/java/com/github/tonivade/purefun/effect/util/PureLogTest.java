@@ -15,9 +15,7 @@ class PureLogTest {
   void test() {
     Queue<LogRecord> traces = new LinkedList<>();
 
-    var log = PureLog.<PureLogTest>test(traces);
-
-    log.logger().info(() -> "this is a test").safeRunSync(log);
+    PureLog.info(() -> "this is a test").safeRunSync(PureLog.test(traces));
 
     LogRecord logRecord = traces.poll();
     assertEquals("this is a test", logRecord.getMessage());

@@ -13,7 +13,27 @@ import com.github.tonivade.purefun.effect.RIO;
 
 public interface PureLog {
 
-  <R extends PureLog> PureLog.Service<R> logger();
+  <R extends PureLog> PureLog.Service<R> logger(StackFrame frame);
+
+  static <R extends PureLog> RIO<R, Unit> debug(Producer<String> message) {
+    var frame = getFrame();
+    return RIO.accessM(env -> env.<R>logger(frame).debug(message));
+  }
+
+  static <R extends PureLog> RIO<R, Unit> info(Producer<String> message) {
+    var frame = getFrame();
+    return RIO.accessM(env -> env.<R>logger(frame).info(message));
+  }
+
+  static <R extends PureLog> RIO<R, Unit> warn(Producer<String> message) {
+    var frame = getFrame();
+    return RIO.accessM(env -> env.<R>logger(frame).warn(message));
+  }
+
+  static <R extends PureLog> RIO<R,Unit> error(Producer<String> message) {
+    var frame = getFrame();
+    return RIO.accessM(env -> env.<R>logger(frame).error(message));
+  }
 
   interface Service<R extends PureLog> {
 
@@ -36,14 +56,11 @@ public interface PureLog {
     RIO<R, Unit> log(Level level, Producer<String> message);
   }
 
-  @SafeVarargs
-  static <T> PureLog jul(T...reified) {
-    var clazz = getClassOf(reified);
+  static PureLog javaUtilLogging() {
     return new PureLog() {
       @Override
-      public <R extends PureLog> Service<R> logger() {
+      public <R extends PureLog> Service<R> logger(StackFrame frame) {
         return (level, message) -> {
-          var frame = getFrame(clazz);
           var logger = Logger.getLogger(frame.getClassName());
           return RIO.exec(() -> logger.logp(level, frame.getClassName(), frame.getMethodName(), message.get()));
         };
@@ -51,35 +68,22 @@ public interface PureLog {
     };
   }
 
-  @SafeVarargs
-  static <T> PureLog test(final Queue<LogRecord> traces, T...reified) {
-    var clazz = getClassOf(reified);
+  static PureLog test(final Queue<LogRecord> traces) {
     return new PureLog() {
       @Override
-      public <R extends PureLog> Service<R> logger() {
-        return (level, message) -> {
-          var frame = getFrame(clazz);
-          return RIO.exec(() -> {
-            LogRecord log = new LogRecord(level, message.get());
-            log.setSourceClassName(frame.getClassName());
-            log.setSourceMethodName(frame.getMethodName());
-            traces.add(log);
-          });
-        };
+      public <R extends PureLog> Service<R> logger(StackFrame frame) {
+        return (level, message) -> RIO.exec(() -> {
+          var log = new LogRecord(level, message.get());
+          log.setSourceClassName(frame.getClassName());
+          log.setSourceMethodName(frame.getMethodName());
+          traces.add(log);
+        });
       }
     };
   }
 
-  private static StackFrame getFrame(Class<?> clazz) {
+  private static StackFrame getFrame() {
     var walker = StackWalker.getInstance(Option.RETAIN_CLASS_REFERENCE);
-    return walker.walk(frames -> frames.filter(f -> f.getClassName().equals(clazz.getName())).findFirst().orElseThrow());
-  }
-
-  @SuppressWarnings("unchecked")
-  private static <T> Class<T> getClassOf(T... reified) {
-    if (reified.length > 0) {
-      throw new IllegalArgumentException("do not pass arguments to this function, it's just a trick to get refied types");
-    }
-    return (Class<T>) reified.getClass().getComponentType();
+    return walker.walk(frames -> frames.skip(2).findFirst().orElseThrow());
   }
 }
