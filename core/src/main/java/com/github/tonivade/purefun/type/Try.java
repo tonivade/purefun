@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.type.TryOf.toTry;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -122,7 +123,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<T
 
   @Override
   default <R> Try<R> ap(Kind<Try_, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(TryOf.toTry()).flatMap(this::map);
+    return apply.fix(toTry()).flatMap(this::map);
   }
 
   default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {

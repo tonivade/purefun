@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.type.EitherOf.toEither;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
@@ -108,7 +109,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   @Override
   default <T> Either<L, T> ap(
       Kind<Kind<Either_, L>, ? extends Function1<? super R, ? extends T>> apply) {
-    return apply.fix(EitherOf.toEither()).flatMap(this::map);
+    return apply.fix(toEither()).flatMap(this::map);
   }
 
   default <T> Either<T, R> mapLeft(Function1<? super L, ? extends T> map) {

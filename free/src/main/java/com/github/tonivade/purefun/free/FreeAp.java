@@ -25,7 +25,13 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
 
   @Override
-  <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper);
+  default <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
+    return switch (this) {
+      case Pure<F, A>(var value) -> pure(mapper.apply(value));
+      case Lift<F, A> lift -> apply(this, pure(mapper));
+      case Apply<F, ?, A> apply -> FreeAp.apply(this, pure(mapper));
+    };
+  }
 
   @Override
   default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply) {
@@ -154,11 +160,6 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
     }
 
     @Override
-    public <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
-      return pure(mapper.apply(value));
-    }
-
-    @Override
     public String toString() {
       return "Pure(" + value + ')';
     }
@@ -168,11 +169,6 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
 
     public Lift {
       checkNonNull(value);
-    }
-
-    @Override
-    public <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
-      return apply(this, pure(mapper));
     }
 
     @Override
@@ -188,11 +184,6 @@ public sealed interface FreeAp<F extends Witness, A> extends FreeApOf<F, A>, App
     public Apply {
       checkNonNull(value);
       checkNonNull(apply);
-    }
-
-    @Override
-    public <C> FreeAp<F, C> map(Function1<? super B, ? extends C> mapper) {
-      return FreeAp.apply(this, pure(mapper));
     }
 
     @Override

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
+import static com.github.tonivade.purefun.type.OptionOf.toOption;
 import static java.util.Objects.nonNull;
 
 import java.io.Serial;
@@ -78,7 +79,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T>, App
 
   @Override
   default <R> Option<R> ap(Kind<Option_, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(OptionOf.toOption()).flatMap(this::map);
+    return apply.fix(toOption()).flatMap(this::map);
   }
 
   @Override
