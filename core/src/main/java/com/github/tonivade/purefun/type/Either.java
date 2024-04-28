@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
+import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -37,7 +38,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <R> type of the right value, positive case
  */
 @HigherKind
-public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>, R> {
+public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>, R>, Applicable<Kind<Either_, L>, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -102,6 +103,12 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
   @Override
   default <T> Either<L, T> map(Function1<? super R, ? extends T> map) {
     return bimap(identity(), map);
+  }
+
+  @Override
+  default <T> Either<L, T> ap(
+      Kind<Kind<Either_, L>, ? extends Function1<? super R, ? extends T>> apply) {
+    return apply.fix(EitherOf.toEither()).flatMap(this::map);
   }
 
   default <T> Either<T, R> mapLeft(Function1<? super L, ? extends T> map) {

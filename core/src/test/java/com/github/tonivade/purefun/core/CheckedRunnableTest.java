@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <me at tonivade dot es>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.core;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -12,9 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-
-import com.github.tonivade.purefun.core.CheckedRunnable;
-import com.github.tonivade.purefun.core.Consumer1;
 
 public class CheckedRunnableTest {
 

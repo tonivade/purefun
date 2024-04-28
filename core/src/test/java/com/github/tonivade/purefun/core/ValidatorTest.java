@@ -2,25 +2,19 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <me at tonivade dot es>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
-
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Tuple;
-import com.github.tonivade.purefun.core.Tuple2;
-import com.github.tonivade.purefun.core.Tuple3;
-import com.github.tonivade.purefun.core.Tuple4;
-import com.github.tonivade.purefun.core.Tuple5;
-import com.github.tonivade.purefun.core.Validator;
-import com.github.tonivade.purefun.type.Validation;
-import org.junit.jupiter.api.Test;
-import com.github.tonivade.purefun.type.Validation.Result;
-
-import java.util.Objects;
+package com.github.tonivade.purefun.core;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Validator.join;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Objects;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.tonivade.purefun.type.Validation;
+import com.github.tonivade.purefun.type.Validation.Result;
 
 public class ValidatorTest {
 

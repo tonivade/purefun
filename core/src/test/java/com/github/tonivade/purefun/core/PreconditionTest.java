@@ -2,9 +2,7 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <me at tonivade dot es>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
-
-import org.junit.jupiter.api.Test;
+package com.github.tonivade.purefun.core;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNegative;
 import static com.github.tonivade.purefun.core.Precondition.checkNonEmpty;
@@ -14,6 +12,8 @@ import static com.github.tonivade.purefun.core.Precondition.checkRange;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 
 public class PreconditionTest {
 

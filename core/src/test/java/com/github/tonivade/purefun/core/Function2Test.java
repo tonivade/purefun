@@ -2,18 +2,14 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <me at tonivade dot es>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Tuple2;
-
 public class Function2Test {
-  
+
   private Function2<String, String, String> concat = (a, b) -> a + b;
   private Function2<Integer, Integer, Integer> sum = (a, b) -> a + b;
   private Function1<String, Integer> str2int = str -> str.length();
@@ -24,11 +20,11 @@ public class Function2Test {
 
     assertEquals("asdfg", handler.apply("asd").apply("fg"));
   }
-  
+
   @Test
   public void tupledTest() {
     Function1<Tuple2<String, String>, String> tupled = concat.tupled();
-    
+
     assertEquals("asdfg", tupled.apply(Tuple2.of("asd", "fg")));
   }
 

@@ -89,15 +89,12 @@ public class HigherKindProcessor extends AbstractProcessor {
   private void writeTypeOf(@Nullable String packageName, String className, String typeOfName, String witnessName,
     List<? extends TypeParameterElement> types) throws IOException {
     JavaFileObject typeOfFile = createFile(packageName, typeOfName);
-    try (PrintWriter writer = new PrintWriter(typeOfFile.openWriter())) {
-      if (types.size() == 1) {
-        generate1(writer, packageName, className, typeOfName, witnessName, types);
-      } else if (types.size() == 2) {
-        generate2(writer, packageName, className, typeOfName, witnessName, types);
-      } else if (types.size() == 3) {
-        generate3(writer, packageName, className, typeOfName, witnessName, types);
-      } else {
-        throw new UnsupportedOperationException("too many params: " + packageName + "." + className);
+    try (var writer = new PrintWriter(typeOfFile.openWriter())) {
+      switch (types.size()) {
+        case 1 -> generate1(writer, packageName, className, typeOfName, witnessName, types);
+        case 2 -> generate2(writer, packageName, className, typeOfName, witnessName, types);
+        case 3 -> generate3(writer, packageName, className, typeOfName, witnessName, types);
+        default -> throw new UnsupportedOperationException("too many params: " + packageName + "." + className);
       }
     }
   }

@@ -2,7 +2,7 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <me at tonivade dot es>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun;
+package com.github.tonivade.purefun.core;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,13 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.github.tonivade.purefun.core.Consumer1;
-import com.github.tonivade.purefun.core.Tuple;
-import com.github.tonivade.purefun.core.Tuple1;
-
 @ExtendWith(MockitoExtension.class)
 public class Tuple1Test {
-  
+
   @Test
   public void tuple() {
     Tuple1<String> tuple = Tuple.of("value");

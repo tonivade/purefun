@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
+import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Equal;
@@ -39,7 +40,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <T> the wrapped value
  */
 @HigherKind
-public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
+public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<Try_, T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -117,6 +118,11 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T> {
   @Override
   default <R> Try<R> map(Function1<? super T, ? extends R> mapper) {
     return flatMap(mapper.liftTry());
+  }
+
+  @Override
+  default <R> Try<R> ap(Kind<Try_, ? extends Function1<? super T, ? extends R>> apply) {
+    return apply.fix(TryOf.toTry()).flatMap(this::map);
   }
 
   default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {

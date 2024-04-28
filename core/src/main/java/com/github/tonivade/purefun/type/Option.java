@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
+import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
@@ -37,7 +38,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <T> the wrapped value
  */
 @HigherKind
-public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
+public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T>, Applicable<Option_, T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -73,6 +74,11 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T> {
       case Some<T>(var value) -> some(mapper.apply(value));
       case None<T> n -> none();
     };
+  }
+
+  @Override
+  default <R> Option<R> ap(Kind<Option_, ? extends Function1<? super T, ? extends R>> apply) {
+    return apply.fix(OptionOf.toOption()).flatMap(this::map);
   }
 
   @Override
