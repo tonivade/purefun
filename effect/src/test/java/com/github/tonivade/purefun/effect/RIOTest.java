@@ -11,6 +11,7 @@ import static com.github.tonivade.purefun.effect.RIO.raiseError;
 import static com.github.tonivade.purefun.effect.RIO.sleep;
 import static com.github.tonivade.purefun.effect.RIO.task;
 import static com.github.tonivade.purefun.effect.RIOOf.toRIO;
+import static com.github.tonivade.purefun.effect.util.PureLog.info;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,6 +37,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
+import com.github.tonivade.purefun.effect.util.PureLog;
 import com.github.tonivade.purefun.instances.RIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -171,22 +173,22 @@ public class RIOTest {
 
   @Test
   void raceA() {
-    RIO<Void, Either<Integer, String>> race = race(
-        RIO.<Void>sleep(Duration.ofMillis(10)).map(x -> 10),
-        RIO.<Void>sleep(Duration.ofMillis(100)).map(x -> "b"));
+    RIO<PureLog, Either<Integer, String>> race = race(
+        RIO.<PureLog>sleep(Duration.ofMillis(10)).andThen(info(() -> "done A")).map(x -> 10),
+        RIO.<PureLog>sleep(Duration.ofMillis(100)).andThen(info(() -> "done B")).map(x -> "b"));
 
-    Try<Either<Integer, String>> orElseThrow = race.safeRunSync(null);
+    Try<Either<Integer, String>> orElseThrow = race.safeRunSync(PureLog.javaUtilLogging());
 
     assertEquals(Try.success(Either.left(10)), orElseThrow);
   }
 
   @Test
   void raceB() {
-    RIO<Void, Either<Integer, String>> race = race(
-        RIO.<Void>sleep(Duration.ofMillis(100)).map(x -> 10),
-        RIO.<Void>sleep(Duration.ofMillis(10)).map(x -> "b"));
+    RIO<PureLog, Either<Integer, String>> race = race(
+        RIO.<PureLog>sleep(Duration.ofMillis(100)).andThen(info(() -> "done A")).map(x -> 10),
+        RIO.<PureLog>sleep(Duration.ofMillis(10)).andThen(info(() -> "done B")).map(x -> "b"));
 
-    Try<Either<Integer, String>> orElseThrow = race.safeRunSync(null);
+    Try<Either<Integer, String>> orElseThrow = race.safeRunSync(PureLog.javaUtilLogging());
 
     assertEquals(Try.success(Either.right("b")), orElseThrow);
   }
