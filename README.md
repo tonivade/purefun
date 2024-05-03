@@ -40,8 +40,7 @@ In this project I have implemented some patterns of functional programming that 
 there are not such thing, but it can be simulated using a especial codification of types.
 
 In Scala we can define a higher kinded typed just like this `Monad[F[_]]` but in Java it can be codified
-like this `Monad<F extends Witness>`. `Witness` is a simple mark interface. Then we can define a type using a special
-codification like this:
+like this `Monad<F>`. Then we can define a type using a special codification like this:
 
 ```java
 interface SomeType<T> extends SomeTypeOf<T> { }
@@ -58,12 +57,12 @@ interface SomeTypeOf<T> implements Kind<SomeType_, T> {
     return (SomeType<T>) hkt;
   }
   
-  static Fixer<Kind<SomeType_, T>, SomeType<T>> toSomeType() {
+  static Function<Kind<SomeType_, ? extends T>, SomeType<T>> toSomeType() {
     return SomeType::narrowK;
   }
 }
 
-final class SomeType_ extends Witness {
+final class SomeType_ {
   private SomeType_() {}
 }
 ```
@@ -504,7 +503,7 @@ With higher kinded types simulation we can implement typeclases.
 ### Functor
 
 ```java
-public interface Functor<F extends Witness> extends Invariant<F> {
+public interface Functor<F extends > extends Invariant<F> {
 
   <T, R> Kind<F, R> map(Kind<F, T> value, Function1<T, R> map);
 }
@@ -513,7 +512,7 @@ public interface Functor<F extends Witness> extends Invariant<F> {
 ### Applicative
 
 ```java
-public interface Applicative<F extends Witness> extends Functor<F> {
+public interface Applicative<F> extends Functor<F> {
 
   <T> Kind<F, T> pure(T value);
 
@@ -529,7 +528,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
 ### Selective
 
 ```java
-public interface Selective<F extends Witness> extends Applicative<F> {
+public interface Selective<F> extends Applicative<F> {
 
   <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<A, B>> apply);
 
@@ -546,7 +545,7 @@ public interface Selective<F extends Witness> extends Applicative<F> {
 ### Monad
 
 ```java
-public interface Monad<F extends Witness> extends Selective<F> {
+public interface Monad<F> extends Selective<F> {
 
   <T, R> Kind<F, R> flatMap(Kind<F, T> value, Function1<T, ? extends Kind<F, R>> map);
 
@@ -603,7 +602,7 @@ The same like `SemigroupK` but for a `Monoid`.
 ### Invariant
 
 ```java
-public interface Invariant<F extends Witness> {
+public interface Invariant<F> {
   <A, B> Kind<F, B> imap(Kind<F, A> value, Function1<A, B> map, Function1<B, A> comap);
 }
 ```
@@ -611,7 +610,7 @@ public interface Invariant<F extends Witness> {
 ### Contravariant
 
 ```java
-public interface Contravariant<F extends Witness> extends Invariant<F> {
+public interface Contravariant<F> extends Invariant<F> {
   <A, B> Kind<F, B> contramap(Kind<F, A> value, Function1<B, A> map);
 }
 ```
@@ -619,7 +618,7 @@ public interface Contravariant<F extends Witness> extends Invariant<F> {
 ### Bifunctor
 
 ```java
-public interface Bifunctor<F extends Witness> {
+public interface Bifunctor<F> {
   <A, B, C, D> Kind<Kind<F, C>, D> bimap(Kind<Kind<F, A>, B> value, Function1<A, C> leftMap, Function1<B, D> rightMap);
 }
 ```
@@ -627,7 +626,7 @@ public interface Bifunctor<F extends Witness> {
 ### Profunctor
 
 ```java
-public interface Profunctor<F extends Witness> {
+public interface Profunctor<F> {
   <A, B, C, D> Kind<Kind<F, C>, D> dimap(Kind<Kind<F, A>, B> value, Function1<C, A> contramap, Function1<B, D> map);
 }
 ```
@@ -635,7 +634,7 @@ public interface Profunctor<F extends Witness> {
 ### Applicative Error
 
 ```java
-public interface ApplicativeError<F extends Witness, E> extends Applicative<F> {
+public interface ApplicativeError<F, E> extends Applicative<F> {
 
   <A> Kind<F, A> raiseError(E error);
 
@@ -646,7 +645,7 @@ public interface ApplicativeError<F extends Witness, E> extends Applicative<F> {
 ### Monad Error
 
 ```java
-public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>, Monad<F> {
+public interface MonadError<F, E> extends ApplicativeError<F, E>, Monad<F> {
 
   default <A> Kind<F, A> ensure(Kind<F, A> value, Producer<E> error, Matcher1<A> matcher) {
     return flatMap(value, a -> matcher.match(a) ? pure(a) : raiseError(error.get()));
@@ -657,7 +656,7 @@ public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>
 ### Monad Throw
 
 ```java
-public interface MonadThrow<F extends Witness> extends MonadError<F, Throwable> {
+public interface MonadThrow<F> extends MonadError<F, Throwable> {
 
 }
 ```
@@ -665,7 +664,7 @@ public interface MonadThrow<F extends Witness> extends MonadError<F, Throwable> 
 ### MonadReader
 
 ```java
-public interface MonadReader<F extends Witness, R> extends Monad<F> {
+public interface MonadReader<F, R> extends Monad<F> {
 
   Kind<F, R> ask();
 
@@ -678,7 +677,7 @@ public interface MonadReader<F extends Witness, R> extends Monad<F> {
 ### MonadState
 
 ```java
-public interface MonadState<F extends Witness, S> extends Monad<F> {
+public interface MonadState<F, S> extends Monad<F> {
   Kind<F, S> get();
   Kind<F, Unit> set(S state);
 
@@ -699,7 +698,7 @@ public interface MonadState<F extends Witness, S> extends Monad<F> {
 ### MonadWriter
 
 ```java
-public interface MonadWriter<F extends Witness, W> extends Monad<F> {
+public interface MonadWriter<F, W> extends Monad<F> {
 
   <A> Kind<F, A> writer(Tuple2<W, A> value);
   <A> Kind<F, Tuple2<W, A>> listen(Kind<F, A> value);
@@ -714,7 +713,7 @@ public interface MonadWriter<F extends Witness, W> extends Monad<F> {
 ### Comonad
 
 ```java
-public interface Comonad<F extends Witness> extends Functor<F> {
+public interface Comonad<F> extends Functor<F> {
 
   <A, B> Kind<F, B> coflatMap(Kind<F, A> value, Function1<Kind<F, A>, B> map);
 
@@ -729,7 +728,7 @@ public interface Comonad<F extends Witness> extends Functor<F> {
 ### Foldable
 
 ```java
-public interface Foldable<F extends Witness> {
+public interface Foldable<F> {
 
   <A, B> B foldLeft(Kind<F, A> value, B initial, Function2<B, A, B> mapper);
 
@@ -740,9 +739,9 @@ public interface Foldable<F extends Witness> {
 ### Traverse
 
 ```java
-public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
+public interface Traverse<F> extends Functor<F>, Foldable<F> {
 
-  <G extends Witness, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
+  <G, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
       Function1<T, ? extends Kind<G, R>> mapper);
 }
 ```
@@ -750,7 +749,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
 ### Semigroupal
 
 ```java
-public interface Semigroupal<F extends Witness> {
+public interface Semigroupal<F> {
 
   <A, B> Kind<F, Tuple2<A, B>> product(Kind<F, A> fa, Kind<F, B> fb);
 }
@@ -759,7 +758,7 @@ public interface Semigroupal<F extends Witness> {
 ### Defer
 
 ```java
-public interface Defer<F extends Witness> {
+public interface Defer<F> {
 
   <A> Kind<F, A> defer(Producer<Kind<F, A>> defer);
 }
@@ -768,7 +767,7 @@ public interface Defer<F extends Witness> {
 ### Bracket
 
 ```java
-public interface Bracket<F extends Witness, E> extends MonadError<F, E> {
+public interface Bracket<F, E> extends MonadError<F, E> {
 
   <A, B> Kind<F, B> bracket(Kind<F, A> acquire, Function1<A, ? extends Kind<F, B>> use, Consumer1<A> release);
 }
@@ -777,7 +776,7 @@ public interface Bracket<F extends Witness, E> extends MonadError<F, E> {
 ### MonadDefer
 
 ```java
-public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
+public interface MonadDefer<F> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
 
   default <A> Kind<F, A> later(Producer<A> later) {
     return defer(() -> Try.of(later::get).fold(this::raiseError, this::pure));
@@ -788,7 +787,7 @@ public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F,
 ### Async
 
 ```java
-public interface Async<F extends Witness> extends MonadDefer<F> {
+public interface Async<F> extends MonadDefer<F> {
   
   <A> Kind<F, A> async(Consumer1<Consumer1<Try<A>>> consumer);
 
@@ -798,7 +797,7 @@ public interface Async<F extends Witness> extends MonadDefer<F> {
 ### Timer
 
 ```java
-public interface Timer<F extends Witness> {
+public interface Timer<F> {
 
   Kind<F, Unit> sleep(Duration duration);
 }
@@ -809,7 +808,7 @@ public interface Timer<F extends Witness> {
 It represents a natural transformation between two different kinds.
 
 ```java
-public interface FunctionK<F extends Witness, G extends Witness> {
+public interface FunctionK<F, G> {
   <T> Kind<G, T> apply(Kind<F, T> from);
 }
 ```
