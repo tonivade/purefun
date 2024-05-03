@@ -26,34 +26,29 @@ import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.Task;
-import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.instances.PureStreamInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.stream.PureStream.Of;
 import com.github.tonivade.purefun.type.Option;
 
 public class PureStreamTest {
 
-  private final Of<IO_> streamOfIO = PureStreamInstances.ofIO();
-  private final Of<UIO_> streamOfUIO = PureStreamInstances.ofUIO();
-  private final Of<Task_> streamOfTask = PureStreamInstances.ofTask();
-  private final Of<Kind<EIO_, Throwable>> streamOfEIO = PureStreamInstances.ofEIO();
-  private final Of<Kind<Kind<PureIO_, Void>, Throwable>> streamOfPureIO = PureStreamInstances.ofPureIO();
+  private final Of<IO<?>> streamOfIO = PureStreamInstances.ofIO();
+  private final Of<UIO<?>> streamOfUIO = PureStreamInstances.ofUIO();
+  private final Of<Task<?>> streamOfTask = PureStreamInstances.ofTask();
+  private final Of<Kind<EIO<?, ?>, Throwable>> streamOfEIO = PureStreamInstances.ofEIO();
+  private final Of<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>> streamOfPureIO = PureStreamInstances.ofPureIO();
 
   @Test
   public void map() {
-    PureStream<IO_, String> pure1 = PureStream.pure("hola");
-    PureStream<IO_, String> pure2 = PureStream.pure(" mundo");
+    PureStream<IO<?>, String> pure1 = PureStream.pure("hola");
+    PureStream<IO<?>, String> pure2 = PureStream.pure(" mundo");
 
-    PureStream<IO_, String> result = pure1.concat(pure2).map(String::toUpperCase);
+    PureStream<IO<?>, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
     IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix(toIO()).map(x -> x + a))
         .fix(toIO());
@@ -63,10 +58,10 @@ public class PureStreamTest {
 
   @Test
   public void flatMap() {
-    PureStream<IO_, String> pure1 = PureStream.pure("hola");
-    PureStream<IO_, String> pure2 = PureStream.pure(" mundo");
+    PureStream<IO<?>, String> pure1 = PureStream.pure("hola");
+    PureStream<IO<?>, String> pure2 = PureStream.pure(" mundo");
 
-    PureStream<IO_, String> result = pure1.concat(pure2).flatMap(string -> PureStream.pure(string.toUpperCase()));
+    PureStream<IO<?>, String> result = pure1.concat(pure2).flatMap(string -> PureStream.pure(string.toUpperCase()));
 
     IO<String> foldLeft = result.asString().fix(toIO());
 
@@ -75,115 +70,115 @@ public class PureStreamTest {
 
   @Test
   public void mapEval() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
-    PureStream<IO_, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2));
+    PureStream<IO<?>, Integer> result = stream.mapEval(i -> IO.task(() -> i * 2));
 
     assertEquals(Integer.valueOf(12), run(result.foldLeft(0, Integer::sum)));
   }
 
   @Test
   public void append() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
-    PureStream<IO_, Integer> result = stream.append(IO.pure(4));
+    PureStream<IO<?>, Integer> result = stream.append(IO.pure(4));
 
     assertEquals(listOf(1, 2, 3, 4), run(result.asSequence()));
   }
 
   @Test
   public void prepend() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
-    PureStream<IO_, Integer> result = stream.prepend(IO.pure(0));
+    PureStream<IO<?>, Integer> result = stream.prepend(IO.pure(0));
 
     assertEquals(listOf(0, 1, 2, 3), run(result.asSequence()));
   }
 
   @Test
   public void take() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
-    PureStream<IO_, Integer> result = stream.take(2);
+    PureStream<IO<?>, Integer> result = stream.take(2);
 
     assertEquals(listOf(1, 2), run(result.asSequence()));
   }
 
   @Test
   public void drop() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3));
 
-    PureStream<IO_, Integer> result = stream.drop(2);
+    PureStream<IO<?>, Integer> result = stream.drop(2);
 
     assertEquals(listOf(3), run(result.asSequence()));
   }
 
   @Test
   public void takeWhile() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3, 4, 5));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3, 4, 5));
 
-    PureStream<IO_, Integer> result = stream.takeWhile(t -> t < 4);
+    PureStream<IO<?>, Integer> result = stream.takeWhile(t -> t < 4);
 
     assertEquals(listOf(1, 2, 3), run(result.asSequence()));
   }
 
   @Test
   public void dropWhile() {
-    PureStream<IO_, Integer> stream = PureStream.from(listOf(1, 2, 3, 4, 5));
+    PureStream<IO<?>, Integer> stream = PureStream.from(listOf(1, 2, 3, 4, 5));
 
-    PureStream<IO_, Integer> result = stream.dropWhile(t -> t < 4);
+    PureStream<IO<?>, Integer> result = stream.dropWhile(t -> t < 4);
 
     assertEquals(listOf(4, 5), run(result.asSequence()));
   }
 
   @Test
   public void filter() {
-    PureStream<IO_, Integer> stream = PureStream.from(java.util.stream.Stream.of(1, 2, 3, 4, 5));
+    PureStream<IO<?>, Integer> stream = PureStream.from(java.util.stream.Stream.of(1, 2, 3, 4, 5));
 
-    PureStream<IO_, Integer> result = stream.filter(t -> (t % 2) == 0);
+    PureStream<IO<?>, Integer> result = stream.filter(t -> (t % 2) == 0);
 
     assertEquals(listOf(2, 4), run(result.asSequence()));
   }
 
   @Test
   public void collect() {
-    PureStream<IO_, Integer> stream = PureStream.of(IO_.class).of(1, 2, 3, 4, 5);
+    PureStream<IO<?>, Integer> stream = PureStream.<IO<?>>of().of(1, 2, 3, 4, 5);
 
-    PureStream<IO_, Integer> result = stream.collect(PartialFunction1.of(t -> (t % 2) == 0, x -> x * 2));
+    PureStream<IO<?>, Integer> result = stream.collect(PartialFunction1.of(t -> (t % 2) == 0, x -> x * 2));
 
     assertEquals(listOf(4, 8), run(result.asSequence()));
   }
 
   @Test
   public void iterate() {
-    PureStream<IO_, Integer> stream = PureStream.iterate(0, i -> i + 1);
+    PureStream<IO<?>, Integer> stream = PureStream.iterate(0, i -> i + 1);
 
-    PureStream<IO_, Integer> result = stream.takeWhile(t -> t < 4).dropWhile(t -> t < 2);
+    PureStream<IO<?>, Integer> result = stream.takeWhile(t -> t < 4).dropWhile(t -> t < 2);
 
     assertEquals(listOf(2, 3), run(result.asSequence()));
   }
 
   @Test
   public void repeat() {
-    PureStream<IO_, Integer> stream = PureStream.<IO_>of().of(1, 2, 3);
+    PureStream<IO<?>, Integer> stream = PureStream.<IO<?>>of().of(1, 2, 3);
 
-    PureStream<IO_, Integer> result = stream.repeat().take(7);
+    PureStream<IO<?>, Integer> result = stream.repeat().take(7);
 
     assertEquals(listOf(1, 2, 3, 1, 2, 3, 1), run(result.asSequence()));
   }
 
   @Test
   public void intersperse() {
-    PureStream<IO_, Integer> stream = PureStream.<IO_>of().of(1, 2);
+    PureStream<IO<?>, Integer> stream = PureStream.<IO<?>>of().of(1, 2);
 
-    PureStream<IO_, Integer> result = stream.intersperse(IO.pure(0));
+    PureStream<IO<?>, Integer> result = stream.intersperse(IO.pure(0));
 
     assertEquals(listOf(1, 0, 2, 0), run(result.asSequence()));
   }
 
   @Test
   public void zip() {
-    PureStream<IO_, String> stream = PureStream.from(listOf("a", "b", "c"));
+    PureStream<IO<?>, String> stream = PureStream.from(listOf("a", "b", "c"));
 
     IO<Sequence<Tuple2<String, Integer>>> zip = PureStream.zipWithIndex(stream).asSequence().fix(toIO());
 
@@ -192,20 +187,20 @@ public class PureStreamTest {
 
   @Test
   public void merge() {
-    PureStream<IO_, Integer> stream1 = PureStream.<IO_>of().of(1, 2, 3);
-    PureStream<IO_, Integer> stream2 = PureStream.<IO_>of().of(4, 5, 6, 7);
+    PureStream<IO<?>, Integer> stream1 = PureStream.<IO<?>>of().of(1, 2, 3);
+    PureStream<IO<?>, Integer> stream2 = PureStream.<IO<?>>of().of(4, 5, 6, 7);
 
-    PureStream<IO_, Integer> merge = PureStream.merge(stream1, stream2);
+    PureStream<IO<?>, Integer> merge = PureStream.merge(stream1, stream2);
 
     assertEquals(listOf(1, 4, 2, 5, 3, 6), run(merge.asSequence()));
   }
 
   @Test
   public void forAll() {
-    PureStream<IO_, String> stream = PureStream.from(listOf("a", "b", "c"));
+    PureStream<IO<?>, String> stream = PureStream.from(listOf("a", "b", "c"));
 
-    Kind<IO_, Boolean> all = stream.exists(x -> x.toLowerCase().equals(x));
-    Kind<IO_, Boolean> notAll = stream.exists(x -> x.toUpperCase().equals(x));
+    Kind<IO<?>, Boolean> all = stream.exists(x -> x.toLowerCase().equals(x));
+    Kind<IO<?>, Boolean> notAll = stream.exists(x -> x.toUpperCase().equals(x));
 
     assertTrue(run(all));
     assertFalse(run(notAll));
@@ -213,10 +208,10 @@ public class PureStreamTest {
 
   @Test
   public void exists() {
-    PureStream<IO_, String> stream = PureStream.from(listOf("a", "b", "c"));
+    PureStream<IO<?>, String> stream = PureStream.from(listOf("a", "b", "c"));
 
-    Kind<IO_, Boolean> exists = stream.exists(x -> "c".equals(x));
-    Kind<IO_, Boolean> notExists = stream.exists(x -> "z".equals(x));
+    Kind<IO<?>, Boolean> exists = stream.exists(x -> "c".equals(x));
+    Kind<IO<?>, Boolean> notExists = stream.exists(x -> "z".equals(x));
 
     assertTrue(run(exists));
     assertFalse(run(notExists));
@@ -298,7 +293,7 @@ public class PureStreamTest {
 
   @Test
   public void test() {
-    PureStream<IO_, Integer> stream = streamOfIO.from(listOf("a", "b", "c")).mapReplace(IO.pure(1));
+    PureStream<IO<?>, Integer> stream = streamOfIO.from(listOf("a", "b", "c")).mapReplace(IO.pure(1));
 
     assertEquals("111", stream.asString().fix(toIO()).unsafeRunSync());
   }
@@ -386,7 +381,7 @@ public class PureStreamTest {
     }
   }
 
-  private static <T> T run(Kind<IO_, T> effect) {
+  private static <T> T run(Kind<IO<?>, T> effect) {
     return effect.fix(toIO()).unsafeRunSync();
   }
 }

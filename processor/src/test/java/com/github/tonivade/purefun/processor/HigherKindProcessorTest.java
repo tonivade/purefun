@@ -12,16 +12,6 @@ import org.junit.jupiter.api.Test;
 
 public class HigherKindProcessorTest {
 
-  private final JavaFileObject witness = forSourceLines("test.Foo_",
-        "package test;",
-
-        "import javax.annotation.processing.Generated;",
-
-        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public final class Foo_ {",
-        "private Foo_() {}",
-        "}");
-
   @Test
   public void compilesKind1() {
     JavaFileObject file = forSourceLines("test.Foo",
@@ -41,14 +31,14 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A> extends Kind<Foo_, A> permits Foo {",
+        "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
+        "static <A> Foo<A> narrowK(Kind<Foo<?>, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
-        "static <A> Function<Kind<Foo_, ? extends A>, Foo<A>> toFoo() {",
+        "static <A> Function<Kind<Foo<?>, ? extends A>, Foo<A>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -56,7 +46,7 @@ public class HigherKindProcessorTest {
 
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, witness);
+        .compilesWithoutError().and().generatesSources(generated);
   }
 
   @Test
@@ -74,29 +64,22 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A> extends Kind<Foo_, A> permits Foo {",
+        "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
+        "static <A> Foo<A> narrowK(Kind<Foo<?>, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
-        "static <A> Function<Kind<Foo_, ? extends A>, Foo<A>> toFoo() {",
+        "static <A> Function<Kind<Foo<?>, ? extends A>, Foo<A>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
         "}");
 
-    JavaFileObject generatedWitness = forSourceLines("Foo_",
-        "import javax.annotation.processing.Generated;",
-
-        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public final class Foo_ {",
-        "private Foo_() {}",
-        "}");
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, generatedWitness);
+        .compilesWithoutError().and().generatesSources(generated);
   }
 
   @Test
@@ -118,14 +101,14 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo_, A> permits Foo {",
+        "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo_, ? extends A> hkt) {",
+        "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo<?>, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
         "}",
 
-        "static <A extends java.lang.String> Function<Kind<Foo_, ? extends A>, Foo<A>> toFoo() {",
+        "static <A extends java.lang.String> Function<Kind<Foo<?>, ? extends A>, Foo<A>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -133,7 +116,7 @@ public class HigherKindProcessorTest {
 
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, witness);
+        .compilesWithoutError().and().generatesSources(generated);
   }
 
   @Test
@@ -187,14 +170,14 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A, B> extends Kind<Kind<Foo_, A>, B> permits Foo {",
+        "public sealed interface FooOf<A, B> extends Kind<Kind<Foo<?, ?>, A>, B> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo_, A>, ? extends B> hkt) {",
+        "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo<?, ?>, A>, ? extends B> hkt) {",
         "return (Foo<A, B>) hkt;",
         "}",
 
-        "static <A, B> Function<Kind<Kind<Foo_, A>, ? extends B>, Foo<A, B>> toFoo() {",
+        "static <A, B> Function<Kind<Kind<Foo<?, ?>, A>, ? extends B>, Foo<A, B>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -202,7 +185,7 @@ public class HigherKindProcessorTest {
 
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, witness);
+        .compilesWithoutError().and().generatesSources(generated);
   }
 
   @Test
@@ -224,14 +207,14 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo_, A>, B>, C> permits Foo {",
+        "public sealed interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, C> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo_, A>, B>, ? extends C> hkt) {",
+        "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, ? extends C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
         "}",
 
-        "static <A, B, C> Function<Kind<Kind<Kind<Foo_, A>, B>, ? extends C>, Foo<A, B, C>> toFoo() {",
+        "static <A, B, C> Function<Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, ? extends C>, Foo<A, B, C>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -239,6 +222,6 @@ public class HigherKindProcessorTest {
 
     assert_().about(javaSource()).that(file)
         .processedWith(new HigherKindProcessor())
-        .compilesWithoutError().and().generatesSources(generated, witness);
+        .compilesWithoutError().and().generatesSources(generated);
   }
 }

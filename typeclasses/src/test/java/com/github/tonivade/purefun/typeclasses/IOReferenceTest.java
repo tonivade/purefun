@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.monad.IO;
 
-public class IOReferenceTest extends ReferenceTest<IO_> {
+public class IOReferenceTest extends ReferenceTest<IO<?>> {
 
   public IOReferenceTest() {
-    super(IO_.class);
+    super(new Instance<IO<?>>() {});
   }
 }

@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 @HigherKind
-public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree_, F>, A> {
+public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree<?, ?>, F>, A> {
 
   private final Functor<F> functor;
   private final A head;
@@ -77,7 +77,7 @@ public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree_
   }
 
   public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, 
-      Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree_, F>, ? extends B>> tailMap) {
+      Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree<?, ?>, F>, ? extends B>> tailMap) {
     return of(functor, transformHead(headMap), transformTail(tailMap));
   }
 
@@ -86,7 +86,7 @@ public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree_
   }
 
   private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(
-      Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree_, F>, ? extends B>> tailMap) {
+      Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree<?, ?>, F>, ? extends B>> tailMap) {
     return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::narrowK)));
   }
 

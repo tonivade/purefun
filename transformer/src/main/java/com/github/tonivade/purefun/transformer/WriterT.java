@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind
-public non-sealed interface WriterT<F, L, A> extends WriterTOf<F, L, A>, Bindable<Kind<Kind<WriterT_, F>, L>, A> {
+public non-sealed interface WriterT<F, L, A> extends WriterTOf<F, L, A>, Bindable<Kind<Kind<WriterT<?, ?, ?>, F>, L>, A> {
 
   Monoid<L> monoid();
   Monad<F> monad();
@@ -66,7 +66,7 @@ public non-sealed interface WriterT<F, L, A> extends WriterTOf<F, L, A>, Bindabl
   }
 
   @Override
-  default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<WriterT_, F>, L>, ? extends R>> mapper) {
+  default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends R>> mapper) {
     return writer(monoid(), monad(),
         monad().flatMap(value(),
             current -> monad().map(mapper.andThen(WriterTOf::<F, L, R>narrowK).apply(current.get2()).value(),

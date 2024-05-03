@@ -13,7 +13,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
-import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadState;
@@ -21,20 +20,20 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 @SuppressWarnings("unchecked")
 public interface StateInstances {
 
-  static <S> Monad<Kind<State_, S>> monad() {
+  static <S> Monad<Kind<State<?, ?>, S>> monad() {
     return StateMonad.INSTANCE;
   }
 
-  static <S> MonadState<Kind<State_, S>, S> monadState() {
+  static <S> MonadState<Kind<State<?, ?>, S>, S> monadState() {
     return StateMonadState.INSTANCE;
   }
 
-  static Console<Kind<State_, ImmutableList<String>>> console() {
+  static Console<Kind<State<?, ?>, ImmutableList<String>>> console() {
     return StateConsole.INSTANCE;
   }
 }
 
-interface StateMonad<S> extends Monad<Kind<State_, S>> {
+interface StateMonad<S> extends Monad<Kind<State<?, ?>, S>> {
 
   @SuppressWarnings("rawtypes")
   StateMonad INSTANCE = new StateMonad() {};
@@ -45,13 +44,13 @@ interface StateMonad<S> extends Monad<Kind<State_, S>> {
   }
 
   @Override
-  default <T, R> State<S, R> flatMap(Kind<Kind<State_, S>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<State_, S>, ? extends R>> map) {
+  default <T, R> State<S, R> flatMap(Kind<Kind<State<?, ?>, S>, ? extends T> value,
+      Function1<? super T, ? extends Kind<Kind<State<?, ?>, S>, ? extends R>> map) {
     return StateOf.narrowK(value).flatMap(map.andThen(StateOf::narrowK));
   }
 }
 
-interface StateMonadState<S> extends MonadState<Kind<State_, S>, S>, StateMonad<S> {
+interface StateMonadState<S> extends MonadState<Kind<State<?, ?>, S>, S>, StateMonad<S> {
 
   @SuppressWarnings("rawtypes")
   StateMonadState INSTANCE = new StateMonadState() {};
@@ -67,7 +66,7 @@ interface StateMonadState<S> extends MonadState<Kind<State_, S>, S>, StateMonad<
   }
 }
 
-final class StateConsole implements Console<Kind<State_, ImmutableList<String>>> {
+final class StateConsole implements Console<Kind<State<?, ?>, ImmutableList<String>>> {
 
   static final StateConsole INSTANCE = new StateConsole();
 

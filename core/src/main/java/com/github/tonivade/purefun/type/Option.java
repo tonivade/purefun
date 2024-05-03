@@ -39,7 +39,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <T> the wrapped value
  */
 @HigherKind
-public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T>, Applicable<Option_, T> {
+public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, Applicable<Option<?>, T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -78,12 +78,12 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T>, App
   }
 
   @Override
-  default <R> Option<R> ap(Kind<Option_, ? extends Function1<? super T, ? extends R>> apply) {
+  default <R> Option<R> ap(Kind<Option<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return apply.fix(toOption()).flatMap(this::map);
   }
 
   @Override
-  default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option_, ? extends R>> map) {
+  default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option<?>, ? extends R>> map) {
     return switch (this) {
       case Some<T>(var value) -> map.andThen(OptionOf::<R>narrowK).apply(value);
       case None<T> n -> none();
@@ -115,14 +115,14 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option_, T>, App
     return filter(matcher.negate());
   }
 
-  default Option<T> or(Producer<Kind<Option_, T>> orElse) {
+  default Option<T> or(Producer<Kind<Option<?>, T>> orElse) {
     if (this instanceof None) {
       return orElse.andThen(OptionOf::narrowK).get();
     }
     return this;
   }
 
-  default Option<T> orElse(Kind<Option_, T> orElse) {
+  default Option<T> orElse(Kind<Option<?>, T> orElse) {
     return or(cons(orElse));
   }
 

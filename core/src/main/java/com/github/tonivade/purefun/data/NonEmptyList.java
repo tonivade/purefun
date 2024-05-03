@@ -40,7 +40,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
+  public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
     return of(value.flatMap(mapper));
   }
 

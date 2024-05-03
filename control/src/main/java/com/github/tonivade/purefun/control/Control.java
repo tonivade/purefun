@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 
 @HigherKind
-public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
+public sealed interface Control<T> extends ControlOf<T>, Bindable<Control<?>, T> {
 
   <R> Result<R> apply(MetaCont<T, R> cont);
 
@@ -29,12 +29,12 @@ public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
   }
 
   @Override
-  default <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
+  default <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control<?>, ? extends R>> mapper) {
     return new FlatMapped<>(Control.this, mapper);
   }
 
   @Override
-  default <R> Control<R> andThen(Kind<Control_, ? extends R> next) {
+  default <R> Control<R> andThen(Kind<Control<?>, ? extends R> next) {
     return flatMap(ignore -> next);
   }
 
@@ -85,9 +85,9 @@ public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
   final class FlatMapped<T, R> implements Control<R> {
     
     private final Control<T> self;
-    private final Function1<? super T, ? extends Kind<Control_, ? extends R>> outer;
+    private final Function1<? super T, ? extends Kind<Control<?>, ? extends R>> outer;
     
-    private FlatMapped(Control<T> self, Function1<? super T, ? extends Kind<Control_, ? extends R>> outer) {
+    private FlatMapped(Control<T> self, Function1<? super T, ? extends Kind<Control<?>, ? extends R>> outer) {
       this.self = checkNonNull(self);
       this.outer = checkNonNull(outer);
     }
@@ -225,7 +225,7 @@ public sealed interface Control<T> extends ControlOf<T>, Bindable<Control_, T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control_, ? extends R>> mapper) {
+    public <R> Control<R> flatMap(Function1<? super T, ? extends Kind<Control<?>, ? extends R>> mapper) {
       return (Control<R>) this;
     }
   }

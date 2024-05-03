@@ -15,14 +15,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.core.Consumer1;
-import com.github.tonivade.purefun.type.Option_;
+import com.github.tonivade.purefun.type.Option;
 
 @ExtendWith(MockitoExtension.class)
 public class TupleK1Test {
-  
+
   @Test
   public void tuple() {
-    TupleK1<Option_, String> tuple = TupleK.of(some("value"));
+    TupleK1<Option<?>, String> tuple = TupleK.of(some("value"));
 
     assertAll(
       () -> assertEquals(TupleK.of(some("value")), tuple),
@@ -34,7 +34,7 @@ public class TupleK1Test {
 
   @Test
   public void forEach(@Mock Consumer1<Object> callback) {
-    TupleK1<Option_, String> tuple = TupleK.of(some("value"));
+    TupleK1<Option<?>, String> tuple = TupleK.of(some("value"));
 
     tuple.forEach(callback);
 

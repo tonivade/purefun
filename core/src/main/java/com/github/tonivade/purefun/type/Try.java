@@ -41,7 +41,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <T> the wrapped value
  */
 @HigherKind
-public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<Try_, T> {
+public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable<Try<?>, T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -122,7 +122,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<T
   }
 
   @Override
-  default <R> Try<R> ap(Kind<Try_, ? extends Function1<? super T, ? extends R>> apply) {
+  default <R> Try<R> ap(Kind<Try<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return apply.fix(toTry()).flatMap(this::map);
   }
 
@@ -135,7 +135,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<T
 
   @Override
   @SuppressWarnings("unchecked")
-  default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try_, ? extends R>> mapper) {
+  default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try<?>, ? extends R>> mapper) {
     return switch (this) {
       case Success<T>(var value) -> mapper.andThen(TryOf::<R>narrowK).apply(value);
       case Failure<T> f -> (Try<R>) this;
@@ -179,7 +179,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<T
     return filter(matcher.negate());
   }
 
-  default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Try_, ? extends T>> producer) {
+  default Try<T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Try<?>, ? extends T>> producer) {
     if (this instanceof Failure) {
       return this;
     }
@@ -196,14 +196,14 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try_, T>, Applicable<T
     };
   }
 
-  default Try<T> or(Producer<Kind<Try_, T>> orElse) {
+  default Try<T> or(Producer<Kind<Try<?>, T>> orElse) {
     if (this instanceof Failure) {
       return orElse.andThen(TryOf::narrowK).get();
     }
     return this;
   }
 
-  default Try<T> orElse(Kind<Try_, T> orElse) {
+  default Try<T> orElse(Kind<Try<?>, T> orElse) {
     return or(Producer.cons(orElse));
   }
 

@@ -7,16 +7,16 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.laws.MonadLaws.verifyLaws;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
-import com.github.tonivade.purefun.type.Id_;
+import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Option_;
-import com.github.tonivade.purefun.type.Try_;
+import com.github.tonivade.purefun.type.Try;
 
 public class MonadTest {
 
@@ -24,17 +24,17 @@ public class MonadTest {
 
   @Test
   public void idMonad() {
-    verifyLaws(Instances.<Id_>monad());
+    verifyLaws(Instances.<Id<?>>monad());
   }
 
   @Test
   public void optionMonad() {
-    verifyLaws(Instances.<Option_>monad());
+    verifyLaws(Instances.<Option<?>>monad());
   }
 
   @Test
   public void tryMonad() {
-    verifyLaws(Instances.<Try_>monad());
+    verifyLaws(Instances.<Try<?>>monad());
   }
 
   @Test
@@ -49,7 +49,7 @@ public class MonadTest {
 
   @Test
   public void option() {
-    Monad<Option_> monad = OptionInstances.monad();
+    Monad<Option<?>> monad = OptionInstances.monad();
 
     Option<String> some = Option.some("asdf");
     Option<String> none = Option.none();

@@ -12,35 +12,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Function1Of;
-import com.github.tonivade.purefun.core.Function1_;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.Function1Instances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Const;
-import com.github.tonivade.purefun.type.Const_;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Id_;
 
 public class ContravariantTest {
 
   @Test
   public void constInstance() {
-    Contravariant<Kind<Const_, String>> instance = ConstInstances.contravariant();
+    Contravariant<Kind<Const<?, ?>, String>> instance = ConstInstances.contravariant();
 
     verifyLaws(instance, Const.<String, String>of("string"));
   }
 
   @Test
   public void function1Instance() {
-    Contravariant<Conested<Function1_, Double>> instance = Function1Instances.<Double>contravariant();
+    Contravariant<Conested<Function1<?, ?>, Double>> instance = Function1Instances.<Double>contravariant();
 
     Function1<Integer, Double> int2double = Integer::doubleValue;
     Function1<String, Integer> string2Int = String::length;
 
-    Kind<Conested<Function1_, Double>, Integer> conest = conest(int2double);
-    Kind<Conested<Function1_, Double>, String> contramap = instance.contramap(conest, string2Int);
+    Kind<Conested<Function1<?, ?>, Double>, Integer> conest = conest(int2double);
+    Kind<Conested<Function1<?, ?>, Double>, String> contramap = instance.contramap(conest, string2Int);
     Function1<String, Double> result = counnest(contramap).fix(Function1Of::<String, Double>narrowK);
 
     assertEquals(4.0, result.apply("hola"));
@@ -48,9 +45,9 @@ public class ContravariantTest {
 
   @Test
   public void composedCovariantContravariant() {
-    Functor<Id_> functor = IdInstances.functor();
-    Contravariant<Kind<Const_, String>> contravariant = ConstInstances.contravariant();
-    Contravariant<Nested<Id_, Kind<Const_, String>>> instance = Contravariant.compose(functor, contravariant);
+    Functor<Id<?>> functor = IdInstances.functor();
+    Contravariant<Kind<Const<?, ?>, String>> contravariant = ConstInstances.contravariant();
+    Contravariant<Nested<Id<?>, Kind<Const<?, ?>, String>>> instance = Contravariant.compose(functor, contravariant);
 
     verifyLaws(instance, nest(Id.of(Const.<String, String>of("string"))));
   }

@@ -17,12 +17,12 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.type.Const_;
+import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<FreeAp_, F>, A> {
+public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<FreeAp<?, ?>, F>, A> {
 
   @Override
   default <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
@@ -34,7 +34,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   @Override
-  default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp_, F>, ? extends Function1<? super A, ? extends B>> apply) {
+  default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure<F, ? extends Function1<? super A, ? extends B>> pure) {
       return map(pure.value);
     }
@@ -50,11 +50,11 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   default <G> FreeAp<G, A> flatCompile(
-      FunctionK<F, Kind<FreeAp_, G>> functionK, Applicative<Kind<FreeAp_, G>> applicative) {
+      FunctionK<F, Kind<FreeAp<?, ?>, G>> functionK, Applicative<Kind<FreeAp<?, ?>, G>> applicative) {
     return foldMap(functionK, applicative).fix(toFreeAp());
   }
 
-  default <M> M analyze(FunctionK<F, Kind<Const_, M>> functionK, Applicative<Kind<Const_, M>> applicative) {
+  default <M> M analyze(FunctionK<F, Kind<Const<?, ?>, M>> functionK, Applicative<Kind<Const<?, ?>, M>> applicative) {
     return foldMap(functionK, applicative).fix(toConst()).value();
   }
 
@@ -123,12 +123,12 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
     return new Lift<>(value);
   }
 
-  static <F, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp_, F>, ? extends T> value,
-      Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> mapper) {
+  static <F, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp<?, ?>, F>, ? extends T> value,
+      Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super T, ? extends R>> mapper) {
     return new Apply<>(value.fix(toFreeAp()), mapper.fix(toFreeAp()));
   }
 
-  static <F, G> FunctionK<F, Kind<FreeAp_, G>> functionKF(FunctionK<F, G> functionK) {
+  static <F, G> FunctionK<F, Kind<FreeAp<?, ?>, G>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<>() {
       @Override
       public <T> FreeAp<G, T> apply(Kind<F, ? extends T> from) {
@@ -138,7 +138,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   @SuppressWarnings("unchecked")
-  static <F> Applicative<Kind<FreeAp_, F>> applicativeF() {
+  static <F> Applicative<Kind<FreeAp<?, ?>, F>> applicativeF() {
     return FreeApplicative.INSTANCE;
   }
 
@@ -200,7 +200,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 }
 
-interface FreeApplicative<F> extends Applicative<Kind<FreeAp_, F>> {
+interface FreeApplicative<F> extends Applicative<Kind<FreeAp<?, ?>, F>> {
 
   @SuppressWarnings("rawtypes")
   FreeApplicative INSTANCE = new FreeApplicative() {};
@@ -212,8 +212,8 @@ interface FreeApplicative<F> extends Applicative<Kind<FreeAp_, F>> {
 
   @Override
   default <T, R> FreeAp<F, R> ap(
-      Kind<Kind<FreeAp_, F>, ? extends T> value,
-      Kind<Kind<FreeAp_, F>, ? extends Function1<? super T, ? extends R>> apply) {
+      Kind<Kind<FreeAp<?, ?>, F>, ? extends T> value,
+      Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super T, ? extends R>> apply) {
     return FreeAp.apply(value, apply);
   }
 }

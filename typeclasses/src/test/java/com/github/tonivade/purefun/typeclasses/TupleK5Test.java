@@ -14,13 +14,13 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Unit;
-import com.github.tonivade.purefun.type.Option_;
+import com.github.tonivade.purefun.type.Option;
 
 public class TupleK5Test {
 
   @Test
   public void tuple() {
-    TupleK5<Option_, String, Integer, LocalDate, Unit, Double> tuple =
+    TupleK5<Option<?>, String, Integer, LocalDate, Unit, Double> tuple =
         TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0));
 
     assertAll(() -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)), none(), some(1.0)), tuple),

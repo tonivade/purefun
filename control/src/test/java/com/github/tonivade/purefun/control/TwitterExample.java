@@ -37,7 +37,7 @@ class TwitterExample {
   }
   
   private Control<ImmutableList<Tweet>> program(Twitter twitter) {
-    return Instances.<Control_>monad().use()
+    return Instances.<Control<?>>monad().use()
       .then(twitter.userTweets("12345"))
       .then(twitter.userTweets("54321"))
       .apply(ImmutableList::appendAll)

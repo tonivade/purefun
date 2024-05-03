@@ -39,7 +39,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <R> type of the right value, positive case
  */
 @HigherKind
-public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either_, L>, R>, Applicable<Kind<Either_, L>, R> {
+public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either<?, ?>, L>, R>, Applicable<Kind<Either<?, ?>, L>, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -108,7 +108,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
 
   @Override
   default <T> Either<L, T> ap(
-      Kind<Kind<Either_, L>, ? extends Function1<? super R, ? extends T>> apply) {
+      Kind<Kind<Either<?, ?>, L>, ? extends Function1<? super R, ? extends T>> apply) {
     return apply.fix(toEither()).flatMap(this::map);
   }
 
@@ -118,7 +118,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
 
   @Override
   @SuppressWarnings("unchecked")
-  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Kind<Either_, L>, ? extends T>> map) {
+  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Kind<Either<?, ?>, L>, ? extends T>> map) {
     if (this instanceof Right<L, R>(var right)) {
       return map.andThen(EitherOf::<L, T>narrowK).apply(right);
     }
@@ -144,7 +144,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     return filter(matcher.negate());
   }
 
-  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Kind<Kind<Either_, L>, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Kind<Kind<Either<?, ?>, L>, R>> orElse) {
     if (this instanceof Left) {
       return this;
     }
@@ -154,14 +154,14 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     return orElse.andThen(EitherOf::narrowK).get();
   }
 
-  default Either<L, R> or(Producer<Kind<Kind<Either_, L>, R>> orElse) {
+  default Either<L, R> or(Producer<Kind<Kind<Either<?, ?>, L>, R>> orElse) {
     if (this instanceof Left) {
       return orElse.andThen(EitherOf::narrowK).get();
     }
     return this;
   }
 
-  default Either<L, R> orElse(Kind<Kind<Either_, L>, R> orElse) {
+  default Either<L, R> orElse(Kind<Kind<Either<?, ?>, L>, R> orElse) {
     return or(Producer.cons(orElse));
   }
 

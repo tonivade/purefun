@@ -35,7 +35,7 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
     return new Managed<>(resource.mapError(mapper));
   }
 
-  public <B> Managed<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<Managed_, R>, E>, ? extends B>> mapper) {
+  public <B> Managed<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, E>, ? extends B>> mapper) {
     PureIO<R, E, Tuple2<B, Consumer1<? super B>>> result = resource.flatMap(t -> {
       Managed<R, E, B> apply = ManagedOf.narrowK(mapper.apply(t.get1()));
       return apply.resource.map(r -> r.map2(ignore -> releaseAndThen(t, r)));
@@ -43,11 +43,11 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
     return new Managed<>(result);
   }
 
-  public <F> Managed<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<Managed_, R>, F>, ? extends A>> mapper) {
+  public <F> Managed<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, F>, ? extends A>> mapper) {
     return new Managed<>(resource.flatMapError(e -> ManagedOf.<R, F, A>narrowK(mapper.apply(e)).resource));
   }
 
-  public <B> Managed<R, E, B> andThen(Kind<Kind<Kind<Managed_, A>, E>, B> other) {
+  public <B> Managed<R, E, B> andThen(Kind<Kind<Kind<Managed<?, ?, ?>, A>, E>, B> other) {
     PureIO<R, E, Tuple2<B, Consumer1<? super B>>> flatMap = resource.flatMap(a -> {
       Either<E, Tuple2<B, Consumer1<? super B>>> next = ManagedOf.narrowK(other).resource.provide(a.get1());
       return PureIO.fromEither(() -> next.map(t -> t.map2(ignore -> releaseAndThen(a, t))));
@@ -75,8 +75,8 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
   }
 
   public <F, B> Managed<R, F, B> foldM(
-      Function1<? super E, ? extends Kind<Kind<Kind<Managed_, R>, F>, ? extends B>> mapError,
-      Function1<? super A, ? extends Kind<Kind<Kind<Managed_, R>, F>, ? extends B>> mapper) {
+      Function1<? super E, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, F>, ? extends B>> mapError,
+      Function1<? super A, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, F>, ? extends B>> mapper) {
     PureIO<R, F, Tuple2<B, Consumer1<? super B>>> foldM =
         resource.foldM(
             error -> ManagedOf.<R, F, B>narrowK(mapError.apply(error)).resource,

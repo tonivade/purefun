@@ -67,7 +67,7 @@ import com.github.tonivade.purefun.type.TryOf;
  * @see Promise
  */
 @HigherKind
-public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
+public sealed interface Future<T> extends FutureOf<T>, Bindable<Future<?>, T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -88,7 +88,7 @@ public sealed interface Future<T> extends FutureOf<T>, Bindable<Future_, T> {
   Future<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper);
 
   @Override
-  <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future_, ? extends R>> mapper);
+  <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future<?>, ? extends R>> mapper);
 
   <R> Future<R> andThen(Future<? extends R> next);
 
@@ -352,7 +352,7 @@ final class FutureImpl<T> implements Future<T> {
   }
 
   @Override
-  public <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future_, ? extends R>> mapper) {
+  public <R> Future<R> flatMap(Function1<? super T, ? extends Kind<Future<?>, ? extends R>> mapper) {
     return chain(value -> value.fold(e -> Future.failure(executor, e), mapper));
   }
 
@@ -419,7 +419,7 @@ final class FutureImpl<T> implements Future<T> {
           promise.onComplete(value -> p.tryComplete(mapper.apply(value))), this::cancel);
   }
 
-  private <R> Future<R> chain(Function1<? super Try<? extends T>, ? extends Kind<Future_, ? extends R>> mapper) {
+  private <R> Future<R> chain(Function1<? super Try<? extends T>, ? extends Kind<Future<?>, ? extends R>> mapper) {
     checkNonNull(executor);
     checkNonNull(mapper);
     return new FutureImpl<>(executor,

@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.data.Sequence;
 
 @HigherKind
 @FunctionalInterface
-public non-sealed interface State<S, A> extends StateOf<S, A>, Bindable<Kind<State_, S>, A> {
+public non-sealed interface State<S, A> extends StateOf<S, A>, Bindable<Kind<State<?, ?>, S>, A> {
 
   Tuple2<S, A> run(S state);
 
@@ -29,7 +29,7 @@ public non-sealed interface State<S, A> extends StateOf<S, A>, Bindable<Kind<Sta
   }
 
   @Override
-  default <R> State<S, R> flatMap(Function1<? super A, ? extends Kind<Kind<State_, S>, ? extends R>> mapper) {
+  default <R> State<S, R> flatMap(Function1<? super A, ? extends Kind<Kind<State<?, ?>, S>, ? extends R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
       State<S, R> narrowK = mapper.andThen(StateOf::<S, R>narrowK).apply(run.get2());

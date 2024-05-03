@@ -76,9 +76,9 @@ class PipingExample {
     }
   }
 
-  static final class Down<R> extends Process<R, Prod_, Receive> implements Receive {
+  static final class Down<R> extends Process<R, Prod<?>, Receive> implements Receive {
 
-    Down(Kind<Prod_, Control<R>> init) {
+    Down(Kind<Prod<?>, Control<R>> init) {
       super(init);
     }
 
@@ -91,9 +91,9 @@ class PipingExample {
     }
   }
 
-  static final class Up<R> extends Process<R, Cons_, Send> implements Send {
+  static final class Up<R> extends Process<R, Cons<?>, Send> implements Send {
 
-    Up(Kind<Cons_, Control<R>> init) {
+    Up(Kind<Cons<?>, Control<R>> init) {
       super(init);
     }
 
@@ -110,13 +110,13 @@ class PipingExample {
 @HigherKind
 final class Prod<R> implements ProdOf<R> {
 
-  private final Function1<Unit, Function1<Kind<Cons_, R>, R>> apply;
+  private final Function1<Unit, Function1<Kind<Cons<?>, R>, R>> apply;
 
-  Prod(Function1<Unit, Function1<Kind<Cons_, R>, R>> apply) {
+  Prod(Function1<Unit, Function1<Kind<Cons<?>, R>, R>> apply) {
     this.apply = requireNonNull(apply);
   }
 
-  public Function1<Kind<Cons_, R>, R> apply(Unit unit) {
+  public Function1<Kind<Cons<?>, R>, R> apply(Unit unit) {
     return apply.apply(unit);
   }
 }
@@ -124,13 +124,13 @@ final class Prod<R> implements ProdOf<R> {
 @HigherKind
 final class Cons<R> implements ConsOf<R> {
 
-  private final Function1<Integer, Function1<Kind<Prod_, R>, R>> apply;
+  private final Function1<Integer, Function1<Kind<Prod<?>, R>, R>> apply;
 
-  Cons(Function1<Integer, Function1<Kind<Prod_, R>, R>> apply) {
+  Cons(Function1<Integer, Function1<Kind<Prod<?>, R>, R>> apply) {
     this.apply = requireNonNull(apply);
   }
 
-  public Function1<Kind<Prod_, R>, R> apply(int n) {
+  public Function1<Kind<Prod<?>, R>, R> apply(int n) {
     return apply.apply(n);
   }
 }

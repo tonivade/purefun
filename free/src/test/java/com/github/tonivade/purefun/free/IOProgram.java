@@ -15,20 +15,18 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.monad.State;
-import com.github.tonivade.purefun.monad.State_;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
 public sealed interface IOProgram<T> extends IOProgramOf<T> {
 
-  static Free<IOProgram_, String> read() {
+  static Free<IOProgram<?>, String> read() {
     return liftF(new IOProgram.Read());
   }
 
-  static Free<IOProgram_, Unit> write(String value) {
+  static Free<IOProgram<?>, Unit> write(String value) {
     return liftF(new IOProgram.Write(value));
   }
 
@@ -45,12 +43,12 @@ public sealed interface IOProgram<T> extends IOProgramOf<T> {
 }
 
 @SuppressWarnings("unchecked")
-class IOProgramToState implements FunctionK<IOProgram_, Kind<State_, ImmutableList<String>>> {
+class IOProgramToState implements FunctionK<IOProgram<?>, Kind<State<?, ?>, ImmutableList<String>>> {
 
-  private final Console<Kind<State_, ImmutableList<String>>> console = StateInstances.console();
+  private final Console<Kind<State<?, ?>, ImmutableList<String>>> console = StateInstances.console();
 
   @Override
-  public <X> Kind<Kind<State_, ImmutableList<String>>, X> apply(Kind<IOProgram_, ? extends X> from) {
+  public <X> Kind<Kind<State<?, ?>, ImmutableList<String>>, X> apply(Kind<IOProgram<?>, ? extends X> from) {
     return switch (from.fix(toIOProgram())) {
       case IOProgram.Read() -> (State<ImmutableList<String>, X>) console.readln();
       case IOProgram.Write(var value) -> (State<ImmutableList<String>, X>) console.println(value);
@@ -59,12 +57,12 @@ class IOProgramToState implements FunctionK<IOProgram_, Kind<State_, ImmutableLi
 }
 
 @SuppressWarnings("unchecked")
-class IOProgramToIO implements FunctionK<IOProgram_, IO_> {
+class IOProgramToIO implements FunctionK<IOProgram<?>, IO<?>> {
 
-  private final Console<IO_> console = IOInstances.console();
+  private final Console<IO<?>> console = IOInstances.console();
 
   @Override
-  public <X> Kind<IO_, X> apply(Kind<IOProgram_, ? extends X> from) {
+  public <X> Kind<IO<?>, X> apply(Kind<IOProgram<?>, ? extends X> from) {
     return switch (from.fix(toIOProgram())) {
       case IOProgram.Read() -> (IO<X>) console.readln();
       case IOProgram.Write(var value) -> (IO<X>) console.println(value);

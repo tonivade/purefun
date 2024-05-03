@@ -37,7 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, Recoverable {
+public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO<?, ?>, R>, A>, Recoverable {
 
   private static final RIO<?, Unit> UNIT = new RIO<>(PureIO.unit());
 
@@ -82,7 +82,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
 
   @Override
-  public <B> RIO<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> map) {
+  public <B> RIO<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> map) {
     return new RIO<>(instance.flatMap(x -> {
       RIO<R, ? extends B> apply = map.andThen(RIOOf::narrowK).apply(x);
       return apply.instance;
@@ -90,12 +90,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
 
   @Override
-  public <B> RIO<R, B> andThen(Kind<Kind<RIO_, R>, ? extends B> next) {
+  public <B> RIO<R, B> andThen(Kind<Kind<RIO<?, ?>, R>, ? extends B> next) {
     return new RIO<>(instance.andThen(next.fix(RIOOf.toRIO()).instance));
   }
 
   @Override
-  public <B> RIO<R, B> ap(Kind<Kind<RIO_, R>, ? extends Function1<? super A, ? extends B>> apply) {
+  public <B> RIO<R, B> ap(Kind<Kind<RIO<?, ?>, R>, ? extends Function1<? super A, ? extends B>> apply) {
     return new RIO<>(instance.ap(apply.fix(RIOOf.toRIO()).instance));
   }
 
@@ -119,42 +119,42 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
   }
 
   public <B> RIO<R, B> foldM(
-      Function1<? super Throwable, ? extends Kind<Kind<RIO_, R>, ? extends B>> mapError,
-      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> map) {
+      Function1<? super Throwable, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> mapError,
+      Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> map) {
     return new RIO<>(instance.foldM(
         error -> mapError.andThen(RIOOf::narrowK).apply(error).instance,
         value -> map.andThen(RIOOf::narrowK).apply(value).instance));
   }
 
-  public RIO<R, A> orElse(Kind<Kind<RIO_, R>, ? extends A> other) {
+  public RIO<R, A> orElse(Kind<Kind<RIO<?, ?>, R>, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
 
   @Override
-  public <B> RIO<R, Tuple2<A, B>> zip(Kind<Kind<RIO_, R>, ? extends B> other) {
+  public <B> RIO<R, Tuple2<A, B>> zip(Kind<Kind<RIO<?, ?>, R>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
 
   @Override
-  public <B> RIO<R, A> zipLeft(Kind<Kind<RIO_, R>, ? extends B> other) {
+  public <B> RIO<R, A> zipLeft(Kind<Kind<RIO<?, ?>, R>, ? extends B> other) {
     return zipWith(other, first());
   }
 
   @Override
-  public <B> RIO<R, B> zipRight(Kind<Kind<RIO_, R>, ? extends B> other) {
+  public <B> RIO<R, B> zipRight(Kind<Kind<RIO<?, ?>, R>, ? extends B> other) {
     return zipWith(other, second());
   }
 
   @Override
-  public <B, C> RIO<R, C> zipWith(Kind<Kind<RIO_, R>, ? extends B> other,
+  public <B, C> RIO<R, C> zipWith(Kind<Kind<RIO<?, ?>, R>, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(RIOOf.toRIO()), mapper);
   }
 
-  public RIO<R, Fiber<Kind<RIO_, R>, A>> fork() {
+  public RIO<R, Fiber<Kind<RIO<?, ?>, R>, A>> fork() {
     return new RIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends T> from) {
+      public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>, ? extends T> from) {
         return new RIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
@@ -220,7 +220,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends Kind<Kind<RIO_, R>, ? extends A>> map) {
+  public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends A>> map) {
     return new RIO<>(PureIO.accessM(map.andThen(RIOOf::narrowK).andThen(RIO::toPureIO)));
   }
 
@@ -236,39 +236,39 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(PureIO.absorb(value.instance));
   }
 
-  public static <R, A, B, C> RIO<R, C> parMap2(Kind<Kind<RIO_, R>, ? extends A> za, Kind<Kind<RIO_, R>, ? extends B> zb,
+  public static <R, A, B, C> RIO<R, C> parMap2(Kind<Kind<RIO<?, ?>, R>, ? extends A> za, Kind<Kind<RIO<?, ?>, R>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  public static <R, A, B, C> RIO<R, C> parMap2(Executor executor, Kind<Kind<RIO_, R>, ? extends A> za, Kind<Kind<RIO_, R>, ? extends B> zb,
+  public static <R, A, B, C> RIO<R, C> parMap2(Executor executor, Kind<Kind<RIO<?, ?>, R>, ? extends A> za, Kind<Kind<RIO<?, ?>, R>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return new RIO<>(PureIO.parMap2(executor, za.fix(RIOOf::narrowK).instance, zb.fix(RIOOf::narrowK).instance, mapper));
   }
 
-  public static <R, A, B> RIO<R, Either<A, B>> race(Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
+  public static <R, A, B> RIO<R, Either<A, B>> race(Kind<Kind<RIO<?, ?>, R>, ? extends A> fa, Kind<Kind<RIO<?, ?>, R>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
 
-  public static <R, A, B> RIO<R, Either<A, B>> race(Executor executor, Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
+  public static <R, A, B> RIO<R, Either<A, B>> race(Executor executor, Kind<Kind<RIO<?, ?>, R>, ? extends A> fa, Kind<Kind<RIO<?, ?>, R>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(RIOOf.toRIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(RIOOf.toRIO()).map(x -> Either.right(tb.get2()))));
   }
 
-  public static <R, A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO_, R>, B>>, Tuple2<Fiber<Kind<RIO_, R>, A>, B>>>
-      racePair(Executor executor, Kind<Kind<RIO_, R>, ? extends A> fa, Kind<Kind<RIO_, R>, ? extends B> fb) {
+  public static <R, A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO<?, ?>, R>, B>>, Tuple2<Fiber<Kind<RIO<?, ?>, R>, A>, B>>>
+      racePair(Executor executor, Kind<Kind<RIO<?, ?>, R>, ? extends A> fa, Kind<Kind<RIO<?, ?>, R>, ? extends B> fb) {
     PureIO<R, Throwable, A> instance1 = fa.fix(RIOOf.toRIO()).instance.fix(PureIOOf::narrowK);
     PureIO<R, Throwable, B> instance2 = fb.fix(RIOOf.toRIO()).instance.fix(PureIOOf::narrowK);
     return new RIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends T> from) {
+        public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>, ? extends T> from) {
           return new RIO<>(from.fix(PureIOOf::narrowK));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO_, R>, Throwable>, ? extends T> from) {
+        public <T> RIO<R, T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>, ? extends T> from) {
           return new RIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));
@@ -334,7 +334,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
     return new RIO<>(PureIO.raiseError(throwable));
   }
 
-  public static <R, A> RIO<R, A> defer(Producer<Kind<Kind<RIO_, R>, ? extends A>> lazy) {
+  public static <R, A> RIO<R, A> defer(Producer<Kind<Kind<RIO<?, ?>, R>, ? extends A>> lazy) {
     return new RIO<>(PureIO.defer(() -> lazy.andThen(RIOOf::narrowK).get().instance));
   }
 
@@ -356,29 +356,29 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<Kind<RIO_, R>, A>, R
       (env, cb1) -> consumer.andThen(RIO::toPureIO).apply(env, result -> cb1.accept(result.map(Either::right)))));
   }
 
-  public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends Kind<Kind<RIO_, R>, A>> sequence) {
+  public static <R, A> RIO<R, Sequence<A>> traverse(Sequence<? extends Kind<Kind<RIO<?, ?>, R>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <R, A> RIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<RIO_, R>, A>> sequence) {
+  public static <R, A> RIO<R, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<RIO<?, ?>, R>, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()),
-        (Kind<Kind<RIO_, R>, Sequence<A>> xs, Kind<Kind<RIO_, R>, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<Kind<RIO<?, ?>, R>, Sequence<A>> xs, Kind<Kind<RIO<?, ?>, R>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use) {
+  public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(Kind<Kind<RIO<?, ?>, R>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> use) {
     return new RIO<>(PureIO.bracket(acquire.fix(RIOOf::narrowK).instance,
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance));
   }
 
-  public static <R, A, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use, Consumer1<? super A> release) {
+  public static <R, A, B> RIO<R, B> bracket(Kind<Kind<RIO<?, ?>, R>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> use, Consumer1<? super A> release) {
     return new RIO<>(PureIO.bracket(acquire.fix(RIOOf::narrowK).instance,
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release));
   }
 
-  public static <R, A, B> RIO<R, B> bracket(Kind<Kind<RIO_, R>, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<Kind<RIO_, R>, ? extends B>> use, Function1<? super A, ? extends Kind<Kind<RIO_, R>, Unit>> release) {
+  public static <R, A, B> RIO<R, B> bracket(Kind<Kind<RIO<?, ?>, R>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> use, Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, Unit>> release) {
     return new RIO<>(PureIO.bracket(acquire.fix(RIOOf::narrowK).instance,
         resource -> use.andThen(RIOOf::narrowK).apply(resource).instance, release.andThen(RIOOf::narrowK).andThen(RIO::toPureIO)));
   }

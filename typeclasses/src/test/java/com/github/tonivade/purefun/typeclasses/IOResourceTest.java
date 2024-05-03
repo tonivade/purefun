@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.monad.IO;
 
-public class IOResourceTest extends ResourceTest<IO_> {
+public class IOResourceTest extends ResourceTest<IO<?>> {
 
   public IOResourceTest() {
-    super(IO_.class);
+    super(new Instance<IO<?>>() {});
   }
 }

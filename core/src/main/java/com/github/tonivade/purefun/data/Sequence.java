@@ -33,7 +33,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
 @HigherKind
-public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bindable<Sequence_, E> {
+public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bindable<Sequence<?>, E> {
 
   int size();
 
@@ -59,7 +59,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   <R> Sequence<R> map(Function1<? super E, ? extends R> mapper);
 
   @Override
-  <R> Sequence<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper);
+  <R> Sequence<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper);
 
   Sequence<E> filter(Matcher1<? super E> matcher);
 

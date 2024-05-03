@@ -12,14 +12,14 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.type.Option_;
+import com.github.tonivade.purefun.type.Option;
 
 public class TupleK3Test {
 
   @Test
   public void tuple() {
 
-    TupleK3<Option_, String, Integer, LocalDate> tuple = TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)));
+    TupleK3<Option<?>, String, Integer, LocalDate> tuple = TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5)));
 
     assertAll(() -> assertEquals(TupleK.of(some("value"), some(10), some(LocalDate.of(2018, 11, 5))), tuple),
               () -> assertEquals(TupleK.of(some("VALUE"), some(10), some(LocalDate.of(2018, 11, 5))), tuple.map1(String::toUpperCase)),

@@ -10,60 +10,60 @@ import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.EitherTInstances;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
-import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class EitherTTest {
 
-  private final Monad<Id_> monad = IdInstances.monad();
+  private final Monad<Id<?>> monad = IdInstances.monad();
 
   @Test
   public void map() {
-    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id_, Void, String> map = right.map(String::toUpperCase);
+    EitherT<Id<?>, Void, String> map = right.map(String::toUpperCase);
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void flatMap() {
-    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id_, Void, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
+    EitherT<Id<?>, Void, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void filterOrElse() {
-    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
 
-    EitherT<Id_, Void, String> filter = right.filterOrElse(String::isEmpty, cons(Either.right("not empty")));
-    EitherT<Id_, Void, String> orElse = EitherT.right(monad, "not empty");
+    EitherT<Id<?>, Void, String> filter = right.filterOrElse(String::isEmpty, cons(Either.right("not empty")));
+    EitherT<Id<?>, Void, String> orElse = EitherT.right(monad, "not empty");
 
     assertEquals(orElse.get(), filter.getOrElse("not empty"));
   }
 
   @Test
   public void left() {
-    EitherT<Id_, Unit, String> left = EitherT.left(monad, unit());
+    EitherT<Id<?>, Unit, String> left = EitherT.left(monad, unit());
 
     assertAll(
         () -> assertEquals(Id.of(true), left.isLeft()),
@@ -73,7 +73,7 @@ public class EitherTTest {
 
   @Test
   public void right() {
-    EitherT<Id_, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
 
     assertAll(
         () -> assertEquals(Id.of(false), right.isLeft()),
@@ -83,9 +83,9 @@ public class EitherTTest {
 
   @Test
   public void mapK() {
-    EitherT<IO_, Void, String> rightIo = EitherT.right(IOInstances.monad(), "abc");
+    EitherT<IO<?>, Void, String> rightIo = EitherT.right(IOInstances.monad(), "abc");
 
-    EitherT<Try_, Void, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    EitherT<Try<?>, Void, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), TryOf.narrowK(rightTry.get()));
   }
@@ -93,16 +93,16 @@ public class EitherTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Kind<EitherT_, Future_>, Throwable>, Throwable> monadError =
+    MonadError<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, Throwable> monadError =
         EitherTInstances.monadError(FutureInstances.monadError());
 
-    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> handleError =
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> ensureOk =
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Kind<Kind<Kind<EitherT_, Future_>, Throwable>, String> ensureError =
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
@@ -115,16 +115,16 @@ public class EitherTTest {
   @Test
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Kind<EitherT_, Id_>, Throwable>, Throwable> monadError =
+    MonadError<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, Throwable> monadError =
         EitherTInstances.monadError(monad);
 
-    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> handleError =
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> ensureOk =
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> ensureOk =
         monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<Kind<Kind<EitherT_, Id_>, Throwable>, String> ensureError =
+    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> ensureError =
         monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(

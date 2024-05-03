@@ -10,23 +10,23 @@ import com.github.tonivade.purefun.Kind;
 
 
 public abstract class ReferenceTest<F> {
-  
-  private final Class<F> type;
-  
-  public ReferenceTest(Class<F> type) {
-    this.type = type;
+
+  private final Instance<F> instance;
+
+  public ReferenceTest(Instance<F> instance) {
+    this.instance = instance;
   }
 
   protected <T> Reference<F, T> makeRef(T value) {
-    return Instances.monadDefer(type).ref(value);
+    return instance.monadDefer().ref(value);
   }
-  
+
   protected <T, R> Kind<F, R> doAndThen(Kind<F, T> value, Kind<F, R> next) {
-    return Instances.monad(type).andThen(value, () -> next);
+    return instance.monad().andThen(value, () -> next);
   }
-  
+
   protected <T> T run(Kind<F, T> value) {
-    return Instances.runtime(type).run(value);
+    return instance.runtime().run(value);
   }
 
   @Test

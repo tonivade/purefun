@@ -18,7 +18,6 @@ import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Option_;
 
 public class ApplicativeTest {
 
@@ -39,7 +38,7 @@ public class ApplicativeTest {
 
   @Test
   public void map5Some() {
-    Kind<Option_, Integer> map5 =
+    Kind<Option<?>, Integer> map5 =
         OptionInstances.applicative().mapN(
             Option.some(1),
             Option.some(2),
@@ -52,7 +51,7 @@ public class ApplicativeTest {
 
   @Test
   public void map5None() {
-    Kind<Option_, Integer> map5 =
+    Kind<Option<?>, Integer> map5 =
         OptionInstances.applicative().mapN(
             Option.some(1),
             Option.some(2),

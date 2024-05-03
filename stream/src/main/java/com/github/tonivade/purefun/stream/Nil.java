@@ -112,7 +112,7 @@ public final class Nil<F, T> implements PureStream<F, T> {
   }
 
   @Override
-  public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream_, F>, ? extends R>> map) {
+  public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream<?, ?>, F>, ? extends R>> map) {
     return new Nil<>(monad);
   }
 

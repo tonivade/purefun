@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT_, F>, T> {
+public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT<?, ?>, F>, T> {
 
   Monad<F> monad();
   Kind<F, Option<T>> value();
@@ -31,7 +31,7 @@ public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Kind
   }
 
   @Override
-  default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<OptionT_, F>, ? extends R>> map) {
+  default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends R>> map) {
     return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>narrowK).apply(v).value()));
   }
 
