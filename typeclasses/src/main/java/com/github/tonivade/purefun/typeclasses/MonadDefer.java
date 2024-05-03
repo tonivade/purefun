@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import java.time.Duration;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.CheckedRunnable;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function2;
@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Try;
 
-public interface MonadDefer<F extends Witness> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
+public interface MonadDefer<F> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
 
   @Override
   default Kind<F, Long> currentNanos() {

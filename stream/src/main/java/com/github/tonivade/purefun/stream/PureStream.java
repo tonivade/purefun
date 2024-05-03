@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -30,7 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
-public sealed interface PureStream<F extends Witness, T>
+public sealed interface PureStream<F, T>
   extends PureStreamOf<F, T>, Bindable<Kind<PureStream_, F>, T>
     permits Cons, Suspend, Nil {
 
@@ -82,7 +82,7 @@ public sealed interface PureStream<F extends Witness, T>
   Kind<F, Boolean> exists(Matcher1<? super T> matcher);
   Kind<F, Boolean> forall(Matcher1<? super T> matcher);
 
-  default <G extends Witness, R> PureStream<G, R> through(Function1<PureStream<F, T>, PureStream<G, R>> function) {
+  default <G, R> PureStream<G, R> through(Function1<PureStream<F, T>, PureStream<G, R>> function) {
     return function.apply(this);
   }
 
@@ -102,97 +102,97 @@ public sealed interface PureStream<F extends Witness, T>
     return mapEval(ignore -> next);
   }
 
-  static <F extends Witness> PureStream.Of<F> of(MonadDefer<F> monad) {
+  static <F> PureStream.Of<F> of(MonadDefer<F> monad) {
     return () -> monad;
   }
 
-  static <F extends Witness> PureStream.Of<F> of(Class<F> type) {
+  static <F> PureStream.Of<F> of(Class<F> type) {
     return of(Instances.monadDefer(type));
   }
 
   @SafeVarargs
-  static <F extends Witness> PureStream.Of<F> of(F...reified) {
+  static <F> PureStream.Of<F> of(F...reified) {
     return of(Instances.monadDefer(reified));
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> empty(F... reified) {
+  static <F, T> PureStream<F, T> empty(F... reified) {
     return of(Instances.monadDefer(reified)).empty();
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> pure(T value, F...reified) {
+  static <F, T> PureStream<F, T> pure(T value, F...reified) {
     return of(Instances.monadDefer(reified)).pure(value);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> cons(T head, PureStream<F, ? extends T> tail, F...reified) {
+  static <F, T> PureStream<F, T> cons(T head, PureStream<F, ? extends T> tail, F...reified) {
     return of(Instances.monadDefer(reified)).cons(head, tail);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> suspend(Producer<? extends PureStream<F, ? extends T>> lazy, F...reified) {
+  static <F, T> PureStream<F, T> suspend(Producer<? extends PureStream<F, ? extends T>> lazy, F...reified) {
     return of(Instances.monadDefer(reified)).suspend(lazy);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> eval(Kind<F, ? extends T> value, F...reified) {
+  static <F, T> PureStream<F, T> eval(Kind<F, ? extends T> value, F...reified) {
     return of(Instances.monadDefer(reified)).eval(value);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> from(Iterable<? extends T> iterable, F...reified) {
+  static <F, T> PureStream<F, T> from(Iterable<? extends T> iterable, F...reified) {
     return of(Instances.monadDefer(reified)).from(iterable);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> from(Stream<? extends T> stream, F...reified) {
+  static <F, T> PureStream<F, T> from(Stream<? extends T> stream, F...reified) {
     return of(Instances.monadDefer(reified)).from(stream);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> from(Sequence<? extends T> sequence, F...reified) {
+  static <F, T> PureStream<F, T> from(Sequence<? extends T> sequence, F...reified) {
     return of(Instances.monadDefer(reified)).from(sequence);
   }
 
   @SafeVarargs
-  static <F extends Witness, T, S> PureStream<F, T> unfold(
+  static <F, T, S> PureStream<F, T> unfold(
       S seed, Function1<? super S, Option<Tuple2<? extends T, ? extends S>>> function, F...reified) {
     return of(Instances.monadDefer(reified)).unfold(seed, function);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> iterate(T seed, Operator1<T> generator, F...reified) {
+  static <F, T> PureStream<F, T> iterate(T seed, Operator1<T> generator, F...reified) {
     return of(Instances.monadDefer(reified)).iterate(seed, generator);
   }
 
   @SafeVarargs
-  static <F extends Witness, T> PureStream<F, T> iterate(Producer<? extends T> generator, F...reified) {
+  static <F, T> PureStream<F, T> iterate(Producer<? extends T> generator, F...reified) {
     return of(Instances.monadDefer(reified)).iterate(generator);
   }
 
   @SafeVarargs
-  static <F extends Witness, A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2,
+  static <F, A, B, R> PureStream<F, R> zipWith(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2,
       Function2<? super A, ? super B, ? extends R> combinator, F...reified) {
     return of(Instances.monadDefer(reified)).zipWith(s1, s2, combinator);
   }
 
   @SafeVarargs
-  static <F extends Witness, A, B> PureStream<F, Tuple2<A, B>> zip(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2, F...reified) {
+  static <F, A, B> PureStream<F, Tuple2<A, B>> zip(PureStream<F, ? extends A> s1, PureStream<F, ? extends B> s2, F...reified) {
     return of(Instances.monadDefer(reified)).zip(s1, s2);
   }
 
   @SafeVarargs
-  static <F extends Witness, A> PureStream<F, Tuple2<A, Integer>> zipWithIndex(PureStream<F, ? extends A> stream, F...reified) {
+  static <F, A> PureStream<F, Tuple2<A, Integer>> zipWithIndex(PureStream<F, ? extends A> stream, F...reified) {
     return of(Instances.monadDefer(reified)).zipWithIndex(stream);
   }
 
   @SafeVarargs
-  static <F extends Witness, A> PureStream<F, A> merge(PureStream<F, A> s1, PureStream<F, A> s2, F...reified) {
+  static <F, A> PureStream<F, A> merge(PureStream<F, A> s1, PureStream<F, A> s2, F...reified) {
     return of(Instances.monadDefer(reified)).merge(s1, s2);
   }
 
-  interface Of<F extends Witness> {
+  interface Of<F> {
 
     MonadDefer<F> monadDefer();
 

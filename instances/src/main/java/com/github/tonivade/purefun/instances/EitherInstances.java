@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Function1.cons;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -189,7 +189,7 @@ interface EitherTraverse<L> extends Traverse<Kind<Either_, L>>, EitherFoldable<L
   EitherTraverse INSTANCE = new EitherTraverse() {};
 
   @Override
-  default <G extends Witness, T, R> Kind<G, Kind<Kind<Either_, L>, R>> traverse(
+  default <G, T, R> Kind<G, Kind<Kind<Either_, L>, R>> traverse(
       Applicative<G> applicative, Kind<Kind<Either_, L>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return EitherOf.narrowK(value).fold(

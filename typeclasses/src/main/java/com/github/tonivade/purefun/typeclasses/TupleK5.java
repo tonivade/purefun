@@ -9,13 +9,13 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple5;
 import com.github.tonivade.purefun.data.Sequence;
 
-public final class TupleK5<F extends Witness, A, B, C, D, E> implements TupleK<F> {
+public final class TupleK5<F, A, B, C, D, E> implements TupleK<F> {
 
   private static final Equal<TupleK5<?, ?, ?, ?, ?, ?>> EQUAL = Equal.<TupleK5<?, ?, ?, ?, ?, ?>>of()
     .comparing(TupleK5::get1)

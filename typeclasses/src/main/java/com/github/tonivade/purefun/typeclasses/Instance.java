@@ -14,12 +14,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.type.Try;
 
-public abstract class Instance<F extends Witness> {
+public abstract class Instance<F> {
   
-  private final Class<? extends Witness> kindType;
+  private final Class<?> kindType;
   private final Type type;
   
   protected Instance(Class<F> clazz) {
@@ -33,7 +33,7 @@ public abstract class Instance<F extends Witness> {
     this.kindType = kindType(type);
   }
 
-  public Class<? extends Witness> getKindType() {
+  public Class<?> getKindType() {
     return kindType;
   }
 
@@ -129,19 +129,19 @@ public abstract class Instance<F extends Witness> {
   }
 
   @SuppressWarnings("unchecked")
-  private static Class<? extends Witness> kindType(Type type) {
+  private static Class<?> kindType(Type type) {
     if (type instanceof ParameterizedType parameterizedType) {
       if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
         return kindType(parameterizedType.getActualTypeArguments()[0]);
       }
       if (parameterizedType.getActualTypeArguments()[0] instanceof Class) {
-        return (Class<? extends Witness>) parameterizedType.getActualTypeArguments()[0];
+        return (Class<?>) parameterizedType.getActualTypeArguments()[0];
       }
     }
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
   }
 
-  private static <F extends Witness, T> T load(Instance<F> instance, Class<?> typeClass, Object... args) {
+  private static <F, T> T load(Instance<F> instance, Class<?> typeClass, Object... args) {
     return Try.of(() -> findClass(instance))
       .map(clazz -> findMethod(clazz, typeClass, args))
       .map(method -> Instance.<T>getInstance(method, args))
@@ -149,7 +149,7 @@ public abstract class Instance<F extends Witness> {
       .getOrElseThrow();
   }
 
-  private static <F extends Witness> Class<?> findClass(Instance<F> instance)
+  private static <F> Class<?> findClass(Instance<F> instance)
       throws ClassNotFoundException {
     return Class.forName(instance.instanceName());
   }

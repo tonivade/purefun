@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.effect.EIO_;
 import com.github.tonivade.purefun.effect.RIO_;
@@ -54,16 +54,16 @@ public interface PureStreamInstances {
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Witness> Functor<Kind<PureStream_, F>> functor() {
+  static <F> Functor<Kind<PureStream_, F>> functor() {
     return PureStreamFunctor.INSTANCE;
   }
 
-  static <F extends Witness> Monad<Kind<PureStream_, F>> monad(PureStream.Of<F> streamOf) {
+  static <F> Monad<Kind<PureStream_, F>> monad(PureStream.Of<F> streamOf) {
     return PureStreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
-interface PureStreamFunctor<F extends Witness> extends Functor<Kind<PureStream_, F>> {
+interface PureStreamFunctor<F> extends Functor<Kind<PureStream_, F>> {
 
   @SuppressWarnings("rawtypes")
   PureStreamFunctor INSTANCE = new PureStreamFunctor() {};
@@ -74,7 +74,7 @@ interface PureStreamFunctor<F extends Witness> extends Functor<Kind<PureStream_,
   }
 }
 
-interface PureStreamPure<F extends Witness> extends Applicative<Kind<PureStream_, F>> {
+interface PureStreamPure<F> extends Applicative<Kind<PureStream_, F>> {
 
   PureStream.Of<F> streamOf();
 
@@ -84,9 +84,9 @@ interface PureStreamPure<F extends Witness> extends Applicative<Kind<PureStream_
   }
 }
 
-interface PureStreamMonad<F extends Witness> extends Monad<Kind<PureStream_, F>>, PureStreamPure<F> {
+interface PureStreamMonad<F> extends Monad<Kind<PureStream_, F>>, PureStreamPure<F> {
 
-  static <F extends Witness> PureStreamMonad<F> instance(PureStream.Of<F> streamOf) {
+  static <F> PureStreamMonad<F> instance(PureStream.Of<F> streamOf) {
     return () -> streamOf;
   }
 

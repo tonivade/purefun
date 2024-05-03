@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun;
 
 @FunctionalInterface
-public interface Fixer<T extends Witness, R> {
+public interface Fixer<T, R> {
 
   R apply(T hkt);
 

@@ -5,14 +5,14 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Function3;
 import com.github.tonivade.purefun.core.Function4;
 import com.github.tonivade.purefun.core.Function5;
 
-public interface Parallel<F extends Witness, G extends Witness> {
+public interface Parallel<F, G> {
   
   Monad<F> monad();
   Applicative<G> applicative();
@@ -20,12 +20,12 @@ public interface Parallel<F extends Witness, G extends Witness> {
   <A> Kind<F, A> sequential(Kind<G, ? extends A> value);
   <A> Kind<G, A> parallel(Kind<F, ? extends A> value);
   
-  default <T extends Witness, A> Kind<F, Kind<T, A>> parSequence(Traverse<T> traverse, 
+  default <T, A> Kind<F, Kind<T, A>> parSequence(Traverse<T> traverse, 
       Kind<T, ? extends Kind<F, ? extends A>> value) {
     return sequential(traverse.traverse(applicative(), value, this::parallel));
   }
   
-  default <T extends Witness, A, B> Kind<F, Kind<T, B>> parTraverse(Traverse<T> traverse,
+  default <T, A, B> Kind<F, Kind<T, B>> parTraverse(Traverse<T> traverse,
       Kind<T, ? extends A> value, Function1<? super A, ? extends Kind<F, ? extends B>> mapper) {
     return sequential(traverse.traverse(applicative(), value, a -> parallel(mapper.apply(a))));
   }
@@ -58,7 +58,7 @@ public interface Parallel<F extends Witness, G extends Witness> {
     return Kind.narrowK(sequential(applicative().mapN(parallel(fa), parallel(fb), parallel(fc), parallel(fd), parallel(fe), mapper)));
   }
   
-  static <F extends Witness, G extends Witness> Parallel<F, G> of(
+  static <F, G> Parallel<F, G> of(
       Monad<F> monad, Applicative<G> applicative, FunctionK<F, G> to, FunctionK<G, F> from) {
     return new Parallel<>() {
       @Override
@@ -75,7 +75,7 @@ public interface Parallel<F extends Witness, G extends Witness> {
     };
   }
   
-  static <F extends Witness> Parallel<F, F> identity(Monad<F> monad) {
+  static <F> Parallel<F, F> identity(Monad<F> monad) {
     return new Parallel<>() {
       @Override
       public Applicative<F> applicative() { return monad; }

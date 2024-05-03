@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
@@ -15,7 +15,7 @@ import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.type.Eval.FALSE;
 import static com.github.tonivade.purefun.type.Eval.TRUE;
 
-public interface Selective<F extends Witness> extends Applicative<F> {
+public interface Selective<F> extends Applicative<F> {
 
   <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<? super A, ? extends B>> apply);
 
@@ -45,23 +45,23 @@ public interface Selective<F extends Witness> extends Applicative<F> {
   }
 
   @SuppressWarnings("unchecked")
-  default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Kind<G, ? extends A> values,
+  default <G, A> Eval<Kind<F, Boolean>> anyS(Kind<G, ? extends A> values,
       Function1<? super A, ? extends Kind<F, Boolean>> condition, G...reified) {
     return anyS(Instances.foldable(reified), values, condition);
   }
 
-  default <G extends Witness, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable, Kind<G, ? extends A> values,
+  default <G, A> Eval<Kind<F, Boolean>> anyS(Foldable<G> foldable, Kind<G, ? extends A> values,
       Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, FALSE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> orS(b, condition.apply(a))));
   }
 
   @SuppressWarnings("unchecked")
-  default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Kind<G, ? extends A> values,
+  default <G, A> Eval<Kind<F, Boolean>> allS(Kind<G, ? extends A> values,
       Function1<? super A, ? extends Kind<F, Boolean>> condition, G...reified) {
     return allS(Instances.foldable(reified), values, condition);
   }
 
-  default <G extends Witness, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable, Kind<G, ? extends A> values,
+  default <G, A> Eval<Kind<F, Boolean>> allS(Foldable<G> foldable, Kind<G, ? extends A> values,
       Function1<? super A, ? extends Kind<F, Boolean>> condition) {
     return foldable.foldRight(values, TRUE.map(this::<Boolean>pure), (a, eb) -> eb.map(b -> andS(b, condition.apply(a))));
   }

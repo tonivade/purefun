@@ -3,7 +3,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.typeclasses.ScheduleOf.toSchedule;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Profunctor;
@@ -13,16 +13,16 @@ import com.github.tonivade.purefun.typeclasses.Schedule_;
 @SuppressWarnings("unchecked")
 public interface ScheduleInstances {
   
-  static <F extends Witness, A> Functor<Kind<Kind<Schedule_, F>, A>> functor() {
+  static <F, A> Functor<Kind<Kind<Schedule_, F>, A>> functor() {
     return ScheduleFunctor.INSTANCE;
   }
   
-  static <F extends Witness> Profunctor<Kind<Schedule_, F>> profunctor() {
+  static <F> Profunctor<Kind<Schedule_, F>> profunctor() {
     return ScheduleProfunctor.INSTANCE;
   }
 }
 
-interface ScheduleFunctor<F extends Witness, A> extends Functor<Kind<Kind<Schedule_, F>, A>> {
+interface ScheduleFunctor<F, A> extends Functor<Kind<Kind<Schedule_, F>, A>> {
    
   @SuppressWarnings("rawtypes")
   ScheduleFunctor INSTANCE = new ScheduleFunctor() {};
@@ -35,7 +35,7 @@ interface ScheduleFunctor<F extends Witness, A> extends Functor<Kind<Kind<Schedu
   }
 }
 
-interface ScheduleProfunctor<F extends Witness> extends Profunctor<Kind<Schedule_, F>> {
+interface ScheduleProfunctor<F> extends Profunctor<Kind<Schedule_, F>> {
 
   @SuppressWarnings("rawtypes")
   ScheduleProfunctor INSTANCE = new ScheduleProfunctor() {};

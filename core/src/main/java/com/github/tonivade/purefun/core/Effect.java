@@ -7,9 +7,9 @@ package com.github.tonivade.purefun.core;
 import java.time.Duration;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 
-public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable<F, A> {
+
+public interface Effect<F, A> extends Bindable<F, A>, Applicable<F, A> {
 
   @Override
   <R> Effect<F, R> map(Function1<? super A, ? extends R> mapper);
@@ -74,7 +74,7 @@ public interface Effect<F extends Witness, A> extends Bindable<F, A>, Applicable
   Effect<F, A> retry(Duration delay, int maxRetries);
 
   @SuppressWarnings("unchecked")
-  static <F extends Witness, A> Effect<F, A> narrowK(Kind<F, ? extends A> kind) {
+  static <F, A> Effect<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Effect<F, A>) kind;
   }
 }

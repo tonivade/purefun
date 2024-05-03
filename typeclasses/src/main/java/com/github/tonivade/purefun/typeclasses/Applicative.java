@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Function3;
@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.core.Tuple3;
 import com.github.tonivade.purefun.core.Tuple4;
 import com.github.tonivade.purefun.core.Tuple5;
 
-public interface Applicative<F extends Witness> extends Functor<F> {
+public interface Applicative<F> extends Functor<F> {
 
   <T> Kind<F, T> pure(T value);
 
@@ -127,7 +127,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
     return mapN(fa, fb, Function2.second());
   }
 
-  static <F extends Witness, G extends Witness> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {
+  static <F, G> Applicative<Nested<F, G>> compose(Applicative<F> f, Applicative<G> g) {
     return new ComposedApplicative<>() {
 
       @Override
@@ -138,14 +138,14 @@ public interface Applicative<F extends Witness> extends Functor<F> {
     };
   }
 
-  record Map2<F extends Witness, A, B>(Applicative<F> instance, Kind<F, ? extends A> fa, Kind<F, ? extends B> fb) {
+  record Map2<F, A, B>(Applicative<F> instance, Kind<F, ? extends A> fa, Kind<F, ? extends B> fb) {
 
     public <R> Kind<F, R> apply(Function2<? super A, ? super B, ? extends R> apply) {
       return instance.mapN(fa, fb, apply);
     }
   }
 
-  record Map3<F extends Witness, A, B, C>(
+  record Map3<F, A, B, C>(
       Applicative<F> instance,
       Kind<F, ? extends A> fa,
       Kind<F, ? extends B> fb,
@@ -156,7 +156,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
     }
   }
 
-  record Map4<F extends Witness, A, B, C, D>(
+  record Map4<F, A, B, C, D>(
       Applicative<F> instance,
       Kind<F, ? extends A> fa,
       Kind<F, ? extends B> fb,
@@ -168,7 +168,7 @@ public interface Applicative<F extends Witness> extends Functor<F> {
     }
   }
 
-  record Map5<F extends Witness, A, B, C, D, E>(
+  record Map5<F, A, B, C, D, E>(
       Applicative<F> instance,
       Kind<F, ? extends A> fa,
       Kind<F, ? extends B> fb,

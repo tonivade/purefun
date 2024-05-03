@@ -5,14 +5,14 @@
 package com.github.tonivade.purefun.core;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 
-public interface Mappable<F extends Witness, A> extends Kind<F, A> {
+
+public interface Mappable<F, A> extends Kind<F, A> {
   
   <R> Mappable<F, R> map(Function1<? super A, ? extends R> mapper);
   
   @SuppressWarnings("unchecked")
-  static <F extends Witness, A> Mappable<F, A> narrowK(Kind<F, ? extends A> kind) {
+  static <F, A> Mappable<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Mappable<F, A>) kind;
   }
 }

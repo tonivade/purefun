@@ -8,7 +8,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.Kleisli;
@@ -21,26 +21,26 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 
 public interface KleisliInstances {
 
-  static <F extends Witness, Z> Monad<Kind<Kind<Kleisli_, F>, Z>> monad(Monad<F> monadF) {
+  static <F, Z> Monad<Kind<Kind<Kleisli_, F>, Z>> monad(Monad<F> monadF) {
     return KleisliMonad.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness, Z, E> MonadError<Kind<Kind<Kleisli_, F>, Z>, E> monadError(MonadError<F, E> monadErrorF) {
+  static <F, Z, E> MonadError<Kind<Kind<Kleisli_, F>, Z>, E> monadError(MonadError<F, E> monadErrorF) {
     return KleisliMonadError.instance(monadErrorF);
   }
 
-  static <F extends Witness, Z> MonadReader<Kind<Kind<Kleisli_, F>, Z>, Z> monadReader(Monad<F> monadF) {
+  static <F, Z> MonadReader<Kind<Kind<Kleisli_, F>, Z>, Z> monadReader(Monad<F> monadF) {
     return KleisliMonadReader.instance(monadF);
   }
 
-  static <F extends Witness, Z, S> MonadState<Kind<Kind<Kleisli_, F>, Z>, S> monadState(MonadState<F, S> monadStateF) {
+  static <F, Z, S> MonadState<Kind<Kind<Kleisli_, F>, Z>, S> monadState(MonadState<F, S> monadStateF) {
     return KleisliMonadState.instance(monadStateF);
   }
 }
 
-interface KleisliMonad<F extends Witness, Z> extends Monad<Kind<Kind<Kleisli_, F>, Z>> {
+interface KleisliMonad<F, Z> extends Monad<Kind<Kind<Kleisli_, F>, Z>> {
 
-  static <F extends Witness, Z> KleisliMonad<F, Z> instance(Monad<F> monadF) {
+  static <F, Z> KleisliMonad<F, Z> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -58,9 +58,9 @@ interface KleisliMonad<F extends Witness, Z> extends Monad<Kind<Kind<Kleisli_, F
   }
 }
 
-interface KleisliMonadError<F extends Witness, R, E> extends MonadError<Kind<Kind<Kleisli_, F>, R>, E>, KleisliMonad<F, R> {
+interface KleisliMonadError<F, R, E> extends MonadError<Kind<Kind<Kleisli_, F>, R>, E>, KleisliMonad<F, R> {
 
-  static <F extends Witness, R, E> KleisliMonadError<F, R, E> instance(MonadError<F, E> monadErrorF) {
+  static <F, R, E> KleisliMonadError<F, R, E> instance(MonadError<F, E> monadErrorF) {
     return () -> monadErrorF;
   }
 
@@ -83,9 +83,9 @@ interface KleisliMonadError<F extends Witness, R, E> extends MonadError<Kind<Kin
   }
 }
 
-interface KleisliMonadReader<F extends Witness, R> extends MonadReader<Kind<Kind<Kleisli_, F>, R>, R>, KleisliMonad<F, R> {
+interface KleisliMonadReader<F, R> extends MonadReader<Kind<Kind<Kleisli_, F>, R>, R>, KleisliMonad<F, R> {
 
-  static <F extends Witness, Z> KleisliMonadReader<F, Z> instance(Monad<F> monadF) {
+  static <F, Z> KleisliMonadReader<F, Z> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -95,9 +95,9 @@ interface KleisliMonadReader<F extends Witness, R> extends MonadReader<Kind<Kind
   }
 }
 
-interface KleisliMonadState<F extends Witness, R, S> extends MonadState<Kind<Kind<Kleisli_, F>, R>, S>, KleisliMonad<F, R> {
+interface KleisliMonadState<F, R, S> extends MonadState<Kind<Kind<Kleisli_, F>, R>, S>, KleisliMonad<F, R> {
 
-  static <F extends Witness, R, S> KleisliMonadState<F, R, S> instance(MonadState<F, S> monadStateF) {
+  static <F, R, S> KleisliMonadState<F, R, S> instance(MonadState<F, S> monadStateF) {
     return () -> monadStateF;
   }
 

@@ -33,7 +33,6 @@ public class HigherKindProcessor extends AbstractProcessor {
   private static final String JAVAX_ANNOTATION_PROCESSING_GENERATED = "javax.annotation.processing.Generated";
 
   private static final String KIND = "com.github.tonivade.purefun.Kind";
-  private static final String WITNESS = "com.github.tonivade.purefun.Witness";
   private static final String FIXER = "com.github.tonivade.purefun.Fixer";
   private static final String END = "}";
 
@@ -104,7 +103,6 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println(packageName(packageName));
       writer.println();
     }
-    writer.println(import_(WITNESS));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -245,7 +243,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
 
   private static String witnessClass(String kindName) {
-    return "public final class " + kindName + " implements Witness {";
+    return "public final class " + kindName + " {";
   }
 
   private static String typeOfClass(String typeName, String typeOfName, String type) {

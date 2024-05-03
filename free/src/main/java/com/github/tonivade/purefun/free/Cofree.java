@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.type.EvalOf.toEval;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Mappable;
@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
 @HigherKind
-public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree_, F>, A> {
+public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree_, F>, A> {
 
   private final Functor<F> functor;
   private final A head;
@@ -90,11 +90,11 @@ public final class Cofree<F extends Witness, A> implements CofreeOf<F, A>, Mappa
     return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::narrowK)));
   }
 
-  public static <F extends Witness, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Kind<F, A>> unfold) {
+  public static <F, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Kind<F, A>> unfold) {
     return of(functor, head, Eval.later(() -> functor.map(unfold.apply(head), a -> unfold(functor, a, unfold))));
   }
 
-  public static <F extends Witness, A> Cofree<F, A> of(Functor<F> functor, A head, Eval<Kind<F, Cofree<F, A>>> tail) {
+  public static <F, A> Cofree<F, A> of(Functor<F> functor, A head, Eval<Kind<F, Cofree<F, A>>> tail) {
     return new Cofree<>(functor, head, tail);
   }
 }

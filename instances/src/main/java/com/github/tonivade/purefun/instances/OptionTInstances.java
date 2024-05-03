@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.util.NoSuchElementException;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
@@ -31,38 +31,38 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface OptionTInstances {
 
-  static <F extends Witness, T> Eq<Kind<Kind<OptionT_, F>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
+  static <F, T> Eq<Kind<Kind<OptionT_, F>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
     return (a, b) -> eq.eqv(OptionTOf.narrowK(a).value(), OptionTOf.narrowK(b).value());
   }
 
-  static <F extends Witness> Monad<Kind<OptionT_, F>> monad(Monad<F> monadF) {
+  static <F> Monad<Kind<OptionT_, F>> monad(Monad<F> monadF) {
     return OptionTMonad.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness> MonadError<Kind<OptionT_, F>, Unit> monadError(Monad<F> monadF) {
+  static <F> MonadError<Kind<OptionT_, F>, Unit> monadError(Monad<F> monadF) {
     return OptionTMonadErrorFromMonad.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness, E> MonadError<Kind<OptionT_, F>, E> monadError(MonadError<F, E> monadErrorF) {
+  static <F, E> MonadError<Kind<OptionT_, F>, E> monadError(MonadError<F, E> monadErrorF) {
     return OptionTMonadErrorFromMonadError.instance(checkNonNull(monadErrorF));
   }
 
-  static <F extends Witness> MonadThrow<Kind<OptionT_, F>> monadThrow(MonadThrow<F> monadThrowF) {
+  static <F> MonadThrow<Kind<OptionT_, F>> monadThrow(MonadThrow<F> monadThrowF) {
     return OptionTMonadThrow.instance(checkNonNull(checkNonNull(monadThrowF)));
   }
 
-  static <F extends Witness> MonadDefer<Kind<OptionT_, F>> monadDefer(MonadDefer<F> monadDeferF) {
+  static <F> MonadDefer<Kind<OptionT_, F>> monadDefer(MonadDefer<F> monadDeferF) {
     return OptionTMonadDefer.instance(checkNonNull(monadDeferF));
   }
 
-  static <F extends Witness, A> Reference<Kind<OptionT_, F>, A> ref(MonadDefer<F> monadF, A value) {
+  static <F, A> Reference<Kind<OptionT_, F>, A> ref(MonadDefer<F> monadF, A value) {
     return Reference.of(monadDefer(monadF), value);
   }
 }
 
-interface OptionTMonad<F extends Witness> extends Monad<Kind<OptionT_, F>> {
+interface OptionTMonad<F> extends Monad<Kind<OptionT_, F>> {
 
-  static <F extends Witness> OptionTMonad<F> instance(Monad<F> monadF) {
+  static <F> OptionTMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -80,10 +80,10 @@ interface OptionTMonad<F extends Witness> extends Monad<Kind<OptionT_, F>> {
   }
 }
 
-interface OptionTMonadErrorFromMonad<F extends Witness>
+interface OptionTMonadErrorFromMonad<F>
     extends MonadError<Kind<OptionT_, F>, Unit>, OptionTMonad<F> {
 
-  static <F extends Witness> OptionTMonadErrorFromMonad<F> instance(Monad<F> monadF) {
+  static <F> OptionTMonadErrorFromMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -103,10 +103,10 @@ interface OptionTMonadErrorFromMonad<F extends Witness>
   }
 }
 
-interface OptionTMonadErrorFromMonadError<F extends Witness, E>
+interface OptionTMonadErrorFromMonadError<F, E>
     extends MonadError<Kind<OptionT_, F>, E>, OptionTMonad<F> {
 
-  static <F extends Witness, E> OptionTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadF) {
+  static <F, E> OptionTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadF) {
     return () -> monadF;
   }
 
@@ -127,16 +127,16 @@ interface OptionTMonadErrorFromMonadError<F extends Witness, E>
   }
 }
 
-interface OptionTMonadThrow<F extends Witness>
+interface OptionTMonadThrow<F>
     extends MonadThrow<Kind<OptionT_, F>>,
             OptionTMonadErrorFromMonadError<F, Throwable> {
 
-  static <F extends Witness> OptionTMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
+  static <F> OptionTMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
     return () -> monadThrowF;
   }
 }
 
-interface OptionTDefer<F extends Witness> extends Defer<Kind<OptionT_, F>> {
+interface OptionTDefer<F> extends Defer<Kind<OptionT_, F>> {
 
   MonadDefer<F> monadF();
 
@@ -146,7 +146,7 @@ interface OptionTDefer<F extends Witness> extends Defer<Kind<OptionT_, F>> {
   }
 }
 
-interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, Throwable> {
+interface OptionTBracket<F> extends Bracket<Kind<OptionT_, F>, Throwable> {
 
   Bracket<F, Throwable> monadF();
 
@@ -170,13 +170,13 @@ interface OptionTBracket<F extends Witness> extends Bracket<Kind<OptionT_, F>, T
   }
 }
 
-interface OptionTMonadDefer<F extends Witness>
+interface OptionTMonadDefer<F>
     extends OptionTMonadThrow<F>,
             OptionTDefer<F>,
             OptionTBracket<F>,
             MonadDefer<Kind<OptionT_, F>> {
 
-  static <F extends Witness> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
+  static <F> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
     return () -> monadDeferF;
   }
 

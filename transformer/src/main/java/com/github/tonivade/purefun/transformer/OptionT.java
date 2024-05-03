@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.core.Producer.cons;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface OptionT<F extends Witness, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT_, F>, T> {
+public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Kind<OptionT_, F>, T> {
 
   Monad<F> monad();
   Kind<F, Option<T>> value();
@@ -39,7 +39,7 @@ public non-sealed interface OptionT<F extends Witness, T> extends OptionTOf<F, T
     return monad().map(value(), v -> v.fold(orElse, map));
   }
 
-  default <G extends Witness> OptionT<G, T> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+  default <G> OptionT<G, T> mapK(Monad<G> other, FunctionK<F, G> functionK) {
     return OptionT.of(other, functionK.apply(value()));
   }
 
@@ -67,11 +67,11 @@ public non-sealed interface OptionT<F extends Witness, T> extends OptionTOf<F, T
     return filter(matcher.negate());
   }
 
-  static <F extends Witness, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
+  static <F, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
     return OptionT.of(monad, monad.pure(value));
   }
 
-  static <F extends Witness, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
+  static <F, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
     checkNonNull(monad);
     checkNonNull(value);
     return new OptionT<>() {
@@ -84,11 +84,11 @@ public non-sealed interface OptionT<F extends Witness, T> extends OptionTOf<F, T
     };
   }
 
-  static <F extends Witness, T> OptionT<F, T> some(Monad<F> monad, T value) {
+  static <F, T> OptionT<F, T> some(Monad<F> monad, T value) {
     return lift(monad, Option.some(value));
   }
 
-  static <F extends Witness, T> OptionT<F, T> none(Monad<F> monad) {
+  static <F, T> OptionT<F, T> none(Monad<F> monad) {
     return lift(monad, Option.none());
   }
 

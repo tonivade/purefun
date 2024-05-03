@@ -7,10 +7,10 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.core.Function1.identity;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 
-public interface Bifunctor<F extends Witness> {
+public interface Bifunctor<F> {
 
   <A, B, C, D> Kind<Kind<F, C>, D> bimap(Kind<Kind<F, A>, ? extends B> value, 
       Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap);

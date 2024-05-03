@@ -8,13 +8,13 @@ import static com.github.tonivade.purefun.core.Producer.cons;
 import static com.github.tonivade.purefun.core.Unit.unit;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple1;
 import com.github.tonivade.purefun.core.Unit;
 
-public final class FlatMap1<F extends Witness, A> extends AbstractFlatMap<F, Unit, A> {
+public final class FlatMap1<F, A> extends AbstractFlatMap<F, Unit, A> {
 
   FlatMap1(Monad<F> monad, Producer<Kind<F, ? extends A>> value) {
     super(monad, value.asFunction());

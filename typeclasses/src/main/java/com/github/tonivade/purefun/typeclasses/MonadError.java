@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Producer;
@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 
-public interface MonadError<F extends Witness, E> extends ApplicativeError<F, E>, Monad<F> {
+public interface MonadError<F, E> extends ApplicativeError<F, E>, Monad<F> {
 
   default <A> Kind<F, A> ensure(Kind<F, A> value, Producer<E> error, Matcher1<A> matcher) {
     return flatMap(value, a -> matcher.match(a) ? pure(a) : raiseError(error.get()));

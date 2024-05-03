@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.free.Cofree;
 import com.github.tonivade.purefun.free.CofreeOf;
@@ -16,16 +16,16 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 @SuppressWarnings("unchecked")
 public interface CofreeInstances {
 
-  static <F extends Witness> Functor<Kind<Cofree_, F>> functor() {
+  static <F> Functor<Kind<Cofree_, F>> functor() {
     return CofreeFunctor.INSTANCE;
   }
 
-  static <F extends Witness> Comonad<Kind<Cofree_, F>> comonad() {
+  static <F> Comonad<Kind<Cofree_, F>> comonad() {
     return CofreeComonad.INSTANCE;
   }
 }
 
-interface CofreeFunctor<F extends Witness> extends Functor<Kind<Cofree_, F>> {
+interface CofreeFunctor<F> extends Functor<Kind<Cofree_, F>> {
 
   @SuppressWarnings("rawtypes")
   CofreeFunctor INSTANCE = new CofreeFunctor() {};
@@ -36,7 +36,7 @@ interface CofreeFunctor<F extends Witness> extends Functor<Kind<Cofree_, F>> {
   }
 }
 
-interface CofreeComonad<F extends Witness> extends Comonad<Kind<Cofree_, F>>, CofreeFunctor<F> {
+interface CofreeComonad<F> extends Comonad<Kind<Cofree_, F>>, CofreeFunctor<F> {
 
   @SuppressWarnings("rawtypes")
   CofreeComonad INSTANCE = new CofreeComonad() { };

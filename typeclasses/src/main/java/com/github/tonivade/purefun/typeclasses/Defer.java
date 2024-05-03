@@ -5,10 +5,10 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Producer;
 
-public interface Defer<F extends Witness> {
+public interface Defer<F> {
 
   <A> Kind<F, A> defer(Producer<? extends Kind<F, ? extends A>> defer);
 }

@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.stream;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-public final class Suspend<F extends Witness, T> implements PureStream<F, T> {
+public final class Suspend<F, T> implements PureStream<F, T> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, PureStream<F, T>> evalStream;

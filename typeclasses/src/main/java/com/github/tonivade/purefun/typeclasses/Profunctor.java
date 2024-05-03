@@ -7,10 +7,10 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.core.Function1.identity;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 
-public interface Profunctor<F extends Witness> {
+public interface Profunctor<F> {
 
   <A, B, C, D> Kind<Kind<F, C>, D> dimap(Kind<Kind<F, A>, ? extends B> value, 
       Function1<? super C, ? extends A> contramap, Function1<? super B, ? extends D> map);

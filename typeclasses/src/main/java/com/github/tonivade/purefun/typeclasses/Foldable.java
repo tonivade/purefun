@@ -7,14 +7,14 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.core.Function1.identity;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Operator2;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Option;
 
-public interface Foldable<F extends Witness> {
+public interface Foldable<F> {
 
   <A, B> B foldLeft(Kind<F, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper);
 
@@ -34,13 +34,13 @@ public interface Foldable<F extends Witness> {
         (option, a) -> option.fold(() -> Option.some(a), b -> Option.some(combinator.apply(b, a))));
   }
 
-  default <G extends Witness, A, B> Kind<G, B> foldM(
+  default <G, A, B> Kind<G, B> foldM(
       Monad<G> monad, Kind<F, ? extends A> value, B initial, 
       Function2<? super B, ? super A, ? extends Kind<G, ? extends B>> mapper) {
     return foldLeft(value, monad.pure(initial), (gb, a) -> monad.flatMap(gb, b -> mapper.apply(b, a)));
   }
 
-  static <F extends Witness, G extends Witness> Foldable<Nested<F, G>> compose(Foldable<F> f, Foldable<G> g) {
+  static <F, G> Foldable<Nested<F, G>> compose(Foldable<F> f, Foldable<G> g) {
     return new ComposedFoldable<>() {
 
       @Override

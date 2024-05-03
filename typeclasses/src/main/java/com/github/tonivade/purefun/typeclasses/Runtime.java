@@ -7,11 +7,11 @@ package com.github.tonivade.purefun.typeclasses;
 import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 
-public interface Runtime<F extends Witness> {
+public interface Runtime<F> {
 
   <T> T run(Kind<F, T> value);
 

@@ -5,13 +5,13 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 
-public interface FunctionK<F extends Witness, G extends Witness> {
+
+public interface FunctionK<F, G> {
 
   <T> Kind<G, T> apply(Kind<F, ? extends T> from);
 
-  default <B extends Witness> FunctionK<B, G> compose(FunctionK<B, F> before) {
+  default <B> FunctionK<B, G> compose(FunctionK<B, F> before) {
     final FunctionK<F, G> self = this;
     return new FunctionK<>() {
       @Override
@@ -21,7 +21,7 @@ public interface FunctionK<F extends Witness, G extends Witness> {
     };
   }
 
-  default <A extends Witness> FunctionK<F, A> andThen(FunctionK<G, A> after) {
+  default <A> FunctionK<F, A> andThen(FunctionK<G, A> after) {
     final FunctionK<F, G> self = this;
     return new FunctionK<>() {
       @Override
@@ -31,7 +31,7 @@ public interface FunctionK<F extends Witness, G extends Witness> {
     };
   }
 
-  static <F extends Witness> FunctionK<F, F> identity() {
+  static <F> FunctionK<F, F> identity() {
     return Kind::narrowK;
   }
 }

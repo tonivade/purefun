@@ -8,13 +8,13 @@ import static com.github.tonivade.purefun.core.Function5.fifth;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function5;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple5;
 
-public final class FlatMap5<F extends Witness, A, B, C, D, E> extends AbstractFlatMap<F, D, E> {
+public final class FlatMap5<F, A, B, C, D, E> extends AbstractFlatMap<F, D, E> {
 
   private final Producer<? extends Kind<F, ? extends A>> value1;
   private final Function1<? super A, ? extends Kind<F, ? extends B>> value2;

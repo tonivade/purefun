@@ -5,9 +5,9 @@
 package com.github.tonivade.purefun.core;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 
-public interface Bindable<F extends Witness, A> extends Mappable<F, A> {
+
+public interface Bindable<F, A> extends Mappable<F, A> {
   
   @Override
   <R> Bindable<F, R> map(Function1<? super A, ? extends R> mapper);
@@ -19,7 +19,7 @@ public interface Bindable<F extends Witness, A> extends Mappable<F, A> {
   }
   
   @SuppressWarnings("unchecked")
-  static <F extends Witness, A> Bindable<F, A> narrowK(Kind<F, ? extends A> kind) {
+  static <F, A> Bindable<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Bindable<F, A>) kind;
   }
 }

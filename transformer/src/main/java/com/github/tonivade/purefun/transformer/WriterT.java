@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind
-public non-sealed interface WriterT<F extends Witness, L, A> extends WriterTOf<F, L, A>, Bindable<Kind<Kind<WriterT_, F>, L>, A> {
+public non-sealed interface WriterT<F, L, A> extends WriterTOf<F, L, A>, Bindable<Kind<Kind<WriterT_, F>, L>, A> {
 
   Monoid<L> monoid();
   Monad<F> monad();
@@ -61,7 +61,7 @@ public non-sealed interface WriterT<F extends Witness, L, A> extends WriterTOf<F
     return writer(monoidV, monad(), monad().map(value(), tuple -> tuple.map(mapper1, mapper2)));
   }
 
-  default <G extends Witness> WriterT<G, L, A> mapK(Monad<G> monadG, FunctionK<F, G> functionK) {
+  default <G> WriterT<G, L, A> mapK(Monad<G> monadG, FunctionK<F, G> functionK) {
     return writer(monoid(), monadG, functionK.apply(value()));
   }
 
@@ -73,15 +73,15 @@ public non-sealed interface WriterT<F extends Witness, L, A> extends WriterTOf<F
                 other -> Tuple.of(monoid().combine(current.get1(), other.get1()), other.get2()))));
   }
 
-  static <F extends Witness, L, A> WriterT<F, L, A> pure(Monoid<L> monoid, Monad<F> monad, A value) {
+  static <F, L, A> WriterT<F, L, A> pure(Monoid<L> monoid, Monad<F> monad, A value) {
     return lift(monoid, monad, Tuple2.of(monoid.zero(), value));
   }
 
-  static <F extends Witness, L, A> WriterT<F, L, A> lift(Monoid<L> monoid, Monad<F> monad, Tuple2<L, A> value) {
+  static <F, L, A> WriterT<F, L, A> lift(Monoid<L> monoid, Monad<F> monad, Tuple2<L, A> value) {
     return writer(monoid, monad, monad.pure(value));
   }
 
-  static <F extends Witness, L, A> WriterT<F, L, A> writer(Monoid<L> monoid, Monad<F> monad, Kind<F, Tuple2<L, A>> value) {
+  static <F, L, A> WriterT<F, L, A> writer(Monoid<L> monoid, Monad<F> monad, Kind<F, Tuple2<L, A>> value) {
     checkNonNull(monoid);
     checkNonNull(monad);
     checkNonNull(value);

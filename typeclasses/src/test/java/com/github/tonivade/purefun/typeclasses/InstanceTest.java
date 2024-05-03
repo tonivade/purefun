@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.type.Either;
@@ -67,7 +67,7 @@ public class InstanceTest {
 
   @Test
   public void notAllowed() {
-    record X() implements Witness {};
+    record X() {};
 
     var x = new X();
 

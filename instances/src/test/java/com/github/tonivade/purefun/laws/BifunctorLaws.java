@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Bifunctor;
 
 public class BifunctorLaws {
 
-  public static <F extends Witness> void verifyLaws(Bifunctor<F> bifunctor, Kind<Kind<F, String>, String> value) {
+  public static <F> void verifyLaws(Bifunctor<F> bifunctor, Kind<Kind<F, String>, String> value) {
     assertAll(() -> identityLaw(bifunctor, value),
               () -> compositionLaw(bifunctor, value,
                   String::toUpperCase, String::toLowerCase, String::toUpperCase, String::toLowerCase),
@@ -25,11 +25,11 @@ public class BifunctorLaws {
               () -> leftMapComposition(bifunctor, value, String::toUpperCase, String::toLowerCase));
   }
 
-  private static <F extends Witness, A, B> void identityLaw(Bifunctor<F> bifunctor, Kind<Kind<F, A>, B> value) {
+  private static <F, A, B> void identityLaw(Bifunctor<F> bifunctor, Kind<Kind<F, A>, B> value) {
     assertEquals(value, bifunctor.bimap(value, identity(), identity()), "identity law");
   }
 
-  private static <G extends Witness, A, B, C, D, E, F> void compositionLaw(Bifunctor<G> bifunctor,
+  private static <G, A, B, C, D, E, F> void compositionLaw(Bifunctor<G> bifunctor,
                                                                         Kind<Kind<G, A>, B> value,
                                                                         Function1<A, C> f1,
                                                                         Function1<C, D> f2,
@@ -40,11 +40,11 @@ public class BifunctorLaws {
         "composition law");
   }
 
-  private static <F extends Witness, A, B> void mapIdentityLaw(Bifunctor<F> functor, Kind<Kind<F, A>, B> value) {
+  private static <F, A, B> void mapIdentityLaw(Bifunctor<F> functor, Kind<Kind<F, A>, B> value) {
     assertEquals(value, functor.map(value, identity()), "map identity law");
   }
 
-  private static <F extends Witness, A, B, C, D> void mapComposition(Bifunctor<F> functor,
+  private static <F, A, B, C, D> void mapComposition(Bifunctor<F> functor,
                                                                   Kind<Kind<F, A>, B> value,
                                                                   Function1<B, C> f,
                                                                   Function1<C, D> g) {
@@ -53,11 +53,11 @@ public class BifunctorLaws {
                  "map composition law");
   }
 
-  private static <F extends Witness, A, B> void leftMapIdentityLaw(Bifunctor<F> functor, Kind<Kind<F, A>, B> value) {
+  private static <F, A, B> void leftMapIdentityLaw(Bifunctor<F> functor, Kind<Kind<F, A>, B> value) {
     assertEquals(value, functor.leftMap(value, identity()), "left map identity law");
   }
 
-  private static <F extends Witness, A, B, C, D> void leftMapComposition(Bifunctor<F> functor,
+  private static <F, A, B, C, D> void leftMapComposition(Bifunctor<F> functor,
                                                                       Kind<Kind<F, A>, B> value,
                                                                       Function1<A, C> f,
                                                                       Function1<C, D> g) {

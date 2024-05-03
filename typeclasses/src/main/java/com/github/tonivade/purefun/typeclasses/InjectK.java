@@ -5,13 +5,13 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 
-public interface InjectK<F extends Witness, G extends Witness> {
+
+public interface InjectK<F, G> {
 
   <T> Kind<G, T> inject(Kind<F, ? extends T> value);
 
-  static <F extends Witness> InjectK<F, F> injectReflexive() {
+  static <F> InjectK<F, F> injectReflexive() {
     return Kind::narrowK;
   }
 }

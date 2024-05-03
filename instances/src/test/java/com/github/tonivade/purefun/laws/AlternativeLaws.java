@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Alternative;
 
@@ -17,21 +17,21 @@ public class AlternativeLaws {
   private static final Function1<Integer, Integer> twoTimes = a -> a * 2;
   private static final Function1<Integer, Integer> plusFive = a -> a + 5;
 
-  public static <F extends Witness> void verifyLaws(Alternative<F> instance) {
+  public static <F> void verifyLaws(Alternative<F> instance) {
     assertAll(
         () -> rightAbsorption(instance, String::valueOf),
         () -> leftDistributivity(instance, 1, 2, String::valueOf),
         () -> rightDistributivity(instance, 3, twoTimes, plusFive));
   }
 
-  private static <F extends Witness, A, B> void rightAbsorption(Alternative<F> instance, Function1<A, B> f) {
+  private static <F, A, B> void rightAbsorption(Alternative<F> instance, Function1<A, B> f) {
     assertEquals(
         instance.<String>zero(),
         instance.ap(instance.zero(), instance.pure(f)),
         "right absorption");
   }
 
-  private static <F extends Witness, A, B> void leftDistributivity(Alternative<F> instance,
+  private static <F, A, B> void leftDistributivity(Alternative<F> instance,
                                                                 A a1, A a2,
                                                                 Function1<A, B> f) {
     Kind<F, A> fa1 = instance.pure(a1);
@@ -42,7 +42,7 @@ public class AlternativeLaws {
         "left distributivity");
   }
 
-  private static <F extends Witness, A, B> void rightDistributivity(Alternative<F> instance,
+  private static <F, A, B> void rightDistributivity(Alternative<F> instance,
                                                                  A a,
                                                                  Function1<A, B> f,
                                                                  Function1<A, B> g) {

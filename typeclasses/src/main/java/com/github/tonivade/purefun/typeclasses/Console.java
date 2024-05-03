@@ -5,11 +5,11 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.NonEmptyList;
 
-public interface Console<F extends Witness> {
+public interface Console<F> {
 
   Kind<F, String> readln();
 

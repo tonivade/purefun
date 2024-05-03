@@ -5,12 +5,12 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Unit;
 
-public interface Bracket<F extends Witness, E> extends MonadError<F, E> {
+public interface Bracket<F, E> extends MonadError<F, E> {
 
   <A, B> Kind<F, B> bracket(
       Kind<F, ? extends A> acquire, 

@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.core.Producer.cons;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface EitherT<F extends Witness, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT_, F>, L>, R> {
+public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT_, F>, L>, R> {
 
   Monad<F> monad();
   Kind<F, Either<L, R>> value();
@@ -49,7 +49,7 @@ public non-sealed interface EitherT<F extends Witness, L, R> extends EitherTOf<F
     return monad().map(value(), v -> v.fold(leftMapper, rightMapper));
   }
 
-  default <G extends Witness> EitherT<G, L, R> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+  default <G> EitherT<G, L, R> mapK(Monad<G> other, FunctionK<F, G> functionK) {
     return EitherT.of(other, functionK.apply(value()));
   }
 
@@ -93,11 +93,11 @@ public non-sealed interface EitherT<F extends Witness, L, R> extends EitherTOf<F
     return OptionT.of(monad(), monad().map(value(), Either::toOption));
   }
 
-  static <F extends Witness, L, R> EitherT<F, L, R> lift(Monad<F> monad, Either<L, R> either) {
+  static <F, L, R> EitherT<F, L, R> lift(Monad<F> monad, Either<L, R> either) {
     return of(monad, monad.pure(either));
   }
 
-  static <F extends Witness, L, R> EitherT<F, L, R> of(Monad<F> monad, Kind<F, Either<L, R>> value) {
+  static <F, L, R> EitherT<F, L, R> of(Monad<F> monad, Kind<F, Either<L, R>> value) {
     checkNonNull(monad);
     checkNonNull(value);
     return new EitherT<>() {
@@ -110,19 +110,19 @@ public non-sealed interface EitherT<F extends Witness, L, R> extends EitherTOf<F
     };
   }
 
-  static <F extends Witness, L, R> EitherT<F, L, R> right(Monad<F> monad, R right) {
+  static <F, L, R> EitherT<F, L, R> right(Monad<F> monad, R right) {
     return lift(monad, Either.right(right));
   }
 
-  static <F extends Witness, L, R> EitherT<F, L, R> left(Monad<F> monad, L left) {
+  static <F, L, R> EitherT<F, L, R> left(Monad<F> monad, L left) {
     return lift(monad, Either.left(left));
   }
 
-  static <F extends Witness, R> EitherT<F, Throwable, R> fromOption(Monad<F> monad, Option<R> value) {
+  static <F, R> EitherT<F, Throwable, R> fromOption(Monad<F> monad, Option<R> value) {
     return lift(monad, value.toEither());
   }
 
-  static <F extends Witness, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
+  static <F, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
     return lift(monad, value.toEither());
   }
 

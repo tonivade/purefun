@@ -12,7 +12,7 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Either;
@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class EitherK<F extends Witness, G extends Witness, T> implements EitherKOf<F, G, T>, Serializable {
+public final class EitherK<F, G, T> implements EitherKOf<F, G, T>, Serializable {
 
   @Serial
   private static final long serialVersionUID = -2305737717835278018L;
@@ -40,15 +40,15 @@ public final class EitherK<F extends Witness, G extends Witness, T> implements E
     return new EitherK<>(either.bimap(functorF.lift(mapper), functorG.lift(mapper)));
   }
 
-  public <X extends Witness> EitherK<F, X, T> mapK(FunctionK<G, X> mapper) {
+  public <X> EitherK<F, X, T> mapK(FunctionK<G, X> mapper) {
     return new EitherK<>(either.map(mapper::apply));
   }
 
-  public <X extends Witness> EitherK<X, G, T> mapLeftK(FunctionK<F, X> mapper) {
+  public <X> EitherK<X, G, T> mapLeftK(FunctionK<F, X> mapper) {
     return new EitherK<>(either.mapLeft(mapper::apply));
   }
 
-  public <R extends Witness> Kind<R, T> foldK(FunctionK<F, R> left, FunctionK<G, R> right) {
+  public <R> Kind<R, T> foldK(FunctionK<F, R> left, FunctionK<G, R> right) {
     return either.fold(left::apply, right::apply);
   }
 
@@ -93,11 +93,11 @@ public final class EitherK<F extends Witness, G extends Witness, T> implements E
     return either.getRight();
   }
 
-  public static <F extends Witness, G extends Witness, T> EitherK<F, G, T> left(Kind<F, T> left) {
+  public static <F, G, T> EitherK<F, G, T> left(Kind<F, T> left) {
     return new EitherK<>(Either.left(left));
   }
 
-  public static <F extends Witness, G extends Witness, T> EitherK<F, G, T> right(Kind<G, T> right) {
+  public static <F, G, T> EitherK<F, G, T> right(Kind<G, T> right) {
     return new EitherK<>(Either.right(right));
   }
 

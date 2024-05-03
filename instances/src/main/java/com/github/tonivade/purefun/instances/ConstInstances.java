@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -119,7 +119,7 @@ interface ConstTraverse<T> extends Traverse<Kind<Const_, T>>, ConstFoldable<T> {
   ConstTraverse INSTANCE = new ConstTraverse() {};
 
   @Override
-  default <G extends Witness, A, B> Kind<G, Kind<Kind<Const_, T>, B>> traverse(
+  default <G, A, B> Kind<G, Kind<Kind<Const_, T>, B>> traverse(
       Applicative<G> applicative, Kind<Kind<Const_, T>, A> value, Function1<? super A, ? extends Kind<G, ? extends B>> mapper) {
     return applicative.pure(value.fix(ConstOf::narrowK).retag());
   }

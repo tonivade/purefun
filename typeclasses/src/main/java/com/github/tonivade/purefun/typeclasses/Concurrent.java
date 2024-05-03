@@ -5,7 +5,7 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
-public interface Concurrent<F extends Witness> extends Async<F> {
+public interface Concurrent<F> extends Async<F> {
   
   <A> Kind<F, Fiber<F, A>> fork(Kind<F, ? extends A> value);
   

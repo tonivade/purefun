@@ -9,12 +9,12 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function4;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple4;
 
-public final class Apply4<F extends Witness, A, B, C, D> extends AbstractApply<F, D> {
+public final class Apply4<F, A, B, C, D> extends AbstractApply<F, D> {
 
   private final Producer<? extends Kind<F, ? extends A>> value1;
   private final Producer<? extends Kind<F, ? extends B>> value2;

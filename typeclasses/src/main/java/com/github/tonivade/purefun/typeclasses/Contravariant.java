@@ -5,10 +5,10 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 
-public interface Contravariant<F extends Witness> extends Invariant<F> {
+public interface Contravariant<F> extends Invariant<F> {
 
   <A, B> Kind<F, B> contramap(Kind<F, ? extends A> value, Function1<? super B, ? extends A> map);
 
@@ -17,7 +17,7 @@ public interface Contravariant<F extends Witness> extends Invariant<F> {
     return contramap(value, comap);
   }
 
-  static <F extends Witness, G extends Witness> Contravariant<Nested<F, G>> compose(Functor<F> f, Contravariant<G> g) {
+  static <F, G> Contravariant<Nested<F, G>> compose(Functor<F> f, Contravariant<G> g) {
     return new ComposedCovariantContravariant<>() {
       @Override
       public Functor<F> f() { return f; }
@@ -27,7 +27,7 @@ public interface Contravariant<F extends Witness> extends Invariant<F> {
     };
   }
 
-  static <F extends Witness, G extends Witness> Contravariant<Nested<F, G>> compose(Contravariant<F> f, Functor<G> g) {
+  static <F, G> Contravariant<Nested<F, G>> compose(Contravariant<F> f, Functor<G> g) {
     return new ComposedContravariantCovariant<>() {
       @Override
       public Contravariant<F> f() { return f; }

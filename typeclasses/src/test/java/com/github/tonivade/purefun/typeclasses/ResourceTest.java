@@ -20,13 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 
 @ExtendWith(MockitoExtension.class)
-public abstract class ResourceTest<F extends Witness> {
+public abstract class ResourceTest<F> {
   
   private final Class<F> type;
   

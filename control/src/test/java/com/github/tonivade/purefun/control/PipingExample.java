@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
@@ -69,7 +69,7 @@ class PipingExample {
     return Control.later(() -> { System.out.println(x); return unit(); });
   }
 
-  static abstract class Process<R, P extends Witness, E> extends Stateful<R, Kind<P, Control<R>>, E> {
+  static abstract class Process<R, P, E> extends Stateful<R, Kind<P, Control<R>>, E> {
 
     Process(Kind<P, Control<R>> init) {
       super(init);

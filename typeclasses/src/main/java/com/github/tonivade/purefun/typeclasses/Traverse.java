@@ -8,17 +8,17 @@ import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.type.IdOf.toId;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Id_;
 
-public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
+public interface Traverse<F> extends Functor<F>, Foldable<F> {
 
-  <G extends Witness, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
+  <G, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper);
 
-  default <G extends Witness, T> Kind<G, Kind<F, T>> sequence(Applicative<G> applicative,
+  default <G, T> Kind<G, Kind<F, T>> sequence(Applicative<G> applicative,
       Kind<F, ? extends Kind<G, ? extends T>> value) {
     return traverse(applicative, value, identity());
   }
@@ -29,7 +29,7 @@ public interface Traverse<F extends Witness> extends Functor<F>, Foldable<F> {
     return traverse.fix(toId()).value();
   }
 
-  static <F extends Witness, G extends Witness> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
+  static <F, G> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
     return new ComposedTraverse<>() {
 
       @Override

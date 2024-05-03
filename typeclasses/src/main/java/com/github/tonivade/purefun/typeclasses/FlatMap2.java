@@ -9,13 +9,13 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 
-public final class FlatMap2<F extends Witness, A, B> extends AbstractFlatMap<F, A, B> {
+public final class FlatMap2<F, A, B> extends AbstractFlatMap<F, A, B> {
 
   private final Producer<? extends Kind<F, ? extends A>> value1;
 

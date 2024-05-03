@@ -9,14 +9,14 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 
 @HigherKind
-public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
+public final class Resource<F, T> implements ResourceOf<F, T> {
   
   private final MonadDefer<F> monad;
   private final Kind<F, Tuple2<T, Consumer1<? super T>>> resource;
@@ -48,17 +48,17 @@ public final class Resource<F extends Witness, T> implements ResourceOf<F, T> {
         release()));
   }
   
-  public static <F extends Witness, T> Resource<F, T> pure(
+  public static <F, T> Resource<F, T> pure(
       MonadDefer<F> monad, Kind<F, ? extends T> acquire) {
     return new Resource<>(monad, monad.map(acquire, t -> Tuple.of(t, noop())));
   }
 
-  public static <F extends Witness, T> Resource<F, T> from(
+  public static <F, T> Resource<F, T> from(
       MonadDefer<F> monad, Kind<F, ? extends T> acquire, Consumer1<? super T> release) {
     return new Resource<>(monad, monad.map(acquire, t -> Tuple.of(t, release)));
   }
 
-  public static <F extends Witness, T extends AutoCloseable> Resource<F, T> from(
+  public static <F, T extends AutoCloseable> Resource<F, T> from(
       MonadDefer<F> monad, Kind<F, ? extends T> acquire) {
     return from(monad, acquire, AutoCloseable::close);
   }

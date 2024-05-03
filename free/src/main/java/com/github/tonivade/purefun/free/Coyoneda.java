@@ -9,13 +9,13 @@ import com.github.tonivade.purefun.Kind;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Mappable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class Coyoneda<F extends Witness, A, B> implements CoyonedaOf<F, A, B>, Mappable<Kind<Kind<Coyoneda_, F>, A>, B> {
+public final class Coyoneda<F, A, B> implements CoyonedaOf<F, A, B>, Mappable<Kind<Kind<Coyoneda_, F>, A>, B> {
 
   private final Kind<F, ? extends A> value;
   private final Function1<? super A, ? extends B> map;
@@ -34,7 +34,7 @@ public final class Coyoneda<F extends Witness, A, B> implements CoyonedaOf<F, A,
     return new Coyoneda<>(value, map.andThen(next));
   }
 
-  public static <F extends Witness, A, B> Coyoneda<F, A, B> of(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map) {
+  public static <F, A, B> Coyoneda<F, A, B> of(Kind<F, ? extends A> value, Function1<? super A, ? extends B> map) {
     return new Coyoneda<>(value, map);
   }
 }

@@ -9,13 +9,13 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Mappable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public sealed interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
+public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
 
   <B> Kind<F, B> apply(Function1<? super A, ? extends B> map);
 
@@ -28,11 +28,11 @@ public sealed interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Map
     return new Mapped<>(Yoneda.this, outer);
   }
 
-  static <F extends Witness, A> Yoneda<F, A> of(Kind<F, A> value, Functor<F> functor) {
+  static <F, A> Yoneda<F, A> of(Kind<F, A> value, Functor<F> functor) {
     return new Impl<>(value, functor);
   }
   
-  final class Impl<F extends Witness, A> implements Yoneda<F, A> {
+  final class Impl<F, A> implements Yoneda<F, A> {
     
     private final Kind<F, A> value;
     private final Functor<F> functor;
@@ -48,7 +48,7 @@ public sealed interface Yoneda<F extends Witness, A> extends YonedaOf<F, A>, Map
     }
   }
   
-  final class Mapped<F extends Witness, A, B> implements Yoneda<F, B> {
+  final class Mapped<F, A, B> implements Yoneda<F, B> {
 
     private final Yoneda<F, A> self;
     private final Function1<? super A, ? extends B> outer;

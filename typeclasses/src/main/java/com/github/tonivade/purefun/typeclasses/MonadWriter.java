@@ -7,14 +7,14 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.core.Unit.unit;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 
-public interface MonadWriter<F extends Witness, W> extends Monad<F> {
+public interface MonadWriter<F, W> extends Monad<F> {
 
   <A> Kind<F, A> writer(Tuple2<W, A> value);
   <A> Kind<F, Tuple2<W, A>> listen(Kind<F, ? extends A> value);

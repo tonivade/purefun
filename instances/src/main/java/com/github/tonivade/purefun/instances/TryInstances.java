@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Function1.cons;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -167,7 +167,7 @@ interface TryTraverse extends Traverse<Try_>, TryFoldable {
   TryTraverse INSTANCE = new TryTraverse() {};
 
   @Override
-  default <G extends Witness, T, R> Kind<G, Kind<Try_, R>> traverse(
+  default <G, T, R> Kind<G, Kind<Try_, R>> traverse(
       Applicative<G> applicative, Kind<Try_, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return TryOf.narrowK(value).fold(

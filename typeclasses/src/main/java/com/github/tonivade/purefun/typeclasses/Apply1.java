@@ -8,13 +8,13 @@ import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple1;
 
-public final class Apply1<F extends Witness, A> extends AbstractApply<F, A> {
+public final class Apply1<F, A> extends AbstractApply<F, A> {
 
   Apply1(Applicative<F> applicative, Producer<Kind<F, ? extends A>> value) {
     super(applicative, value);

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun;
 
-public interface Kind<F extends Witness, A> extends Witness {
+public interface Kind<F, A> {
 
   default <R> R fix(Fixer<? super Kind<F, A>, ? extends R> fixer) {
     return fixer.apply(this);
@@ -15,7 +15,7 @@ public interface Kind<F extends Witness, A> extends Witness {
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Witness, A> Kind<F, A> narrowK(Kind<F, ? extends A> kind) {
+  static <F, A> Kind<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Kind<F, A>) kind;
   }
 }

@@ -10,7 +10,7 @@ import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
 import static com.github.tonivade.purefun.transformer.StateTOf.toStateT;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -32,7 +32,7 @@ import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
 import com.github.tonivade.purefun.typeclasses.MonadState;
 
-public class MonadMTL<F extends Witness, S, R, E>
+public class MonadMTL<F, S, R, E>
     implements Monad<EffectS_>, MonadError<EffectS_, E>, MonadState<EffectS_, S>, MonadReader<EffectS_, R> {
 
   private final Monad<F> monad;
@@ -108,11 +108,11 @@ public class MonadMTL<F extends Witness, S, R, E>
     return effectS(effectR(effectE(value)));
   }
 
-  public static final class EffectE_ implements Witness { }
-  public static final class EffectR_ implements Witness { }
-  public static final class EffectS_ implements Witness { }
+  public static final class EffectE_ { }
+  public static final class EffectR_ { }
+  public static final class EffectS_ { }
 
-  public static final class EffectE<F extends Witness, E, A> implements Kind<EffectE_, A> {
+  public static final class EffectE<F, E, A> implements Kind<EffectE_, A> {
 
     private final EitherT<F, E, A> value;
 
@@ -129,12 +129,12 @@ public class MonadMTL<F extends Witness, S, R, E>
     }
 
     @SuppressWarnings("unchecked")
-    public static <F extends Witness, E, A> EffectE<F, E, A> narrowK(Kind<EffectE_, ? extends A> hkt) {
+    public static <F, E, A> EffectE<F, E, A> narrowK(Kind<EffectE_, ? extends A> hkt) {
       return (EffectE<F, E, A>) hkt;
     }
   }
 
-  public static final class EffectR<F extends Witness, R, E, A> implements Kind<EffectR_, A> {
+  public static final class EffectR<F, R, E, A> implements Kind<EffectR_, A> {
 
     private final Kleisli<EffectE_, R, A> value;
 
@@ -151,12 +151,12 @@ public class MonadMTL<F extends Witness, S, R, E>
     }
 
     @SuppressWarnings("unchecked")
-    public static <F extends Witness, R, E, A> EffectR<F, R, E, A> narrowK(Kind<EffectR_, ? extends A> hkt) {
+    public static <F, R, E, A> EffectR<F, R, E, A> narrowK(Kind<EffectR_, ? extends A> hkt) {
       return (EffectR<F, R, E, A>) hkt;
     }
   }
 
-  public static final class EffectS<F extends Witness, S, R, E, A> implements Kind<EffectS_, A> {
+  public static final class EffectS<F, S, R, E, A> implements Kind<EffectS_, A> {
 
     private final StateT<EffectR_, S, A> value;
 
@@ -173,13 +173,13 @@ public class MonadMTL<F extends Witness, S, R, E>
     }
 
     @SuppressWarnings("unchecked")
-    public static <F extends Witness, S, R, E, A> EffectS<F, S, R, E, A> narrowK(Kind<EffectS_, ? extends A> hkt) {
+    public static <F, S, R, E, A> EffectS<F, S, R, E, A> narrowK(Kind<EffectS_, ? extends A> hkt) {
       return (EffectS<F, S, R, E, A>) hkt;
     }
   }
 }
 
-class EffectEMonadError<F extends Witness, E> implements MonadError<EffectE_, E> {
+class EffectEMonadError<F, E> implements MonadError<EffectE_, E> {
 
   private final MonadError<Kind<Kind<EitherT_, F>, E>, E> monad;
 
@@ -213,7 +213,7 @@ class EffectEMonadError<F extends Witness, E> implements MonadError<EffectE_, E>
   }
 }
 
-class EffectRMonad<F extends Witness, R, E> implements Monad<EffectR_> {
+class EffectRMonad<F, R, E> implements Monad<EffectR_> {
 
   private final Monad<Kind<Kind<Kleisli_, EffectE_>, R>> monad;
 
@@ -235,7 +235,7 @@ class EffectRMonad<F extends Witness, R, E> implements Monad<EffectR_> {
   }
 }
 
-class EffectRMonadReader<F extends Witness, R, E> extends EffectRMonad<F, E, R> implements MonadReader<EffectR_, R> {
+class EffectRMonadReader<F, R, E> extends EffectRMonad<F, E, R> implements MonadReader<EffectR_, R> {
 
   private final MonadReader<Kind<Kind<Kleisli_, EffectE_>, R>, R> monad;
 
@@ -250,7 +250,7 @@ class EffectRMonadReader<F extends Witness, R, E> extends EffectRMonad<F, E, R> 
   }
 }
 
-class EffectRMonadError<F extends Witness, R, E> extends EffectRMonad<F, R, E> implements MonadError<EffectR_, E> {
+class EffectRMonadError<F, R, E> extends EffectRMonad<F, R, E> implements MonadError<EffectR_, E> {
 
   private final MonadError<Kind<Kind<Kleisli_, EffectE_>, R>, E> monadError;
 

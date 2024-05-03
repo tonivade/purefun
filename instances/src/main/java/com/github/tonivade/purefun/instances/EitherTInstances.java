@@ -12,7 +12,7 @@ import static com.github.tonivade.purefun.core.Unit.unit;
 import java.time.Duration;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
@@ -32,44 +32,44 @@ import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface EitherTInstances {
 
-  static <F extends Witness, L, R> Eq<Kind<Kind<Kind<EitherT_, F>, L>, R>> eq(Eq<Kind<F, Either<L, R>>> eq) {
+  static <F, L, R> Eq<Kind<Kind<Kind<EitherT_, F>, L>, R>> eq(Eq<Kind<F, Either<L, R>>> eq) {
     return (a, b) -> eq.eqv(EitherTOf.narrowK(a).value(), EitherTOf.narrowK(b).value());
   }
 
-  static <F extends Witness, L> Monad<Kind<Kind<EitherT_, F>, L>> monad(Monad<F> monadF) {
+  static <F, L> Monad<Kind<Kind<EitherT_, F>, L>> monad(Monad<F> monadF) {
     return EitherTMonad.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness, L> MonadError<Kind<Kind<EitherT_, F>, L>, L> monadError(Monad<F> monadF) {
+  static <F, L> MonadError<Kind<Kind<EitherT_, F>, L>, L> monadError(Monad<F> monadF) {
     return EitherTMonadErrorFromMonad.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness, L> MonadError<Kind<Kind<EitherT_, F>, L>, L> monadError(MonadError<F, L> monadErrorF) {
+  static <F, L> MonadError<Kind<Kind<EitherT_, F>, L>, L> monadError(MonadError<F, L> monadErrorF) {
     return EitherTMonadErrorFromMonadError.instance(checkNonNull(monadErrorF));
   }
 
-  static <F extends Witness> MonadThrow<Kind<Kind<EitherT_, F>, Throwable>> monadThrow(Monad<F> monadF) {
+  static <F> MonadThrow<Kind<Kind<EitherT_, F>, Throwable>> monadThrow(Monad<F> monadF) {
     return EitherTMonadThrowFromMonad.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness> MonadThrow<Kind<Kind<EitherT_, F>, Throwable>> monadThrow(MonadThrow<F> monadF) {
+  static <F> MonadThrow<Kind<Kind<EitherT_, F>, Throwable>> monadThrow(MonadThrow<F> monadF) {
     return EitherTMonadThrowFromMonadThrow.instance(checkNonNull(monadF));
   }
 
-  static <F extends Witness> MonadDefer<Kind<Kind<EitherT_, F>, Throwable>> monadDefer(MonadDefer<F> monadDeferF) {
+  static <F> MonadDefer<Kind<Kind<EitherT_, F>, Throwable>> monadDefer(MonadDefer<F> monadDeferF) {
     return EitherTMonadDefer.instance(checkNonNull(monadDeferF));
   }
 
-  static <F extends Witness, A>
+  static <F, A>
          Reference<Kind<Kind<EitherT_, F>, Throwable>, A>
          refFromMonadThrow(MonadDefer<F> monadDeferF, A value) {
     return Reference.of(monadDefer(monadDeferF), value);
   }
 }
 
-interface EitherTMonad<F extends Witness, L> extends Monad<Kind<Kind<EitherT_, F>, L>> {
+interface EitherTMonad<F, L> extends Monad<Kind<Kind<EitherT_, F>, L>> {
 
-  static <F extends Witness, L> EitherTMonad<F, L> instance(Monad<F> monadF) {
+  static <F, L> EitherTMonad<F, L> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -87,10 +87,10 @@ interface EitherTMonad<F extends Witness, L> extends Monad<Kind<Kind<EitherT_, F
   }
 }
 
-interface EitherTMonadErrorFromMonad<F extends Witness, E>
+interface EitherTMonadErrorFromMonad<F, E>
     extends MonadError<Kind<Kind<EitherT_, F>, E>, E>, EitherTMonad<F, E> {
 
-  static <F extends Witness, L> EitherTMonadErrorFromMonad<F, L> instance(Monad<F> monadF) {
+  static <F, L> EitherTMonadErrorFromMonad<F, L> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -110,11 +110,11 @@ interface EitherTMonadErrorFromMonad<F extends Witness, E>
   }
 }
 
-interface EitherTMonadErrorFromMonadError<F extends Witness, E>
+interface EitherTMonadErrorFromMonadError<F, E>
     extends MonadError<Kind<Kind<EitherT_, F>, E>, E>,
             EitherTMonad<F, E> {
 
-  static <F extends Witness, E> EitherTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadErrorF) {
+  static <F, E> EitherTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadErrorF) {
     return () -> monadErrorF;
   }
 
@@ -135,25 +135,25 @@ interface EitherTMonadErrorFromMonadError<F extends Witness, E>
   }
 }
 
-interface EitherTMonadThrowFromMonad<F extends Witness>
+interface EitherTMonadThrowFromMonad<F>
     extends EitherTMonadErrorFromMonad<F, Throwable>,
             MonadThrow<Kind<Kind<EitherT_, F>, Throwable>> {
 
-  static <F extends Witness> EitherTMonadThrowFromMonad<F> instance(Monad<F> monadF) {
+  static <F> EitherTMonadThrowFromMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 }
 
-interface EitherTMonadThrowFromMonadThrow<F extends Witness>
+interface EitherTMonadThrowFromMonadThrow<F>
     extends EitherTMonadErrorFromMonadError<F, Throwable>,
             MonadThrow<Kind<Kind<EitherT_, F>, Throwable>> {
 
-  static <F extends Witness> EitherTMonadThrowFromMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
+  static <F> EitherTMonadThrowFromMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
     return () -> monadThrowF;
   }
 }
 
-interface EitherTDefer<F extends Witness, E> extends Defer<Kind<Kind<EitherT_, F>, E>> {
+interface EitherTDefer<F, E> extends Defer<Kind<Kind<EitherT_, F>, E>> {
 
   MonadDefer<F> monadF();
 
@@ -163,7 +163,7 @@ interface EitherTDefer<F extends Witness, E> extends Defer<Kind<Kind<EitherT_, F
   }
 }
 
-interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT_, F>, E>, E> {
+interface EitherTBracket<F, E> extends Bracket<Kind<Kind<EitherT_, F>, E>, E> {
 
   MonadDefer<F> monadF();
 
@@ -189,7 +189,7 @@ interface EitherTBracket<F extends Witness, E> extends Bracket<Kind<Kind<EitherT
   }
 }
 
-interface EitherTTimer<F extends Witness> extends Timer<Kind<Kind<EitherT_, F>, Throwable>> {
+interface EitherTTimer<F> extends Timer<Kind<Kind<EitherT_, F>, Throwable>> {
 
   MonadDefer<F> monadF();
 
@@ -199,14 +199,14 @@ interface EitherTTimer<F extends Witness> extends Timer<Kind<Kind<EitherT_, F>, 
   }
 }
 
-interface EitherTMonadDefer<F extends Witness>
+interface EitherTMonadDefer<F>
     extends EitherTMonadThrowFromMonadThrow<F>,
             EitherTDefer<F, Throwable>,
             EitherTBracket<F, Throwable>,
             EitherTTimer<F>,
             MonadDefer<Kind<Kind<EitherT_, F>, Throwable>> {
 
-  static <F extends Witness> EitherTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
+  static <F> EitherTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
     return () -> monadDeferF;
   }
 

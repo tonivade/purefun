@@ -8,7 +8,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.transformer.WriterTOf.toWriterT;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple;
@@ -23,23 +23,23 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public interface WriterTInstances {
 
-  static <F extends Witness, L> Monad<Kind<Kind<WriterT_, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> Monad<Kind<Kind<WriterT_, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
     return WriterTMonad.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
-  static <F extends Witness, L> MonadWriter<Kind<Kind<WriterT_, F>, L>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> MonadWriter<Kind<Kind<WriterT_, F>, L>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
     return WriterTMonadWriter.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
-  static <F extends Witness, L, E> MonadError<Kind<Kind<WriterT_, F>, L>, E> monadError(
+  static <F, L, E> MonadError<Kind<Kind<WriterT_, F>, L>, E> monadError(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
     return WriterTMonadError.instance(checkNonNull(monoid), checkNonNull(monadErrorF));
   }
 }
 
-interface WriterTMonad<F extends Witness, L> extends Monad<Kind<Kind<WriterT_, F>, L>> {
+interface WriterTMonad<F, L> extends Monad<Kind<Kind<WriterT_, F>, L>> {
 
-  static <F extends Witness, L> Monad<Kind<Kind<WriterT_, F>, L>> instance(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> Monad<Kind<Kind<WriterT_, F>, L>> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonad<>() {
 
       @Override
@@ -69,10 +69,10 @@ interface WriterTMonad<F extends Witness, L> extends Monad<Kind<Kind<WriterT_, F
   }
 }
 
-interface WriterTMonadWriter<F extends Witness, L>
+interface WriterTMonadWriter<F, L>
     extends MonadWriter<Kind<Kind<WriterT_, F>, L>, L>, WriterTMonad<F, L> {
 
-  static <F extends Witness, L> MonadWriter<Kind<Kind<WriterT_, F>, L>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> MonadWriter<Kind<Kind<WriterT_, F>, L>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonadWriter<>() {
 
       @Override
@@ -109,10 +109,10 @@ interface WriterTMonadWriter<F extends Witness, L>
   }
 }
 
-interface WriterTMonadError<F extends Witness, L, E>
+interface WriterTMonadError<F, L, E>
     extends MonadError<Kind<Kind<WriterT_, F>, L>, E>, WriterTMonad<F, L> {
 
-  static <F extends Witness, L, E> MonadError<Kind<Kind<WriterT_, F>, L>, E> instance(
+  static <F, L, E> MonadError<Kind<Kind<WriterT_, F>, L>, E> instance(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
     return new WriterTMonadError<>() {
 

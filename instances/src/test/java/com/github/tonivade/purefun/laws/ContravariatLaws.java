@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 
@@ -18,18 +18,18 @@ public class ContravariatLaws {
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;
 
-  public static <F extends Witness> void verifyLaws(Contravariant<F> instance, Kind<F, String> value) {
+  public static <F> void verifyLaws(Contravariant<F> instance, Kind<F, String> value) {
     assertAll(
       () -> identityLaw(instance, value),
       () -> compositionLaw(instance, value, toUpperCase, toLowerCase)
     );
   }
 
-  private static <F extends Witness, A> void identityLaw(Contravariant<F> instance, Kind<F, A> value) {
+  private static <F, A> void identityLaw(Contravariant<F> instance, Kind<F, A> value) {
     assertEquals(value, instance.contramap(value, identity()), "identity law");
   }
 
-  private static <F extends Witness, A, B, C> void compositionLaw(Contravariant<F> instance,
+  private static <F, A, B, C> void compositionLaw(Contravariant<F> instance,
                                                                Kind<F, A> value,
                                                                Function1<B, A> f,
                                                                Function1<C, B> g) {

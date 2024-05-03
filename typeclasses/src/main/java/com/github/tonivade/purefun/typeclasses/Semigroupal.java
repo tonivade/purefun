@@ -5,10 +5,10 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Tuple2;
 
-public interface Semigroupal<F extends Witness> {
+public interface Semigroupal<F> {
 
   <A, B> Kind<F, Tuple2<A, B>> product(Kind<F, ? extends A> fa, Kind<F, ? extends B> fb);
 }

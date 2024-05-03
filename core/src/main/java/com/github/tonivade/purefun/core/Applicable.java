@@ -8,9 +8,9 @@ import static com.github.tonivade.purefun.core.Function2.first;
 import static com.github.tonivade.purefun.core.Function2.second;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
 
-public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
+
+public interface Applicable<F, A> extends Mappable<F, A> {
 
   @Override
   <R> Applicable<F, R> map(Function1<? super A, ? extends R> mapper);
@@ -33,16 +33,16 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     return mapN(narrowK(this), narrowK(other)).apply(mapper);
   }
 
-  static <F extends Witness, A, B, R> Applicable<F, R> mapN(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb,
+  static <F, A, B, R> Applicable<F, R> mapN(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb,
       Function2<? super A, ? super B, ? extends R> mapper) {
     return fb.ap(fa.map(mapper.curried()));
   }
 
-  static <F extends Witness, A, B> Map2<F, A, B> mapN(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb) {
+  static <F, A, B> Map2<F, A, B> mapN(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb) {
     return new Map2<>(fa, fb);
   }
 
-  static <F extends Witness, A, B, C, R> Applicable<F, R> mapN(
+  static <F, A, B, C, R> Applicable<F, R> mapN(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,
@@ -50,14 +50,14 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     return fc.ap(mapN(fa, fb, (a, b) -> mapper.curried().apply(a).apply(b)));
   }
 
-  static <F extends Witness, A, B, C> Map3<F, A, B, C> mapN(
+  static <F, A, B, C> Map3<F, A, B, C> mapN(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc) {
     return new Map3<>(fa, fb, fc);
   }
 
-  static <F extends Witness, A, B, C, D, R> Applicable<F, R> mapN(
+  static <F, A, B, C, D, R> Applicable<F, R> mapN(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,
@@ -66,7 +66,7 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     return fd.ap(mapN(fa, fb, fc, (a, b, c) -> mapper.curried().apply(a).apply(b).apply(c)));
   }
 
-  static <F extends Witness, A, B, C, D> Map4<F, A, B, C, D> mapN(
+  static <F, A, B, C, D> Map4<F, A, B, C, D> mapN(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,
@@ -74,7 +74,7 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     return new Map4<>(fa, fb, fc, fd);
   }
 
-  static <F extends Witness, A, B, C, D, E, R> Applicable<F, R> mapN(
+  static <F, A, B, C, D, E, R> Applicable<F, R> mapN(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,
@@ -84,7 +84,7 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     return fe.ap(mapN(fa, fb, fc, fd, (a, b, c, d) -> mapper.curried().apply(a).apply(b).apply(c).apply(d)));
   }
 
-  static <F extends Witness, A, B, C, D, E> Map5<F, A, B, C, D, E> mapN(
+  static <F, A, B, C, D, E> Map5<F, A, B, C, D, E> mapN(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,
@@ -94,18 +94,18 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
   }
 
   @SuppressWarnings("unchecked")
-  static <F extends Witness, A> Applicable<F, A> narrowK(Kind<F, ? extends A> kind) {
+  static <F, A> Applicable<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Applicable<F, A>) kind;
   }
 
-  record Map2<F extends Witness, A, B>(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb) {
+  record Map2<F, A, B>(Applicable<F, ? extends A> fa, Applicable<F, ? extends B> fb) {
 
     public <R> Applicable<F, R> apply(Function2<? super A, ? super B, ? extends R> apply) {
       return mapN(fa, fb, apply);
     }
   }
 
-  record Map3<F extends Witness, A, B, C>(
+  record Map3<F, A, B, C>(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc) {
@@ -115,7 +115,7 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     }
   }
 
-  record Map4<F extends Witness, A, B, C, D>(
+  record Map4<F, A, B, C, D>(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,
@@ -126,7 +126,7 @@ public interface Applicable<F extends Witness, A> extends Mappable<F, A> {
     }
   }
 
-  record Map5<F extends Witness, A, B, C, D, E>(
+  record Map5<F, A, B, C, D, E>(
       Applicable<F, ? extends A> fa,
       Applicable<F, ? extends B> fb,
       Applicable<F, ? extends C> fc,

@@ -15,11 +15,10 @@ public class HigherKindProcessorTest {
   private final JavaFileObject witness = forSourceLines("test.Foo_",
         "package test;",
 
-        "import com.github.tonivade.purefun.Witness;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public final class Foo_ implements Witness {",
+        "public final class Foo_ {",
         "private Foo_() {}",
         "}");
 
@@ -89,11 +88,10 @@ public class HigherKindProcessorTest {
         "}");
 
     JavaFileObject generatedWitness = forSourceLines("Foo_",
-        "import com.github.tonivade.purefun.Witness;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public final class Foo_ implements Witness {",
+        "public final class Foo_ {",
         "private Foo_() {}",
         "}");
     assert_().about(javaSource()).that(file)

@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.type.OptionOf.toOption;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Witness;
+
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -194,7 +194,7 @@ interface OptionTraverse extends Traverse<Option_>, OptionFoldable {
   OptionTraverse INSTANCE = new OptionTraverse() {};
 
   @Override
-  default <G extends Witness, T, R> Kind<G, Kind<Option_, R>> traverse(
+  default <G, T, R> Kind<G, Kind<Option_, R>> traverse(
       Applicative<G> applicative, Kind<Option_, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return value.fix(toOption()).fold(
