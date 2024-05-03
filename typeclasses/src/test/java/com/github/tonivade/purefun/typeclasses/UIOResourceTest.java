@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.effect.UIO_;
+import com.github.tonivade.purefun.effect.UIO;
 
-public class UIOResourceTest extends ResourceTest<UIO_> {
+public class UIOResourceTest extends ResourceTest<UIO<?>> {
 
   public UIOResourceTest() {
-    super(UIO_.class);
+    super(new Instance<UIO<?>>() {});
   }
 }

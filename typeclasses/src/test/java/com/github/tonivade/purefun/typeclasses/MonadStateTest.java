@@ -12,12 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.ImmutableArray;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO_;
 
 public class MonadStateTest {
 
-  private MonadState<IO_, ImmutableArray<String>> monadState =
-      MonadState.from(Instances.<IO_>monadDefer(), ImmutableArray.empty());
+  private MonadState<IO<?>, ImmutableArray<String>> monadState =
+      MonadState.from(Instances.<IO<?>>monadDefer(), ImmutableArray.empty());
 
   @Test
   public void program() {

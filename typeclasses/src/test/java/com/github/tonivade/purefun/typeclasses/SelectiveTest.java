@@ -24,23 +24,20 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.data.Sequence_;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.instances.ValidationInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
-import com.github.tonivade.purefun.type.Validation_;
 
 @ExtendWith(MockitoExtension.class)
 class SelectiveTest {
 
-  private final Selective<IO_> monad = Instances.<IO_>monad();
+  private final Selective<IO<?>> monad = Instances.<IO<?>>monad();
 
   @Test
   void apply() {
-    Selective<Kind<Validation_, Sequence<String>>> selective =
+    Selective<Kind<Validation<?, ?>, Sequence<String>>> selective =
         ValidationInstances.selective(SequenceInstances.semigroup());
 
     var validValue = Validation.<Sequence<String>, Integer>valid(1);
@@ -140,9 +137,9 @@ class SelectiveTest {
 
   @Test
   void allS() {
-    var match = monad.<Sequence_, String>allS(
+    var match = monad.<Sequence<?>, String>allS(
             listOf("a", "b", "c"), a -> monad.pure(a.length() == 1));
-    var notMatch = monad.<Sequence_, String>allS(
+    var notMatch = monad.<Sequence<?>, String>allS(
             listOf("a", "b", "cd"), a -> monad.pure(a.length() == 1));
 
     assertAll(
@@ -153,9 +150,9 @@ class SelectiveTest {
 
   @Test
   void anyS() {
-    var match = monad.<Sequence_, String>anyS(
+    var match = monad.<Sequence<?>, String>anyS(
             listOf("a", "b", "cd"), a -> monad.pure(a.length() > 1));
-    var notMatch = monad.<Sequence_, String>anyS(
+    var notMatch = monad.<Sequence<?>, String>anyS(
             listOf("a", "b", "c"), a -> monad.pure(a.length() > 1));
 
     assertAll(

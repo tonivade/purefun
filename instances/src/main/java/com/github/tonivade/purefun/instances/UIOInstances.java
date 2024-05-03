@@ -18,7 +18,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.UIOOf;
-import com.github.tonivade.purefun.effect.UIO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -37,62 +36,62 @@ import com.github.tonivade.purefun.typeclasses.Runtime;
 
 public interface UIOInstances {
 
-  static Functor<UIO_> functor() {
+  static Functor<UIO<?>> functor() {
     return UIOFunctor.INSTANCE;
   }
 
-  static Applicative<UIO_> applicative() {
+  static Applicative<UIO<?>> applicative() {
     return UIOApplicative.INSTANCE;
   }
 
-  static Monad<UIO_> monad() {
+  static Monad<UIO<?>> monad() {
     return UIOMonad.INSTANCE;
   }
 
-  static MonadError<UIO_, Throwable> monadError() {
+  static MonadError<UIO<?>, Throwable> monadError() {
     return UIOMonadError.INSTANCE;
   }
 
-  static MonadThrow<UIO_> monadThrow() {
+  static MonadThrow<UIO<?>> monadThrow() {
     return UIOMonadThrow.INSTANCE;
   }
 
-  static MonadDefer<UIO_> monadDefer() {
+  static MonadDefer<UIO<?>> monadDefer() {
     return UIOMonadDefer.INSTANCE;
   }
 
-  static Async<UIO_> async() {
+  static Async<UIO<?>> async() {
     return UIOAsync.INSTANCE;
   }
 
-  static Concurrent<UIO_> concurrent() {
+  static Concurrent<UIO<?>> concurrent() {
     return concurrent(Future.DEFAULT_EXECUTOR);
   }
 
-  static Concurrent<UIO_> concurrent(Executor executor) {
+  static Concurrent<UIO<?>> concurrent(Executor executor) {
     return UIOConcurrent.instance(executor);
   }
-  
-  static Runtime<UIO_> runtime() {
+
+  static Runtime<UIO<?>> runtime() {
     return UIORuntime.INSTANCE;
   }
-  
-  static Console<UIO_> console() {
+
+  static Console<UIO<?>> console() {
     return UIOConsole.INSTANCE;
   }
 }
 
-interface UIOFunctor extends Functor<UIO_> {
+interface UIOFunctor extends Functor<UIO<?>> {
 
   UIOFunctor INSTANCE = new UIOFunctor() {};
 
   @Override
-  default <A, B> UIO<B> map(Kind<UIO_, ? extends A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> UIO<B> map(Kind<UIO<?>, ? extends A> value, Function1<? super A, ? extends B> map) {
     return UIOOf.narrowK(value).map(map);
   }
 }
 
-interface UIOPure extends Applicative<UIO_> {
+interface UIOPure extends Applicative<UIO<?>> {
 
   @Override
   default <A> UIO<A> pure(A value) {
@@ -105,24 +104,24 @@ interface UIOApplicative extends UIOPure {
   UIOApplicative INSTANCE = new UIOApplicative() {};
 
   @Override
-  default <A, B> UIO<B> ap(Kind<UIO_, ? extends A> value, 
-      Kind<UIO_, ? extends Function1<? super A, ? extends B>> apply) {
+  default <A, B> UIO<B> ap(Kind<UIO<?>, ? extends A> value,
+      Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
     return value.fix(UIOOf::<A>narrowK).ap(apply.fix(UIOOf::narrowK));
   }
 }
 
-interface UIOMonad extends UIOPure, Monad<UIO_> {
+interface UIOMonad extends UIOPure, Monad<UIO<?>> {
 
   UIOMonad INSTANCE = new UIOMonad() {};
 
   @Override
-  default <A, B> UIO<B> flatMap(Kind<UIO_, ? extends A> value, 
-      Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
+  default <A, B> UIO<B> flatMap(Kind<UIO<?>, ? extends A> value,
+      Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return value.fix(toUIO()).flatMap(map.andThen(UIOOf::narrowK));
   }
 }
 
-interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
+interface UIOMonadError extends UIOMonad, MonadError<UIO<?>, Throwable> {
 
   UIOMonadError INSTANCE = new UIOMonadError() {};
 
@@ -133,8 +132,8 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
 
   @Override
   default <A> UIO<A> handleErrorWith(
-      Kind<UIO_, A> value,
-      Function1<? super Throwable, ? extends Kind<UIO_, ? extends A>> handler) {
+      Kind<UIO<?>, A> value,
+      Function1<? super Throwable, ? extends Kind<UIO<?>, ? extends A>> handler) {
     Function1<? super Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
     Function1<A, UIO<A>> map = UIO::pure;
     UIO<A> uio = UIOOf.narrowK(value);
@@ -142,33 +141,33 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO_, Throwable> {
   }
 }
 
-interface UIOMonadThrow extends UIOMonadError, MonadThrow<UIO_> {
+interface UIOMonadThrow extends UIOMonadError, MonadThrow<UIO<?>> {
 
   UIOMonadThrow INSTANCE = new UIOMonadThrow() {};
 }
 
-interface UIODefer extends Defer<UIO_> {
+interface UIODefer extends Defer<UIO<?>> {
 
   @Override
   default <A> UIO<A>
-          defer(Producer<? extends Kind<UIO_, ? extends A>> defer) {
+          defer(Producer<? extends Kind<UIO<?>, ? extends A>> defer) {
     return UIO.defer(defer::get);
   }
 }
 
-interface UIOBracket extends UIOMonadError, Bracket<UIO_, Throwable> {
+interface UIOBracket extends UIOMonadError, Bracket<UIO<?>, Throwable> {
 
   @Override
   default <A, B> UIO<B>
-          bracket(Kind<UIO_, ? extends A> acquire,
-                  Function1<? super A, ? extends Kind<UIO_, ? extends B>> use,
-                  Function1<? super A, ? extends Kind<UIO_, Unit>> release) {
+          bracket(Kind<UIO<?>, ? extends A> acquire,
+                  Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use,
+                  Function1<? super A, ? extends Kind<UIO<?>, Unit>> release) {
     return UIO.bracket(acquire, use, release);
   }
 }
 
 interface UIOMonadDefer
-    extends MonadDefer<UIO_>, UIODefer, UIOBracket {
+    extends MonadDefer<UIO<?>>, UIODefer, UIOBracket {
 
   UIOMonadDefer INSTANCE = new UIOMonadDefer() {};
 
@@ -178,37 +177,37 @@ interface UIOMonadDefer
   }
 }
 
-interface UIOAsync extends Async<UIO_>, UIOMonadDefer {
+interface UIOAsync extends Async<UIO<?>>, UIOMonadDefer {
 
   UIOAsync INSTANCE = new UIOAsync() {};
-  
+
   @Override
-  default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO_, Unit>> consumer) {
+  default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO<?>, Unit>> consumer) {
     return UIO.cancellable(consumer.andThen(UIOOf::narrowK));
   }
 }
 
-interface UIOConcurrent extends Concurrent<UIO_>, UIOAsync {
-  
+interface UIOConcurrent extends Concurrent<UIO<?>>, UIOAsync {
+
   static UIOConcurrent instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
-  
+
   @Override
-  default <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>> racePair(Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
+  default <A, B> UIO<Either<Tuple2<A, Fiber<UIO<?>, B>>, Tuple2<Fiber<UIO<?>, A>, B>>> racePair(Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
     return UIO.racePair(executor(), fa, fb);
   }
-  
+
   @Override
-  default <A> UIO<Fiber<UIO_, A>> fork(Kind<UIO_, ? extends A> value) {
+  default <A> UIO<Fiber<UIO<?>, A>> fork(Kind<UIO<?>, ? extends A> value) {
     UIO<A> fix = value.fix(UIOOf::narrowK);
     return fix.fork();
   }
 }
 
-final class UIOConsole implements Console<UIO_> {
+final class UIOConsole implements Console<UIO<?>> {
 
   public static final UIOConsole INSTANCE = new UIOConsole();
 
@@ -225,27 +224,27 @@ final class UIOConsole implements Console<UIO_> {
   }
 }
 
-interface UIORuntime extends Runtime<UIO_> {
-  
+interface UIORuntime extends Runtime<UIO<?>> {
+
   UIORuntime INSTANCE = new UIORuntime() {};
 
   @Override
-  default <T> T run(Kind<UIO_, T> value) {
+  default <T> T run(Kind<UIO<?>, T> value) {
     return value.fix(toUIO()).unsafeRunSync();
   }
-  
+
   @Override
-  default <T> Sequence<T> run(Sequence<Kind<UIO_, T>> values) {
+  default <T> Sequence<T> run(Sequence<Kind<UIO<?>, T>> values) {
     return run(UIO.traverse(values.map(UIOOf::<T>narrowK)));
   }
 
   @Override
-  default <T> Future<T> parRun(Kind<UIO_, T> value, Executor executor) {
+  default <T> Future<T> parRun(Kind<UIO<?>, T> value, Executor executor) {
     return value.fix(toUIO()).runAsync();
   }
-  
+
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<UIO_, T>> values, Executor executor) {
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<UIO<?>, T>> values, Executor executor) {
     return parRun(UIO.traverse(values.map(UIOOf::<T>narrowK)), executor);
   }
 }

@@ -51,7 +51,7 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 @ExtendWith(MockitoExtension.class)
 public class IOTest {
 
-  private final Console<IO_> console = IOInstances.console();
+  private final Console<IO<?>> console = IOInstances.console();
 
   @Test
   public void pure() {
@@ -312,7 +312,7 @@ public class IOTest {
 
   @Test
   public void fork() {
-    IO<String> result = Instances.<IO_>monad().use()
+    IO<String> result = Instances.<IO<?>>monad().use()
       .then(IO.pure("hola"))
       .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
       .flatMap(Fiber::join).fix(toIO());
@@ -406,7 +406,7 @@ public class IOTest {
   }
 
   private IO<ImmutableList<String>> currentThreadIO() {
-    Reference<IO_, ImmutableList<String>> ref = IOInstances.monadDefer().ref(ImmutableList.empty());
+    Reference<IO<?>, ImmutableList<String>> ref = IOInstances.monadDefer().ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
         ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix(toIO());
 

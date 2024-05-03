@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT_, F>, L>, R> {
+public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindable<Kind<Kind<EitherT<?, ?, ?>, F>, L>, R> {
 
   Monad<F> monad();
   Kind<F, Either<L, R>> value();
@@ -33,7 +33,7 @@ public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindabl
   }
 
   @Override
-  default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends Kind<Kind<Kind<EitherT_, F>, L>, ? extends V>> map) {
+  default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends Kind<Kind<Kind<EitherT<?, ?, ?>, F>, L>, ? extends V>> map) {
     return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>narrowK).apply(v).value()));
   }
 

@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Pattern2;
 import com.github.tonivade.purefun.free.EitherK;
 import com.github.tonivade.purefun.free.EitherKOf;
-import com.github.tonivade.purefun.free.EitherK_;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -20,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.InjectK;
 
 public interface EitherKInstances {
 
-  static <F, G, T> Eq<Kind<Kind<Kind<EitherK_, F>, G>, T>> eq(
+  static <F, G, T> Eq<Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, T>> eq(
       Eq<Kind<F, T>> leftEq, Eq<Kind<G, T>> rightEq) {
     return (a, b) -> Pattern2.<EitherK<F, G, T>, EitherK<F, G, T>, Boolean>build()
         .when((x, y) -> x.isLeft() && y.isLeft())
@@ -32,33 +31,33 @@ public interface EitherKInstances {
         .apply(EitherKOf.narrowK(a), EitherKOf.narrowK(b));
   }
 
-  static <F, G> Functor<Kind<Kind<EitherK_, F>, G>> functor(
+  static <F, G> Functor<Kind<Kind<EitherK<?, ?, ?>, F>, G>> functor(
       Functor<F> functorF, Functor<G> functorG) {
     return EitherKFunctor.instance(checkNonNull(functorF), checkNonNull(functorG));
   }
 
-  static <F, G> Contravariant<Kind<Kind<EitherK_, F>, G>> contravariant(
+  static <F, G> Contravariant<Kind<Kind<EitherK<?, ?, ?>, F>, G>> contravariant(
       Contravariant<F> contravariantF, Contravariant<G> contravariantG) {
     return EitherKContravariant.instance(checkNonNull(contravariantF), checkNonNull(contravariantG));
   }
 
-  static <F, G> Comonad<Kind<Kind<EitherK_, F>, G>> comonad(
+  static <F, G> Comonad<Kind<Kind<EitherK<?, ?, ?>, F>, G>> comonad(
       Comonad<F> comonadF, Comonad<G> comonadG) {
     return EitherKComonad.instance(checkNonNull(comonadF), checkNonNull(comonadG));
   }
 
   @SuppressWarnings("unchecked")
-  static <F, G> InjectK<F, Kind<Kind<EitherK_, F>, G>> injectEitherKLeft() {
+  static <F, G> InjectK<F, Kind<Kind<EitherK<?, ?, ?>, F>, G>> injectEitherKLeft() {
     return EitherKInjectKLeft.INSTANCE;
   }
 
   static <F, R, G>
-      InjectK<F, Kind<Kind<EitherK_, G>, R>> injectEitherKRight(InjectK<F, R> inject) {
+      InjectK<F, Kind<Kind<EitherK<?, ?, ?>, G>, R>> injectEitherKRight(InjectK<F, R> inject) {
     return EitherKInjectKRight.instance(checkNonNull(inject));
   }
 }
 
-interface EitherKFunctor<F, G> extends Functor<Kind<Kind<EitherK_, F>, G>> {
+interface EitherKFunctor<F, G> extends Functor<Kind<Kind<EitherK<?, ?, ?>, F>, G>> {
 
   static <F, G> EitherKFunctor<F, G> instance(Functor<F> functorF, Functor<G> functorG) {
     return new EitherKFunctor<>() {
@@ -74,13 +73,13 @@ interface EitherKFunctor<F, G> extends Functor<Kind<Kind<EitherK_, F>, G>> {
 
   @Override
   default <T, R> EitherK<F, G, R> map(
-      Kind<Kind<Kind<EitherK_, F>, G>, ? extends T> value, Function1<? super T, ? extends R> map) {
+      Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends T> value, Function1<? super T, ? extends R> map) {
     return value.fix(EitherKOf::narrowK).map(f(), g(), map);
   }
 }
 
 interface EitherKContravariant<F, G>
-    extends Contravariant<Kind<Kind<EitherK_, F>, G>> {
+    extends Contravariant<Kind<Kind<EitherK<?, ?, ?>, F>, G>> {
 
   static <F, G> EitherKContravariant<F, G> instance(
       Contravariant<F> contravariantF, Contravariant<G> contravariantG) {
@@ -97,13 +96,13 @@ interface EitherKContravariant<F, G>
 
   @Override
   default <A, B> EitherK<F, G, B> contramap(
-      Kind<Kind<Kind<EitherK_, F>, G>, ? extends A> value, Function1<? super B, ? extends A> map) {
+      Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A> value, Function1<? super B, ? extends A> map) {
     return value.fix(EitherKOf::<F, G, A>narrowK).contramap(f(), g(), map);
   }
 }
 
 interface EitherKComonad<F, G>
-    extends Comonad<Kind<Kind<EitherK_, F>, G>>, EitherKFunctor<F, G> {
+    extends Comonad<Kind<Kind<EitherK<?, ?, ?>, F>, G>>, EitherKFunctor<F, G> {
 
   static <F, G> EitherKComonad<F, G> instance(Comonad<F> comonadF, Comonad<G> comonadG) {
     return new EitherKComonad<>() {
@@ -121,19 +120,19 @@ interface EitherKComonad<F, G>
 
   @Override
   default <A, B> EitherK<F, G, B> coflatMap(
-      Kind<Kind<Kind<EitherK_, F>, G>, ? extends A> value,
-      Function1<? super Kind<Kind<Kind<EitherK_, F>, G>, ? extends A>, ? extends B> map) {
+      Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A> value,
+      Function1<? super Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A>, ? extends B> map) {
     return value.fix(EitherKOf::narrowK).coflatMap(f(), g(), map);
   }
 
   @Override
-  default <A> A extract(Kind<Kind<Kind<EitherK_, F>, G>, ? extends A> value) {
+  default <A> A extract(Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A> value) {
     return value.fix(EitherKOf::narrowK).extract(f(), g());
   }
 }
 
 interface EitherKInjectKRight<F, G, R>
-    extends InjectK<F, Kind<Kind<EitherK_, G>, R>> {
+    extends InjectK<F, Kind<Kind<EitherK<?, ?, ?>, G>, R>> {
 
   static <F, X, R> EitherKInjectKRight<F, X, R> instance(InjectK<F, R> injectK) {
     return () -> injectK;
@@ -147,7 +146,7 @@ interface EitherKInjectKRight<F, G, R>
   }
 }
 
-interface EitherKInjectKLeft<F, G> extends InjectK<F, Kind<Kind<EitherK_, F>, G>> {
+interface EitherKInjectKLeft<F, G> extends InjectK<F, Kind<Kind<EitherK<?, ?, ?>, F>, G>> {
 
   @SuppressWarnings("rawtypes")
   EitherKInjectKLeft INSTANCE = new EitherKInjectKLeft() {};

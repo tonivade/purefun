@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.core.Function1;
  * @param <T> the wrapped value
  */
 @HigherKind
-public record Id<T>(T value) implements IdOf<T>, Bindable<Id_, T>, Applicable<Id_, T>, Serializable {
+public record Id<T>(T value) implements IdOf<T>, Bindable<Id<?>, T>, Applicable<Id<?>, T>, Serializable {
 
   public Id {
     checkNonNull(value);
@@ -34,12 +34,12 @@ public record Id<T>(T value) implements IdOf<T>, Bindable<Id_, T>, Applicable<Id
   }
 
   @Override
-  public <R> Id<R> ap(Kind<Id_, ? extends Function1<? super T, ? extends R>> apply) {
+  public <R> Id<R> ap(Kind<Id<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return apply.fix(toId()).flatMap(this::map);
   }
 
   @Override
-  public <R> Id<R> flatMap(Function1<? super T, ? extends Kind<Id_, ? extends R>> map) {
+  public <R> Id<R> flatMap(Function1<? super T, ? extends Kind<Id<?>, ? extends R>> map) {
     return map.andThen(IdOf::<R>narrowK).apply(value);
   }
 

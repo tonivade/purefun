@@ -61,7 +61,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
+  default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
     return ImmutableArray.from(stream().flatMap(mapper.andThen(SequenceOf::<R>narrowK).andThen(Sequence::stream)::apply));
   }
 

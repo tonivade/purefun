@@ -11,7 +11,6 @@ import java.time.Duration;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Par;
 import com.github.tonivade.purefun.concurrent.ParOf;
-import com.github.tonivade.purefun.concurrent.Par_;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
@@ -28,46 +27,46 @@ import com.github.tonivade.purefun.typeclasses.Resource;
 
 public interface ParInstances {
 
-  static Functor<Par_> functor() {
+  static Functor<Par<?>> functor() {
     return ParFunctor.INSTANCE;
   }
 
-  static Applicative<Par_> applicative() {
+  static Applicative<Par<?>> applicative() {
     return PureApplicative.INSTANCE;
   }
 
-  static Monad<Par_> monad() {
+  static Monad<Par<?>> monad() {
     return ParMonad.INSTANCE;
   }
 
-  static MonadDefer<Par_> monadDefer() {
+  static MonadDefer<Par<?>> monadDefer() {
     return ParMonadDefer.INSTANCE;
   }
 
-  static <A> Reference<Par_, A> reference(A value) {
+  static <A> Reference<Par<?>, A> reference(A value) {
     return Reference.of(monadDefer(), value);
   }
 
-  static <A extends AutoCloseable> Resource<Par_, A> resource(Par<A> acquire) {
+  static <A extends AutoCloseable> Resource<Par<?>, A> resource(Par<A> acquire) {
     return resource(acquire, AutoCloseable::close);
   }
 
-  static <A> Resource<Par_, A> resource(Par<A> acquire, Consumer1<A> release) {
+  static <A> Resource<Par<?>, A> resource(Par<A> acquire, Consumer1<A> release) {
     return Resource.from(monadDefer(), acquire, release);
   }
 }
 
-interface ParFunctor extends Functor<Par_> {
+interface ParFunctor extends Functor<Par<?>> {
 
   ParFunctor INSTANCE = new ParFunctor() {};
 
   @Override
-  default <T, R> Par<R> map(Kind<Par_, ? extends T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Par<R> map(Kind<Par<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return value.fix(ParOf::narrowK).map(mapper);
   }
 }
 
-interface ParPure extends Applicative<Par_> {
+interface ParPure extends Applicative<Par<?>> {
   @Override
   default <T> Par<T> pure(T value) {
     return Par.success(value);
@@ -79,18 +78,18 @@ interface PureApplicative extends ParPure {
   PureApplicative INSTANCE = new PureApplicative() {};
 
   @Override
-  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value,
-      Kind<Par_, ? extends Function1<? super T, ? extends R>> apply) {
+  default <T, R> Par<R> ap(Kind<Par<?>, ? extends T> value,
+      Kind<Par<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return value.fix(ParOf::<T>narrowK).ap(apply.fix(ParOf::narrowK));
   }
 }
 
-interface ParMonad extends ParPure, Monad<Par_> {
+interface ParMonad extends ParPure, Monad<Par<?>> {
 
   ParMonad INSTANCE = new ParMonad() {};
 
   @Override
-  default <T, R> Par<R> flatMap(Kind<Par_, ? extends T> value, Function1<? super T, ? extends Kind<Par_, ? extends R>> map) {
+  default <T, R> Par<R> flatMap(Kind<Par<?>, ? extends T> value, Function1<? super T, ? extends Kind<Par<?>, ? extends R>> map) {
     return value.fix(ParOf::narrowK).flatMap(x -> map.apply(x).fix(ParOf::narrowK));
   }
 
@@ -99,13 +98,13 @@ interface ParMonad extends ParPure, Monad<Par_> {
    * applicative version of the ap method
    */
   @Override
-  default <T, R> Par<R> ap(Kind<Par_, ? extends T> value,
-      Kind<Par_, ? extends Function1<? super T, ? extends R>> apply) {
+  default <T, R> Par<R> ap(Kind<Par<?>, ? extends T> value,
+      Kind<Par<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return ParInstances.applicative().ap(value, apply).fix(ParOf::narrowK);
   }
 }
 
-interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
+interface ParMonadThrow extends ParMonad, MonadThrow<Par<?>> {
 
   ParMonadThrow INSTANCE = new ParMonadThrow() {};
 
@@ -115,32 +114,32 @@ interface ParMonadThrow extends ParMonad, MonadThrow<Par_> {
   }
 
   @Override
-  default <A> Par<A> handleErrorWith(Kind<Par_, A> value,
-                                     Function1<? super Throwable, ? extends Kind<Par_, ? extends A>> handler) {
+  default <A> Par<A> handleErrorWith(Kind<Par<?>, A> value,
+                                     Function1<? super Throwable, ? extends Kind<Par<?>, ? extends A>> handler) {
     return ParOf.narrowK(value).fold(handler.andThen(ParOf::narrowK), Par::success).flatMap(identity());
   }
 }
 
-interface ParDefer extends Defer<Par_> {
+interface ParDefer extends Defer<Par<?>> {
 
   @Override
-  default <A> Par<A> defer(Producer<? extends Kind<Par_, ? extends A>> defer) {
+  default <A> Par<A> defer(Producer<? extends Kind<Par<?>, ? extends A>> defer) {
     return Par.defer(defer.map(ParOf::<A>narrowK));
   }
 }
 
-interface ParBracket extends Bracket<Par_, Throwable> {
+interface ParBracket extends Bracket<Par<?>, Throwable> {
 
   @Override
   default <A, B> Par<B> bracket(
-      Kind<Par_, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<Par_, ? extends B>> use,
-      Function1<? super A, ? extends Kind<Par_, Unit>> release) {
+      Kind<Par<?>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<Par<?>, ? extends B>> use,
+      Function1<? super A, ? extends Kind<Par<?>, Unit>> release) {
     return Par.bracket(ParOf.narrowK(acquire), use.andThen(ParOf::narrowK), release::apply);
   }
 }
 
-interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par_> {
+interface ParMonadDefer extends ParMonadThrow, ParDefer, ParBracket, MonadDefer<Par<?>> {
 
   ParMonadDefer INSTANCE = new ParMonadDefer() {};
 

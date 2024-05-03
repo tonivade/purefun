@@ -27,67 +27,67 @@ import com.github.tonivade.purefun.core.Tuple2;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class ResourceTest<F> {
-  
-  private final Class<F> type;
-  
-  protected ResourceTest(Class<F> type) {
-    this.type = type;
+
+  private final Instance<F> instance;
+
+  protected ResourceTest(Instance<F> instance) {
+    this.instance = instance;
   }
-  
+
   protected <T extends AutoCloseable> Resource<F, T> makeResource(Kind<F, T> acquire) {
     return makeResource(acquire, AutoCloseable::close);
   }
 
   protected <T> Resource<F, T> makeResource(Kind<F, T> acquire, Consumer1<T> release) {
-    return Instances.monadDefer(type).resource(acquire, release);
+    return instance.monadDefer().resource(acquire, release);
   }
-  
+
   protected <T> T run(Kind<F, T> result) {
-    return Instances.runtime(type).run(result);
+    return instance.runtime().run(result);
   }
-  
+
   protected <T> Kind<F, T> pure(T value) {
-    return Instances.monadDefer(type).pure(value);
+    return instance.monadDefer().pure(value);
   }
 
   protected <T> Kind<F, T> later(Producer<T> value) {
-    return Instances.monadDefer(type).later(value);
+    return instance.monadDefer().later(value);
   }
 
   @Test
   public void use(@Mock Consumer1<String> release) {
     Resource<F, String> resource = makeResource(pure("hola"), release);
-    
+
     Kind<F, String> use = resource.use(string -> pure(string.toUpperCase()));
-    
+
     assertEquals("HOLA", run(use));
     verify(release).accept("hola");
   }
-  
+
   @Test
   public void map(@Mock Consumer1<String> release) {
     Resource<F, String> resource = makeResource(pure("hola"), release).map(String::toUpperCase);
-    
+
     Kind<F, Integer> use = resource.use(string -> pure(string.length()));
-    
+
     assertEquals(4, run(use));
     verify(release).accept("hola");
   }
-  
+
   @Test
-  public void flatMap(@Mock DataSource dataSource, @Mock Connection connection, 
+  public void flatMap(@Mock DataSource dataSource, @Mock Connection connection,
       @Mock PreparedStatement statement, @Mock ResultSet resultSet) throws SQLException {
     when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement("sql")).thenReturn(statement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.getString(0)).thenReturn("result");
-    
+
     Resource<F, ResultSet> flatMap = makeResource(later(dataSource::getConnection))
       .flatMap(conn -> makeResource(later(() -> conn.prepareStatement("sql"))))
       .flatMap(stmt -> makeResource(later(() -> stmt.executeQuery())));
-    
+
     Kind<F, String> use = flatMap.use(rs -> later(() -> rs.getString(0)));
-    
+
     assertEquals("result", run(use));
     InOrder inOrder = inOrder(resultSet, statement, connection);
     inOrder.verify(resultSet).close();
@@ -99,9 +99,9 @@ public abstract class ResourceTest<F> {
   public void combine(@Mock Consumer1<String> release1, @Mock Consumer1<Integer> release2) {
     Resource<F, String> res1 = makeResource(pure("hola"), release1);
     Resource<F, Integer> res2 = makeResource(pure(5), release2);
-    
+
     Resource<F, Tuple2<String, Integer>> combine = res1.combine(res2);
-    
+
     Kind<F, String> use = combine.use(tuple -> later(tuple::toString));
 
     assertEquals("Tuple2(hola, 5)", run(use));

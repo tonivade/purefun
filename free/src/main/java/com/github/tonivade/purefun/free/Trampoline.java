@@ -18,7 +18,7 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline_, T> {
+public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline<?>, T> {
 
   @Override
   default <R> Trampoline<R> map(Function1<? super T, ? extends R> map) {
@@ -28,7 +28,7 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   }
 
   @Override
-  default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline_, ? extends R>> map) {
+  default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> map) {
     return resume().fold(
         next -> more(() -> next.flatMap(map)),
         map.andThen(TrampolineOf::narrowK));

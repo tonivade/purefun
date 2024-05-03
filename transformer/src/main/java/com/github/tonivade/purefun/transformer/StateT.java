@@ -21,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface StateT<F, S, A> extends StateTOf<F, S, A>, Bindable<Kind<Kind<StateT_, F>, S>, A> {
+public non-sealed interface StateT<F, S, A> extends StateTOf<F, S, A>, Bindable<Kind<Kind<StateT<?, ?, ?>, F>, S>, A> {
 
   Monad<F> monad();
   Kind<F, Tuple2<S, A>> run(S state);
@@ -36,7 +36,7 @@ public non-sealed interface StateT<F, S, A> extends StateTOf<F, S, A>, Bindable<
   }
 
   @Override
-  default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<StateT_, F>, S>, ? extends R>> map) {
+  default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends R>> map) {
     return state(monad(), state -> {
       Kind<F, Tuple2<S, A>> newState = run(state);
       return monad().flatMap(newState, state2 -> map.andThen(StateTOf::<F, S, R>narrowK).apply(state2.get2()).run(state2.get1()));

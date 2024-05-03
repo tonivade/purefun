@@ -18,7 +18,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
-import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -38,70 +37,70 @@ import com.github.tonivade.purefun.typeclasses.Timer;
 
 public interface IOInstances {
 
-  static Functor<IO_> functor() {
+  static Functor<IO<?>> functor() {
     return IOFunctor.INSTANCE;
   }
 
-  static Applicative<IO_> applicative() {
+  static Applicative<IO<?>> applicative() {
     return applicative(Future.DEFAULT_EXECUTOR);
   }
 
-  static Applicative<IO_> applicative(Executor executor) {
+  static Applicative<IO<?>> applicative(Executor executor) {
     return IOApplicative.instance(executor);
   }
 
-  static Monad<IO_> monad() {
+  static Monad<IO<?>> monad() {
     return IOMonad.INSTANCE;
   }
 
-  static MonadError<IO_, Throwable> monadError() {
+  static MonadError<IO<?>, Throwable> monadError() {
     return IOMonadError.INSTANCE;
   }
 
-  static MonadThrow<IO_> monadThrow() {
+  static MonadThrow<IO<?>> monadThrow() {
     return IOMonadThrow.INSTANCE;
   }
 
-  static Timer<IO_> timer() {
+  static Timer<IO<?>> timer() {
     return IOMonadDefer.INSTANCE;
   }
 
-  static MonadDefer<IO_> monadDefer() {
+  static MonadDefer<IO<?>> monadDefer() {
     return IOMonadDefer.INSTANCE;
   }
 
-  static Async<IO_> async() {
+  static Async<IO<?>> async() {
     return IOAsync.INSTANCE;
   }
 
-  static Concurrent<IO_> concurrent() {
+  static Concurrent<IO<?>> concurrent() {
     return concurrent(Future.DEFAULT_EXECUTOR);
   }
 
-  static Concurrent<IO_> concurrent(Executor executor) {
+  static Concurrent<IO<?>> concurrent(Executor executor) {
     return IOConcurrent.instance(executor);
   }
 
-  static Console<IO_> console() {
+  static Console<IO<?>> console() {
     return IOConsole.INSTANCE;
   }
-  
-  static Runtime<IO_> runtime() {
+
+  static Runtime<IO<?>> runtime() {
     return IORuntime.INSTANCE;
   }
 }
 
-interface IOFunctor extends Functor<IO_> {
+interface IOFunctor extends Functor<IO<?>> {
 
   IOFunctor INSTANCE = new IOFunctor() {};
 
   @Override
-  default <T, R> Kind<IO_, R> map(Kind<IO_, ? extends T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Kind<IO<?>, R> map(Kind<IO<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
     return value.fix(toIO()).map(map);
   }
 }
 
-interface IOPure extends Applicative<IO_> {
+interface IOPure extends Applicative<IO<?>> {
 
   @Override
   default <T> IO<T> pure(T value) {
@@ -109,8 +108,8 @@ interface IOPure extends Applicative<IO_> {
   }
 }
 
-interface IOApplicative extends IOPure, Applicative<IO_> {
-  
+interface IOApplicative extends IOPure, Applicative<IO<?>> {
+
   static IOApplicative instance(Executor executor) {
     return () -> executor;
   }
@@ -118,25 +117,25 @@ interface IOApplicative extends IOPure, Applicative<IO_> {
   Executor executor();
 
   @Override
-  default <T, R> IO<R> ap(Kind<IO_, ? extends T> value, 
-      Kind<IO_, ? extends Function1<? super T, ? extends R>> apply) {
+  default <T, R> IO<R> ap(Kind<IO<?>, ? extends T> value,
+      Kind<IO<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return IO.parMap2(executor(), value.fix(toIO()), apply.fix(toIO()), (v, a) -> a.apply(v));
   }
 }
 
-interface IOMonad extends Monad<IO_>, IOPure {
+interface IOMonad extends Monad<IO<?>>, IOPure {
 
   IOMonad INSTANCE = new IOMonad() {};
 
   @Override
   default <T, R> IO<R> flatMap(
-      Kind<IO_, ? extends T> value, 
-      Function1<? super T, ? extends Kind<IO_, ? extends R>> map) {
+      Kind<IO<?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<IO<?>, ? extends R>> map) {
     return value.fix(toIO()).flatMap(map.andThen(IOOf::narrowK));
   }
 }
 
-interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
+interface IOMonadError extends MonadError<IO<?>, Throwable>, IOMonad {
 
   IOMonadError INSTANCE = new IOMonadError() {};
 
@@ -147,37 +146,37 @@ interface IOMonadError extends MonadError<IO_, Throwable>, IOMonad {
 
   @Override
   default <A> IO<A> handleErrorWith(
-      Kind<IO_, A> value, 
-      Function1<? super Throwable, ? extends Kind<IO_, ? extends A>> handler) {
+      Kind<IO<?>, A> value,
+      Function1<? super Throwable, ? extends Kind<IO<?>, ? extends A>> handler) {
     return IOOf.narrowK(value).redeemWith(handler.andThen(IOOf::narrowK), IO::pure);
   }
 }
 
-interface IOMonadThrow extends MonadThrow<IO_>, IOMonadError {
+interface IOMonadThrow extends MonadThrow<IO<?>>, IOMonadError {
 
   IOMonadThrow INSTANCE = new IOMonadThrow() {};
 }
 
-interface IODefer extends Defer<IO_> {
+interface IODefer extends Defer<IO<?>> {
 
   @Override
-  default <A> IO<A> defer(Producer<? extends Kind<IO_, ? extends A>> defer) {
+  default <A> IO<A> defer(Producer<? extends Kind<IO<?>, ? extends A>> defer) {
     return IO.suspend(defer.map(IOOf::narrowK));
   }
 }
 
-interface IOBracket extends IOMonadError, Bracket<IO_, Throwable> {
+interface IOBracket extends IOMonadError, Bracket<IO<?>, Throwable> {
 
   @Override
   default <A, B> IO<B> bracket(
-      Kind<IO_, ? extends A> acquire, 
-      Function1<? super A, ? extends Kind<IO_, ? extends B>> use, 
-      Function1<? super A, ? extends Kind<IO_, Unit>> release) {
+      Kind<IO<?>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<IO<?>, ? extends B>> use,
+      Function1<? super A, ? extends Kind<IO<?>, Unit>> release) {
     return IO.bracket(acquire, use, release);
   }
 }
 
-interface IOMonadDefer extends MonadDefer<IO_>, IODefer, IOBracket {
+interface IOMonadDefer extends MonadDefer<IO<?>>, IODefer, IOBracket {
 
   IOMonadDefer INSTANCE = new IOMonadDefer() {};
 
@@ -187,37 +186,37 @@ interface IOMonadDefer extends MonadDefer<IO_>, IODefer, IOBracket {
   }
 }
 
-interface IOAsync extends Async<IO_>, IOMonadDefer {
+interface IOAsync extends Async<IO<?>>, IOMonadDefer {
 
   IOAsync INSTANCE = new IOAsync() {};
-  
+
   @Override
-  default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO_, Unit>> consumer) {
+  default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO<?>, Unit>> consumer) {
     return IO.cancellable(consumer.andThen(IOOf::narrowK));
   }
 }
 
-interface IOConcurrent extends Concurrent<IO_>, IOAsync {
-  
+interface IOConcurrent extends Concurrent<IO<?>>, IOAsync {
+
   static IOConcurrent instance(Executor executor) {
     return () -> executor;
   }
-  
+
   Executor executor();
-  
+
   @Override
-  default <A, B> IO<Either<Tuple2<A, Fiber<IO_, B>>, Tuple2<Fiber<IO_, A>, B>>> racePair(Kind<IO_, ? extends A> fa, Kind<IO_, ? extends B> fb) {
+  default <A, B> IO<Either<Tuple2<A, Fiber<IO<?>, B>>, Tuple2<Fiber<IO<?>, A>, B>>> racePair(Kind<IO<?>, ? extends A> fa, Kind<IO<?>, ? extends B> fb) {
     return IO.racePair(executor(), fa, fb);
   }
-  
+
   @Override
-  default <A> IO<Fiber<IO_, A>> fork(Kind<IO_, ? extends A> value) {
+  default <A> IO<Fiber<IO<?>, A>> fork(Kind<IO<?>, ? extends A> value) {
     IO<A> fix = value.fix(IOOf::narrowK);
     return fix.fork();
   }
 }
 
-final class IOConsole implements Console<IO_> {
+final class IOConsole implements Console<IO<?>> {
 
   public static final IOConsole INSTANCE = new IOConsole();
 
@@ -234,27 +233,27 @@ final class IOConsole implements Console<IO_> {
   }
 }
 
-interface IORuntime extends Runtime<IO_> {
-  
+interface IORuntime extends Runtime<IO<?>> {
+
   IORuntime INSTANCE = new IORuntime() {};
 
   @Override
-  default <T> T run(Kind<IO_, T> value) {
+  default <T> T run(Kind<IO<?>, T> value) {
     return value.fix(toIO()).unsafeRunSync();
   }
-  
+
   @Override
-  default <T> Sequence<T> run(Sequence<Kind<IO_, T>> values) {
+  default <T> Sequence<T> run(Sequence<Kind<IO<?>, T>> values) {
     return run(IO.traverse(values.map(IOOf::<T>narrowK)));
   }
 
   @Override
-  default <T> Future<T> parRun(Kind<IO_, T> value, Executor executor) {
+  default <T> Future<T> parRun(Kind<IO<?>, T> value, Executor executor) {
     return value.fix(toIO()).runAsync(executor);
   }
-  
+
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<IO_, T>> values, Executor executor) {
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<IO<?>, T>> values, Executor executor) {
     return parRun(IO.traverse(values.map(IOOf::<T>narrowK)), executor);
   }
 }

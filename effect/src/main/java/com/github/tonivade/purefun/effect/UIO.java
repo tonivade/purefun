@@ -37,7 +37,7 @@ import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 @HigherKind
-public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
+public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
 
   private static final UIO<Unit> UNIT = new UIO<>(PureIO.unit());
 
@@ -101,7 +101,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   @Override
-  public <B> UIO<B> flatMap(Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
+  public <B> UIO<B> flatMap(Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return new UIO<>(instance.flatMap(x -> {
       UIO<? extends B> apply = map.andThen(UIOOf::narrowK).apply(x);
       return apply.instance;
@@ -109,12 +109,12 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   @Override
-  public <B> UIO<B> andThen(Kind<UIO_, ? extends B> next) {
+  public <B> UIO<B> andThen(Kind<UIO<?>, ? extends B> next) {
     return new UIO<>(instance.andThen(next.fix(UIOOf.toUIO()).instance));
   }
 
   @Override
-  public <B> UIO<B> ap(Kind<UIO_, ? extends Function1<? super A, ? extends B>> apply) {
+  public <B> UIO<B> ap(Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
     return new UIO<>(instance.ap(apply.fix(UIOOf.toUIO()).instance));
   }
 
@@ -138,38 +138,38 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
   }
 
   public <B> UIO<B> redeemWith(
-      Function1<? super Throwable, ? extends Kind<UIO_, ? extends B>> mapError,
-      Function1<? super A, ? extends Kind<UIO_, ? extends B>> map) {
+      Function1<? super Throwable, ? extends Kind<UIO<?>, ? extends B>> mapError,
+      Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return new UIO<>(PureIO.redeem(instance).foldM(
         error -> mapError.andThen(UIOOf::narrowK).apply(error).instance,
         value -> map.andThen(UIOOf::narrowK).apply(value).instance));
   }
 
   @Override
-  public <B> UIO<Tuple2<A, B>> zip(Kind<UIO_, ? extends B> other) {
+  public <B> UIO<Tuple2<A, B>> zip(Kind<UIO<?>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
 
   @Override
-  public <B> UIO<A> zipLeft(Kind<UIO_, ? extends B> other) {
+  public <B> UIO<A> zipLeft(Kind<UIO<?>, ? extends B> other) {
     return zipWith(other, first());
   }
 
   @Override
-  public <B> UIO<B> zipRight(Kind<UIO_, ? extends B> other) {
+  public <B> UIO<B> zipRight(Kind<UIO<?>, ? extends B> other) {
     return zipWith(other, second());
   }
 
   @Override
-  public <B, C> UIO<C> zipWith(Kind<UIO_, ? extends B> other,
+  public <B, C> UIO<C> zipWith(Kind<UIO<?>, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(UIOOf.toUIO()), mapper);
   }
 
-  public UIO<Fiber<UIO_, A>> fork() {
+  public UIO<Fiber<UIO<?>, A>> fork() {
     return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Void>, Void>, ? extends T> from) {
+      public <T> UIO<T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Void>, ? extends T> from) {
         return new UIO<>(from.fix(PureIOOf::narrowK));
       }
     })));
@@ -235,39 +235,39 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return async(callback -> executor.execute(() -> callback.accept(Try.success(Unit.unit()))));
   }
 
-  public static <A, B, C> UIO<C> parMap2(Kind<UIO_, ? extends A> za, Kind<UIO_, ? extends B> zb,
+  public static <A, B, C> UIO<C> parMap2(Kind<UIO<?>, ? extends A> za, Kind<UIO<?>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  public static <A, B, C> UIO<C> parMap2(Executor executor, Kind<UIO_, ? extends A> za, Kind<UIO_, ? extends B> zb,
+  public static <A, B, C> UIO<C> parMap2(Executor executor, Kind<UIO<?>, ? extends A> za, Kind<UIO<?>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return new UIO<>(PureIO.parMap2(executor, za.fix(UIOOf::narrowK).instance, zb.fix(UIOOf::narrowK).instance, mapper));
   }
 
-  public static <A, B> UIO<Either<A, B>> race(Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
+  public static <A, B> UIO<Either<A, B>> race(Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
 
-  public static <A, B> UIO<Either<A, B>> race(Executor executor, Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
+  public static <A, B> UIO<Either<A, B>> race(Executor executor, Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(UIOOf.toUIO()).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(UIOOf.toUIO()).map(x -> Either.right(tb.get2()))));
   }
 
-  public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO_, B>>, Tuple2<Fiber<UIO_, A>, B>>>
-      racePair(Executor executor, Kind<UIO_, ? extends A> fa, Kind<UIO_, ? extends B> fb) {
+  public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO<?>, B>>, Tuple2<Fiber<UIO<?>, A>, B>>>
+      racePair(Executor executor, Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
     PureIO<Void, Void, A> instance1 = fa.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
     PureIO<Void, Void, B> instance2 = fb.fix(UIOOf.toUIO()).instance.fix(PureIOOf::narrowK);
     return new UIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Void>, Void>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Void>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::narrowK));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO_, Void>, Void>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Void>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::narrowK));
         }
       })))));
@@ -309,7 +309,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     return new UIO<>(PureIO.fromEither(() -> { throw throwable; }));
   }
 
-  public static <A> UIO<A> defer(Producer<Kind<UIO_, ? extends A>> lazy) {
+  public static <A> UIO<A> defer(Producer<Kind<UIO<?>, ? extends A>> lazy) {
     return new UIO<>(PureIO.defer(() -> lazy.andThen(UIOOf::narrowK).get().instance));
   }
 
@@ -364,29 +364,29 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO_, A>, Recoverable {
     });
   }
 
-  public static <A> UIO<Sequence<A>> traverse(Sequence<? extends Kind<UIO_, A>> sequence) {
+  public static <A> UIO<Sequence<A>> traverse(Sequence<? extends Kind<UIO<?>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  public static <A> UIO<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<UIO_, A>> sequence) {
+  public static <A> UIO<Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<UIO<?>, A>> sequence) {
     return sequence.foldLeft(pure(ImmutableList.empty()),
-        (Kind<UIO_, Sequence<A>> xs, Kind<UIO_, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<UIO<?>, Sequence<A>> xs, Kind<UIO<?>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(
-      Kind<UIO_, ? extends A> acquire, Function1<? super A, ? extends Kind<UIO_, ? extends B>> use) {
+      Kind<UIO<?>, ? extends A> acquire, Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use) {
     return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::narrowK).instance),
         resource -> PureIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance)));
   }
 
-  public static <A, B> UIO<B> bracket(Kind<UIO_, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<UIO_, ? extends B>> use, Consumer1<? super A> release) {
+  public static <A, B> UIO<B> bracket(Kind<UIO<?>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use, Consumer1<? super A> release) {
     return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::narrowK).instance),
         resource -> PureIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release));
   }
 
-  public static <A, B> UIO<B> bracket(Kind<UIO_, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<UIO_, ? extends B>> use, Function1<? super A, ? extends Kind<UIO_, Unit>> release) {
+  public static <A, B> UIO<B> bracket(Kind<UIO<?>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use, Function1<? super A, ? extends Kind<UIO<?>, Unit>> release) {
     return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::narrowK).instance),
         resource -> PureIO.redeem(use.andThen(UIOOf::narrowK).apply(resource).instance), release.andThen(UIOOf::narrowK).andThen(UIO::toPureIO)));
   }

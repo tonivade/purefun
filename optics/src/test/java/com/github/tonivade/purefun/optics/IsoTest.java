@@ -13,7 +13,6 @@ import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionOf;
-import com.github.tonivade.purefun.type.Option_;
 
 public class IsoTest {
 
@@ -22,7 +21,7 @@ public class IsoTest {
   private final Iso<Tuple2<Integer, Integer>, Point> tupleToPoint = pointToTuple.reverse();
   private final Iso<Point, Point> pointToPoint = pointToTuple.compose(tupleToPoint);
   private final Iso<Point, Point> identity = Iso.identity();
-  private final Iso<Option<String>, Kind<Option_, String>> optionToKind =
+  private final Iso<Option<String>, Kind<Option<?>, String>> optionToKind =
     Iso.of(Option::kind, OptionOf::<String>narrowK);
 
   private final Point point = new Point(1, 2);

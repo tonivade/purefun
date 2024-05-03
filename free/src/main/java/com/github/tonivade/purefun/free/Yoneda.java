@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.core.Mappable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda_, F>, A> {
+public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda<?, ?>, F>, A> {
 
   <B> Kind<F, B> apply(Function1<? super A, ? extends B> map);
 

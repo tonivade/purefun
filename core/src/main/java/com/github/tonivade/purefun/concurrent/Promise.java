@@ -35,7 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 
 @HigherKind
-public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, Applicable<Promise_, T> permits PromiseImpl {
+public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise<?>, T>, Applicable<Promise<?>, T> permits PromiseImpl {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -71,15 +71,15 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise_, T>, 
   <R> Promise<R> map(Function1<? super T, ? extends R> mapper);
 
   @Override
-  <R> Promise<R> ap(Kind<Promise_, ? extends Function1<? super T, ? extends R>> apply);
+  <R> Promise<R> ap(Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply);
 
   @Override
-  default <R> Promise<R> andThen(Kind<Promise_, ? extends R> next) {
+  default <R> Promise<R> andThen(Kind<Promise<?>, ? extends R> next) {
     return PromiseOf.narrowK(Bindable.super.andThen(next));
   }
 
   @Override
-  <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper);
+  <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> mapper);
 
   default Promise<Unit> then(Consumer1<? super T> next) {
     return map(next.asFunction());
@@ -236,7 +236,7 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   @Override
-  public <R> Promise<R> ap(Kind<Promise_, ? extends Function1<? super T, ? extends R>> apply) {
+  public <R> Promise<R> ap(Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply) {
     Promise<R> result = new PromiseImpl<>(executor);
     onComplete(try1 -> PromiseOf.narrowK(apply).onComplete(
         try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
@@ -251,7 +251,7 @@ final class PromiseImpl<T> implements Promise<T> {
   }
 
   @Override
-  public <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise_, ? extends R>> mapper) {
+  public <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> mapper) {
     Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> {
       Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::narrowK));

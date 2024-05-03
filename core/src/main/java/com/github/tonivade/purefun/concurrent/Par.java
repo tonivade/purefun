@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.type.Try;
 
 @HigherKind
 @FunctionalInterface
-public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
+public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par<?>, T> {
 
   Future<T> apply(Executor executor);
 
@@ -46,7 +46,7 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
   }
 
   @Override
-  default <R> Par<R> flatMap(Function1<? super T, ? extends Kind<Par_, ? extends R>> mapper) {
+  default <R> Par<R> flatMap(Function1<? super T, ? extends Kind<Par<?>, ? extends R>> mapper) {
     return executor -> apply(executor).flatMap(value -> mapper.andThen(ParOf::narrowK).apply(value).apply(executor));
   }
 
@@ -104,7 +104,7 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par_, T> {
     return executor -> Future.task(executor, producer);
   }
 
-  static <T> Par<T> defer(Producer<? extends Kind<Par_, ? extends T>> producer) {
+  static <T> Par<T> defer(Producer<? extends Kind<Par<?>, ? extends T>> producer) {
     return executor -> {
       Producer<Par<T>> andThen = producer.andThen(ParOf::narrowK);
       return andThen.get().apply(executor);

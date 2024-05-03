@@ -22,14 +22,12 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IO_;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Id_;
 
 @ExtendWith(MockitoExtension.class)
 public class ForTest {
 
-  final Monad<Id_> monad = Instances.<Id_>monad();
+  final Monad<Id<?>> monad = Instances.<Id<?>>monad();
 
   @Test
   public void map() {
@@ -57,9 +55,9 @@ public class ForTest {
 
   @Test
   public void flatMap() {
-    Id<String> result = For.with(Instances.<Id_>monad())
-        .andThen(() -> Instances.<Id_>monad().pure("value"))
-        .flatMap(string -> Instances.<Id_>monad().pure(string.toUpperCase()))
+    Id<String> result = For.with(Instances.<Id<?>>monad())
+        .andThen(() -> Instances.<Id<?>>monad().pure("value"))
+        .flatMap(string -> Instances.<Id<?>>monad().pure(string.toUpperCase()))
         .fix(toId());
 
     assertEquals(Id.of("VALUE"), result);
@@ -70,7 +68,7 @@ public class ForTest {
     when(task1.get()).thenReturn("hola toni");
     when(task2.get()).thenReturn("adios toni");
 
-    Applicative<IO_> monad = Instances.applicative(IO_.class);
+    Applicative<IO<?>> monad = Instances.<IO<?>>applicative();
     var result = For.with(monad)
       .then(IO.task(task1))
       .then(IO.task(task2))
@@ -99,13 +97,13 @@ public class ForTest {
 
   @Test
   public void applyVsYield() {
-    var program1 = For.with(Instances.<IO_>monad())
+    var program1 = For.with(Instances.<IO<?>>monad())
         .and(1)
         .and(2)
         .and(3)
         .and(4)
         .and(5);
-    var program2 = For.with(Instances.<IO_>applicative())
+    var program2 = For.with(Instances.<IO<?>>applicative())
         .and(1)
         .and(2)
         .and(3)

@@ -56,7 +56,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   @Override
-  default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence_, ? extends R>> mapper) {
+  default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
     return ImmutableSet.from(stream().flatMap(mapper.andThen(SequenceOf::narrowK).andThen(Sequence::stream)::apply));
   }
 

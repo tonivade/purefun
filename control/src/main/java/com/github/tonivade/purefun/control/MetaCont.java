@@ -27,7 +27,7 @@ sealed interface MetaCont<A, B> {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  default <R> MetaCont<R, B> flatMap(Function1<? super R, ? extends Kind<Control_, ? extends A>> mapper) {
+  default <R> MetaCont<R, B> flatMap(Function1<? super R, ? extends Kind<Control<?>, ? extends A>> mapper) {
     Function1<?, Control<?>> f = (Function1) mapper;
     return new Frames<>(NonEmptyList.of(f), this);
   }
@@ -114,7 +114,7 @@ sealed interface MetaCont<A, B> {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R> MetaCont<R, C> flatMap(Function1<? super R, ? extends Kind<Control_, ? extends A>> mapper) {
+    public <R> MetaCont<R, C> flatMap(Function1<? super R, ? extends Kind<Control<?>, ? extends A>> mapper) {
       NonEmptyList<Function1<?, Control<?>>> list = NonEmptyList.of((Function1) mapper);
       return new Frames<>(list.appendAll(frames), tail);
     }

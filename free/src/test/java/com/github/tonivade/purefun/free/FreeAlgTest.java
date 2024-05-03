@@ -15,22 +15,22 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
 public class FreeAlgTest {
 
-  private static Free<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, String> read() {
+  private static Free<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, String> read() {
     return Free.inject(injectEitherKLeft(), new ConsoleAlg.ReadLine());
   }
 
-  private static Free<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, Unit> write(String value) {
+  private static Free<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, Unit> write(String value) {
     return Free.inject(injectEitherKLeft(), new ConsoleAlg.WriteLine(value));
   }
 
-  private static Free<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, Unit> send(String to, String content) {
+  private static Free<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, Unit> send(String to, String content) {
     return Free.inject(injectEitherKRight(injectReflexive()), new EmailAlg.SendEmail(to, content));
   }
 
@@ -48,31 +48,31 @@ public class FreeAlgTest {
   }
 
   @SuppressWarnings("unchecked")
-  private static FunctionK<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, IO_> interpreter() {
-    final Console<IO_> console = IOInstances.console();
+  private static FunctionK<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, IO<?>> interpreter() {
+    final Console<IO<?>> console = IOInstances.console();
     return new FunctionK<>() {
       @Override
-      public <T> Kind<IO_, T> apply(Kind<Kind<Kind<EitherK_, ConsoleAlg_>, EmailAlg_>, ? extends T> from) {
-        return from.fix(EitherKOf::<ConsoleAlg_, EmailAlg_, T>narrowK).foldK(
+      public <T> Kind<IO<?>, T> apply(Kind<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, ? extends T> from) {
+        return from.fix(EitherKOf::<ConsoleAlg<?>, EmailAlg<?>, T>narrowK).foldK(
           new FunctionK<>() {
             @Override
-            public <X> Kind<IO_, X> apply(Kind<ConsoleAlg_, ? extends X> kind) {
+            public <X> Kind<IO<?>, X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {
               ConsoleAlg<X> consoleAlg = kind.fix(ConsoleAlgOf::narrowK);
               if (consoleAlg instanceof ConsoleAlg.ReadLine) {
-                return (Kind<IO_, X>) console.readln();
+                return (Kind<IO<?>, X>) console.readln();
               }
               if (consoleAlg instanceof ConsoleAlg.WriteLine writeLine) {
-                return (Kind<IO_, X>) console.println(writeLine.line());
+                return (Kind<IO<?>, X>) console.println(writeLine.line());
               }
               throw new IllegalStateException();
             }
           },
             new FunctionK<>() {
               @Override
-              public <X> Kind<IO_, X> apply(Kind<EmailAlg_, ? extends X> kind) {
+              public <X> Kind<IO<?>, X> apply(Kind<EmailAlg<?>, ? extends X> kind) {
                 EmailAlg<X> emailAlg = kind.fix(EmailAlgOf::narrowK);
                 if (emailAlg instanceof EmailAlg.SendEmail sendEmail) {
-                  return (Kind<IO_, X>) console.println(
+                  return (Kind<IO<?>, X>) console.println(
                       "email to " + sendEmail.to() + " with content " + sendEmail.content());
                 }
                 throw new IllegalStateException();

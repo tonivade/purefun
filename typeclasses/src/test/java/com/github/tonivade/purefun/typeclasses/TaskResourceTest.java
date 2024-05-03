@@ -4,11 +4,11 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import com.github.tonivade.purefun.effect.Task_;
+import com.github.tonivade.purefun.effect.Task;
 
-public class TaskResourceTest extends ResourceTest<Task_> {
+public class TaskResourceTest extends ResourceTest<Task<?>> {
 
   public TaskResourceTest() {
-    super(Task_.class);
+    super(new Instance<Task<?>>() { });
   }
 }

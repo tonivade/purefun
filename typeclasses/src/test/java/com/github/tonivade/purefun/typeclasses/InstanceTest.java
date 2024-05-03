@@ -15,24 +15,21 @@ import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIO_;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.Either_;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Id_;
 
 public class InstanceTest {
 
   @Test
   public void testSimple() {
-    Id<Integer> result = Instances.<Id_>functor().map(Id.of(1), x -> x + 1).fix(toId());
+    Id<Integer> result = Instances.<Id<?>>functor().map(Id.of(1), x -> x + 1).fix(toId());
 
     assertEquals(Id.of(2), result);
   }
 
   @Test
   public void testComplex() {
-    Instance<Kind<Either_, String>> instance = new Instance<Kind<Either_, String>>(){};
+    Instance<Kind<Either<?, ?>, String>> instance = new Instance<Kind<Either<?, ?>, String>>(){};
 
     Either<String, Integer> result = instance.functor().map(Either.right(1), x -> x + 1).fix(toEither());
 
@@ -41,7 +38,7 @@ public class InstanceTest {
 
   @Test
   public void testPureIO() {
-    Instance<Kind<Kind<PureIO_, Void>, String>> instance = new Instance<Kind<Kind<PureIO_, Void>, String>>(){};
+    Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, String>> instance = new Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, String>>(){};
 
     PureIO<Void, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(toPureIO());
 
@@ -50,18 +47,18 @@ public class InstanceTest {
 
   @Test
   public void notFoundSimple() {
-    InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> Instances.<Id_, String>monadError());
+    InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> Instances.<Id<?>, String>monadError());
 
-    assertEquals("instance of type MonadError for type com.github.tonivade.purefun.type.Id_ not found", exception.getMessage());
+    assertEquals("instance of type MonadError for type com.github.tonivade.purefun.type.Id not found", exception.getMessage());
   }
 
   @Test
   public void notFoundComplex() {
-    Instance<Kind<Either_, String>> instance = new Instance<Kind<Either_, String>>(){};
+    Instance<Kind<Either<?, ?>, String>> instance = new Instance<Kind<Either<?, ?>, String>>(){};
 
     InstanceNotFoundException exception = assertThrows(InstanceNotFoundException.class, () -> instance.monadDefer());
 
-    assertEquals("instance of type MonadDefer for type com.github.tonivade.purefun.Kind<com.github.tonivade.purefun.type.Either_, java.lang.String> not found",
+    assertEquals("instance of type MonadDefer for type com.github.tonivade.purefun.Kind<com.github.tonivade.purefun.type.Either<?, ?>, java.lang.String> not found",
         exception.getMessage());
   }
 

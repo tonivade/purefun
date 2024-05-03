@@ -44,12 +44,12 @@ public non-sealed interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
   }
 }
 
-interface MonoidInvariant extends Invariant<Monoid_> {
+interface MonoidInvariant extends Invariant<Monoid<?>> {
 
   MonoidInvariant INSTANCE = new MonoidInvariant() { };
 
   @Override
-  default <A, B> Kind<Monoid_, B> imap(Kind<Monoid_, ? extends A> value,
+  default <A, B> Kind<Monoid<?>, B> imap(Kind<Monoid<?>, ? extends A> value,
                                        Function1<? super A, ? extends B> map,
                                        Function1<? super B, ? extends A> comap) {
     return new Monoid<>() {

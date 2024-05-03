@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 @HigherKind
-public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer_, L>, A> {
+public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<Writer<?, ?>, L>, A> {
 
   Monoid<L> monoid();
   Tuple2<L, A> value();
@@ -53,7 +53,7 @@ public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<W
   }
 
   @Override
-  default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Kind<Kind<Writer_, L>, ? extends B>> mapper) {
+  default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Kind<Kind<Writer<?, ?>, L>, ? extends B>> mapper) {
     Writer<L, B> apply = mapper.andThen(WriterOf::<L, B>narrowK).apply(value().get2());
     Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));

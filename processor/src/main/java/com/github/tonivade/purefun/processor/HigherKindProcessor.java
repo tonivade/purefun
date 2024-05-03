@@ -72,17 +72,18 @@ public class HigherKindProcessor extends AbstractProcessor {
       packageName = null;
       className = qualifiedName;
     }
-    String witnessName = className + "_";
+    String witnessName = witnessOf(packageName, className, element.getTypeParameters());
     String typeOfName = annotation.value().isEmpty() ? className + "Of" : annotation.value();
-    writeWitness(packageName, witnessName);
     writeTypeOf(packageName, className, typeOfName, witnessName, element.getTypeParameters());
   }
 
-  private void writeWitness(@Nullable String packageName, String witnessName) throws IOException {
-    JavaFileObject witnessFile = createFile(packageName, witnessName);
-    try (PrintWriter writer = new PrintWriter(witnessFile.openWriter())) {
-      witness(writer, packageName, witnessName);
-    }
+  private String witnessOf(@Nullable String packageName, String className, List<? extends TypeParameterElement> types) {
+    return switch (types.size()) {
+      case 1 -> className + "<?>";
+      case 2 -> className + "<?, ?>";
+      case 3 -> className + "<?, ?, ?>";
+      default -> throw new UnsupportedOperationException("too many params: " + packageName + "." + className);
+    };
   }
 
   private void writeTypeOf(@Nullable String packageName, String className, String typeOfName, String witnessName,
@@ -98,21 +99,6 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
   }
 
-  private void witness(PrintWriter writer, @Nullable String packageName, String witnessName) {
-    if (packageName != null) {
-      writer.println(packageName(packageName));
-      writer.println();
-    }
-    writer.println(import_(generated()));
-    writer.println();
-    writer.println(GENERATED);
-    writer.println(witnessClass(witnessName));
-    writer.println();
-    writer.println(privateConstructor(witnessName));
-    writer.println();
-    writer.println(END);
-  }
-
   private void generate1(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
     String higher1 = "Kind<" + kindName + ", A>";
@@ -124,9 +110,9 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println(packageName(packageName));
       writer.println();
     }
-    writer.println(import_(KIND));
-    writer.println(import_(FUNCTION));
-    writer.println(import_(generated()));
+    writer.println(importClass(KIND));
+    writer.println(importClass(FUNCTION));
+    writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher1));
@@ -149,9 +135,9 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println();
     }
     writer.println();
-    writer.println(import_(KIND));
-    writer.println(import_(FUNCTION));
-    writer.println(import_(generated()));
+    writer.println(importClass(KIND));
+    writer.println(importClass(FUNCTION));
+    writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher2));
@@ -175,9 +161,9 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println();
     }
     writer.println();
-    writer.println(import_(KIND));
-    writer.println(import_(FUNCTION));
-    writer.println(import_(generated()));
+    writer.println(importClass(KIND));
+    writer.println(importClass(FUNCTION));
+    writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher3));
@@ -197,10 +183,6 @@ public class HigherKindProcessor extends AbstractProcessor {
       return JAVAX_ANNOTATION_GENERATED;
     }
     return JAVAX_ANNOTATION_PROCESSING_GENERATED;
-  }
-
-  private static String privateConstructor(String witnessName) {
-    return "  private " + witnessName + "() {}";
   }
 
   private static void narrowK1(PrintWriter writer, String className, String aType, String hkt) {
@@ -242,10 +224,6 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println();
   }
 
-  private static String witnessClass(String kindName) {
-    return "public final class " + kindName + " {";
-  }
-
   private static String typeOfClass(String typeName, String typeOfName, String type) {
     return "public sealed interface " + typeOfName + " extends " + type + " permits " + typeName + " {";
   }
@@ -266,7 +244,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     return "package " + packageName + ";";
   }
 
-  private static String import_(String className) {
+  private static String importClass(String className) {
     return "import " + className + ";";
   }
 }

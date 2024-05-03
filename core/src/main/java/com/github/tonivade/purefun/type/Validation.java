@@ -49,7 +49,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <T> type of the value when valid
  */
 @HigherKind
-public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Kind<Validation_, E>, T> {
+public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Kind<Validation<?, ?>, E>, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -105,7 +105,7 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
 
   @Override
   @SuppressWarnings("unchecked")
-  default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Kind<Kind<Validation_, E>, ? extends R>> mapper) {
+  default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Kind<Kind<Validation<?, ?>, E>, ? extends R>> mapper) {
     if (this instanceof Valid<E, T>(var value)) {
       return mapper.andThen(ValidationOf::<E, R>narrowK).apply(value);
     }
@@ -126,7 +126,7 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     return filter(matcher.negate());
   }
 
-  default Validation<E, T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Kind<Validation_, E>, T>> orElse) {
+  default Validation<E, T> filterOrElse(Matcher1<? super T> matcher, Producer<? extends Kind<Kind<Validation<?, ?>, E>, T>> orElse) {
     if (this instanceof Invalid) {
       return this;
     }
@@ -136,14 +136,14 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     return orElse.andThen(ValidationOf::narrowK).get();
   }
 
-  default Validation<E, T> or(Producer<Kind<Kind<Validation_, E>, T>> orElse) {
+  default Validation<E, T> or(Producer<Kind<Kind<Validation<?, ?>, E>, T>> orElse) {
     if (this instanceof Invalid) {
       return orElse.andThen(ValidationOf::narrowK).get();
     }
     return this;
   }
 
-  default Validation<E, T> orElse(Kind<Kind<Validation_, E>, T> orElse) {
+  default Validation<E, T> orElse(Kind<Kind<Validation<?, ?>, E>, T> orElse) {
     return or(Producer.cons(orElse));
   }
 

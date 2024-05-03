@@ -30,7 +30,7 @@ import com.github.tonivade.purefun.core.Unit;
  * @param <A> result of the computation
  */
 @HigherKind
-public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
+public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
@@ -46,7 +46,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
   }
 
   @Override
-  <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval_, ? extends R>> map);
+  <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval<?>, ? extends R>> map);
 
   static <T> Eval<T> now(T value) {
     return new Done<>(cons(value));
@@ -60,7 +60,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     return new Done<>(always);
   }
 
-  static <T> Eval<T> defer(Producer<? extends Kind<Eval_, ? extends T>> eval) {
+  static <T> Eval<T> defer(Producer<? extends Kind<Eval<?>, ? extends T>> eval) {
     return new Defer<>(eval);
   }
 
@@ -82,7 +82,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     }
 
     @Override
-    public <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval_, ? extends R>> map) {
+    public <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval<?>, ? extends R>> map) {
       return new FlatMapped<>(cons(this), map::apply);
     }
 
@@ -94,9 +94,9 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
 
   final class Defer<A> implements Eval<A> {
 
-    private final Producer<? extends Kind<Eval_, ? extends A>> deferred;
+    private final Producer<? extends Kind<Eval<?>, ? extends A>> deferred;
 
-    private Defer(Producer<? extends Kind<Eval_, ? extends A>> deferred) {
+    private Defer(Producer<? extends Kind<Eval<?>, ? extends A>> deferred) {
       this.deferred = checkNonNull(deferred);
     }
 
@@ -106,7 +106,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     }
 
     @Override
-    public <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval_, ? extends R>> map) {
+    public <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval<?>, ? extends R>> map) {
       return new FlatMapped<>(deferred::get, map::apply);
     }
 
@@ -123,10 +123,10 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
 
   final class FlatMapped<A, B> implements Eval<B> {
 
-    private final Producer<? extends Kind<Eval_, ? extends A>> start;
-    private final Function1<? super A, ? extends Kind<Eval_, ? extends B>> run;
+    private final Producer<? extends Kind<Eval<?>, ? extends A>> start;
+    private final Function1<? super A, ? extends Kind<Eval<?>, ? extends B>> run;
 
-    private FlatMapped(Producer<? extends Kind<Eval_, ? extends A>> start, Function1<? super A, ? extends Kind<Eval_, ? extends B>> run) {
+    private FlatMapped(Producer<? extends Kind<Eval<?>, ? extends A>> start, Function1<? super A, ? extends Kind<Eval<?>, ? extends B>> run) {
       this.start = checkNonNull(start);
       this.run = checkNonNull(run);
     }
@@ -137,7 +137,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval_, A> {
     }
 
     @Override
-    public <R> Eval<R> flatMap(Function1<? super B, ? extends Kind<Eval_, ? extends R>> map) {
+    public <R> Eval<R> flatMap(Function1<? super B, ? extends Kind<Eval<?>, ? extends R>> map) {
       return new FlatMapped<>(this::start, b -> new FlatMapped<>(() -> run(b), map::apply));
     }
 

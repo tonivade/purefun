@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.FutureOf;
-import com.github.tonivade.purefun.concurrent.Future_;
+import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.FutureInstances;
@@ -22,52 +22,50 @@ import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.monad.IO_;
+import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.Id_;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
-import com.github.tonivade.purefun.type.Try_;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 
 public class OptionTTest {
 
-  private final Monad<Id_> monad = IdInstances.monad();
+  private final Monad<Id<?>> monad = IdInstances.monad();
 
   @Test
   public void map() {
-    OptionT<Id_, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
 
-    OptionT<Id_, String> map = some.map(String::toUpperCase);
+    OptionT<Id<?>, String> map = some.map(String::toUpperCase);
 
     assertEquals(Id.of("ABC"), map.getOrElseThrow());
   }
 
   @Test
   public void flatMap() {
-    OptionT<Id_, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
 
-    OptionT<Id_, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
+    OptionT<Id<?>, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
 
     assertEquals(Id.of("ABC"), map.getOrElseThrow());
   }
 
   @Test
   public void filter() {
-    OptionT<Id_, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
 
-    OptionT<Id_, String> filter = some.filter(String::isEmpty);
-    OptionT<Id_, String> orElse = OptionT.some(monad, "not empty");
+    OptionT<Id<?>, String> filter = some.filter(String::isEmpty);
+    OptionT<Id<?>, String> orElse = OptionT.some(monad, "not empty");
 
     assertEquals(orElse.getOrElseThrow(), filter.getOrElse("not empty"));
   }
 
   @Test
   public void none() {
-    OptionT<Id_, String> none = OptionT.none(monad);
+    OptionT<Id<?>, String> none = OptionT.none(monad);
 
     assertAll(
         () -> assertEquals(Id.of(true), none.isEmpty()),
@@ -76,7 +74,7 @@ public class OptionTTest {
 
   @Test
   public void some() {
-    OptionT<Id_, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
 
     assertAll(
         () -> assertEquals(Id.of(false), some.isEmpty()),
@@ -85,21 +83,21 @@ public class OptionTTest {
 
   @Test
   public void mapK() {
-    OptionT<IO_, String> someIo = OptionT.some(IOInstances.monad(), "abc");
+    OptionT<IO<?>, String> someIo = OptionT.some(IOInstances.monad(), "abc");
 
-    OptionT<Try_, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    OptionT<Try<?>, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), TryOf.narrowK(someTry.getOrElseThrow()));
   }
 
   @Test
   public void eq() {
-    OptionT<Id_, String> some1 = OptionT.some(monad, "abc");
-    OptionT<Id_, String> some2 = OptionT.some(monad, "abc");
-    OptionT<Id_, String> none1 = OptionT.none(monad);
-    OptionT<Id_, String> none2 = OptionT.none(monad);
+    OptionT<Id<?>, String> some1 = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some2 = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> none1 = OptionT.none(monad);
+    OptionT<Id<?>, String> none2 = OptionT.none(monad);
 
-    Eq<Kind<Kind<OptionT_, Id_>, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
+    Eq<Kind<Kind<OptionT<?, ?>, Id<?>>, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),
@@ -111,16 +109,16 @@ public class OptionTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<OptionT_, Future_>, Throwable> monadError =
+    MonadError<Kind<OptionT<?, ?>, Future<?>>, Throwable> monadError =
         OptionTInstances.monadError(FutureInstances.monadError());
 
-    Kind<Kind<OptionT_, Future_>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<OptionT_, Future_>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<OptionT_, Future_>, String> handleError =
+    Kind<Kind<OptionT<?, ?>, Future<?>>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<OptionT<?, ?>, Future<?>>, String> raiseError = monadError.raiseError(error);
+    Kind<Kind<OptionT<?, ?>, Future<?>>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<OptionT_, Future_>, String> ensureOk =
+    Kind<Kind<OptionT<?, ?>, Future<?>>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Kind<Kind<OptionT_, Future_>, String> ensureError =
+    Kind<Kind<OptionT<?, ?>, Future<?>>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
@@ -132,15 +130,15 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<Kind<OptionT_, Id_>, Unit> monadError = OptionTInstances.monadError(monad);
+    MonadError<Kind<OptionT<?, ?>, Id<?>>, Unit> monadError = OptionTInstances.monadError(monad);
 
-    Kind<Kind<OptionT_, Id_>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<OptionT_, Id_>, String> raiseError = monadError.raiseError(unit());
-    Kind<Kind<OptionT_, Id_>, String> handleError =
+    Kind<Kind<OptionT<?, ?>, Id<?>>, String> pure = monadError.pure("is not ok");
+    Kind<Kind<OptionT<?, ?>, Id<?>>, String> raiseError = monadError.raiseError(unit());
+    Kind<Kind<OptionT<?, ?>, Id<?>>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<OptionT_, Id_>, String> ensureOk =
+    Kind<Kind<OptionT<?, ?>, Id<?>>, String> ensureOk =
         monadError.ensure(pure, Unit::unit, "is not ok"::equals);
-    Kind<Kind<OptionT_, Id_>, String> ensureError =
+    Kind<Kind<OptionT<?, ?>, Id<?>>, String> ensureError =
         monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(
@@ -151,10 +149,10 @@ public class OptionTTest {
   }
 }
 
-class IOToTryFunctionK implements FunctionK<IO_, Try_> {
+class IOToTryFunctionK implements FunctionK<IO<?>, Try<?>> {
 
   @Override
-  public <T> Kind<Try_, T> apply(Kind<IO_, ? extends T> from) {
+  public <T> Kind<Try<?>, T> apply(Kind<IO<?>, ? extends T> from) {
     return Try.of(from.fix(toIO())::unsafeRunSync);
   }
 }

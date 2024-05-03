@@ -18,7 +18,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.Task;
 import com.github.tonivade.purefun.effect.TaskOf;
-import com.github.tonivade.purefun.effect.Task_;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -39,74 +38,74 @@ import com.github.tonivade.purefun.typeclasses.Runtime;
 
 public interface TaskInstances {
 
-  static Functor<Task_> functor() {
+  static Functor<Task<?>> functor() {
     return TaskFunctor.INSTANCE;
   }
 
-  static Applicative<Task_> applicative() {
+  static Applicative<Task<?>> applicative() {
     return TaskApplicative.INSTANCE;
   }
 
-  static Monad<Task_> monad() {
+  static Monad<Task<?>> monad() {
     return TaskMonad.INSTANCE;
   }
 
-  static MonadError<Task_, Throwable> monadError() {
+  static MonadError<Task<?>, Throwable> monadError() {
     return TaskMonadError.INSTANCE;
   }
 
-  static MonadThrow<Task_> monadThrow() {
+  static MonadThrow<Task<?>> monadThrow() {
     return TaskMonadThrow.INSTANCE;
   }
 
-  static MonadDefer<Task_> monadDefer() {
+  static MonadDefer<Task<?>> monadDefer() {
     return TaskMonadDefer.INSTANCE;
   }
 
-  static Async<Task_> async() {
+  static Async<Task<?>> async() {
     return TaskAsync.INSTANCE;
   }
 
-  static Concurrent<Task_> concurrent() {
+  static Concurrent<Task<?>> concurrent() {
     return TaskConcurrent.instance(Future.DEFAULT_EXECUTOR);
   }
 
-  static Concurrent<Task_> concurrent(Executor executor) {
+  static Concurrent<Task<?>> concurrent(Executor executor) {
     return TaskConcurrent.instance(executor);
   }
 
-  static <A> Reference<Task_, A> ref(A value) {
+  static <A> Reference<Task<?>, A> ref(A value) {
     return Reference.of(monadDefer(), value);
   }
 
-  static <A extends AutoCloseable> Resource<Task_, A> resource(Task<A> acquire) {
+  static <A extends AutoCloseable> Resource<Task<?>, A> resource(Task<A> acquire) {
     return resource(acquire, AutoCloseable::close);
   }
 
-  static <A> Resource<Task_, A> resource(Task<A> acquire, Consumer1<A> release) {
+  static <A> Resource<Task<?>, A> resource(Task<A> acquire, Consumer1<A> release) {
     return Resource.from(monadDefer(), acquire, release);
   }
 
-  static Console<Task_> console() {
+  static Console<Task<?>> console() {
     return TaskConsole.INSTANCE;
   }
 
-  static Runtime<Task_> runtime() {
+  static Runtime<Task<?>> runtime() {
     return TaskRuntime.INSTANCE;
   }
 }
 
-interface TaskFunctor extends Functor<Task_> {
+interface TaskFunctor extends Functor<Task<?>> {
 
   TaskFunctor INSTANCE = new TaskFunctor() {};
 
   @Override
-  default <A, B> Task<B> map(Kind<Task_, ? extends A> value, Function1<? super A, ? extends B> map) {
+  default <A, B> Task<B> map(Kind<Task<?>, ? extends A> value, Function1<? super A, ? extends B> map) {
     return TaskOf.narrowK(value).map(map);
   }
 }
 
-interface TaskPure extends Applicative<Task_> {
+interface TaskPure extends Applicative<Task<?>> {
 
   @Override
   default <A> Task<A> pure(A value) {
@@ -120,25 +119,25 @@ interface TaskApplicative extends TaskPure {
 
   @Override
   default <A, B> Task<B>
-          ap(Kind<Task_, ? extends A> value,
-             Kind<Task_, ? extends Function1<? super A, ? extends B>> apply) {
+          ap(Kind<Task<?>, ? extends A> value,
+             Kind<Task<?>, ? extends Function1<? super A, ? extends B>> apply) {
     return value.fix(TaskOf::<A>narrowK).ap(apply.fix(TaskOf::narrowK));
   }
 }
 
-interface TaskMonad extends TaskPure, Monad<Task_> {
+interface TaskMonad extends TaskPure, Monad<Task<?>> {
 
   TaskMonad INSTANCE = new TaskMonad() {};
 
   @Override
   default <A, B> Task<B>
-          flatMap(Kind<Task_, ? extends A> value,
-                  Function1<? super A, ? extends Kind<Task_, ? extends B>> map) {
+          flatMap(Kind<Task<?>, ? extends A> value,
+                  Function1<? super A, ? extends Kind<Task<?>, ? extends B>> map) {
     return TaskOf.narrowK(value).flatMap(map.andThen(TaskOf::narrowK));
   }
 }
 
-interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
+interface TaskMonadError extends TaskMonad, MonadError<Task<?>, Throwable> {
 
   TaskMonadError INSTANCE = new TaskMonadError() {};
 
@@ -149,8 +148,8 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
 
   @Override
   default <A> Task<A> handleErrorWith(
-      Kind<Task_, A> value,
-      Function1<? super Throwable, ? extends Kind<Task_, ? extends A>> handler) {
+      Kind<Task<?>, A> value,
+      Function1<? super Throwable, ? extends Kind<Task<?>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<? super Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
     Function1<A, Task<A>> map = Task::pure;
@@ -159,33 +158,33 @@ interface TaskMonadError extends TaskMonad, MonadError<Task_, Throwable> {
   }
 }
 
-interface TaskMonadThrow extends TaskMonadError, MonadThrow<Task_> {
+interface TaskMonadThrow extends TaskMonadError, MonadThrow<Task<?>> {
 
   TaskMonadThrow INSTANCE = new TaskMonadThrow() {};
 }
 
-interface TaskDefer extends Defer<Task_> {
+interface TaskDefer extends Defer<Task<?>> {
 
   @Override
   default <A> Task<A>
-          defer(Producer<? extends Kind<Task_, ? extends A>> defer) {
+          defer(Producer<? extends Kind<Task<?>, ? extends A>> defer) {
     return Task.defer(defer);
   }
 }
 
-interface TaskBracket extends TaskMonadError, Bracket<Task_, Throwable> {
+interface TaskBracket extends TaskMonadError, Bracket<Task<?>, Throwable> {
 
   @Override
   default <A, B> Task<B>
-          bracket(Kind<Task_, ? extends A> acquire,
-                  Function1<? super A, ? extends Kind<Task_, ? extends B>> use,
-                  Function1<? super A, ? extends Kind<Task_, Unit>> release) {
+          bracket(Kind<Task<?>, ? extends A> acquire,
+                  Function1<? super A, ? extends Kind<Task<?>, ? extends B>> use,
+                  Function1<? super A, ? extends Kind<Task<?>, Unit>> release) {
     return Task.bracket(acquire, use, release);
   }
 }
 
 interface TaskMonadDefer
-    extends MonadDefer<Task_>, TaskDefer, TaskBracket {
+    extends MonadDefer<Task<?>>, TaskDefer, TaskBracket {
 
   TaskMonadDefer INSTANCE = new TaskMonadDefer() {};
 
@@ -195,17 +194,17 @@ interface TaskMonadDefer
   }
 }
 
-interface TaskAsync extends Async<Task_>, TaskMonadDefer {
+interface TaskAsync extends Async<Task<?>>, TaskMonadDefer {
 
   TaskAsync INSTANCE = new TaskAsync() {};
 
   @Override
-  default <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Task_, Unit>> consumer) {
+  default <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Task<?>, Unit>> consumer) {
     return Task.asyncF(consumer.andThen(TaskOf::narrowK));
   }
 }
 
-interface TaskConcurrent extends TaskAsync, Concurrent<Task_> {
+interface TaskConcurrent extends TaskAsync, Concurrent<Task<?>> {
 
   static TaskConcurrent instance(Executor executor) {
     return () -> executor;
@@ -214,20 +213,20 @@ interface TaskConcurrent extends TaskAsync, Concurrent<Task_> {
   Executor executor();
 
   @Override
-  default <A, B> Task<Either<Tuple2<A, Fiber<Task_, B>>, Tuple2<Fiber<Task_, A>, B>>> racePair(Kind<Task_, ? extends A> fa,
-    Kind<Task_, ? extends B> fb) {
+  default <A, B> Task<Either<Tuple2<A, Fiber<Task<?>, B>>, Tuple2<Fiber<Task<?>, A>, B>>> racePair(Kind<Task<?>, ? extends A> fa,
+    Kind<Task<?>, ? extends B> fb) {
     return Task.racePair(executor(), fa, fb);
   }
 
   @Override
-  default <A> Task<Fiber<Task_, A>> fork(Kind<Task_, ? extends A> value) {
+  default <A> Task<Fiber<Task<?>, A>> fork(Kind<Task<?>, ? extends A> value) {
     Task<A> fix = value.fix(TaskOf::narrowK);
     return fix.fork();
   }
 
 }
 
-final class TaskConsole implements Console<Task_> {
+final class TaskConsole implements Console<Task<?>> {
 
   public static final TaskConsole INSTANCE = new TaskConsole();
 
@@ -244,27 +243,27 @@ final class TaskConsole implements Console<Task_> {
   }
 }
 
-interface TaskRuntime extends Runtime<Task_> {
+interface TaskRuntime extends Runtime<Task<?>> {
 
   TaskRuntime INSTANCE = new TaskRuntime() {};
 
   @Override
-  default <T> T run(Kind<Task_, T> value) {
+  default <T> T run(Kind<Task<?>, T> value) {
     return value.fix(toTask()).safeRunSync().getOrElseThrow();
   }
 
   @Override
-  default <T> Sequence<T> run(Sequence<Kind<Task_, T>> values) {
+  default <T> Sequence<T> run(Sequence<Kind<Task<?>, T>> values) {
     return run(Task.traverse(values.map(TaskOf::<T>narrowK)));
   }
 
   @Override
-  default <T> Future<T> parRun(Kind<Task_, T> value, Executor executor) {
+  default <T> Future<T> parRun(Kind<Task<?>, T> value, Executor executor) {
     return value.fix(toTask()).runAsync();
   }
 
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Task_, T>> values, Executor executor) {
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Task<?>, T>> values, Executor executor) {
     return parRun(Task.traverse(values.map(TaskOf::<T>narrowK)), executor);
   }
 }

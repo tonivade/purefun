@@ -9,18 +9,17 @@ import static com.github.tonivade.purefun.control.ControlOf.toControl;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.control.Control;
 import com.github.tonivade.purefun.control.ControlOf;
-import com.github.tonivade.purefun.control.Control_;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public interface ControlInstances {
 
-  static Monad<Control_> monad() {
+  static Monad<Control<?>> monad() {
     return ControlMonad.INSTANCE;
   }
 }
 
-interface ControlMonad extends Monad<Control_> {
+interface ControlMonad extends Monad<Control<?>> {
 
   ControlMonad INSTANCE = new ControlMonad() {};
 
@@ -31,7 +30,7 @@ interface ControlMonad extends Monad<Control_> {
 
   @Override
   default <T, R> Control<R> flatMap(
-      Kind<Control_, ? extends T> value, Function1<? super T, ? extends Kind<Control_, ? extends R>> map) {
+      Kind<Control<?>, ? extends T> value, Function1<? super T, ? extends Kind<Control<?>, ? extends R>> map) {
     return value.fix(toControl()).flatMap(map.andThen(ControlOf::narrowK));
   }
 }

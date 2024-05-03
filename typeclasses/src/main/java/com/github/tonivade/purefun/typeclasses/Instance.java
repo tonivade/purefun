@@ -12,16 +12,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
 
 import com.github.tonivade.purefun.type.Try;
 
 public abstract class Instance<F> {
-  
+
   private final Class<?> kindType;
   private final Type type;
-  
+
   protected Instance(Class<F> clazz) {
     this.kindType = clazz;
     this.type = clazz;
@@ -118,9 +119,9 @@ public abstract class Instance<F> {
   }
 
   protected String instanceName() {
-    return "com.github.tonivade.purefun.instances." + kindType.getSimpleName().replace("_", "Instances");
+    return "com.github.tonivade.purefun.instances." + kindType.getSimpleName() + "Instances";
   }
-  
+
   private static Type genericType(Type type) {
     if (type instanceof ParameterizedType parameterizedType) {
       return parameterizedType.getActualTypeArguments()[0];
@@ -128,11 +129,13 @@ public abstract class Instance<F> {
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
   }
 
-  @SuppressWarnings("unchecked")
   private static Class<?> kindType(Type type) {
     if (type instanceof ParameterizedType parameterizedType) {
       if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
         return kindType(parameterizedType.getActualTypeArguments()[0]);
+      }
+      if (parameterizedType.getActualTypeArguments()[0] instanceof WildcardType) {
+        return (Class<?>) parameterizedType.getRawType();
       }
       if (parameterizedType.getActualTypeArguments()[0] instanceof Class) {
         return (Class<?>) parameterizedType.getActualTypeArguments()[0];
@@ -154,7 +157,7 @@ public abstract class Instance<F> {
     return Class.forName(instance.instanceName());
   }
 
-  private static Method findMethod(Class<?> instanceClass, Class<?> typeClass, Object... args) 
+  private static Method findMethod(Class<?> instanceClass, Class<?> typeClass, Object... args)
       throws NoSuchMethodException {
     String simpleName = typeClass.getSimpleName();
     String methodName = toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
@@ -167,7 +170,7 @@ public abstract class Instance<F> {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> T getInstance(Method method, Object...args) 
+  private static <T> T getInstance(Method method, Object...args)
       throws IllegalAccessException, InvocationTargetException {
     return (T) method.invoke(null, args);
   }

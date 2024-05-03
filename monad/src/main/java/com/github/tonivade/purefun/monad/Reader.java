@@ -11,7 +11,7 @@ import com.github.tonivade.purefun.core.Function1;
 
 @HigherKind
 @FunctionalInterface
-public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<Reader_, R>, A> {
+public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<Reader<?, ?>, R>, A> {
 
   A eval(R reader);
 
@@ -21,7 +21,7 @@ public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<R
   }
 
   @Override
-  default <B> Reader<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<Reader_, R>, ? extends B>> mapper) {
+  default <B> Reader<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<Reader<?, ?>, R>, ? extends B>> mapper) {
     return reader -> mapper.andThen(ReaderOf::<R, B>narrowK).apply(eval(reader)).eval(reader);
   }
 

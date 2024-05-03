@@ -54,7 +54,7 @@ public class ControlTest {
   }
 
   private Control<Integer> program(State<Integer> state, Amb amb) {
-    return Instances.monad(Control_.class).use()
+    return Instances.<Control<?>>monad().use()
         .then(state.get())
         .flatMap(x -> amb.flip().flatMap(b -> b ? state.set(x + 1) : pure(unit())))
         .then(state.get())

@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Option_;
 
 public class YonedaTest {
 
@@ -20,9 +19,9 @@ public class YonedaTest {
 
   @Test
   public void yoneda() {
-    Yoneda<Option_, String> yoneda = Yoneda.of(some("string"), functor());
+    Yoneda<Option<?>, String> yoneda = Yoneda.of(some("string"), functor());
 
-    Yoneda<Option_, String> result = yoneda.map(concat).map(concat);
+    Yoneda<Option<?>, String> result = yoneda.map(concat).map(concat);
 
     assertEquals(Option.some("stringstringstringstring"), result.lower());
   }
