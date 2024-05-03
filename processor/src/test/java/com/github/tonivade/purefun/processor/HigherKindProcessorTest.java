@@ -48,7 +48,7 @@ public class HigherKindProcessorTest {
         "return (Foo<A>) hkt;",
         "}",
 
-        "static <A> Function<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "static <A> Function<Kind<Foo_, ? extends A>, Foo<A>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -81,7 +81,7 @@ public class HigherKindProcessorTest {
         "return (Foo<A>) hkt;",
         "}",
 
-        "static <A> Function<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "static <A> Function<Kind<Foo_, ? extends A>, Foo<A>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -125,7 +125,7 @@ public class HigherKindProcessorTest {
         "return (Foo<A>) hkt;",
         "}",
 
-        "static <A extends java.lang.String> Function<Kind<Foo_, A>, Foo<A>> toFoo() {",
+        "static <A extends java.lang.String> Function<Kind<Foo_, ? extends A>, Foo<A>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -194,7 +194,7 @@ public class HigherKindProcessorTest {
         "return (Foo<A, B>) hkt;",
         "}",
 
-        "static <A, B> Function<Kind<Kind<Foo_, A>, B>, Foo<A, B>> toFoo() {",
+        "static <A, B> Function<Kind<Kind<Foo_, A>, ? extends B>, Foo<A, B>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 
@@ -231,7 +231,7 @@ public class HigherKindProcessorTest {
         "return (Foo<A, B, C>) hkt;",
         "}",
 
-        "static <A, B, C> Function<Kind<Kind<Kind<Foo_, A>, B>, C>, Foo<A, B, C>> toFoo() {",
+        "static <A, B, C> Function<Kind<Kind<Kind<Foo_, A>, B>, ? extends C>, Foo<A, B, C>> toFoo() {",
         "return FooOf::narrowK;",
         "}",
 

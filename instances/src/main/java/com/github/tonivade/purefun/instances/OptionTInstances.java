@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Unit.unit;
+import static com.github.tonivade.purefun.transformer.OptionTOf.toOptionT;
 
 import java.time.Duration;
 import java.util.NoSuchElementException;
@@ -163,7 +164,7 @@ interface OptionTBracket<F> extends Bracket<Kind<OptionT_, F>, Throwable> {
                 value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
             option -> {
               Kind<Kind<OptionT_, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release);
-              Kind<F, Option<Unit>> value = fold.fix(OptionTOf::narrowK).value();
+              Kind<F, Option<Unit>> value = fold.fix(toOptionT()).value();
               return monadF().map(value, x -> x.fold(Unit::unit, identity()));
             });
     return OptionT.of(monadF(), bracket);

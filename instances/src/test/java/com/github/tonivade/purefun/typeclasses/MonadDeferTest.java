@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static com.github.tonivade.purefun.monad.IOOf.toIO;
+import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -122,7 +123,7 @@ public class MonadDeferTest {
         eitherTMonadDefer.bracket(EitherT.<IO_, Throwable, AutoCloseable>right(Instances.<IO_>monad(), resource),
                                                 r -> EitherT.<IO_, Throwable, String>left(Instances.<IO_>monad(), new UnsupportedOperationException()));
 
-    Either<Throwable, String> unsafeRunSync = bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync();
+    Either<Throwable, String> unsafeRunSync = bracket.fix(toEitherT()).value().fix(toIO()).unsafeRunSync();
 
     assertTrue(unsafeRunSync.getLeft() instanceof UnsupportedOperationException);
     verify(resource).close();

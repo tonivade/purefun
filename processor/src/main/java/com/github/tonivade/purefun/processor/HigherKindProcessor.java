@@ -132,7 +132,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(typeOfClass(className, typeOfNameWithParams, higher1));
     writer.println();
     narrowK1(writer, className, aType, higher1Wildcard);
-    toTypeOf1(writer, className, aType, higher1, typeOfName);
+    toTypeOf1(writer, className, aType, higher1Wildcard, typeOfName);
     writer.println(END);
   }
 
@@ -157,7 +157,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(typeOfClass(className, typeOfNameWithParams, higher2));
     writer.println();
     narrowK2(writer, className, aType, bType, higher1Wildcard);
-    toTypeOf2(writer, className, aType, bType, higher2, typeOfName);
+    toTypeOf2(writer, className, aType, bType, higher1Wildcard, typeOfName);
     writer.println(END);
   }
 
@@ -183,7 +183,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(typeOfClass(className, typeOfNameWithParams, higher3));
     writer.println();
     narrowK3(writer, className, aType, bType, cType, higher1Wildcard);
-    toTypeOf3(writer, className, aType, bType, cType, higher3, typeOfName);
+    toTypeOf3(writer, className, aType, bType, cType, higher1Wildcard, typeOfName);
     writer.println(END);
   }
 

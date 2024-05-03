@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Unit.unit;
+import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
 
 import java.time.Duration;
 
@@ -182,7 +183,7 @@ interface EitherTBracket<F, E> extends Bracket<Kind<Kind<EitherT_, F>, E>, E> {
                 value -> use.andThen(EitherTOf::<F, E, B>narrowK).apply(value).value()),
             either -> {
               Kind<Kind<Kind<EitherT_, F>, E>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release);
-              Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::narrowK).value();
+              Kind<F, Either<E, Unit>> value = fold.fix(toEitherT()).value();
               return monadF().map(value, x -> x.fold(cons(unit()), identity()));
             });
     return EitherT.of(monadF(), bracket);
