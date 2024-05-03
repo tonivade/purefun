@@ -36,7 +36,7 @@ import com.github.tonivade.purefun.type.Either;
 @ExtendWith(MockitoExtension.class)
 public class MonadDeferTest {
 
-  private MonadDefer<IO<?>> ioMonadDefer = Instances.<IO<?>>monadDefer();
+  private MonadDefer<IO<?>> ioMonadDefer = Instances.monadDefer();
   private MonadDefer<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>> PureIOMonadDefer =
       new Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>>(){}.monadDefer();
   private MonadDefer<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>> eitherTMonadDefer =
@@ -92,8 +92,8 @@ public class MonadDeferTest {
   @Test
   public void eitherTBracket() throws Exception {
     Kind<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>, String> bracket =
-        eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.<IO<?>>monad(), resource),
-                                                r -> EitherT.<IO<?>, Throwable, String>right(Instances.<IO<?>>monad(), "done"));
+        eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.monad(), resource),
+                                                r -> EitherT.<IO<?>, Throwable, String>right(Instances.monad(), "done"));
 
     String result = bracket.fix(EitherTOf::narrowK).get().fix(toIO()).unsafeRunSync();
 
@@ -104,8 +104,8 @@ public class MonadDeferTest {
   @Test
   public void eitherTBracketAcquireError() throws Exception {
     Kind<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>, String> bracket =
-        eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>left(Instances.<IO<?>>monad(), new IllegalStateException()),
-                                                r -> EitherT.<IO<?>, Throwable, String>right(Instances.<IO<?>>monad(), "done"));
+        eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>left(Instances.monad(), new IllegalStateException()),
+                                                r -> EitherT.<IO<?>, Throwable, String>right(Instances.monad(), "done"));
 
     assertThrows(IllegalStateException.class,
                  () -> bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync());
@@ -116,8 +116,8 @@ public class MonadDeferTest {
   @Test
   public void eitherTBracketUseError() throws Exception {
     Kind<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>, String> bracket =
-        eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.<IO<?>>monad(), resource),
-                                                r -> EitherT.<IO<?>, Throwable, String>left(Instances.<IO<?>>monad(), new UnsupportedOperationException()));
+        eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.monad(), resource),
+                                                r -> EitherT.<IO<?>, Throwable, String>left(Instances.monad(), new UnsupportedOperationException()));
 
     Either<Throwable, String> unsafeRunSync = bracket.fix(toEitherT()).value().fix(toIO()).unsafeRunSync();
 
@@ -128,8 +128,8 @@ public class MonadDeferTest {
   @Test
   public void optionTBracket() throws Exception {
     Kind<Kind<OptionT<?, ?>, IO<?>>, String> bracket =
-        optionTMonadDefer.bracket(OptionT.some(Instances.<IO<?>>monad(), resource),
-                                  r -> OptionT.some(Instances.<IO<?>>monad(), "done"));
+        optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
+                                  r -> OptionT.some(Instances.monad(), "done"));
 
     String result = bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync();
 
@@ -141,8 +141,8 @@ public class MonadDeferTest {
   @Disabled
   public void optionTBracketAcquireError() throws Exception {
     Kind<Kind<OptionT<?, ?>, IO<?>>, String> bracket =
-        optionTMonadDefer.bracket(OptionT.<IO<?>, AutoCloseable>none(Instances.<IO<?>>monad()),
-                                  r -> OptionT.some(Instances.<IO<?>>monad(), "done"));
+        optionTMonadDefer.bracket(OptionT.<IO<?>, AutoCloseable>none(Instances.monad()),
+                                  r -> OptionT.some(Instances.monad(), "done"));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
                  () -> bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync());
@@ -155,8 +155,8 @@ public class MonadDeferTest {
   @Disabled
   public void optionTBracketUseError() throws Exception {
     Kind<Kind<OptionT<?, ?>, IO<?>>, String> bracket =
-        optionTMonadDefer.bracket(OptionT.some(Instances.<IO<?>>monad(), resource),
-                                  r -> OptionT.<IO<?>, String>none(Instances.<IO<?>>monad()));
+        optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
+                                  r -> OptionT.<IO<?>, String>none(Instances.monad()));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
                  () -> bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync());

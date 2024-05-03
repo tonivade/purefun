@@ -23,7 +23,7 @@ public class ConcurrentTest {
 
   @Test
   public void ioRaceA() {
-    Concurrent<IO<?>> concurrent = Instances.<IO<?>>concurrent();
+    Concurrent<IO<?>> concurrent = Instances.concurrent();
 
     Kind<IO<?>, Either<Integer, String>> race = concurrent.race(
         IO.delay(Duration.ofMillis(10), () -> 10),
@@ -36,7 +36,7 @@ public class ConcurrentTest {
 
   @Test
   public void ioRaceB() {
-    Concurrent<IO<?>> concurrent = Instances.<IO<?>>concurrent();
+    Concurrent<IO<?>> concurrent = Instances.concurrent();
 
     Kind<IO<?>, Either<Integer, String>> race = concurrent.race(
         IO.delay(Duration.ofMillis(100), () -> 10),

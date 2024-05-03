@@ -27,7 +27,7 @@ import com.github.tonivade.purefun.type.Id;
 @ExtendWith(MockitoExtension.class)
 public class ForTest {
 
-  final Monad<Id<?>> monad = Instances.<Id<?>>monad();
+  final Monad<Id<?>> monad = Instances.monad();
 
   @Test
   public void map() {
@@ -55,9 +55,9 @@ public class ForTest {
 
   @Test
   public void flatMap() {
-    Id<String> result = For.with(Instances.<Id<?>>monad())
-        .andThen(() -> Instances.<Id<?>>monad().pure("value"))
-        .flatMap(string -> Instances.<Id<?>>monad().pure(string.toUpperCase()))
+    Id<String> result = For.with(monad)
+        .andThen(() -> monad.pure("value"))
+        .flatMap(string -> monad.pure(string.toUpperCase()))
         .fix(toId());
 
     assertEquals(Id.of("VALUE"), result);
@@ -68,7 +68,7 @@ public class ForTest {
     when(task1.get()).thenReturn("hola toni");
     when(task2.get()).thenReturn("adios toni");
 
-    Applicative<IO<?>> monad = Instances.<IO<?>>applicative();
+    Applicative<IO<?>> monad = Instances.applicative();
     var result = For.with(monad)
       .then(IO.task(task1))
       .then(IO.task(task2))

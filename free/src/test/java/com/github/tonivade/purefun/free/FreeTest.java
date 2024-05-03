@@ -13,7 +13,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.StateInstances;
-import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
@@ -40,7 +39,7 @@ public class FreeTest {
 
   @Test
   public void interpretIO() {
-    var foldMap = echo.foldMap(Instances.<IO<?>>monad(), new IOProgramToIO());
+    var foldMap = echo.foldMap(Instances.monad(), new IOProgramToIO());
 
     var executor = new ConsoleExecutor().read("Toni");
 

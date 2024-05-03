@@ -24,7 +24,7 @@ public interface Traverse<F> extends Functor<F>, Foldable<F> {
 
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
-    Kind<Id<?>, Kind<F, R>> traverse = traverse(Instances.<Id<?>>applicative(), value, t -> Id.of(map.apply(t)));
+    Kind<Id<?>, Kind<F, R>> traverse = traverse(Instances.applicative(), value, t -> Id.of(map.apply(t)));
     return traverse.fix(toId()).value();
   }
 
