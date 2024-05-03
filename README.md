@@ -46,24 +46,20 @@ like this `Monad<F>`. Then we can define a type using a special codification lik
 interface SomeType<T> extends SomeTypeOf<T> { }
 
 // Boilerplate
-interface SomeTypeOf<T> implements Kind<SomeType_, T> {
+interface SomeTypeOf<T> implements Kind<SomeType<?>, T> {
 
-  default Kind<SomeType_, T> kind() {
+  default Kind<SomeType<?>, T> kind() {
     return this;
   }
 
   // this is a safe cast
-  static SomeType<T> narrowK(Kind<SomeType_, T> hkt) {
+  static SomeType<T> narrowK(Kind<SomeType<?>, T> hkt) {
     return (SomeType<T>) hkt;
   }
   
-  static Function<Kind<SomeType_, ? extends T>, SomeType<T>> toSomeType() {
+  static Function<Kind<SomeType<?>, ? extends T>, SomeType<T>> toSomeType() {
     return SomeType::narrowK;
   }
-}
-
-final class SomeType_ {
-  private SomeType_() {}
 }
 ```
 
