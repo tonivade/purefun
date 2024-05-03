@@ -8,7 +8,8 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 import static com.github.tonivade.purefun.core.Unit.unit;
 
-import com.github.tonivade.purefun.Fixer;
+import java.util.function.Function;
+
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Consumer1;
@@ -73,7 +74,7 @@ abstract class AbstractFlatMap<F, A, B> {
 
   public abstract Kind<F, B> run();
 
-  public <R> R fix(Fixer<Kind<F, B>, R> fixer) {
+  public <R> R fix(Function<Kind<F, B>, R> fixer) {
     return run().fix(fixer);
   }
 
@@ -98,7 +99,7 @@ abstract class AbstractApply<F, A> {
 
   public abstract Kind<F, A> run();
 
-  public <R> R fix(Fixer<Kind<F, A>, R> fixer) {
+  public <R> R fix(Function<Kind<F, A>, R> fixer) {
     return run().fix(fixer);
   }
 

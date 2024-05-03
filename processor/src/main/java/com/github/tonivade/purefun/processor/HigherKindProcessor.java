@@ -33,7 +33,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   private static final String JAVAX_ANNOTATION_PROCESSING_GENERATED = "javax.annotation.processing.Generated";
 
   private static final String KIND = "com.github.tonivade.purefun.Kind";
-  private static final String FIXER = "com.github.tonivade.purefun.Fixer";
+  private static final String FUNCTION = "java.util.function.Function";
   private static final String END = "}";
 
   @Override
@@ -125,7 +125,7 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println();
     }
     writer.println(import_(KIND));
-    writer.println(import_(FIXER));
+    writer.println(import_(FUNCTION));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -150,7 +150,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     writer.println(import_(KIND));
-    writer.println(import_(FIXER));
+    writer.println(import_(FUNCTION));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -176,7 +176,7 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     writer.println(import_(KIND));
-    writer.println(import_(FIXER));
+    writer.println(import_(FUNCTION));
     writer.println(import_(generated()));
     writer.println();
     writer.println(GENERATED);
@@ -236,7 +236,7 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
 
   private static void toTypeOf(PrintWriter writer, String types, String returnType, String param, String typeOf, String type) {
-    writer.println("  static " + types + " Fixer<" + param + ", " + returnType + "> to" + type + "() {");
+    writer.println("  static " + types + " Function<" + param + ", " + returnType + "> to" + type + "() {");
     writer.println("    return " + typeOf + "::narrowK;");
     writer.println("  }");
     writer.println();

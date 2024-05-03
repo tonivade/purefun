@@ -4,9 +4,11 @@
  */
 package com.github.tonivade.purefun;
 
+import java.util.function.Function;
+
 public interface Kind<F, A> {
 
-  default <R> R fix(Fixer<? super Kind<F, A>, ? extends R> fixer) {
+  default <R> R fix(Function<? super Kind<F, A>, ? extends R> fixer) {
     return fixer.apply(this);
   }
 
