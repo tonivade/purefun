@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-
 public interface InjectK<F, G> {
 
   <T> Kind<G, T> inject(Kind<F, ? extends T> value);

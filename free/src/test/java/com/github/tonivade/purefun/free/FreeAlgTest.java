@@ -36,9 +36,9 @@ public class FreeAlgTest {
 
   @Test
   public void algebra() {
-    var hello =
-        read().flatMap(name -> write("hello " + name))
-            .andThen(send("toni@home", "hello"));
+    var hello = read()
+        .flatMap(name -> write("hello " + name))
+        .andThen(send("toni@home", "hello"));
 
     ConsoleExecutor executor = new ConsoleExecutor().read("toni");
 
@@ -57,25 +57,19 @@ public class FreeAlgTest {
           new FunctionK<>() {
             @Override
             public <X> Kind<IO<?>, X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {
-              ConsoleAlg<X> consoleAlg = kind.fix(ConsoleAlgOf::narrowK);
-              if (consoleAlg instanceof ConsoleAlg.ReadLine) {
-                return (Kind<IO<?>, X>) console.readln();
-              }
-              if (consoleAlg instanceof ConsoleAlg.WriteLine writeLine) {
-                return (Kind<IO<?>, X>) console.println(writeLine.line());
-              }
-              throw new IllegalStateException();
+              return (Kind<IO<?>, X>) switch(kind.fix(ConsoleAlgOf::narrowK)) {
+                case ConsoleAlg.ReadLine r -> console.readln();
+                case ConsoleAlg.WriteLine(var line) -> console.println(line);
+              };
             }
           },
             new FunctionK<>() {
               @Override
               public <X> Kind<IO<?>, X> apply(Kind<EmailAlg<?>, ? extends X> kind) {
-                EmailAlg<X> emailAlg = kind.fix(EmailAlgOf::narrowK);
-                if (emailAlg instanceof EmailAlg.SendEmail sendEmail) {
-                  return (Kind<IO<?>, X>) console.println(
-                      "email to " + sendEmail.to() + " with content " + sendEmail.content());
-                }
-                throw new IllegalStateException();
+                return (Kind<IO<?>, X>) switch (kind.fix(EmailAlgOf::narrowK)) {
+                case EmailAlg.SendEmail(var to, var content)
+                  -> console.println("email to " + to + " with content " + content);
+                };
               }
             }
         );
