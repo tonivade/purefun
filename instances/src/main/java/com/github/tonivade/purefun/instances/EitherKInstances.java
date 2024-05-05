@@ -9,7 +9,6 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Pattern2;
 import com.github.tonivade.purefun.free.EitherK;
 import com.github.tonivade.purefun.free.EitherKOf;
 import com.github.tonivade.purefun.typeclasses.Comonad;
@@ -21,14 +20,17 @@ public interface EitherKInstances {
 
   static <F, G, T> Eq<Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, T>> eq(
       Eq<Kind<F, T>> leftEq, Eq<Kind<G, T>> rightEq) {
-    return (a, b) -> Pattern2.<EitherK<F, G, T>, EitherK<F, G, T>, Boolean>build()
-        .when((x, y) -> x.isLeft() && y.isLeft())
-          .then((x, y) -> leftEq.eqv(x.getLeft(), y.getLeft()))
-        .when((x, y) -> x.isRight() && y.isRight())
-          .then((x, y) -> rightEq.eqv(x.getRight(), y.getRight()))
-        .otherwise()
-          .returns(false)
-        .apply(EitherKOf.narrowK(a), EitherKOf.narrowK(b));
+    return (a, b) -> {
+      var x = EitherKOf.narrowK(a);
+      var y = EitherKOf.narrowK(b);
+      if (x.isLeft() && y.isLeft()) {
+        return leftEq.eqv(x.getLeft(), y.getLeft());
+      }
+      if (x.isRight() && y.isRight()) {
+        return rightEq.eqv(x.getRight(), y.getRight());
+      }
+      return false;
+    };
   }
 
   static <F, G> Functor<Kind<Kind<EitherK<?, ?, ?>, F>, G>> functor(
