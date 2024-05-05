@@ -58,7 +58,7 @@ public class FreeAlgTest {
             @Override
             public <X> Kind<IO<?>, X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {
               return (Kind<IO<?>, X>) switch(kind.fix(ConsoleAlgOf::narrowK)) {
-                case ConsoleAlg.ReadLine r -> console.readln();
+                case ConsoleAlg.ReadLine() -> console.readln();
                 case ConsoleAlg.WriteLine(var line) -> console.println(line);
               };
             }
