@@ -53,7 +53,7 @@ interface SomeTypeOf<T> implements Kind<SomeType<?>, T> {
   }
 
   // this is a safe cast
-  static SomeType<T> narrowK(Kind<SomeType<?>, T> hkt) {
+  static SomeType<T> narrowK(Kind<SomeType<?>, ? extends T> hkt) {
     return (SomeType<T>) hkt;
   }
   
