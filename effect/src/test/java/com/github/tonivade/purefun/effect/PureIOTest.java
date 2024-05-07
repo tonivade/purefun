@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.effect;
 
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -439,7 +438,7 @@ public class PureIOTest {
         PureIO<Void, Throwable, String> task = PureIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(toPureIO());
+      .flatMap(Fiber::join).fix(PureIOOf::toPureIO);
 
     Either<Throwable, String> orElseThrow = result.runAsync(null).getOrElseThrow();
 

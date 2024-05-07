@@ -5,12 +5,7 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
-import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
-import static com.github.tonivade.purefun.transformer.StateTOf.toStateT;
-
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -19,8 +14,11 @@ import com.github.tonivade.purefun.instances.MonadMTL.EffectE;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectR;
 import com.github.tonivade.purefun.instances.MonadMTL.EffectS;
 import com.github.tonivade.purefun.transformer.EitherT;
+import com.github.tonivade.purefun.transformer.EitherTOf;
 import com.github.tonivade.purefun.transformer.Kleisli;
+import com.github.tonivade.purefun.transformer.KleisliOf;
 import com.github.tonivade.purefun.transformer.StateT;
+import com.github.tonivade.purefun.transformer.StateTOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -111,7 +109,7 @@ public class MonadMTL<F, S, R, E>
     private final EitherT<F, E, A> value;
 
     public EffectE(Kind<Kind<Kind<EitherT<?, ?, ?>, F>, E>, A> value) {
-      this.value = value.fix(toEitherT());
+      this.value = value.fix(EitherTOf::toEitherT);
     }
 
     public EitherT<F, E, A> value() {
@@ -133,7 +131,7 @@ public class MonadMTL<F, S, R, E>
     private final Kleisli<EffectE<?, ?, ?>, R, A> value;
 
     public EffectR(Kind<Kind<Kind<Kleisli<?, ?, ?>, EffectE<?, ?, ?>>, R>, A> value) {
-      this.value = value.fix(toKleisli());
+      this.value = value.fix(KleisliOf::toKleisli);
     }
 
     public Kleisli<EffectE<?, ?, ?>, R, A> value() {
@@ -155,7 +153,7 @@ public class MonadMTL<F, S, R, E>
     private final StateT<EffectR<?, ?, ?, ?>, S, A> value;
 
     public EffectS(Kind<Kind<Kind<StateT<?, ?, ?>, EffectR<?, ?, ?, ?>>, S>, A> value) {
-      this.value = value.fix(toStateT());
+      this.value = value.fix(StateTOf::toStateT);
     }
 
     public StateT<EffectR<?, ?, ?, ?>, S, A> value() {

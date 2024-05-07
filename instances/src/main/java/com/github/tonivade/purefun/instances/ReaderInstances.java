@@ -36,7 +36,7 @@ interface ReaderMonad<R> extends Monad<Kind<Reader<?, ?>, R>> {
   @Override
   default <T, V> Reader<R, V> flatMap(Kind<Kind<Reader<?, ?>, R>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Reader<?, ?>, R>, ? extends V>> map) {
-    return ReaderOf.narrowK(value).flatMap(map.andThen(ReaderOf::narrowK));
+    return ReaderOf.toReader(value).flatMap(map.andThen(ReaderOf::toReader));
   }
 }
 

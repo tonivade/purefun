@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.control;
 
 import static com.github.tonivade.purefun.control.Control.pure;
-import static com.github.tonivade.purefun.control.ControlOf.toControl;
 import static com.github.tonivade.purefun.core.Unit.unit;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +57,7 @@ public class ControlTest {
         .then(state.get())
         .flatMap(x -> amb.flip().flatMap(b -> b ? state.set(x + 1) : pure(unit())))
         .then(state.get())
-        .fix(toControl());
+        .fix(ControlOf::toControl);
   }
 
   private static <R> Control<ImmutableList<R>> ambList(Function1<Amb, Control<R>> program) {

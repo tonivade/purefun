@@ -31,7 +31,7 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> map) {
     return resume().fold(
         next -> more(() -> next.flatMap(map)),
-        map.andThen(TrampolineOf::narrowK));
+        map.andThen(TrampolineOf::toTrampoline));
   }
 
   default <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {

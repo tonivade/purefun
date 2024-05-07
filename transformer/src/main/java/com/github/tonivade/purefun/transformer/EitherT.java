@@ -34,7 +34,7 @@ public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindabl
 
   @Override
   default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends Kind<Kind<Kind<EitherT<?, ?, ?>, F>, L>, ? extends V>> map) {
-    return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>narrowK).apply(v).value()));
+    return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>toEitherT).apply(v).value()));
   }
 
   default <T, V> EitherT<F, T, V> bimap(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends V> rightMapper) {

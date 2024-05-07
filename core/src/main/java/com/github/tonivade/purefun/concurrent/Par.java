@@ -47,7 +47,7 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par<?>, T> {
 
   @Override
   default <R> Par<R> flatMap(Function1<? super T, ? extends Kind<Par<?>, ? extends R>> mapper) {
-    return executor -> apply(executor).flatMap(value -> mapper.andThen(ParOf::narrowK).apply(value).apply(executor));
+    return executor -> apply(executor).flatMap(value -> mapper.andThen(ParOf::toPar).apply(value).apply(executor));
   }
 
   default <R> Par<R> andThen(Par<? extends R> next) {
@@ -106,7 +106,7 @@ public non-sealed interface Par<T> extends ParOf<T>, Bindable<Par<?>, T> {
 
   static <T> Par<T> defer(Producer<? extends Kind<Par<?>, ? extends T>> producer) {
     return executor -> {
-      Producer<Par<T>> andThen = producer.andThen(ParOf::narrowK);
+      Producer<Par<T>> andThen = producer.andThen(ParOf::toPar);
       return andThen.get().apply(executor);
     };
   }

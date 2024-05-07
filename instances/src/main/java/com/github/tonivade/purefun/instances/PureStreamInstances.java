@@ -68,7 +68,7 @@ interface PureStreamFunctor<F> extends Functor<Kind<PureStream<?, ?>, F>> {
 
   @Override
   default <T, R> PureStream<F, R> map(Kind<Kind<PureStream<?, ?>, F>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return PureStreamOf.narrowK(value).map(mapper);
+    return PureStreamOf.toPureStream(value).map(mapper);
   }
 }
 
@@ -91,6 +91,6 @@ interface PureStreamMonad<F> extends Monad<Kind<PureStream<?, ?>, F>>, PureStrea
   @Override
   default <T, R> PureStream<F, R> flatMap(Kind<Kind<PureStream<?, ?>, F>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<PureStream<?, ?>, F>, ? extends R>> mapper) {
-    return PureStreamOf.narrowK(value).flatMap(mapper.andThen(PureStreamOf::narrowK));
+    return PureStreamOf.toPureStream(value).flatMap(mapper.andThen(PureStreamOf::toPureStream));
   }
 }

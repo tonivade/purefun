@@ -216,7 +216,7 @@ public sealed interface PureStream<F, T>
     default <T> PureStream<F, T> suspend(Producer<? extends PureStream<F, ? extends T>> lazy) {
       return new Suspend<>(monadDefer(),
           monadDefer().defer(
-              lazy.andThen(PureStreamOf::<F, T>narrowK).map(monadDefer()::<PureStream<F, T>>pure)));
+              lazy.andThen(PureStreamOf::<F, T>toPureStream).map(monadDefer()::<PureStream<F, T>>pure)));
     }
 
     default <T> PureStream<F, T> eval(Kind<F, ? extends T> value) {

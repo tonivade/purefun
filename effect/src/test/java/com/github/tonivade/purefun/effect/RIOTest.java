@@ -10,7 +10,6 @@ import static com.github.tonivade.purefun.effect.RIO.race;
 import static com.github.tonivade.purefun.effect.RIO.raiseError;
 import static com.github.tonivade.purefun.effect.RIO.sleep;
 import static com.github.tonivade.purefun.effect.RIO.task;
-import static com.github.tonivade.purefun.effect.RIOOf.toRIO;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -200,7 +199,7 @@ public class RIOTest {
         RIO<Void, String> task = task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(toRIO());
+      .flatMap(Fiber::join).fix(RIOOf::toRIO);
 
     Try<String> orElseThrow = result.safeRunSync(null);
 

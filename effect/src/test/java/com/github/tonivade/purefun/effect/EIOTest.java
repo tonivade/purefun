@@ -201,14 +201,14 @@ public class EIOTest {
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
   }
-  
+
   @Test
   public void traverse() {
     EIO<Throwable, String> left = task(() -> "left");
     EIO<Throwable, String> right = task(() -> "right");
-    
+
     EIO<Throwable, Sequence<String>> traverse = EIO.traverse(listOf(left, right));
-    
+
     assertEquals(Either.right(listOf("left", "right")), traverse.safeRunSync());
   }
 
@@ -217,9 +217,9 @@ public class EIOTest {
     EIO<Throwable, Either<Integer, String>> race = EIO.race(
         EIO.<Throwable>sleep(Duration.ofMillis(10)).map(x -> 10),
         EIO.<Throwable>sleep(Duration.ofMillis(100)).map(x -> "b"));
-    
+
     Either<Throwable, Either<Integer, String>> orElseThrow = race.safeRunSync();
-    
+
     assertEquals(Either.right(Either.left(10)), orElseThrow);
   }
 
@@ -228,12 +228,12 @@ public class EIOTest {
     EIO<Throwable, Either<Integer, String>> race = EIO.race(
         EIO.<Throwable>sleep(Duration.ofMillis(100)).map(x -> 10),
         EIO.<Throwable>sleep(Duration.ofMillis(10)).map(x -> "b"));
-    
+
     Either<Throwable, Either<Integer, String>> orElseThrow = race.safeRunSync();
-    
+
     assertEquals(Either.right(Either.right("b")), orElseThrow);
   }
-  
+
   @Test
   public void fork() {
     EIO<Throwable, String> result = For.with(EIOInstances.<Throwable>monad())
@@ -243,18 +243,18 @@ public class EIOTest {
         EIO<Throwable, String> task = EIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(EIOOf.toEIO());
-    
+      .flatMap(Fiber::join).fix(EIOOf::toEIO);
+
     Either<Throwable, String> orElseThrow = result.safeRunSync();
 
     assertEquals(Either.right("hola toni"), orElseThrow);
   }
-  
+
   @Test
   public void timeoutFail() {
     assertThrows(TimeoutException.class, () -> EIO.never().timeout(Duration.ofSeconds(1)).safeRunSync());
   }
-  
+
   @Test
   public void timeoutSuccess() {
     assertEquals(Either.right(1), EIO.pure(1).timeout(Duration.ofSeconds(1)).safeRunSync());

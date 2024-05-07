@@ -27,19 +27,14 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import java.util.function.Function;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> narrowK(Kind<Foo<?>, ? extends A> hkt) {",
+        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
-        "}",
-
-        "static <A> Function<Kind<Foo<?>, ? extends A>, Foo<A>> toFoo() {",
-        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -60,19 +55,14 @@ public class HigherKindProcessorTest {
 
     JavaFileObject generated = forSourceLines("test.FooOf",
         "import com.github.tonivade.purefun.Kind;",
-        "import java.util.function.Function;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> narrowK(Kind<Foo<?>, ? extends A> hkt) {",
+        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
-        "}",
-
-        "static <A> Function<Kind<Foo<?>, ? extends A>, Foo<A>> toFoo() {",
-        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -97,19 +87,14 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import java.util.function.Function;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A extends java.lang.String> Foo<A> narrowK(Kind<Foo<?>, ? extends A> hkt) {",
+        "static <A extends java.lang.String> Foo<A> toFoo(Kind<Foo<?>, ? extends A> hkt) {",
         "return (Foo<A>) hkt;",
-        "}",
-
-        "static <A extends java.lang.String> Function<Kind<Foo<?>, ? extends A>, Foo<A>> toFoo() {",
-        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -166,19 +151,14 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import java.util.function.Function;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A, B> extends Kind<Kind<Foo<?, ?>, A>, B> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B> Foo<A, B> narrowK(Kind<Kind<Foo<?, ?>, A>, ? extends B> hkt) {",
+        "static <A, B> Foo<A, B> toFoo(Kind<Kind<Foo<?, ?>, A>, ? extends B> hkt) {",
         "return (Foo<A, B>) hkt;",
-        "}",
-
-        "static <A, B> Function<Kind<Kind<Foo<?, ?>, A>, ? extends B>, Foo<A, B>> toFoo() {",
-        "return FooOf::narrowK;",
         "}",
 
         "}");
@@ -203,19 +183,14 @@ public class HigherKindProcessorTest {
         "package test;",
 
         "import com.github.tonivade.purefun.Kind;",
-        "import java.util.function.Function;",
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
         "public sealed interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, C> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B, C> Foo<A, B, C> narrowK(Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, ? extends C> hkt) {",
+        "static <A, B, C> Foo<A, B, C> toFoo(Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, ? extends C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
-        "}",
-
-        "static <A, B, C> Function<Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, ? extends C>, Foo<A, B, C>> toFoo() {",
-        "return FooOf::narrowK;",
         "}",
 
         "}");

@@ -79,11 +79,11 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableTree<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableTree.from(naturalOrder(), stream().flatMap(mapper.andThen(SequenceOf::narrowK).andThen(Sequence::stream)::apply));
+    return ImmutableTree.from(naturalOrder(), stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)::apply));
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableTree.from(comparator, stream().flatMap(mapper.andThen(SequenceOf::narrowK).andThen(Sequence::stream)::apply));
+    return ImmutableTree.from(comparator, stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)::apply));
   }
 
   @Override

@@ -6,8 +6,6 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Unit.unit;
-import static com.github.tonivade.purefun.free.FreeOf.toFree;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
@@ -105,12 +103,12 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
 
     @Override
     public <C> Free<F, C> flatMap(Function1<? super B, ? extends Kind<Kind<Free<?, ?>, F>, ? extends C>> map) {
-      return new FlatMapped<>(value, free -> new FlatMapped<>(next.andThen(FreeOf::<F, B>narrowK).apply(free), map));
+      return new FlatMapped<>(value, free -> new FlatMapped<>(next.andThen(FreeOf::toFree).apply(free), map));
     }
 
     private <G> Kind<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       Kind<G, ? extends A> foldMap = value.foldMap(monad, interpreter);
-      Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::narrowK);
+      Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::toFree);
       return monad.map(foldMap, andThen.andThen(Either::left));
     }
   }
@@ -137,6 +135,6 @@ interface FreeMonad<F> extends Monad<Kind<Free<?, ?>, F>> {
   @Override
   default <T, R> Free<F, R> flatMap(
       Kind<Kind<Free<?, ?>, F>, ? extends T> value, Function1<? super T, ? extends Kind<Kind<Free<?, ?>, F>, ? extends R>> map) {
-    return value.fix(toFree()).flatMap(map.andThen(FreeOf::narrowK));
+    return value.fix(FreeOf::toFree).flatMap(map.andThen(FreeOf::toFree));
   }
 }

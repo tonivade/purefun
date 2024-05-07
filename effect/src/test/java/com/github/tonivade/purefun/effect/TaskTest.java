@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.effect.Task.pure;
 import static com.github.tonivade.purefun.effect.Task.task;
 import static com.github.tonivade.purefun.effect.Task.unit;
-import static com.github.tonivade.purefun.effect.TaskOf.toTask;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -172,14 +171,14 @@ class TaskTest {
 
     assertEquals(Either.right(env.getValue()), result.provide(env));
   }
-  
+
   @Test
   void traverse() {
     Task<String> left = task(() -> "left");
     Task<String> right = task(() -> "right");
-    
+
     Task<Sequence<String>> traverse = Task.traverse(listOf(left, right));
-    
+
     assertEquals(Try.success(listOf("left", "right")), traverse.safeRunSync());
   }
 
@@ -188,9 +187,9 @@ class TaskTest {
     Task<Either<Integer, String>> race = Task.race(
         Task.sleep(Duration.ofMillis(10)).map(x -> 10),
         Task.sleep(Duration.ofMillis(100)).map(x -> "b"));
-    
+
     Try<Either<Integer, String>> orElseThrow = race.safeRunSync();
-    
+
     assertEquals(Try.success(Either.left(10)), orElseThrow);
   }
 
@@ -199,12 +198,12 @@ class TaskTest {
     Task<Either<Integer, String>> race = Task.race(
         Task.sleep(Duration.ofMillis(100)).map(x -> 10),
         Task.sleep(Duration.ofMillis(10)).map(x -> "b"));
-    
+
     Try<Either<Integer, String>> orElseThrow = race.safeRunSync();
-    
+
     assertEquals(Try.success(Either.right("b")), orElseThrow);
   }
-  
+
   @Test
   void fork() {
     Task<String> result = For.with(TaskInstances.monad())
@@ -214,29 +213,29 @@ class TaskTest {
         Task<String> task = Task.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(toTask());
-    
+      .flatMap(Fiber::join).fix(TaskOf::toTask);
+
     Try<String> orElseThrow = result.safeRunSync();
 
     assertEquals(Try.success("hola toni"), orElseThrow);
   }
-  
+
   @Test
   void timeoutFail() {
     Try<Unit> safeRunSync = Task.<Unit>never().timeout(Duration.ofSeconds(1)).safeRunSync();
-    
+
     assertTrue(safeRunSync.getCause() instanceof TimeoutException);
   }
-  
+
   @Test
   void timeoutSuccess() {
     assertEquals(Try.success(1), Task.pure(1).timeout(Duration.ofSeconds(1)).safeRunSync());
   }
-  
+
   @Test
   void liftTry() {
     Task<String> flatMap = Task.pure("Toni").flatMap(Task.liftTry(this::helloWorld));
-    
+
     assertEquals(Try.success("Hello Toni!"), flatMap.safeRunSync());
   }
 
@@ -251,7 +250,7 @@ class TaskTest {
   private Function1<ResultSet, Task<String>> getString(String column) {
     return resultSet -> task(() -> resultSet.getString(column));
   }
-  
+
   private Try<String> helloWorld(String name) {
     return Try.success("Hello " + name + "!");
   }

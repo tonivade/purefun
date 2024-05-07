@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 
@@ -92,7 +91,7 @@ interface PureIOFunctor<R, E> extends Functor<Kind<Kind<PureIO<?, ?, ?>, R>, E>>
   default <A, B> PureIO<R, E, B> map(
       Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> value,
       Function1<? super A, ? extends B> map) {
-    return PureIOOf.narrowK(value).map(map);
+    return PureIOOf.toPureIO(value).map(map);
   }
 }
 
@@ -113,7 +112,7 @@ interface PureIOApplicative<R, E> extends PureIOPure<R, E> {
   default <A, B> PureIO<R, E, B>
           ap(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> value,
              Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(PureIOOf::<R, E, A>narrowK).ap(apply);
+    return value.fix(PureIOOf::<R, E, A>toPureIO).ap(apply);
   }
 }
 
@@ -126,7 +125,7 @@ interface PureIOMonad<R, E> extends PureIOPure<R, E>, Monad<Kind<Kind<PureIO<?, 
   default <A, B> PureIO<R, E, B>
           flatMap(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> value,
                   Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B>> map) {
-    return value.fix(toPureIO()).flatMap(map.andThen(PureIOOf::narrowK));
+    return value.fix(PureIOOf::toPureIO).flatMap(map.andThen(PureIOOf::toPureIO));
   }
 }
 
@@ -144,7 +143,7 @@ interface PureIOMonadError<R, E> extends PureIOMonad<R, E>, MonadError<Kind<Kind
   default <A> PureIO<R, E, A> handleErrorWith(
       Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> handler) {
-    return PureIOOf.narrowK(value).foldM(handler, PureIO::pure);
+    return PureIOOf.toPureIO(value).foldM(handler, PureIO::pure);
   }
 }
 
@@ -159,7 +158,7 @@ interface PureIODefer<R, E> extends Defer<Kind<Kind<PureIO<?, ?, ?>, R>, E>> {
   @Override
   default <A> PureIO<R, E, A>
           defer(Producer<? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> defer) {
-    return PureIO.defer(() -> defer.map(PureIOOf::<R, E, A>narrowK).get());
+    return PureIO.defer(() -> defer.map(PureIOOf::<R, E, A>toPureIO).get());
   }
 }
 
@@ -194,7 +193,7 @@ interface PureIOAsync<R> extends Async<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>
 
   @Override
   default <A> PureIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>, Unit>> consumer) {
-    return PureIO.cancellable((env, cb) -> consumer.andThen(PureIOOf::narrowK).apply(e -> cb.accept(Try.success(e.toEither()))));
+    return PureIO.cancellable((env, cb) -> consumer.andThen(PureIOOf::toPureIO).apply(e -> cb.accept(Try.success(e.toEither()))));
   }
 }
 
@@ -214,7 +213,7 @@ interface PureIOConcurrent<R> extends Concurrent<Kind<Kind<PureIO<?, ?, ?>, R>, 
 
   @Override
   default <A> PureIO<R, Throwable, Fiber<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>, A>> fork(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>, ? extends A> value) {
-    return value.fix(PureIOOf::<R, Throwable, A>narrowK).fork();
+    return value.fix(PureIOOf::<R, Throwable, A>toPureIO).fork();
   }
 }
 
@@ -246,7 +245,7 @@ interface PureIORuntime<R, E> extends Runtime<Kind<Kind<PureIO<?, ?, ?>, R>, E>>
 
   @Override
   default <T> T run(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, T> value) {
-    return value.fix(toPureIO()).provide(env()).getRight();
+    return value.fix(PureIOOf::toPureIO).provide(env()).getRight();
   }
 
   @Override
@@ -256,7 +255,7 @@ interface PureIORuntime<R, E> extends Runtime<Kind<Kind<PureIO<?, ?, ?>, R>, E>>
 
   @Override
   default <T> Future<T> parRun(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, T> value, Executor executor) {
-    return value.fix(toPureIO()).runAsync(env()).map(Either::get);
+    return value.fix(PureIOOf::toPureIO).runAsync(env()).map(Either::get);
   }
 
   @Override

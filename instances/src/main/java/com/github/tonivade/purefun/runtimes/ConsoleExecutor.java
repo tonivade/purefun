@@ -25,36 +25,36 @@ public final class ConsoleExecutor {
 
   private final StringBuilder input = new StringBuilder();
   private final ByteArrayOutputStream output = new ByteArrayOutputStream();
-  
+
   public ConsoleExecutor read(String string) {
     input.append(string).append('\n');
     return this;
   }
-  
+
   public String getOutput() {
     return output.toString(UTF_8);
   }
-  
+
   public <R, E, T> Function1<R, Either<E, T>> run(PureIO<R, E, T> program) {
     return env -> run(() -> program.provide(env));
   }
-  
+
   public <R, T> Function1<R, Try<T>> run(RIO<R, T> program) {
     return env -> run(() -> program.safeRunSync(env));
   }
-  
+
   public <R, T> Function1<R, T> run(URIO<R, T> program) {
     return env -> run(() -> program.unsafeRunSync(env));
   }
-  
+
   public <T> T run(IO<T> program) {
     return run(program::unsafeRunSync);
   }
-  
+
   public <T> T run(UIO<T> program) {
     return run(program::unsafeRunSync);
   }
-  
+
   public <T> Try<T> run(Task<T> program) {
     return run(program::safeRunSync);
   }

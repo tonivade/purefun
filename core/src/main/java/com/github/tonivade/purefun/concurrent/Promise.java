@@ -75,7 +75,7 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise<?>, T>
 
   @Override
   default <R> Promise<R> andThen(Kind<Promise<?>, ? extends R> next) {
-    return PromiseOf.narrowK(Bindable.super.andThen(next));
+    return PromiseOf.toPromise(Bindable.super.andThen(next));
   }
 
   @Override
@@ -238,7 +238,7 @@ final class PromiseImpl<T> implements Promise<T> {
   @Override
   public <R> Promise<R> ap(Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply) {
     Promise<R> result = new PromiseImpl<>(executor);
-    onComplete(try1 -> PromiseOf.narrowK(apply).onComplete(
+    onComplete(try1 -> PromiseOf.toPromise(apply).onComplete(
         try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
     return result;
   }
@@ -254,7 +254,7 @@ final class PromiseImpl<T> implements Promise<T> {
   public <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> mapper) {
     Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> {
-      Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::narrowK));
+      Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::toPromise));
       map.fold(
         error -> other.tryComplete(Try.failure(error)),
         next -> next.onComplete(other::tryComplete));
@@ -278,7 +278,7 @@ final class PromiseImpl<T> implements Promise<T> {
 
   @SuppressWarnings("NullAway")
   private Try<T> safeGet() {
-    return TryOf.narrowK(reference.get());
+    return TryOf.toTry(reference.get());
   }
 
   private void set(Try<? extends T> value) {

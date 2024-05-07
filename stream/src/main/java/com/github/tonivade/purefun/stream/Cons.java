@@ -98,7 +98,7 @@ public final class Cons<F, T> implements PureStream<F, T> {
   }
 
   @Override
-  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin,
       Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator) {
     return monad.flatMap(head, h -> tail.foldRight(combinator.apply(h, begin), combinator));
   }
@@ -127,7 +127,7 @@ public final class Cons<F, T> implements PureStream<F, T> {
   public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream<?, ?>, F>, ? extends R>> map) {
     return suspendF(() ->
         monad.map(
-            monad.map(head, map.andThen(PureStreamOf::<F, R>narrowK)),
+            monad.map(head, map.andThen(PureStreamOf::<F, R>toPureStream)),
             s -> s.concat(tail.flatMap(map))));
   }
 

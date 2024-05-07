@@ -142,11 +142,11 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
     }
 
     private Eval<A> start() {
-      return EvalOf.narrowK(start.get());
+      return EvalOf.toEval(start.get());
     }
 
     private Eval<B> run(A value) {
-      Function1<? super A, Eval<B>> andThen = run.andThen(EvalOf::narrowK);
+      Function1<? super A, Eval<B>> andThen = run.andThen(EvalOf::toEval);
       return andThen.apply(value);
     }
 

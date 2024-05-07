@@ -54,7 +54,7 @@ public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Kind<W
 
   @Override
   default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Kind<Kind<Writer<?, ?>, L>, ? extends B>> mapper) {
-    Writer<L, B> apply = mapper.andThen(WriterOf::<L, B>narrowK).apply(value().get2());
+    Writer<L, B> apply = mapper.andThen(WriterOf::<L, B>toWriter).apply(value().get2());
     Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
   }

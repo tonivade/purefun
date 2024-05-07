@@ -9,7 +9,6 @@ import static com.github.tonivade.purefun.effect.UIO.pure;
 import static com.github.tonivade.purefun.effect.UIO.raiseError;
 import static com.github.tonivade.purefun.effect.UIO.task;
 import static com.github.tonivade.purefun.effect.UIO.unit;
-import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -212,7 +211,7 @@ public class UIOTest {
         UIO<String> task = UIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(toUIO());
+      .flatMap(Fiber::join).fix(UIOOf::toUIO);
 
     String orElseThrow = result.unsafeRunSync();
 

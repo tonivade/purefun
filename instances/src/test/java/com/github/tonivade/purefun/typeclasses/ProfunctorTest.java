@@ -25,6 +25,6 @@ public class ProfunctorTest {
 
     Kind<Kind<Function1<?, ?>, Integer>, Double> result = profunctor.dimap(parseInt, toString, toDouble);
 
-    assertEquals(2.0, result.fix(Function1Of::<Integer, Double>narrowK).apply(2));
+    assertEquals(2.0, result.fix(Function1Of::<Integer, Double>toFunction1).apply(2));
   }
 }

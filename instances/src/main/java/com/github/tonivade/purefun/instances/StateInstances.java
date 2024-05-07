@@ -46,7 +46,7 @@ interface StateMonad<S> extends Monad<Kind<State<?, ?>, S>> {
   @Override
   default <T, R> State<S, R> flatMap(Kind<Kind<State<?, ?>, S>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<State<?, ?>, S>, ? extends R>> map) {
-    return StateOf.narrowK(value).flatMap(map.andThen(StateOf::narrowK));
+    return StateOf.toState(value).flatMap(map.andThen(StateOf::toState));
   }
 }
 

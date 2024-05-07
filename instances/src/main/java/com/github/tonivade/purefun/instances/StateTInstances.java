@@ -53,7 +53,7 @@ interface StateTMonad<F, S> extends Monad<Kind<Kind<StateT<?, ?, ?>, F>, S>> {
   @Override
   default <T, R> StateT<F, S, R> flatMap(Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends R>> map) {
-    return StateTOf.narrowK(value).flatMap(map.andThen(StateTOf::narrowK));
+    return StateTOf.toStateT(value).flatMap(map.andThen(StateTOf::toStateT));
   }
 }
 
@@ -76,10 +76,10 @@ interface StateTMonadError<F, S, E> extends MonadError<Kind<Kind<StateT<?, ?, ?>
   default <A> StateT<F, S, A> handleErrorWith(
       Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends A>> handler) {
-    StateT<F, S, A> stateT = value.fix(StateTOf::narrowK);
+    StateT<F, S, A> stateT = value.fix(StateTOf::toStateT);
     return StateT.state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
-            error -> handler.apply(error).fix(StateTOf::<F, S, A>narrowK).run(state)));
+            error -> handler.apply(error).fix(StateTOf::<F, S, A>toStateT).run(state)));
   }
 }
 

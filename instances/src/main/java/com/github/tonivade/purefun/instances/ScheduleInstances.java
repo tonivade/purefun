@@ -1,13 +1,11 @@
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.typeclasses.ScheduleOf.toSchedule;
-
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Profunctor;
 import com.github.tonivade.purefun.typeclasses.Schedule;
+import com.github.tonivade.purefun.typeclasses.ScheduleOf;
 
 @SuppressWarnings("unchecked")
 public interface ScheduleInstances {
@@ -30,7 +28,7 @@ interface ScheduleFunctor<F, A> extends Functor<Kind<Kind<Schedule<?, ?, ?>, F>,
   default <T, R> Schedule<F, A, R> map(
       Kind<Kind<Kind<Schedule<?, ?, ?>, F>, A>, ? extends T> value,
       Function1<? super T, ? extends R> mapper) {
-    return value.fix(toSchedule()).map(mapper);
+    return value.fix(ScheduleOf::toSchedule).map(mapper);
   }
 }
 
@@ -44,6 +42,6 @@ interface ScheduleProfunctor<F> extends Profunctor<Kind<Schedule<?, ?, ?>, F>> {
       Kind<Kind<Kind<Schedule<?, ?, ?>, F>, A>, ? extends B> value,
       Function1<? super C, ? extends A> contramap,
       Function1<? super B, ? extends D> map) {
-    return value.fix(toSchedule()).dimap(contramap, map);
+    return value.fix(ScheduleOf::toSchedule).dimap(contramap, map);
   }
 }

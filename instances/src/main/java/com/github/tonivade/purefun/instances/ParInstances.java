@@ -62,7 +62,7 @@ interface ParFunctor extends Functor<Par<?>> {
 
   @Override
   default <T, R> Par<R> map(Kind<Par<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(ParOf::narrowK).map(mapper);
+    return value.fix(ParOf::toPar).map(mapper);
   }
 }
 
@@ -80,7 +80,7 @@ interface PureApplicative extends ParPure {
   @Override
   default <T, R> Par<R> ap(Kind<Par<?>, ? extends T> value,
       Kind<Par<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(ParOf::<T>narrowK).ap(apply.fix(ParOf::narrowK));
+    return value.fix(ParOf::<T>toPar).ap(apply.fix(ParOf::toPar));
   }
 }
 
@@ -90,7 +90,7 @@ interface ParMonad extends ParPure, Monad<Par<?>> {
 
   @Override
   default <T, R> Par<R> flatMap(Kind<Par<?>, ? extends T> value, Function1<? super T, ? extends Kind<Par<?>, ? extends R>> map) {
-    return value.fix(ParOf::narrowK).flatMap(x -> map.apply(x).fix(ParOf::narrowK));
+    return value.fix(ParOf::toPar).flatMap(x -> map.apply(x).fix(ParOf::toPar));
   }
 
   /**
@@ -100,7 +100,7 @@ interface ParMonad extends ParPure, Monad<Par<?>> {
   @Override
   default <T, R> Par<R> ap(Kind<Par<?>, ? extends T> value,
       Kind<Par<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return ParInstances.applicative().ap(value, apply).fix(ParOf::narrowK);
+    return ParInstances.applicative().ap(value, apply).fix(ParOf::toPar);
   }
 }
 
@@ -116,7 +116,7 @@ interface ParMonadThrow extends ParMonad, MonadThrow<Par<?>> {
   @Override
   default <A> Par<A> handleErrorWith(Kind<Par<?>, A> value,
                                      Function1<? super Throwable, ? extends Kind<Par<?>, ? extends A>> handler) {
-    return ParOf.narrowK(value).fold(handler.andThen(ParOf::narrowK), Par::success).flatMap(identity());
+    return ParOf.toPar(value).fold(handler.andThen(ParOf::toPar), Par::success).flatMap(identity());
   }
 }
 
@@ -124,7 +124,7 @@ interface ParDefer extends Defer<Par<?>> {
 
   @Override
   default <A> Par<A> defer(Producer<? extends Kind<Par<?>, ? extends A>> defer) {
-    return Par.defer(defer.map(ParOf::<A>narrowK));
+    return Par.defer(defer.map(ParOf::<A>toPar));
   }
 }
 
@@ -135,7 +135,7 @@ interface ParBracket extends Bracket<Par<?>, Throwable> {
       Kind<Par<?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<Par<?>, ? extends B>> use,
       Function1<? super A, ? extends Kind<Par<?>, Unit>> release) {
-    return Par.bracket(ParOf.narrowK(acquire), use.andThen(ParOf::narrowK), release::apply);
+    return Par.bracket(ParOf.toPar(acquire), use.andThen(ParOf::toPar), release::apply);
   }
 }
 

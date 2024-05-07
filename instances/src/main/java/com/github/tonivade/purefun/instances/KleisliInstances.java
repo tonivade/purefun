@@ -5,8 +5,6 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.transformer.KleisliOf.toKleisli;
-
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Function1;
@@ -53,7 +51,7 @@ interface KleisliMonad<F, Z> extends Monad<Kind<Kind<Kleisli<?, ?, ?>, F>, Z>> {
   @Override
   default <T, R> Kleisli<F, Z, R> flatMap(Kind<Kind<Kind<Kleisli<?, ?, ?>, F>, Z>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Kind<Kleisli<?, ?, ?>, F>, Z>, ? extends R>> map) {
-    return value.fix(toKleisli()).flatMap(map.andThen(KleisliOf::narrowK));
+    return value.fix(KleisliOf::toKleisli).flatMap(map.andThen(KleisliOf::toKleisli));
   }
 }
 
@@ -75,10 +73,10 @@ interface KleisliMonadError<F, R, E> extends MonadError<Kind<Kind<Kleisli<?, ?, 
   default <A> Kleisli<F, R, A> handleErrorWith(
       Kind<Kind<Kind<Kleisli<?, ?, ?>, F>, R>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<Kleisli<?, ?, ?>, F>, R>, ? extends A>> handler) {
-    Kleisli<F, R, A> kleisli = value.fix(KleisliOf::narrowK);
+    Kleisli<F, R, A> kleisli = value.fix(KleisliOf::toKleisli);
     return Kleisli.of(monadF(),
         reader -> monadF().handleErrorWith(kleisli.run(reader),
-            error -> handler.apply(error).fix(KleisliOf::narrowK).run(reader)));
+            error -> handler.apply(error).fix(KleisliOf::toKleisli).run(reader)));
   }
 }
 

@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.PromiseOf.toPromise;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.util.concurrent.Executor;
@@ -47,7 +46,7 @@ interface PromiseFunctor extends Functor<Promise<?>> {
 
   @Override
   default <T, R> Kind<Promise<?>, R> map(Kind<Promise<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(toPromise()).map(mapper);
+    return value.fix(PromiseOf::toPromise).map(mapper);
   }
 }
 
@@ -72,7 +71,7 @@ interface PromiseApplicative extends PromisePure {
   @Override
   default <T, R> Kind<Promise<?>, R> ap(Kind<Promise<?>, ? extends T> value,
       Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(PromiseOf::<T>narrowK).ap(apply.fix(PromiseOf::narrowK));
+    return value.fix(PromiseOf::<T>toPromise).ap(apply.fix(PromiseOf::toPromise));
   }
 }
 
@@ -85,7 +84,7 @@ interface PromiseMonad extends PromisePure, Monad<Promise<?>> {
   @Override
   default <T, R> Kind<Promise<?>, R> flatMap(Kind<Promise<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> map) {
-    return value.fix(toPromise()).flatMap(map.andThen(PromiseOf::narrowK));
+    return value.fix(PromiseOf::toPromise).flatMap(map.andThen(PromiseOf::toPromise));
   }
 
   /**

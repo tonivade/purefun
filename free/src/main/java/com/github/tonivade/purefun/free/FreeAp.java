@@ -5,21 +5,17 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.free.FreeApOf.toFreeAp;
-import static com.github.tonivade.purefun.free.FreeOf.toFree;
-import static com.github.tonivade.purefun.type.ConstOf.toConst;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Const;
+import com.github.tonivade.purefun.type.ConstOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
 
 @HigherKind
 public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<FreeAp<?, ?>, F>, A> {
@@ -46,20 +42,20 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   default <G> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
-    return foldMap(functionKF(transformer), applicativeF()).fix(toFreeAp());
+    return foldMap(functionKF(transformer), applicativeF()).fix(FreeApOf::toFreeAp);
   }
 
   default <G> FreeAp<G, A> flatCompile(
       FunctionK<F, Kind<FreeAp<?, ?>, G>> functionK, Applicative<Kind<FreeAp<?, ?>, G>> applicative) {
-    return foldMap(functionK, applicative).fix(toFreeAp());
+    return foldMap(functionK, applicative).fix(FreeApOf::toFreeAp);
   }
 
   default <M> M analyze(FunctionK<F, Kind<Const<?, ?>, M>> functionK, Applicative<Kind<Const<?, ?>, M>> applicative) {
-    return foldMap(functionK, applicative).fix(toConst()).value();
+    return foldMap(functionK, applicative).fix(ConstOf::toConst).value();
   }
 
   default Free<F, A> monad() {
-    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(toFree());
+    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(FreeOf::toFree);
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -125,7 +121,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
 
   static <F, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp<?, ?>, F>, ? extends T> value,
       Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super T, ? extends R>> mapper) {
-    return new Apply<>(value.fix(toFreeAp()), mapper.fix(toFreeAp()));
+    return new Apply<>(value.fix(FreeApOf::toFreeAp), mapper.fix(FreeApOf::toFreeAp));
   }
 
   static <F, G> FunctionK<F, Kind<FreeAp<?, ?>, G>> functionKF(FunctionK<F, G> functionK) {

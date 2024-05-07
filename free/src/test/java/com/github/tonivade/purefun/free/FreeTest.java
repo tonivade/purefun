@@ -4,19 +4,18 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.instances.StateInstances;
+import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Instances;
+import org.junit.jupiter.api.Test;
 
 public class FreeTest {
 
@@ -30,7 +29,7 @@ public class FreeTest {
   public void interpretState() {
     var foldMap = echo.foldMap(StateInstances.monad(), new IOProgramToState());
 
-    State<ImmutableList<String>, Unit> state = StateOf.narrowK(foldMap);
+    State<ImmutableList<String>, Unit> state = StateOf.toState(foldMap);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(ImmutableList.of("Toni"));
 
@@ -43,7 +42,8 @@ public class FreeTest {
 
     var executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(foldMap.fix(toIO()));
+    IO<Unit> fix = foldMap.fix(IOOf::toIO);
+    executor.run(fix);
 
     assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());
   }

@@ -31,7 +31,7 @@ interface CofreeFunctor<F> extends Functor<Kind<Cofree<?, ?>, F>> {
 
   @Override
   default <T, R> Cofree<F, R> map(Kind<Kind<Cofree<?, ?>, F>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(CofreeOf::narrowK).map(map);
+    return value.fix(CofreeOf::toCofree).map(map);
   }
 }
 
@@ -42,12 +42,12 @@ interface CofreeComonad<F> extends Comonad<Kind<Cofree<?, ?>, F>>, CofreeFunctor
 
   @Override
   default <A> A extract(Kind<Kind<Cofree<?, ?>, F>, ? extends A> value) {
-    return value.fix(CofreeOf::narrowK).extract();
+    return value.fix(CofreeOf::toCofree).extract();
   }
 
   @Override
   default <A, B> Cofree<F, B> coflatMap(
       Kind<Kind<Cofree<?, ?>, F>, ? extends A> value, Function1<? super Kind<Kind<Cofree<?, ?>, F>, ? extends A>, ? extends B> map) {
-    return value.fix(CofreeOf::narrowK).coflatMap(map);
+    return value.fix(CofreeOf::toCofree).coflatMap(map);
   }
 }

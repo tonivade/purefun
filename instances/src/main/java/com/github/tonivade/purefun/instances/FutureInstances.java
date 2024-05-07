@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.concurrent.FutureOf.toFuture;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
@@ -57,7 +56,7 @@ interface FutureFunctor extends Functor<Future<?>> {
 
   @Override
   default <T, R> Kind<Future<?>, R> map(Kind<Future<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(toFuture()).map(mapper);
+    return value.fix(FutureOf::toFuture).map(mapper);
   }
 }
 
@@ -82,7 +81,7 @@ interface FutureApplicative extends FuturePure {
   @Override
   default <T, R> Kind<Future<?>, R> ap(Kind<Future<?>, ? extends T> value,
       Kind<Future<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(FutureOf::<T>narrowK).ap(apply.fix(FutureOf::narrowK));
+    return value.fix(FutureOf::<T>toFuture).ap(apply.fix(FutureOf::toFuture));
   }
 }
 
@@ -95,7 +94,7 @@ interface FutureMonad extends FuturePure, Monad<Future<?>> {
   @Override
   default <T, R> Kind<Future<?>, R> flatMap(Kind<Future<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Future<?>, ? extends R>> map) {
-    return value.fix(toFuture()).flatMap(map.andThen(FutureOf::narrowK));
+    return value.fix(FutureOf::toFuture).flatMap(map.andThen(FutureOf::toFuture));
   }
 
   /**
@@ -124,7 +123,7 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future<?>> {
   default <A> Kind<Future<?>, A> handleErrorWith(
       Kind<Future<?>, A> value,
       Function1<? super Throwable, ? extends Kind<Future<?>, ? extends A>> handler) {
-    return value.fix(toFuture()).fold(handler.andThen(FutureOf::narrowK),
+    return value.fix(FutureOf::toFuture).fold(handler.andThen(FutureOf::toFuture),
                                       success -> Future.success(executor(), success)).flatMap(identity());
   }
 }

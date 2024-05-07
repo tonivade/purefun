@@ -6,8 +6,6 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static com.github.tonivade.purefun.monad.StateOf.toState;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
@@ -31,7 +29,7 @@ public class TaglessTest {
 
   @Test
   public void stateInterpreter() {
-    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix(toState());
+    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix(StateOf::toState);
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(listOf("Toni"));
 
@@ -42,7 +40,8 @@ public class TaglessTest {
   public void ioInterpreter() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    executor.run(ioProgram.echo().fix(toIO()));
+    IO<Unit> fix = ioProgram.echo().fix(IOOf::toIO);
+    executor.run(fix);
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());
   }

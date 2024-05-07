@@ -6,8 +6,6 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.free.Free.liftF;
-import static com.github.tonivade.purefun.free.IOProgramOf.toIOProgram;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Unit;
@@ -49,7 +47,7 @@ class IOProgramToState implements FunctionK<IOProgram<?>, Kind<State<?, ?>, Immu
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Kind<IOProgram<?>, ? extends X> from) {
-    return (State<ImmutableList<String>, X>) switch (from.fix(toIOProgram())) {
+    return (State<ImmutableList<String>, X>) switch (from.fix(IOProgramOf::toIOProgram)) {
       case IOProgram.Read() -> console.readln();
       case IOProgram.Write(var value) -> console.println(value);
     };
@@ -63,7 +61,7 @@ class IOProgramToIO implements FunctionK<IOProgram<?>, IO<?>> {
 
   @Override
   public <X> IO<X> apply(Kind<IOProgram<?>, ? extends X> from) {
-    return (IO<X>) switch (from.fix(toIOProgram())) {
+    return (IO<X>) switch (from.fix(IOProgramOf::toIOProgram)) {
       case IOProgram.Read() -> console.readln();
       case IOProgram.Write(var value) -> console.println(value);
     };

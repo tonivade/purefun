@@ -24,7 +24,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 public interface ConstInstances {
 
   static <T, A> Eq<Kind<Kind<Const<?, ?>, T>, A>> eq(Eq<T> eq) {
-    return (a, b) -> eq.eqv(a.fix(ConstOf::narrowK).value(), a.fix(ConstOf::narrowK).value());
+    return (a, b) -> eq.eqv(a.fix(ConstOf::toConst).value(), a.fix(ConstOf::toConst).value());
   }
 
   static <T> Functor<Kind<Const<?, ?>, T>> functor() {
@@ -55,7 +55,7 @@ interface ConstFunctor<T> extends Functor<Kind<Const<?, ?>, T>> {
 
   @Override
   default <A, B> Kind<Kind<Const<?, ?>, T>, B> map(Kind<Kind<Const<?, ?>, T>, ? extends A> value, Function1<? super A, ? extends B> map) {
-    return value.fix(ConstOf::narrowK).retag();
+    return value.fix(ConstOf::toConst).retag();
   }
 }
 
@@ -77,8 +77,8 @@ interface ConstApplicative<T> extends Applicative<Kind<Const<?, ?>, T>> {
       Kind<Kind<Const<?, ?>, T>, ? extends A> value,
       Kind<Kind<Const<?, ?>, T>, ? extends Function1<? super A, ? extends B>> apply) {
     return Const.of(monoid().combine(
-            apply.fix(ConstOf::narrowK).<B>retag().value(),
-            value.fix(ConstOf::narrowK).<B>retag().value()));
+            apply.fix(ConstOf::toConst).<B>retag().value(),
+            value.fix(ConstOf::toConst).<B>retag().value()));
   }
 }
 
@@ -89,7 +89,7 @@ interface ConstContravariant<T> extends Contravariant<Kind<Const<?, ?>, T>> {
 
   @Override
   default <A, B> Const<T, B> contramap(Kind<Kind<Const<?, ?>, T>, ? extends A> value, Function1<? super B, ? extends A> map) {
-    return value.fix(ConstOf::narrowK).retag();
+    return value.fix(ConstOf::toConst).retag();
   }
 }
 
@@ -108,7 +108,7 @@ interface ConstFoldable<T> extends Foldable<Kind<Const<?, ?>, T>> {
   default <A, B> Eval<B> foldRight(
       Kind<Kind<Const<?, ?>, T>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    return EvalOf.narrowK(initial);
+    return EvalOf.toEval(initial);
   }
 }
 
@@ -120,6 +120,6 @@ interface ConstTraverse<T> extends Traverse<Kind<Const<?, ?>, T>>, ConstFoldable
   @Override
   default <G, A, B> Kind<G, Kind<Kind<Const<?, ?>, T>, B>> traverse(
       Applicative<G> applicative, Kind<Kind<Const<?, ?>, T>, A> value, Function1<? super A, ? extends Kind<G, ? extends B>> mapper) {
-    return applicative.pure(value.fix(ConstOf::narrowK).retag());
+    return applicative.pure(value.fix(ConstOf::toConst).retag());
   }
 }

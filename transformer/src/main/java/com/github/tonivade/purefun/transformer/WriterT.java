@@ -56,7 +56,7 @@ public non-sealed interface WriterT<F, L, A> extends WriterTOf<F, L, A>, Bindabl
     return bimap(monoid(), cons(monoid().zero()), identity());
   }
 
-  default <V, R> WriterT<F, V, R> bimap(Monoid<V> monoidV, 
+  default <V, R> WriterT<F, V, R> bimap(Monoid<V> monoidV,
       Function1<? super L, ? extends V> mapper1, Function1<? super A, ? extends R> mapper2) {
     return writer(monoidV, monad(), monad().map(value(), tuple -> tuple.map(mapper1, mapper2)));
   }
@@ -69,7 +69,7 @@ public non-sealed interface WriterT<F, L, A> extends WriterTOf<F, L, A>, Bindabl
   default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends R>> mapper) {
     return writer(monoid(), monad(),
         monad().flatMap(value(),
-            current -> monad().map(mapper.andThen(WriterTOf::<F, L, R>narrowK).apply(current.get2()).value(),
+            current -> monad().map(mapper.andThen(WriterTOf::toWriterT).apply(current.get2()).value(),
                 other -> Tuple.of(monoid().combine(current.get1(), other.get1()), other.get2()))));
   }
 

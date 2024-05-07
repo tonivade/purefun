@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.effect.TaskOf.toTask;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 
@@ -101,7 +100,7 @@ interface TaskFunctor extends Functor<Task<?>> {
 
   @Override
   default <A, B> Task<B> map(Kind<Task<?>, ? extends A> value, Function1<? super A, ? extends B> map) {
-    return TaskOf.narrowK(value).map(map);
+    return TaskOf.toTask(value).map(map);
   }
 }
 
@@ -121,7 +120,7 @@ interface TaskApplicative extends TaskPure {
   default <A, B> Task<B>
           ap(Kind<Task<?>, ? extends A> value,
              Kind<Task<?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(TaskOf::<A>narrowK).ap(apply.fix(TaskOf::narrowK));
+    return value.fix(TaskOf::<A>toTask).ap(apply.fix(TaskOf::toTask));
   }
 }
 
@@ -133,7 +132,7 @@ interface TaskMonad extends TaskPure, Monad<Task<?>> {
   default <A, B> Task<B>
           flatMap(Kind<Task<?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<Task<?>, ? extends B>> map) {
-    return TaskOf.narrowK(value).flatMap(map.andThen(TaskOf::narrowK));
+    return TaskOf.toTask(value).flatMap(map.andThen(TaskOf::toTask));
   }
 }
 
@@ -151,9 +150,9 @@ interface TaskMonadError extends TaskMonad, MonadError<Task<?>, Throwable> {
       Kind<Task<?>, A> value,
       Function1<? super Throwable, ? extends Kind<Task<?>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<? super Throwable, Task<A>> mapError = handler.andThen(TaskOf::narrowK);
+    Function1<? super Throwable, Task<A>> mapError = handler.andThen(TaskOf::toTask);
     Function1<A, Task<A>> map = Task::pure;
-    Task<A> task = TaskOf.narrowK(value);
+    Task<A> task = TaskOf.toTask(value);
     return task.foldM(mapError, map);
   }
 }
@@ -200,7 +199,7 @@ interface TaskAsync extends Async<Task<?>>, TaskMonadDefer {
 
   @Override
   default <A> Task<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Task<?>, Unit>> consumer) {
-    return Task.asyncF(consumer.andThen(TaskOf::narrowK));
+    return Task.asyncF(consumer.andThen(TaskOf::toTask));
   }
 }
 
@@ -220,7 +219,7 @@ interface TaskConcurrent extends TaskAsync, Concurrent<Task<?>> {
 
   @Override
   default <A> Task<Fiber<Task<?>, A>> fork(Kind<Task<?>, ? extends A> value) {
-    Task<A> fix = value.fix(TaskOf::narrowK);
+    Task<A> fix = value.fix(TaskOf::toTask);
     return fix.fork();
   }
 
@@ -249,21 +248,21 @@ interface TaskRuntime extends Runtime<Task<?>> {
 
   @Override
   default <T> T run(Kind<Task<?>, T> value) {
-    return value.fix(toTask()).safeRunSync().getOrElseThrow();
+    return value.fix(TaskOf::toTask).safeRunSync().getOrElseThrow();
   }
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<Task<?>, T>> values) {
-    return run(Task.traverse(values.map(TaskOf::<T>narrowK)));
+    return run(Task.traverse(values.map(TaskOf::<T>toTask)));
   }
 
   @Override
   default <T> Future<T> parRun(Kind<Task<?>, T> value, Executor executor) {
-    return value.fix(toTask()).runAsync();
+    return value.fix(TaskOf::<T>toTask).runAsync();
   }
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<Task<?>, T>> values, Executor executor) {
-    return parRun(Task.traverse(values.map(TaskOf::<T>narrowK)), executor);
+    return parRun(Task.traverse(values.map(TaskOf::<T>toTask)), executor);
   }
 }

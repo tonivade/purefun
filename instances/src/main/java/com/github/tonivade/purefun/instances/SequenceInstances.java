@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.data.SequenceOf.toSequence;
-
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Eq;
@@ -32,8 +30,8 @@ public interface SequenceInstances {
 
   static <T> Eq<Kind<Sequence<?>, T>> eq(Eq<T> eqElement) {
     return (a, b) -> {
-      Sequence<T> seq1 = SequenceOf.narrowK(a);
-      Sequence<T> seq2 = SequenceOf.narrowK(b);
+      Sequence<T> seq1 = SequenceOf.toSequence(a);
+      Sequence<T> seq2 = SequenceOf.toSequence(b);
       return seq1.size() == seq2.size()
           && Sequence.zip(seq1, seq2).allMatch(tuple -> eqElement.eqv(tuple.get1(), tuple.get2()));
     };
@@ -108,7 +106,7 @@ interface SequenceSemigroupK extends SemigroupK<Sequence<?>> {
 
   @Override
   default <T> Kind<Sequence<?>, T> combineK(Kind<Sequence<?>, ? extends T> t1, Kind<Sequence<?>, ? extends T> t2) {
-    return SequenceOf.<T>narrowK(t1).appendAll(SequenceOf.narrowK(t2));
+    return SequenceOf.<T>toSequence(t1).appendAll(SequenceOf.toSequence(t2));
   }
 }
 
@@ -128,7 +126,7 @@ interface SequenceFunctor extends Functor<Sequence<?>> {
 
   @Override
   default <T, R> Kind<Sequence<?>, R> map(Kind<Sequence<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return SequenceOf.narrowK(value).map(map);
+    return SequenceOf.toSequence(value).map(map);
   }
 }
 
@@ -147,7 +145,7 @@ interface SequenceApplicative extends SequencePure, Applicative<Sequence<?>> {
   @Override
   default <T, R> Kind<Sequence<?>, R> ap(Kind<Sequence<?>, ? extends T> value,
       Kind<Sequence<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return SequenceOf.narrowK(apply).flatMap(map -> SequenceOf.narrowK(value).map(map));
+    return SequenceOf.toSequence(apply).flatMap(map -> SequenceOf.toSequence(value).map(map));
   }
 }
 
@@ -157,7 +155,7 @@ interface SequenceMonad extends SequencePure, Monad<Sequence<?>> {
 
   @Override
   default <T, R> Kind<Sequence<?>, R> flatMap(Kind<Sequence<?>, ? extends T> value, Function1<? super T, ? extends Kind<Sequence<?>, ? extends R>> map) {
-    return SequenceOf.narrowK(value).flatMap(map.andThen(SequenceOf::narrowK));
+    return SequenceOf.toSequence(value).flatMap(map.andThen(SequenceOf::toSequence));
   }
 }
 
@@ -174,14 +172,14 @@ interface SequenceFoldable extends Foldable<Sequence<?>> {
 
   @Override
   default <A, B> B foldLeft(Kind<Sequence<?>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
-    return SequenceOf.narrowK(value).foldLeft(initial, mapper);
+    return SequenceOf.toSequence(value).foldLeft(initial, mapper);
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Kind<Sequence<?>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    Eval<? extends B> foldRight = SequenceOf.narrowK(value).foldRight(initial, mapper);
-    return EvalOf.narrowK(foldRight);
+    Eval<? extends B> foldRight = SequenceOf.toSequence(value).foldRight(initial, mapper);
+    return EvalOf.toEval(foldRight);
   }
 }
 
@@ -193,12 +191,12 @@ interface SequenceTraverse extends Traverse<Sequence<?>>, SequenceFoldable {
   default <G, T, R> Kind<G, Kind<Sequence<?>, R>> traverse(
       Applicative<G> applicative, Kind<Sequence<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
-    return value.fix(toSequence()).foldLeft(
+    return value.fix(SequenceOf::toSequence).foldLeft(
       applicative.pure(Sequence.emptyList()),
       (acc, a) -> {
         Kind<G, ? extends R> apply = mapper.apply(a);
         return applicative.mapN(apply, acc)
-            .apply((e, seq) -> seq.fix(toSequence()).append(e));
+            .apply((e, seq) -> seq.fix(SequenceOf::<R>toSequence).append(e));
       });
   }
 }

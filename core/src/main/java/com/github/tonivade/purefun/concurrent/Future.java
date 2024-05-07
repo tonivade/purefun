@@ -382,7 +382,7 @@ final class FutureImpl<T> implements Future<T> {
   @Override
   public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
     return transform(value -> {
-      Try<T> try1 = TryOf.narrowK(value);
+      Try<T> try1 = TryOf.toTry(value);
       return try1.recoverWith(type, mapper);
     });
   }
@@ -424,7 +424,7 @@ final class FutureImpl<T> implements Future<T> {
     checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (p, c) ->
-          promise.onComplete(value -> mapper.andThen(FutureOf::<R>narrowK).apply(value).onComplete(p::tryComplete)), this::cancel);
+          promise.onComplete(value -> mapper.andThen(FutureOf::<R>toFuture).apply(value).onComplete(p::tryComplete)), this::cancel);
   }
 
   static <T> Future<T> sync(Executor executor, Try<? extends T> result) {

@@ -4,18 +4,15 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.time.Duration;
-
-import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.effect.PureIO;
+import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Either;
+import java.time.Duration;
+import org.junit.jupiter.api.Test;
 
 public class ConcurrentTest {
 
@@ -29,7 +26,7 @@ public class ConcurrentTest {
         IO.delay(Duration.ofMillis(10), () -> 10),
         IO.delay(Duration.ofMillis(100), () -> "b"));
 
-    Either<Integer, String> orElseThrow = race.fix(toIO()).runAsync().await(TIMEOUT).getOrElseThrow();
+    Either<Integer, String> orElseThrow = race.fix(IOOf::toIO).runAsync().await(TIMEOUT).getOrElseThrow();
 
     assertEquals(Either.left(10), orElseThrow);
   }
@@ -42,7 +39,7 @@ public class ConcurrentTest {
         IO.delay(Duration.ofMillis(100), () -> 10),
         IO.delay(Duration.ofMillis(10), () -> "b"));
 
-    Either<Integer, String> orElseThrow = race.fix(toIO()).runAsync().await(TIMEOUT).getOrElseThrow();
+    Either<Integer, String> orElseThrow = race.fix(IOOf::toIO).runAsync().await(TIMEOUT).getOrElseThrow();
 
     assertEquals(Either.right("b"), orElseThrow);
   }
@@ -57,7 +54,7 @@ public class ConcurrentTest {
         PureIO.<Void, Throwable>sleep(Duration.ofMillis(100)).andThen(PureIO.task(() -> "b")));
 
     Either<Throwable, Either<Integer, String>> orElseThrow =
-        race.fix(toPureIO()).runAsync(null).await(TIMEOUT).getOrElseThrow();
+        race.fix(PureIOOf::<Void, Throwable, Either<Integer, String>>toPureIO).runAsync(null).await(TIMEOUT).getOrElseThrow();
 
     assertEquals(Either.right(Either.left(10)), orElseThrow);
   }
@@ -72,7 +69,7 @@ public class ConcurrentTest {
         PureIO.<Void, Throwable>sleep(Duration.ofMillis(10)).andThen(PureIO.task(() -> "b")));
 
     Either<Throwable, Either<Integer, String>> orElseThrow =
-        race.fix(toPureIO()).runAsync(null).await(TIMEOUT).getOrElseThrow();
+        race.fix(PureIOOf::<Void, Throwable, Either<Integer, String>>toPureIO).runAsync(null).await(TIMEOUT).getOrElseThrow();
 
     assertEquals(Either.right(Either.right("b")), orElseThrow);
   }

@@ -4,25 +4,22 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
-import static com.github.tonivade.purefun.type.EitherOf.toEither;
-import static com.github.tonivade.purefun.type.IdOf.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.effect.PureIO;
+import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.type.Either;
+import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
+import org.junit.jupiter.api.Test;
 
 public class InstanceTest {
 
   @Test
   public void testSimple() {
-    Id<Integer> result = Instances.<Id<?>>functor().map(Id.of(1), x -> x + 1).fix(toId());
+    Id<Integer> result = Instances.<Id<?>>functor().map(Id.of(1), x -> x + 1).fix(IdOf::toId);
 
     assertEquals(Id.of(2), result);
   }
@@ -31,7 +28,7 @@ public class InstanceTest {
   public void testComplex() {
     Instance<Kind<Either<?, ?>, String>> instance = new Instance<Kind<Either<?, ?>, String>>(){};
 
-    Either<String, Integer> result = instance.functor().map(Either.right(1), x -> x + 1).fix(toEither());
+    Either<String, Integer> result = instance.functor().map(Either.right(1), x -> x + 1).fix(EitherOf::toEither);
 
     assertEquals(Either.right(2), result);
   }
@@ -40,7 +37,7 @@ public class InstanceTest {
   public void testPureIO() {
     Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, String>> instance = new Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, String>>(){};
 
-    PureIO<Void, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(toPureIO());
+    PureIO<Void, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(PureIOOf::toPureIO);
 
     assertEquals(Either.right(2), result.provide(null));
   }

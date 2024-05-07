@@ -7,8 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.type.TryOf.toTry;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -123,7 +121,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
 
   @Override
   default <R> Try<R> ap(Kind<Try<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(toTry()).flatMap(this::map);
+    return apply.fix(TryOf::toTry).flatMap(this::map);
   }
 
   default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
@@ -137,7 +135,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
   @SuppressWarnings("unchecked")
   default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try<?>, ? extends R>> mapper) {
     return switch (this) {
-      case Success<T>(var value) -> mapper.andThen(TryOf::<R>narrowK).apply(value);
+      case Success<T>(var value) -> mapper.andThen(TryOf::<R>toTry).apply(value);
       case Failure<T> f -> (Try<R>) this;
     };
   }
@@ -186,7 +184,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
     if (this instanceof Success<T>(var value) && matcher.match(value)) {
       return this;
     }
-    return producer.andThen(TryOf::<T>narrowK).get();
+    return producer.andThen(TryOf::<T>toTry).get();
   }
 
   default <U> U fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
@@ -198,7 +196,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
 
   default Try<T> or(Producer<Kind<Try<?>, T>> orElse) {
     if (this instanceof Failure) {
-      return orElse.andThen(TryOf::narrowK).get();
+      return orElse.andThen(TryOf::toTry).get();
     }
     return this;
   }

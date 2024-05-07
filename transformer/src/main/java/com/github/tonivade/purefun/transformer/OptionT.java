@@ -32,7 +32,7 @@ public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Kind
 
   @Override
   default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends R>> map) {
-    return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>narrowK).apply(v).value()));
+    return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>toOptionT).apply(v).value()));
   }
 
   default <R> Kind<F, R> fold(Producer<? extends R> orElse, Function1<? super T, ? extends R> map) {

@@ -32,7 +32,7 @@ public non-sealed interface State<S, A> extends StateOf<S, A>, Bindable<Kind<Sta
   default <R> State<S, R> flatMap(Function1<? super A, ? extends Kind<Kind<State<?, ?>, S>, ? extends R>> mapper) {
     return state -> {
       Tuple2<S, A> run = run(state);
-      State<S, R> narrowK = mapper.andThen(StateOf::<S, R>narrowK).apply(run.get2());
+      State<S, R> narrowK = mapper.andThen(StateOf::<S, R>toState).apply(run.get2());
       return narrowK.run(run.get1());
     };
   }

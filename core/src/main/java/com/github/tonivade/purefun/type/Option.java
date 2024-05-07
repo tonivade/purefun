@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
-import static com.github.tonivade.purefun.type.OptionOf.toOption;
 import static java.util.Objects.nonNull;
 
 import java.io.Serial;
@@ -79,13 +78,13 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, A
 
   @Override
   default <R> Option<R> ap(Kind<Option<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(toOption()).flatMap(this::map);
+    return apply.fix(OptionOf::toOption).flatMap(this::map);
   }
 
   @Override
   default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option<?>, ? extends R>> map) {
     return switch (this) {
-      case Some<T>(var value) -> map.andThen(OptionOf::<R>narrowK).apply(value);
+      case Some<T>(var value) -> map.andThen(OptionOf::<R>toOption).apply(value);
       case None<T> n -> none();
     };
   }
@@ -117,7 +116,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, A
 
   default Option<T> or(Producer<Kind<Option<?>, T>> orElse) {
     if (this instanceof None) {
-      return orElse.andThen(OptionOf::narrowK).get();
+      return orElse.andThen(OptionOf::toOption).get();
     }
     return this;
   }

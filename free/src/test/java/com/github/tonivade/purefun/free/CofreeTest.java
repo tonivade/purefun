@@ -4,20 +4,12 @@
  */
 package com.github.tonivade.purefun.free;
 
-import static com.github.tonivade.purefun.type.IdOf.toId;
-import static com.github.tonivade.purefun.type.OptionOf.toOption;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple4;
@@ -25,8 +17,14 @@ import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.typeclasses.For;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class CofreeTest {
@@ -41,7 +39,8 @@ public class CofreeTest {
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
-          .tuple().fix(toId());
+          .tuple()
+          .fix(IdOf::toId);
 
     assertEquals(Tuple.of(2, 4, 6, 8), tuple4Id.value().map(Cofree::extract, Cofree::extract, Cofree::extract, Cofree::extract));
   }
@@ -53,7 +52,7 @@ public class CofreeTest {
 
     assertEquals(5151,
         cofree.<Integer>fold(OptionInstances.traverse(),
-            (a, fb) -> Eval.later(() -> fb.fix(toOption()).fold(() -> a, x -> x + a))).value());
+            (a, fb) -> Eval.later(() -> fb.fix(OptionOf::toOption).fold(() -> a, x -> x + a))).value());
   }
 
   @Test

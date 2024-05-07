@@ -6,34 +6,37 @@ package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.effect.EIOOf.toEIO;
-import static com.github.tonivade.purefun.effect.TaskOf.toTask;
-import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
-import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static java.util.Objects.nonNull;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.Task;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.URIO;
+import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.PureIO;
+import com.github.tonivade.purefun.effect.PureIOOf;
+import com.github.tonivade.purefun.effect.Task;
+import com.github.tonivade.purefun.effect.TaskOf;
+import com.github.tonivade.purefun.effect.UIO;
+import com.github.tonivade.purefun.effect.UIOOf;
+import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.instances.PureStreamInstances;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.stream.PureStream.Of;
 import com.github.tonivade.purefun.type.Option;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import org.junit.jupiter.api.Test;
 
 public class PureStreamTest {
 
@@ -50,8 +53,8 @@ public class PureStreamTest {
 
     PureStream<IO<?>, String> result = pure1.concat(pure2).map(String::toUpperCase);
 
-    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix(toIO()).map(x -> x + a))
-        .fix(toIO());
+    IO<String> foldRight = result.foldRight(IO.pure(""), (a, b) -> b.fix(IOOf::toIO).map(x -> x + a))
+        .fix(IOOf::toIO);
 
     assertEquals("HOLA MUNDO", foldRight.unsafeRunSync());
   }
@@ -63,7 +66,7 @@ public class PureStreamTest {
 
     PureStream<IO<?>, String> result = pure1.concat(pure2).flatMap(string -> PureStream.pure(string.toUpperCase()));
 
-    IO<String> foldLeft = result.asString().fix(toIO());
+    IO<String> foldLeft = result.asString().fix(IOOf::toIO);
 
     assertEquals("HOLA MUNDO", foldLeft.unsafeRunSync());
   }
@@ -180,7 +183,7 @@ public class PureStreamTest {
   public void zip() {
     PureStream<IO<?>, String> stream = PureStream.from(listOf("a", "b", "c"));
 
-    IO<Sequence<Tuple2<String, Integer>>> zip = PureStream.zipWithIndex(stream).asSequence().fix(toIO());
+    IO<Sequence<Tuple2<String, Integer>>> zip = PureStream.zipWithIndex(stream).asSequence().fix(IOOf::toIO);
 
     assertEquals(listOf(Tuple2.of("a", 0), Tuple2.of("b", 1), Tuple2.of("c", 2)), zip.unsafeRunSync());
   }
@@ -221,7 +224,7 @@ public class PureStreamTest {
   public void foldLeftLazyness() {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
-    IO<String> result = PureStream.eval(fail).asString().fix(toIO());
+    IO<String> result = PureStream.eval(fail).asString().fix(IOOf::toIO);
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
@@ -231,8 +234,8 @@ public class PureStreamTest {
     IO<String> fail = IO.raiseError(new IllegalAccessException());
 
     IO<String> result = PureStream.eval(fail)
-      .foldRight(IO.pure(""), (a, b) -> b.fix(toIO()).map(x -> a + x))
-      .fix(toIO());
+      .foldRight(IO.pure(""), (a, b) -> b.fix(IOOf::toIO).map(x -> a + x))
+      .fix(IOOf::toIO);
 
     assertThrows(IllegalAccessException.class, result::unsafeRunSync);
   }
@@ -295,7 +298,7 @@ public class PureStreamTest {
   public void test() {
     PureStream<IO<?>, Integer> stream = streamOfIO.from(listOf("a", "b", "c")).mapReplace(IO.pure(1));
 
-    assertEquals("111", stream.asString().fix(toIO()).unsafeRunSync());
+    assertEquals("111", stream.asString().fix(IOOf::toIO).unsafeRunSync());
   }
 
   private IO<String> pureReadFileIO(String file) {
@@ -304,7 +307,7 @@ public class PureStreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix(toIO())
+        .fix(IOOf::<String>toIO)
         .recover(UncheckedIOException.class, cons("--- file not found ---"));
   }
 
@@ -314,7 +317,7 @@ public class PureStreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix(toUIO())
+        .fix(UIOOf::<String>toUIO)
         .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
   }
 
@@ -324,7 +327,7 @@ public class PureStreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix(toTask())
+        .fix(TaskOf::<String>toTask)
         .recover(cons("--- file not found ---"));
   }
 
@@ -334,7 +337,7 @@ public class PureStreamTest {
         .takeWhile(Option::isPresent)
         .map(Option::getOrElseThrow)
         .foldLeft("", (a, b) -> a + '\n' + b)
-        .fix(toEIO())
+        .fix(EIOOf::<Throwable, String>toEIO)
         .recover(cons("--- file not found ---"));
   }
 
@@ -344,7 +347,7 @@ public class PureStreamTest {
       .takeWhile(Option::isPresent)
       .map(Option::getOrElseThrow)
       .foldLeft("", (a, b) -> a + '\n' + b)
-      .fix(toPureIO())
+      .fix(PureIOOf::<Void, Throwable, String>toPureIO)
       .recover(cons("--- file not found ---"));
   }
 
@@ -382,6 +385,6 @@ public class PureStreamTest {
   }
 
   private static <T> T run(Kind<IO<?>, T> effect) {
-    return effect.fix(toIO()).unsafeRunSync();
+    return effect.fix(IOOf::toIO).unsafeRunSync();
   }
 }

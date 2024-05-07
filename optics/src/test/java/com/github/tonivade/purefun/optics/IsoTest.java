@@ -22,7 +22,7 @@ public class IsoTest {
   private final Iso<Point, Point> pointToPoint = pointToTuple.compose(tupleToPoint);
   private final Iso<Point, Point> identity = Iso.identity();
   private final Iso<Option<String>, Kind<Option<?>, String>> optionToKind =
-    Iso.of(Option::kind, OptionOf::<String>narrowK);
+    Iso.of(Option::kind, OptionOf::<String>toOption);
 
   private final Point point = new Point(1, 2);
   private final Tuple2<Integer, Integer> tuple = Tuple.of(1, 2);

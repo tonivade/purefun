@@ -38,7 +38,7 @@ public class ContravariantTest {
 
     Kind<Conested<Function1<?, ?>, Double>, Integer> conest = conest(int2double);
     Kind<Conested<Function1<?, ?>, Double>, String> contramap = instance.contramap(conest, string2Int);
-    Function1<String, Double> result = counnest(contramap).fix(Function1Of::<String, Double>narrowK);
+    Function1<String, Double> result = counnest(contramap).fix(Function1Of::<String, Double>toFunction1);
 
     assertEquals(4.0, result.apply("hola"));
   }

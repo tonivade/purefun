@@ -26,7 +26,7 @@ public non-sealed interface Kleisli<F, Z, A> extends KleisliOf<F, Z, A>, Bindabl
 
   @Override
   default <R> Kleisli<F, Z, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<Kleisli<?, ?, ?>, F>, Z>, ? extends R>> map) {
-    return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.andThen(KleisliOf::<F, Z, R>narrowK).apply(a).run(value)));
+    return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.andThen(KleisliOf::toKleisli).apply(a).run(value)));
   }
 
   default <B> Kleisli<F, Z, B> compose(Kleisli<F, A, B> other) {

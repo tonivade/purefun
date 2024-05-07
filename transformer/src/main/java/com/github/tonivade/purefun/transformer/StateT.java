@@ -39,7 +39,7 @@ public non-sealed interface StateT<F, S, A> extends StateTOf<F, S, A>, Bindable<
   default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends R>> map) {
     return state(monad(), state -> {
       Kind<F, Tuple2<S, A>> newState = run(state);
-      return monad().flatMap(newState, state2 -> map.andThen(StateTOf::<F, S, R>narrowK).apply(state2.get2()).run(state2.get1()));
+      return monad().flatMap(newState, state2 -> map.andThen(StateTOf::<F, S, R>toStateT).apply(state2.get2()).run(state2.get1()));
     });
   }
 
@@ -84,7 +84,7 @@ public non-sealed interface StateT<F, S, A> extends StateTOf<F, S, A>, Bindable<
 
   static <F, S, A> StateT<F, S, Sequence<A>> traverse(Monad<F> monad,
                                                                       Sequence<StateT<F, S, A>> states) {
-    return states.foldLeft(pure(monad, ImmutableList.empty()), 
+    return states.foldLeft(pure(monad, ImmutableList.empty()),
         (StateT<F, S, Sequence<A>> xs, StateT<F, S, A> a) -> map2(xs, a, Sequence::append));
   }
 

@@ -5,8 +5,6 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.type.EvalOf.toEval;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
@@ -15,6 +13,7 @@ import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Mappable;
 import com.github.tonivade.purefun.core.Operator2;
 import com.github.tonivade.purefun.type.Eval;
+import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monoid;
@@ -62,7 +61,7 @@ public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree<
   public <B> Eval<B> fold(Traverse<F> traverse, Function2<A, Kind<F, B>, Eval<B>> mapper) {
     Eval<Kind<F, B>> eval =
         traverse.traverse(Instances.applicative(), tailForced(), c -> c.fold(traverse, mapper))
-            .fix(toEval());
+            .fix(EvalOf::toEval);
     return eval.flatMap(fb -> mapper.apply(extract(), fb));
   }
 
@@ -76,7 +75,7 @@ public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree<
     return reduce(traverse, String::valueOf, join);
   }
 
-  public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap, 
+  public <B> Cofree<F, B> transform(Function1<? super A, ? extends B> headMap,
       Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree<?, ?>, F>, ? extends B>> tailMap) {
     return of(functor, transformHead(headMap), transformTail(tailMap));
   }
@@ -87,7 +86,7 @@ public final class Cofree<F, A> implements CofreeOf<F, A>, Mappable<Kind<Cofree<
 
   private <B> Eval<Kind<F, Cofree<F, B>>> transformTail(
       Function1<? super Cofree<F, ? extends A>, ? extends Kind<Kind<Cofree<?, ?>, F>, ? extends B>> tailMap) {
-    return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::narrowK)));
+    return tail.map(t -> functor.map(t, tailMap.andThen(CofreeOf::toCofree)));
   }
 
   public static <F, A> Cofree<F, A> unfold(Functor<F> functor, A head, Function1<A, Kind<F, A>> unfold) {

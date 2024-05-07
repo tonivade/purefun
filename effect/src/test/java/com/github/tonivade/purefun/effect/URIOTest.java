@@ -198,7 +198,7 @@ public class URIOTest {
         URIO<Void, String> task = task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(URIOOf.toURIO());
+      .flatMap(Fiber::join).fix(URIOOf::toURIO);
 
     String orElseThrow = result.unsafeRunSync(null);
 

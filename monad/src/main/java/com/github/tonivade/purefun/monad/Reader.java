@@ -22,7 +22,7 @@ public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Kind<R
 
   @Override
   default <B> Reader<R, B> flatMap(Function1<? super A, ? extends Kind<Kind<Reader<?, ?>, R>, ? extends B>> mapper) {
-    return reader -> mapper.andThen(ReaderOf::<R, B>narrowK).apply(eval(reader)).eval(reader);
+    return reader -> mapper.andThen(ReaderOf::toReader).apply(eval(reader)).eval(reader);
   }
 
   default <B> Reader<R, B> andThen(Reader<R, ? extends B> next) {

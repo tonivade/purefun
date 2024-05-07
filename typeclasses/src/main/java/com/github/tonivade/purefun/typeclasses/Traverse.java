@@ -5,12 +5,10 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.core.Function1.identity;
-import static com.github.tonivade.purefun.type.IdOf.toId;
-
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
 
 public interface Traverse<F> extends Functor<F>, Foldable<F> {
 
@@ -25,7 +23,7 @@ public interface Traverse<F> extends Functor<F>, Foldable<F> {
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
     Kind<Id<?>, Kind<F, R>> traverse = traverse(Instances.applicative(), value, t -> Id.of(map.apply(t)));
-    return traverse.fix(toId()).value();
+    return traverse.fix(IdOf::toId).value();
   }
 
   static <F, G> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {

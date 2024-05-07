@@ -4,34 +4,30 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-import static com.github.tonivade.purefun.effect.PureIOOf.toPureIO;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static com.github.tonivade.purefun.transformer.EitherTOf.toEitherT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.effect.PureIO;
+import com.github.tonivade.purefun.effect.PureIOOf;
+import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
+import com.github.tonivade.purefun.transformer.EitherT;
+import com.github.tonivade.purefun.transformer.EitherTOf;
+import com.github.tonivade.purefun.transformer.OptionT;
+import com.github.tonivade.purefun.transformer.OptionTOf;
+import com.github.tonivade.purefun.type.Either;
 import java.util.NoSuchElementException;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Producer;
-import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.transformer.EitherT;
-import com.github.tonivade.purefun.transformer.EitherTOf;
-import com.github.tonivade.purefun.transformer.OptionT;
-import com.github.tonivade.purefun.transformer.OptionTOf;
-import com.github.tonivade.purefun.type.Either;
 
 @ExtendWith(MockitoExtension.class)
 public class MonadDeferTest {
@@ -52,7 +48,7 @@ public class MonadDeferTest {
 
     Kind<IO<?>, String> later = ioMonadDefer.later(task);
 
-    String result = later.fix(toIO()).unsafeRunSync();
+    String result = later.fix(IOOf::toIO).unsafeRunSync();
 
     assertEquals("hola toni", result);
     verify(task).get();
@@ -63,7 +59,7 @@ public class MonadDeferTest {
     Kind<IO<?>, String> bracket =
         ioMonadDefer.bracket(IO.pure(resource), r -> IO.pure("done"));
 
-    String result = bracket.fix(toIO()).unsafeRunSync();
+    String result = bracket.fix(IOOf::toIO).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -74,7 +70,7 @@ public class MonadDeferTest {
     Kind<IO<?>, String> bracket =
         ioMonadDefer.bracket(IO.<AutoCloseable>raiseError(new IllegalStateException()), r -> IO.pure("done"));
 
-    assertThrows(IllegalStateException.class, () -> bracket.fix(toIO()).unsafeRunSync());
+    assertThrows(IllegalStateException.class, () -> bracket.fix(IOOf::toIO).unsafeRunSync());
 
     verify(resource, never()).close();
   }
@@ -84,7 +80,7 @@ public class MonadDeferTest {
     Kind<IO<?>, String> bracket =
         ioMonadDefer.bracket(IO.pure(resource), r -> IO.<String>raiseError(new UnsupportedOperationException()));
 
-    assertThrows(UnsupportedOperationException.class, () -> bracket.fix(toIO()).unsafeRunSync());
+    assertThrows(UnsupportedOperationException.class, () -> bracket.fix(IOOf::toIO).unsafeRunSync());
 
     verify(resource).close();
   }
@@ -95,7 +91,7 @@ public class MonadDeferTest {
         eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.monad(), resource),
                                                 r -> EitherT.<IO<?>, Throwable, String>right(Instances.monad(), "done"));
 
-    String result = bracket.fix(EitherTOf::narrowK).get().fix(toIO()).unsafeRunSync();
+    String result = bracket.fix(EitherTOf::toEitherT).get().fix(IOOf::toIO).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -108,7 +104,7 @@ public class MonadDeferTest {
                                                 r -> EitherT.<IO<?>, Throwable, String>right(Instances.monad(), "done"));
 
     assertThrows(IllegalStateException.class,
-                 () -> bracket.fix(EitherTOf::narrowK).value().fix(toIO()).unsafeRunSync());
+                 () -> bracket.fix(EitherTOf::toEitherT).value().fix(IOOf::toIO).unsafeRunSync());
 
     verify(resource, never()).close();
   }
@@ -119,7 +115,7 @@ public class MonadDeferTest {
         eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.monad(), resource),
                                                 r -> EitherT.<IO<?>, Throwable, String>left(Instances.monad(), new UnsupportedOperationException()));
 
-    Either<Throwable, String> unsafeRunSync = bracket.fix(toEitherT()).value().fix(toIO()).unsafeRunSync();
+    Either<Throwable, String> unsafeRunSync = bracket.fix(EitherTOf::<IO<?>, Throwable, String>toEitherT).value().fix(IOOf::toIO).unsafeRunSync();
 
     assertTrue(unsafeRunSync.getLeft() instanceof UnsupportedOperationException);
     verify(resource).close();
@@ -131,7 +127,7 @@ public class MonadDeferTest {
         optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
                                   r -> OptionT.some(Instances.monad(), "done"));
 
-    String result = bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync();
+    String result = bracket.fix(OptionTOf::toOptionT).getOrElseThrow().fix(IOOf::toIO).unsafeRunSync();
 
     assertEquals("done", result);
     verify(resource).close();
@@ -145,7 +141,7 @@ public class MonadDeferTest {
                                   r -> OptionT.some(Instances.monad(), "done"));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
-                 () -> bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync());
+                 () -> bracket.fix(OptionTOf::toOptionT).getOrElseThrow().fix(IOOf::toIO).unsafeRunSync());
 
     assertEquals("could not acquire resource", error.getMessage());
     verify(resource, never()).close();
@@ -159,7 +155,7 @@ public class MonadDeferTest {
                                   r -> OptionT.<IO<?>, String>none(Instances.monad()));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
-                 () -> bracket.fix(OptionTOf::narrowK).getOrElseThrow().fix(toIO()).unsafeRunSync());
+                 () -> bracket.fix(OptionTOf::toOptionT).getOrElseThrow().fix(IOOf::toIO).unsafeRunSync());
 
     assertEquals("get() in none", error.getMessage());
     verify(resource).close();
@@ -171,7 +167,7 @@ public class MonadDeferTest {
         PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>pure(resource),
                               r -> PureIO.<Void, Throwable, String>pure("done"));
 
-    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(null);
+    Either<Throwable, String> result = bracket.fix(PureIOOf::<Void, Throwable, String>toPureIO).provide(null);
 
     assertEquals(Either.right("done"), result);
     verify(resource).close();
@@ -183,7 +179,7 @@ public class MonadDeferTest {
         PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>raiseError(new IllegalStateException()),
                               r -> PureIO.<Void, Throwable, String>pure("done"));
 
-    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(null);
+    Either<Throwable, String> result = bracket.fix(PureIOOf::<Void, Throwable, String>toPureIO).provide(null);
 
     assertTrue(result.isLeft());
     verify(resource, never()).close();
@@ -195,7 +191,7 @@ public class MonadDeferTest {
         PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>pure(resource),
                               r -> PureIO.<Void, Throwable, String>raiseError(new UnsupportedOperationException()));
 
-    Either<Throwable, String> result = bracket.fix(toPureIO()).provide(null);
+    Either<Throwable, String> result = bracket.fix(PureIOOf::<Void, Throwable, String>toPureIO).provide(null);
 
     assertTrue(result.isLeft());
     verify(resource).close();

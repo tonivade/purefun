@@ -21,8 +21,8 @@ public interface EitherKInstances {
   static <F, G, T> Eq<Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, T>> eq(
       Eq<Kind<F, T>> leftEq, Eq<Kind<G, T>> rightEq) {
     return (a, b) -> {
-      var x = EitherKOf.narrowK(a);
-      var y = EitherKOf.narrowK(b);
+      var x = EitherKOf.toEitherK(a);
+      var y = EitherKOf.toEitherK(b);
       if (x.isLeft() && y.isLeft()) {
         return leftEq.eqv(x.getLeft(), y.getLeft());
       }
@@ -76,7 +76,7 @@ interface EitherKFunctor<F, G> extends Functor<Kind<Kind<EitherK<?, ?, ?>, F>, G
   @Override
   default <T, R> EitherK<F, G, R> map(
       Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(EitherKOf::narrowK).map(f(), g(), map);
+    return value.fix(EitherKOf::toEitherK).map(f(), g(), map);
   }
 }
 
@@ -99,7 +99,7 @@ interface EitherKContravariant<F, G>
   @Override
   default <A, B> EitherK<F, G, B> contramap(
       Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A> value, Function1<? super B, ? extends A> map) {
-    return value.fix(EitherKOf::<F, G, A>narrowK).contramap(f(), g(), map);
+    return value.fix(EitherKOf::<F, G, A>toEitherK).contramap(f(), g(), map);
   }
 }
 
@@ -124,12 +124,12 @@ interface EitherKComonad<F, G>
   default <A, B> EitherK<F, G, B> coflatMap(
       Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A> value,
       Function1<? super Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A>, ? extends B> map) {
-    return value.fix(EitherKOf::narrowK).coflatMap(f(), g(), map);
+    return value.fix(EitherKOf::toEitherK).coflatMap(f(), g(), map);
   }
 
   @Override
   default <A> A extract(Kind<Kind<Kind<EitherK<?, ?, ?>, F>, G>, ? extends A> value) {
-    return value.fix(EitherKOf::narrowK).extract(f(), g());
+    return value.fix(EitherKOf::toEitherK).extract(f(), g());
   }
 }
 

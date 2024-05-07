@@ -5,8 +5,6 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.type.IdOf.toId;
-
 import java.io.Serializable;
 
 import com.github.tonivade.purefun.HigherKind;
@@ -35,12 +33,12 @@ public record Id<T>(T value) implements IdOf<T>, Bindable<Id<?>, T>, Applicable<
 
   @Override
   public <R> Id<R> ap(Kind<Id<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(toId()).flatMap(this::map);
+    return apply.fix(IdOf::toId).flatMap(this::map);
   }
 
   @Override
   public <R> Id<R> flatMap(Function1<? super T, ? extends Kind<Id<?>, ? extends R>> map) {
-    return map.andThen(IdOf::<R>narrowK).apply(value);
+    return map.andThen(IdOf::<R>toId).apply(value);
   }
 
   @Override

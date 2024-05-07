@@ -33,7 +33,6 @@ public class HigherKindProcessor extends AbstractProcessor {
   private static final String JAVAX_ANNOTATION_PROCESSING_GENERATED = "javax.annotation.processing.Generated";
 
   private static final String KIND = "com.github.tonivade.purefun.Kind";
-  private static final String FUNCTION = "java.util.function.Function";
   private static final String END = "}";
 
   @Override
@@ -111,14 +110,12 @@ public class HigherKindProcessor extends AbstractProcessor {
       writer.println();
     }
     writer.println(importClass(KIND));
-    writer.println(importClass(FUNCTION));
     writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher1));
     writer.println();
     narrowK1(writer, className, aType, higher1Wildcard);
-    toTypeOf1(writer, className, aType, higher1Wildcard, typeOfName);
     writer.println(END);
   }
 
@@ -136,14 +133,12 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     writer.println(importClass(KIND));
-    writer.println(importClass(FUNCTION));
     writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher2));
     writer.println();
     narrowK2(writer, className, aType, bType, higher1Wildcard);
-    toTypeOf2(writer, className, aType, bType, higher1Wildcard, typeOfName);
     writer.println(END);
   }
 
@@ -162,14 +157,12 @@ public class HigherKindProcessor extends AbstractProcessor {
     }
     writer.println();
     writer.println(importClass(KIND));
-    writer.println(importClass(FUNCTION));
     writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher3));
     writer.println();
     narrowK3(writer, className, aType, bType, cType, higher1Wildcard);
-    toTypeOf3(writer, className, aType, bType, cType, higher1Wildcard, typeOfName);
     writer.println(END);
   }
 
@@ -186,40 +179,21 @@ public class HigherKindProcessor extends AbstractProcessor {
   }
 
   private static void narrowK1(PrintWriter writer, String className, String aType, String hkt) {
-    narrowK(writer, "<" + aType + ">", className + "<A>", hkt);
+    narrowK(writer, className, "<" + aType + ">", className + "<A>", hkt);
   }
 
   private static void narrowK2(PrintWriter writer, String className, String aType, String bType, String hkt) {
-    narrowK(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt);
+    narrowK(writer, className, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt);
   }
 
   private static void narrowK3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt) {
-    narrowK(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
+    narrowK(writer, className, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
   }
 
-  private static void narrowK(PrintWriter writer, String types, String returnType, String param) {
+  private static void narrowK(PrintWriter writer, String className, String types, String returnType, String param) {
     writer.println("  @SuppressWarnings(\"unchecked\")");
-    writer.println("  static " + types + " " + returnType + " narrowK(" + param + " hkt) {");
+    writer.println("  static " + types + " " + returnType + " to" + className + "(" + param + " hkt) {");
     writer.println("    return (" + returnType + ") hkt;");
-    writer.println("  }");
-    writer.println();
-  }
-
-  private static void toTypeOf1(PrintWriter writer, String className, String aType, String hkt, String typeOf) {
-    toTypeOf(writer, "<" + aType + ">", className + "<A>", hkt, typeOf, className);
-  }
-
-  private static void toTypeOf2(PrintWriter writer, String className, String aType, String bType, String hkt, String typeOf) {
-    toTypeOf(writer, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt, typeOf, className);
-  }
-
-  private static void toTypeOf3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt, String typeOf) {
-    toTypeOf(writer, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt, typeOf, className);
-  }
-
-  private static void toTypeOf(PrintWriter writer, String types, String returnType, String param, String typeOf, String type) {
-    writer.println("  static " + types + " Function<" + param + ", " + returnType + "> to" + type + "() {");
-    writer.println("    return " + typeOf + "::narrowK;");
     writer.println("  }");
     writer.println();
   }

@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.control.ConsOf.toCons;
-import static com.github.tonivade.purefun.control.ProdOf.toProd;
 import static com.github.tonivade.purefun.core.Unit.unit;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +42,7 @@ class PipingExample {
 
   private <R> Control<R> pipe(Function1<Receive, Control<R>> down, Function1<Send, Control<R>> up) {
     return down(new Prod<Control<R>>(unit -> cons ->
-        up(cons.fix(toCons())).apply(up::apply))).apply(down::apply);
+        up(cons.fix(ConsOf::toCons)).apply(up::apply))).apply(down::apply);
   }
 
   @Test
@@ -87,7 +85,7 @@ class PipingExample {
 
     @Override
     public Control<Integer> receive() {
-      return useState(state -> resume -> state.fix(toProd()).apply(unit()).apply(new Cons<>(resume)));
+      return useState(state -> resume -> state.fix(ProdOf::<Control<R>>toProd).apply(unit()).apply(new Cons<>(resume)));
     }
   }
 
@@ -102,7 +100,7 @@ class PipingExample {
 
     @Override
     public Control<Unit> send(int n) {
-      return useState(state -> resume -> state.fix(toCons()).apply(n).apply(new Prod<>(resume)));
+      return useState(state -> resume -> state.fix(ConsOf::<Control<R>>toCons).apply(n).apply(new Prod<>(resume)));
     }
   }
 }

@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.control;
 
-import static com.github.tonivade.purefun.control.ControlOf.toControl;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
@@ -14,15 +13,15 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.typeclasses.Instances;
 
 class TwitterExample {
-  
+
   record Tweet(String userId, String message) {}
-  
+
   interface Twitter {
     Control<ImmutableList<Tweet>> userTweets(String userId);
   }
-  
+
   static final class TwitterImpl<R> implements Handler<R, Twitter>, Twitter {
-    
+
     @Override
     public Twitter effect() { return this; }
 
@@ -31,19 +30,19 @@ class TwitterExample {
       return use(resume -> resume.apply(listOf(new Tweet(userId, "asdfg"))));
     }
   }
-    
+
   static <R> Control<R> instanceOf(Function1<Twitter, Control<R>> apply) {
     return new TwitterImpl<R>().apply(apply);
   }
-  
+
   private Control<ImmutableList<Tweet>> program(Twitter twitter) {
     return Instances.<Control<?>>monad().use()
       .then(twitter.userTweets("12345"))
       .then(twitter.userTweets("54321"))
       .apply(ImmutableList::appendAll)
-      .fix(toControl());
+      .fix(ControlOf::toControl);
   }
-  
+
   @Test
   void runProgram( ){
     assertEquals(listOf(new Tweet("12345", "asdfg"), new Tweet("54321", "asdfg")), instanceOf(this::program).run());

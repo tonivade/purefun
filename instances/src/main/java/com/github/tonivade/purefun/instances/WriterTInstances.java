@@ -5,8 +5,6 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.transformer.WriterTOf.toWriterT;
-
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Function1;
@@ -64,7 +62,7 @@ interface WriterTMonad<F, L> extends Monad<Kind<Kind<WriterT<?, ?, ?>, F>, L>> {
   @Override
   default <T, R> WriterT<F, L, R> flatMap(Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends R>> map) {
-    return WriterTOf.narrowK(value).flatMap(map.andThen(WriterTOf::narrowK));
+    return WriterTOf.toWriterT(value).flatMap(map.andThen(WriterTOf::toWriterT));
   }
 }
 
@@ -93,17 +91,17 @@ interface WriterTMonadWriter<F, L>
 
   @Override
   default <A> WriterT<F, L, Tuple2<L, A>> listen(Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends A> value) {
-    return value.fix(WriterTOf::<F, L, A>narrowK).listen();
+    return value.fix(WriterTOf::<F, L, A>toWriterT).listen();
   }
 
   @Override
   default <A> WriterT<F, L, A> pass(
       Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, Tuple2<Operator1<L>, A>> value) {
-    WriterT<F, L, Tuple2<Operator1<L>, A>> writerT = value.fix(WriterTOf::narrowK);
+    WriterT<F, L, Tuple2<Operator1<L>, A>> writerT = value.fix(WriterTOf::toWriterT);
     return writerT.listen().flatMap((Tuple2<L, Tuple2<Operator1<L>, A>> tuple) -> {
         Operator1<L> operator = tuple.get2().get1();
         A value2 = tuple.get2().get2();
-      return writer(Tuple.of(operator.apply(tuple.get1()), value2)).fix(WriterTOf::narrowK);
+      return writer(Tuple.of(operator.apply(tuple.get1()), value2)).fix(WriterTOf::toWriterT);
       });
   }
 }
@@ -141,7 +139,7 @@ interface WriterTMonadError<F, L, E>
       Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, A> value,
       Function1<? super E, ? extends Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends A>> handler) {
     return WriterT.writer(monoid(), monadF(),
-        monadF().handleErrorWith(value.fix(toWriterT()).value(),
-            error -> handler.apply(error).fix(WriterTOf::<F, L, A>narrowK).value()));
+        monadF().handleErrorWith(value.fix(WriterTOf::<F, L, A>toWriterT).value(),
+            error -> handler.apply(error).fix(WriterTOf::<F, L, A>toWriterT).value()));
   }
 }

@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.type.ValidationOf.toValidation;
-
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
@@ -74,7 +72,7 @@ interface ValidationFunctor<E> extends Functor<Kind<Validation<?, ?>, E>> {
   @Override
   default <T, R> Validation<E, R> map(Kind<Kind<Validation<?, ?>, E>, ? extends T> value,
       Function1<? super T, ? extends R> map) {
-    return ValidationOf.narrowK(value).map(map);
+    return ValidationOf.toValidation(value).map(map);
   }
 }
 
@@ -85,7 +83,7 @@ interface ValidationBifunctor extends Bifunctor<Validation<?, ?>> {
   @Override
   default <A, B, C, D> Validation<C, D> bimap(Kind<Kind<Validation<?, ?>, A>, ? extends B> value,
       Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap) {
-    return ValidationOf.narrowK(value).bimap(leftMap, rightMap);
+    return ValidationOf.toValidation(value).bimap(leftMap, rightMap);
   }
 }
 
@@ -108,8 +106,8 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Kind<V
   @Override
   default <T, R> Validation<E, R> ap(Kind<Kind<Validation<?, ?>, E>, ? extends T> value,
                                      Kind<Kind<Validation<?, ?>, E>, ? extends Function1<? super T, ? extends R>> apply) {
-    Validation<E, T> validation = value.fix(ValidationOf::narrowK);
-    Validation<E, Function1<? super T, ? extends R>> validationF = apply.fix(ValidationOf::narrowK);
+    Validation<E, T> validation = value.fix(ValidationOf::toValidation);
+    Validation<E, Function1<? super T, ? extends R>> validationF = apply.fix(ValidationOf::toValidation);
 
     if (validation.isValid() && validationF.isValid()) {
       return Validation.valid(validationF.get().apply(validation.get()));
@@ -132,7 +130,7 @@ interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Kin
   @Override
   default <A, B> Validation<E, B> select(Kind<Kind<Validation<?, ?>, E>, Either<A, B>> value,
                                          Kind<Kind<Validation<?, ?>, E>, Function1<? super A, ? extends B>> apply) {
-    return Validation.select(value.fix(toValidation()), apply.fix(toValidation()));
+    return Validation.select(value.fix(ValidationOf::toValidation), apply.fix(ValidationOf::toValidation));
   }
 }
 
@@ -144,7 +142,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Kind<Validation<?,
   @Override
   default <T, R> Validation<E, R> flatMap(Kind<Kind<Validation<?, ?>, E>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<Validation<?, ?>, E>, ? extends R>> map) {
-    return ValidationOf.narrowK(value).flatMap(map.andThen(ValidationOf::narrowK));
+    return ValidationOf.toValidation(value).flatMap(map.andThen(ValidationOf::toValidation));
   }
 
   @Override
@@ -154,7 +152,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Kind<Validation<?,
   }
 
   private <T, R> Trampoline<Kind<Kind<Validation<?, ?>, E>, R>> loop(T value, Function1<T, ? extends Kind<Kind<Validation<?, ?>, E>, Either<T, R>>> map) {
-    return switch (map.andThen(ValidationOf::narrowK).apply(value)) {
+    return switch (map.andThen(ValidationOf::toValidation).apply(value)) {
       case Validation.Invalid<E, Either<T, R>>(var error) -> Trampoline.done(Validation.invalid(error));
       case Validation.Valid<E, Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Validation.valid(right));
       case Validation.Valid<E, Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
@@ -175,7 +173,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Kind<Va
   @Override
   default <A> Validation<E, A> handleErrorWith(Kind<Kind<Validation<?, ?>, E>, A> value,
       Function1<? super E, ? extends Kind<Kind<Validation<?, ?>, E>, ? extends A>> handler) {
-    return ValidationOf.narrowK(value).fold(handler.andThen(ValidationOf::narrowK), Validation::valid);
+    return ValidationOf.toValidation(value).fold(handler.andThen(ValidationOf::toValidation), Validation::valid);
   }
 }
 

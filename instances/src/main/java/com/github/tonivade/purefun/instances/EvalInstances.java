@@ -55,7 +55,7 @@ interface EvalFunctor extends Functor<Eval<?>> {
 
   @Override
   default <T, R> Eval<R> map(Kind<Eval<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return EvalOf.narrowK(value).map(mapper);
+    return EvalOf.toEval(value).map(mapper);
   }
 }
 
@@ -74,7 +74,7 @@ interface EvalApplicative extends EvalPure {
   @Override
   default <T, R> Kind<Eval<?>, R> ap(Kind<Eval<?>, ? extends T> value,
       Kind<Eval<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return EvalOf.narrowK(value).flatMap(t -> EvalOf.narrowK(apply).map(f -> f.apply(t)));
+    return EvalOf.toEval(value).flatMap(t -> EvalOf.toEval(apply).map(f -> f.apply(t)));
   }
 }
 
@@ -84,7 +84,7 @@ interface EvalMonad extends EvalPure, Monad<Eval<?>> {
 
   @Override
   default <T, R> Kind<Eval<?>, R> flatMap(Kind<Eval<?>, ? extends T> value, Function1<? super T, ? extends Kind<Eval<?>, ? extends R>> map) {
-    return EvalOf.narrowK(value).flatMap(map.andThen(EvalOf::<R>narrowK));
+    return EvalOf.toEval(value).flatMap(map.andThen(EvalOf::<R>toEval));
   }
 }
 
@@ -100,8 +100,8 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval<?>, Throwable> {
   @Override
   default <A> Kind<Eval<?>, A> handleErrorWith(
       Kind<Eval<?>, A> value, Function1<? super Throwable, ? extends Kind<Eval<?>, ? extends A>> handler) {
-    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix(EvalOf::narrowK)::value));
-    return attempt.flatMap(try_ -> try_.fold(handler.andThen(EvalOf::narrowK), Eval::now));
+    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix(EvalOf::toEval)::value));
+    return attempt.flatMap(try_ -> try_.fold(handler.andThen(EvalOf::toEval), Eval::now));
   }
 }
 
@@ -121,7 +121,7 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval<?>> {
 
   @Override
   default <A> A extract(Kind<Eval<?>, ? extends A> value) {
-    return EvalOf.narrowK(value).value();
+    return EvalOf.toEval(value).value();
   }
 }
 
@@ -131,6 +131,6 @@ interface EvalDefer extends Defer<Eval<?>> {
 
   @Override
   default <A> Kind<Eval<?>, A> defer(Producer<? extends Kind<Eval<?>, ? extends A>> defer) {
-    return Eval.defer(defer.map(EvalOf::narrowK));
+    return Eval.defer(defer.map(EvalOf::toEval));
   }
 }

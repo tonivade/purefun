@@ -7,8 +7,6 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Unit.unit;
-import static com.github.tonivade.purefun.transformer.OptionTOf.toOptionT;
-
 import java.time.Duration;
 import java.util.NoSuchElementException;
 
@@ -32,7 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 public interface OptionTInstances {
 
   static <F, T> Eq<Kind<Kind<OptionT<?, ?>, F>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
-    return (a, b) -> eq.eqv(OptionTOf.narrowK(a).value(), OptionTOf.narrowK(b).value());
+    return (a, b) -> eq.eqv(OptionTOf.toOptionT(a).value(), OptionTOf.toOptionT(b).value());
   }
 
   static <F> Monad<Kind<OptionT<?, ?>, F>> monad(Monad<F> monadF) {
@@ -76,7 +74,7 @@ interface OptionTMonad<F> extends Monad<Kind<OptionT<?, ?>, F>> {
   @Override
   default <T, R> OptionT<F, R> flatMap(Kind<Kind<OptionT<?, ?>, F>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends R>> map) {
-    return OptionTOf.narrowK(value).flatMap(map.andThen(OptionTOf::narrowK));
+    return OptionTOf.toOptionT(value).flatMap(map.andThen(OptionTOf::toOptionT));
   }
 }
 
@@ -96,9 +94,9 @@ interface OptionTMonadErrorFromMonad<F>
   default <A> OptionT<F, A> handleErrorWith(Kind<Kind<OptionT<?, ?>, F>, A> value,
       Function1<? super Unit, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends A>> handler) {
     return OptionT.of(monadF(),
-        monadF().flatMap(OptionTOf.narrowK(value).value(),
+        monadF().flatMap(OptionTOf.toOptionT(value).value(),
             option -> option.fold(
-              () -> handler.andThen(OptionTOf::<F, A>narrowK).apply(unit()).value(),
+              () -> handler.andThen(OptionTOf::<F, A>toOptionT).apply(unit()).value(),
               a -> monadF().pure(Option.some(a)))));
   }
 }
@@ -123,7 +121,7 @@ interface OptionTMonadErrorFromMonadError<F, E>
       Function1<? super E, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends A>> handler) {
     return OptionT.of(monadF(),
       monadF().handleErrorWith(
-        OptionTOf.narrowK(value).value(), error -> handler.andThen(OptionTOf::<F, A>narrowK).apply(error).value()));
+        OptionTOf.toOptionT(value).value(), error -> handler.andThen(OptionTOf::<F, A>toOptionT).apply(error).value()));
   }
 }
 
@@ -142,7 +140,7 @@ interface OptionTDefer<F> extends Defer<Kind<OptionT<?, ?>, F>> {
 
   @Override
   default <A> OptionT<F, A> defer(Producer<? extends Kind<Kind<OptionT<?, ?>, F>, ? extends A>> defer) {
-    return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionTOf::<F, A>narrowK).get().value()));
+    return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionTOf::<F, A>toOptionT).get().value()));
   }
 }
 
@@ -157,13 +155,13 @@ interface OptionTBracket<F> extends Bracket<Kind<OptionT<?, ?>, F>, Throwable> {
       Function1<? super A, ? extends Kind<Kind<OptionT<?, ?>, F>, Unit>> release) {
     Kind<F, Option<B>> bracket =
         monadF().bracket(
-            acquire.fix(OptionTOf::<F, A>narrowK).value(),
+            acquire.fix(OptionTOf::<F, A>toOptionT).value(),
             option -> option.fold(
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
-                value -> use.andThen(OptionTOf::<F, B>narrowK).apply(value).value()),
+                value -> use.andThen(OptionTOf::<F, B>toOptionT).apply(value).value()),
             option -> {
               Kind<Kind<OptionT<?, ?>, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release);
-              Kind<F, Option<Unit>> value = fold.fix(toOptionT()).value();
+              Kind<F, Option<Unit>> value = fold.fix(OptionTOf::<F, Unit>toOptionT).value();
               return monadF().map(value, x -> x.fold(Unit::unit, identity()));
             });
     return OptionT.of(monadF(), bracket);

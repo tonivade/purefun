@@ -107,7 +107,7 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Kind<Kind<Validation<?, ?>, E>, ? extends R>> mapper) {
     if (this instanceof Valid<E, T>(var value)) {
-      return mapper.andThen(ValidationOf::<E, R>narrowK).apply(value);
+      return mapper.andThen(ValidationOf::<E, R>toValidation).apply(value);
     }
     return (Validation<E, R>) this;
   }
@@ -133,12 +133,12 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Ki
     if (this instanceof Valid<E, T>(var value) && matcher.match(value)) {
       return this;
     }
-    return orElse.andThen(ValidationOf::narrowK).get();
+    return orElse.andThen(ValidationOf::toValidation).get();
   }
 
   default Validation<E, T> or(Producer<Kind<Kind<Validation<?, ?>, E>, T>> orElse) {
     if (this instanceof Invalid) {
-      return orElse.andThen(ValidationOf::narrowK).get();
+      return orElse.andThen(ValidationOf::toValidation).get();
     }
     return this;
   }

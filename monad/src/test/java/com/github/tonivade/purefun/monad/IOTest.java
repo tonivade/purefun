@@ -6,8 +6,6 @@ package com.github.tonivade.purefun.monad;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.monad.IO.unit;
-import static com.github.tonivade.purefun.monad.IOOf.narrowK;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -92,10 +90,11 @@ public class IOTest {
 
   @Test
   public void echo() {
-    IO<Unit> echo = narrowK(console.println("write your name"))
-        .andThen(narrowK(console.readln()))
-        .flatMap(name -> narrowK(console.println("Hello " + name)))
-        .andThen(narrowK(console.println("end")));
+    IO<Unit> echo = Instances.<IO<?>>monad().use().then(console.println("write your name"))
+        .then(console.readln())
+        .flatMap(name -> console.println("Hello " + name))
+        .then(console.println("end"))
+        .fix(IOOf::toIO);
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
@@ -315,7 +314,7 @@ public class IOTest {
     IO<String> result = Instances.<IO<?>>monad().use()
       .then(IO.pure("hola"))
       .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
-      .flatMap(Fiber::join).fix(toIO());
+      .flatMap(Fiber::join).fix(IOOf::toIO);
 
     String orElseThrow = result.runAsync().getOrElseThrow();
 
@@ -408,7 +407,7 @@ public class IOTest {
   private IO<ImmutableList<String>> currentThreadIO() {
     Reference<IO<?>, ImmutableList<String>> ref = IOInstances.monadDefer().ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix(toIO());
+        ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix(IOOf::toIO);
 
     return currentThread
         .andThen(currentThread

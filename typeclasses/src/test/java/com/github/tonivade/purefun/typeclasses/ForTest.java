@@ -5,24 +5,22 @@
 package com.github.tonivade.purefun.typeclasses;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
-import static com.github.tonivade.purefun.monad.IOOf.toIO;
-import static com.github.tonivade.purefun.type.IdOf.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.monad.IO;
+import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class ForTest {
@@ -34,7 +32,7 @@ public class ForTest {
     Id<String> result = monad.use()
         .andThen(() -> Id.of("value"))
         .map(String::toUpperCase)
-        .fix(toId());
+        .fix(IdOf::toId);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -58,7 +56,7 @@ public class ForTest {
     Id<String> result = For.with(monad)
         .andThen(() -> monad.pure("value"))
         .flatMap(string -> monad.pure(string.toUpperCase()))
-        .fix(toId());
+        .fix(IdOf::toId);
 
     assertEquals(Id.of("VALUE"), result);
   }
@@ -73,7 +71,7 @@ public class ForTest {
       .then(IO.task(task1))
       .then(IO.task(task2))
       .apply(String::concat)
-      .fix(toIO())
+      .fix(IOOf::toIO)
       .unsafeRunSync();
 
     assertEquals("hola toniadios toni", result);
@@ -90,7 +88,7 @@ public class ForTest {
           .and("d")
           .and("e")
           .tuple()
-          .fix(toId());
+          .fix(IdOf::toId);
 
     assertEquals(Id.of(Tuple.of("a", "b", "c", "d", "e")), result);
   }
@@ -110,9 +108,9 @@ public class ForTest {
         .and(4)
         .and(5);
 
-    IO<Integer> yield = program1.apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
+    IO<Integer> yield = program1.apply((a, b, c, d, e) -> a + b + c + d + e).fix(IOOf::toIO);
 
-    IO<Integer> apply = program2.apply((a, b, c, d, e) -> a + b + c + d + e).fix(toIO());
+    IO<Integer> apply = program2.apply((a, b, c, d, e) -> a + b + c + d + e).fix(IOOf::toIO);
 
     assertEquals(15, yield.unsafeRunSync());
     assertEquals(15, apply.unsafeRunSync());

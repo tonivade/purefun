@@ -5,12 +5,7 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
-import static com.github.tonivade.purefun.free.FreeApOf.toFreeAp;
-import static com.github.tonivade.purefun.type.IdOf.toId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
-
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
@@ -21,9 +16,11 @@ import com.github.tonivade.purefun.instances.ConstInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monoid;
+import org.junit.jupiter.api.Test;
 
 public class FreeApTest {
 
@@ -31,9 +28,9 @@ public class FreeApTest {
 
   @Test
   public void map() {
-    FreeAp<DSL<?>, Integer> map = applicative.map(DSL.readInt(4), i -> i + 1).fix(toFreeAp());
+    FreeAp<DSL<?>, Integer> map = applicative.map(DSL.readInt(4), i -> i + 1).fix(FreeApOf::toFreeAp);
 
-    Id<Integer> foldMap = map.foldMap(idTransform(), IdInstances.applicative()).fix(toId());
+    Id<Integer> foldMap = map.foldMap(idTransform(), IdInstances.applicative()).fix(IdOf::toId);
 
     assertEquals(Id.of(5), foldMap);
   }
@@ -45,7 +42,7 @@ public class FreeApTest {
 
     Id<Integer> foldMap = freeAp.ap(apply)
         .map(String::length)
-        .foldMap(idTransform(), IdInstances.applicative()).fix(toId());
+        .foldMap(idTransform(), IdInstances.applicative()).fix(IdOf::toId);
 
     assertEquals(Id.of(3), foldMap);
   }
@@ -60,12 +57,12 @@ public class FreeApTest {
             DSL.readString("hola mundo"),
             DSL.readUnit(),
             Tuple::of
-        ).fix(toFreeAp());
+        ).fix(FreeApOf::toFreeAp);
 
     Kind<Id<?>, Tuple5<Integer, Boolean, Double, String, Unit>> map =
         tuple.foldMap(idTransform(), IdInstances.applicative());
 
-    assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(toId()));
+    assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(IdOf::toId));
   }
   @Test
   public void pure() {
@@ -77,12 +74,12 @@ public class FreeApTest {
             applicative.pure(true),
             applicative.pure(unit()),
             Tuple::of
-        ).fix(toFreeAp());
+        ).fix(FreeApOf::toFreeAp);
 
     Kind<Id<?>, Tuple5<Integer, String, Double, Boolean, Unit>> map =
         tuple.foldMap(idTransform(), IdInstances.applicative());
 
-    assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix(toId()));
+    assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix(IdOf::toId));
   }
 
   @Test
@@ -90,7 +87,7 @@ public class FreeApTest {
     FreeAp<DSL<?>, Integer> readInt = FreeAp.pure(5);
 
     FreeAp<Id<?>, Integer> compile = readInt.compile(idTransform());
-    Id<Integer> fold = compile.fold(IdInstances.applicative()).fix(toId());
+    Id<Integer> fold = compile.fold(IdInstances.applicative()).fix(IdOf::toId);
 
     assertEquals(5, fold.value());
   }
@@ -105,7 +102,7 @@ public class FreeApTest {
             DSL.readString("hola mundo"),
             DSL.readUnit(),
             Tuple::of
-        ).fix(toFreeAp());
+        ).fix(FreeApOf::toFreeAp);
 
     String analize = tuple.analyze(constTransform(), ConstInstances.applicative(Monoid.string()));
 
@@ -122,7 +119,7 @@ public class FreeApTest {
     return new FunctionK<>() {
       @Override
       public <T> Kind<Id<?>, T> apply(Kind<DSL<?>, ? extends T> from) {
-        return Id.of(from.fix(DSLOf::<T>narrowK).value());
+        return Id.of(from.fix(DSLOf::toDSL).value());
       }
     };
   }
@@ -131,7 +128,7 @@ public class FreeApTest {
     return new FunctionK<>() {
       @Override
       public <T> Const<String, T> apply(Kind<DSL<?>, ? extends T> from) {
-        DSL<T> dsl = from.fix(DSLOf::narrowK);
+        DSL<T> dsl = from.fix(DSLOf::toDSL);
         return Const.of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n");
       }
     };

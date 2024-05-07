@@ -37,7 +37,7 @@ public class FoldableLaws {
     assertEquals(
         instance.foldM(
             OptionInstances.monad(), value, initial,
-            combinator.andThen(Option::some).andThen(Option::kind)).fix(OptionOf::narrowK).getOrElseThrow(),
+            combinator.andThen(Option::some).andThen(Option::kind)).fix(OptionOf::toOption).getOrElseThrow(),
         instance.reduce(value, combinator).getOrElse(initial),
         "reduce consistent law");
   }

@@ -37,19 +37,19 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
 
   public <B> Managed<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, E>, ? extends B>> mapper) {
     PureIO<R, E, Tuple2<B, Consumer1<? super B>>> result = resource.flatMap(t -> {
-      Managed<R, E, B> apply = ManagedOf.narrowK(mapper.apply(t.get1()));
+      Managed<R, E, B> apply = ManagedOf.toManaged(mapper.apply(t.get1()));
       return apply.resource.map(r -> r.map2(ignore -> releaseAndThen(t, r)));
     });
     return new Managed<>(result);
   }
 
   public <F> Managed<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, F>, ? extends A>> mapper) {
-    return new Managed<>(resource.flatMapError(e -> ManagedOf.<R, F, A>narrowK(mapper.apply(e)).resource));
+    return new Managed<>(resource.flatMapError(e -> ManagedOf.<R, F, A>toManaged(mapper.apply(e)).resource));
   }
 
   public <B> Managed<R, E, B> andThen(Kind<Kind<Kind<Managed<?, ?, ?>, A>, E>, B> other) {
     PureIO<R, E, Tuple2<B, Consumer1<? super B>>> flatMap = resource.flatMap(a -> {
-      Either<E, Tuple2<B, Consumer1<? super B>>> next = ManagedOf.narrowK(other).resource.provide(a.get1());
+      Either<E, Tuple2<B, Consumer1<? super B>>> next = ManagedOf.toManaged(other).resource.provide(a.get1());
       return PureIO.fromEither(() -> next.map(t -> t.map2(ignore -> releaseAndThen(a, t))));
     });
     return new Managed<>(flatMap);
@@ -79,8 +79,8 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
       Function1<? super A, ? extends Kind<Kind<Kind<Managed<?, ?, ?>, R>, F>, ? extends B>> mapper) {
     PureIO<R, F, Tuple2<B, Consumer1<? super B>>> foldM =
         resource.foldM(
-            error -> ManagedOf.<R, F, B>narrowK(mapError.apply(error)).resource,
-            a -> ManagedOf.<R, F, B>narrowK(mapper.apply(a.get1())).resource.map(b -> b.map2(ignore -> releaseAndThen(a, b))));
+            error -> ManagedOf.<R, F, B>toManaged(mapError.apply(error)).resource,
+            a -> ManagedOf.<R, F, B>toManaged(mapper.apply(a.get1())).resource.map(b -> b.map2(ignore -> releaseAndThen(a, b))));
     return new Managed<>(foldM);
   }
 

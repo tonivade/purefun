@@ -4,7 +4,6 @@
  */
 package com.github.tonivade.purefun.instances;
 
-import static com.github.tonivade.purefun.effect.UIOOf.toUIO;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 
@@ -87,7 +86,7 @@ interface UIOFunctor extends Functor<UIO<?>> {
 
   @Override
   default <A, B> UIO<B> map(Kind<UIO<?>, ? extends A> value, Function1<? super A, ? extends B> map) {
-    return UIOOf.narrowK(value).map(map);
+    return UIOOf.toUIO(value).map(map);
   }
 }
 
@@ -106,7 +105,7 @@ interface UIOApplicative extends UIOPure {
   @Override
   default <A, B> UIO<B> ap(Kind<UIO<?>, ? extends A> value,
       Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(UIOOf::<A>narrowK).ap(apply.fix(UIOOf::narrowK));
+    return value.fix(UIOOf::<A>toUIO).ap(apply.fix(UIOOf::toUIO));
   }
 }
 
@@ -117,7 +116,7 @@ interface UIOMonad extends UIOPure, Monad<UIO<?>> {
   @Override
   default <A, B> UIO<B> flatMap(Kind<UIO<?>, ? extends A> value,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
-    return value.fix(toUIO()).flatMap(map.andThen(UIOOf::narrowK));
+    return value.fix(UIOOf::toUIO).flatMap(map.andThen(UIOOf::toUIO));
   }
 }
 
@@ -134,9 +133,9 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO<?>, Throwable> {
   default <A> UIO<A> handleErrorWith(
       Kind<UIO<?>, A> value,
       Function1<? super Throwable, ? extends Kind<UIO<?>, ? extends A>> handler) {
-    Function1<? super Throwable, UIO<A>> mapError = handler.andThen(UIOOf::narrowK);
+    Function1<? super Throwable, UIO<A>> mapError = handler.andThen(UIOOf::toUIO);
     Function1<A, UIO<A>> map = UIO::pure;
-    UIO<A> uio = UIOOf.narrowK(value);
+    UIO<A> uio = UIOOf.toUIO(value);
     return uio.redeemWith(mapError, map);
   }
 }
@@ -183,7 +182,7 @@ interface UIOAsync extends Async<UIO<?>>, UIOMonadDefer {
 
   @Override
   default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO<?>, Unit>> consumer) {
-    return UIO.cancellable(consumer.andThen(UIOOf::narrowK));
+    return UIO.cancellable(consumer.andThen(UIOOf::toUIO));
   }
 }
 
@@ -202,7 +201,7 @@ interface UIOConcurrent extends Concurrent<UIO<?>>, UIOAsync {
 
   @Override
   default <A> UIO<Fiber<UIO<?>, A>> fork(Kind<UIO<?>, ? extends A> value) {
-    UIO<A> fix = value.fix(UIOOf::narrowK);
+    UIO<A> fix = value.fix(UIOOf::toUIO);
     return fix.fork();
   }
 }
@@ -230,21 +229,21 @@ interface UIORuntime extends Runtime<UIO<?>> {
 
   @Override
   default <T> T run(Kind<UIO<?>, T> value) {
-    return value.fix(toUIO()).unsafeRunSync();
+    return value.fix(UIOOf::toUIO).unsafeRunSync();
   }
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<UIO<?>, T>> values) {
-    return run(UIO.traverse(values.map(UIOOf::<T>narrowK)));
+    return run(UIO.traverse(values.map(UIOOf::<T>toUIO)));
   }
 
   @Override
   default <T> Future<T> parRun(Kind<UIO<?>, T> value, Executor executor) {
-    return value.fix(toUIO()).runAsync();
+    return value.fix(UIOOf::<T>toUIO).runAsync();
   }
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<UIO<?>, T>> values, Executor executor) {
-    return parRun(UIO.traverse(values.map(UIOOf::<T>narrowK)), executor);
+    return parRun(UIO.traverse(values.map(UIOOf::<T>toUIO)), executor);
   }
 }

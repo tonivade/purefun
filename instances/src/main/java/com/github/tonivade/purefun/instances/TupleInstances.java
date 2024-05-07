@@ -30,7 +30,7 @@ interface Tuple1Functor extends Functor<Tuple1<?>> {
 
   @Override
   default <T, R> Kind<Tuple1<?>, R> map(Kind<Tuple1<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(Tuple1Of::narrowK).map1(map);
+    return value.fix(Tuple1Of::toTuple1).map1(map);
   }
 }
 
@@ -42,6 +42,6 @@ interface Tuple2Bifunctor extends Bifunctor<Tuple2<?, ?>> {
   default <A, B, C, D> Tuple2<C, D> bimap(Kind<Kind<Tuple2<?, ?>, A>, ? extends B> value,
                                           Function1<? super A, ? extends C> leftMap,
                                           Function1<? super B, ? extends D> rightMap) {
-    return value.fix(Tuple2Of::narrowK).map(leftMap, rightMap);
+    return value.fix(Tuple2Of::toTuple2).map(leftMap, rightMap);
   }
 }
