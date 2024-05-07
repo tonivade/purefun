@@ -48,17 +48,9 @@ interface SomeType<T> extends SomeTypeOf<T> { }
 // Boilerplate
 interface SomeTypeOf<T> implements Kind<SomeType<?>, T> {
 
-  default Kind<SomeType<?>, T> kind() {
-    return this;
-  }
-
   // this is a safe cast
-  static SomeType<T> narrowK(Kind<SomeType<?>, ? extends T> hkt) {
+  static SomeType<T> toSomeType(Kind<SomeType<?>, ? extends T> hkt) {
     return (SomeType<T>) hkt;
-  }
-  
-  static Function<Kind<SomeType<?>, ? extends T>, SomeType<T>> toSomeType() {
-    return SomeType::narrowK;
   }
 }
 ```
