@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 
-
 public abstract class ReferenceTest<F> {
 
   private final Instance<F> instance;

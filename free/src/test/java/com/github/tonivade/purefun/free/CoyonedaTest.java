@@ -5,13 +5,13 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Function1.identity;
-import static com.github.tonivade.purefun.instances.OptionInstances.functor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 public class CoyonedaTest {
 
@@ -23,6 +23,6 @@ public class CoyonedaTest {
 
     Coyoneda<Option<?>, String, String> result = coyoneda.map(concat).map(concat);
 
-    assertEquals(Option.some("stringstringstringstring"), result.run(functor()));
+    assertEquals(Option.some("stringstringstringstring"), result.run(Instances.functor()));
   }
 }

@@ -13,16 +13,13 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Producer;
-import com.github.tonivade.purefun.instances.IdInstances;
-import com.github.tonivade.purefun.instances.OptionInstances;
-import com.github.tonivade.purefun.instances.ProducerInstances;
-import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 class EitherKTest {
 
@@ -56,8 +53,8 @@ class EitherKTest {
     EitherK<Id<?>, Producer<?>, String> right = EitherK.right(Producer.cons("hola"));
 
     assertAll(
-        () -> assertEquals("hola", left.extract(IdInstances.comonad(), ProducerInstances.comonad())),
-        () -> assertEquals("hola", right.extract(IdInstances.comonad(), ProducerInstances.comonad()))
+        () -> assertEquals("hola", left.extract(Instances.<Id<?>>comonad(), Instances.<Producer<?>>comonad())),
+        () -> assertEquals("hola", right.extract(Instances.<Id<?>>comonad(), Instances.<Producer<?>>comonad()))
     );
   }
 
@@ -68,10 +65,10 @@ class EitherKTest {
     assertAll(
         () -> assertEquals(
                 EitherK.left(Id.of("left")),
-                left.coflatMap(IdInstances.comonad(), ProducerInstances.comonad(), eitherK -> "left")),
+                left.coflatMap(Instances.<Id<?>>comonad(), Instances.<Producer<?>>comonad(), eitherK -> "left")),
         () -> assertEquals(
                 EitherK.right(Id.of("right")),
-                left.swap().coflatMap(ProducerInstances.comonad(), IdInstances.comonad(), eitherK -> "right"))
+                left.swap().coflatMap(Instances.<Producer<?>>comonad(), Instances.<Id<?>>comonad(), eitherK -> "right"))
     );
   }
 
@@ -79,7 +76,7 @@ class EitherKTest {
   public void mapLeft() {
     EitherK<Option<?>, Try<?>, String> eitherK = EitherK.left(Option.some("hello"));
 
-    EitherK<Option<?>, Try<?>, Integer> result = eitherK.map(OptionInstances.functor(), TryInstances.functor(), String::length);
+    EitherK<Option<?>, Try<?>, Integer> result = eitherK.map(Instances.<Option<?>>functor(), Instances.<Try<?>>functor(), String::length);
 
     assertEquals(Option.some(5), result.getLeft());
   }
@@ -88,7 +85,7 @@ class EitherKTest {
   public void mapRight() {
     EitherK<Option<?>, Try<?>, String> eitherK = EitherK.right(Try.success("hello"));
 
-    EitherK<Option<?>, Try<?>, Integer> result = eitherK.map(OptionInstances.functor(), TryInstances.functor(), String::length);
+    EitherK<Option<?>, Try<?>, Integer> result = eitherK.map(Instances.<Option<?>>functor(), Instances.<Try<?>>functor(), String::length);
 
     assertEquals(Try.success(5), result.getRight());
   }

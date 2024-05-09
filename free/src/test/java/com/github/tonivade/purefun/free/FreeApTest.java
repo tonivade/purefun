@@ -13,12 +13,12 @@ import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple5;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.ConstInstances;
-import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,7 @@ public class FreeApTest {
   public void map() {
     FreeAp<DSL<?>, Integer> map = applicative.map(DSL.readInt(4), i -> i + 1).fix(FreeApOf::toFreeAp);
 
-    Id<Integer> foldMap = map.foldMap(idTransform(), IdInstances.applicative()).fix(IdOf::toId);
+    Id<Integer> foldMap = map.foldMap(idTransform(), Instances.applicative()).fix(IdOf::toId);
 
     assertEquals(Id.of(5), foldMap);
   }
@@ -42,7 +42,7 @@ public class FreeApTest {
 
     Id<Integer> foldMap = freeAp.ap(apply)
         .map(String::length)
-        .foldMap(idTransform(), IdInstances.applicative()).fix(IdOf::toId);
+        .foldMap(idTransform(), Instances.applicative()).fix(IdOf::toId);
 
     assertEquals(Id.of(3), foldMap);
   }
@@ -60,7 +60,7 @@ public class FreeApTest {
         ).fix(FreeApOf::toFreeAp);
 
     Kind<Id<?>, Tuple5<Integer, Boolean, Double, String, Unit>> map =
-        tuple.foldMap(idTransform(), IdInstances.applicative());
+        tuple.foldMap(idTransform(), Instances.applicative());
 
     assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(IdOf::toId));
   }
@@ -77,7 +77,7 @@ public class FreeApTest {
         ).fix(FreeApOf::toFreeAp);
 
     Kind<Id<?>, Tuple5<Integer, String, Double, Boolean, Unit>> map =
-        tuple.foldMap(idTransform(), IdInstances.applicative());
+        tuple.foldMap(idTransform(), Instances.applicative());
 
     assertEquals(Id.of(Tuple.of(1, "string", 1.1, true, unit())), map.fix(IdOf::toId));
   }
@@ -87,7 +87,7 @@ public class FreeApTest {
     FreeAp<DSL<?>, Integer> readInt = FreeAp.pure(5);
 
     FreeAp<Id<?>, Integer> compile = readInt.compile(idTransform());
-    Id<Integer> fold = compile.fold(IdInstances.applicative()).fix(IdOf::toId);
+    Id<Integer> fold = compile.fold(Instances.applicative()).fix(IdOf::toId);
 
     assertEquals(5, fold.value());
   }

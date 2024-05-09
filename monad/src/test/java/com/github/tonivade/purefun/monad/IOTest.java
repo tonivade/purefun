@@ -37,7 +37,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -49,7 +48,7 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 @ExtendWith(MockitoExtension.class)
 public class IOTest {
 
-  private final Console<IO<?>> console = IOInstances.console();
+  private final Console<IO<?>> console = Instances.console();
 
   @Test
   public void pure() {
@@ -405,7 +404,7 @@ public class IOTest {
   }
 
   private IO<ImmutableList<String>> currentThreadIO() {
-    Reference<IO<?>, ImmutableList<String>> ref = IOInstances.monadDefer().ref(ImmutableList.empty());
+    Reference<IO<?>, ImmutableList<String>> ref = Instances.<IO<?>>monadDefer().ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
         ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix(IOOf::toIO);
 

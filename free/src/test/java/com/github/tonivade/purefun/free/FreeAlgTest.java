@@ -10,7 +10,6 @@ import static com.github.tonivade.purefun.typeclasses.InjectK.injectReflexive;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Unit;
-import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
@@ -49,7 +48,7 @@ public class FreeAlgTest {
 
   @SuppressWarnings("unchecked")
   private static FunctionK<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, IO<?>> interpreter() {
-    final Console<IO<?>> console = IOInstances.console();
+    final Console<IO<?>> console = Instances.console();
     return new FunctionK<>() {
       @Override
       public <T> Kind<IO<?>, T> apply(Kind<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, ? extends T> from) {

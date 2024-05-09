@@ -39,11 +39,11 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 @ExtendWith(MockitoExtension.class)
 public class UIOTest {
@@ -204,7 +204,7 @@ public class UIOTest {
 
   @Test
   public void fork() {
-    UIO<String> result = For.with(UIOInstances.monad())
+    UIO<String> result = For.with(Instances.<UIO<?>>monad())
       .then(UIO.pure("hola"))
       .flatMap(hello -> {
         UIO<Unit> sleep = UIO.sleep(Duration.ofSeconds(1));

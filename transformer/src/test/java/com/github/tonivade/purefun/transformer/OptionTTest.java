@@ -14,11 +14,8 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Unit;
-import com.github.tonivade.purefun.instances.FutureInstances;
-import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
-import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Id;
@@ -26,13 +23,14 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import org.junit.jupiter.api.Test;
 
 public class OptionTTest {
 
-  private final Monad<Id<?>> monad = IdInstances.monad();
+  private final Monad<Id<?>> monad = Instances.monad();
 
   @Test
   public void map() {
@@ -82,9 +80,9 @@ public class OptionTTest {
 
   @Test
   public void mapK() {
-    OptionT<IO<?>, String> someIo = OptionT.some(IOInstances.monad(), "abc");
+    OptionT<IO<?>, String> someIo = OptionT.some(Instances.monad(), "abc");
 
-    OptionT<Try<?>, String> someTry = someIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    OptionT<Try<?>, String> someTry = someIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), TryOf.toTry(someTry.getOrElseThrow()));
   }
@@ -109,7 +107,7 @@ public class OptionTTest {
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
     MonadError<Kind<OptionT<?, ?>, Future<?>>, Throwable> monadError =
-        OptionTInstances.monadError(FutureInstances.monadError());
+        OptionTInstances.monadError(Instances.monadError());
 
     Kind<Kind<OptionT<?, ?>, Future<?>>, String> pure = monadError.pure("is not ok");
     Kind<Kind<OptionT<?, ?>, Future<?>>, String> raiseError = monadError.raiseError(error);

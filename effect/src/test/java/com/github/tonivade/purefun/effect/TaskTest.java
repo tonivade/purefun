@@ -33,11 +33,11 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 @ExtendWith(MockitoExtension.class)
 class TaskTest {
@@ -206,7 +206,7 @@ class TaskTest {
 
   @Test
   void fork() {
-    Task<String> result = For.with(TaskInstances.monad())
+    Task<String> result = For.with(Instances.<Task<?>>monad())
       .then(Task.pure("hola"))
       .flatMap(hello -> {
         Task<Unit> sleep = Task.sleep(Duration.ofSeconds(1));

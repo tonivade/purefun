@@ -13,16 +13,16 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.SequenceInstances;
 import com.github.tonivade.purefun.type.Id;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public class WriterTTest {
 
   private final Monoid<Sequence<String>> monoid = SequenceInstances.monoid();
-  private final Monad<Id<?>> monad = IdInstances.monad();
+  private final Monad<Id<?>> monad = Instances.monad();
 
   @Test
   public void writerTest() {

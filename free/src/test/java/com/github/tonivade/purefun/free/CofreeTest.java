@@ -13,14 +13,14 @@ import static org.mockito.Mockito.when;
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple4;
-import com.github.tonivade.purefun.instances.IdInstances;
-import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -31,10 +31,10 @@ public class CofreeTest {
 
   @Test
   public void testMap() {
-    Cofree<Id<?>, Integer> cofree = Cofree.unfold(IdInstances.functor(), 0, a -> Id.of(a + 1)).map(x -> x * 2);
+    Cofree<Id<?>, Integer> cofree = Cofree.unfold(Instances.functor(), 0, a -> Id.of(a + 1)).map(x -> x * 2);
 
     Id<Tuple4<Cofree<Id<?>, Integer>, Cofree<Id<?>, Integer>, Cofree<Id<?>, Integer>, Cofree<Id<?>, Integer>>> tuple4Id =
-        For.with(IdInstances.monad())
+        For.with(Instances.<Id<?>>monad())
           .then(cofree.tailForced())
           .flatMap(Cofree::tailForced)
           .flatMap(Cofree::tailForced)
@@ -47,11 +47,11 @@ public class CofreeTest {
 
   @Test
   public void testFold() {
-    Cofree<Option<?>, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
+    Cofree<Option<?>, Integer> cofree = Cofree.unfold(Instances.functor(), 0,
         a -> (a > 100) ? Option.<Integer>none() : Option.some(a + 1));
 
     assertEquals(5151,
-        cofree.<Integer>fold(OptionInstances.traverse(),
+        cofree.<Integer>fold(Instances.traverse(),
             (a, fb) -> Eval.later(() -> fb.fix(OptionOf::toOption).fold(() -> a, x -> x + a))).value());
   }
 
@@ -60,7 +60,7 @@ public class CofreeTest {
     when(plus1.apply(anyInt()))
         .thenReturn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
-    Cofree<Option<?>, Integer> cofree = Cofree.unfold(OptionInstances.functor(), 0,
+    Cofree<Option<?>, Integer> cofree = Cofree.unfold(Instances.functor(), 0,
         a -> (a < 10) ? Option.some(plus1.apply(a)) : Option.<Integer>none());
 
     verify(plus1, never()).apply(anyInt()); // nothing executed
@@ -70,6 +70,6 @@ public class CofreeTest {
     verify(plus1, times(10)).apply(anyInt()); // after run, then it executes all computations
 
     assertEquals("0,1,2,3,4,5,6,7,8,9,10",
-        cofree.reduceToString(OptionInstances.traverse(), (a, b) -> a + "," + b).value());
+        cofree.reduceToString(Instances.traverse(), (a, b) -> a + "," + b).value());
   }
 }

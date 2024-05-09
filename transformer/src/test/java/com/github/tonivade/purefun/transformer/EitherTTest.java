@@ -13,22 +13,19 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.EitherTInstances;
-import com.github.tonivade.purefun.instances.FutureInstances;
-import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.instances.IdInstances;
-import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import org.junit.jupiter.api.Test;
 
 public class EitherTTest {
 
-  private final Monad<Id<?>> monad = IdInstances.monad();
+  private final Monad<Id<?>> monad = Instances.monad();
 
   @Test
   public void map() {
@@ -80,9 +77,9 @@ public class EitherTTest {
 
   @Test
   public void mapK() {
-    EitherT<IO<?>, Void, String> rightIo = EitherT.right(IOInstances.monad(), "abc");
+    EitherT<IO<?>, Void, String> rightIo = EitherT.right(Instances.monad(), "abc");
 
-    EitherT<Try<?>, Void, String> rightTry = rightIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    EitherT<Try<?>, Void, String> rightTry = rightIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success("abc"), TryOf.toTry(rightTry.get()));
   }
@@ -91,7 +88,7 @@ public class EitherTTest {
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
     MonadError<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, Throwable> monadError =
-        EitherTInstances.monadError(FutureInstances.monadError());
+        EitherTInstances.monadError(Instances.monadError());
 
     Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> pure = monadError.pure("is not ok");
     Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> raiseError = monadError.raiseError(error);

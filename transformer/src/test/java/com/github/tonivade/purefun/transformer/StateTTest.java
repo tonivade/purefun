@@ -17,18 +17,17 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.IOInstances;
-import com.github.tonivade.purefun.instances.TryInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class StateTTest {
 
-  private Monad<IO<?>> monad = IOInstances.monad();
+  private Monad<IO<?>> monad = Instances.monad();
 
   @Test
   public void get() {
@@ -89,7 +88,7 @@ public class StateTTest {
   public void mapK() {
     StateT<IO<?>, Unit, String> stateIo = StateT.pure(monad, "abc");
 
-    StateT<Try<?>, Unit, String> stateTry = stateIo.mapK(TryInstances.monad(), new IOToTryFunctionK());
+    StateT<Try<?>, Unit, String> stateTry = stateIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
     assertEquals(Try.success(Tuple2.of(unit(), "abc")), TryOf.toTry(stateTry.run(unit())));
   }
