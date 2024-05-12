@@ -15,23 +15,20 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
-import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
 public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline<?>, T> {
 
   @Override
   default <R> Trampoline<R> map(Function1<? super T, ? extends R> map) {
-    return resume().fold(
-        next -> more(() -> next.map(map)),
-        value -> done(map.apply(value)));
+    return flatMap(map.andThen(Trampoline::done));
   }
 
   @Override
   default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> map) {
-    return resume().fold(
+    return fold(
         next -> more(() -> next.flatMap(map)),
-        map.andThen(TrampolineOf::toTrampoline));
+        value -> map.apply(value).fix(TrampolineOf::toTrampoline));
   }
 
   default <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {
@@ -70,9 +67,5 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   private Trampoline<T> iterate() {
     return Stream.iterate(this, t -> t.fold(identity(), cons(t)))
         .dropWhile(t -> t instanceof More).findFirst().orElseThrow();
-  }
-
-  private Either<Trampoline<T>, T> resume() {
-    return fold(Either::left, Either::right);
   }
 }
