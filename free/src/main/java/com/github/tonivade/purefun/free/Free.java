@@ -117,7 +117,7 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
     return switch (this) {
       case Pure<F, A>(var value) -> monad.pure(Either.right(value));
       case Suspend<F, A>(var value) -> monad.map(interpreter.apply(value), Either::right);
-      case Free.FlatMapped<F, ?, A> flatMapped -> flatMapped.foldStep(monad, interpreter);
+      case FlatMapped<F, ?, A> flatMapped -> flatMapped.foldStep(monad, interpreter);
     };
   }
 }
