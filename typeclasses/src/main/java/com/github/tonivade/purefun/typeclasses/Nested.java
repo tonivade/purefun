@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-
 @SuppressWarnings("unused")
 public interface Nested<F, G> {
 

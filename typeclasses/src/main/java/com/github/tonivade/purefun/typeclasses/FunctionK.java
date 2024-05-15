@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-
 public interface FunctionK<F, G> {
 
   <T> Kind<G, T> apply(Kind<F, ? extends T> from);

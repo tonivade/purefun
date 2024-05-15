@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-
-
 public interface Alternative<F> extends Applicative<F>, MonoidK<F> {
 
   static <F, G> Alternative<Nested<F, G>> compose(Alternative<F> f, Alternative<G> g) {

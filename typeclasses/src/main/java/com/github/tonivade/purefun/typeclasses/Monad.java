@@ -14,17 +14,21 @@ import com.github.tonivade.purefun.type.Either;
 
 public interface Monad<F> extends Selective<F> {
 
-  <T, R> Kind<F, R> flatMap(Kind<F, ? extends T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
+  <T, R> Kind<F, R> flatMap(
+      Kind<F, ? extends T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);
 
   default For.FlatMap<F> use() {
     return For.with(this);
   }
 
-  default <T, R> Kind<F, R> tailRecM(T value, Function1<T, ? extends Kind<F, Either<T, R>>> map) {
-    return flatMap(map.apply(value), either -> either.fold(left -> tailRecM(left, map), this::<R>pure));
+  default <T, R> Kind<F, R> tailRecM(
+      T value, Function1<T, ? extends Kind<F, Either<T, R>>> map) {
+    return flatMap(map.apply(value), either -> either.fold(
+        left -> tailRecM(left, map), this::<R>pure));
   }
 
-  default <T, R> Kind<F, R> andThen(Kind<F, ? extends T> value, Producer<? extends Kind<F, ? extends R>> next) {
+  default <T, R> Kind<F, R> andThen(
+      Kind<F, ? extends T> value, Producer<? extends Kind<F, ? extends R>> next) {
     return flatMap(value, ignore -> next.get());
   }
 
@@ -33,17 +37,21 @@ public interface Monad<F> extends Selective<F> {
   }
 
   @Override
-  default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Kind<F, R> map(
+      Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
     return flatMap(value, map.andThen(this::<R>pure));
   }
 
   @Override
-  default <T, R> Kind<F, R> ap(Kind<F, ? extends T> value, Kind<F, ? extends Function1<? super T, ? extends R>> apply) {
+  default <T, R> Kind<F, R> ap(
+      Kind<F, ? extends T> value, Kind<F, ? extends Function1<? super T, ? extends R>> apply) {
     return flatMap(apply, map -> map(value, map));
   }
 
   @Override
-  default <A, B> Kind<F, B> select(Kind<F, Either<A, B>> value, Kind<F, Function1<? super A, ? extends B>> apply) {
-    return flatMap(value, either -> either.fold(a -> map(apply, map -> map.apply(a)), this::<B>pure));
+  default <A, B> Kind<F, B> select(
+      Kind<F, Either<A, B>> value, Kind<F, Function1<? super A, ? extends B>> apply) {
+    return flatMap(value, either -> either.fold(
+        a -> map(apply, map -> map.apply(a)), this::<B>pure));
   }
 }

@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.purefun.typeclasses;
 
-
-
 public final class Instances {
 
   private Instances() { }
