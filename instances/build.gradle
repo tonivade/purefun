@@ -7,5 +7,4 @@ dependencies {
   implementation projects.purefunTransformer
   implementation projects.purefunStream
   implementation projects.purefunEffect
-  implementation projects.purefunControl
 }

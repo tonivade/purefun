@@ -1,9 +1,0 @@
-dependencies {
-  annotationProcessor projects.purefunProcessor
-  api projects.purefunCore
-  api projects.purefunTypeclasses
-  testAnnotationProcessor projects.purefunProcessor
-  testImplementation projects.purefunInstances
-  testImplementation projects.purefunMonad
-  testImplementation projects.purefunEffect
-}

@@ -14,11 +14,9 @@ plugins {
 apply plugin: 'org.sonarqube'
 
 dependencies {
-  jacocoAggregation projects.purefunControl
   jacocoAggregation projects.purefunCore
   jacocoAggregation projects.purefunEffect
   jacocoAggregation projects.purefunFree
-  jacocoAggregation projects.purefunGeneric
   jacocoAggregation projects.purefunInstances
   jacocoAggregation projects.purefunMonad
   jacocoAggregation projects.purefunOptics
@@ -27,11 +25,9 @@ dependencies {
   jacocoAggregation projects.purefunTransformer
   jacocoAggregation projects.purefunTypeclasses
 
-  testReportAggregation projects.purefunControl
   testReportAggregation projects.purefunCore
   testReportAggregation projects.purefunEffect
   testReportAggregation projects.purefunFree
-  testReportAggregation projects.purefunGeneric
   testReportAggregation projects.purefunInstances
   testReportAggregation projects.purefunMonad
   testReportAggregation projects.purefunOptics

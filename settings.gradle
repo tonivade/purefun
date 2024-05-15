@@ -4,7 +4,6 @@ rootProject.name = 'purefun-parent'
 
 include "core", "monad", "stream", "typeclasses",
         "optics", "effect", "free", "transformer",
-        "instances", "annotation", "processor",
-        "generic", "control"
+        "instances", "annotation", "processor"
 
 rootProject.children.each { it.name = "purefun-" + it.name }
