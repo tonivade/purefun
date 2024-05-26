@@ -42,7 +42,7 @@ public class MonadDeferTest {
   private AutoCloseable resource = mock();
 
   @Test
-  public void ioLater(@Mock Producer<String> task) throws Exception {
+  public void ioLater(@Mock Producer<String> task) {
     when(task.get()).thenReturn("hola toni");
 
     Kind<IO<?>, String> later = ioMonadDefer.later(task);

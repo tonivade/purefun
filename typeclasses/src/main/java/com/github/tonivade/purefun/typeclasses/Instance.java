@@ -12,7 +12,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
 
@@ -131,15 +130,7 @@ public abstract class Instance<F> {
 
   private static Class<?> kindType(Type type) {
     if (type instanceof ParameterizedType parameterizedType) {
-      if (parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType) {
-        return kindType(parameterizedType.getActualTypeArguments()[0]);
-      }
-      if (parameterizedType.getActualTypeArguments()[0] instanceof WildcardType) {
-        return (Class<?>) parameterizedType.getRawType();
-      }
-      if (parameterizedType.getActualTypeArguments()[0] instanceof Class) {
-        return (Class<?>) parameterizedType.getActualTypeArguments()[0];
-      }
+      return (Class<?>) parameterizedType.getRawType();
     }
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
   }
