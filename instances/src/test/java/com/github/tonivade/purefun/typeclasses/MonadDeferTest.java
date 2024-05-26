@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,21 +27,19 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class MonadDeferTest {
 
   private MonadDefer<IO<?>> ioMonadDefer = Instances.monadDefer();
-  private MonadDefer<PureIO<Void, Throwable, ?>> PureIOMonadDefer =
-      new Instance<PureIO<Void, Throwable, ?>>(){}.monadDefer();
+  private MonadDefer<PureIO<Void, Throwable, ?>> PureIOMonadDefer = Instances.monadDefer();
   private MonadDefer<EitherT<IO<?>, Throwable, ?>> eitherTMonadDefer =
       new Instance<EitherT<IO<?>, Throwable, ?>>(){}.monadDefer(ioMonadDefer);
   private MonadDefer<OptionT<IO<?>, ?>> optionTMonadDefer =
       new Instance<OptionT<IO<?>, ?>>(){}.monadDefer(ioMonadDefer);
 
-  private AutoCloseable resource = Mockito.mock(AutoCloseable.class);
+  private AutoCloseable resource = mock();
 
   @Test
   public void ioLater(@Mock Producer<String> task) throws Exception {

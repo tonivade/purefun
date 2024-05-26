@@ -26,18 +26,18 @@ public class InstanceTest {
 
   @Test
   public void testComplex() {
-    Instance<Either<String, ?>> instance = new Instance<Either<String, ?>>(){};
+    Functor<Either<String, ?>> functor = Instances.functor();
 
-    Either<String, Integer> result = instance.functor().map(Either.right(1), x -> x + 1).fix(EitherOf::toEither);
+    Either<String, Integer> result = functor.map(Either.right(1), x -> x + 1).fix(EitherOf::toEither);
 
     assertEquals(Either.right(2), result);
   }
 
   @Test
   public void testPureIO() {
-    Instance<PureIO<Void, String, ?>> instance = new Instance<PureIO<Void, String, ?>>(){};
+    Functor<PureIO<Void, String, ?>> functor = Instances.functor();
 
-    PureIO<Void, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(PureIOOf::toPureIO);
+    PureIO<Void, String, Integer> result = functor.map(PureIO.pure(1), x -> x + 1).fix(PureIOOf::toPureIO);
 
     assertEquals(Either.right(2), result.provide(null));
   }

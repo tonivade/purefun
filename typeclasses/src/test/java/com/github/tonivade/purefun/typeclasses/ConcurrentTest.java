@@ -46,8 +46,7 @@ public class ConcurrentTest {
 
   @Test
   public void PureIORaceA() {
-    Concurrent<PureIO<Void, Throwable, ?>> concurrent =
-        new Instance<PureIO<Void, Throwable, ?>>() { }.concurrent();
+    Concurrent<PureIO<Void, Throwable, ?>> concurrent = Instances.concurrent();
 
     Kind<PureIO<Void, Throwable, ?>, Either<Integer, String>> race = concurrent.race(
         PureIO.<Void, Throwable>sleep(Duration.ofMillis(10)).andThen(PureIO.task(() -> 10)),
@@ -61,8 +60,7 @@ public class ConcurrentTest {
 
   @Test
   public void PureIORaceB() {
-    Concurrent<PureIO<Void, Throwable, ?>> concurrent =
-        new Instance<PureIO<Void, Throwable, ?>>() { }.concurrent();
+    Concurrent<PureIO<Void, Throwable, ?>> concurrent = Instances.concurrent();
 
     Kind<PureIO<Void, Throwable, ?>, Either<Integer, String>> race = concurrent.race(
         PureIO.<Void, Throwable>sleep(Duration.ofMillis(100)).andThen(PureIO.task(() -> 10)),
