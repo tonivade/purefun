@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Function1.cons;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -17,7 +16,6 @@ import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Eval;
 import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -42,10 +40,6 @@ public interface EitherInstances {
 
   static <L> Functor<Either<L, ?>> functor() {
     return EitherFunctor.INSTANCE;
-  }
-
-  static Bifunctor<Either<?, ?>> bifunctor() {
-    return EitherBifunctor.INSTANCE;
   }
 
   static <L> Applicative<Either<L, ?>> applicative() {
@@ -81,19 +75,6 @@ interface EitherFunctor<L> extends Functor<Either<L, ?>> {
   @Override
   default <T, R> Either<L, R> map(Kind<Either<L, ?>, ? extends T> value, Function1<? super T, ? extends R> map) {
     return EitherOf.toEither(value).map(map);
-  }
-}
-
-interface EitherBifunctor extends Bifunctor<Either<?, ?>> {
-
-  EitherBifunctor INSTANCE = new EitherBifunctor() {};
-
-  @Override
-  default <A, B, C, D> Kind2<Either<?, ?>, C, D> bimap(Kind2<Either<?, ?>, ? extends A, ? extends B> value,
-      Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap) {
-    @SuppressWarnings("unchecked")
-    var either = (Either<A, B>) value;
-    return either.bimap(leftMap, rightMap);
   }
 }
 

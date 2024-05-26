@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
@@ -39,7 +38,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <R> type of the right value, positive case
  */
 @HigherKind
-public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, ?>, R>, Applicable<Either<L, ?>, R>, Kind2<Either<?, ?>, L, R> {
+public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, ?>, R>, Applicable<Either<L, ?>, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);

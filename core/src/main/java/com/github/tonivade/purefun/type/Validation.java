@@ -23,7 +23,6 @@ import java.util.Objects;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Equal;
@@ -50,7 +49,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <T> type of the value when valid
  */
 @HigherKind
-public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Validation<E, ?>, T>, Kind2<Validation<?, ?>, E, T> {
+public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Validation<E, ?>, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);

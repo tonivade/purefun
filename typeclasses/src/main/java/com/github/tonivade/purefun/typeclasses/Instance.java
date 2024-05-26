@@ -45,10 +45,6 @@ public abstract class Instance<F> {
     return load(this, Functor.class, params);
   }
 
-  public Bifunctor<F> bifunctor(Object...params) {
-    return load(this, Bifunctor.class, params);
-  }
-
   public Applicative<F> applicative(Object...params) {
     return load(this, Applicative.class, params);
   }

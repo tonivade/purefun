@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.free.Trampoline;
@@ -13,7 +12,6 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
 import com.github.tonivade.purefun.type.ValidationOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
-import com.github.tonivade.purefun.typeclasses.Bifunctor;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -38,10 +36,6 @@ public interface ValidationInstances {
 
   static <E> Functor<Validation<E, ?>> functor() {
     return ValidationFunctor.INSTANCE;
-  }
-
-  static Bifunctor<Validation<?, ?>> bifunctor() {
-    return ValidationBifunctor.INSTANCE;
   }
 
   static <E> Applicative<Validation<E, ?>> applicative(Semigroup<E> semigroup) {
@@ -74,19 +68,6 @@ interface ValidationFunctor<E> extends Functor<Validation<E, ?>> {
   default <T, R> Validation<E, R> map(Kind<Validation<E, ?>, ? extends T> value,
       Function1<? super T, ? extends R> map) {
     return ValidationOf.toValidation(value).map(map);
-  }
-}
-
-interface ValidationBifunctor extends Bifunctor<Validation<?, ?>> {
-
-  ValidationBifunctor INSTANCE = new ValidationBifunctor() {};
-
-  @Override
-  default <A, B, C, D> Kind2<Validation<?, ?>, C, D> bimap(Kind2<Validation<?, ?>, ? extends A, ? extends B> value,
-      Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap) {
-    @SuppressWarnings("unchecked")
-    var validation = (Validation<A, B>) value;
-    return validation.bimap(leftMap, rightMap);
   }
 }
 

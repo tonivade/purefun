@@ -17,15 +17,6 @@ public final class Instances {
     return functor(getClassOf(reified));
   }
 
-  public static <F> Bifunctor<F> bifunctor(Class<F> type, Object...params) {
-    return new Instance<>(type) {}.bifunctor(params);
-  }
-
-  @SafeVarargs
-  public static <F> Bifunctor<F> bifunctor(F...reified) {
-    return bifunctor(getClassOf(reified));
-  }
-
   public static <F> Applicative<F> applicative(Class<F> type, Object...params) {
     return new Instance<>(type) {}.applicative(params);
   }

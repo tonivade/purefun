@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
@@ -26,7 +25,7 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverable, Kind2<Function1<?, ?>, A, R> {
+public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
 
   default R apply(A value) {
     try {
