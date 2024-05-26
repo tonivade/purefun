@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.core.Mappable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoneda<?, ?>, F>, A> {
+public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Yoneda<F, ?>, A> {
 
   <B> Kind<F, B> apply(Function1<? super A, ? extends B> map);
 
@@ -31,12 +31,12 @@ public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoned
   static <F, A> Yoneda<F, A> of(Kind<F, A> value, Functor<F> functor) {
     return new Impl<>(value, functor);
   }
-  
+
   final class Impl<F, A> implements Yoneda<F, A> {
-    
+
     private final Kind<F, A> value;
     private final Functor<F> functor;
-    
+
     private Impl(Kind<F, A> value, Functor<F> functor) {
       this.value = checkNonNull(value);
       this.functor = checkNonNull(functor);
@@ -47,7 +47,7 @@ public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoned
       return functor.map(value, map);
     }
   }
-  
+
   final class Mapped<F, A, B> implements Yoneda<F, B> {
 
     private final Yoneda<F, A> self;
@@ -57,7 +57,7 @@ public sealed interface Yoneda<F, A> extends YonedaOf<F, A>, Mappable<Kind<Yoned
       this.self = checkNonNull(self);
       this.outer = checkNonNull(outer);
     }
-    
+
     @Override
     public <C> Kind<F, C> apply(Function1<? super B, ? extends C> inner) {
       return self.apply(outer.andThen(inner));

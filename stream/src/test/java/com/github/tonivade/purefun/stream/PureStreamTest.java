@@ -43,8 +43,8 @@ public class PureStreamTest {
   private final Of<IO<?>> streamOfIO = PureStreamInstances.ofIO();
   private final Of<UIO<?>> streamOfUIO = PureStreamInstances.ofUIO();
   private final Of<Task<?>> streamOfTask = PureStreamInstances.ofTask();
-  private final Of<Kind<EIO<?, ?>, Throwable>> streamOfEIO = PureStreamInstances.ofEIO();
-  private final Of<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>> streamOfPureIO = PureStreamInstances.ofPureIO();
+  private final Of<EIO<Throwable, ?>> streamOfEIO = PureStreamInstances.ofEIO();
+  private final Of<PureIO<Void, Throwable, ?>> streamOfPureIO = PureStreamInstances.ofPureIO();
 
   @Test
   public void map() {

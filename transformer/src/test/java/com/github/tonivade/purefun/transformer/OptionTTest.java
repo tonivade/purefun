@@ -94,7 +94,7 @@ public class OptionTTest {
     OptionT<Id<?>, String> none1 = OptionT.none(monad);
     OptionT<Id<?>, String> none2 = OptionT.none(monad);
 
-    Eq<Kind<Kind<OptionT<?, ?>, Id<?>>, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
+    Eq<Kind<OptionT<Id<?>, ?>, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
     assertAll(
         () -> assertTrue(instance.eqv(some1, some2)),
@@ -106,16 +106,16 @@ public class OptionTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<OptionT<?, ?>, Future<?>>, Throwable> monadError =
+    MonadError<OptionT<Future<?>, ?>, Throwable> monadError =
         OptionTInstances.monadError(Instances.monadError());
 
-    Kind<Kind<OptionT<?, ?>, Future<?>>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<OptionT<?, ?>, Future<?>>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<OptionT<?, ?>, Future<?>>, String> handleError =
+    Kind<OptionT<Future<?>, ?>, String> pure = monadError.pure("is not ok");
+    Kind<OptionT<Future<?>, ?>, String> raiseError = monadError.raiseError(error);
+    Kind<OptionT<Future<?>, ?>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<OptionT<?, ?>, Future<?>>, String> ensureOk =
+    Kind<OptionT<Future<?>, ?>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Kind<Kind<OptionT<?, ?>, Future<?>>, String> ensureError =
+    Kind<OptionT<Future<?>, ?>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
@@ -127,15 +127,15 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<Kind<OptionT<?, ?>, Id<?>>, Unit> monadError = OptionTInstances.monadError(monad);
+    MonadError<OptionT<Id<?>, ?>, Unit> monadError = OptionTInstances.monadError(monad);
 
-    Kind<Kind<OptionT<?, ?>, Id<?>>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<OptionT<?, ?>, Id<?>>, String> raiseError = monadError.raiseError(unit());
-    Kind<Kind<OptionT<?, ?>, Id<?>>, String> handleError =
+    Kind<OptionT<Id<?>, ?>, String> pure = monadError.pure("is not ok");
+    Kind<OptionT<Id<?>, ?>, String> raiseError = monadError.raiseError(unit());
+    Kind<OptionT<Id<?>, ?>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<OptionT<?, ?>, Id<?>>, String> ensureOk =
+    Kind<OptionT<Id<?>, ?>, String> ensureOk =
         monadError.ensure(pure, Unit::unit, "is not ok"::equals);
-    Kind<Kind<OptionT<?, ?>, Id<?>>, String> ensureError =
+    Kind<OptionT<Id<?>, ?>, String> ensureError =
         monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(

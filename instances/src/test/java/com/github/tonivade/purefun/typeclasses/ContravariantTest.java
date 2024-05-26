@@ -11,7 +11,6 @@ import static com.github.tonivade.purefun.typeclasses.Nested.nest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.core.Function1Of;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.instances.ConstInstances;
@@ -24,7 +23,7 @@ public class ContravariantTest {
 
   @Test
   public void constInstance() {
-    Contravariant<Kind<Const<?, ?>, String>> instance = ConstInstances.contravariant();
+    Contravariant<Const<String, ?>> instance = ConstInstances.contravariant();
 
     verifyLaws(instance, Const.<String, String>of("string"));
   }
@@ -38,7 +37,7 @@ public class ContravariantTest {
 
     Kind<Conested<Function1<?, ?>, Double>, Integer> conest = conest(int2double);
     Kind<Conested<Function1<?, ?>, Double>, String> contramap = instance.contramap(conest, string2Int);
-    Function1<String, Double> result = counnest(contramap).fix(Function1Of::<String, Double>toFunction1);
+    Function1<String, Double> result = (Function1<String, Double>) counnest(contramap);
 
     assertEquals(4.0, result.apply("hola"));
   }
@@ -46,8 +45,8 @@ public class ContravariantTest {
   @Test
   public void composedCovariantContravariant() {
     Functor<Id<?>> functor = IdInstances.functor();
-    Contravariant<Kind<Const<?, ?>, String>> contravariant = ConstInstances.contravariant();
-    Contravariant<Nested<Id<?>, Kind<Const<?, ?>, String>>> instance = Contravariant.compose(functor, contravariant);
+    Contravariant<Const<String, ?>> contravariant = ConstInstances.contravariant();
+    Contravariant<Nested<Id<?>, Const<String, ?>>> instance = Contravariant.compose(functor, contravariant);
 
     verifyLaws(instance, nest(Id.of(Const.<String, String>of("string"))));
   }

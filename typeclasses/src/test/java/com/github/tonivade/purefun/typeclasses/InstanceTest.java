@@ -26,7 +26,7 @@ public class InstanceTest {
 
   @Test
   public void testComplex() {
-    Instance<Kind<Either<?, ?>, String>> instance = new Instance<Kind<Either<?, ?>, String>>(){};
+    Instance<Either<String, ?>> instance = new Instance<Either<String, ?>>(){};
 
     Either<String, Integer> result = instance.functor().map(Either.right(1), x -> x + 1).fix(EitherOf::toEither);
 
@@ -35,7 +35,7 @@ public class InstanceTest {
 
   @Test
   public void testPureIO() {
-    Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, String>> instance = new Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, String>>(){};
+    Instance<PureIO<Void, String, ?>> instance = new Instance<PureIO<Void, String, ?>>(){};
 
     PureIO<Void, String, Integer> result = instance.functor().map(PureIO.pure(1), x -> x + 1).fix(PureIOOf::toPureIO);
 

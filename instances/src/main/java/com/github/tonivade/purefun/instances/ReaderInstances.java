@@ -14,16 +14,16 @@ import com.github.tonivade.purefun.typeclasses.MonadReader;
 @SuppressWarnings("unchecked")
 public interface ReaderInstances {
 
-  static <R> Monad<Kind<Reader<?, ?>, R>> monad() {
+  static <R> Monad<Reader<R, ?>> monad() {
     return ReaderMonad.INSTANCE;
   }
 
-  static <R> MonadReader<Kind<Reader<?, ?>, R>, R> monadReader() {
+  static <R> MonadReader<Reader<R, ?>, R> monadReader() {
     return ReaderMonadReader.INSTANCE;
   }
 }
 
-interface ReaderMonad<R> extends Monad<Kind<Reader<?, ?>, R>> {
+interface ReaderMonad<R> extends Monad<Reader<R, ?>> {
 
   @SuppressWarnings("rawtypes")
   ReaderMonad INSTANCE = new ReaderMonad() {};
@@ -34,19 +34,19 @@ interface ReaderMonad<R> extends Monad<Kind<Reader<?, ?>, R>> {
   }
 
   @Override
-  default <T, V> Reader<R, V> flatMap(Kind<Kind<Reader<?, ?>, R>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<Reader<?, ?>, R>, ? extends V>> map) {
+  default <T, V> Reader<R, V> flatMap(Kind<Reader<R, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<Reader<R, ?>, ? extends V>> map) {
     return ReaderOf.toReader(value).flatMap(map.andThen(ReaderOf::toReader));
   }
 }
 
-interface ReaderMonadReader<R> extends MonadReader<Kind<Reader<?, ?>, R>, R>, ReaderMonad<R> {
+interface ReaderMonadReader<R> extends MonadReader<Reader<R, ?>, R>, ReaderMonad<R> {
 
   @SuppressWarnings("rawtypes")
   ReaderMonadReader INSTANCE = new ReaderMonadReader() {};
 
   @Override
-  default Kind<Kind<Reader<?, ?>, R>, R> ask() {
+  default Kind<Reader<R, ?>, R> ask() {
     return Reader.env();
   }
 }

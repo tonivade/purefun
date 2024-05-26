@@ -154,10 +154,10 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A, B> extends Kind<Kind<Foo<?, ?>, A>, B> permits Foo {",
+        "public sealed interface FooOf<A, B> extends Kind<Foo<A, ?>, B> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B> Foo<A, B> toFoo(Kind<Kind<Foo<?, ?>, A>, ? extends B> hkt) {",
+        "static <A, B> Foo<A, B> toFoo(Kind<Foo<A, ?>, ? extends B> hkt) {",
         "return (Foo<A, B>) hkt;",
         "}",
 
@@ -186,10 +186,10 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A, B, C> extends Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, C> permits Foo {",
+        "public sealed interface FooOf<A, B, C> extends Kind<Foo<A, B, ?>, C> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B, C> Foo<A, B, C> toFoo(Kind<Kind<Kind<Foo<?, ?, ?>, A>, B>, ? extends C> hkt) {",
+        "static <A, B, C> Foo<A, B, C> toFoo(Kind<Foo<A, B, ?>, ? extends C> hkt) {",
         "return (Foo<A, B, C>) hkt;",
         "}",
 

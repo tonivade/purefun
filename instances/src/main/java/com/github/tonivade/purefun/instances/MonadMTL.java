@@ -26,17 +26,18 @@ import com.github.tonivade.purefun.typeclasses.MonadReader;
 import com.github.tonivade.purefun.typeclasses.MonadState;
 
 public class MonadMTL<F, S, R, E>
-    implements Monad<EffectS<?, ?, ?, ?, ?>>,
-      MonadError<EffectS<?, ?, ?, ?, ?>, E>,
-      MonadState<EffectS<?, ?, ?, ?, ?>, S>,
-      MonadReader<EffectS<?, ?, ?, ?, ?>, R> {
+    implements Monad<EffectS<F, S, R, E, ?>>,
+      MonadError<EffectS<F, S, R, E, ?>, E>,
+      MonadState<EffectS<F, S, R, E, ?>, S>,
+      MonadReader<EffectS<F, S, R, E, ?>, R> {
 
   private final Monad<F> monad;
-  private final MonadError<EffectE<?, ?, ?>, E> monadErrorE;
-  private final Monad<EffectR<?, ?, ?, ?>> monadR;
-  private final MonadError<Kind<Kind<StateT<?, ?, ?>, EffectR<?, ?, ?, ?>>, S>, E> monadErrorS;
-  private final MonadReader<Kind<Kind<StateT<?, ?, ?>, EffectR<?, ?, ?, ?>>, S>, R> monadReaderS;
-  private final MonadState<Kind<Kind<StateT<?, ?, ?>, EffectR<?, ?, ?, ?>>, S>, S> monadStateS;
+  private final MonadError<EffectE<F, E, ?>, E> monadErrorE;
+  private final Monad<EffectR<F, R, E, ?>> monadR;
+  private final MonadError<StateT<EffectR<F, R, E, ?>, S, ?>, E> monadErrorS;
+  private final MonadReader<StateT<EffectR<F, R, E, ?>, S, ?>, R> monadReaderS;
+
+  private final MonadState<StateT<EffectR<F, R, E, ?>, S, ?>, S> monadStateS;
 
   public MonadMTL(Monad<F> monad) {
     this.monad = checkNonNull(monad);
@@ -53,8 +54,8 @@ public class MonadMTL<F, S, R, E>
   }
 
   @Override
-  public <A, B> EffectS<F, S, R, E, B> flatMap(Kind<EffectS<?, ?, ?, ?, ?>, ? extends A> value,
-      Function1<? super A, ? extends Kind<EffectS<?, ?, ?, ?, ?>, ? extends B>> map) {
+  public <A, B> EffectS<F, S, R, E, B> flatMap(Kind<EffectS<F, S, R, E, ?>, ? extends A> value,
+      Function1<? super A, ? extends Kind<EffectS<F, S, R, E, ?>, ? extends B>> map) {
     return new EffectS<>(monadStateS.flatMap(
         value.fix(EffectS::<F, S, R, E, A>toEffectS).value(),
         x -> map.apply(x).fix(EffectS::<F, S, R, E, B>toEffectS).value()));
@@ -77,7 +78,7 @@ public class MonadMTL<F, S, R, E>
 
   @Override
   public <A> EffectS<F, S, R, E, A> handleErrorWith(
-      Kind<EffectS<?, ?, ?, ?, ?>, A> value, Function1<? super E, ? extends Kind<EffectS<?, ?, ?, ?, ?>, ? extends A>> handler) {
+      Kind<EffectS<F, S, R, E, ?>, A> value, Function1<? super E, ? extends Kind<EffectS<F, S, R, E, ?>, ? extends A>> handler) {
     return new EffectS<>(monadErrorS.handleErrorWith(
         value.fix(EffectS::<F, S, R, E, A>toEffectS).value(),
         error -> handler.apply(error).fix(EffectS::<F, S, R, E, A>toEffectS).value()));
@@ -104,11 +105,11 @@ public class MonadMTL<F, S, R, E>
     return effectS(effectR(effectE(value)));
   }
 
-  public static final class EffectE<F, E, A> implements Kind<EffectE<?, ?, ?>, A> {
+  public static final class EffectE<F, E, A> implements Kind<EffectE<F, E, ?>, A> {
 
     private final EitherT<F, E, A> value;
 
-    public EffectE(Kind<Kind<Kind<EitherT<?, ?, ?>, F>, E>, A> value) {
+    public EffectE(Kind<EitherT<F, E, ?>, A> value) {
       this.value = value.fix(EitherTOf::toEitherT);
     }
 
@@ -121,20 +122,20 @@ public class MonadMTL<F, S, R, E>
     }
 
     @SuppressWarnings("unchecked")
-    public static <F, E, A> EffectE<F, E, A> toEffectE(Kind<EffectE<?, ?, ?>, ? extends A> hkt) {
+    public static <F, E, A> EffectE<F, E, A> toEffectE(Kind<EffectE<F, E, ?>, ? extends A> hkt) {
       return (EffectE<F, E, A>) hkt;
     }
   }
 
-  public static final class EffectR<F, R, E, A> implements Kind<EffectR<?, ?, ?, ?>, A> {
+  public static final class EffectR<F, R, E, A> implements Kind<EffectR<F, R, E, ?>, A> {
 
-    private final Kleisli<EffectE<?, ?, ?>, R, A> value;
+    private final Kleisli<EffectE<F, E, ?>, R, A> value;
 
-    public EffectR(Kind<Kind<Kind<Kleisli<?, ?, ?>, EffectE<?, ?, ?>>, R>, A> value) {
+    public EffectR(Kind<Kleisli<EffectE<F, E, ?>, R, ?>, A> value) {
       this.value = value.fix(KleisliOf::toKleisli);
     }
 
-    public Kleisli<EffectE<?, ?, ?>, R, A> value() {
+    public Kleisli<EffectE<F, E, ?>, R, A> value() {
       return value;
     }
 
@@ -143,20 +144,20 @@ public class MonadMTL<F, S, R, E>
     }
 
     @SuppressWarnings("unchecked")
-    public static <F, R, E, A> EffectR<F, R, E, A> toEffectR(Kind<EffectR<?, ?, ?, ?>, ? extends A> hkt) {
+    public static <F, R, E, A> EffectR<F, R, E, A> toEffectR(Kind<EffectR<F, R, E, ?>, ? extends A> hkt) {
       return (EffectR<F, R, E, A>) hkt;
     }
   }
 
-  public static final class EffectS<F, S, R, E, A> implements Kind<EffectS<?, ?, ?, ?, ?>, A> {
+  public static final class EffectS<F, S, R, E, A> implements Kind<EffectS<F, S, R, E, ?>, A> {
 
-    private final StateT<EffectR<?, ?, ?, ?>, S, A> value;
+    private final StateT<EffectR<F, R, E, ?>, S, A> value;
 
-    public EffectS(Kind<Kind<Kind<StateT<?, ?, ?>, EffectR<?, ?, ?, ?>>, S>, A> value) {
+    public EffectS(Kind<StateT<EffectR<F, R, E, ?>, S, ?>, A> value) {
       this.value = value.fix(StateTOf::toStateT);
     }
 
-    public StateT<EffectR<?, ?, ?, ?>, S, A> value() {
+    public StateT<EffectR<F, R, E, ?>, S, A> value() {
       return value;
     }
 
@@ -165,15 +166,15 @@ public class MonadMTL<F, S, R, E>
     }
 
     @SuppressWarnings("unchecked")
-    public static <F, S, R, E, A> EffectS<F, S, R, E, A> toEffectS(Kind<EffectS<?, ?, ?, ?, ?>, ? extends A> hkt) {
+    public static <F, S, R, E, A> EffectS<F, S, R, E, A> toEffectS(Kind<EffectS<F, S, R, E, ?>, ? extends A> hkt) {
       return (EffectS<F, S, R, E, A>) hkt;
     }
   }
 }
 
-class EffectEMonadError<F, E> implements MonadError<EffectE<?, ?, ?>, E> {
+class EffectEMonadError<F, E> implements MonadError<EffectE<F, E, ?>, E> {
 
-  private final MonadError<Kind<Kind<EitherT<?, ?, ?>, F>, E>, E> monad;
+  private final MonadError<EitherT<F, E, ?>, E> monad;
 
   public EffectEMonadError(Monad<F> monad) {
     this.monad = EitherTInstances.monadError(monad);
@@ -185,8 +186,8 @@ class EffectEMonadError<F, E> implements MonadError<EffectE<?, ?, ?>, E> {
   }
 
   @Override
-  public <A, B> EffectE<F, E, B> flatMap(Kind<EffectE<?, ?, ?>, ? extends A> value,
-      Function1<? super A, ? extends Kind<EffectE<?, ?, ?>, ? extends B>> map) {
+  public <A, B> EffectE<F, E, B> flatMap(Kind<EffectE<F, E, ?>, ? extends A> value,
+      Function1<? super A, ? extends Kind<EffectE<F, E, ?>, ? extends B>> map) {
     return new EffectE<>(monad.flatMap(
         value.fix(EffectE::<F, E, A>toEffectE).value(),
         x -> map.apply(x).fix(EffectE::<F, E, B>toEffectE).value()));
@@ -198,21 +199,20 @@ class EffectEMonadError<F, E> implements MonadError<EffectE<?, ?, ?>, E> {
   }
 
   @Override
-  public <A> EffectE<F, E, A> handleErrorWith(Kind<EffectE<?, ?, ?>, A> value,
-      Function1<? super E, ? extends Kind<EffectE<?, ?, ?>, ? extends A>> handler) {
+  public <A> EffectE<F, E, A> handleErrorWith(Kind<EffectE<F, E, ?>, A> value,
+      Function1<? super E, ? extends Kind<EffectE<F, E, ?>, ? extends A>> handler) {
     return new EffectE<>(monad.handleErrorWith(value.fix(EffectE::<F, E, A>toEffectE).value(),
             error -> handler.apply(error).fix(EffectE::<F, E, A>toEffectE).value()));
   }
 }
 
-class EffectRMonad<F, R, E> implements Monad<EffectR<?, ?, ?, ?>> {
+class EffectRMonad<F, R, E> implements Monad<EffectR<F, R, E, ?>> {
 
-  private final Monad<Kind<Kind<Kleisli<?, ?, ?>, EffectE<?, ?, ?>>, R>> monad;
+  private final Monad<Kleisli<EffectE<F, E, ?>, R, ?>> monad;
 
   public EffectRMonad(Monad<F> monad) {
     this.monad = KleisliInstances.monad(new EffectEMonadError<F, E>(monad));
   }
-
 
   @Override
   public <A> EffectR<F, R, E, A> pure(A value) {
@@ -220,16 +220,16 @@ class EffectRMonad<F, R, E> implements Monad<EffectR<?, ?, ?, ?>> {
   }
 
   @Override
-  public <A, B> EffectR<F, R, E, B> flatMap(Kind<EffectR<?, ?, ?, ?>, ? extends A> value,
-      Function1<? super A, ? extends Kind<EffectR<?, ?, ?, ?>, ? extends B>> map) {
+  public <A, B> EffectR<F, R, E, B> flatMap(Kind<EffectR<F, R, E, ?>, ? extends A> value,
+      Function1<? super A, ? extends Kind<EffectR<F, R, E, ?>, ? extends B>> map) {
     return new EffectR<>(monad.flatMap(value.fix(EffectR::<F, R, E, A>toEffectR).value(),
         t -> map.apply(t).fix(EffectR::<F, R, E, B>toEffectR).value()));
   }
 }
 
-class EffectRMonadReader<F, R, E> extends EffectRMonad<F, E, R> implements MonadReader<EffectR<?, ?, ?, ?>, R> {
+class EffectRMonadReader<F, R, E> extends EffectRMonad<F, R, E> implements MonadReader<EffectR<F, R, E, ?>, R> {
 
-  private final MonadReader<Kind<Kind<Kleisli<?, ?, ?>, EffectE<?, ?, ?>>, R>, R> monad;
+  private final MonadReader<Kleisli<EffectE<F, E, ?>, R, ?>, R> monad;
 
   public EffectRMonadReader(Monad<F> monad) {
     super(monad);
@@ -242,9 +242,9 @@ class EffectRMonadReader<F, R, E> extends EffectRMonad<F, E, R> implements Monad
   }
 }
 
-class EffectRMonadError<F, R, E> extends EffectRMonad<F, R, E> implements MonadError<EffectR<?, ?, ?, ?>, E> {
+class EffectRMonadError<F, R, E> extends EffectRMonad<F, R, E> implements MonadError<EffectR<F, R, E, ?>, E> {
 
-  private final MonadError<Kind<Kind<Kleisli<?, ?, ?>, EffectE<?, ?, ?>>, R>, E> monadError;
+  private final MonadError<Kleisli<EffectE<F, E, ?>, R, ?>, E> monadError;
 
   public EffectRMonadError(Monad<F> monad) {
     super(monad);
@@ -258,7 +258,7 @@ class EffectRMonadError<F, R, E> extends EffectRMonad<F, R, E> implements MonadE
 
   @Override
   public <A> EffectR<F, R, E, A> handleErrorWith(
-      Kind<EffectR<?, ?, ?, ?>, A> value, Function1<? super E, ? extends Kind<EffectR<?, ?, ?, ?>, ? extends A>> handler) {
+      Kind<EffectR<F, R, E, ?>, A> value, Function1<? super E, ? extends Kind<EffectR<F, R, E, ?>, ? extends A>> handler) {
     return new EffectR<>(monadError.handleErrorWith(
         value.fix(EffectR::<F, R, E, A>toEffectR).value(),
         error -> handler.apply(error).fix(EffectR::<F, R, E, A>toEffectR).value()));

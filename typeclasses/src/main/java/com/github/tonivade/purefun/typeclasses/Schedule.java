@@ -11,7 +11,7 @@ import java.time.Duration;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-
+import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
@@ -24,7 +24,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public sealed interface Schedule<F, A, B> extends ScheduleOf<F, A, B> {
+public sealed interface Schedule<F, A, B> extends ScheduleOf<F, A, B>, Kind2<Schedule<F, ?, ?>, A, B> {
 
   static <F> Schedule.Of<F> of(MonadDefer<F> monad) {
     return () -> monad;

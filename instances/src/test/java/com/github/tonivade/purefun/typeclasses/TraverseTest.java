@@ -39,7 +39,7 @@ public class TraverseTest {
 
   @Test
   public void either() {
-    Traverse<Kind<Either<?, ?>, Throwable>> instance = EitherInstances.traverse();
+    Traverse<Either<Throwable, ?>> instance = EitherInstances.traverse();
 
     Exception error = new Exception("error");
 
@@ -73,7 +73,7 @@ public class TraverseTest {
 
   @Test
   public void testConst() {
-    Traverse<Kind<Const<?, ?>, String>> instance = ConstInstances.traverse();
+    Traverse<Const<String, ?>> instance = ConstInstances.traverse();
 
     assertAll(
         () -> assertEquals(Option.some(Const.of("hello!")),

@@ -20,20 +20,20 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 @SuppressWarnings("unchecked")
 public interface StateInstances {
 
-  static <S> Monad<Kind<State<?, ?>, S>> monad() {
+  static <S> Monad<State<S, ?>> monad() {
     return StateMonad.INSTANCE;
   }
 
-  static <S> MonadState<Kind<State<?, ?>, S>, S> monadState() {
+  static <S> MonadState<State<S, ?>, S> monadState() {
     return StateMonadState.INSTANCE;
   }
 
-  static Console<Kind<State<?, ?>, ImmutableList<String>>> console() {
+  static Console<State<ImmutableList<String>, ?>> console() {
     return StateConsole.INSTANCE;
   }
 }
 
-interface StateMonad<S> extends Monad<Kind<State<?, ?>, S>> {
+interface StateMonad<S> extends Monad<State<S, ?>> {
 
   @SuppressWarnings("rawtypes")
   StateMonad INSTANCE = new StateMonad() {};
@@ -44,13 +44,13 @@ interface StateMonad<S> extends Monad<Kind<State<?, ?>, S>> {
   }
 
   @Override
-  default <T, R> State<S, R> flatMap(Kind<Kind<State<?, ?>, S>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<State<?, ?>, S>, ? extends R>> map) {
+  default <T, R> State<S, R> flatMap(Kind<State<S, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<State<S, ?>, ? extends R>> map) {
     return StateOf.toState(value).flatMap(map.andThen(StateOf::toState));
   }
 }
 
-interface StateMonadState<S> extends MonadState<Kind<State<?, ?>, S>, S>, StateMonad<S> {
+interface StateMonadState<S> extends MonadState<State<S, ?>, S>, StateMonad<S> {
 
   @SuppressWarnings("rawtypes")
   StateMonadState INSTANCE = new StateMonadState() {};
@@ -66,7 +66,7 @@ interface StateMonadState<S> extends MonadState<Kind<State<?, ?>, S>, S>, StateM
   }
 }
 
-final class StateConsole implements Console<Kind<State<?, ?>, ImmutableList<String>>> {
+final class StateConsole implements Console<State<ImmutableList<String>, ?>> {
 
   static final StateConsole INSTANCE = new StateConsole();
 

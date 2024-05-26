@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.core.Mappable;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class Coyoneda<F, A, B> implements CoyonedaOf<F, A, B>, Mappable<Kind<Kind<Coyoneda<?, ?, ?>, F>, A>, B> {
+public final class Coyoneda<F, A, B> implements CoyonedaOf<F, A, B>, Mappable<Coyoneda<F, A, ?>, B> {
 
   private final Kind<F, ? extends A> value;
   private final Function1<? super A, ? extends B> map;

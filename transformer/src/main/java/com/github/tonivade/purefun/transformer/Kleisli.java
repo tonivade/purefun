@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface Kleisli<F, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kind<Kind<Kleisli<?, ?, ?>, F>, Z>, A> {
+public non-sealed interface Kleisli<F, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kleisli<F, Z, ?>, A> {
 
   Monad<F> monad();
   Kind<F, A> run(Z value);
@@ -25,7 +25,7 @@ public non-sealed interface Kleisli<F, Z, A> extends KleisliOf<F, Z, A>, Bindabl
   }
 
   @Override
-  default <R> Kleisli<F, Z, R> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<Kleisli<?, ?, ?>, F>, Z>, ? extends R>> map) {
+  default <R> Kleisli<F, Z, R> flatMap(Function1<? super A, ? extends Kind<Kleisli<F, Z, ?>, ? extends R>> map) {
     return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.andThen(KleisliOf::toKleisli).apply(a).run(value)));
   }
 

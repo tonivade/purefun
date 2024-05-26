@@ -31,7 +31,7 @@ import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
 @HigherKind
 public sealed interface PureStream<F, T>
-  extends PureStreamOf<F, T>, Bindable<Kind<PureStream<?, ?>, F>, T>
+  extends PureStreamOf<F, T>, Bindable<PureStream<F, ?>, T>
     permits Cons, Suspend, Nil {
 
   default PureStream<F, T> head() {
@@ -68,9 +68,9 @@ public sealed interface PureStream<F, T>
   @Override
   <R> PureStream<F, R> map(Function1<? super T, ? extends R> map);
   @Override
-  <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream<?, ?>, F>, ? extends R>> map);
+  <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<PureStream<F, ?>, ? extends R>> map);
   @Override
-  default <R> PureStream<F, R> andThen(Kind<Kind<PureStream<?, ?>, F>, ? extends R> next) {
+  default <R> PureStream<F, R> andThen(Kind<PureStream<F, ?>, ? extends R> next) {
     return flatMap(ignore -> next);
   }
 

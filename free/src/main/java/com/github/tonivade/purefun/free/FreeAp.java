@@ -18,7 +18,7 @@ import java.util.Deque;
 import java.util.List;
 
 @HigherKind
-public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<FreeAp<?, ?>, F>, A> {
+public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F, ?>, A> {
 
   @Override
   default <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
@@ -30,7 +30,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   @Override
-  default <B> FreeAp<F, B> ap(Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super A, ? extends B>> apply) {
+  default <B> FreeAp<F, B> ap(Kind<FreeAp<F, ?>, ? extends Function1<? super A, ? extends B>> apply) {
     if (apply instanceof Pure<F, ? extends Function1<? super A, ? extends B>> pure) {
       return map(pure.value);
     }
@@ -46,11 +46,11 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   default <G> FreeAp<G, A> flatCompile(
-      FunctionK<F, Kind<FreeAp<?, ?>, G>> functionK, Applicative<Kind<FreeAp<?, ?>, G>> applicative) {
+      FunctionK<F, FreeAp<G, ?>> functionK, Applicative<FreeAp<G, ?>> applicative) {
     return foldMap(functionK, applicative).fix(FreeApOf::toFreeAp);
   }
 
-  default <M> M analyze(FunctionK<F, Kind<Const<?, ?>, M>> functionK, Applicative<Kind<Const<?, ?>, M>> applicative) {
+  default <M> M analyze(FunctionK<F, Const<M, ?>> functionK, Applicative<Const<M, ?>> applicative) {
     return foldMap(functionK, applicative).fix(ConstOf::toConst).value();
   }
 
@@ -119,12 +119,12 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
     return new Lift<>(value);
   }
 
-  static <F, T, R> FreeAp<F, R> apply(Kind<Kind<FreeAp<?, ?>, F>, ? extends T> value,
-      Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super T, ? extends R>> mapper) {
+  static <F, T, R> FreeAp<F, R> apply(Kind<FreeAp<F, ?>, ? extends T> value,
+      Kind<FreeAp<F, ?>, ? extends Function1<? super T, ? extends R>> mapper) {
     return new Apply<>(value.fix(FreeApOf::toFreeAp), mapper.fix(FreeApOf::toFreeAp));
   }
 
-  static <F, G> FunctionK<F, Kind<FreeAp<?, ?>, G>> functionKF(FunctionK<F, G> functionK) {
+  static <F, G> FunctionK<F, FreeAp<G, ?>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<>() {
       @Override
       public <T> FreeAp<G, T> apply(Kind<F, ? extends T> from) {
@@ -134,7 +134,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 
   @SuppressWarnings("unchecked")
-  static <F> Applicative<Kind<FreeAp<?, ?>, F>> applicativeF() {
+  static <F> Applicative<FreeAp<F, ?>> applicativeF() {
     return FreeApplicative.INSTANCE;
   }
 
@@ -196,7 +196,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<Kind<Fre
   }
 }
 
-interface FreeApplicative<F> extends Applicative<Kind<FreeAp<?, ?>, F>> {
+interface FreeApplicative<F> extends Applicative<FreeAp<F, ?>> {
 
   @SuppressWarnings("rawtypes")
   FreeApplicative INSTANCE = new FreeApplicative() {};
@@ -208,8 +208,8 @@ interface FreeApplicative<F> extends Applicative<Kind<FreeAp<?, ?>, F>> {
 
   @Override
   default <T, R> FreeAp<F, R> ap(
-      Kind<Kind<FreeAp<?, ?>, F>, ? extends T> value,
-      Kind<Kind<FreeAp<?, ?>, F>, ? extends Function1<? super T, ? extends R>> apply) {
+      Kind<FreeAp<F, ?>, ? extends T> value,
+      Kind<FreeAp<F, ?>, ? extends Function1<? super T, ? extends R>> apply) {
     return FreeAp.apply(value, apply);
   }
 }

@@ -45,7 +45,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
 @HigherKind
-public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> {
+public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO<R, E, ?>, A> {
 
   default Either<E, A> provide(@Nullable R env) {
     return runAsync(env).getOrElseThrow();
@@ -85,27 +85,27 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   @Override
-  default <B> PureIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B>> map) {
+  default <B> PureIO<R, E, B> flatMap(Function1<? super A, ? extends Kind<PureIO<R, E, ?>, ? extends B>> map) {
     return foldM(PureIO::raiseError, map);
   }
 
-  default <F> PureIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends A>> map) {
+  default <F> PureIO<R, F, A> flatMapError(Function1<? super E, ? extends Kind<PureIO<R, F, ?>, ? extends A>> map) {
     return foldM(map, PureIO::pure);
   }
 
   default <F, B> PureIO<R, F, B> foldM(
-      Function1<? super E, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> left,
-      Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> right) {
+      Function1<? super E, ? extends Kind<PureIO<R, F, ?>, ? extends B>> left,
+      Function1<? super A, ? extends Kind<PureIO<R, F, ?>, ? extends B>> right) {
     return new FlatMapped<>(this, left, right);
   }
 
   @Override
-  default <B> PureIO<R, E, B> andThen(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> next) {
+  default <B> PureIO<R, E, B> andThen(Kind<PureIO<R, E, ?>, ? extends B> next) {
     return flatMap(ignore -> next);
   }
 
   @Override
-  default <B> PureIO<R, E, B> ap(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends Function1<? super A, ? extends B>> apply) {
+  default <B> PureIO<R, E, B> ap(Kind<PureIO<R, E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
     return parMap2(this, apply.fix(PureIOOf::toPureIO), (v, a) -> a.apply(v));
   }
 
@@ -118,27 +118,27 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return fold(mapError, identity());
   }
 
-  default PureIO<R, E, A> orElse(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> other) {
+  default PureIO<R, E, A> orElse(Kind<PureIO<R, E, ?>, ? extends A> other) {
     return foldM(Function1.cons(other), Function1.cons(this));
   }
 
   @Override
-  default <B> PureIO<R, E, Tuple2<A, B>> zip(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> other) {
+  default <B> PureIO<R, E, Tuple2<A, B>> zip(Kind<PureIO<R, E, ?>, ? extends B> other) {
     return zipWith(other, Tuple::of);
   }
 
   @Override
-  default <B> PureIO<R, E, A> zipLeft(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> other) {
+  default <B> PureIO<R, E, A> zipLeft(Kind<PureIO<R, E, ?>, ? extends B> other) {
     return zipWith(other, first());
   }
 
   @Override
-  default <B> PureIO<R, E, B> zipRight(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> other) {
+  default <B> PureIO<R, E, B> zipRight(Kind<PureIO<R, E, ?>, ? extends B> other) {
     return zipWith(other, second());
   }
 
   @Override
-  default <B, C> PureIO<R, E, C> zipWith(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> other,
+  default <B, C> PureIO<R, E, C> zipWith(Kind<PureIO<R, E, ?>, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(this, other.fix(PureIOOf::toPureIO), mapper);
   }
@@ -189,7 +189,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       start -> map(result -> Tuple.of(Duration.ofNanos(System.nanoTime() - start), result)));
   }
 
-  default PureIO<R, E, Fiber<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A>> fork() {
+  default PureIO<R, E, Fiber<PureIO<R, E, ?>, A>> fork() {
     return async((env, callback) -> {
       PureIOConnection connection = PureIOConnection.cancellable();
       Promise<Either<E, A>> promise = runAsync(env, this, connection);
@@ -243,7 +243,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return Managed.from(this, release);
   }
 
-  static <R, E, A> PureIO<R, E, A> accessM(Function1<? super R, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> map) {
+  static <R, E, A> PureIO<R, E, A> accessM(Function1<? super R, ? extends Kind<PureIO<R, E, ?>, ? extends A>> map) {
     return new AccessM<>(value -> map.apply(value).fix(PureIOOf::toPureIO));
   }
 
@@ -259,12 +259,12 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return async((env, callback) -> executor.execute(() -> callback.accept(Try.success(Either.right(Unit.unit())))));
   }
 
-  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> zb,
+  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Kind<PureIO<R, E, ?>, ? extends A> za, Kind<PureIO<R, E, ?>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return parMap2(Future.DEFAULT_EXECUTOR, za, zb, mapper);
   }
 
-  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Executor executor, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> za, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> zb,
+  static <R, E, A, B, C> PureIO<R, E, C> parMap2(Executor executor, Kind<PureIO<R, E, ?>, ? extends A> za, Kind<PureIO<R, E, ?>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
     return cancellable((env, callback) -> {
 
@@ -287,18 +287,18 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     });
   }
 
-  static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> fb) {
+  static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Kind<PureIO<R, E, ?>, ? extends A> fa, Kind<PureIO<R, E, ?>, ? extends B> fb) {
     return race(Future.DEFAULT_EXECUTOR, fa, fb);
   }
 
-  static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Executor executor, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> fb) {
+  static <R, E, A, B> PureIO<R, E, Either<A, B>> race(Executor executor, Kind<PureIO<R, E, ?>, ? extends A> fa, Kind<PureIO<R, E, ?>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
         ta -> ta.get2().cancel().fix(PureIOOf::toPureIO).map(x -> Either.left(ta.get1())),
         tb -> tb.get1().cancel().fix(PureIOOf::toPureIO).map(x -> Either.right(tb.get2()))));
   }
 
-  static <R, E, A, B> PureIO<R, E, Either<Tuple2<A, Fiber<Kind<Kind<PureIO<?, ?, ?>, R>, E>, B>>, Tuple2<Fiber<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A>, B>>>
-      racePair(Executor executor, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> fa, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B> fb) {
+  static <R, E, A, B> PureIO<R, E, Either<Tuple2<A, Fiber<PureIO<R, E, ?>, B>>, Tuple2<Fiber<PureIO<R, E, ?>, A>, B>>>
+      racePair(Executor executor, Kind<PureIO<R, E, ?>, ? extends A> fa, Kind<PureIO<R, E, ?>, ? extends B> fb) {
     return cancellable((env, callback) -> {
 
       PureIOConnection connection1 = PureIOConnection.cancellable();
@@ -310,7 +310,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       promiseA.onComplete(result -> {
         PureIO<R, E, B> fromPromiseB = PureIO.fromPromise(promiseB);
         PureIO<R, E, Unit> cancelB = PureIO.run(connection2::cancel);
-        Fiber<Kind<Kind<PureIO<?, ?, ?>, R>, E>, B> fiberB = Fiber.of(fromPromiseB, cancelB);
+        Fiber<PureIO<R, E, ?>, B> fiberB = Fiber.of(fromPromiseB, cancelB);
         callback.accept(result.map(
           either -> either.map(
             a -> Either.left(Tuple.of(a, fiberB)))));
@@ -319,7 +319,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
       promiseB.onComplete(result -> {
         PureIO<R, E, A> fromPromiseA = PureIO.fromPromise(promiseA);
         PureIO<R, E, Unit> cancelA = PureIO.run(connection2::cancel);
-        Fiber<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
+        Fiber<PureIO<R, E, ?>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
         callback.accept(result.map(
           either -> either.map(
             b -> Either.right(Tuple.of(fiberA, b)))));
@@ -335,7 +335,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     });
   }
 
-  static <R, E, A> PureIO<R, E, A> absorb(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, Either<E, A>> value) {
+  static <R, E, A> PureIO<R, E, A> absorb(Kind<PureIO<R, E, ?>, Either<E, A>> value) {
     return value.fix(PureIOOf::toPureIO).flatMap(either -> either.fold(PureIO::raiseError, PureIO::pure));
   }
 
@@ -396,7 +396,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return new Pure<>(value);
   }
 
-  static <R, E, A> PureIO<R, E, A> defer(Producer<Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> lazy) {
+  static <R, E, A> PureIO<R, E, A> defer(Producer<Kind<PureIO<R, E, ?>, ? extends A>> lazy) {
     return new Suspend<>(() -> lazy.get().fix(PureIOOf::toPureIO));
   }
 
@@ -428,7 +428,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     return new Throw<>(error);
   }
 
-  static <R, A> PureIO<R, Throwable, A> redeem(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, Void>, ? extends A> value) {
+  static <R, A> PureIO<R, Throwable, A> redeem(Kind<PureIO<R, Void, ?>, ? extends A> value) {
     return new Recover<>(value.fix(PureIOOf::toPureIO), PartialFunction1.of(always(), PureIO::raiseError));
   }
 
@@ -444,29 +444,29 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
     });
   }
 
-  static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Sequence<? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A>> sequence) {
+  static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Sequence<? extends Kind<PureIO<R, E, ?>, A>> sequence) {
     return traverse(Future.DEFAULT_EXECUTOR, sequence);
   }
 
-  static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A>> sequence) {
+  static <R, E, A> PureIO<R, E, Sequence<A>> traverse(Executor executor, Sequence<? extends Kind<PureIO<R, E, ?>, A>> sequence) {
     return sequence.foldLeft(PureIO.<R, E, Sequence<A>>pure(ImmutableList.empty()),
-        (Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, Sequence<A>> xs, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> a) -> parMap2(executor, xs, a, Sequence::append));
+        (Kind<PureIO<R, E, ?>, Sequence<A>> xs, Kind<PureIO<R, E, ?>, A> a) -> parMap2(executor, xs, a, Sequence::append));
   }
 
-  static <R, E, A extends AutoCloseable, B> PureIO<R, E, B> bracket(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> acquire,
-                                                                 Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B>> use) {
+  static <R, E, A extends AutoCloseable, B> PureIO<R, E, B> bracket(Kind<PureIO<R, E, ?>, ? extends A> acquire,
+                                                                 Function1<? super A, ? extends Kind<PureIO<R, E, ?>, ? extends B>> use) {
     return bracket(acquire, use, AutoCloseable::close);
   }
 
-  static <R, E, A, B> PureIO<R, E, B> bracket(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> acquire,
-                                           Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B>> use,
+  static <R, E, A, B> PureIO<R, E, B> bracket(Kind<PureIO<R, E, ?>, ? extends A> acquire,
+                                           Function1<? super A, ? extends Kind<PureIO<R, E, ?>, ? extends B>> use,
                                            Consumer1<? super A> release) {
     return bracket(acquire, use, release.asFunction().andThen(PureIO::pure));
   }
 
-  static <R, E, A, B> PureIO<R, E, B> bracket(Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A> acquire,
-                                           Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends B>> use,
-                                           Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, Unit>> release) {
+  static <R, E, A, B> PureIO<R, E, B> bracket(Kind<PureIO<R, E, ?>, ? extends A> acquire,
+                                           Function1<? super A, ? extends Kind<PureIO<R, E, ?>, ? extends B>> use,
+                                           Function1<? super A, ? extends Kind<PureIO<R, E, ?>, Unit>> release) {
     // TODO: cancel
     return cancellable((env, callback) -> {
 
@@ -516,7 +516,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   @SuppressWarnings("unchecked")
   private static <R, E, F, G, A, B, C> Promise<Either<E, A>> runAsync(
-      @Nullable R env, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
+      @Nullable R env, Kind<PureIO<R, E, ?>, A> current, PureIOConnection connection, CallStack<R, E, A> stack, Promise<Either<E, A>> promise) {
     while (true) {
       try {
         current = unwrap(env, current, stack, identity());
@@ -537,7 +537,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
           stack.push();
 
           var flatMapped = (FlatMapped<R, F, B, E, A>) current;
-          Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, B> source = unwrap(env, flatMapped.current, stack,
+          Kind<PureIO<R, F, ?>, B> source = unwrap(env, flatMapped.current, stack,
               b -> b.fix(PureIOOf::toPureIO).foldM(flatMapped.nextError, flatMapped.next));
 
           if (source instanceof Async<R, F, B> async) {
@@ -582,9 +582,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   @SuppressWarnings("unchecked")
-  private static <R, E, F, A, B> Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> unwrap(
-      @Nullable R env, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> current, CallStack<R, F, B> stack,
-      Function1<Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>, Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> next) {
+  private static <R, E, F, A, B> Kind<PureIO<R, E, ?>, A> unwrap(
+      @Nullable R env, Kind<PureIO<R, E, ?>, A> current, CallStack<R, F, B> stack,
+      Function1<Kind<PureIO<R, E, ?>, ? extends A>, Kind<PureIO<R, F, ?>, ? extends B>> next) {
     while (true) {
       if (current instanceof Failure) {
         return current;
@@ -616,7 +616,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
   }
 
   @SuppressWarnings("NullAway")
-  static <R, E, A> Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> accessM(@Nullable R env, AccessM<R, E, A> accessM) {
+  static <R, E, A> Kind<PureIO<R, E, ?>, A> accessM(@Nullable R env, AccessM<R, E, A> accessM) {
     return accessM.function.apply(env).fix(PureIOOf::toPureIO);
   }
 
@@ -686,13 +686,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class FlatMapped<R, E, A, F, B> implements PureIO<R, F, B> {
 
-    private final Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, A> current;
-    private final Function1<? super E, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> nextError;
-    private final Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> next;
+    private final Kind<PureIO<R, E, ?>, A> current;
+    private final Function1<? super E, ? extends Kind<PureIO<R, F, ?>, ? extends B>> nextError;
+    private final Function1<? super A, ? extends Kind<PureIO<R, F, ?>, ? extends B>> next;
 
     private FlatMapped(PureIO<R, E, A> current,
-                         Function1<? super E, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> nextError,
-                         Function1<? super A, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, F>, ? extends B>> next) {
+                         Function1<? super E, ? extends Kind<PureIO<R, F, ?>, ? extends B>> nextError,
+                         Function1<? super A, ? extends Kind<PureIO<R, F, ?>, ? extends B>> next) {
       this.current = checkNonNull(current);
       this.nextError = checkNonNull(nextError);
       this.next = checkNonNull(next);
@@ -720,9 +720,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class Suspend<R, E, A> implements PureIO<R, E, A> {
 
-    private final Producer<Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> lazy;
+    private final Producer<Kind<PureIO<R, E, ?>, ? extends A>> lazy;
 
-    private Suspend(Producer<Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> lazy) {
+    private Suspend(Producer<Kind<PureIO<R, E, ?>, ? extends A>> lazy) {
       this.lazy = checkNonNull(lazy);
     }
 
@@ -778,9 +778,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<Kind<K
 
   final class AccessM<R, E, A> implements PureIO<R, E, A> {
 
-    private final Function1<? super R, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> function;
+    private final Function1<? super R, ? extends Kind<PureIO<R, E, ?>, ? extends A>> function;
 
-    private AccessM(Function1<? super R, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> function) {
+    private AccessM(Function1<? super R, ? extends Kind<PureIO<R, E, ?>, ? extends A>> function) {
       this.function = checkNonNull(function);
     }
 
@@ -943,7 +943,7 @@ final class CallStack<R, E, A> implements Recoverable {
     }
   }
 
-  public void add(PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends Kind<PureIO<R, E, ?>, ? extends A>> mapError) {
     if (top == null) {
       return;
     }
@@ -972,7 +972,7 @@ final class CallStack<R, E, A> implements Recoverable {
 final class StackItem<R, E, A> {
 
   private int count = 0;
-  private final Deque<PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>>> recover = new ArrayDeque<>();
+  private final Deque<PartialFunction1<? super Throwable, ? extends Kind<PureIO<R, E, ?>, ? extends A>>> recover = new ArrayDeque<>();
 
   @Nullable
   private final StackItem<R, E, A> prev;
@@ -1006,7 +1006,7 @@ final class StackItem<R, E, A> {
     count = 0;
   }
 
-  public void add(PartialFunction1<? super Throwable, ? extends Kind<Kind<Kind<PureIO<?, ?, ?>, R>, E>, ? extends A>> mapError) {
+  public void add(PartialFunction1<? super Throwable, ? extends Kind<PureIO<R, E, ?>, ? extends A>> mapError) {
     recover.addFirst(mapError);
   }
 

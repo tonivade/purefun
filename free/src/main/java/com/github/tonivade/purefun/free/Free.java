@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?>, F>, A> {
+public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Free<F, ?>, A> {
 
   static <F, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
@@ -39,11 +39,11 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
   }
 
   @SuppressWarnings("unchecked")
-  static <F> Monad<Kind<Free<?, ?>, F>> monadF() {
+  static <F> Monad<Free<F, ?>> monadF() {
     return FreeMonad.INSTANCE;
   }
 
-  static <F, G> FunctionK<F, Kind<Free<?, ?>, G>> functionKF(FunctionK<F, G> functionK) {
+  static <F, G> FunctionK<F, Free<G, ?>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<>() {
       @Override
       public <T> Free<G, T> apply(Kind<F, ? extends T> from) {
@@ -58,10 +58,10 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
   }
 
   @Override
-  <R> Free<F, R> flatMap(Function1<? super A, ? extends Kind<Kind<Free<?, ?>, F>, ? extends R>> mapper);
+  <R> Free<F, R> flatMap(Function1<? super A, ? extends Kind<Free<F, ?>, ? extends R>> mapper);
 
   @Override
-  default <R> Free<F, R> andThen(Kind<Kind<Free<?, ?>, F>, ? extends R> next) {
+  default <R> Free<F, R> andThen(Kind<Free<F, ?>, ? extends R> next) {
     return flatMap(ignore -> next);
   }
 
@@ -76,7 +76,7 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
     }
 
     @Override
-    public <B> Free<F, B> flatMap(Function1<? super A, ? extends Kind<Kind<Free<?, ?>, F>, ? extends B>> map) {
+    public <B> Free<F, B> flatMap(Function1<? super A, ? extends Kind<Free<F, ?>, ? extends B>> map) {
       return new FlatMapped<>(this, map);
     }
   }
@@ -88,13 +88,13 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
     }
 
     @Override
-    public <B> Free<F, B> flatMap(Function1<? super A, ? extends Kind<Kind<Free<?, ?>, F>, ? extends B>> map) {
+    public <B> Free<F, B> flatMap(Function1<? super A, ? extends Kind<Free<F, ?>, ? extends B>> map) {
       return new FlatMapped<>(this, map);
     }
   }
 
   record FlatMapped<F, A, B>(Free<F, ? extends A> value,
-      Function1<? super A, ? extends Kind<Kind<Free<?, ?>, F>, ? extends B>> next) implements Free<F, B> {
+      Function1<? super A, ? extends Kind<Free<F, ?>, ? extends B>> next) implements Free<F, B> {
 
     public FlatMapped {
       checkNonNull(value);
@@ -102,7 +102,7 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
     }
 
     @Override
-    public <C> Free<F, C> flatMap(Function1<? super B, ? extends Kind<Kind<Free<?, ?>, F>, ? extends C>> map) {
+    public <C> Free<F, C> flatMap(Function1<? super B, ? extends Kind<Free<F, ?>, ? extends C>> map) {
       return new FlatMapped<>(value, free -> new FlatMapped<>(next.andThen(FreeOf::toFree).apply(free), map));
     }
 
@@ -122,7 +122,7 @@ public sealed interface Free<F, A> extends FreeOf<F, A>, Bindable<Kind<Free<?, ?
   }
 }
 
-interface FreeMonad<F> extends Monad<Kind<Free<?, ?>, F>> {
+interface FreeMonad<F> extends Monad<Free<F, ?>> {
 
   @SuppressWarnings("rawtypes")
   FreeMonad INSTANCE = new FreeMonad() {};
@@ -134,7 +134,7 @@ interface FreeMonad<F> extends Monad<Kind<Free<?, ?>, F>> {
 
   @Override
   default <T, R> Free<F, R> flatMap(
-      Kind<Kind<Free<?, ?>, F>, ? extends T> value, Function1<? super T, ? extends Kind<Kind<Free<?, ?>, F>, ? extends R>> map) {
+      Kind<Free<F, ?>, ? extends T> value, Function1<? super T, ? extends Kind<Free<F, ?>, ? extends R>> map) {
     return value.fix(FreeOf::toFree).flatMap(map.andThen(FreeOf::toFree));
   }
 }

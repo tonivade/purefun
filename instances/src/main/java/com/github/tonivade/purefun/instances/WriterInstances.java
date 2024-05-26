@@ -15,12 +15,12 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public interface WriterInstances {
 
-  static <L> Monad<Kind<Writer<?, ?>, L>> monad(Monoid<L> monoid) {
+  static <L> Monad<Writer<L, ?>> monad(Monoid<L> monoid) {
     return WriterMonad.instance(checkNonNull(monoid));
   }
 }
 
-interface WriterMonad<L> extends Monad<Kind<Writer<?, ?>, L>> {
+interface WriterMonad<L> extends Monad<Writer<L, ?>> {
 
   static <L> WriterMonad<L> instance(Monoid<L> monoid) {
     return () -> monoid;
@@ -34,8 +34,8 @@ interface WriterMonad<L> extends Monad<Kind<Writer<?, ?>, L>> {
   }
 
   @Override
-  default <T, R> Writer<L, R> flatMap(Kind<Kind<Writer<?, ?>, L>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<Writer<?, ?>, L>, ? extends R>> map) {
+  default <T, R> Writer<L, R> flatMap(Kind<Writer<L, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<Writer<L, ?>, ? extends R>> map) {
     return WriterOf.toWriter(value).flatMap(map.andThen(WriterOf::toWriter));
   }
 }

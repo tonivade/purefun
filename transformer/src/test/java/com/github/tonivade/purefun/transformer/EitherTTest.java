@@ -87,16 +87,16 @@ public class EitherTTest {
   @Test
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, Throwable> monadError =
+    MonadError<EitherT<Future<?>, Throwable, ?>, Throwable> monadError =
         EitherTInstances.monadError(Instances.monadError());
 
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> handleError =
+    Kind<EitherT<Future<?>, Throwable, ?>, String> pure = monadError.pure("is not ok");
+    Kind<EitherT<Future<?>, Throwable, ?>, String> raiseError = monadError.raiseError(error);
+    Kind<EitherT<Future<?>, Throwable, ?>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> ensureOk =
+    Kind<EitherT<Future<?>, Throwable, ?>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Future<?>>, Throwable>, String> ensureError =
+    Kind<EitherT<Future<?>, Throwable, ?>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
@@ -109,16 +109,16 @@ public class EitherTTest {
   @Test
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, Throwable> monadError =
+    MonadError<EitherT<Id<?>, Throwable, ?>, Throwable> monadError =
         EitherTInstances.monadError(monad);
 
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> handleError =
+    Kind<EitherT<Id<?>, Throwable, ?>, String> pure = monadError.pure("is not ok");
+    Kind<EitherT<Id<?>, Throwable, ?>, String> raiseError = monadError.raiseError(error);
+    Kind<EitherT<Id<?>, Throwable, ?>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> ensureOk =
+    Kind<EitherT<Id<?>, Throwable, ?>, String> ensureOk =
         monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<Kind<Kind<EitherT<?, ?, ?>, Id<?>>, Throwable>, String> ensureError =
+    Kind<EitherT<Id<?>, Throwable, ?>, String> ensureError =
         monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(

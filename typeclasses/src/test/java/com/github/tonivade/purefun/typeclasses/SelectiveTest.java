@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
@@ -35,7 +34,7 @@ class SelectiveTest {
 
   @Test
   void apply() {
-    Selective<Kind<Validation<?, ?>, Sequence<String>>> selective =
+    Selective<Validation<Sequence<String>, ?>> selective =
         ValidationInstances.selective(SequenceInstances.semigroup());
 
     var validValue = Validation.<Sequence<String>, Integer>valid(1);

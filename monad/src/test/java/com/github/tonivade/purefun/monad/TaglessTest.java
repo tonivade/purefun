@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 
 public class TaglessTest {
 
-  private final Program<Kind<State<?, ?>, ImmutableList<String>>> stateProgram =
+  private final Program<State<ImmutableList<String>, ?>> stateProgram =
       new Program<>(StateInstances.monad(), StateInstances.console());
   private final Program<IO<?>> ioProgram =
       new Program<>(Instances.monad(), Instances.console());
