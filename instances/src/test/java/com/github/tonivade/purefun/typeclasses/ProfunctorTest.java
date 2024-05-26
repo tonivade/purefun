@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function1Of;
 import com.github.tonivade.purefun.instances.Function1Instances;
@@ -23,7 +22,8 @@ public class ProfunctorTest {
   public void dimap() {
     Profunctor<Function1<?, ?>> profunctor = Function1Instances.profunctor();
 
-    Kind<Kind<Function1<?, ?>, Integer>, Double> result = profunctor.dimap(parseInt, toString, toDouble);
+    // FIXME
+    Function1<Integer, Double> result = (Function1<Integer, Double>) profunctor.dimap(parseInt, toString, toDouble);
 
     assertEquals(2.0, result.fix(Function1Of::<Integer, Double>toFunction1).apply(2));
   }

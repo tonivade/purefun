@@ -94,15 +94,15 @@ public class MonadErrorTest {
   @Test
   public void either() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Either<?, ?>, Throwable>, Throwable> monadError = EitherInstances.<Throwable>monadError();
+    MonadError<Either<Throwable, ?>, Throwable> monadError = EitherInstances.<Throwable>monadError();
 
-    Kind<Kind<Either<?, ?>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Either<?, ?>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Either<?, ?>, Throwable>, String> handleError =
+    Kind<Either<Throwable, ?>, String> pure = monadError.pure("is not ok");
+    Kind<Either<Throwable, ?>, String> raiseError = monadError.raiseError(error);
+    Kind<Either<Throwable, ?>, String> handleError =
         monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Either<?, ?>, Throwable>, String> ensureOk =
+    Kind<Either<Throwable, ?>, String> ensureOk =
         monadError.ensure(pure, () -> error, value -> "is not ok".equals(value));
-    Kind<Kind<Either<?, ?>, Throwable>, String> ensureError =
+    Kind<Either<Throwable, ?>, String> ensureError =
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
@@ -222,13 +222,13 @@ public class MonadErrorTest {
   @Test
   public void eio() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<EIO<?, ?>, Throwable>, Throwable> monadError = EIOInstances.monadThrow();
+    MonadError<EIO<Throwable, ?>, Throwable> monadError = EIOInstances.monadThrow();
 
-    Kind<Kind<EIO<?, ?>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<EIO<?, ?>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<EIO<?, ?>, Throwable>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<EIO<?, ?>, Throwable>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<Kind<EIO<?, ?>, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+    Kind<EIO<Throwable, ?>, String> pure = monadError.pure("is not ok");
+    Kind<EIO<Throwable, ?>, String> raiseError = monadError.raiseError(error);
+    Kind<EIO<Throwable, ?>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Kind<EIO<Throwable, ?>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Kind<EIO<Throwable, ?>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Either.<Throwable, String>left(error), EIOOf.toEIO(raiseError).safeRunSync()),
@@ -258,13 +258,13 @@ public class MonadErrorTest {
   @Test
   public void PureIO() {
     RuntimeException error = new RuntimeException("error");
-    MonadError<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, Throwable> monadError = PureIOInstances.monadThrow();
+    MonadError<PureIO<Void, Throwable, ?>, Throwable> monadError = PureIOInstances.monadThrow();
 
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> pure = monadError.pure("is not ok");
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> raiseError = monadError.raiseError(error);
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
+    Kind<PureIO<Void, Throwable, ?>, String> pure = monadError.pure("is not ok");
+    Kind<PureIO<Void, Throwable, ?>, String> raiseError = monadError.raiseError(error);
+    Kind<PureIO<Void, Throwable, ?>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
+    Kind<PureIO<Void, Throwable, ?>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
+    Kind<PureIO<Void, Throwable, ?>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
         () -> assertEquals(Either.<Throwable, String>left(error), PureIOOf.toPureIO(raiseError).provide(null)),

@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.typeclasses;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,24 +27,22 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class MonadDeferTest {
 
   private MonadDefer<IO<?>> ioMonadDefer = Instances.monadDefer();
-  private MonadDefer<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>> PureIOMonadDefer =
-      new Instance<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>>(){}.monadDefer();
-  private MonadDefer<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>> eitherTMonadDefer =
-      new Instance<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>>(){}.monadDefer(ioMonadDefer);
-  private MonadDefer<Kind<OptionT<?, ?>, IO<?>>> optionTMonadDefer =
-      new Instance<Kind<OptionT<?, ?>, IO<?>>>(){}.monadDefer(ioMonadDefer);
+  private MonadDefer<PureIO<Void, Throwable, ?>> PureIOMonadDefer = Instances.monadDefer();
+  private MonadDefer<EitherT<IO<?>, Throwable, ?>> eitherTMonadDefer =
+      new Instance<EitherT<IO<?>, Throwable, ?>>(){}.monadDefer(ioMonadDefer);
+  private MonadDefer<OptionT<IO<?>, ?>> optionTMonadDefer =
+      new Instance<OptionT<IO<?>, ?>>(){}.monadDefer(ioMonadDefer);
 
-  private AutoCloseable resource = Mockito.mock(AutoCloseable.class);
+  private AutoCloseable resource = mock();
 
   @Test
-  public void ioLater(@Mock Producer<String> task) throws Exception {
+  public void ioLater(@Mock Producer<String> task) {
     when(task.get()).thenReturn("hola toni");
 
     Kind<IO<?>, String> later = ioMonadDefer.later(task);
@@ -87,7 +86,7 @@ public class MonadDeferTest {
 
   @Test
   public void eitherTBracket() throws Exception {
-    Kind<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>, String> bracket =
+    Kind<EitherT<IO<?>, Throwable, ?>, String> bracket =
         eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.monad(), resource),
                                                 r -> EitherT.<IO<?>, Throwable, String>right(Instances.monad(), "done"));
 
@@ -99,7 +98,7 @@ public class MonadDeferTest {
 
   @Test
   public void eitherTBracketAcquireError() throws Exception {
-    Kind<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>, String> bracket =
+    Kind<EitherT<IO<?>, Throwable, ?>, String> bracket =
         eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>left(Instances.monad(), new IllegalStateException()),
                                                 r -> EitherT.<IO<?>, Throwable, String>right(Instances.monad(), "done"));
 
@@ -111,7 +110,7 @@ public class MonadDeferTest {
 
   @Test
   public void eitherTBracketUseError() throws Exception {
-    Kind<Kind<Kind<EitherT<?, ?, ?>, IO<?>>, Throwable>, String> bracket =
+    Kind<EitherT<IO<?>, Throwable, ?>, String> bracket =
         eitherTMonadDefer.bracket(EitherT.<IO<?>, Throwable, AutoCloseable>right(Instances.monad(), resource),
                                                 r -> EitherT.<IO<?>, Throwable, String>left(Instances.monad(), new UnsupportedOperationException()));
 
@@ -123,7 +122,7 @@ public class MonadDeferTest {
 
   @Test
   public void optionTBracket() throws Exception {
-    Kind<Kind<OptionT<?, ?>, IO<?>>, String> bracket =
+    Kind<OptionT<IO<?>, ?>, String> bracket =
         optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
                                   r -> OptionT.some(Instances.monad(), "done"));
 
@@ -136,7 +135,7 @@ public class MonadDeferTest {
   @Test
   @Disabled
   public void optionTBracketAcquireError() throws Exception {
-    Kind<Kind<OptionT<?, ?>, IO<?>>, String> bracket =
+    Kind<OptionT<IO<?>, ?>, String> bracket =
         optionTMonadDefer.bracket(OptionT.<IO<?>, AutoCloseable>none(Instances.monad()),
                                   r -> OptionT.some(Instances.monad(), "done"));
 
@@ -150,7 +149,7 @@ public class MonadDeferTest {
   @Test
   @Disabled
   public void optionTBracketUseError() throws Exception {
-    Kind<Kind<OptionT<?, ?>, IO<?>>, String> bracket =
+    Kind<OptionT<IO<?>, ?>, String> bracket =
         optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
                                   r -> OptionT.<IO<?>, String>none(Instances.monad()));
 
@@ -163,7 +162,7 @@ public class MonadDeferTest {
 
   @Test
   public void pureIOBracket() throws Exception {
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> bracket =
+    Kind<PureIO<Void, Throwable, ?>, String> bracket =
         PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>pure(resource),
                               r -> PureIO.<Void, Throwable, String>pure("done"));
 
@@ -175,7 +174,7 @@ public class MonadDeferTest {
 
   @Test
   public void pureIOBracketAcquireError() throws Exception {
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> bracket =
+    Kind<PureIO<Void, Throwable, ?>, String> bracket =
         PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>raiseError(new IllegalStateException()),
                               r -> PureIO.<Void, Throwable, String>pure("done"));
 
@@ -187,7 +186,7 @@ public class MonadDeferTest {
 
   @Test
   public void pureIOBracketUseError() throws Exception {
-    Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Throwable>, String> bracket =
+    Kind<PureIO<Void, Throwable, ?>, String> bracket =
         PureIOMonadDefer.bracket(PureIO.<Void, Throwable, AutoCloseable>pure(resource),
                               r -> PureIO.<Void, Throwable, String>raiseError(new UnsupportedOperationException()));
 

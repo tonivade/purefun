@@ -86,7 +86,7 @@ public final class Nil<F, T> implements PureStream<F, T> {
   }
 
   @Override
-  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin, 
+  public <R> Kind<F, R> foldRight(Kind<F, ? extends R> begin,
       Function2<? super T, ? super Kind<F, ? extends R>, ? extends Kind<F, ? extends R>> combinator) {
     return Kind.narrowK(begin);
   }
@@ -112,7 +112,7 @@ public final class Nil<F, T> implements PureStream<F, T> {
   }
 
   @Override
-  public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<Kind<PureStream<?, ?>, F>, ? extends R>> map) {
+  public <R> PureStream<F, R> flatMap(Function1<? super T, ? extends Kind<PureStream<F, ?>, ? extends R>> map) {
     return new Nil<>(monad);
   }
 

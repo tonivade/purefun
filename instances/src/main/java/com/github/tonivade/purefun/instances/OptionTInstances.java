@@ -29,36 +29,36 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface OptionTInstances {
 
-  static <F, T> Eq<Kind<Kind<OptionT<?, ?>, F>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
+  static <F, T> Eq<Kind<OptionT<F, ?>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
     return (a, b) -> eq.eqv(OptionTOf.toOptionT(a).value(), OptionTOf.toOptionT(b).value());
   }
 
-  static <F> Monad<Kind<OptionT<?, ?>, F>> monad(Monad<F> monadF) {
+  static <F> Monad<OptionT<F, ?>> monad(Monad<F> monadF) {
     return OptionTMonad.instance(checkNonNull(monadF));
   }
 
-  static <F> MonadError<Kind<OptionT<?, ?>, F>, Unit> monadError(Monad<F> monadF) {
+  static <F> MonadError<OptionT<F, ?>, Unit> monadError(Monad<F> monadF) {
     return OptionTMonadErrorFromMonad.instance(checkNonNull(monadF));
   }
 
-  static <F, E> MonadError<Kind<OptionT<?, ?>, F>, E> monadError(MonadError<F, E> monadErrorF) {
+  static <F, E> MonadError<OptionT<F, ?>, E> monadError(MonadError<F, E> monadErrorF) {
     return OptionTMonadErrorFromMonadError.instance(checkNonNull(monadErrorF));
   }
 
-  static <F> MonadThrow<Kind<OptionT<?, ?>, F>> monadThrow(MonadThrow<F> monadThrowF) {
+  static <F> MonadThrow<OptionT<F, ?>> monadThrow(MonadThrow<F> monadThrowF) {
     return OptionTMonadThrow.instance(checkNonNull(checkNonNull(monadThrowF)));
   }
 
-  static <F> MonadDefer<Kind<OptionT<?, ?>, F>> monadDefer(MonadDefer<F> monadDeferF) {
+  static <F> MonadDefer<OptionT<F, ?>> monadDefer(MonadDefer<F> monadDeferF) {
     return OptionTMonadDefer.instance(checkNonNull(monadDeferF));
   }
 
-  static <F, A> Reference<Kind<OptionT<?, ?>, F>, A> ref(MonadDefer<F> monadF, A value) {
+  static <F, A> Reference<OptionT<F, ?>, A> ref(MonadDefer<F> monadF, A value) {
     return Reference.of(monadDefer(monadF), value);
   }
 }
 
-interface OptionTMonad<F> extends Monad<Kind<OptionT<?, ?>, F>> {
+interface OptionTMonad<F> extends Monad<OptionT<F, ?>> {
 
   static <F> OptionTMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
@@ -72,14 +72,14 @@ interface OptionTMonad<F> extends Monad<Kind<OptionT<?, ?>, F>> {
   }
 
   @Override
-  default <T, R> OptionT<F, R> flatMap(Kind<Kind<OptionT<?, ?>, F>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends R>> map) {
+  default <T, R> OptionT<F, R> flatMap(Kind<OptionT<F, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<OptionT<F, ?>, ? extends R>> map) {
     return OptionTOf.toOptionT(value).flatMap(map.andThen(OptionTOf::toOptionT));
   }
 }
 
 interface OptionTMonadErrorFromMonad<F>
-    extends MonadError<Kind<OptionT<?, ?>, F>, Unit>, OptionTMonad<F> {
+    extends MonadError<OptionT<F, ?>, Unit>, OptionTMonad<F> {
 
   static <F> OptionTMonadErrorFromMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
@@ -91,8 +91,8 @@ interface OptionTMonadErrorFromMonad<F>
   }
 
   @Override
-  default <A> OptionT<F, A> handleErrorWith(Kind<Kind<OptionT<?, ?>, F>, A> value,
-      Function1<? super Unit, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends A>> handler) {
+  default <A> OptionT<F, A> handleErrorWith(Kind<OptionT<F, ?>, A> value,
+      Function1<? super Unit, ? extends Kind<OptionT<F, ?>, ? extends A>> handler) {
     return OptionT.of(monadF(),
         monadF().flatMap(OptionTOf.toOptionT(value).value(),
             option -> option.fold(
@@ -102,7 +102,7 @@ interface OptionTMonadErrorFromMonad<F>
 }
 
 interface OptionTMonadErrorFromMonadError<F, E>
-    extends MonadError<Kind<OptionT<?, ?>, F>, E>, OptionTMonad<F> {
+    extends MonadError<OptionT<F, ?>, E>, OptionTMonad<F> {
 
   static <F, E> OptionTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadF) {
     return () -> monadF;
@@ -117,8 +117,8 @@ interface OptionTMonadErrorFromMonadError<F, E>
   }
 
   @Override
-  default <A> OptionT<F, A> handleErrorWith(Kind<Kind<OptionT<?, ?>, F>, A> value,
-      Function1<? super E, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends A>> handler) {
+  default <A> OptionT<F, A> handleErrorWith(Kind<OptionT<F, ?>, A> value,
+      Function1<? super E, ? extends Kind<OptionT<F, ?>, ? extends A>> handler) {
     return OptionT.of(monadF(),
       monadF().handleErrorWith(
         OptionTOf.toOptionT(value).value(), error -> handler.andThen(OptionTOf::<F, A>toOptionT).apply(error).value()));
@@ -126,7 +126,7 @@ interface OptionTMonadErrorFromMonadError<F, E>
 }
 
 interface OptionTMonadThrow<F>
-    extends MonadThrow<Kind<OptionT<?, ?>, F>>,
+    extends MonadThrow<OptionT<F, ?>>,
             OptionTMonadErrorFromMonadError<F, Throwable> {
 
   static <F> OptionTMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
@@ -134,25 +134,25 @@ interface OptionTMonadThrow<F>
   }
 }
 
-interface OptionTDefer<F> extends Defer<Kind<OptionT<?, ?>, F>> {
+interface OptionTDefer<F> extends Defer<OptionT<F, ?>> {
 
   MonadDefer<F> monadF();
 
   @Override
-  default <A> OptionT<F, A> defer(Producer<? extends Kind<Kind<OptionT<?, ?>, F>, ? extends A>> defer) {
+  default <A> OptionT<F, A> defer(Producer<? extends Kind<OptionT<F, ?>, ? extends A>> defer) {
     return OptionT.of(monadF(), monadF().defer(() -> defer.map(OptionTOf::<F, A>toOptionT).get().value()));
   }
 }
 
-interface OptionTBracket<F> extends Bracket<Kind<OptionT<?, ?>, F>, Throwable> {
+interface OptionTBracket<F> extends Bracket<OptionT<F, ?>, Throwable> {
 
   Bracket<F, Throwable> monadF();
 
   @Override
   default <A, B> OptionT<F, B> bracket(
-      Kind<Kind<OptionT<?, ?>, F>, ? extends A> acquire,
-      Function1<? super A, ? extends Kind<Kind<OptionT<?, ?>, F>, ? extends B>> use,
-      Function1<? super A, ? extends Kind<Kind<OptionT<?, ?>, F>, Unit>> release) {
+      Kind<OptionT<F, ?>, ? extends A> acquire,
+      Function1<? super A, ? extends Kind<OptionT<F, ?>, ? extends B>> use,
+      Function1<? super A, ? extends Kind<OptionT<F, ?>, Unit>> release) {
     Kind<F, Option<B>> bracket =
         monadF().bracket(
             acquire.fix(OptionTOf::<F, A>toOptionT).value(),
@@ -160,7 +160,7 @@ interface OptionTBracket<F> extends Bracket<Kind<OptionT<?, ?>, F>, Throwable> {
                 () -> monadF().raiseError(new NoSuchElementException("could not acquire resource")),
                 value -> use.andThen(OptionTOf::<F, B>toOptionT).apply(value).value()),
             option -> {
-              Kind<Kind<OptionT<?, ?>, F>, Unit> fold = option.fold(() -> pure(Unit.unit()), release);
+              Kind<OptionT<F, ?>, Unit> fold = option.fold(() -> pure(Unit.unit()), release);
               Kind<F, Option<Unit>> value = fold.fix(OptionTOf::<F, Unit>toOptionT).value();
               return monadF().map(value, x -> x.fold(Unit::unit, identity()));
             });
@@ -172,7 +172,7 @@ interface OptionTMonadDefer<F>
     extends OptionTMonadThrow<F>,
             OptionTDefer<F>,
             OptionTBracket<F>,
-            MonadDefer<Kind<OptionT<?, ?>, F>> {
+            MonadDefer<OptionT<F, ?>> {
 
   static <F> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
     return () -> monadDeferF;

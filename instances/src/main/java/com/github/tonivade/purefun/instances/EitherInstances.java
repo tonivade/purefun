@@ -7,7 +7,7 @@ package com.github.tonivade.purefun.instances;
 import static com.github.tonivade.purefun.core.Function1.cons;
 
 import com.github.tonivade.purefun.Kind;
-
+import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -28,7 +28,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 @SuppressWarnings("unchecked")
 public interface EitherInstances {
 
-  static <L, R> Eq<Kind<Kind<Either<?, ?>, L>, R>> eq(Eq<L> leftEq, Eq<R> rightEq) {
+  static <L, R> Eq<Either<L, R>> eq(Eq<L> leftEq, Eq<R> rightEq) {
     return (a, b) -> {
       if (a instanceof Either.Left<L, R>(var leftA) && b instanceof Either.Left<L, R>(var leftB)) {
         return leftEq.eqv(leftA, leftB);
@@ -40,7 +40,7 @@ public interface EitherInstances {
     };
   }
 
-  static <L> Functor<Kind<Either<?, ?>, L>> functor() {
+  static <L> Functor<Either<L, ?>> functor() {
     return EitherFunctor.INSTANCE;
   }
 
@@ -48,38 +48,38 @@ public interface EitherInstances {
     return EitherBifunctor.INSTANCE;
   }
 
-  static <L> Applicative<Kind<Either<?, ?>, L>> applicative() {
+  static <L> Applicative<Either<L, ?>> applicative() {
     return EitherApplicative.INSTANCE;
   }
 
-  static <L> Monad<Kind<Either<?, ?>, L>> monad() {
+  static <L> Monad<Either<L, ?>> monad() {
     return EitherMonad.INSTANCE;
   }
 
-  static <L> MonadError<Kind<Either<?, ?>, L>, L> monadError() {
+  static <L> MonadError<Either<L, ?>, L> monadError() {
     return EitherMonadError.INSTANCE;
   }
 
-  static MonadThrow<Kind<Either<?, ?>, Throwable>> monadThrow() {
+  static MonadThrow<Either<Throwable, ?>> monadThrow() {
     return EitherMonadThrow.INSTANCE;
   }
 
-  static <L> Foldable<Kind<Either<?, ?>, L>> foldable() {
+  static <L> Foldable<Either<L, ?>> foldable() {
     return EitherFoldable.INSTANCE;
   }
 
-  static <L> Traverse<Kind<Either<?, ?>, L>> traverse() {
+  static <L> Traverse<Either<L, ?>> traverse() {
     return EitherTraverse.INSTANCE;
   }
 }
 
-interface EitherFunctor<L> extends Functor<Kind<Either<?, ?>, L>> {
+interface EitherFunctor<L> extends Functor<Either<L, ?>> {
 
   @SuppressWarnings("rawtypes")
   EitherFunctor INSTANCE = new EitherFunctor() {};
 
   @Override
-  default <T, R> Either<L, R> map(Kind<Kind<Either<?, ?>, L>, ? extends T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Either<L, R> map(Kind<Either<L, ?>, ? extends T> value, Function1<? super T, ? extends R> map) {
     return EitherOf.toEither(value).map(map);
   }
 }
@@ -89,13 +89,15 @@ interface EitherBifunctor extends Bifunctor<Either<?, ?>> {
   EitherBifunctor INSTANCE = new EitherBifunctor() {};
 
   @Override
-  default <A, B, C, D> Either<C, D> bimap(Kind<Kind<Either<?, ?>, A>, ? extends B> value,
+  default <A, B, C, D> Kind2<Either<?, ?>, C, D> bimap(Kind2<Either<?, ?>, ? extends A, ? extends B> value,
       Function1<? super A, ? extends C> leftMap, Function1<? super B, ? extends D> rightMap) {
-    return EitherOf.toEither(value).bimap(leftMap, rightMap);
+    @SuppressWarnings("unchecked")
+    var either = (Either<A, B>) value;
+    return either.bimap(leftMap, rightMap);
   }
 }
 
-interface EitherPure<L> extends Applicative<Kind<Either<?, ?>, L>> {
+interface EitherPure<L> extends Applicative<Either<L, ?>> {
 
   @Override
   default <T> Either<L, T> pure(T value) {
@@ -109,30 +111,30 @@ interface EitherApplicative<L> extends EitherPure<L> {
   EitherApplicative INSTANCE = new EitherApplicative() {};
 
   @Override
-  default <T, R> Either<L, R> ap(Kind<Kind<Either<?, ?>, L>, ? extends T> value,
-      Kind<Kind<Either<?, ?>, L>, ? extends Function1<? super T, ? extends R>> apply) {
+  default <T, R> Either<L, R> ap(Kind<Either<L, ?>, ? extends T> value,
+      Kind<Either<L, ?>, ? extends Function1<? super T, ? extends R>> apply) {
     return EitherOf.toEither(value).flatMap(t -> EitherOf.toEither(apply).map(f -> f.apply(t)));
   }
 }
 
-interface EitherMonad<L> extends EitherPure<L>, Monad<Kind<Either<?, ?>, L>> {
+interface EitherMonad<L> extends EitherPure<L>, Monad<Either<L, ?>> {
 
   @SuppressWarnings("rawtypes")
   EitherMonad INSTANCE = new EitherMonad() {};
 
   @Override
-  default <T, R> Either<L, R> flatMap(Kind<Kind<Either<?, ?>, L>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<Either<?, ?>, L>, ? extends R>> map) {
+  default <T, R> Either<L, R> flatMap(Kind<Either<L, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<Either<L, ?>, ? extends R>> map) {
     return EitherOf.toEither(value).flatMap(map.andThen(EitherOf::toEither));
   }
 
   @Override
-  default <T, R> Kind<Kind<Either<?, ?>, L>, R> tailRecM(T value,
-      Function1<T, ? extends Kind<Kind<Either<?, ?>, L>, Either<T, R>>> map) {
+  default <T, R> Kind<Either<L, ?>, R> tailRecM(T value,
+      Function1<T, ? extends Kind<Either<L, ?>, Either<T, R>>> map) {
     return loop(value, map).run();
   }
 
-  private <T, R> Trampoline<Kind<Kind<Either<?, ?>, L>, R>> loop(T value, Function1<T, ? extends Kind<Kind<Either<?, ?>, L>, Either<T, R>>> map) {
+  private <T, R> Trampoline<Kind<Either<L, ?>, R>> loop(T value, Function1<T, ? extends Kind<Either<L, ?>, Either<T, R>>> map) {
     return switch (map.andThen(EitherOf::toEither).apply(value)) {
       case Either.Left<L, Either<T, R>>(var left) -> Trampoline.done(Either.left(left));
       case Either.Right<L, Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Either.right(right));
@@ -141,7 +143,7 @@ interface EitherMonad<L> extends EitherPure<L>, Monad<Kind<Either<?, ?>, L>> {
   }
 }
 
-interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Kind<Either<?, ?>, L>, L> {
+interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Either<L, ?>, L> {
 
   @SuppressWarnings("rawtypes")
   EitherMonadError INSTANCE = new EitherMonadError() {};
@@ -152,29 +154,29 @@ interface EitherMonadError<L> extends EitherMonad<L>, MonadError<Kind<Either<?, 
   }
 
   @Override
-  default <A> Either<L, A> handleErrorWith(Kind<Kind<Either<?, ?>, L>, A> value,
-      Function1<? super L, ? extends Kind<Kind<Either<?, ?>, L>, ? extends A>> handler) {
+  default <A> Either<L, A> handleErrorWith(Kind<Either<L, ?>, A> value,
+      Function1<? super L, ? extends Kind<Either<L, ?>, ? extends A>> handler) {
     return EitherOf.toEither(value).fold(handler.andThen(EitherOf::toEither), Either::right);
   }
 }
 
-interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Kind<Either<?, ?>, Throwable>> {
+interface EitherMonadThrow extends EitherMonadError<Throwable>, MonadThrow<Either<Throwable, ?>> {
 
   EitherMonadThrow INSTANCE = new EitherMonadThrow() {};
 }
 
-interface EitherFoldable<L> extends Foldable<Kind<Either<?, ?>, L>> {
+interface EitherFoldable<L> extends Foldable<Either<L, ?>> {
 
   @SuppressWarnings("rawtypes")
   EitherFoldable INSTANCE = new EitherFoldable() {};
 
   @Override
-  default <A, B> B foldLeft(Kind<Kind<Either<?, ?>, L>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
+  default <A, B> B foldLeft(Kind<Either<L, ?>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
     return EitherOf.toEither(value).fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
-  default <A, B> Eval<B> foldRight(Kind<Kind<Either<?, ?>, L>, ? extends A> value, Eval<? extends B> initial,
+  default <A, B> Eval<B> foldRight(Kind<Either<L, ?>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
     return EitherOf.<L, A>toEither(value).fold(
         cons(initial).andThen(EvalOf::<B>toEval),
@@ -182,14 +184,14 @@ interface EitherFoldable<L> extends Foldable<Kind<Either<?, ?>, L>> {
   }
 }
 
-interface EitherTraverse<L> extends Traverse<Kind<Either<?, ?>, L>>, EitherFoldable<L> {
+interface EitherTraverse<L> extends Traverse<Either<L, ?>>, EitherFoldable<L> {
 
   @SuppressWarnings("rawtypes")
   EitherTraverse INSTANCE = new EitherTraverse() {};
 
   @Override
-  default <G, T, R> Kind<G, Kind<Kind<Either<?, ?>, L>, R>> traverse(
-      Applicative<G> applicative, Kind<Kind<Either<?, ?>, L>, T> value,
+  default <G, T, R> Kind<G, Kind<Either<L, ?>, R>> traverse(
+      Applicative<G> applicative, Kind<Either<L, ?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return EitherOf.toEither(value).fold(
       l -> applicative.pure(Either.<L, R>left(l).kind()),

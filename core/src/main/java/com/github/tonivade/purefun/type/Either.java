@@ -7,10 +7,12 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
+import com.github.tonivade.purefun.Kind2;
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
@@ -37,7 +39,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <R> type of the right value, positive case
  */
 @HigherKind
-public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Either<?, ?>, L>, R>, Applicable<Kind<Either<?, ?>, L>, R> {
+public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, ?>, R>, Applicable<Either<L, ?>, R>, Kind2<Either<?, ?>, L, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -106,7 +108,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
 
   @Override
   default <T> Either<L, T> ap(
-      Kind<Kind<Either<?, ?>, L>, ? extends Function1<? super R, ? extends T>> apply) {
+      Kind<Either<L, ?>, ? extends Function1<? super R, ? extends T>> apply) {
     return apply.fix(EitherOf::toEither).flatMap(this::map);
   }
 
@@ -116,7 +118,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
 
   @Override
   @SuppressWarnings("unchecked")
-  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Kind<Either<?, ?>, L>, ? extends T>> map) {
+  default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Either<L, ?>, ? extends T>> map) {
     if (this instanceof Right<L, R>(var right)) {
       return map.andThen(EitherOf::<L, T>toEither).apply(right);
     }
@@ -142,7 +144,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     return filter(matcher.negate());
   }
 
-  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Kind<Kind<Either<?, ?>, L>, R>> orElse) {
+  default Either<L, R> filterOrElse(Matcher1<? super R> matcher, Producer<? extends Kind<Either<L, ?>, R>> orElse) {
     if (this instanceof Left) {
       return this;
     }
@@ -152,14 +154,14 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Kind<Eithe
     return orElse.andThen(EitherOf::toEither).get();
   }
 
-  default Either<L, R> or(Producer<Kind<Kind<Either<?, ?>, L>, R>> orElse) {
+  default Either<L, R> or(Producer<Kind<Either<L, ?>, R>> orElse) {
     if (this instanceof Left) {
       return orElse.andThen(EitherOf::toEither).get();
     }
     return this;
   }
 
-  default Either<L, R> orElse(Kind<Kind<Either<?, ?>, L>, R> orElse) {
+  default Either<L, R> orElse(Kind<Either<L, ?>, R> orElse) {
     return or(Producer.cons(orElse));
   }
 

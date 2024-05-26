@@ -37,60 +37,60 @@ import com.github.tonivade.purefun.typeclasses.Runtime;
 @SuppressWarnings("unchecked")
 public interface RIOInstances {
 
-  static <R> Functor<Kind<RIO<?, ?>, R>> functor() {
+  static <R> Functor<RIO<R, ?>> functor() {
     return RIOFunctor.INSTANCE;
   }
 
-  static <R> Applicative<Kind<RIO<?, ?>, R>> applicative() {
+  static <R> Applicative<RIO<R, ?>> applicative() {
     return RIOApplicative.INSTANCE;
   }
 
-  static <R> Monad<Kind<RIO<?, ?>, R>> monad() {
+  static <R> Monad<RIO<R, ?>> monad() {
     return RIOMonad.INSTANCE;
   }
 
-  static <R> MonadThrow<Kind<RIO<?, ?>, R>> monadThrow() {
+  static <R> MonadThrow<RIO<R, ?>> monadThrow() {
     return RIOMonadThrow.INSTANCE;
   }
 
-  static <R> MonadDefer<Kind<RIO<?, ?>, R>> monadDefer() {
+  static <R> MonadDefer<RIO<R, ?>> monadDefer() {
     return RIOMonadDefer.INSTANCE;
   }
 
-  static <R> Async<Kind<RIO<?, ?>, R>> async() {
+  static <R> Async<RIO<R, ?>> async() {
     return RIOAsync.INSTANCE;
   }
 
-  static <R> Concurrent<Kind<RIO<?, ?>, R>> concurrent() {
+  static <R> Concurrent<RIO<R, ?>> concurrent() {
     return concurrent(Future.DEFAULT_EXECUTOR);
   }
 
-  static <R> Concurrent<Kind<RIO<?, ?>, R>> concurrent(Executor executor) {
+  static <R> Concurrent<RIO<R, ?>> concurrent(Executor executor) {
     return RIOConcurrent.instance(executor);
   }
 
-  static <R> Console<Kind<Kind<RIO<?, ?>, R>, Throwable>> console() {
+  static <R> Console<Kind<RIO<R, ?>, Throwable>> console() {
     return RIOConsole.INSTANCE;
   }
 
-  static <R> Runtime<Kind<RIO<?, ?>, R>> runtime(R env) {
+  static <R> Runtime<RIO<R, ?>> runtime(R env) {
     return RIORuntime.instance(env);
   }
 }
 
-interface RIOFunctor<R> extends Functor<Kind<RIO<?, ?>, R>> {
+interface RIOFunctor<R> extends Functor<RIO<R, ?>> {
 
   @SuppressWarnings("rawtypes")
   RIOFunctor INSTANCE = new RIOFunctor() {};
 
   @Override
   default <A, B> RIO<R, B>
-          map(Kind<Kind<RIO<?, ?>, R>, ? extends A> value, Function1<? super A, ? extends B> map) {
+          map(Kind<RIO<R, ?>, ? extends A> value, Function1<? super A, ? extends B> map) {
     return RIOOf.toRIO(value).map(map);
   }
 }
 
-interface RIOPure<R> extends Applicative<Kind<RIO<?, ?>, R>> {
+interface RIOPure<R> extends Applicative<RIO<R, ?>> {
 
   @Override
   default <A> RIO<R, A> pure(A value) {
@@ -105,26 +105,26 @@ interface RIOApplicative<R> extends RIOPure<R> {
 
   @Override
   default <A, B> RIO<R, B>
-          ap(Kind<Kind<RIO<?, ?>, R>, ? extends A> value,
-             Kind<Kind<RIO<?, ?>, R>, ? extends Function1<? super A, ? extends B>> apply) {
+          ap(Kind<RIO<R, ?>, ? extends A> value,
+             Kind<RIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
     return value.fix(RIOOf::<R, A>toRIO).ap(apply.fix(RIOOf::toRIO));
   }
 }
 
-interface RIOMonad<R> extends RIOPure<R>, Monad<Kind<RIO<?, ?>, R>> {
+interface RIOMonad<R> extends RIOPure<R>, Monad<RIO<R, ?>> {
 
   @SuppressWarnings("rawtypes")
   RIOMonad INSTANCE = new RIOMonad() {};
 
   @Override
   default <A, B> RIO<R, B>
-          flatMap(Kind<Kind<RIO<?, ?>, R>, ? extends A> value,
-                  Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> map) {
+          flatMap(Kind<RIO<R, ?>, ? extends A> value,
+                  Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> map) {
     return value.fix(RIOOf::toRIO).flatMap(map.andThen(RIOOf::toRIO));
   }
 }
 
-interface RIOMonadError<R> extends RIOMonad<R>, MonadError<Kind<RIO<?, ?>, R>, Throwable> {
+interface RIOMonadError<R> extends RIOMonad<R>, MonadError<RIO<R, ?>, Throwable> {
 
   @SuppressWarnings("rawtypes")
   RIOMonadError INSTANCE = new RIOMonadError<>() {
@@ -137,8 +137,8 @@ interface RIOMonadError<R> extends RIOMonad<R>, MonadError<Kind<RIO<?, ?>, R>, T
 
   @Override
   default <A> RIO<R, A> handleErrorWith(
-      Kind<Kind<RIO<?, ?>, R>, A> value,
-      Function1<? super Throwable, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends A>> handler) {
+      Kind<RIO<R, ?>, A> value,
+      Function1<? super Throwable, ? extends Kind<RIO<R, ?>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
     Function1<? super Throwable, RIO<R, A>> mapError = handler.andThen(RIOOf::toRIO);
     Function1<A, RIO<R, A>> map = RIO::pure;
@@ -149,34 +149,34 @@ interface RIOMonadError<R> extends RIOMonad<R>, MonadError<Kind<RIO<?, ?>, R>, T
 
 interface RIOMonadThrow<R>
     extends RIOMonadError<R>,
-            MonadThrow<Kind<RIO<?, ?>, R>> {
+            MonadThrow<RIO<R, ?>> {
   @SuppressWarnings("rawtypes")
   RIOMonadThrow INSTANCE = new RIOMonadThrow<>() {
   };
 }
 
-interface RIODefer<R> extends Defer<Kind<RIO<?, ?>, R>> {
+interface RIODefer<R> extends Defer<RIO<R, ?>> {
 
   @Override
   default <A> RIO<R, A>
-          defer(Producer<? extends Kind<Kind<RIO<?, ?>, R>, ? extends A>> defer) {
+          defer(Producer<? extends Kind<RIO<R, ?>, ? extends A>> defer) {
     return RIO.defer(defer::get);
   }
 }
 
-interface RIOBracket<R> extends RIOMonadError<R>, Bracket<Kind<RIO<?, ?>, R>, Throwable> {
+interface RIOBracket<R> extends RIOMonadError<R>, Bracket<RIO<R, ?>, Throwable> {
 
   @Override
   default <A, B> RIO<R, B>
-          bracket(Kind<Kind<RIO<?, ?>, R>, ? extends A> acquire,
-                  Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, ? extends B>> use,
-                  Function1<? super A, ? extends Kind<Kind<RIO<?, ?>, R>, Unit>> release) {
+          bracket(Kind<RIO<R, ?>, ? extends A> acquire,
+                  Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> use,
+                  Function1<? super A, ? extends Kind<RIO<R, ?>, Unit>> release) {
     return RIO.bracket(acquire, use, release);
   }
 }
 
 interface RIOMonadDefer<R>
-    extends MonadDefer<Kind<RIO<?, ?>, R>>, RIODefer<R>, RIOBracket<R> {
+    extends MonadDefer<RIO<R, ?>>, RIODefer<R>, RIOBracket<R> {
 
   @SuppressWarnings("rawtypes")
   RIOMonadDefer INSTANCE = new RIOMonadDefer<>() {
@@ -188,19 +188,19 @@ interface RIOMonadDefer<R>
   }
 }
 
-interface RIOAsync<R> extends Async<Kind<RIO<?, ?>, R>>, RIOMonadDefer<R> {
+interface RIOAsync<R> extends Async<RIO<R, ?>>, RIOMonadDefer<R> {
 
   @SuppressWarnings("rawtypes")
   RIOAsync INSTANCE = new RIOAsync<>() {
   };
 
   @Override
-  default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<Kind<RIO<?, ?>, R>, Unit>> consumer) {
+  default <A> RIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<RIO<R, ?>, Unit>> consumer) {
     return RIO.cancellable((env, cb) -> consumer.andThen(RIOOf::toRIO).apply(cb));
   }
 }
 
-interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<Kind<RIO<?, ?>, R>> {
+interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<RIO<R, ?>> {
 
   static <R> RIOConcurrent<R> instance(Executor executor) {
     return () -> executor;
@@ -209,19 +209,19 @@ interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<Kind<RIO<?, ?>, R>> {
   Executor executor();
 
   @Override
-  default <A, B> RIO<R, Either<Tuple2<A, Fiber<Kind<RIO<?, ?>, R>, B>>, Tuple2<Fiber<Kind<RIO<?, ?>, R>, A>, B>>> racePair(
-    Kind<Kind<RIO<?, ?>, R>, ? extends A> fa, Kind<Kind<RIO<?, ?>, R>, ? extends B> fb) {
+  default <A, B> RIO<R, Either<Tuple2<A, Fiber<RIO<R, ?>, B>>, Tuple2<Fiber<RIO<R, ?>, A>, B>>> racePair(
+    Kind<RIO<R, ?>, ? extends A> fa, Kind<RIO<R, ?>, ? extends B> fb) {
     return RIO.racePair(executor(), fa, fb);
   }
 
   @Override
-  default <A> RIO<R, Fiber<Kind<RIO<?, ?>, R>, A>> fork(Kind<Kind<RIO<?, ?>, R>, ? extends A> value) {
+  default <A> RIO<R, Fiber<RIO<R, ?>, A>> fork(Kind<RIO<R, ?>, ? extends A> value) {
     RIO<R, A> fix = value.fix(RIOOf::toRIO);
     return fix.fork();
   }
 }
 
-final class RIOConsole<R> implements Console<Kind<RIO<?, ?>, R>> {
+final class RIOConsole<R> implements Console<RIO<R, ?>> {
 
   @SuppressWarnings("rawtypes")
   static final RIOConsole INSTANCE = new RIOConsole();
@@ -239,7 +239,7 @@ final class RIOConsole<R> implements Console<Kind<RIO<?, ?>, R>> {
   }
 }
 
-interface RIORuntime<R> extends Runtime<Kind<RIO<?, ?>, R>> {
+interface RIORuntime<R> extends Runtime<RIO<R, ?>> {
 
   static <R> RIORuntime<R> instance(R env) {
     return () -> env;
@@ -248,22 +248,22 @@ interface RIORuntime<R> extends Runtime<Kind<RIO<?, ?>, R>> {
   R env();
 
   @Override
-  default <T> T run(Kind<Kind<RIO<?, ?>, R>, T> value) {
+  default <T> T run(Kind<RIO<R, ?>, T> value) {
     return value.fix(RIOOf::toRIO).safeRunSync(env()).getOrElseThrow();
   }
 
   @Override
-  default <T> Sequence<T> run(Sequence<Kind<Kind<RIO<?, ?>, R>, T>> values) {
+  default <T> Sequence<T> run(Sequence<Kind<RIO<R, ?>, T>> values) {
     return run(RIO.traverse(values.map(RIOOf::<R, T>toRIO)));
   }
 
   @Override
-  default <T> Future<T> parRun(Kind<Kind<RIO<?, ?>, R>, T> value, Executor executor) {
+  default <T> Future<T> parRun(Kind<RIO<R, ?>, T> value, Executor executor) {
     return value.fix(RIOOf::<R, T>toRIO).runAsync(env());
   }
 
   @Override
-  default <T> Future<Sequence<T>> parRun(Sequence<Kind<Kind<RIO<?, ?>, R>, T>> values, Executor executor) {
+  default <T> Future<Sequence<T>> parRun(Sequence<Kind<RIO<R, ?>, T>> values, Executor executor) {
     return parRun(RIO.traverse(values.map(RIOOf::<R, T>toRIO)), executor);
   }
 }

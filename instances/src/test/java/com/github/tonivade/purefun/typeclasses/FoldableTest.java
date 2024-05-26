@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.instances.ConstInstances;
@@ -71,7 +70,7 @@ public class FoldableTest {
 
   @Test
   public void either() {
-    Foldable<Kind<Either<?, ?>, Throwable>> instance = EitherInstances.foldable();
+    Foldable<Either<Throwable, ?>> instance = EitherInstances.foldable();
 
     assertAll(
         () -> assertEquals(empty(), instance.foldLeft(Either.<Throwable, String>left(new Error()), empty(), ImmutableList::append)),

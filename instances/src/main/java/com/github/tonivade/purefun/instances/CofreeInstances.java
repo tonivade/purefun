@@ -15,39 +15,39 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 @SuppressWarnings("unchecked")
 public interface CofreeInstances {
 
-  static <F> Functor<Kind<Cofree<?, ?>, F>> functor() {
+  static <F> Functor<Cofree<F, ?>> functor() {
     return CofreeFunctor.INSTANCE;
   }
 
-  static <F> Comonad<Kind<Cofree<?, ?>, F>> comonad() {
+  static <F> Comonad<Cofree<F, ?>> comonad() {
     return CofreeComonad.INSTANCE;
   }
 }
 
-interface CofreeFunctor<F> extends Functor<Kind<Cofree<?, ?>, F>> {
+interface CofreeFunctor<F> extends Functor<Cofree<F, ?>> {
 
   @SuppressWarnings("rawtypes")
   CofreeFunctor INSTANCE = new CofreeFunctor() {};
 
   @Override
-  default <T, R> Cofree<F, R> map(Kind<Kind<Cofree<?, ?>, F>, ? extends T> value, Function1<? super T, ? extends R> map) {
+  default <T, R> Cofree<F, R> map(Kind<Cofree<F, ?>, ? extends T> value, Function1<? super T, ? extends R> map) {
     return value.fix(CofreeOf::toCofree).map(map);
   }
 }
 
-interface CofreeComonad<F> extends Comonad<Kind<Cofree<?, ?>, F>>, CofreeFunctor<F> {
+interface CofreeComonad<F> extends Comonad<Cofree<F, ?>>, CofreeFunctor<F> {
 
   @SuppressWarnings("rawtypes")
   CofreeComonad INSTANCE = new CofreeComonad() { };
 
   @Override
-  default <A> A extract(Kind<Kind<Cofree<?, ?>, F>, ? extends A> value) {
+  default <A> A extract(Kind<Cofree<F, ?>, ? extends A> value) {
     return value.fix(CofreeOf::toCofree).extract();
   }
 
   @Override
   default <A, B> Cofree<F, B> coflatMap(
-      Kind<Kind<Cofree<?, ?>, F>, ? extends A> value, Function1<? super Kind<Kind<Cofree<?, ?>, F>, ? extends A>, ? extends B> map) {
+      Kind<Cofree<F, ?>, ? extends A> value, Function1<? super Kind<Cofree<F, ?>, ? extends A>, ? extends B> map) {
     return value.fix(CofreeOf::toCofree).coflatMap(map);
   }
 }

@@ -37,7 +37,7 @@ public class EqTest {
     Either<Integer, String> right1 = Either.right("hola");
     Either<Integer, String> right2 = Either.right("hola");
 
-    Eq<Kind<Kind<Either<?, ?>, Integer>, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
+    Eq<Either<Integer, String>> instance = EitherInstances.eq(Eq.any(), Eq.any());
 
     assertAll(
         () -> assertTrue(instance.eqv(left1, left2)),

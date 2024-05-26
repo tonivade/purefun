@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 public class FreeApTest {
 
-  private final Applicative<Kind<FreeAp<?, ?>, DSL<?>>> applicative = FreeAp.applicativeF();
+  private final Applicative<FreeAp<DSL<?>, ?>> applicative = FreeAp.applicativeF();
 
   @Test
   public void map() {
@@ -124,7 +124,7 @@ public class FreeApTest {
     };
   }
 
-  private FunctionK<DSL<?>, Kind<Const<?, ?>, String>> constTransform() {
+  private FunctionK<DSL<?>, Const<String, ?>> constTransform() {
     return new FunctionK<>() {
       @Override
       public <T> Const<String, T> apply(Kind<DSL<?>, ? extends T> from) {

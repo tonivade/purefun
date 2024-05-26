@@ -20,15 +20,15 @@ import org.junit.jupiter.api.Test;
 
 public class FreeAlgTest {
 
-  private static Free<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, String> read() {
+  private static Free<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, String> read() {
     return Free.inject(injectEitherKLeft(), new ConsoleAlg.ReadLine());
   }
 
-  private static Free<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, Unit> write(String value) {
+  private static Free<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, Unit> write(String value) {
     return Free.inject(injectEitherKLeft(), new ConsoleAlg.WriteLine(value));
   }
 
-  private static Free<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, Unit> send(String to, String content) {
+  private static Free<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, Unit> send(String to, String content) {
     return Free.inject(injectEitherKRight(injectReflexive()), new EmailAlg.SendEmail(to, content));
   }
 
@@ -47,11 +47,11 @@ public class FreeAlgTest {
   }
 
   @SuppressWarnings("unchecked")
-  private static FunctionK<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, IO<?>> interpreter() {
+  private static FunctionK<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, IO<?>> interpreter() {
     final Console<IO<?>> console = Instances.console();
     return new FunctionK<>() {
       @Override
-      public <T> Kind<IO<?>, T> apply(Kind<Kind<Kind<EitherK<?, ?, ?>, ConsoleAlg<?>>, EmailAlg<?>>, ? extends T> from) {
+      public <T> Kind<IO<?>, T> apply(Kind<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, ? extends T> from) {
         return from.fix(EitherKOf::<ConsoleAlg<?>, EmailAlg<?>, T>toEitherK).foldK(
           new FunctionK<>() {
             @Override

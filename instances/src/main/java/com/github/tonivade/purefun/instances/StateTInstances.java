@@ -20,24 +20,24 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 
 public interface StateTInstances {
 
-  static <F, S> Monad<Kind<Kind<StateT<?, ?, ?>, F>, S>> monad(Monad<F> monadF) {
+  static <F, S> Monad<StateT<F, S, ?>> monad(Monad<F> monadF) {
     return StateTMonad.instance(checkNonNull(monadF));
   }
 
-  static <F, S> MonadState<Kind<Kind<StateT<?, ?, ?>, F>, S>, S> monadState(Monad<F> monadF) {
+  static <F, S> MonadState<StateT<F, S, ?>, S> monadState(Monad<F> monadF) {
     return StateTMonadState.instance(checkNonNull(monadF));
   }
 
-  static <F, S, E> MonadError<Kind<Kind<StateT<?, ?, ?>, F>, S>, E> monadError(MonadError<F, E> monadErrorF) {
+  static <F, S, E> MonadError<StateT<F, S, ?>, E> monadError(MonadError<F, E> monadErrorF) {
     return StateTMonadError.instance(checkNonNull(monadErrorF));
   }
 
-  static <F, S, R> MonadReader<Kind<Kind<StateT<?, ?, ?>, F>, S>, R> monadReader(MonadReader<F, R> monadReaderF) {
+  static <F, S, R> MonadReader<StateT<F, S, ?>, R> monadReader(MonadReader<F, R> monadReaderF) {
     return StateTMonadReader.instance(checkNonNull(monadReaderF));
   }
 }
 
-interface StateTMonad<F, S> extends Monad<Kind<Kind<StateT<?, ?, ?>, F>, S>> {
+interface StateTMonad<F, S> extends Monad<StateT<F, S, ?>> {
 
   static <F, S> StateTMonad<F, S> instance(Monad<F> monadF) {
     return () -> monadF;
@@ -51,13 +51,13 @@ interface StateTMonad<F, S> extends Monad<Kind<Kind<StateT<?, ?, ?>, F>, S>> {
   }
 
   @Override
-  default <T, R> StateT<F, S, R> flatMap(Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends R>> map) {
+  default <T, R> StateT<F, S, R> flatMap(Kind<StateT<F, S, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<StateT<F, S, ?>, ? extends R>> map) {
     return StateTOf.toStateT(value).flatMap(map.andThen(StateTOf::toStateT));
   }
 }
 
-interface StateTMonadError<F, S, E> extends MonadError<Kind<Kind<StateT<?, ?, ?>, F>, S>, E>, StateTMonad<F, S> {
+interface StateTMonadError<F, S, E> extends MonadError<StateT<F, S, ?>, E>, StateTMonad<F, S> {
 
   static <F, S, E> StateTMonadError<F, S, E> instance(MonadError<F, E> monadErrorF) {
     return () -> monadErrorF;
@@ -74,8 +74,8 @@ interface StateTMonadError<F, S, E> extends MonadError<Kind<Kind<StateT<?, ?, ?>
 
   @Override
   default <A> StateT<F, S, A> handleErrorWith(
-      Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, A> value,
-      Function1<? super E, ? extends Kind<Kind<Kind<StateT<?, ?, ?>, F>, S>, ? extends A>> handler) {
+      Kind<StateT<F, S, ?>, A> value,
+      Function1<? super E, ? extends Kind<StateT<F, S, ?>, ? extends A>> handler) {
     StateT<F, S, A> stateT = value.fix(StateTOf::toStateT);
     return StateT.state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
@@ -83,7 +83,7 @@ interface StateTMonadError<F, S, E> extends MonadError<Kind<Kind<StateT<?, ?, ?>
   }
 }
 
-interface StateTMonadState<F, S> extends MonadState<Kind<Kind<StateT<?, ?, ?>, F>, S>, S>, StateTMonad<F, S> {
+interface StateTMonadState<F, S> extends MonadState<StateT<F, S, ?>, S>, StateTMonad<F, S> {
 
   static <F, S> StateTMonadState<F, S> instance(Monad<F> monadF) {
     return () -> monadF;
@@ -100,7 +100,7 @@ interface StateTMonadState<F, S> extends MonadState<Kind<Kind<StateT<?, ?, ?>, F
   }
 }
 
-interface StateTMonadReader<F, S, R> extends MonadReader<Kind<Kind<StateT<?, ?, ?>, F>, S>, R>, StateTMonad<F, S> {
+interface StateTMonadReader<F, S, R> extends MonadReader<StateT<F, S, ?>, R>, StateTMonad<F, S> {
 
   static <F, S, R> StateTMonadReader<F, S, R> instance(MonadReader<F, R> monadReaderF) {
     return () -> monadReaderF;

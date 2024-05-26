@@ -169,7 +169,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
   public UIO<Fiber<UIO<?>, A>> fork() {
     return new UIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
       @Override
-      public <T> UIO<T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Void>, ? extends T> from) {
+      public <T> UIO<T> apply(Kind<PureIO<Void, Void, ?>, ? extends T> from) {
         return new UIO<>(from.fix(PureIOOf::toPureIO));
       }
     })));
@@ -262,12 +262,12 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
     return new UIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Void>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<PureIO<Void, Void, ?>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::toPureIO));
         }
       })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
         @Override
-        public <T> UIO<T> apply(Kind<Kind<Kind<PureIO<?, ?, ?>, Void>, Void>, ? extends T> from) {
+        public <T> UIO<T> apply(Kind<PureIO<Void, Void, ?>, ? extends T> from) {
           return new UIO<>(from.fix(PureIOOf::toPureIO));
         }
       })))));

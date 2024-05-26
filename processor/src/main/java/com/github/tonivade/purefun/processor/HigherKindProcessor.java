@@ -100,8 +100,8 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void generate1(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
-    String higher1 = "Kind<" + kindName + ", A>";
-    String higher1Wildcard = "Kind<" + kindName + ", ? extends A>";
+    String higher1 = "Kind<" + className + "<?>, A>";
+    String higher1Wildcard = "Kind<" + className + "<?>, ? extends A>";
     String aType = type("A", list.get(0));
     String typeParams = "<" + aType + ">";
     String typeOfNameWithParams = typeOfName + typeParams;
@@ -121,8 +121,8 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void generate2(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
-    String higher2 = "Kind<Kind<" + kindName + ", A>, B>";
-    String higher1Wildcard = "Kind<Kind<" + kindName + ", A>, ? extends B>";
+    String higher2 = "Kind<" + className + "<A, ?>, B>";
+    String higher1Wildcard = "Kind<" + className + "<A, ?>, ? extends B>";
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
     String typeParams = "<" + aType + ", " + bType + ">";
@@ -144,8 +144,8 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void generate3(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, String kindName, List<? extends TypeParameterElement> list) {
-    String higher3 = "Kind<Kind<Kind<" + kindName + ", A>, B>, C>";
-    String higher1Wildcard = "Kind<Kind<Kind<" + kindName + ", A>, B>, ? extends C>";
+    String higher3 = "Kind<" + className + "<A, B, ?>, C>";
+    String higher1Wildcard = "Kind<" + className + "<A, B, ?>, ? extends C>";
     String aType = type("A", list.get(0));
     String bType = type("B", list.get(1));
     String cType = type("C", list.get(2));

@@ -20,23 +20,23 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public interface WriterTInstances {
 
-  static <F, L> Monad<Kind<Kind<WriterT<?, ?, ?>, F>, L>> monad(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> Monad<WriterT<F, L, ?>> monad(Monoid<L> monoid, Monad<F> monadF) {
     return WriterTMonad.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
-  static <F, L> MonadWriter<Kind<Kind<WriterT<?, ?, ?>, F>, L>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> MonadWriter<WriterT<F, L, ?>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
     return WriterTMonadWriter.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
-  static <F, L, E> MonadError<Kind<Kind<WriterT<?, ?, ?>, F>, L>, E> monadError(
+  static <F, L, E> MonadError<WriterT<F, L, ?>, E> monadError(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
     return WriterTMonadError.instance(checkNonNull(monoid), checkNonNull(monadErrorF));
   }
 }
 
-interface WriterTMonad<F, L> extends Monad<Kind<Kind<WriterT<?, ?, ?>, F>, L>> {
+interface WriterTMonad<F, L> extends Monad<WriterT<F, L, ?>> {
 
-  static <F, L> Monad<Kind<Kind<WriterT<?, ?, ?>, F>, L>> instance(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> Monad<WriterT<F, L, ?>> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonad<>() {
 
       @Override
@@ -60,16 +60,16 @@ interface WriterTMonad<F, L> extends Monad<Kind<Kind<WriterT<?, ?, ?>, F>, L>> {
   }
 
   @Override
-  default <T, R> WriterT<F, L, R> flatMap(Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends R>> map) {
+  default <T, R> WriterT<F, L, R> flatMap(Kind<WriterT<F, L, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<WriterT<F, L, ?>, ? extends R>> map) {
     return WriterTOf.toWriterT(value).flatMap(map.andThen(WriterTOf::toWriterT));
   }
 }
 
 interface WriterTMonadWriter<F, L>
-    extends MonadWriter<Kind<Kind<WriterT<?, ?, ?>, F>, L>, L>, WriterTMonad<F, L> {
+    extends MonadWriter<WriterT<F, L, ?>, L>, WriterTMonad<F, L> {
 
-  static <F, L> MonadWriter<Kind<Kind<WriterT<?, ?, ?>, F>, L>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
+  static <F, L> MonadWriter<WriterT<F, L, ?>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonadWriter<>() {
 
       @Override
@@ -90,13 +90,13 @@ interface WriterTMonadWriter<F, L>
   }
 
   @Override
-  default <A> WriterT<F, L, Tuple2<L, A>> listen(Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends A> value) {
+  default <A> WriterT<F, L, Tuple2<L, A>> listen(Kind<WriterT<F, L, ?>, ? extends A> value) {
     return value.fix(WriterTOf::<F, L, A>toWriterT).listen();
   }
 
   @Override
   default <A> WriterT<F, L, A> pass(
-      Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, Tuple2<Operator1<L>, A>> value) {
+      Kind<WriterT<F, L, ?>, Tuple2<Operator1<L>, A>> value) {
     WriterT<F, L, Tuple2<Operator1<L>, A>> writerT = value.fix(WriterTOf::toWriterT);
     return writerT.listen().flatMap((Tuple2<L, Tuple2<Operator1<L>, A>> tuple) -> {
         Operator1<L> operator = tuple.get2().get1();
@@ -107,9 +107,9 @@ interface WriterTMonadWriter<F, L>
 }
 
 interface WriterTMonadError<F, L, E>
-    extends MonadError<Kind<Kind<WriterT<?, ?, ?>, F>, L>, E>, WriterTMonad<F, L> {
+    extends MonadError<WriterT<F, L, ?>, E>, WriterTMonad<F, L> {
 
-  static <F, L, E> MonadError<Kind<Kind<WriterT<?, ?, ?>, F>, L>, E> instance(
+  static <F, L, E> MonadError<WriterT<F, L, ?>, E> instance(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
     return new WriterTMonadError<>() {
 
@@ -136,8 +136,8 @@ interface WriterTMonadError<F, L, E>
 
   @Override
   default <A> WriterT<F, L, A> handleErrorWith(
-      Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, A> value,
-      Function1<? super E, ? extends Kind<Kind<Kind<WriterT<?, ?, ?>, F>, L>, ? extends A>> handler) {
+      Kind<WriterT<F, L, ?>, A> value,
+      Function1<? super E, ? extends Kind<WriterT<F, L, ?>, ? extends A>> handler) {
     return WriterT.writer(monoid(), monadF(),
         monadF().handleErrorWith(value.fix(WriterTOf::<F, L, A>toWriterT).value(),
             error -> handler.apply(error).fix(WriterTOf::<F, L, A>toWriterT).value()));

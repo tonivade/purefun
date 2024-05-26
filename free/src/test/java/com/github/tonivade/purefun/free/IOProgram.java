@@ -41,9 +41,9 @@ public sealed interface IOProgram<T> extends IOProgramOf<T> {
 }
 
 @SuppressWarnings("unchecked")
-class IOProgramToState implements FunctionK<IOProgram<?>, Kind<State<?, ?>, ImmutableList<String>>> {
+class IOProgramToState implements FunctionK<IOProgram<?>, State<ImmutableList<String>, ?>> {
 
-  private final Console<Kind<State<?, ?>, ImmutableList<String>>> console = StateInstances.console();
+  private final Console<State<ImmutableList<String>, ?>> console = StateInstances.console();
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Kind<IOProgram<?>, ? extends X> from) {

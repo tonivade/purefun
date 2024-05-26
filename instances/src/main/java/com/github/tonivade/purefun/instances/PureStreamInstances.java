@@ -27,7 +27,7 @@ public interface PureStreamInstances {
     return PureStream.of(IOInstances.monadDefer());
   }
 
-  static <R> PureStream.Of<Kind<Kind<PureIO<?, ?, ?>, R>, Throwable>> ofPureIO() {
+  static <R> PureStream.Of<PureIO<R, Throwable, ?>> ofPureIO() {
     return PureStream.of(PureIOInstances.monadDefer());
   }
 
@@ -35,7 +35,7 @@ public interface PureStreamInstances {
     return PureStream.of(UIOInstances.monadDefer());
   }
 
-  static PureStream.Of<Kind<EIO<?, ?>, Throwable>> ofEIO() {
+  static PureStream.Of<EIO<Throwable, ?>> ofEIO() {
     return PureStream.of(EIOInstances.monadDefer());
   }
 
@@ -43,36 +43,36 @@ public interface PureStreamInstances {
     return PureStream.of(TaskInstances.monadDefer());
   }
 
-  static <R> PureStream.Of<Kind<URIO<?, ?>, R>> ofURIO() {
+  static <R> PureStream.Of<URIO<R, ?>> ofURIO() {
     return PureStream.of(URIOInstances.monadDefer());
   }
 
-  static <R> PureStream.Of<Kind<RIO<?, ?>, R>> ofRIO() {
+  static <R> PureStream.Of<RIO<R, ?>> ofRIO() {
     return PureStream.of(RIOInstances.monadDefer());
   }
 
   @SuppressWarnings("unchecked")
-  static <F> Functor<Kind<PureStream<?, ?>, F>> functor() {
+  static <F> Functor<PureStream<F, ?>> functor() {
     return PureStreamFunctor.INSTANCE;
   }
 
-  static <F> Monad<Kind<PureStream<?, ?>, F>> monad(PureStream.Of<F> streamOf) {
+  static <F> Monad<PureStream<F, ?>> monad(PureStream.Of<F> streamOf) {
     return PureStreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
-interface PureStreamFunctor<F> extends Functor<Kind<PureStream<?, ?>, F>> {
+interface PureStreamFunctor<F> extends Functor<PureStream<F, ?>> {
 
   @SuppressWarnings("rawtypes")
   PureStreamFunctor INSTANCE = new PureStreamFunctor() {};
 
   @Override
-  default <T, R> PureStream<F, R> map(Kind<Kind<PureStream<?, ?>, F>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> PureStream<F, R> map(Kind<PureStream<F, ?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return PureStreamOf.toPureStream(value).map(mapper);
   }
 }
 
-interface PureStreamPure<F> extends Applicative<Kind<PureStream<?, ?>, F>> {
+interface PureStreamPure<F> extends Applicative<PureStream<F, ?>> {
 
   PureStream.Of<F> streamOf();
 
@@ -82,15 +82,15 @@ interface PureStreamPure<F> extends Applicative<Kind<PureStream<?, ?>, F>> {
   }
 }
 
-interface PureStreamMonad<F> extends Monad<Kind<PureStream<?, ?>, F>>, PureStreamPure<F> {
+interface PureStreamMonad<F> extends Monad<PureStream<F, ?>>, PureStreamPure<F> {
 
   static <F> PureStreamMonad<F> instance(PureStream.Of<F> streamOf) {
     return () -> streamOf;
   }
 
   @Override
-  default <T, R> PureStream<F, R> flatMap(Kind<Kind<PureStream<?, ?>, F>, ? extends T> value,
-      Function1<? super T, ? extends Kind<Kind<PureStream<?, ?>, F>, ? extends R>> mapper) {
+  default <T, R> PureStream<F, R> flatMap(Kind<PureStream<F, ?>, ? extends T> value,
+      Function1<? super T, ? extends Kind<PureStream<F, ?>, ? extends R>> mapper) {
     return PureStreamOf.toPureStream(value).flatMap(mapper.andThen(PureStreamOf::toPureStream));
   }
 }
