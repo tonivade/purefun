@@ -33,8 +33,8 @@ public class HigherKindProcessorTest {
         "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> hkt) {",
-        "return (Foo<A>) hkt;",
+        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> value) {",
+        "return (Foo<A>) value;",
         "}",
 
         "}");
@@ -61,8 +61,8 @@ public class HigherKindProcessorTest {
         "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> hkt) {",
-        "return (Foo<A>) hkt;",
+        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> value) {",
+        "return (Foo<A>) value;",
         "}",
 
         "}");
@@ -93,8 +93,8 @@ public class HigherKindProcessorTest {
         "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo<?>, A> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A extends java.lang.String> Foo<A> toFoo(Kind<Foo<?>, ? extends A> hkt) {",
-        "return (Foo<A>) hkt;",
+        "static <A extends java.lang.String> Foo<A> toFoo(Kind<Foo<?>, ? extends A> value) {",
+        "return (Foo<A>) value;",
         "}",
 
         "}");
@@ -157,8 +157,8 @@ public class HigherKindProcessorTest {
         "public sealed interface FooOf<A, B> extends Kind<Foo<A, ?>, B> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B> Foo<A, B> toFoo(Kind<Foo<A, ?>, ? extends B> hkt) {",
-        "return (Foo<A, B>) hkt;",
+        "static <A, B> Foo<A, B> toFoo(Kind<Foo<A, ?>, ? extends B> value) {",
+        "return (Foo<A, B>) value;",
         "}",
 
         "}");
@@ -189,8 +189,8 @@ public class HigherKindProcessorTest {
         "public sealed interface FooOf<A, B, C> extends Kind<Foo<A, B, ?>, C> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A, B, C> Foo<A, B, C> toFoo(Kind<Foo<A, B, ?>, ? extends C> hkt) {",
-        "return (Foo<A, B, C>) hkt;",
+        "static <A, B, C> Foo<A, B, C> toFoo(Kind<Foo<A, B, ?>, ? extends C> value) {",
+        "return (Foo<A, B, C>) value;",
         "}",
 
         "}");

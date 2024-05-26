@@ -182,8 +182,8 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private static void narrowK(PrintWriter writer, String className, String types, String returnType, String param) {
     writer.println("  @SuppressWarnings(\"unchecked\")");
-    writer.println("  static " + types + " " + returnType + " to" + className + "(" + param + " hkt) {");
-    writer.println("    return (" + returnType + ") hkt;");
+    writer.println("  static " + types + " " + returnType + " to" + className + "(" + param + " value) {");
+    writer.println("    return (" + returnType + ") value;");
     writer.println("  }");
     writer.println();
   }
