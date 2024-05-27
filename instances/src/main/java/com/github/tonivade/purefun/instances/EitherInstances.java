@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.free.Trampoline;
+import com.github.tonivade.purefun.core.Trampoline;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Eval;

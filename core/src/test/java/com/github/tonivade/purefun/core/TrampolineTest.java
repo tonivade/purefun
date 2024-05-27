@@ -2,10 +2,11 @@
  * Copyright (c) 2018-2024, Antonio Gabriel Muñoz Conejo <me at tonivade dot es>
  * Distributed under the terms of the MIT License
  */
-package com.github.tonivade.purefun.free;
+package com.github.tonivade.purefun.core;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.github.tonivade.purefun.core.Trampoline;
 import org.junit.jupiter.api.Test;
 
 public class TrampolineTest {

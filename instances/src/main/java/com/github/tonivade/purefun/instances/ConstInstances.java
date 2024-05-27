@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 import com.github.tonivade.purefun.typeclasses.Traverse;
 
-  @SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 public interface ConstInstances {
 
   static <T, A> Eq<Kind<Const<T, ?>, A>> eq(Eq<T> eq) {
