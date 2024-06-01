@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface Kleisli<F, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kleisli<F, Z, ?>, A> {
+public non-sealed interface Kleisli<F extends Kind<F, ?>, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kleisli<F, Z, ?>, A> {
 
   Monad<F> monad();
   Kind<F, A> run(Z value);
@@ -37,19 +37,19 @@ public non-sealed interface Kleisli<F, Z, A> extends KleisliOf<F, Z, A>, Bindabl
     return Kleisli.of(monad(), map.andThen(this::run));
   }
 
-  static <F, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<? super A, ? extends B> map) {
+  static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> lift(Monad<F> monad, Function1<? super A, ? extends B> map) {
     return Kleisli.of(monad, map.andThen(monad::<B>pure));
   }
 
-  static <F, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
+  static <F extends Kind<F, ?>, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
     return Kleisli.of(monad, monad::<Z>pure);
   }
 
-  static <F, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {
+  static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {
     return Kleisli.of(monad, a -> monad.pure(value));
   }
 
-  static <F, A, B> Kleisli<F, A, B> of(Monad<F> monad,
+  static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> of(Monad<F> monad,
       Function1<? super A, ? extends Kind<F, ? extends B>> run) {
     checkNonNull(monad);
     checkNonNull(run);

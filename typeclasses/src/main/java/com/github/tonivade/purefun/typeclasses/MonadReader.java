@@ -8,7 +8,7 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Function1;
 
-public interface MonadReader<F, R> extends Monad<F> {
+public interface MonadReader<F extends Kind<F, ?>, R> extends Monad<F> {
 
   Kind<F, R> ask();
 

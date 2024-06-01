@@ -171,7 +171,7 @@ interface EitherTraverse<L> extends Traverse<Either<L, ?>>, EitherFoldable<L> {
   EitherTraverse INSTANCE = new EitherTraverse() {};
 
   @Override
-  default <G, T, R> Kind<G, Kind<Either<L, ?>, R>> traverse(
+  default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Either<L, ?>, R>> traverse(
       Applicative<G> applicative, Kind<Either<L, ?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return EitherOf.toEither(value).fold(

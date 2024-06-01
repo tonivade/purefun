@@ -52,16 +52,16 @@ public interface PureStreamInstances {
   }
 
   @SuppressWarnings("unchecked")
-  static <F> Functor<PureStream<F, ?>> functor() {
+  static <F extends Kind<F, ?>> Functor<PureStream<F, ?>> functor() {
     return PureStreamFunctor.INSTANCE;
   }
 
-  static <F> Monad<PureStream<F, ?>> monad(PureStream.Of<F> streamOf) {
+  static <F extends Kind<F, ?>> Monad<PureStream<F, ?>> monad(PureStream.Of<F> streamOf) {
     return PureStreamMonad.instance(checkNonNull(streamOf));
   }
 }
 
-interface PureStreamFunctor<F> extends Functor<PureStream<F, ?>> {
+interface PureStreamFunctor<F extends Kind<F, ?>> extends Functor<PureStream<F, ?>> {
 
   @SuppressWarnings("rawtypes")
   PureStreamFunctor INSTANCE = new PureStreamFunctor() {};
@@ -72,7 +72,7 @@ interface PureStreamFunctor<F> extends Functor<PureStream<F, ?>> {
   }
 }
 
-interface PureStreamPure<F> extends Applicative<PureStream<F, ?>> {
+interface PureStreamPure<F extends Kind<F, ?>> extends Applicative<PureStream<F, ?>> {
 
   PureStream.Of<F> streamOf();
 
@@ -82,9 +82,9 @@ interface PureStreamPure<F> extends Applicative<PureStream<F, ?>> {
   }
 }
 
-interface PureStreamMonad<F> extends Monad<PureStream<F, ?>>, PureStreamPure<F> {
+interface PureStreamMonad<F extends Kind<F, ?>> extends Monad<PureStream<F, ?>>, PureStreamPure<F> {
 
-  static <F> PureStreamMonad<F> instance(PureStream.Of<F> streamOf) {
+  static <F extends Kind<F, ?>> PureStreamMonad<F> instance(PureStream.Of<F> streamOf) {
     return () -> streamOf;
   }
 

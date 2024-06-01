@@ -18,7 +18,7 @@ import java.util.Deque;
 import java.util.List;
 
 @HigherKind
-public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F, ?>, A> {
+public sealed interface FreeAp<F extends Kind<F, ?>, A> extends FreeApOf<F, A>, Applicable<FreeAp<F, ?>, A> {
 
   @Override
   default <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {
@@ -41,11 +41,11 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
     return foldMap(FunctionK.identity(), applicative);
   }
 
-  default <G> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
+  default <G extends Kind<G, ?>> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
     return foldMap(functionKF(transformer), applicativeF()).fix(FreeApOf::toFreeAp);
   }
 
-  default <G> FreeAp<G, A> flatCompile(
+  default <G extends Kind<G, ?>> FreeAp<G, A> flatCompile(
       FunctionK<F, FreeAp<G, ?>> functionK, Applicative<FreeAp<G, ?>> applicative) {
     return foldMap(functionK, applicative).fix(FreeApOf::toFreeAp);
   }
@@ -55,11 +55,11 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
   }
 
   default Free<F, A> monad() {
-    return foldMap(Free.functionKF(FunctionK.identity()), Free.monadF()).fix(FreeOf::toFree);
+    return foldMap(Free.functionKF(FunctionK.<F>identity()), Free.monadF()).fix(FreeOf::toFree);
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  default <G> Kind<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
+  default <G extends Kind<G, ?>> Kind<G, A> foldMap(FunctionK<F, G> functionK, Applicative<G> applicative) {
     Deque<FreeAp> argsF = new ArrayDeque<>(List.of(this));
     Deque<CurriedFunction> fns = new ArrayDeque<>();
 
@@ -111,20 +111,20 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
     }
   }
 
-  static <F, T> FreeAp<F, T> pure(T value) {
+  static <F extends Kind<F, ?>, T> FreeAp<F, T> pure(T value) {
     return new Pure<>(value);
   }
 
-  static <F, T> FreeAp<F, T> lift(Kind<F, T> value) {
+  static <F extends Kind<F, ?>, T> FreeAp<F, T> lift(Kind<F, T> value) {
     return new Lift<>(value);
   }
 
-  static <F, T, R> FreeAp<F, R> apply(Kind<FreeAp<F, ?>, ? extends T> value,
+  static <F extends Kind<F, ?>, T, R> FreeAp<F, R> apply(Kind<FreeAp<F, ?>, ? extends T> value,
       Kind<FreeAp<F, ?>, ? extends Function1<? super T, ? extends R>> mapper) {
     return new Apply<>(value.fix(FreeApOf::toFreeAp), mapper.fix(FreeApOf::toFreeAp));
   }
 
-  static <F, G> FunctionK<F, FreeAp<G, ?>> functionKF(FunctionK<F, G> functionK) {
+  static <F extends Kind<F, ?>, G extends Kind<G, ?>> FunctionK<F, FreeAp<G, ?>> functionKF(FunctionK<F, G> functionK) {
     return new FunctionK<>() {
       @Override
       public <T> FreeAp<G, T> apply(Kind<F, ? extends T> from) {
@@ -134,11 +134,11 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
   }
 
   @SuppressWarnings("unchecked")
-  static <F> Applicative<FreeAp<F, ?>> applicativeF() {
+  static <F extends Kind<F, ?>> Applicative<FreeAp<F, ?>> applicativeF() {
     return FreeApplicative.INSTANCE;
   }
 
-  private static <F, G, A> Kind<G, A> foldArg(
+  private static <F extends Kind<F, ?>, G extends Kind<G, ?>, A> Kind<G, A> foldArg(
       FreeAp<F, A> argF, FunctionK<F, G> transformation, Applicative<G> applicative) {
     if (argF instanceof Pure<F, A>(var value)) {
       return applicative.pure(value);
@@ -149,7 +149,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
     throw new IllegalStateException("unreachable code");
   }
 
-  record Pure<F, A>(A value) implements FreeAp<F, A> {
+  record Pure<F extends Kind<F, ?>, A>(A value) implements FreeAp<F, A> {
 
     public Pure {
       checkNonNull(value);
@@ -161,7 +161,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
     }
   }
 
-  record Lift<F, A>(Kind<F, A> value) implements FreeAp<F, A> {
+  record Lift<F extends Kind<F, ?>, A>(Kind<F, A> value) implements FreeAp<F, A> {
 
     public Lift {
       checkNonNull(value);
@@ -173,7 +173,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
     }
   }
 
-  record Apply<F, A, B>(
+  record Apply<F extends Kind<F, ?>, A, B>(
       FreeAp<F, ? extends A> value,
       FreeAp<F, ? extends Function1<? super A, ? extends B>> apply) implements FreeAp<F, B> {
 
@@ -188,7 +188,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
     }
   }
 
-  record CurriedFunction<G, A, B>(Kind<G, Function1<A, B>> value, int remaining) {
+  record CurriedFunction<G extends Kind<G, ?>, A, B>(Kind<G, Function1<A, B>> value, int remaining) {
 
     public CurriedFunction {
       checkNonNull(value);
@@ -196,7 +196,7 @@ public sealed interface FreeAp<F, A> extends FreeApOf<F, A>, Applicable<FreeAp<F
   }
 }
 
-interface FreeApplicative<F> extends Applicative<FreeAp<F, ?>> {
+interface FreeApplicative<F extends Kind<F, ?>> extends Applicative<FreeAp<F, ?>> {
 
   @SuppressWarnings("rawtypes")
   FreeApplicative INSTANCE = new FreeApplicative() {};

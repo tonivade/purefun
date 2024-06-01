@@ -90,9 +90,10 @@ public class HigherKindProcessor extends AbstractProcessor {
 
   private void generate1(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, List<? extends TypeParameterElement> list) {
-    String higher1 = "Kind<" + className + "<?>, A>";
-    String higher1Wildcard = "Kind<" + className + "<?>, ? extends A>";
-    String aType = type("A", list.get(0));
+    String aName = name(list.get(0));
+    String higher1 = "Kind<" + className + "<?>, " + aName + ">";
+    String higher1Wildcard = "Kind<" + className + "<?>, ? extends " + aName + ">";
+    String aType = type(list.get(0));
     String typeParams = "<" + aType + ">";
     String typeOfNameWithParams = typeOfName + typeParams;
     if (packageName != null) {
@@ -105,16 +106,22 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(GENERATED);
     writer.println(typeOfClass(className, typeOfNameWithParams, higher1));
     writer.println();
-    narrowK1(writer, className, aType, higher1Wildcard);
+    narrowK1(writer, className, "<" + aName + ">", aType, higher1Wildcard);
     writer.println(END);
+  }
+
+  private String name(TypeParameterElement typeParameterElement) {
+    return typeParameterElement.getSimpleName().toString();
   }
 
   private void generate2(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, List<? extends TypeParameterElement> list) {
-    String higher2 = "Kind<" + className + "<A, ?>, B>";
-    String higher1Wildcard = "Kind<" + className + "<A, ?>, ? extends B>";
-    String aType = type("A", list.get(0));
-    String bType = type("B", list.get(1));
+    String aName = name(list.get(0));
+    String bName = name(list.get(1));
+    String higher1 = "Kind<" + className + "<" + aName + ", ?>, " + bName + ">";
+    String higher1Wildcard = "Kind<" + className + "<" + aName + ", ?>, ? extends " + bName + ">";
+    String aType = type(list.get(0));
+    String bType = type(list.get(1));
     String typeParams = "<" + aType + ", " + bType + ">";
     String typeOfNameWithParams = typeOfName + typeParams;
     if (packageName != null) {
@@ -126,19 +133,22 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
-    writer.println(typeOfClass(className, typeOfNameWithParams, higher2));
+    writer.println(typeOfClass(className, typeOfNameWithParams, higher1));
     writer.println();
-    narrowK2(writer, className, aType, bType, higher1Wildcard);
+    narrowK2(writer, className, "<" + aName + ", " + bName + ">", aType, bType, higher1Wildcard);
     writer.println(END);
   }
 
   private void generate3(PrintWriter writer, @Nullable String packageName, String className,
       String typeOfName, List<? extends TypeParameterElement> list) {
-    String higher3 = "Kind<" + className + "<A, B, ?>, C>";
-    String higher1Wildcard = "Kind<" + className + "<A, B, ?>, ? extends C>";
-    String aType = type("A", list.get(0));
-    String bType = type("B", list.get(1));
-    String cType = type("C", list.get(2));
+    String aName = name(list.get(0));
+    String bName = name(list.get(1));
+    String cName = name(list.get(2));
+    String higher1 = "Kind<" + className + "<" + aName + ", " + bName + ", ?>, " + cName + ">";
+    String higher1Wildcard = "Kind<" + className + "<" + aName + ", " + bName + ", ?>, ? extends " + cName + ">";
+    String aType = type(list.get(0));
+    String bType = type(list.get(1));
+    String cType = type(list.get(2));
     String typeParams = "<" + aType + ", " + bType + ", " + cType + ">";
     String typeOfNameWithParams = typeOfName + typeParams;
     if (packageName != null) {
@@ -150,9 +160,9 @@ public class HigherKindProcessor extends AbstractProcessor {
     writer.println(importClass(generated()));
     writer.println();
     writer.println(GENERATED);
-    writer.println(typeOfClass(className, typeOfNameWithParams, higher3));
+    writer.println(typeOfClass(className, typeOfNameWithParams, higher1));
     writer.println();
-    narrowK3(writer, className, aType, bType, cType, higher1Wildcard);
+    narrowK3(writer, className, "<" + aName + ", " + bName + ", " + cName + ">", aType, bType, cType, higher1Wildcard);
     writer.println(END);
   }
 
@@ -168,16 +178,16 @@ public class HigherKindProcessor extends AbstractProcessor {
     return JAVAX_ANNOTATION_PROCESSING_GENERATED;
   }
 
-  private static void narrowK1(PrintWriter writer, String className, String aType, String hkt) {
-    narrowK(writer, className, "<" + aType + ">", className + "<A>", hkt);
+  private static void narrowK1(PrintWriter writer, String className, String params, String aType, String hkt) {
+    narrowK(writer, className, "<" + aType + ">", className + params, hkt);
   }
 
-  private static void narrowK2(PrintWriter writer, String className, String aType, String bType, String hkt) {
-    narrowK(writer, className, "<" + aType + ", " + bType + ">", className + "<A, B>", hkt);
+  private static void narrowK2(PrintWriter writer, String className, String params, String aType, String bType, String hkt) {
+    narrowK(writer, className, "<" + aType + ", " + bType + ">", className + params, hkt);
   }
 
-  private static void narrowK3(PrintWriter writer, String className, String aType, String bType, String cType, String hkt) {
-    narrowK(writer, className, "<" + aType + ", " + bType + ", " + cType + ">", className + "<A, B, C>", hkt);
+  private static void narrowK3(PrintWriter writer, String className, String params, String aType, String bType, String cType, String hkt) {
+    narrowK(writer, className, "<" + aType + ", " + bType + ", " + cType + ">", className + params, hkt);
   }
 
   private static void narrowK(PrintWriter writer, String className, String types, String returnType, String param) {
@@ -192,8 +202,9 @@ public class HigherKindProcessor extends AbstractProcessor {
     return "public sealed interface " + typeOfName + " extends " + type + " permits " + typeName + " {";
   }
 
-  private static String type(String name, TypeParameterElement type1) {
+  private static String type(TypeParameterElement type1) {
     String bounds = bounds(type1);
+    String name = type1.getSimpleName().toString();
     return !bounds.isEmpty() ? name + " extends " + bounds : name;
   }
 

@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.core.Function4;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple4;
 
-public final class FlatMap4<F, A, B, C, D> extends AbstractFlatMap<F, C, D> {
+public final class FlatMap4<F extends Kind<F, ?>, A, B, C, D> extends AbstractFlatMap<F, C, D> {
 
   private final Producer<? extends Kind<F, ? extends A>> value1;
   private final Function1<? super A, ? extends Kind<F, ? extends B>> value2;

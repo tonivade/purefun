@@ -118,7 +118,7 @@ interface ConstTraverse<T> extends Traverse<Const<T, ?>>, ConstFoldable<T> {
   ConstTraverse INSTANCE = new ConstTraverse() {};
 
   @Override
-  default <G, A, B> Kind<G, Kind<Const<T, ?>, B>> traverse(
+  default <G extends Kind<G, ?>, A, B> Kind<G, Kind<Const<T, ?>, B>> traverse(
       Applicative<G> applicative, Kind<Const<T, ?>, A> value, Function1<? super A, ? extends Kind<G, ? extends B>> mapper) {
     return applicative.pure(value.fix(ConstOf::toConst).retag());
   }

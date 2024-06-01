@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 
-public interface MonadState<F, S> extends Monad<F> {
+public interface MonadState<F extends Kind<F, ?>, S> extends Monad<F> {
 
   Kind<F, S> get();
   Kind<F, Unit> set(S state);
@@ -30,12 +30,12 @@ public interface MonadState<F, S> extends Monad<F> {
     return flatMap(get(), s -> mapper.apply(s).applyTo((s1, a) -> map(set(s1), x -> a)));
   }
 
-  static <F, S> MonadState<F, S> from(MonadDefer<F> monad, S value) {
+  static <F extends Kind<F, ?>, S> MonadState<F, S> from(MonadDefer<F> monad, S value) {
     return new ReferenceMonadState<>(Reference.of(monad, value), monad);
   }
 }
 
-final class ReferenceMonadState<F, S> implements MonadState<F, S> {
+final class ReferenceMonadState<F extends Kind<F, ?>, S> implements MonadState<F, S> {
 
   private final Reference<F, S> ref;
   private final Monad<F> monad;

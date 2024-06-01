@@ -14,16 +14,16 @@ import com.github.tonivade.purefun.typeclasses.Functor;
 
 public class FunctorLaws {
 
-  public static <F> void verifyLaws(Functor<F> functor, Kind<F, String> value) {
+  public static <F extends Kind<F, ?>> void verifyLaws(Functor<F> functor, Kind<F, String> value) {
     assertAll(() -> identity(functor, value),
               () -> composition(functor, value, String::toUpperCase, String::length));
   }
 
-  private static <F, A> void identity(Functor<F> functor, Kind<F, A> value) {
+  private static <F extends Kind<F, ?>, A> void identity(Functor<F> functor, Kind<F, A> value) {
     assertEquals(value, functor.map(value, Function1.identity()), "identity law");
   }
 
-  private static <F, A, B, C> void composition(Functor<F> functor,
+  private static <F extends Kind<F, ?>, A, B, C> void composition(Functor<F> functor,
                                                             Kind<F, A> value,
                                                             Function1<A, B> f,
                                                             Function1<B, C> g) {

@@ -23,18 +23,18 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
 @HigherKind
-public sealed interface Schedule<F, A, B> extends ScheduleOf<F, A, B> {
+public sealed interface Schedule<F extends Kind<F, ?>, A, B> extends ScheduleOf<F, A, B> {
 
-  static <F> Schedule.Of<F> of(MonadDefer<F> monad) {
+  static <F extends Kind<F, ?>> Schedule.Of<F> of(MonadDefer<F> monad) {
     return () -> monad;
   }
 
-  static <F> Schedule.Of<F> of(Class<F> type) {
+  static <F extends Kind<F, ?>> Schedule.Of<F> of(Class<F> type) {
     return of(Instances.monadDefer(type));
   }
 
   @SafeVarargs
-  static <F> Schedule.Of<F> of(F...reified) {
+  static <F extends Kind<F, ?>> Schedule.Of<F> of(F...reified) {
     return of(Instances.monadDefer(reified));
   }
 
@@ -122,97 +122,97 @@ public sealed interface Schedule<F, A, B> extends ScheduleOf<F, A, B> {
   Schedule<F, A, B> check(Function2<A, B, Kind<F, Boolean>> condition);
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Unit> once(F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Unit> once(F...reified) {
     return of(reified).once();
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Integer> recurs(int times, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Integer> recurs(int times, F...reified) {
     return of(reified).recurs(times);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Integer> spaced(Duration delay, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Integer> spaced(Duration delay, F...reified) {
     return of(reified).spaced(delay);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Duration> linear(Duration delay, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Duration> linear(Duration delay, F...reified) {
     return of(reified).linear(delay);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Duration> exponential(Duration delay, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Duration> exponential(Duration delay, F...reified) {
     return of(reified).exponential(delay);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Duration> exponential(Duration delay, double factor, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Duration> exponential(Duration delay, double factor, F...reified) {
     return of(reified).exponential(delay, factor);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Duration> delayed(Schedule<F, A, Duration> schedule, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Duration> delayed(Schedule<F, A, Duration> schedule, F...reified) {
     return of(reified).delayed(schedule);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Tuple2<Integer, Integer>> recursSpaced(Duration delay, int times, F...reified) {
     return of(reified).recursSpaced(delay, times);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Unit> never(F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Unit> never(F...reified) {
     return of(reified).never();
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, Integer> forever(F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, Integer> forever(F...reified) {
     return of(reified).forever();
   }
 
   @SafeVarargs
-  static <F, A, B> Schedule<F, A, B> succeed(B value, F...reified) {
+  static <F extends Kind<F, ?>, A, B> Schedule<F, A, B> succeed(B value, F...reified) {
     return of(reified).succeed(value);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, A> identity(F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, A> identity(F...reified) {
     return of(reified).identity();
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, A> doWhile(Matcher1<A> condition, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, A> doWhile(Matcher1<A> condition, F...reified) {
     return of(reified).doWhile(condition);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, A> doWhileM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, A> doWhileM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
     return of(reified).doWhileM(condition);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, A> doUntil(Matcher1<A> condition, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, A> doUntil(Matcher1<A> condition, F...reified) {
     return of(reified).doUntil(condition);
   }
 
   @SafeVarargs
-  static <F, A> Schedule<F, A, A> doUntilM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
+  static <F extends Kind<F, ?>, A> Schedule<F, A, A> doUntilM(Function1<A, Kind<F, Boolean>> condition, F...reified) {
     return of(reified).doUntilM(condition);
   }
 
   @SafeVarargs
-  static <F, A, B> Schedule<F, A, B> unfold(B initial, Operator1<B> next, F...reified) {
+  static <F extends Kind<F, ?>, A, B> Schedule<F, A, B> unfold(B initial, Operator1<B> next, F...reified) {
     return of(reified).unfold(initial, next);
   }
 
   @SafeVarargs
-  static <F, A, B> Schedule<F, A, B> unfoldM(
+  static <F extends Kind<F, ?>, A, B> Schedule<F, A, B> unfoldM(
       Kind<F, B> initial, Function1<B, Kind<F, Either<Unit, B>>> next, F...reified) {
     return of(reified).unfoldM(initial, next);
   }
 
-  interface Of<F> {
+  interface Of<F extends Kind<F, ?>> {
 
     MonadDefer<F> monad();
 
@@ -299,7 +299,7 @@ public sealed interface Schedule<F, A, B> extends ScheduleOf<F, A, B> {
   }
 
   @FunctionalInterface
-  interface Update<F, S, A> {
+  interface Update<F extends Kind<F, ?>, S, A> {
 
     Kind<F, Either<Unit, S>> update(A last, S state);
 
@@ -313,7 +313,7 @@ public sealed interface Schedule<F, A, B> extends ScheduleOf<F, A, B> {
   }
 }
 
-final class ScheduleImpl<F, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
+final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A, B>, Schedule.Update<F, S, A>, Schedule.Extract<A, S, B> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, S> initial;
@@ -486,7 +486,7 @@ final class ScheduleImpl<F, S, A, B> implements Schedule<F, A, B>, Schedule.Upda
     return ScheduleImpl.of(monad, initial, update.apply(this.update), this.extract);
   }
 
-  public static <F, S, A, B> ScheduleImpl<F, S, A, B> of(
+  public static <F extends Kind<F, ?>, S, A, B> ScheduleImpl<F, S, A, B> of(
       MonadDefer<F> monad,
       Kind<F, S> initial,
       Update<F, S, A> update,

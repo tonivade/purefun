@@ -19,7 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Selective;
 
 public class SelectiveLaws {
 
-  public static <F> void verifyLaws(Selective<F> selective) {
+  public static <F extends Kind<F, ?>> void verifyLaws(Selective<F> selective) {
     Kind<F, Either<String, String>> value = selective.pure(Either.right("Hola Mundo!"));
 
     assertAll(
@@ -29,13 +29,13 @@ public class SelectiveLaws {
     );
   }
 
-  private static <F, A> void selectiveIdentity(Selective<F> selective, Kind<F, Either<A, A>> value) {
+  private static <F extends Kind<F, ?>, A> void selectiveIdentity(Selective<F> selective, Kind<F, Either<A, A>> value) {
     Kind<F, A> select = selective.select(value, selective.pure(identity()));
     Kind<F, A> map = selective.map(value, either -> either.bimap(identity(), identity()).fold(identity(), identity()));
     assertEquals(select, map, "selective identity");
   }
 
-  private static <F, A, B> void selectiveDistributivity(Selective<F> selective,
+  private static <F extends Kind<F, ?>, A, B> void selectiveDistributivity(Selective<F> selective,
                                                                      Kind<F, Either<A, B>> value,
                                                                      Function1<A, B> f,
                                                                      Function1<A, B> g) {
@@ -47,7 +47,7 @@ public class SelectiveLaws {
     assertEquals(select, map, "selective distributivity");
   }
 
-  private static <F, A, B, C> void selectiveAssociativity(Selective<F> selective,
+  private static <F extends Kind<F, ?>, A, B, C> void selectiveAssociativity(Selective<F> selective,
                                                                           Kind<F, Either<A, B>> value,
                                                                           Function1<A, B> f,
                                                                           Function2<C, A, B> g) {

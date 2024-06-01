@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-public final class Suspend<F, T> implements PureStream<F, T> {
+public final class Suspend<F extends Kind<F, ?>, T> implements PureStream<F, T> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, PureStream<F, T>> evalStream;

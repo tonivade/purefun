@@ -17,7 +17,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Try;
 
-public interface MonadDefer<F> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
+public interface MonadDefer<F extends Kind<F, ?>> extends MonadThrow<F>, Bracket<F, Throwable>, Defer<F>, Timer<F> {
 
   @Override
   default Kind<F, Long> currentNanos() {

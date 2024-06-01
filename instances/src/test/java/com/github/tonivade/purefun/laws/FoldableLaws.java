@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public class FoldableLaws {
 
-  public static <F> void verifyLaws(Foldable<F> instance, Kind<F, String> value) {
+  public static <F extends Kind<F, ?>> void verifyLaws(Foldable<F> instance, Kind<F, String> value) {
     assertAll(
         () -> foldLeftConsistentWithFoldMap(instance, Monoid.string(), "", value, String::toUpperCase),
         () -> foldRightConsistentWithFoldMap(instance, Monoid.string(), "", value, String::toUpperCase),
@@ -30,7 +30,7 @@ public class FoldableLaws {
         () -> reduceConsistentWithFoldM(instance, "", value, String::concat));
   }
 
-  private static <F, A> void reduceConsistentWithFoldM(Foldable<F> instance,
+  private static <F extends Kind<F, ?>, A> void reduceConsistentWithFoldM(Foldable<F> instance,
                                                                     A initial,
                                                                     Kind<F, A> value,
                                                                     Operator2<A> combinator) {
@@ -42,7 +42,7 @@ public class FoldableLaws {
         "reduce consistent law");
   }
 
-  private static <F, A> void foldMIdentity(Foldable<F> instance,
+  private static <F extends Kind<F, ?>, A> void foldMIdentity(Foldable<F> instance,
                                                         A initial,
                                                         Kind<F, A> value,
                                                         Operator2<A> combinator) {
@@ -52,7 +52,7 @@ public class FoldableLaws {
         "foldM identity");
   }
 
-  private static <F, A, B> void foldLeftConsistentWithFoldMap(Foldable<F> instance,
+  private static <F extends Kind<F, ?>, A, B> void foldLeftConsistentWithFoldMap(Foldable<F> instance,
                                                                               Monoid<B> monoid,
                                                                               B initial,
                                                                               Kind<F, ? extends A> value,
@@ -63,7 +63,7 @@ public class FoldableLaws {
         "foldLeft consistent with foldMap");
   }
 
-  private static <F, A, B> void foldRightConsistentWithFoldMap(Foldable<F> instance,
+  private static <F extends Kind<F, ?>, A, B> void foldRightConsistentWithFoldMap(Foldable<F> instance,
                                                                                Monoid<B> monoid,
                                                                                B initial,
                                                                                Kind<F, ? extends A> value,

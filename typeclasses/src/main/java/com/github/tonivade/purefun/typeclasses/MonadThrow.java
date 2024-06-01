@@ -8,7 +8,7 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.type.Try;
 
-public interface MonadThrow<F> extends MonadError<F, Throwable> {
+public interface MonadThrow<F extends Kind<F, ?>> extends MonadError<F, Throwable> {
 
   default <A> Kind<F, A> fromTry(Try<? extends A> value) {
     return fromEither(value.toEither());

@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 
-public interface Concurrent<F> extends Async<F> {
+public interface Concurrent<F extends Kind<F, ?>> extends Async<F> {
 
   <A> Kind<F, Fiber<F, A>> fork(Kind<F, ? extends A> value);
 

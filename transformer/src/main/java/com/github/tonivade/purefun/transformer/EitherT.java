@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindable<EitherT<F, L, ?>, R> {
+public non-sealed interface EitherT<F extends Kind<F, ?>, L, R> extends EitherTOf<F, L, R>, Bindable<EitherT<F, L, ?>, R> {
 
   Monad<F> monad();
   Kind<F, Either<L, R>> value();
@@ -49,7 +49,7 @@ public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindabl
     return monad().map(value(), v -> v.fold(leftMapper, rightMapper));
   }
 
-  default <G> EitherT<G, L, R> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+  default <G extends Kind<G, ?>> EitherT<G, L, R> mapK(Monad<G> other, FunctionK<F, G> functionK) {
     return EitherT.of(other, functionK.apply(value()));
   }
 
@@ -93,11 +93,11 @@ public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindabl
     return OptionT.of(monad(), monad().map(value(), Either::toOption));
   }
 
-  static <F, L, R> EitherT<F, L, R> lift(Monad<F> monad, Either<L, R> either) {
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> lift(Monad<F> monad, Either<L, R> either) {
     return of(monad, monad.pure(either));
   }
 
-  static <F, L, R> EitherT<F, L, R> of(Monad<F> monad, Kind<F, Either<L, R>> value) {
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> of(Monad<F> monad, Kind<F, Either<L, R>> value) {
     checkNonNull(monad);
     checkNonNull(value);
     return new EitherT<>() {
@@ -110,19 +110,19 @@ public non-sealed interface EitherT<F, L, R> extends EitherTOf<F, L, R>, Bindabl
     };
   }
 
-  static <F, L, R> EitherT<F, L, R> right(Monad<F> monad, R right) {
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> right(Monad<F> monad, R right) {
     return lift(monad, Either.right(right));
   }
 
-  static <F, L, R> EitherT<F, L, R> left(Monad<F> monad, L left) {
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> left(Monad<F> monad, L left) {
     return lift(monad, Either.left(left));
   }
 
-  static <F, R> EitherT<F, Throwable, R> fromOption(Monad<F> monad, Option<R> value) {
+  static <F extends Kind<F, ?>, R> EitherT<F, Throwable, R> fromOption(Monad<F> monad, Option<R> value) {
     return lift(monad, value.toEither());
   }
 
-  static <F, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
+  static <F extends Kind<F, ?>, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
     return lift(monad, value.toEither());
   }
 

@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Option;
 
-public interface Reference<F, A> {
+public interface Reference<F extends Kind<F, ?>, A> {
 
   Kind<F, A> get();
 
@@ -30,12 +30,12 @@ public interface Reference<F, A> {
 
   Kind<F, A> getAndUpdate(Operator1<A> update);
 
-  static <F, A> Reference<F, A> of(MonadDefer<F> monadF, A value) {
+  static <F extends Kind<F, ?>, A> Reference<F, A> of(MonadDefer<F> monadF, A value) {
     return new MonadDeferReference<>(monadF, value);
   }
 }
 
-final class MonadDeferReference<F, A> implements Reference<F, A> {
+final class MonadDeferReference<F extends Kind<F, ?>, A> implements Reference<F, A> {
 
   private final MonadDefer<F> monadF;
   private final AtomicReference<A> value;

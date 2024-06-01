@@ -12,7 +12,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.type.Either;
 
-public interface Monad<F> extends Selective<F> {
+public interface Monad<F extends Kind<F, ?>> extends Selective<F> {
 
   <T, R> Kind<F, R> flatMap(
       Kind<F, ? extends T> value, Function1<? super T, ? extends Kind<F, ? extends R>> map);

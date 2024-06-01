@@ -11,10 +11,10 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Try;
 
-public interface Async<F> extends MonadDefer<F> {
+public interface Async<F extends Kind<F, ?>> extends MonadDefer<F> {
 
   <A> Kind<F, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<F, Unit>> consumer);
-  
+
   default <A> Kind<F, A> async(Consumer1<Consumer1<? super Try<? extends A>>> consumer) {
     return asyncF(consumer.asFunction().andThen(this::pure));
   }

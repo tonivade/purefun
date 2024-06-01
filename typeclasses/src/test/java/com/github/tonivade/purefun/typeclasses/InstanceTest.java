@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.effect.PureIO;
 import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.monad.IO;
@@ -67,9 +68,9 @@ public class InstanceTest {
 
   @Test
   public void notAllowed() {
-    record X() {};
+    record X<T>() implements Kind<X<?>, T> {};
 
-    var x = new X();
+    var x = new X<>();
 
     assertThrows(IllegalArgumentException.class, () -> Instances.functor(x));
   }

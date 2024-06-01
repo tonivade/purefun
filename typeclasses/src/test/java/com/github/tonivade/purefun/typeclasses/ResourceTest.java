@@ -26,7 +26,7 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 
 @ExtendWith(MockitoExtension.class)
-public abstract class ResourceTest<F> {
+public abstract class ResourceTest<F extends Kind<F, ?>> {
 
   private final Instance<F> instance;
 

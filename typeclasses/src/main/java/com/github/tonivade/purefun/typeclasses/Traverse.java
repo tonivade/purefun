@@ -10,23 +10,23 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.IdOf;
 
-public interface Traverse<F> extends Functor<F>, Foldable<F> {
+public interface Traverse<F extends Kind<F, ?>> extends Functor<F>, Foldable<F> {
 
-  <G, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
+  <G extends Kind<G, ?>, T, R> Kind<G, Kind<F, R>> traverse(Applicative<G> applicative, Kind<F, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper);
 
-  default <G, T> Kind<G, Kind<F, T>> sequence(Applicative<G> applicative,
+  default <G extends Kind<G, ?>, T> Kind<G, Kind<F, T>> sequence(Applicative<G> applicative,
       Kind<F, ? extends Kind<G, ? extends T>> value) {
     return traverse(applicative, value, identity());
   }
 
   @Override
   default <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map) {
-    Kind<Id<?>, Kind<F, R>> traverse = traverse(Instances.applicative(), value, t -> Id.of(map.apply(t)));
+    Kind<Id<?>, Kind<F, R>> traverse = traverse(Instances.<Id<?>>applicative(), value, t -> Id.of(map.apply(t)));
     return traverse.fix(IdOf::toId).value();
   }
 
-  static <F, G> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
+  static <F extends Kind<F, ?>, G extends Kind<G, ?>> Traverse<Nested<F, G>> compose(Traverse<F> f, Traverse<G> g) {
     return new ComposedTraverse<>() {
 
       @Override

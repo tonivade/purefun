@@ -20,7 +20,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
-public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<OptionT<F, ?>, T> {
+public non-sealed interface OptionT<F extends Kind<F, ?>, T> extends OptionTOf<F, T>, Bindable<OptionT<F, ?>, T> {
 
   Monad<F> monad();
   Kind<F, Option<T>> value();
@@ -39,7 +39,7 @@ public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Opti
     return monad().map(value(), v -> v.fold(orElse, map));
   }
 
-  default <G> OptionT<G, T> mapK(Monad<G> other, FunctionK<F, G> functionK) {
+  default <G extends Kind<G, ?>> OptionT<G, T> mapK(Monad<G> other, FunctionK<F, G> functionK) {
     return OptionT.of(other, functionK.apply(value()));
   }
 
@@ -67,11 +67,11 @@ public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Opti
     return filter(matcher.negate());
   }
 
-  static <F, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
+  static <F extends Kind<F, ?>, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
     return OptionT.of(monad, monad.pure(value));
   }
 
-  static <F, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
+  static <F extends Kind<F, ?>, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
     checkNonNull(monad);
     checkNonNull(value);
     return new OptionT<>() {
@@ -84,11 +84,11 @@ public non-sealed interface OptionT<F, T> extends OptionTOf<F, T>, Bindable<Opti
     };
   }
 
-  static <F, T> OptionT<F, T> some(Monad<F> monad, T value) {
+  static <F extends Kind<F, ?>, T> OptionT<F, T> some(Monad<F> monad, T value) {
     return lift(monad, Option.some(value));
   }
 
-  static <F, T> OptionT<F, T> none(Monad<F> monad) {
+  static <F extends Kind<F, ?>, T> OptionT<F, T> none(Monad<F> monad) {
     return lift(monad, Option.none());
   }
 

@@ -6,11 +6,11 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-public interface FunctionK<F, G> {
+public interface FunctionK<F extends Kind<F, ?>, G extends Kind<G, ?>> {
 
   <T> Kind<G, T> apply(Kind<F, ? extends T> from);
 
-  default <B> FunctionK<B, G> compose(FunctionK<B, F> before) {
+  default <B extends Kind<B, ?>> FunctionK<B, G> compose(FunctionK<B, F> before) {
     final FunctionK<F, G> self = this;
     return new FunctionK<>() {
       @Override
@@ -20,7 +20,7 @@ public interface FunctionK<F, G> {
     };
   }
 
-  default <A> FunctionK<F, A> andThen(FunctionK<G, A> after) {
+  default <A extends Kind<A, ?>> FunctionK<F, A> andThen(FunctionK<G, A> after) {
     final FunctionK<F, G> self = this;
     return new FunctionK<>() {
       @Override
@@ -30,7 +30,7 @@ public interface FunctionK<F, G> {
     };
   }
 
-  static <F> FunctionK<F, F> identity() {
+  static <F extends Kind<F, ?>> FunctionK<F, F> identity() {
     return Kind::narrowK;
   }
 }

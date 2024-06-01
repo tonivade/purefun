@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-public interface MonoidK<F> extends SemigroupK<F> {
+public interface MonoidK<F extends Kind<F, ?>> extends SemigroupK<F> {
 
   <T> Kind<F, T> zero();
 }

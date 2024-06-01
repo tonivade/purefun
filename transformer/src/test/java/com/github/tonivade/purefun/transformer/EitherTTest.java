@@ -77,7 +77,7 @@ public class EitherTTest {
 
   @Test
   public void mapK() {
-    EitherT<IO<?>, Void, String> rightIo = EitherT.right(Instances.monad(), "abc");
+    EitherT<IO<?>, Void, String> rightIo = EitherT.right(Instances.<IO<?>>monad(), "abc");
 
     EitherT<Try<?>, Void, String> rightTry = rightIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
@@ -88,7 +88,7 @@ public class EitherTTest {
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
     MonadError<EitherT<Future<?>, Throwable, ?>, Throwable> monadError =
-        EitherTInstances.monadError(Instances.monadError());
+        EitherTInstances.monadError(Instances.<Future<?>, Throwable>monadError());
 
     Kind<EitherT<Future<?>, Throwable, ?>, String> pure = monadError.pure("is not ok");
     Kind<EitherT<Future<?>, Throwable, ?>, String> raiseError = monadError.raiseError(error);
