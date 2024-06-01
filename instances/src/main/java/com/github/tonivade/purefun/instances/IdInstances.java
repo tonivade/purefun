@@ -125,7 +125,7 @@ interface IdTraverse extends Traverse<Id<?>>, IdFoldable {
   IdTraverse INSTANCE = new IdTraverse() {};
 
   @Override
-  default <G, T, R> Kind<G, Kind<Id<?>, R>> traverse(
+  default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Id<?>, R>> traverse(
       Applicative<G> applicative, Kind<Id<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     Kind<G, ? extends R> apply = mapper.apply(value.fix(IdOf::toId).value());

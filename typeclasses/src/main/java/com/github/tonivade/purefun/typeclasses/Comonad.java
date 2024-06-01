@@ -8,7 +8,7 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Function1;
 
-public interface Comonad<F> extends Functor<F> {
+public interface Comonad<F extends Kind<F, ?>> extends Functor<F> {
 
   <A, B> Kind<F, B> coflatMap(Kind<F, ? extends A> value, Function1<? super Kind<F, ? extends A>, ? extends B> map);
 

@@ -152,7 +152,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
   }
 
   public RIO<R, Fiber<RIO<R, ?>, A>> fork() {
-    return new RIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
+    return new RIO<>(instance.fork().map(f -> f.<RIO<R, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> RIO<R, T> apply(Kind<PureIO<R, Throwable, ?>, ? extends T> from) {
         return new RIO<>(from.fix(PureIOOf::toPureIO));
@@ -261,12 +261,12 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
     PureIO<R, Throwable, A> instance1 = fa.fix(RIOOf::toRIO).instance.fix(PureIOOf::toPureIO);
     PureIO<R, Throwable, B> instance2 = fb.fix(RIOOf::toRIO).instance.fix(PureIOOf::toPureIO);
     return new RIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
+      either -> either.bimap(a -> a.map2(f -> f.<RIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> RIO<R, T> apply(Kind<PureIO<R, Throwable, ?>, ? extends T> from) {
           return new RIO<>(from.fix(PureIOOf::toPureIO));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
+      })), b -> b.map1(f -> f.<RIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> RIO<R, T> apply(Kind<PureIO<R, Throwable, ?>, ? extends T> from) {
           return new RIO<>(from.fix(PureIOOf::toPureIO));

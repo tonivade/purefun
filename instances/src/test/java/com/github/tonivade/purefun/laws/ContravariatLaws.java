@@ -18,18 +18,18 @@ public class ContravariatLaws {
   private final static Function1<String, String> toUpperCase = String::toUpperCase;
   private final static Function1<String, String> toLowerCase = String::toLowerCase;
 
-  public static <F> void verifyLaws(Contravariant<F> instance, Kind<F, String> value) {
+  public static <F extends Kind<F, ?>> void verifyLaws(Contravariant<F> instance, Kind<F, String> value) {
     assertAll(
       () -> identityLaw(instance, value),
       () -> compositionLaw(instance, value, toUpperCase, toLowerCase)
     );
   }
 
-  private static <F, A> void identityLaw(Contravariant<F> instance, Kind<F, A> value) {
+  private static <F extends Kind<F, ?>, A> void identityLaw(Contravariant<F> instance, Kind<F, A> value) {
     assertEquals(value, instance.contramap(value, identity()), "identity law");
   }
 
-  private static <F, A, B, C> void compositionLaw(Contravariant<F> instance,
+  private static <F extends Kind<F, ?>, A, B, C> void compositionLaw(Contravariant<F> instance,
                                                                Kind<F, A> value,
                                                                Function1<B, A> f,
                                                                Function1<C, B> g) {

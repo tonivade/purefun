@@ -153,7 +153,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
   }
 
   public EIO<E, Fiber<EIO<E, ?>, A>> fork() {
-    return new EIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
+    return new EIO<>(instance.fork().map(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
         return new EIO<>(from.fix(PureIOOf::toPureIO));
@@ -250,12 +250,12 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
     PureIO<Void, E, A> instance1 = fa.fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
     PureIO<Void, E, B> instance2 = fb.fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
     return new EIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
+      either -> either.bimap(a -> a.map2(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
           return new EIO<>(from.fix(PureIOOf::toPureIO));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
+      })), b -> b.map1(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
           return new EIO<>(from.fix(PureIOOf::toPureIO));

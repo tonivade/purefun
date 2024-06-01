@@ -69,7 +69,7 @@ public interface RIOInstances {
     return RIOConcurrent.instance(executor);
   }
 
-  static <R> Console<Kind<RIO<R, ?>, Throwable>> console() {
+  static <R> Console<RIO<R, ?>> console() {
     return RIOConsole.INSTANCE;
   }
 

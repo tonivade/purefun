@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 
-public interface MonadWriter<F, W> extends Monad<F> {
+public interface MonadWriter<F extends Kind<F, ?>, W> extends Monad<F> {
 
   <A> Kind<F, A> writer(Tuple2<W, A> value);
   <A> Kind<F, Tuple2<W, A>> listen(Kind<F, ? extends A> value);

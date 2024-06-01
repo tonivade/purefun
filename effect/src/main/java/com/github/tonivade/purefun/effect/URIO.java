@@ -153,7 +153,7 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<URIO<R, ?>, A>, Re
   }
 
   public URIO<R, Fiber<URIO<R, ?>, A>> fork() {
-    return new URIO<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
+    return new URIO<>(instance.fork().map(f -> f.<URIO<R, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> URIO<R, T> apply(Kind<PureIO<R, Void, ?>, ? extends T> from) {
         return new URIO<>(from.fix(PureIOOf::toPureIO));
@@ -258,12 +258,12 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<URIO<R, ?>, A>, Re
     PureIO<R, Void, A> instance1 = fa.fix(URIOOf::toURIO).instance.fix(PureIOOf::toPureIO);
     PureIO<R, Void, B> instance2 = fb.fix(URIOOf::toURIO).instance.fix(PureIOOf::toPureIO);
     return new URIO<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
+      either -> either.bimap(a -> a.map2(f -> f.<URIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> URIO<R, T> apply(Kind<PureIO<R, Void, ?>, ? extends T> from) {
           return new URIO<>(from.fix(PureIOOf::toPureIO));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
+      })), b -> b.map1(f -> f.<URIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> URIO<R, T> apply(Kind<PureIO<R, Void, ?>, ? extends T> from) {
           return new URIO<>(from.fix(PureIOOf::toPureIO));

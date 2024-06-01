@@ -20,23 +20,23 @@ import com.github.tonivade.purefun.typeclasses.Monoid;
 
 public interface WriterTInstances {
 
-  static <F, L> Monad<WriterT<F, L, ?>> monad(Monoid<L> monoid, Monad<F> monadF) {
+  static <F extends Kind<F, ?>, L> Monad<WriterT<F, L, ?>> monad(Monoid<L> monoid, Monad<F> monadF) {
     return WriterTMonad.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
-  static <F, L> MonadWriter<WriterT<F, L, ?>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
+  static <F extends Kind<F, ?>, L> MonadWriter<WriterT<F, L, ?>, L> monadWriter(Monoid<L> monoid, Monad<F> monadF) {
     return WriterTMonadWriter.instance(checkNonNull(monoid), checkNonNull(monadF));
   }
 
-  static <F, L, E> MonadError<WriterT<F, L, ?>, E> monadError(
+  static <F extends Kind<F, ?>, L, E> MonadError<WriterT<F, L, ?>, E> monadError(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
     return WriterTMonadError.instance(checkNonNull(monoid), checkNonNull(monadErrorF));
   }
 }
 
-interface WriterTMonad<F, L> extends Monad<WriterT<F, L, ?>> {
+interface WriterTMonad<F extends Kind<F, ?>, L> extends Monad<WriterT<F, L, ?>> {
 
-  static <F, L> Monad<WriterT<F, L, ?>> instance(Monoid<L> monoid, Monad<F> monadF) {
+  static <F extends Kind<F, ?>, L> Monad<WriterT<F, L, ?>> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonad<>() {
 
       @Override
@@ -66,10 +66,10 @@ interface WriterTMonad<F, L> extends Monad<WriterT<F, L, ?>> {
   }
 }
 
-interface WriterTMonadWriter<F, L>
+interface WriterTMonadWriter<F extends Kind<F, ?>, L>
     extends MonadWriter<WriterT<F, L, ?>, L>, WriterTMonad<F, L> {
 
-  static <F, L> MonadWriter<WriterT<F, L, ?>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
+  static <F extends Kind<F, ?>, L> MonadWriter<WriterT<F, L, ?>, L> instance(Monoid<L> monoid, Monad<F> monadF) {
     return new WriterTMonadWriter<>() {
 
       @Override
@@ -106,10 +106,10 @@ interface WriterTMonadWriter<F, L>
   }
 }
 
-interface WriterTMonadError<F, L, E>
+interface WriterTMonadError<F extends Kind<F, ?>, L, E>
     extends MonadError<WriterT<F, L, ?>, E>, WriterTMonad<F, L> {
 
-  static <F, L, E> MonadError<WriterT<F, L, ?>, E> instance(
+  static <F extends Kind<F, ?>, L, E> MonadError<WriterT<F, L, ?>, E> instance(
       Monoid<L> monoid, MonadError<F, E> monadErrorF) {
     return new WriterTMonadError<>() {
 

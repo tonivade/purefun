@@ -17,25 +17,25 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 
 @SuppressWarnings("unused")
-public sealed interface For<F> {
+public sealed interface For<F extends Kind<F, ?>> {
 
-  static <F> FlatMap<F> with(Monad<F> monad) {
+  static <F extends Kind<F, ?>> FlatMap<F> with(Monad<F> monad) {
     return new FlatMap<>(monad);
   }
 
-  static <F> Apply<F> with(Applicative<F> applicative) {
+  static <F extends Kind<F, ?>> Apply<F> with(Applicative<F> applicative) {
     return new Apply<>(applicative);
   }
 
-  static <F, T> FlatMap1<F, T> with(Monad<F> monad, Kind<F, ? extends T> value1) {
+  static <F extends Kind<F, ?>, T> FlatMap1<F, T> with(Monad<F> monad, Kind<F, ? extends T> value1) {
     return new FlatMap1<>(monad, cons(value1));
   }
 
-  static <F, T> Apply1<F, T> with(Applicative<F> applicative, Kind<F, ? extends T> value1) {
+  static <F extends Kind<F, ?>, T> Apply1<F, T> with(Applicative<F> applicative, Kind<F, ? extends T> value1) {
     return new Apply1<>(applicative, cons(value1));
   }
 
-  record FlatMap<F>(Monad<F> monad) implements For<F> {
+  record FlatMap<F extends Kind<F, ?>>(Monad<F> monad) implements For<F> {
 
     public <T> FlatMap1<F, T> and(T next) {
       return For.with(monad, monad.pure(next));
@@ -50,7 +50,7 @@ public sealed interface For<F> {
     }
   }
 
-  record Apply<F>(Applicative<F> applicative) implements For<F> {
+  record Apply<F extends Kind<F, ?>>(Applicative<F> applicative) implements For<F> {
 
     public <T> Apply1<F, T> and(T next) {
       return For.with(applicative, applicative.pure(next));
@@ -62,7 +62,7 @@ public sealed interface For<F> {
  }
 }
 
-abstract class AbstractFlatMap<F, A, B> {
+abstract class AbstractFlatMap<F extends Kind<F, ?>, A, B> {
 
   protected final Monad<F> monad;
   protected final Function1<? super A, ? extends Kind<F, ? extends B>> value;
@@ -87,7 +87,7 @@ abstract class AbstractFlatMap<F, A, B> {
   }
 }
 
-abstract class AbstractApply<F, A> {
+abstract class AbstractApply<F extends Kind<F, ?>, A> {
 
   protected final Applicative<F> applicative;
   protected final Producer<? extends Kind<F, ? extends A>> value;

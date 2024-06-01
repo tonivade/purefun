@@ -123,8 +123,8 @@ public class MonadDeferTest {
   @Test
   public void optionTBracket() throws Exception {
     Kind<OptionT<IO<?>, ?>, String> bracket =
-        optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
-                                  r -> OptionT.some(Instances.monad(), "done"));
+        optionTMonadDefer.bracket(OptionT.some(Instances.<IO<?>>monad(), resource),
+                                  r -> OptionT.some(Instances.<IO<?>>monad(), "done"));
 
     String result = bracket.fix(OptionTOf::toOptionT).getOrElseThrow().fix(IOOf::toIO).unsafeRunSync();
 
@@ -136,8 +136,8 @@ public class MonadDeferTest {
   @Disabled
   public void optionTBracketAcquireError() throws Exception {
     Kind<OptionT<IO<?>, ?>, String> bracket =
-        optionTMonadDefer.bracket(OptionT.<IO<?>, AutoCloseable>none(Instances.monad()),
-                                  r -> OptionT.some(Instances.monad(), "done"));
+        optionTMonadDefer.bracket(OptionT.<IO<?>, AutoCloseable>none(Instances.<IO<?>>monad()),
+                                  r -> OptionT.some(Instances.<IO<?>>monad(), "done"));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
                  () -> bracket.fix(OptionTOf::toOptionT).getOrElseThrow().fix(IOOf::toIO).unsafeRunSync());
@@ -150,8 +150,8 @@ public class MonadDeferTest {
   @Disabled
   public void optionTBracketUseError() throws Exception {
     Kind<OptionT<IO<?>, ?>, String> bracket =
-        optionTMonadDefer.bracket(OptionT.some(Instances.monad(), resource),
-                                  r -> OptionT.<IO<?>, String>none(Instances.monad()));
+        optionTMonadDefer.bracket(OptionT.some(Instances.<IO<?>>monad(), resource),
+                                  r -> OptionT.<IO<?>, String>none(Instances.<IO<?>>monad()));
 
     NoSuchElementException error = assertThrows(NoSuchElementException.class,
                  () -> bracket.fix(OptionTOf::toOptionT).getOrElseThrow().fix(IOOf::toIO).unsafeRunSync());

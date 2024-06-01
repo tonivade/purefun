@@ -16,7 +16,7 @@ import com.github.tonivade.purefun.monad.IOOf;
 public class MonadStateTest {
 
   private MonadState<IO<?>, ImmutableArray<String>> monadState =
-      MonadState.from(Instances.monadDefer(), ImmutableArray.empty());
+      MonadState.from(Instances.<IO<?>>monadDefer(), ImmutableArray.empty());
 
   @Test
   public void program() {

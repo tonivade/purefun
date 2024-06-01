@@ -29,38 +29,38 @@ import com.github.tonivade.purefun.typeclasses.Reference;
 
 public interface OptionTInstances {
 
-  static <F, T> Eq<Kind<OptionT<F, ?>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
+  static <F extends Kind<F, ?>, T> Eq<Kind<OptionT<F, ?>, T>> eq(Eq<Kind<F, Option<T>>> eq) {
     return (a, b) -> eq.eqv(OptionTOf.toOptionT(a).value(), OptionTOf.toOptionT(b).value());
   }
 
-  static <F> Monad<OptionT<F, ?>> monad(Monad<F> monadF) {
+  static <F extends Kind<F, ?>> Monad<OptionT<F, ?>> monad(Monad<F> monadF) {
     return OptionTMonad.instance(checkNonNull(monadF));
   }
 
-  static <F> MonadError<OptionT<F, ?>, Unit> monadError(Monad<F> monadF) {
+  static <F extends Kind<F, ?>> MonadError<OptionT<F, ?>, Unit> monadError(Monad<F> monadF) {
     return OptionTMonadErrorFromMonad.instance(checkNonNull(monadF));
   }
 
-  static <F, E> MonadError<OptionT<F, ?>, E> monadError(MonadError<F, E> monadErrorF) {
+  static <F extends Kind<F, ?>, E> MonadError<OptionT<F, ?>, E> monadError(MonadError<F, E> monadErrorF) {
     return OptionTMonadErrorFromMonadError.instance(checkNonNull(monadErrorF));
   }
 
-  static <F> MonadThrow<OptionT<F, ?>> monadThrow(MonadThrow<F> monadThrowF) {
+  static <F extends Kind<F, ?>> MonadThrow<OptionT<F, ?>> monadThrow(MonadThrow<F> monadThrowF) {
     return OptionTMonadThrow.instance(checkNonNull(checkNonNull(monadThrowF)));
   }
 
-  static <F> MonadDefer<OptionT<F, ?>> monadDefer(MonadDefer<F> monadDeferF) {
+  static <F extends Kind<F, ?>> MonadDefer<OptionT<F, ?>> monadDefer(MonadDefer<F> monadDeferF) {
     return OptionTMonadDefer.instance(checkNonNull(monadDeferF));
   }
 
-  static <F, A> Reference<OptionT<F, ?>, A> ref(MonadDefer<F> monadF, A value) {
+  static <F extends Kind<F, ?>, A> Reference<OptionT<F, ?>, A> ref(MonadDefer<F> monadF, A value) {
     return Reference.of(monadDefer(monadF), value);
   }
 }
 
-interface OptionTMonad<F> extends Monad<OptionT<F, ?>> {
+interface OptionTMonad<F extends Kind<F, ?>> extends Monad<OptionT<F, ?>> {
 
-  static <F> OptionTMonad<F> instance(Monad<F> monadF) {
+  static <F extends Kind<F, ?>> OptionTMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -78,10 +78,10 @@ interface OptionTMonad<F> extends Monad<OptionT<F, ?>> {
   }
 }
 
-interface OptionTMonadErrorFromMonad<F>
+interface OptionTMonadErrorFromMonad<F extends Kind<F, ?>>
     extends MonadError<OptionT<F, ?>, Unit>, OptionTMonad<F> {
 
-  static <F> OptionTMonadErrorFromMonad<F> instance(Monad<F> monadF) {
+  static <F extends Kind<F, ?>> OptionTMonadErrorFromMonad<F> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -101,10 +101,10 @@ interface OptionTMonadErrorFromMonad<F>
   }
 }
 
-interface OptionTMonadErrorFromMonadError<F, E>
+interface OptionTMonadErrorFromMonadError<F extends Kind<F, ?>, E>
     extends MonadError<OptionT<F, ?>, E>, OptionTMonad<F> {
 
-  static <F, E> OptionTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadF) {
+  static <F extends Kind<F, ?>, E> OptionTMonadErrorFromMonadError<F, E> instance(MonadError<F, E> monadF) {
     return () -> monadF;
   }
 
@@ -125,16 +125,16 @@ interface OptionTMonadErrorFromMonadError<F, E>
   }
 }
 
-interface OptionTMonadThrow<F>
+interface OptionTMonadThrow<F extends Kind<F, ?>>
     extends MonadThrow<OptionT<F, ?>>,
             OptionTMonadErrorFromMonadError<F, Throwable> {
 
-  static <F> OptionTMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
+  static <F extends Kind<F, ?>> OptionTMonadThrow<F> instance(MonadThrow<F> monadThrowF) {
     return () -> monadThrowF;
   }
 }
 
-interface OptionTDefer<F> extends Defer<OptionT<F, ?>> {
+interface OptionTDefer<F extends Kind<F, ?>> extends Defer<OptionT<F, ?>> {
 
   MonadDefer<F> monadF();
 
@@ -144,7 +144,7 @@ interface OptionTDefer<F> extends Defer<OptionT<F, ?>> {
   }
 }
 
-interface OptionTBracket<F> extends Bracket<OptionT<F, ?>, Throwable> {
+interface OptionTBracket<F extends Kind<F, ?>> extends Bracket<OptionT<F, ?>, Throwable> {
 
   Bracket<F, Throwable> monadF();
 
@@ -168,13 +168,13 @@ interface OptionTBracket<F> extends Bracket<OptionT<F, ?>, Throwable> {
   }
 }
 
-interface OptionTMonadDefer<F>
+interface OptionTMonadDefer<F extends Kind<F, ?>>
     extends OptionTMonadThrow<F>,
             OptionTDefer<F>,
             OptionTBracket<F>,
             MonadDefer<OptionT<F, ?>> {
 
-  static <F> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
+  static <F extends Kind<F, ?>> OptionTMonadDefer<F> instance(MonadDefer<F> monadDeferF) {
     return () -> monadDeferF;
   }
 

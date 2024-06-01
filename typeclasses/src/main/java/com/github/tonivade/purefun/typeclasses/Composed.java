@@ -13,7 +13,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Eval;
 
-interface ComposedFunctor<F, G> extends Functor<Nested<F, G>> {
+interface ComposedFunctor<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Functor<Nested<F, G>> {
 
   Functor<F> f();
   Functor<G> g();
@@ -24,7 +24,7 @@ interface ComposedFunctor<F, G> extends Functor<Nested<F, G>> {
   }
 }
 
-interface ComposedSemigroupK<F, G> extends SemigroupK<Nested<F, G>> {
+interface ComposedSemigroupK<F extends Kind<F, ?>, G extends Kind<G, ?>> extends SemigroupK<Nested<F, G>> {
 
   SemigroupK<F> f();
 
@@ -35,7 +35,7 @@ interface ComposedSemigroupK<F, G> extends SemigroupK<Nested<F, G>> {
   }
 }
 
-interface ComposedMonoidK<F, G> extends MonoidK<Nested<F, G>>, ComposedSemigroupK<F, G> {
+interface ComposedMonoidK<F extends Kind<F, ?>, G extends Kind<G, ?>> extends MonoidK<Nested<F, G>>, ComposedSemigroupK<F, G> {
 
   @Override
   MonoidK<F> f();
@@ -46,7 +46,7 @@ interface ComposedMonoidK<F, G> extends MonoidK<Nested<F, G>>, ComposedSemigroup
   }
 }
 
-interface ComposedApplicative<F, G> extends Applicative<Nested<F, G>> {
+interface ComposedApplicative<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Applicative<Nested<F, G>> {
 
   Applicative<F> f();
   Applicative<G> g();
@@ -63,7 +63,7 @@ interface ComposedApplicative<F, G> extends Applicative<Nested<F, G>> {
   }
 }
 
-interface ComposedAlternative<F, G>
+interface ComposedAlternative<F extends Kind<F, ?>, G extends Kind<G, ?>>
     extends ComposedApplicative<F, G>, ComposedMonoidK<F, G>, Alternative<Nested<F, G>> {
 
   @Override
@@ -72,7 +72,7 @@ interface ComposedAlternative<F, G>
   Alternative<G> g();
 }
 
-interface ComposedTraverse<F, G> extends Traverse<Nested<F, G>>, ComposedFoldable<F, G> {
+interface ComposedTraverse<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Traverse<Nested<F, G>>, ComposedFoldable<F, G> {
 
   @Override
   Traverse<F> f();
@@ -80,7 +80,7 @@ interface ComposedTraverse<F, G> extends Traverse<Nested<F, G>>, ComposedFoldabl
   Traverse<G> g();
 
   @Override
-  default <H, T, R> Kind<H, Kind<Nested<F, G>, R>> traverse(Applicative<H> applicative,
+  default <H extends Kind<H, ?>, T, R> Kind<H, Kind<Nested<F, G>, R>> traverse(Applicative<H> applicative,
       Kind<Nested<F, G>, T> value, Function1<? super T, ? extends Kind<H, ? extends R>> mapper) {
     return applicative.map(
         f().traverse(applicative, unnest(value), ga -> g().traverse(applicative, ga, mapper)),
@@ -88,26 +88,26 @@ interface ComposedTraverse<F, G> extends Traverse<Nested<F, G>>, ComposedFoldabl
   }
 }
 
-interface ComposedFoldable<F, G> extends Foldable<Nested<F, G>> {
+interface ComposedFoldable<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Foldable<Nested<F, G>> {
 
   Foldable<F> f();
   Foldable<G> g();
 
   @Override
-  default <A, B> B foldLeft(Kind<Nested<F, G>, ? extends A> value, B initial, 
+  default <A, B> B foldLeft(Kind<Nested<F, G>, ? extends A> value, B initial,
       Function2<? super B, ? super A, ? extends B> mapper) {
     return f().foldLeft(unnest(value), initial, (a, b) -> g().foldLeft(b, a, mapper));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(
-      Kind<Nested<F, G>, ? extends A> value, Eval<? extends B> initial, 
+      Kind<Nested<F, G>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
     return f().foldRight(unnest(value), initial, (a, lb) -> g().foldRight(a, lb, mapper));
   }
 }
 
-interface ComposedInvariant<F, G> extends Invariant<Nested<F, G>> {
+interface ComposedInvariant<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Invariant<Nested<F, G>> {
 
   Invariant<F> f();
   Invariant<G> g();
@@ -122,7 +122,7 @@ interface ComposedInvariant<F, G> extends Invariant<Nested<F, G>> {
   }
 }
 
-interface ComposedInvariantCovariant<F, G> extends Invariant<Nested<F, G>> {
+interface ComposedInvariantCovariant<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Invariant<Nested<F, G>> {
 
   Invariant<F> f();
   Functor<G> g();
@@ -137,7 +137,7 @@ interface ComposedInvariantCovariant<F, G> extends Invariant<Nested<F, G>> {
   }
 }
 
-interface ComposedInvariantContravariant<F, G> extends Invariant<Nested<F, G>> {
+interface ComposedInvariantContravariant<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Invariant<Nested<F, G>> {
 
   Invariant<F> f();
   Contravariant<G> g();
@@ -152,7 +152,7 @@ interface ComposedInvariantContravariant<F, G> extends Invariant<Nested<F, G>> {
   }
 }
 
-interface ComposedCovariantContravariant<F, G> extends Contravariant<Nested<F, G>> {
+interface ComposedCovariantContravariant<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Contravariant<Nested<F, G>> {
 
   Functor<F> f();
   Contravariant<G> g();
@@ -163,7 +163,7 @@ interface ComposedCovariantContravariant<F, G> extends Contravariant<Nested<F, G
   }
 }
 
-interface ComposedContravariant<F, G> extends Functor<Nested<F, G>> {
+interface ComposedContravariant<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Functor<Nested<F, G>> {
 
   Contravariant<F> f();
   Contravariant<G> g();
@@ -174,7 +174,7 @@ interface ComposedContravariant<F, G> extends Functor<Nested<F, G>> {
   }
 }
 
-interface ComposedContravariantCovariant<F, G> extends Contravariant<Nested<F, G>> {
+interface ComposedContravariantCovariant<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Contravariant<Nested<F, G>> {
 
   Contravariant<F> f();
   Functor<G> g();

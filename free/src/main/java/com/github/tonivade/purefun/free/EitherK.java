@@ -22,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 @HigherKind
-public final class EitherK<F, G, T> implements EitherKOf<F, G, T>, Serializable {
+public final class EitherK<F extends Kind<F, ?>, G extends Kind<G, ?>, T> implements EitherKOf<F, G, T>, Serializable {
 
   @Serial
   private static final long serialVersionUID = -2305737717835278018L;
@@ -40,20 +40,20 @@ public final class EitherK<F, G, T> implements EitherKOf<F, G, T>, Serializable 
     return new EitherK<>(either.bimap(functorF.lift(mapper), functorG.lift(mapper)));
   }
 
-  public <X> EitherK<F, X, T> mapK(FunctionK<G, X> mapper) {
+  public <X extends Kind<X, ?>> EitherK<F, X, T> mapK(FunctionK<G, X> mapper) {
     return new EitherK<>(either.map(mapper::apply));
   }
 
-  public <X> EitherK<X, G, T> mapLeftK(FunctionK<F, X> mapper) {
+  public <X extends Kind<X, ?>> EitherK<X, G, T> mapLeftK(FunctionK<F, X> mapper) {
     return new EitherK<>(either.mapLeft(mapper::apply));
   }
 
-  public <R> Kind<R, T> foldK(FunctionK<F, R> left, FunctionK<G, R> right) {
+  public <R extends Kind<R, ?>> Kind<R, T> foldK(FunctionK<F, R> left, FunctionK<G, R> right) {
     return either.fold(left::apply, right::apply);
   }
 
   public <R> EitherK<F, G, R> coflatMap(
-      Comonad<F> comonadF, Comonad<G> comonadG, 
+      Comonad<F> comonadF, Comonad<G> comonadG,
       Function1<? super EitherK<F, G, ? extends T>, ? extends R> mapper) {
     return new EitherK<>(either.bimap(
         a -> comonadF.coflatMap(a, x -> mapper.apply(left(x))),
@@ -65,7 +65,7 @@ public final class EitherK<F, G, T> implements EitherKOf<F, G, T>, Serializable 
     return either.fold(comonadF::extract, comonadG::extract);
   }
 
-  public <R> EitherK<F, G, R> contramap(Contravariant<F> contravariantF, 
+  public <R> EitherK<F, G, R> contramap(Contravariant<F> contravariantF,
       Contravariant<G> contravariantG, Function1<? super R, ? extends T> contramap) {
     return new EitherK<>(either.bimap(
         x -> contravariantF.contramap(x, contramap),
@@ -93,11 +93,11 @@ public final class EitherK<F, G, T> implements EitherKOf<F, G, T>, Serializable 
     return either.getRight();
   }
 
-  public static <F, G, T> EitherK<F, G, T> left(Kind<F, T> left) {
+  public static <F extends Kind<F, ?>, G extends Kind<G, ?>, T> EitherK<F, G, T> left(Kind<F, T> left) {
     return new EitherK<>(Either.left(left));
   }
 
-  public static <F, G, T> EitherK<F, G, T> right(Kind<G, T> right) {
+  public static <F extends Kind<F, ?>, G extends Kind<G, ?>, T> EitherK<F, G, T> right(Kind<G, T> right) {
     return new EitherK<>(Either.right(right));
   }
 

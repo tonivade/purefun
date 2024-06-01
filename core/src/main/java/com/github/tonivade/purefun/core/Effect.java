@@ -8,8 +8,7 @@ import java.time.Duration;
 
 import com.github.tonivade.purefun.Kind;
 
-
-public interface Effect<F, A> extends Bindable<F, A>, Applicable<F, A> {
+public interface Effect<F extends Effect<F, ?>, A> extends Bindable<F, A>, Applicable<F, A> {
 
   @Override
   <R> Effect<F, R> map(Function1<? super A, ? extends R> mapper);
@@ -74,7 +73,7 @@ public interface Effect<F, A> extends Bindable<F, A>, Applicable<F, A> {
   Effect<F, A> retry(Duration delay, int maxRetries);
 
   @SuppressWarnings("unchecked")
-  static <F, A> Effect<F, A> narrowK(Kind<F, ? extends A> kind) {
+  static <F extends Effect<F, ?>, A> Effect<F, A> narrowK(Kind<F, ? extends A> kind) {
     return (Effect<F, A>) kind;
   }
 }

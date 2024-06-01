@@ -8,7 +8,7 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Producer;
 
-public interface Defer<F> {
+public interface Defer<F extends Kind<F, ?>> {
 
   <A> Kind<F, A> defer(Producer<? extends Kind<F, ? extends A>> defer);
 }

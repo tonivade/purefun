@@ -15,7 +15,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple1;
 import com.github.tonivade.purefun.data.Sequence;
 
-public final class TupleK1<F, A> implements TupleK<F> {
+public final class TupleK1<F extends Kind<F, ?>, A> implements TupleK<F> {
 
   private static final Equal<TupleK1<?, ?>> EQUAL = Equal.<TupleK1<?, ?>>of().comparing(TupleK1::get1);
 

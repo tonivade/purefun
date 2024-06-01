@@ -25,7 +25,7 @@ public class TaglessTest {
   private final Program<State<ImmutableList<String>, ?>> stateProgram =
       new Program<>(StateInstances.monad(), StateInstances.console());
   private final Program<IO<?>> ioProgram =
-      new Program<>(Instances.monad(), Instances.console());
+      new Program<>(Instances.<IO<?>>monad(), Instances.console());
 
   @Test
   public void stateInterpreter() {
@@ -47,7 +47,7 @@ public class TaglessTest {
   }
 }
 
-class Program<F> {
+class Program<F extends Kind<F, ?>> {
 
   private final Monad<F> monad;
   private final Console<F> console;

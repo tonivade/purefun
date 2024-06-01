@@ -155,7 +155,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
   }
 
   public Task<Fiber<Task<?>, A>> fork() {
-    return new Task<>(instance.fork().map(f -> f.mapK(new FunctionK<>() {
+    return new Task<>(instance.fork().map(f -> f.<Task<?>>mapK(new FunctionK<>() {
       @Override
       public <T> Task<T> apply(Kind<PureIO<Void, Throwable, ?>, ? extends T> from) {
         return new Task<>(from.fix(PureIOOf::toPureIO));
@@ -248,12 +248,12 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
     PureIO<Void, Throwable, A> instance1 = fa.fix(TaskOf::toTask).instance.fix(PureIOOf::toPureIO);
     PureIO<Void, Throwable, B> instance2 = fb.fix(TaskOf::toTask).instance.fix(PureIOOf::toPureIO);
     return new Task<>(PureIO.racePair(executor, instance1, instance2).map(
-      either -> either.bimap(a -> a.map2(f -> f.mapK(new FunctionK<>() {
+      either -> either.bimap(a -> a.map2(f -> f.<Task<?>>mapK(new FunctionK<>() {
         @Override
         public <T> Task<T> apply(Kind<PureIO<Void, Throwable, ?>, ? extends T> from) {
           return new Task<>(from.fix(PureIOOf::toPureIO));
         }
-      })), b -> b.map1(f -> f.mapK(new FunctionK<>() {
+      })), b -> b.map1(f -> f.<Task<?>>mapK(new FunctionK<>() {
         @Override
         public <T> Task<T> apply(Kind<PureIO<Void, Throwable, ?>, ? extends T> from) {
           return new Task<>(from.fix(PureIOOf::toPureIO));

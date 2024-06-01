@@ -8,7 +8,7 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Function1;
 
-public interface Functor<F> extends Invariant<F> {
+public interface Functor<F extends Kind<F, ?>> extends Invariant<F> {
 
   <T, R> Kind<F, R> map(Kind<F, ? extends T> value, Function1<? super T, ? extends R> map);
 
@@ -22,7 +22,7 @@ public interface Functor<F> extends Invariant<F> {
     return map(value, map);
   }
 
-  static <F, G> Functor<Nested<F, G>> compose(Functor<F> f, Functor<G> g) {
+  static <F extends Kind<F, ?>, G extends Kind<G, ?>> Functor<Nested<F, G>> compose(Functor<F> f, Functor<G> g) {
     return new ComposedFunctor<>() {
 
       @Override
@@ -33,7 +33,7 @@ public interface Functor<F> extends Invariant<F> {
     };
   }
 
-  static <F, G> Functor<Nested<F, G>> compose(Contravariant<F> f, Contravariant<G> g) {
+  static <F extends Kind<F, ?>, G extends Kind<G, ?>> Functor<Nested<F, G>> compose(Contravariant<F> f, Contravariant<G> g) {
     return new ComposedContravariant<>() {
 
       @Override

@@ -69,7 +69,7 @@ public interface URIOInstances {
     return URIOConcurrent.instance(executor);
   }
 
-  static <R> Console<Kind<URIO<R, ?>, Throwable>> console() {
+  static <R> Console<URIO<R, ?>> console() {
     return URIOConsole.INSTANCE;
   }
 

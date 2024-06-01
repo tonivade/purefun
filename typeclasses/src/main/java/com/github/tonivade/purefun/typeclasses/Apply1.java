@@ -14,7 +14,7 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple1;
 
-public final class Apply1<F, A> extends AbstractApply<F, A> {
+public final class Apply1<F extends Kind<F, ?>, A> extends AbstractApply<F, A> {
 
   Apply1(Applicative<F> applicative, Producer<Kind<F, ? extends A>> value) {
     super(applicative, value);

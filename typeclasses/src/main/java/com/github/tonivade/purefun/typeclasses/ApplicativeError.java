@@ -10,7 +10,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.type.Either;
 
-public interface ApplicativeError<F, E> extends Applicative<F> {
+public interface ApplicativeError<F extends Kind<F, ?>, E> extends Applicative<F> {
 
   <A> Kind<F, A> raiseError(E error);
 

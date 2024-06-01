@@ -30,11 +30,11 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
+        "public sealed interface FooOf<T> extends Kind<Foo<?>, T> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> value) {",
-        "return (Foo<A>) value;",
+        "static <T> Foo<T> toFoo(Kind<Foo<?>, ? extends T> value) {",
+        "return (Foo<T>) value;",
         "}",
 
         "}");
@@ -58,11 +58,11 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A> extends Kind<Foo<?>, A> permits Foo {",
+        "public sealed interface FooOf<T> extends Kind<Foo<?>, T> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A> Foo<A> toFoo(Kind<Foo<?>, ? extends A> value) {",
-        "return (Foo<A>) value;",
+        "static <T> Foo<T> toFoo(Kind<Foo<?>, ? extends T> value) {",
+        "return (Foo<T>) value;",
         "}",
 
         "}");
@@ -90,11 +90,44 @@ public class HigherKindProcessorTest {
         "import javax.annotation.processing.Generated;",
 
         "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
-        "public sealed interface FooOf<A extends java.lang.String> extends Kind<Foo<?>, A> permits Foo {",
+        "public sealed interface FooOf<T extends java.lang.String> extends Kind<Foo<?>, T> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <A extends java.lang.String> Foo<A> toFoo(Kind<Foo<?>, ? extends A> value) {",
-        "return (Foo<A>) value;",
+        "static <T extends java.lang.String> Foo<T> toFoo(Kind<Foo<?>, ? extends T> value) {",
+        "return (Foo<T>) value;",
+        "}",
+
+        "}");
+
+    assert_().about(javaSource()).that(file)
+        .processedWith(new HigherKindProcessor())
+        .compilesWithoutError().and().generatesSources(generated);
+  }
+
+  @Test
+  public void compilesKind1RecursiveBounds() {
+    JavaFileObject file = forSourceLines("test.Foo",
+        "package test;",
+
+        "import com.github.tonivade.purefun.Kind;",
+        "import com.github.tonivade.purefun.HigherKind;",
+
+        "@HigherKind",
+        "public final class Foo<T extends Kind<T, ?>> implements FooOf<T> {",
+        "}");
+
+    JavaFileObject generated = forSourceLines("test.FooOf",
+        "package test;",
+
+        "import com.github.tonivade.purefun.Kind;",
+        "import javax.annotation.processing.Generated;",
+
+        "@Generated(\"com.github.tonivade.purefun.processor.HigherKindProcessor\")",
+        "public sealed interface FooOf<T extends com.github.tonivade.purefun.Kind<T, ?>> extends Kind<Foo<?>, T> permits Foo {",
+
+        "@SuppressWarnings(\"unchecked\")",
+        "static <T extends com.github.tonivade.purefun.Kind<T, ?> Foo<T> toFoo(Kind<Foo<?>, ? extends T> value) {",
+        "return (Foo<T>) value;",
         "}",
 
         "}");

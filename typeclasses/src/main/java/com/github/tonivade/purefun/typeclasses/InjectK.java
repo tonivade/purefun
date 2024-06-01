@@ -6,11 +6,11 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-public interface InjectK<F, G> {
+public interface InjectK<F extends Kind<F, ?>, G extends Kind<G, ?>> {
 
   <T> Kind<G, T> inject(Kind<F, ? extends T> value);
 
-  static <F> InjectK<F, F> injectReflexive() {
+  static <F extends Kind<F, ?>> InjectK<F, F> injectReflexive() {
     return Kind::narrowK;
   }
 }

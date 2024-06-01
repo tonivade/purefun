@@ -14,10 +14,10 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
-
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Try;
 
-public abstract class Instance<F> {
+public abstract class Instance<F extends Kind<F, ?>> {
 
   private final Class<?> kindType;
   private final Type type;
@@ -131,7 +131,7 @@ public abstract class Instance<F> {
     throw new UnsupportedOperationException("not supported " + type.getTypeName());
   }
 
-  private static <F, T> T load(Instance<F> instance, Class<?> typeClass, Object... args) {
+  private static <F extends Kind<F, ?>, T> T load(Instance<F> instance, Class<?> typeClass, Object... args) {
     return Try.of(() -> findClass(instance))
       .map(clazz -> findMethod(clazz, typeClass, args))
       .map(method -> Instance.<T>getInstance(method, args))
@@ -139,7 +139,7 @@ public abstract class Instance<F> {
       .getOrElseThrow();
   }
 
-  private static <F> Class<?> findClass(Instance<F> instance)
+  private static <F extends Kind<F, ?>> Class<?> findClass(Instance<F> instance)
       throws ClassNotFoundException {
     return Class.forName(instance.instanceName());
   }

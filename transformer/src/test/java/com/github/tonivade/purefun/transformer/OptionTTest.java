@@ -80,7 +80,7 @@ public class OptionTTest {
 
   @Test
   public void mapK() {
-    OptionT<IO<?>, String> someIo = OptionT.some(Instances.monad(), "abc");
+    OptionT<IO<?>, String> someIo = OptionT.some(Instances.<IO<?>>monad(), "abc");
 
     OptionT<Try<?>, String> someTry = someIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
@@ -107,7 +107,7 @@ public class OptionTTest {
   public void monadErrorFuture() {
     RuntimeException error = new RuntimeException("error");
     MonadError<OptionT<Future<?>, ?>, Throwable> monadError =
-        OptionTInstances.monadError(Instances.monadError());
+        OptionTInstances.monadError(Instances.<Future<?>, Throwable>monadError());
 
     Kind<OptionT<Future<?>, ?>, String> pure = monadError.pure("is not ok");
     Kind<OptionT<Future<?>, ?>, String> raiseError = monadError.raiseError(error);

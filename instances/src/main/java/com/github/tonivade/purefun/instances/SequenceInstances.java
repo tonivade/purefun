@@ -188,7 +188,7 @@ interface SequenceTraverse extends Traverse<Sequence<?>>, SequenceFoldable {
   SequenceTraverse INSTANCE = new SequenceTraverse() {};
 
   @Override
-  default <G, T, R> Kind<G, Kind<Sequence<?>, R>> traverse(
+  default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Sequence<?>, R>> traverse(
       Applicative<G> applicative, Kind<Sequence<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return value.fix(SequenceOf::toSequence).foldLeft(

@@ -20,26 +20,26 @@ import com.github.tonivade.purefun.typeclasses.MonadState;
 
 public interface StateTInstances {
 
-  static <F, S> Monad<StateT<F, S, ?>> monad(Monad<F> monadF) {
+  static <F extends Kind<F, ?>, S> Monad<StateT<F, S, ?>> monad(Monad<F> monadF) {
     return StateTMonad.instance(checkNonNull(monadF));
   }
 
-  static <F, S> MonadState<StateT<F, S, ?>, S> monadState(Monad<F> monadF) {
+  static <F extends Kind<F, ?>, S> MonadState<StateT<F, S, ?>, S> monadState(Monad<F> monadF) {
     return StateTMonadState.instance(checkNonNull(monadF));
   }
 
-  static <F, S, E> MonadError<StateT<F, S, ?>, E> monadError(MonadError<F, E> monadErrorF) {
+  static <F extends Kind<F, ?>, S, E> MonadError<StateT<F, S, ?>, E> monadError(MonadError<F, E> monadErrorF) {
     return StateTMonadError.instance(checkNonNull(monadErrorF));
   }
 
-  static <F, S, R> MonadReader<StateT<F, S, ?>, R> monadReader(MonadReader<F, R> monadReaderF) {
+  static <F extends Kind<F, ?>, S, R> MonadReader<StateT<F, S, ?>, R> monadReader(MonadReader<F, R> monadReaderF) {
     return StateTMonadReader.instance(checkNonNull(monadReaderF));
   }
 }
 
-interface StateTMonad<F, S> extends Monad<StateT<F, S, ?>> {
+interface StateTMonad<F extends Kind<F, ?>, S> extends Monad<StateT<F, S, ?>> {
 
-  static <F, S> StateTMonad<F, S> instance(Monad<F> monadF) {
+  static <F extends Kind<F, ?>, S> StateTMonad<F, S> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -57,9 +57,9 @@ interface StateTMonad<F, S> extends Monad<StateT<F, S, ?>> {
   }
 }
 
-interface StateTMonadError<F, S, E> extends MonadError<StateT<F, S, ?>, E>, StateTMonad<F, S> {
+interface StateTMonadError<F extends Kind<F, ?>, S, E> extends MonadError<StateT<F, S, ?>, E>, StateTMonad<F, S> {
 
-  static <F, S, E> StateTMonadError<F, S, E> instance(MonadError<F, E> monadErrorF) {
+  static <F extends Kind<F, ?>, S, E> StateTMonadError<F, S, E> instance(MonadError<F, E> monadErrorF) {
     return () -> monadErrorF;
   }
 
@@ -83,9 +83,9 @@ interface StateTMonadError<F, S, E> extends MonadError<StateT<F, S, ?>, E>, Stat
   }
 }
 
-interface StateTMonadState<F, S> extends MonadState<StateT<F, S, ?>, S>, StateTMonad<F, S> {
+interface StateTMonadState<F extends Kind<F, ?>, S> extends MonadState<StateT<F, S, ?>, S>, StateTMonad<F, S> {
 
-  static <F, S> StateTMonadState<F, S> instance(Monad<F> monadF) {
+  static <F extends Kind<F, ?>, S> StateTMonadState<F, S> instance(Monad<F> monadF) {
     return () -> monadF;
   }
 
@@ -100,9 +100,9 @@ interface StateTMonadState<F, S> extends MonadState<StateT<F, S, ?>, S>, StateTM
   }
 }
 
-interface StateTMonadReader<F, S, R> extends MonadReader<StateT<F, S, ?>, R>, StateTMonad<F, S> {
+interface StateTMonadReader<F extends Kind<F, ?>, S, R> extends MonadReader<StateT<F, S, ?>, R>, StateTMonad<F, S> {
 
-  static <F, S, R> StateTMonadReader<F, S, R> instance(MonadReader<F, R> monadReaderF) {
+  static <F extends Kind<F, ?>, S, R> StateTMonadReader<F, S, R> instance(MonadReader<F, R> monadReaderF) {
     return () -> monadReaderF;
   }
 

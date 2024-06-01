@@ -10,9 +10,9 @@ import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Unit;
 
-public interface Timer<F> {
+public interface Timer<F extends Kind<F, ?>> {
 
   Kind<F, Unit> sleep(Duration duration);
-  
+
   Kind<F, Long> currentNanos();
 }

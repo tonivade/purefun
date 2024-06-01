@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.typeclasses;
 
 import com.github.tonivade.purefun.Kind;
 
-public interface SemigroupK<F> {
+public interface SemigroupK<F extends Kind<F, ?>> {
 
   <T> Kind<F, T> combineK(Kind<F, ? extends T> t1, Kind<F, ? extends T> t2);
 }

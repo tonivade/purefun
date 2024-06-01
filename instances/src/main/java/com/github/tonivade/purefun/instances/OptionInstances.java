@@ -191,7 +191,7 @@ interface OptionTraverse extends Traverse<Option<?>>, OptionFoldable {
   OptionTraverse INSTANCE = new OptionTraverse() {};
 
   @Override
-  default <G, T, R> Kind<G, Kind<Option<?>, R>> traverse(
+  default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Option<?>, R>> traverse(
       Applicative<G> applicative, Kind<Option<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
     return value.fix(OptionOf::toOption).fold(

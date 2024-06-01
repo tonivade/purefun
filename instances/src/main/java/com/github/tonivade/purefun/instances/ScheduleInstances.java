@@ -13,12 +13,12 @@ import com.github.tonivade.purefun.typeclasses.ScheduleOf;
 @SuppressWarnings("unchecked")
 public interface ScheduleInstances {
 
-  static <F, A> Functor<Schedule<F, A, ?>> functor() {
+  static <F extends Kind<F, ?>, A> Functor<Schedule<F, A, ?>> functor() {
     return ScheduleFunctor.INSTANCE;
   }
 }
 
-interface ScheduleFunctor<F, A> extends Functor<Schedule<F, A, ?>> {
+interface ScheduleFunctor<F extends Kind<F, ?>, A> extends Functor<Schedule<F, A, ?>> {
 
   @SuppressWarnings("rawtypes")
   ScheduleFunctor INSTANCE = new ScheduleFunctor() {};
