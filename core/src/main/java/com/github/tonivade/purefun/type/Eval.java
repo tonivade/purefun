@@ -83,7 +83,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
 
     @Override
     public <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval<?>, ? extends R>> map) {
-      return new FlatMapped<>(cons(this), map::apply);
+      return new FlatMapped<>(cons(this), map);
     }
 
     @Override
@@ -107,7 +107,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
 
     @Override
     public <R> Eval<R> flatMap(Function1<? super A, ? extends Kind<Eval<?>, ? extends R>> map) {
-      return new FlatMapped<>(deferred::get, map::apply);
+      return new FlatMapped<>(deferred, map);
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +138,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
 
     @Override
     public <R> Eval<R> flatMap(Function1<? super B, ? extends Kind<Eval<?>, ? extends R>> map) {
-      return new FlatMapped<>(this::start, b -> new FlatMapped<>(() -> run(b), map::apply));
+      return new FlatMapped<>(this::start, b -> new FlatMapped<>(() -> run(b), map));
     }
 
     private Eval<A> start() {
@@ -163,7 +163,7 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
       if (current instanceof Eval.Defer<A> defer) {
         current = defer.next();
       } else if (current instanceof Eval.FlatMapped) {
-        Eval.FlatMapped<X, A> flatMapped = (Eval.FlatMapped<X, A>) current;
+        var flatMapped = (Eval.FlatMapped<X, A>) current;
         return new Eval.FlatMapped<>(flatMapped::start, a -> collapse(flatMapped.run(a)));
       } else {
         break;
