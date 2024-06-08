@@ -6,5 +6,5 @@ module com.github.tonivade.purefun.core {
 
   requires transitive com.github.tonivade.purefun;
   requires transitive java.compiler;
-  requires org.pcollections;
+  requires transitive org.pcollections;
 }

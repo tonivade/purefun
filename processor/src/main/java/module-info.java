@@ -5,6 +5,6 @@ module com.github.tonivade.purefun.processor {
 
   provides javax.annotation.processing.Processor with HigherKindProcessor;
 
-  requires com.github.tonivade.purefun;
+  requires transitive com.github.tonivade.purefun;
   requires transitive java.compiler;
 }
