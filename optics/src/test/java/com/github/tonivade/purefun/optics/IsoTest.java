@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.optics;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.awt.Point;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Tuple;
@@ -15,6 +14,8 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.OptionOf;
 
 public class IsoTest {
+
+  record Point(int x, int y) {}
 
   private final Iso<Point, Tuple2<Integer, Integer>> pointToTuple =
       Iso.of(p -> Tuple.of(p.x, p.y), t -> new Point(t.get1(), t.get2()));
