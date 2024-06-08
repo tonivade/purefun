@@ -10,5 +10,4 @@ module com.github.tonivade.purefun.instances {
   requires com.github.tonivade.purefun.stream;
   requires com.github.tonivade.purefun.transformer;
   requires com.github.tonivade.purefun.typeclasses;
-  requires com.github.tonivade.purefun.control;
 }
