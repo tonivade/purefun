@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.core;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.github.tonivade.purefun.core.Trampoline;
 import org.junit.jupiter.api.Test;
 
 public class TrampolineTest {
