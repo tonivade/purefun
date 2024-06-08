@@ -13,7 +13,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.For;
@@ -23,7 +22,7 @@ import com.github.tonivade.purefun.typeclasses.Monad;
 public class TaglessTest {
 
   private final Program<State<ImmutableList<String>, ?>> stateProgram =
-      new Program<>(StateInstances.monad(), StateInstances.console());
+      new Program<>(Instances.<State<ImmutableList<String>, ?>>monad(), Instances.console());
   private final Program<IO<?>> ioProgram =
       new Program<>(Instances.<IO<?>>monad(), Instances.console());
 

@@ -35,11 +35,11 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.URIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 @ExtendWith(MockitoExtension.class)
 public class URIOTest {
@@ -191,7 +191,7 @@ public class URIOTest {
 
   @Test
   public void fork() {
-    URIO<Void, String> result = For.with(URIOInstances.<Void>monad())
+    URIO<Void, String> result = For.with(Instances.<URIO<Void, ?>>monad())
       .then(URIO.<Void, String>pure("hola"))
       .flatMap(hello -> {
         URIO<Void, Unit> sleep = sleep(Duration.ofSeconds(1));

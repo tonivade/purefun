@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
-import com.github.tonivade.purefun.instances.StateInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.State;
@@ -27,7 +26,7 @@ public class FreeTest {
 
   @Test
   public void interpretState() {
-    var foldMap = echo.foldMap(StateInstances.monad(), new IOProgramToState());
+    var foldMap = echo.foldMap(Instances.monad(), new IOProgramToState());
 
     State<ImmutableList<String>, Unit> state = StateOf.toState(foldMap);
 

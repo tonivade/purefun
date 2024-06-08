@@ -33,11 +33,11 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 @ExtendWith(MockitoExtension.class)
 public class EIOTest {
@@ -236,7 +236,7 @@ public class EIOTest {
 
   @Test
   public void fork() {
-    EIO<Throwable, String> result = For.with(EIOInstances.<Throwable>monad())
+    EIO<Throwable, String> result = For.with(Instances.<EIO<Throwable, ?>>monad())
       .then(EIO.pure("hola"))
       .flatMap(hello -> {
         EIO<Throwable, Unit> sleep = EIO.sleep(Duration.ofSeconds(1));

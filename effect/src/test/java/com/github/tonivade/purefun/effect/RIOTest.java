@@ -35,11 +35,11 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.RIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 @ExtendWith(MockitoExtension.class)
 public class RIOTest {
@@ -192,7 +192,7 @@ public class RIOTest {
 
   @Test
   void fork() {
-    RIO<Void, String> result = For.with(RIOInstances.<Void>monad())
+    RIO<Void, String> result = For.with(Instances.<RIO<Void, ?>>monad())
       .then(RIO.<Void, String>pure("hola"))
       .flatMap(hello -> {
         RIO<Void, Unit> sleep = sleep(Duration.ofSeconds(1));

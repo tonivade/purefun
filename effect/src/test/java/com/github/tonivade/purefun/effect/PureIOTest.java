@@ -30,11 +30,11 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.instances.PureIOInstances;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.For;
+import com.github.tonivade.purefun.typeclasses.Instances;
 
 @ExtendWith(MockitoExtension.class)
 public class PureIOTest {
@@ -431,7 +431,7 @@ public class PureIOTest {
 
   @Test
   public void fork() {
-    PureIO<Void, Throwable, String> result = For.with(PureIOInstances.<Void, Throwable>monad())
+    PureIO<Void, Throwable, String> result = For.with(Instances.<PureIO<Void, Throwable, ?>>monad())
       .then(PureIO.pure("hola"))
       .flatMap(hello -> {
         PureIO<Void, Throwable, Unit> sleep = PureIO.sleep(Duration.ofSeconds(1));
