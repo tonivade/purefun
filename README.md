@@ -108,7 +108,7 @@ Either<Integer, String> left = Either.left(100);
 ### Validation
 
 This type represents two different states, valid or invalid, an also it allows to combine several
-validations using `map2` to `map5` methods.
+validations using `mapN` methods.
 
 ```java
 Validation<String, String> name = Validation.valid("John Smith");
@@ -132,7 +132,7 @@ assertEquals("Hello world!", constFloat.value());
 
 ### Future
 
-This is an experimental implementation of Future. Computations are executed in another thread inmediatelly.
+This is an experimental implementation of Future. Computations are executed in another thread inmediatelly (since version 5.0 de default executor is a virtual thread per task executor).
 
 ```java
 Future<String> future = Future.success("Hello world!");
@@ -140,6 +140,19 @@ Future<String> future = Future.success("Hello world!");
 Future<String> result = future.flatMap(string -> Future.run(string::toUpperCase));
 
 assertEquals(Try.success("HELLO WORLD!"), result.await());
+```
+
+### Trampoline
+
+Implements recursion using an iteration and is stack safe.
+
+```java
+private Trampoline<Integer> fibLoop(Integer n) {
+  if (n < 2) {
+    return Trampoline.done(n);
+  }
+  return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -> x + y));
+}
 ```
 
 ### Tuples
@@ -158,31 +171,31 @@ Java doesn't define immutable collections, so I have implemented some of them.
 
 ### Sequence
 
-Is the equivalent to java `Collection` interface. It defines all the common methods.
+Is the equivalent to java `Collection` interface. It defines all the common methods. The default implementation use persistent collections based on [pcollections](https://github.com/hrldcpr/pcollections/) library.
 
 ### ImmutableList
 
-It represents a linked list. It has a head and a tail.
+It represents a linked list. It has a head and a tail. Based on `ConsPStack`.
 
 ### ImmutableSet
 
-It represents a set of elements. This elements cannot be duplicated.
+It represents a set of elements. This elements cannot be duplicated. Based on `HashTreePSet`.
 
 ### ImmutableArray
 
-It represents an array. You can access to the elements by its position in the array.
+It represents an array. You can access to the elements by its position in the array. Based on `TreePVector`.
 
 ### ImmutableMap
 
-This class represents a hash map.
+This class represents a hash map. Based on `HashTreePMap`.
 
 ### ImmutableTree
 
-This class represents a binary tree.
+This class represents a binary tree. Based on `TreePSet`
 
 ### ImmutableTreeMap
 
-This class represents a binary tree map.
+This class represents a binary tree map. Based on `TreePMap`.
 
 ## Monads
 
@@ -239,19 +252,6 @@ IO<Unit> echo = Console.print("write your name")
   .andThen(Console.print("end"));
 
 echo.unsafeRunSync();
-```
-
-### Trampoline
-
-Implements recursion using an iteration and is stack safe.
-
-```java
-private Trampoline<Integer> fibLoop(Integer n) {
-if (n < 2) {
-  return Trampoline.done(n);
-}
-return Trampoline.more(() -> fibLoop(n - 1)).flatMap(x -> fibLoop(n - 2).map(y -> x + y));
-}
 ```
 
 ## Free
@@ -366,14 +366,14 @@ assertEquals(Try.success(61.5), result);
 An experimental version of a `Stream` like scala fs2 project.
 
 ```java
-StreamOf<IO_> streamOfIO = Stream.ofIO();
+StreamOf<IO<?>> streamOfIO = Stream.ofIO();
 
 IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
   .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
   .takeWhile(Option::isPresent)
   .map(Option::get)
   .foldLeft("", (a, b) -> a + "\n" + b)
-  .fix(toIO())
+  .fix(IOOf::toIO)
   .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
 
 String content = readFile.unsafeRunSync();
@@ -412,53 +412,11 @@ interface Console {
 Additionally, there are aliases for some PureIO special cases:
 
 ```
-UIO<T>      =>  PureIO<?, Nothing, T>
-EIO<E, T>   =>  PureIO<?, E, T>
-Task<T>     =>  PureIO<?, Throwable, T>
+UIO<T>      =>  PureIO<Void, Void, T>
+EIO<E, T>   =>  PureIO<Void, E, T>
+Task<T>     =>  PureIO<Void, Throwable, T>
 RIO<R, T>   =>  PureIO<R, Throwable, T>
-URIO<T>     =>  PureIO<R, Nothing, T>
-```
-
-## Algebraic Effects
-
-Also, I have implemented a version of delimited control monad based in this [project](https://b-studios.de/scala-effekt/).
-With this monad, you can implement algebraic effects. Example:
-
-```java
-  // the effect
-  interface Amb {
-    Control<Boolean> flip();
-  }
-
-  // the program, if true then 2 else 3
-  Control<Integer> program(Amb amb) {
-    return amb.flip().map(x -> x ? 2 : 3);
-  }
-
-  @Test
-  void test() {
-    Control<ImmutableList<Integer>> handled = ambList(this::program);
-
-    assertEquals(listOf(2, 3), handled.run());
-  }
-
-  <R> Control<ImmutableList<R>> ambList(Function1<Amb, Control<R>> program) {
-    return new AmbList<R>().apply(amb -> program.apply(amb).map(ImmutableList::of));
-  }
-
-  final class AmbList<R> implements Handler<ImmutableList<R>, Amb>, Amb {
-
-    @Override
-    public Amb effect() { return this; }
-
-    @Override
-    public Control<Boolean> flip() {
-      return use(resume ->
-          resume.apply(true) // first flip return true
-            .flatMap(ts -> resume.apply(false) // second flip return false
-              .map(ts::appendAll)));
-    }
-  }
+URIO<T>     =>  PureIO<R, Void, T>
 ```
 
 ## Type Classes
