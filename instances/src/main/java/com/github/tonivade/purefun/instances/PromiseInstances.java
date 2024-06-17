@@ -46,7 +46,7 @@ interface PromiseFunctor extends Functor<Promise<?>> {
 
   @Override
   default <T, R> Kind<Promise<?>, R> map(Kind<Promise<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(PromiseOf::toPromise).map(mapper);
+    return value.<Promise<T>>fix().map(mapper);
   }
 }
 
@@ -71,7 +71,7 @@ interface PromiseApplicative extends PromisePure {
   @Override
   default <T, R> Kind<Promise<?>, R> ap(Kind<Promise<?>, ? extends T> value,
       Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(PromiseOf::<T>toPromise).ap(apply.fix(PromiseOf::toPromise));
+    return value.<Promise<T>>fix().ap(apply);
   }
 }
 
@@ -84,7 +84,7 @@ interface PromiseMonad extends PromisePure, Monad<Promise<?>> {
   @Override
   default <T, R> Kind<Promise<?>, R> flatMap(Kind<Promise<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> map) {
-    return value.fix(PromiseOf::toPromise).flatMap(map.andThen(PromiseOf::toPromise));
+    return value.<Promise<T>>fix().flatMap(map.andThen(PromiseOf::toPromise));
   }
 
   /**

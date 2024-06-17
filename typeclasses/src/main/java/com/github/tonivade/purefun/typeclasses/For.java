@@ -8,8 +8,6 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 import static com.github.tonivade.purefun.core.Unit.unit;
 
-import java.util.function.Function;
-
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Consumer1;
@@ -74,8 +72,8 @@ abstract class AbstractFlatMap<F extends Kind<F, ?>, A, B> {
 
   public abstract Kind<F, B> run();
 
-  public <R extends Kind<F, ?>> R fix(Function<? super Kind<F, ? extends B>, ? extends R> fixer) {
-    return run().fix(fixer);
+  public <R extends Kind<F, B>> R fix() {
+    return run().fix();
   }
 
   public void end(Consumer1<? super Kind<F, B>> consumer) {
@@ -99,8 +97,8 @@ abstract class AbstractApply<F extends Kind<F, ?>, A> {
 
   public abstract Kind<F, A> run();
 
-  public <R extends Kind<F, ?>> R fix(Function<? super Kind<F, ? extends A>, ? extends R> fixer) {
-    return run().fix(fixer);
+  public <R extends Kind<F, A>> R fix() {
+    return run().fix();
   }
 
   public void end(Consumer1<? super Kind<F, A>> consumer) {

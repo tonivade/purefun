@@ -78,7 +78,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, A
 
   @Override
   default <R> Option<R> ap(Kind<Option<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(OptionOf::toOption).flatMap(this::map);
+    return apply.<Option<Function1<T, R>>>fix().flatMap(this::map);
   }
 
   @Override

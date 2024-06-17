@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
@@ -40,7 +39,7 @@ public class FreeAlgTest {
 
     ConsoleExecutor executor = new ConsoleExecutor().read("toni");
 
-    IO<Unit> fix = hello.foldMap(Instances.<IO<?>>monad(), interpreter()).fix(IOOf::toIO);
+    IO<Unit> fix = hello.foldMap(Instances.<IO<?>>monad(), interpreter()).fix();
     executor.run(fix);
 
     assertEquals("hello toni\nemail to toni@home with content hello\n", executor.getOutput());
@@ -52,11 +51,11 @@ public class FreeAlgTest {
     return new FunctionK<>() {
       @Override
       public <T> Kind<IO<?>, T> apply(Kind<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, ? extends T> from) {
-        return from.fix(EitherKOf::<ConsoleAlg<?>, EmailAlg<?>, T>toEitherK).<IO<?>>foldK(
+        return from.<EitherK<ConsoleAlg<?>, EmailAlg<?>, T>>fix().<IO<?>>foldK(
           new FunctionK<>() {
             @Override
             public <X> IO<X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {
-              return (IO<X>) switch(kind.fix(ConsoleAlgOf::toConsoleAlg)) {
+              return (IO<X>) switch (kind.<ConsoleAlg<X>>fix()) {
                 case ConsoleAlg.ReadLine() -> console.readln();
                 case ConsoleAlg.WriteLine(var line) -> console.println(line);
               };
@@ -65,7 +64,7 @@ public class FreeAlgTest {
             new FunctionK<>() {
               @Override
               public <X> IO<X> apply(Kind<EmailAlg<?>, ? extends X> kind) {
-                return (IO<X>) switch (kind.fix(EmailAlgOf::toEmailAlg)) {
+                return (IO<X>) switch (kind.<EmailAlg<X>>fix()) {
                 case EmailAlg.SendEmail(var to, var content)
                   -> console.println("email to " + to + " with content " + content);
                 };

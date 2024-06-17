@@ -15,7 +15,7 @@ public non-sealed interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
   T zero();
 
   default <R> Monoid<R> imap(Function1<T, R> map, Function1<R, T> comap) {
-    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix(MonoidOf::toMonoid);
+    return MonoidInvariant.INSTANCE.imap(this, map, comap).fix();
   }
 
   static Monoid<String> string() {
@@ -54,12 +54,12 @@ interface MonoidInvariant extends Invariant<Monoid<?>> {
 
       @Override
       public B zero() {
-        return map.apply(value.fix(MonoidOf::toMonoid).zero());
+        return map.apply(value.<Monoid<A>>fix().zero());
       }
 
       @Override
       public B combine(B t1, B t2) {
-        return map.apply(value.fix(MonoidOf::<A>toMonoid).combine(comap.apply(t1), comap.apply(t2)));
+        return map.apply(value.<Monoid<A>>fix().combine(comap.apply(t1), comap.apply(t2)));
       }
     };
   }

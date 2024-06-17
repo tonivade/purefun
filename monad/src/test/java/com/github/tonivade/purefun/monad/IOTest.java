@@ -93,7 +93,7 @@ public class IOTest {
         .then(console.readln())
         .flatMap(name -> console.println("Hello " + name))
         .then(console.println("end"))
-        .fix(IOOf::toIO);
+        .fix();
 
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
@@ -313,7 +313,8 @@ public class IOTest {
     IO<String> result = Instances.<IO<?>>monad().use()
       .then(IO.pure("hola"))
       .flatMap(hello -> IO.delay(Duration.ofSeconds(1), () -> hello + " toni").fork())
-      .flatMap(Fiber::join).fix(IOOf::toIO);
+      .flatMap(Fiber::join)
+      .fix();
 
     String orElseThrow = result.runAsync().getOrElseThrow();
 
@@ -406,7 +407,7 @@ public class IOTest {
   private IO<ImmutableList<String>> currentThreadIO() {
     Reference<IO<?>, ImmutableList<String>> ref = Instances.<IO<?>>monadDefer().ref(ImmutableList.empty());
     IO<ImmutableList<String>> currentThread =
-        ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix(IOOf::toIO);
+        ref.updateAndGet(list -> list.append("thread-" + Thread.currentThread().threadId())).fix();
 
     return currentThread
         .andThen(currentThread

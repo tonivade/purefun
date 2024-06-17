@@ -95,7 +95,7 @@ interface IOFunctor extends Functor<IO<?>> {
 
   @Override
   default <T, R> Kind<IO<?>, R> map(Kind<IO<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(IOOf::toIO).map(map);
+    return value.<IO<T>>fix().map(map);
   }
 }
 
@@ -118,7 +118,7 @@ interface IOApplicative extends IOPure, Applicative<IO<?>> {
   @Override
   default <T, R> IO<R> ap(Kind<IO<?>, ? extends T> value,
       Kind<IO<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return IO.parMap2(executor(), value.fix(IOOf::toIO), apply.fix(IOOf::toIO), (v, a) -> a.apply(v));
+    return value.<IO<T>>fix().ap(apply);
   }
 }
 
@@ -130,7 +130,7 @@ interface IOMonad extends Monad<IO<?>>, IOPure {
   default <T, R> IO<R> flatMap(
       Kind<IO<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<IO<?>, ? extends R>> map) {
-    return value.fix(IOOf::toIO).flatMap(map.andThen(IOOf::toIO));
+    return value.<IO<T>>fix().flatMap(map.andThen(IOOf::toIO));
   }
 }
 
@@ -210,7 +210,7 @@ interface IOConcurrent extends Concurrent<IO<?>>, IOAsync {
 
   @Override
   default <A> IO<Fiber<IO<?>, A>> fork(Kind<IO<?>, ? extends A> value) {
-    IO<A> fix = value.fix(IOOf::toIO);
+    IO<A> fix = value.fix();
     return fix.fork();
   }
 }
@@ -238,7 +238,7 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> T run(Kind<IO<?>, T> value) {
-    return value.fix(IOOf::toIO).unsafeRunSync();
+    return value.<IO<T>>fix().unsafeRunSync();
   }
 
   @Override
@@ -248,7 +248,7 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<IO<?>, T> value, Executor executor) {
-    return value.fix(IOOf::<T>toIO).runAsync(executor);
+    return value.<IO<T>>fix().runAsync(executor);
   }
 
   @Override

@@ -438,7 +438,7 @@ public class PureIOTest {
         PureIO<Void, Throwable, String> task = PureIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(PureIOOf::toPureIO);
+      .flatMap(Fiber::join).fix();
 
     Either<Throwable, String> orElseThrow = result.runAsync(null).getOrElseThrow();
 

@@ -94,7 +94,7 @@ interface EitherApplicative<L> extends EitherPure<L> {
   @Override
   default <T, R> Either<L, R> ap(Kind<Either<L, ?>, ? extends T> value,
       Kind<Either<L, ?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return EitherOf.toEither(value).flatMap(t -> EitherOf.toEither(apply).map(f -> f.apply(t)));
+    return value.<Either<L, T>>fix().ap(apply);
   }
 }
 

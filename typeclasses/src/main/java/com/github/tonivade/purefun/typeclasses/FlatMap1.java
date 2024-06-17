@@ -46,6 +46,6 @@ public final class FlatMap1<F extends Kind<F, ?>, A> extends AbstractFlatMap<F, 
 
   @Override
   public Kind<F, A> run() {
-    return value.apply(unit()).fix(Kind::narrowK);
+    return value.apply(unit()).<Kind<F, A>>fix();
   }
 }

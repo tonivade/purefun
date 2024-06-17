@@ -107,7 +107,7 @@ interface URIOApplicative<R> extends URIOPure<R> {
   default <A, B> URIO<R, B>
           ap(Kind<URIO<R, ?>, ? extends A> value,
              Kind<URIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(URIOOf::<R, A>toURIO).ap(apply.fix(URIOOf::toURIO));
+    return value.<URIO<R, A>>fix().ap(apply);
   }
 }
 
@@ -120,7 +120,7 @@ interface URIOMonad<R> extends URIOPure<R>, Monad<URIO<R, ?>> {
   default <A, B> URIO<R, B>
           flatMap(Kind<URIO<R, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<URIO<R, ?>, ? extends B>> map) {
-    return value.fix(URIOOf::toURIO).flatMap(map.andThen(URIOOf::toURIO));
+    return value.<URIO<R, A>>fix().flatMap(map.andThen(URIOOf::toURIO));
   }
 }
 
@@ -216,7 +216,7 @@ interface URIOConcurrent<R> extends URIOAsync<R>, Concurrent<URIO<R, ?>> {
 
   @Override
   default <A> URIO<R, Fiber<URIO<R, ?>, A>> fork(Kind<URIO<R, ?>, ? extends A> value) {
-    URIO<R, A> fix = value.fix(URIOOf::toURIO);
+    URIO<R, A> fix = value.fix();
     return fix.fork();
   }
 
@@ -250,7 +250,7 @@ interface URIORuntime<R> extends Runtime<URIO<R, ?>> {
 
   @Override
   default <T> T run(Kind<URIO<R, ?>, T> value) {
-    return value.fix(URIOOf::toURIO).safeRunSync(env()).getOrElseThrow();
+    return value.<URIO<R, T>>fix().safeRunSync(env()).getOrElseThrow();
   }
 
   @Override
@@ -260,7 +260,7 @@ interface URIORuntime<R> extends Runtime<URIO<R, ?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<URIO<R, ?>, T> value, Executor executor) {
-    return value.fix(URIOOf::<R, T>toURIO).runAsync(env());
+    return value.<URIO<R, T>>fix().runAsync(env());
   }
 
   @Override

@@ -56,7 +56,7 @@ interface FutureFunctor extends Functor<Future<?>> {
 
   @Override
   default <T, R> Kind<Future<?>, R> map(Kind<Future<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(FutureOf::toFuture).map(mapper);
+    return value.<Future<T>>fix().map(mapper);
   }
 }
 
@@ -81,7 +81,7 @@ interface FutureApplicative extends FuturePure {
   @Override
   default <T, R> Kind<Future<?>, R> ap(Kind<Future<?>, ? extends T> value,
       Kind<Future<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(FutureOf::<T>toFuture).ap(apply.fix(FutureOf::toFuture));
+    return value.<Future<T>>fix().ap(apply.<Future<Function1<? super T, ? extends R>>>fix());
   }
 }
 
@@ -94,7 +94,7 @@ interface FutureMonad extends FuturePure, Monad<Future<?>> {
   @Override
   default <T, R> Kind<Future<?>, R> flatMap(Kind<Future<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Future<?>, ? extends R>> map) {
-    return value.fix(FutureOf::toFuture).flatMap(map.andThen(FutureOf::toFuture));
+    return value.<Future<T>>fix().flatMap(map.andThen(FutureOf::toFuture));
   }
 
   /**
@@ -123,7 +123,7 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future<?>> {
   default <A> Kind<Future<?>, A> handleErrorWith(
       Kind<Future<?>, A> value,
       Function1<? super Throwable, ? extends Kind<Future<?>, ? extends A>> handler) {
-    return value.fix(FutureOf::toFuture).fold(handler.andThen(FutureOf::toFuture),
+    return value.<Future<A>>fix().fold(handler.andThen(FutureOf::toFuture),
                                       success -> Future.success(executor(), success)).flatMap(identity());
   }
 }

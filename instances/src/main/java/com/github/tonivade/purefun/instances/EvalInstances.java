@@ -100,7 +100,7 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval<?>, Throwable> {
   @Override
   default <A> Kind<Eval<?>, A> handleErrorWith(
       Kind<Eval<?>, A> value, Function1<? super Throwable, ? extends Kind<Eval<?>, ? extends A>> handler) {
-    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.fix(EvalOf::toEval)::value));
+    Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.<Eval<A>>fix()::value));
     return attempt.flatMap(try_ -> try_.fold(handler.andThen(EvalOf::toEval), Eval::now));
   }
 }

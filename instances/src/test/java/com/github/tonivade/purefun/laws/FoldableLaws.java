@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
@@ -37,7 +36,7 @@ public class FoldableLaws {
     assertEquals(
         instance.foldM(
             OptionInstances.monad(), value, initial,
-            combinator.andThen(Option::some).andThen(Option::kind)).fix(OptionOf::toOption).getOrElseThrow(),
+            combinator.andThen(Option::some).andThen(Option::kind)).<Option<A>>fix().getOrElseThrow(),
         instance.reduce(value, combinator).getOrElse(initial),
         "reduce consistent law");
   }

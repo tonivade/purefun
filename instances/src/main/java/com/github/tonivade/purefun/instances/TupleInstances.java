@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple1;
-import com.github.tonivade.purefun.core.Tuple1Of;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
 public interface TupleInstances {
@@ -23,6 +22,6 @@ interface Tuple1Functor extends Functor<Tuple1<?>> {
 
   @Override
   default <T, R> Kind<Tuple1<?>, R> map(Kind<Tuple1<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(Tuple1Of::toTuple1).map1(map);
+    return value.<Tuple1<T>>fix().map1(map);
   }
 }

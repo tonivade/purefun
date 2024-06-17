@@ -100,7 +100,7 @@ interface OptionApplicative extends OptionPure {
   @Override
   default <T, R> Kind<Option<?>, R> ap(Kind<Option<?>, ? extends T> value,
       Kind<Option<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(OptionOf::toOption).flatMap(t -> OptionOf.toOption(apply).map(f -> f.apply(t)));
+    return value.<Option<T>>fix().ap(apply);
   }
 }
 
@@ -111,7 +111,7 @@ interface OptionMonad extends OptionPure, Monad<Option<?>> {
   @Override
   default <T, R> Kind<Option<?>, R> flatMap(Kind<Option<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Option<?>, ? extends R>> map) {
-    return value.fix(OptionOf::toOption).flatMap(map.andThen(OptionOf::toOption));
+    return value.<Option<T>>fix().flatMap(map.andThen(OptionOf::toOption));
   }
 
   @Override
@@ -194,7 +194,7 @@ interface OptionTraverse extends Traverse<Option<?>>, OptionFoldable {
   default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Option<?>, R>> traverse(
       Applicative<G> applicative, Kind<Option<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
-    return value.fix(OptionOf::toOption).fold(
+    return value.<Option<T>>fix().fold(
         () -> applicative.pure(Option.<R>none().kind()),
         t -> {
           Kind<G, ? extends R> apply = mapper.apply(t);

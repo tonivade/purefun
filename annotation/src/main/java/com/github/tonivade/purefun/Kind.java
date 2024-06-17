@@ -4,12 +4,11 @@
  */
 package com.github.tonivade.purefun;
 
-import java.util.function.Function;
-
 public interface Kind<F extends Kind<F, ?>, A> {
 
-  default <R extends Kind<F, ?>> R fix(Function<? super Kind<F, ? extends A>, ? extends R> fixer) {
-    return fixer.apply(this);
+  @SuppressWarnings("unchecked")
+  default <R> R fix() {
+    return (R) this;
   }
 
   default Kind<F, A> kind() {

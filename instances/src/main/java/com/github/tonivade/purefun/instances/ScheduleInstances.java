@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Schedule;
-import com.github.tonivade.purefun.typeclasses.ScheduleOf;
 
 @SuppressWarnings("unchecked")
 public interface ScheduleInstances {
@@ -27,6 +26,6 @@ interface ScheduleFunctor<F extends Kind<F, ?>, A> extends Functor<Schedule<F, A
   default <T, R> Schedule<F, A, R> map(
       Kind<Schedule<F, A, ?>, ? extends T> value,
       Function1<? super T, ? extends R> mapper) {
-    return value.fix(ScheduleOf::toSchedule).map(mapper);
+    return value.<Schedule<F, A, T>>fix().map(mapper);
   }
 }

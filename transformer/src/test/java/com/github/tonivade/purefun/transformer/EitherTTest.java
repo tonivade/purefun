@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.EitherTInstances;
 import com.github.tonivade.purefun.monad.IO;
@@ -100,10 +99,10 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), raiseError.fix(EitherTOf::toEitherT).value().fix(FutureOf::toFuture).await()),
-        () -> assertEquals(Try.success(Either.right("not an error")), handleError.fix(EitherTOf::toEitherT).value().fix(FutureOf::toFuture).await()),
-        () -> assertEquals(Try.failure(error), ensureError.fix(EitherTOf::toEitherT).value().fix(FutureOf::toFuture).await()),
-        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.fix(EitherTOf::toEitherT).value().fix(FutureOf::toFuture).await()));
+        () -> assertEquals(Try.failure(error), raiseError.<EitherT<Future<?>, Throwable, String>>fix().value().<Future<String>>fix().await()),
+        () -> assertEquals(Try.success(Either.right("not an error")), handleError.<EitherT<Future<?>, Throwable, String>>fix().value().<Future<String>>fix().await()),
+        () -> assertEquals(Try.failure(error), ensureError.<EitherT<Future<?>, Throwable, String>>fix().value().<Future<String>>fix().await()),
+        () -> assertEquals(Try.success(Either.right("is not ok")), ensureOk.<EitherT<Future<?>, Throwable, String>>fix().value().<Future<String>>fix().await()));
   }
 
   @Test
@@ -122,9 +121,9 @@ public class EitherTTest {
         monadError.ensure(pure, () -> error, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Id.of(Either.left(error)), raiseError.fix(EitherTOf::toEitherT).value()),
-        () -> assertEquals(Id.of(Either.right("not an error")), handleError.fix(EitherTOf::toEitherT).value()),
-        () -> assertEquals(Id.of(Either.left(error)), ensureError.fix(EitherTOf::toEitherT).value()),
-        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.fix(EitherTOf::toEitherT).value()));
+        () -> assertEquals(Id.of(Either.left(error)), raiseError.<EitherT<Id<?>, Throwable, String>>fix().value()),
+        () -> assertEquals(Id.of(Either.right("not an error")), handleError.<EitherT<Id<?>, Throwable, String>>fix().value()),
+        () -> assertEquals(Id.of(Either.left(error)), ensureError.<EitherT<Id<?>, Throwable, String>>fix().value()),
+        () -> assertEquals(Id.of(Either.right("is not ok")), ensureOk.<EitherT<Id<?>, Throwable, String>>fix().value()));
   }
 }

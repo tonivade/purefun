@@ -59,7 +59,7 @@ interface TrampolineApplicative extends TrampolinePure {
   @Override
   default <T, R> Kind<Trampoline<?>, R> ap(Kind<Trampoline<?>, ? extends T> value,
       Kind<Trampoline<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return TrampolineOf.toTrampoline(value).flatMap(t -> TrampolineOf.toTrampoline(apply).map(f -> f.apply(t)));
+    return value.<Trampoline<T>>fix().flatMap(t -> apply.<Trampoline<Function1<T, R>>>fix().map(f -> f.apply(t)));
   }
 }
 
@@ -80,6 +80,6 @@ interface TrampolineDefer extends Defer<Trampoline<?>> {
 
   @Override
   default <A> Kind<Trampoline<?>, A> defer(Producer<? extends Kind<Trampoline<?>, ? extends A>> defer) {
-    return Trampoline.more(() -> defer.get().fix(TrampolineOf::toTrampoline));
+    return Trampoline.more(() -> defer.get().fix());
   }
 }

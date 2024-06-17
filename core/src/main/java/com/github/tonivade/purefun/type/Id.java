@@ -33,7 +33,7 @@ public record Id<T>(T value) implements IdOf<T>, Bindable<Id<?>, T>, Applicable<
 
   @Override
   public <R> Id<R> ap(Kind<Id<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(IdOf::toId).flatMap(this::map);
+    return apply.<Id<Function1<T, R>>>fix().flatMap(this::map);
   }
 
   @Override

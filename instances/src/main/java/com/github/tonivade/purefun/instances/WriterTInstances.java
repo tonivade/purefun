@@ -91,18 +91,18 @@ interface WriterTMonadWriter<F extends Kind<F, ?>, L>
 
   @Override
   default <A> WriterT<F, L, Tuple2<L, A>> listen(Kind<WriterT<F, L, ?>, ? extends A> value) {
-    return value.fix(WriterTOf::<F, L, A>toWriterT).listen();
+    return value.<WriterT<F, L, A>>fix().listen();
   }
 
   @Override
   default <A> WriterT<F, L, A> pass(
       Kind<WriterT<F, L, ?>, Tuple2<Operator1<L>, A>> value) {
-    WriterT<F, L, Tuple2<Operator1<L>, A>> writerT = value.fix(WriterTOf::toWriterT);
-    return writerT.listen().flatMap((Tuple2<L, Tuple2<Operator1<L>, A>> tuple) -> {
-        Operator1<L> operator = tuple.get2().get1();
-        A value2 = tuple.get2().get2();
-      return writer(Tuple.of(operator.apply(tuple.get1()), value2)).fix(WriterTOf::toWriterT);
-      });
+    WriterT<F, L, Tuple2<Operator1<L>, A>> writerT = value.fix();
+    return writerT.listen().flatMap(tuple -> {
+      Operator1<L> operator = tuple.get2().get1();
+      A value2 = tuple.get2().get2();
+      return writer(Tuple.of(operator.apply(tuple.get1()), value2)).fix();
+    });
   }
 }
 
@@ -139,7 +139,7 @@ interface WriterTMonadError<F extends Kind<F, ?>, L, E>
       Kind<WriterT<F, L, ?>, A> value,
       Function1<? super E, ? extends Kind<WriterT<F, L, ?>, ? extends A>> handler) {
     return WriterT.writer(monoid(), monadF(),
-        monadF().handleErrorWith(value.fix(WriterTOf::<F, L, A>toWriterT).value(),
-            error -> handler.apply(error).fix(WriterTOf::<F, L, A>toWriterT).value()));
+        monadF().handleErrorWith(value.<WriterT<F, L, A>>fix().value(),
+            error -> handler.apply(error).<WriterT<F, L, A>>fix().value()));
   }
 }

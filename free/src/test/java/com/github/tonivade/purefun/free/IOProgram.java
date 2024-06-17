@@ -46,7 +46,7 @@ class IOProgramToState implements FunctionK<IOProgram<?>, State<ImmutableList<St
 
   @Override
   public <X> State<ImmutableList<String>, X> apply(Kind<IOProgram<?>, ? extends X> from) {
-    return (State<ImmutableList<String>, X>) switch (from.fix(IOProgramOf::toIOProgram)) {
+    return (State<ImmutableList<String>, X>) switch (from.<IOProgram<X>>fix()) {
       case IOProgram.Read() -> console.readln();
       case IOProgram.Write(var value) -> console.println(value);
     };
@@ -60,7 +60,7 @@ class IOProgramToIO implements FunctionK<IOProgram<?>, IO<?>> {
 
   @Override
   public <X> IO<X> apply(Kind<IOProgram<?>, ? extends X> from) {
-    return (IO<X>) switch (from.fix(IOProgramOf::toIOProgram)) {
+    return (IO<X>) switch (from.<IOProgram<X>>fix()) {
       case IOProgram.Read() -> console.readln();
       case IOProgram.Write(var value) -> console.println(value);
     };

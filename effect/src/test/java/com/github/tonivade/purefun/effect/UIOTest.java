@@ -211,7 +211,7 @@ public class UIOTest {
         UIO<String> task = UIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(UIOOf::toUIO);
+      .flatMap(Fiber::join).fix();
 
     String orElseThrow = result.unsafeRunSync();
 

@@ -213,7 +213,7 @@ class TaskTest {
         Task<String> task = Task.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(TaskOf::toTask);
+      .flatMap(Fiber::join).fix();
 
     Try<String> orElseThrow = result.safeRunSync();
 

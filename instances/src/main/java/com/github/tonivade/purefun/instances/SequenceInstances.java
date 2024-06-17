@@ -145,7 +145,7 @@ interface SequenceApplicative extends SequencePure, Applicative<Sequence<?>> {
   @Override
   default <T, R> Kind<Sequence<?>, R> ap(Kind<Sequence<?>, ? extends T> value,
       Kind<Sequence<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return SequenceOf.toSequence(apply).flatMap(map -> SequenceOf.toSequence(value).map(map));
+    return apply.<Sequence<Function1<T, R>>>fix().flatMap(map -> value.<Sequence<T>>fix().map(map));
   }
 }
 
@@ -191,12 +191,12 @@ interface SequenceTraverse extends Traverse<Sequence<?>>, SequenceFoldable {
   default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Sequence<?>, R>> traverse(
       Applicative<G> applicative, Kind<Sequence<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
-    return value.fix(SequenceOf::toSequence).foldLeft(
+    return value.<Sequence<T>>fix().foldLeft(
       applicative.pure(Sequence.emptyList()),
       (acc, a) -> {
         Kind<G, ? extends R> apply = mapper.apply(a);
         return applicative.mapN(apply, acc)
-            .apply((e, seq) -> seq.fix(SequenceOf::<R>toSequence).append(e));
+            .apply((e, seq) -> seq.<Sequence<R>>fix().append(e));
       });
   }
 }

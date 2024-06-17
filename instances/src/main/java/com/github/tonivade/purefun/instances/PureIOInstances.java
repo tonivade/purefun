@@ -112,7 +112,7 @@ interface PureIOApplicative<R, E> extends PureIOPure<R, E> {
   default <A, B> PureIO<R, E, B>
           ap(Kind<PureIO<R, E, ?>, ? extends A> value,
              Kind<PureIO<R, E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(PureIOOf::<R, E, A>toPureIO).ap(apply);
+    return value.<PureIO<R, E, A>>fix().ap(apply);
   }
 }
 
@@ -125,7 +125,7 @@ interface PureIOMonad<R, E> extends PureIOPure<R, E>, Monad<PureIO<R, E, ?>> {
   default <A, B> PureIO<R, E, B>
           flatMap(Kind<PureIO<R, E, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<PureIO<R, E, ?>, ? extends B>> map) {
-    return value.fix(PureIOOf::toPureIO).flatMap(map.andThen(PureIOOf::toPureIO));
+    return value.<PureIO<R, E, A>>fix().flatMap(map.andThen(PureIOOf::toPureIO));
   }
 }
 
@@ -213,7 +213,7 @@ interface PureIOConcurrent<R> extends Concurrent<PureIO<R, Throwable, ?>>, PureI
 
   @Override
   default <A> PureIO<R, Throwable, Fiber<PureIO<R, Throwable, ?>, A>> fork(Kind<PureIO<R, Throwable, ?>, ? extends A> value) {
-    return value.fix(PureIOOf::<R, Throwable, A>toPureIO).fork();
+    return value.<PureIO<R, Throwable, A>>fix().fork();
   }
 }
 
@@ -245,7 +245,7 @@ interface PureIORuntime<R, E> extends Runtime<PureIO<R, E, ?>> {
 
   @Override
   default <T> T run(Kind<PureIO<R, E, ?>, T> value) {
-    return value.fix(PureIOOf::toPureIO).provide(env()).getRight();
+    return value.<PureIO<R, E, T>>fix().provide(env()).getRight();
   }
 
   @Override
@@ -255,7 +255,7 @@ interface PureIORuntime<R, E> extends Runtime<PureIO<R, E, ?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<PureIO<R, E, ?>, T> value, Executor executor) {
-    return value.fix(PureIOOf::toPureIO).runAsync(env()).map(Either::get);
+    return value.<PureIO<R, E, T>>fix().runAsync(env()).map(Either::get);
   }
 
   @Override

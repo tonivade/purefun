@@ -199,7 +199,7 @@ public class RIOTest {
         RIO<Void, String> task = task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(RIOOf::toRIO);
+      .flatMap(Fiber::join).fix();
 
     Try<String> orElseThrow = result.safeRunSync(null);
 

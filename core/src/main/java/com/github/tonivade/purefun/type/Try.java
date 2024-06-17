@@ -121,7 +121,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
 
   @Override
   default <R> Try<R> ap(Kind<Try<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(TryOf::toTry).flatMap(this::map);
+    return apply.<Try<Function1<T, R>>>fix().flatMap(this::map);
   }
 
   default Try<T> mapError(Function1<? super Throwable, ? extends Throwable> mapper) {
