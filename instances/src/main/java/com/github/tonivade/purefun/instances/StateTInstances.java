@@ -76,10 +76,10 @@ interface StateTMonadError<F extends Kind<F, ?>, S, E> extends MonadError<StateT
   default <A> StateT<F, S, A> handleErrorWith(
       Kind<StateT<F, S, ?>, A> value,
       Function1<? super E, ? extends Kind<StateT<F, S, ?>, ? extends A>> handler) {
-    StateT<F, S, A> stateT = value.fix(StateTOf::toStateT);
+    StateT<F, S, A> stateT = value.fix();
     return StateT.state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
-            error -> handler.apply(error).fix(StateTOf::<F, S, A>toStateT).run(state)));
+            error -> handler.apply(error).<StateT<F, S, A>>fix().run(state)));
   }
 }
 

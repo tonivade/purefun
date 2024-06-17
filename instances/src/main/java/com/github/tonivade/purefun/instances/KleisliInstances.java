@@ -51,7 +51,7 @@ interface KleisliMonad<F extends Kind<F, ?>, Z> extends Monad<Kleisli<F, Z, ?>> 
   @Override
   default <T, R> Kleisli<F, Z, R> flatMap(Kind<Kleisli<F, Z, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kleisli<F, Z, ?>, ? extends R>> map) {
-    return value.fix(KleisliOf::toKleisli).flatMap(map.andThen(KleisliOf::toKleisli));
+    return value.<Kleisli<F, Z, T>>fix().flatMap(map.andThen(KleisliOf::toKleisli));
   }
 }
 
@@ -73,10 +73,10 @@ interface KleisliMonadError<F extends Kind<F, ?>, R, E> extends MonadError<Kleis
   default <A> Kleisli<F, R, A> handleErrorWith(
       Kind<Kleisli<F, R, ?>, A> value,
       Function1<? super E, ? extends Kind<Kleisli<F, R, ?>, ? extends A>> handler) {
-    Kleisli<F, R, A> kleisli = value.fix(KleisliOf::toKleisli);
+    Kleisli<F, R, A> kleisli = value.fix();
     return Kleisli.of(monadF(),
         reader -> monadF().handleErrorWith(kleisli.run(reader),
-            error -> handler.apply(error).fix(KleisliOf::toKleisli).run(reader)));
+            error -> handler.apply(error).<Kleisli<F, R, A>>fix().run(reader)));
   }
 }
 

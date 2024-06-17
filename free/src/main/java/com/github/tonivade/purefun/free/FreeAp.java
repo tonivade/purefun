@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Const;
-import com.github.tonivade.purefun.type.ConstOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import java.util.ArrayDeque;
@@ -42,20 +41,20 @@ public sealed interface FreeAp<F extends Kind<F, ?>, A> extends FreeApOf<F, A>, 
   }
 
   default <G extends Kind<G, ?>> FreeAp<G, A> compile(FunctionK<F, G> transformer) {
-    return foldMap(functionKF(transformer), applicativeF()).fix(FreeApOf::toFreeAp);
+    return foldMap(functionKF(transformer), applicativeF()).fix();
   }
 
   default <G extends Kind<G, ?>> FreeAp<G, A> flatCompile(
       FunctionK<F, FreeAp<G, ?>> functionK, Applicative<FreeAp<G, ?>> applicative) {
-    return foldMap(functionK, applicative).fix(FreeApOf::toFreeAp);
+    return foldMap(functionK, applicative).fix();
   }
 
   default <M> M analyze(FunctionK<F, Const<M, ?>> functionK, Applicative<Const<M, ?>> applicative) {
-    return foldMap(functionK, applicative).fix(ConstOf::toConst).value();
+    return foldMap(functionK, applicative).<Const<M, ?>>fix().value();
   }
 
   default Free<F, A> monad() {
-    return foldMap(Free.functionKF(FunctionK.<F>identity()), Free.monadF()).fix(FreeOf::toFree);
+    return foldMap(Free.functionKF(FunctionK.<F>identity()), Free.monadF()).fix();
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -121,7 +120,7 @@ public sealed interface FreeAp<F extends Kind<F, ?>, A> extends FreeApOf<F, A>, 
 
   static <F extends Kind<F, ?>, T, R> FreeAp<F, R> apply(Kind<FreeAp<F, ?>, ? extends T> value,
       Kind<FreeAp<F, ?>, ? extends Function1<? super T, ? extends R>> mapper) {
-    return new Apply<>(value.fix(FreeApOf::toFreeAp), mapper.fix(FreeApOf::toFreeAp));
+    return new Apply<>(value.fix(), mapper.fix());
   }
 
   static <F extends Kind<F, ?>, G extends Kind<G, ?>> FunctionK<F, FreeAp<G, ?>> functionKF(FunctionK<F, G> functionK) {

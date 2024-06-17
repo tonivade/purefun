@@ -135,6 +135,6 @@ interface FreeMonad<F extends Kind<F, ?>> extends Monad<Free<F, ?>> {
   @Override
   default <T, R> Free<F, R> flatMap(
       Kind<Free<F, ?>, ? extends T> value, Function1<? super T, ? extends Kind<Free<F, ?>, ? extends R>> map) {
-    return value.fix(FreeOf::toFree).flatMap(map.andThen(FreeOf::toFree));
+    return value.<Free<F, T>>fix().flatMap(map.andThen(FreeOf::toFree));
   }
 }

@@ -106,7 +106,7 @@ interface EIOApplicative<E> extends EIOPure<E> {
   default <A, B> EIO<E, B>
           ap(Kind<EIO<E, ?>, ? extends A> value,
              Kind<EIO<E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(EIOOf::<E, A>toEIO).ap(apply.fix(EIOOf::toEIO));
+    return value.<EIO<E, A>>fix().ap(apply);
   }
 }
 
@@ -119,7 +119,7 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<EIO<E, ?>> {
   default <A, B> EIO<E, B>
           flatMap(Kind<EIO<E, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<EIO<E, ?>, ? extends B>> map) {
-    return value.fix(EIOOf::toEIO).flatMap(map.andThen(EIOOf::toEIO));
+    return value.<EIO<E, A>>fix().flatMap(map.andThen(EIOOf::toEIO));
   }
 }
 
@@ -209,7 +209,7 @@ interface EIOConcurrent extends EIOAsync, Concurrent<EIO<Throwable, ?>> {
 
   @Override
   default <A> EIO<Throwable, Fiber<EIO<Throwable, ?>, A>> fork(Kind<EIO<Throwable, ?>, ? extends A> value) {
-    EIO<Throwable, A> fix = value.fix(EIOOf::toEIO);
+    EIO<Throwable, A> fix = value.fix();
     return fix.fork();
   }
 }
@@ -221,7 +221,7 @@ interface EIORuntime<E> extends Runtime<EIO<E, ?>> {
 
   @Override
   default <T> T run(Kind<EIO<E, ?>, T> value) {
-    return value.fix(EIOOf::toEIO).safeRunSync().getRight();
+    return value.<EIO<E, T>>fix().safeRunSync().getRight();
   }
 
   @Override
@@ -231,7 +231,7 @@ interface EIORuntime<E> extends Runtime<EIO<E, ?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<EIO<E, ?>, T> value, Executor executor) {
-    return value.fix(EIOOf::toEIO).runAsync().map(Either::get);
+    return value.<EIO<E, T>>fix().runAsync().map(Either::get);
   }
 
   @Override

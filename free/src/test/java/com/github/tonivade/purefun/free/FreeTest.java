@@ -9,7 +9,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.State;
 import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
@@ -41,7 +40,7 @@ public class FreeTest {
 
     var executor = new ConsoleExecutor().read("Toni");
 
-    IO<Unit> fix = foldMap.fix(IOOf::toIO);
+    IO<Unit> fix = foldMap.fix();
     executor.run(fix);
 
     assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());

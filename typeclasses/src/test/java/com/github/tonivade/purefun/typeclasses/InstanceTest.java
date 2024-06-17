@@ -11,15 +11,10 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.transformer.EitherT;
-import com.github.tonivade.purefun.transformer.EitherTOf;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdOf;
 
 public class InstanceTest {
 
@@ -27,7 +22,7 @@ public class InstanceTest {
   public void testSimple() {
     Functor<Id<?>> functor = new Instance<Id<?>>() { }.functor();
 
-    Id<Integer> result = functor.map(Id.of(1), x -> x + 1).fix(IdOf::toId);
+    Id<Integer> result = functor.map(Id.of(1), x -> x + 1).fix();
 
     assertEquals(Id.of(2), result);
   }
@@ -36,7 +31,7 @@ public class InstanceTest {
   public void testComplex() {
     Functor<Either<String, ?>> functor = new Instance<Either<String, ?>>() { }.functor();
 
-    Either<String, Integer> result = functor.map(Either.right(1), x -> x + 1).fix(EitherOf::toEither);
+    Either<String, Integer> result = functor.map(Either.right(1), x -> x + 1).fix();
 
     assertEquals(Either.right(2), result);
   }
@@ -45,7 +40,7 @@ public class InstanceTest {
   public void testPureIO() {
     Functor<PureIO<Void, String, ?>> functor = new Instance<PureIO<Void, String, ?>>() { }.functor();
 
-    PureIO<Void, String, Integer> result = functor.map(PureIO.pure(1), x -> x + 1).fix(PureIOOf::toPureIO);
+    PureIO<Void, String, Integer> result = functor.map(PureIO.pure(1), x -> x + 1).fix();
 
     assertEquals(Either.right(2), result.provide(null));
   }
@@ -54,9 +49,9 @@ public class InstanceTest {
   public void testEitherT() {
     Functor<EitherT<IO<?>, String, ?>> functor = new Instance<EitherT<IO<?>, String, ?>>() { }.monad(Instances.<IO<?>>monad());
 
-    EitherT<IO<?>, String, Integer> result = functor.map(EitherT.right(Instances.<IO<?>>monad(), 1), x -> x + 1).fix(EitherTOf::toEitherT);
+    EitherT<IO<?>, String, Integer> result = functor.map(EitherT.right(Instances.<IO<?>>monad(), 1), x -> x + 1).fix();
 
-    assertEquals(Either.right(2), result.value().fix(IOOf::toIO).unsafeRunSync());
+    assertEquals(Either.right(2), result.value().<IO<Either<String, Integer>>>fix().unsafeRunSync());
   }
 
   @Test

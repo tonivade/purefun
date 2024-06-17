@@ -15,9 +15,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Instances;
 
@@ -97,7 +95,7 @@ class EitherKTest {
     EitherK<Option<?>, Option<?>, String> result = eitherK.<Option<?>>mapK(new FunctionK<>() {
       @Override
       public <T> Option<T> apply(Kind<Try<?>, ? extends T> from) {
-        return from.fix(TryOf::<T>toTry).toOption();
+        return from.<Try<T>>fix().toOption();
       }
     });
 
@@ -111,7 +109,7 @@ class EitherKTest {
     EitherK<Try<?>, Try<?>, String> result = eitherK.<Try<?>>mapLeftK(new FunctionK<>() {
       @Override
       public <T> Try<T> apply(Kind<Option<?>, ? extends T> from) {
-        return from.fix(OptionOf::<T>toOption).fold(Try::failure, Try::success);
+        return from.<Option<T>>fix().fold(Try::failure, Try::success);
       }
     });
 

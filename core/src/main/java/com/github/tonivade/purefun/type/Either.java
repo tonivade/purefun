@@ -108,7 +108,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, 
   @Override
   default <T> Either<L, T> ap(
       Kind<Either<L, ?>, ? extends Function1<? super R, ? extends T>> apply) {
-    return apply.fix(EitherOf::toEither).flatMap(this::map);
+    return apply.<Either<L, Function1<R, T>>>fix().flatMap(this::map);
   }
 
   default <T> Either<T, R> mapLeft(Function1<? super L, ? extends T> map) {

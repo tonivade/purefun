@@ -94,7 +94,7 @@ interface TryApplicative extends TryPure {
   @Override
   default <T, R> Kind<Try<?>, R> ap(Kind<Try<?>, ? extends T> value,
       Kind<Try<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return TryOf.toTry(value).flatMap(t -> TryOf.toTry(apply).map(f -> f.apply(t)));
+    return value.<Try<T>>fix().ap(apply);
   }
 }
 

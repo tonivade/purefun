@@ -111,12 +111,12 @@ interface IdFoldable extends Foldable<Id<?>> {
 
   @Override
   default <A, B> B foldLeft(Kind<Id<?>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
-    return mapper.apply(initial, value.fix(IdOf::toId).value());
+    return mapper.apply(initial, value.<Id<A>>fix().value());
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Kind<Id<?>, ? extends A> value, Eval<? extends B> initial, Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    return EvalOf.toEval(mapper.apply(value.fix(IdOf::toId).value(), initial));
+    return EvalOf.toEval(mapper.apply(value.<Id<A>>fix().value(), initial));
   }
 }
 
@@ -128,7 +128,7 @@ interface IdTraverse extends Traverse<Id<?>>, IdFoldable {
   default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Id<?>, R>> traverse(
       Applicative<G> applicative, Kind<Id<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
-    Kind<G, ? extends R> apply = mapper.apply(value.fix(IdOf::toId).value());
+    Kind<G, ? extends R> apply = mapper.apply(value.<Id<T>>fix().value());
     return applicative.map(apply, Id::of);
   }
 }

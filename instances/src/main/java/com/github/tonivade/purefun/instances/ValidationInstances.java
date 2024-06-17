@@ -90,8 +90,8 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Valida
   @Override
   default <T, R> Validation<E, R> ap(Kind<Validation<E, ?>, ? extends T> value,
                                      Kind<Validation<E, ?>, ? extends Function1<? super T, ? extends R>> apply) {
-    Validation<E, T> validation = value.fix(ValidationOf::toValidation);
-    Validation<E, Function1<? super T, ? extends R>> validationF = apply.fix(ValidationOf::toValidation);
+    Validation<E, T> validation = value.fix();
+    Validation<E, Function1<T, R>> validationF = apply.fix();
 
     if (validation.isValid() && validationF.isValid()) {
       return Validation.valid(validationF.get().apply(validation.get()));
@@ -114,7 +114,7 @@ interface ValidationSelective<E> extends ValidationApplicative<E>, Selective<Val
   @Override
   default <A, B> Validation<E, B> select(Kind<Validation<E, ?>, Either<A, B>> value,
                                          Kind<Validation<E, ?>, Function1<? super A, ? extends B>> apply) {
-    return Validation.select(value.fix(ValidationOf::toValidation), apply.fix(ValidationOf::toValidation));
+    return Validation.select(value.fix(), apply.fix());
   }
 }
 

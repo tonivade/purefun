@@ -76,7 +76,7 @@ interface EitherKFunctor<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Fun
   @Override
   default <T, R> EitherK<F, G, R> map(
       Kind<EitherK<F, G, ?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(EitherKOf::toEitherK).map(f(), g(), map);
+    return value.<EitherK<F, G, T>>fix().map(f(), g(), map);
   }
 }
 
@@ -99,7 +99,7 @@ interface EitherKContravariant<F extends Kind<F, ?>, G extends Kind<G, ?>>
   @Override
   default <A, B> EitherK<F, G, B> contramap(
       Kind<EitherK<F, G, ?>, ? extends A> value, Function1<? super B, ? extends A> map) {
-    return value.fix(EitherKOf::<F, G, A>toEitherK).contramap(f(), g(), map);
+    return value.<EitherK<F, G, A>>fix().contramap(f(), g(), map);
   }
 }
 
@@ -124,12 +124,12 @@ interface EitherKComonad<F extends Kind<F, ?>, G extends Kind<G, ?>>
   default <A, B> EitherK<F, G, B> coflatMap(
       Kind<EitherK<F, G, ?>, ? extends A> value,
       Function1<? super Kind<EitherK<F, G, ?>, ? extends A>, ? extends B> map) {
-    return value.fix(EitherKOf::toEitherK).coflatMap(f(), g(), map);
+    return value.<EitherK<F, G, A>>fix().coflatMap(f(), g(), map);
   }
 
   @Override
   default <A> A extract(Kind<EitherK<F, G, ?>, ? extends A> value) {
-    return value.fix(EitherKOf::toEitherK).extract(f(), g());
+    return value.<EitherK<F, G, A>>fix().extract(f(), g());
   }
 }
 

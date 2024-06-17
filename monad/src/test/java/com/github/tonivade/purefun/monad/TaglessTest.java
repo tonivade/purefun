@@ -28,7 +28,7 @@ public class TaglessTest {
 
   @Test
   public void stateInterpreter() {
-    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix(StateOf::toState);
+    State<ImmutableList<String>, Unit> state = stateProgram.echo().fix();
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(listOf("Toni"));
 
@@ -39,7 +39,7 @@ public class TaglessTest {
   public void ioInterpreter() {
     ConsoleExecutor executor = new ConsoleExecutor().read("Toni");
 
-    IO<Unit> fix = ioProgram.echo().fix(IOOf::toIO);
+    IO<Unit> fix = ioProgram.echo().fix();
     executor.run(fix);
 
     assertEquals("what's your name?\nHello Toni\n", executor.getOutput());

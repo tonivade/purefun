@@ -32,25 +32,25 @@ public class StateTTest {
   @Test
   public void get() {
     Kind<IO<?>, Tuple2<Object, Object>> run = StateT.get(monad).run("abc");
-    assertEquals(Tuple.of("abc", "abc"), run.fix(IOOf::toIO).unsafeRunSync());
+    assertEquals(Tuple.of("abc", "abc"), run.<IO<Tuple2<Object, Object>>>fix().unsafeRunSync());
   }
 
   @Test
   public void set() {
     Kind<IO<?>, Tuple2<String, Unit>> run = StateT.set(monad, "abc").run("zzz");
-    assertEquals(Tuple.of("abc", unit()), run.fix(IOOf::toIO).unsafeRunSync());
+    assertEquals(Tuple.of("abc", unit()), run.<IO<Tuple2<String, Unit>>>fix().unsafeRunSync());
   }
 
   @Test
   public void gets() {
     Kind<IO<?>, String> eval = StateT.<IO<?>, String, String>inspect(monad, String::toUpperCase).eval("abc");
-    assertEquals("ABC", eval.fix(IOOf::toIO).unsafeRunSync());
+    assertEquals("ABC", eval.<IO<String>>fix().unsafeRunSync());
   }
 
   @Test
   public void modify() {
     Kind<IO<?>, Tuple2<String, Unit>> run = StateT.<IO<?>, String>modify(monad, String::toUpperCase).run("abc");
-    assertEquals(Tuple.of("ABC", unit()), run.fix(IOOf::toIO).unsafeRunSync());
+    assertEquals(Tuple.of("ABC", unit()), run.<IO<Tuple2<String, Unit>>>fix().unsafeRunSync());
   }
 
   @Test

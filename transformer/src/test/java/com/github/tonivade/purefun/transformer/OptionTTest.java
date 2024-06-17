@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -150,6 +149,6 @@ class IOToTryFunctionK implements FunctionK<IO<?>, Try<?>> {
 
   @Override
   public <T> Kind<Try<?>, T> apply(Kind<IO<?>, ? extends T> from) {
-    return Try.of(from.fix(IOOf::toIO)::unsafeRunSync);
+    return Try.of(from.<IO<T>>fix()::unsafeRunSync);
   }
 }

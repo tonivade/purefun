@@ -120,7 +120,7 @@ interface TaskApplicative extends TaskPure {
   default <A, B> Task<B>
           ap(Kind<Task<?>, ? extends A> value,
              Kind<Task<?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(TaskOf::<A>toTask).ap(apply.fix(TaskOf::toTask));
+    return value.<Task<A>>fix().ap(apply);
   }
 }
 
@@ -219,7 +219,7 @@ interface TaskConcurrent extends TaskAsync, Concurrent<Task<?>> {
 
   @Override
   default <A> Task<Fiber<Task<?>, A>> fork(Kind<Task<?>, ? extends A> value) {
-    Task<A> fix = value.fix(TaskOf::toTask);
+    Task<A> fix = value.fix();
     return fix.fork();
   }
 
@@ -248,7 +248,7 @@ interface TaskRuntime extends Runtime<Task<?>> {
 
   @Override
   default <T> T run(Kind<Task<?>, T> value) {
-    return value.fix(TaskOf::toTask).safeRunSync().getOrElseThrow();
+    return value.<Task<T>>fix().safeRunSync().getOrElseThrow();
   }
 
   @Override
@@ -258,7 +258,7 @@ interface TaskRuntime extends Runtime<Task<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<Task<?>, T> value, Executor executor) {
-    return value.fix(TaskOf::<T>toTask).runAsync();
+    return value.<Task<T>>fix().runAsync();
   }
 
   @Override

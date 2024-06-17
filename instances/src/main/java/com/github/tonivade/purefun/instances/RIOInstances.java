@@ -107,7 +107,7 @@ interface RIOApplicative<R> extends RIOPure<R> {
   default <A, B> RIO<R, B>
           ap(Kind<RIO<R, ?>, ? extends A> value,
              Kind<RIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(RIOOf::<R, A>toRIO).ap(apply.fix(RIOOf::toRIO));
+    return value.<RIO<R, A>>fix().ap(apply);
   }
 }
 
@@ -120,7 +120,7 @@ interface RIOMonad<R> extends RIOPure<R>, Monad<RIO<R, ?>> {
   default <A, B> RIO<R, B>
           flatMap(Kind<RIO<R, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> map) {
-    return value.fix(RIOOf::toRIO).flatMap(map.andThen(RIOOf::toRIO));
+    return value.<RIO<R, A>>fix().flatMap(map.andThen(RIOOf::toRIO));
   }
 }
 
@@ -216,7 +216,7 @@ interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<RIO<R, ?>> {
 
   @Override
   default <A> RIO<R, Fiber<RIO<R, ?>, A>> fork(Kind<RIO<R, ?>, ? extends A> value) {
-    RIO<R, A> fix = value.fix(RIOOf::toRIO);
+    RIO<R, A> fix = value.fix();
     return fix.fork();
   }
 }
@@ -249,7 +249,7 @@ interface RIORuntime<R> extends Runtime<RIO<R, ?>> {
 
   @Override
   default <T> T run(Kind<RIO<R, ?>, T> value) {
-    return value.fix(RIOOf::toRIO).safeRunSync(env()).getOrElseThrow();
+    return value.<RIO<R, T>>fix().safeRunSync(env()).getOrElseThrow();
   }
 
   @Override
@@ -259,7 +259,7 @@ interface RIORuntime<R> extends Runtime<RIO<R, ?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<RIO<R, ?>, T> value, Executor executor) {
-    return value.fix(RIOOf::<R, T>toRIO).runAsync(env());
+    return value.<RIO<R, T>>fix().runAsync(env());
   }
 
   @Override

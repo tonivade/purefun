@@ -38,7 +38,7 @@ interface ProducerFunctor extends Functor<Producer<?>> {
 
   @Override
   default <T, R> Kind<Producer<?>, R> map(Kind<Producer<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(ProducerOf::<T>toProducer).map(mapper);
+    return value.<Producer<T>>fix().map(mapper);
   }
 }
 
@@ -57,7 +57,7 @@ interface ProducerApplicative extends ProducerPure {
   @Override
   default <T, R> Kind<Producer<?>, R> ap(Kind<Producer<?>, ? extends T> value,
       Kind<Producer<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return ProducerOf.toProducer(value).flatMap(t -> ProducerOf.toProducer(apply).map(f -> f.apply(t)));
+    return value.<Producer<T>>fix().flatMap(t -> apply.<Producer<Function1<T, R>>>fix().map(f -> f.apply(t)));
   }
 }
 
@@ -67,7 +67,7 @@ interface ProducerMonad extends ProducerPure, Monad<Producer<?>> {
 
   @Override
   default <T, R> Kind<Producer<?>, R> flatMap(Kind<Producer<?>, ? extends T> value, Function1<? super T, ? extends Kind<Producer<?>, ? extends R>> mapper) {
-    return value.fix(ProducerOf::toProducer).flatMap(mapper.andThen(ProducerOf::toProducer));
+    return value.<Producer<T>>fix().flatMap(mapper.andThen(ProducerOf::toProducer));
   }
 }
 
@@ -82,6 +82,6 @@ interface ProducerComonad extends ProducerFunctor, Comonad<Producer<?>> {
 
   @Override
   default <A> A extract(Kind<Producer<?>, ? extends A> value) {
-    return value.fix(ProducerOf::toProducer).get();
+    return value.<Producer<A>>fix().get();
   }
 }

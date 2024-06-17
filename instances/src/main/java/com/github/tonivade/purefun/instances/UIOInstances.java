@@ -105,7 +105,7 @@ interface UIOApplicative extends UIOPure {
   @Override
   default <A, B> UIO<B> ap(Kind<UIO<?>, ? extends A> value,
       Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(UIOOf::<A>toUIO).ap(apply.fix(UIOOf::toUIO));
+    return value.<UIO<A>>fix().ap(apply);
   }
 }
 
@@ -116,7 +116,7 @@ interface UIOMonad extends UIOPure, Monad<UIO<?>> {
   @Override
   default <A, B> UIO<B> flatMap(Kind<UIO<?>, ? extends A> value,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
-    return value.fix(UIOOf::toUIO).flatMap(map.andThen(UIOOf::toUIO));
+    return value.<UIO<A>>fix().flatMap(map.andThen(UIOOf::toUIO));
   }
 }
 
@@ -201,7 +201,7 @@ interface UIOConcurrent extends Concurrent<UIO<?>>, UIOAsync {
 
   @Override
   default <A> UIO<Fiber<UIO<?>, A>> fork(Kind<UIO<?>, ? extends A> value) {
-    UIO<A> fix = value.fix(UIOOf::toUIO);
+    UIO<A> fix = value.fix();
     return fix.fork();
   }
 }
@@ -229,7 +229,7 @@ interface UIORuntime extends Runtime<UIO<?>> {
 
   @Override
   default <T> T run(Kind<UIO<?>, T> value) {
-    return value.fix(UIOOf::toUIO).unsafeRunSync();
+    return value.<UIO<T>>fix().unsafeRunSync();
   }
 
   @Override
@@ -239,7 +239,7 @@ interface UIORuntime extends Runtime<UIO<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<UIO<?>, T> value, Executor executor) {
-    return value.fix(UIOOf::<T>toUIO).runAsync();
+    return value.<UIO<T>>fix().runAsync();
   }
 
   @Override
