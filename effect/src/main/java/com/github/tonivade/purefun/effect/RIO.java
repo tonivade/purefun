@@ -14,7 +14,6 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.core.CheckedRunnable;
@@ -36,8 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind
-public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recoverable {
+public final class RIO<R, A> implements Kind<RIO<R, ?>, A>, Effect<RIO<R, ?>, A>, Recoverable {
 
   private static final RIO<?, Unit> UNIT = new RIO<>(PureIO.unit());
 
@@ -84,7 +82,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
   @Override
   public <B> RIO<R, B> flatMap(Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> map) {
     return new RIO<>(instance.flatMap(x -> {
-      RIO<R, ? extends B> apply = map.andThen(RIOOf::toRIO).apply(x);
+      RIO<R, B> apply = map.apply(x).fix();
       return apply.instance;
     }));
   }
@@ -122,8 +120,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
       Function1<? super Throwable, ? extends Kind<RIO<R, ?>, ? extends B>> mapError,
       Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> map) {
     return new RIO<>(instance.foldM(
-        error -> mapError.andThen(RIOOf::toRIO).apply(error).instance,
-        value -> map.andThen(RIOOf::toRIO).apply(value).instance));
+        error -> mapError.apply(error).<RIO<R, B>>fix().instance,
+        value -> map.apply(value).<RIO<R, B>>fix().instance));
   }
 
   public RIO<R, A> orElse(Kind<RIO<R, ?>, ? extends A> other) {
@@ -221,7 +219,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
   }
 
   public static <R, A> RIO<R, A> accessM(Function1<? super R, ? extends Kind<RIO<R, ?>, ? extends A>> map) {
-    return new RIO<>(PureIO.accessM(map.andThen(RIOOf::toRIO).andThen(RIO::toPureIO)));
+    return new RIO<>(PureIO.accessM(map.andThen(Kind::<RIO<R, A>>fix).andThen(RIO::toPureIO)));
   }
 
   public static <R, A> RIO<R, A> access(Function1<? super R, ? extends A> map) {
@@ -335,7 +333,7 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
   }
 
   public static <R, A> RIO<R, A> defer(Producer<Kind<RIO<R, ?>, ? extends A>> lazy) {
-    return new RIO<>(PureIO.defer(() -> lazy.andThen(RIOOf::toRIO).get().instance));
+    return new RIO<>(PureIO.defer(() -> lazy.get().<RIO<R, A>>fix().instance));
   }
 
   public static <R, A> RIO<R, A> task(Producer<? extends A> task) {
@@ -367,20 +365,24 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
 
   public static <R, A extends AutoCloseable, B> RIO<R, B> bracket(Kind<RIO<R, ?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> use) {
-    return new RIO<>(PureIO.bracket(acquire.<RIO<R, A>>fix().instance,
-        resource -> use.andThen(RIOOf::toRIO).apply(resource).instance));
+    return new RIO<>(PureIO.bracket(
+        acquire.<RIO<R, A>>fix().instance,
+        resource -> use.apply(resource).<RIO<R, B>>fix().instance));
   }
 
   public static <R, A, B> RIO<R, B> bracket(Kind<RIO<R, ?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> use, Consumer1<? super A> release) {
-    return new RIO<>(PureIO.bracket(acquire.<RIO<R, A>>fix().instance,
-        resource -> use.andThen(RIOOf::toRIO).apply(resource).instance, release));
+    return new RIO<>(PureIO.bracket(
+        acquire.<RIO<R, A>>fix().instance,
+        resource -> use.apply(resource).<RIO<R, B>>fix().instance, release));
   }
 
   public static <R, A, B> RIO<R, B> bracket(Kind<RIO<R, ?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<RIO<R, ?>, ? extends B>> use, Function1<? super A, ? extends Kind<RIO<R, ?>, Unit>> release) {
-    return new RIO<>(PureIO.bracket(acquire.<RIO<R, A>>fix().instance,
-        resource -> use.andThen(RIOOf::toRIO).apply(resource).instance, release.andThen(RIOOf::toRIO).andThen(RIO::toPureIO)));
+    return new RIO<>(PureIO.bracket(
+        acquire.<RIO<R, A>>fix().instance,
+        resource -> use.apply(resource).<RIO<R, B>>fix().instance,
+        release.andThen(Kind::<RIO<R, Unit>>fix).andThen(RIO::toPureIO)));
   }
 
   @SuppressWarnings("unchecked")

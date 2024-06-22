@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.instances;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.monad.Reader;
-import com.github.tonivade.purefun.monad.ReaderOf;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
 
@@ -36,7 +35,7 @@ interface ReaderMonad<R> extends Monad<Reader<R, ?>> {
   @Override
   default <T, V> Reader<R, V> flatMap(Kind<Reader<R, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Reader<R, ?>, ? extends V>> map) {
-    return ReaderOf.toReader(value).flatMap(map.andThen(ReaderOf::toReader));
+    return value.<Reader<R, T>>fix().flatMap(map);
   }
 }
 

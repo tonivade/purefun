@@ -14,9 +14,7 @@ import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Trampoline;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Foldable;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -75,7 +73,7 @@ interface TryFunctor extends Functor<Try<?>> {
 
   @Override
   default <T, R> Kind<Try<?>, R> map(Kind<Try<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return TryOf.toTry(value).map(mapper);
+    return value.<Try<T>>fix().map(mapper);
   }
 }
 
@@ -105,7 +103,7 @@ interface TryMonad extends TryPure, Monad<Try<?>> {
   @Override
   default <T, R> Kind<Try<?>, R> flatMap(Kind<Try<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Try<?>, ? extends R>> map) {
-    return TryOf.toTry(value).flatMap(map.andThen(TryOf::toTry));
+    return value.<Try<T>>fix().flatMap(map);
   }
 
   @Override
@@ -114,7 +112,7 @@ interface TryMonad extends TryPure, Monad<Try<?>> {
   }
 
   private <T, R> Trampoline<Kind<Try<?>, R>> loop(T value, Function1<T, ? extends Kind<Try<?>, Either<T, R>>> map) {
-    return switch (map.andThen(TryOf::toTry).apply(value)) {
+    return switch (map.apply(value).<Try<Either<T, R>>>fix()) {
       case Try.Failure<Either<T, R>>(var error) -> Trampoline.done(Try.failure(error));
       case Try.Success<Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Try.success(right));
       case Try.Success<Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
@@ -134,7 +132,7 @@ interface TryMonadError extends TryMonad, MonadError<Try<?>, Throwable> {
   @Override
   default <A> Kind<Try<?>, A> handleErrorWith(Kind<Try<?>, A> value,
       Function1<? super Throwable, ? extends Kind<Try<?>, ? extends A>> handler) {
-    return TryOf.toTry(value).fold(handler.andThen(TryOf::toTry), Try::success);
+    return value.<Try<A>>fix().fold(handler, Try::success).fix();
   }
 }
 
@@ -149,15 +147,15 @@ interface TryFoldable extends Foldable<Try<?>> {
 
   @Override
   default <A, B> B foldLeft(Kind<Try<?>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
-    return TryOf.toTry(value).fold(t -> initial, a -> mapper.apply(initial, a));
+    return value.<Try<A>>fix().fold(t -> initial, a -> mapper.apply(initial, a));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Kind<Try<?>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    return TryOf.<A>toTry(value).fold(
-        cons(initial).andThen(EvalOf::<B>toEval),
-        a -> mapper.andThen(EvalOf::<B>toEval).apply(a, initial));
+    return value.<Try<A>>fix().fold(
+        cons(initial),
+        a -> mapper.apply(a, initial)).fix();
   }
 }
 
@@ -169,7 +167,7 @@ interface TryTraverse extends Traverse<Try<?>>, TryFoldable {
   default <G extends Kind<G, ?>, T, R> Kind<G, Kind<Try<?>, R>> traverse(
       Applicative<G> applicative, Kind<Try<?>, T> value,
       Function1<? super T, ? extends Kind<G, ? extends R>> mapper) {
-    return TryOf.toTry(value).fold(
+    return value.<Try<T>>fix().fold(
         t -> applicative.pure(Try.<R>failure(t).kind()),
         t -> {
           Kind<G, ? extends R> apply = mapper.apply(t);

@@ -9,7 +9,6 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.monad.Writer;
-import com.github.tonivade.purefun.monad.WriterOf;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
@@ -36,6 +35,6 @@ interface WriterMonad<L> extends Monad<Writer<L, ?>> {
   @Override
   default <T, R> Writer<L, R> flatMap(Kind<Writer<L, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Writer<L, ?>, ? extends R>> map) {
-    return WriterOf.toWriter(value).flatMap(map.andThen(WriterOf::toWriter));
+    return value.<Writer<L, T>>fix().flatMap(map);
   }
 }

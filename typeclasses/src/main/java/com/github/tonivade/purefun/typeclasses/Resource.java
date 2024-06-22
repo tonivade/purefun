@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.typeclasses;
 import static com.github.tonivade.purefun.core.Consumer1.noop;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Consumer1;
@@ -15,8 +14,7 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 
-@HigherKind
-public final class Resource<F extends Kind<F, ?>, T> implements ResourceOf<F, T> {
+public final class Resource<F extends Kind<F, ?>, T> implements Kind<Resource<F, ?>, T> {
 
   private final MonadDefer<F> monad;
   private final Kind<F, Tuple2<T, Consumer1<? super T>>> resource;
@@ -32,7 +30,7 @@ public final class Resource<F extends Kind<F, ?>, T> implements ResourceOf<F, T>
 
   public <R> Resource<F, R> flatMap(Function1<? super T, ? extends Kind<Resource<F, ?>, ? extends R>> mapper) {
     return new Resource<>(monad, monad.flatMap(resource,
-        t -> monad.map(mapper.andThen(ResourceOf::toResource).apply(t.get1()).resource,
+        t -> monad.map(mapper.apply(t.get1()).<Resource<F, R>>fix().resource,
             r -> Tuple.of(r.get1(), (Consumer1<R>) ignore -> releaseAndThen(t, r)))));
   }
 

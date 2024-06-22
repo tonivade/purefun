@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Trampoline;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Validation;
-import com.github.tonivade.purefun.type.ValidationOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -67,7 +66,7 @@ interface ValidationFunctor<E> extends Functor<Validation<E, ?>> {
   @Override
   default <T, R> Validation<E, R> map(Kind<Validation<E, ?>, ? extends T> value,
       Function1<? super T, ? extends R> map) {
-    return ValidationOf.toValidation(value).map(map);
+    return value.<Validation<E, T>>fix().map(map);
   }
 }
 
@@ -126,7 +125,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Validation<E, ?>> 
   @Override
   default <T, R> Validation<E, R> flatMap(Kind<Validation<E, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Validation<E, ?>, ? extends R>> map) {
-    return ValidationOf.toValidation(value).flatMap(map.andThen(ValidationOf::toValidation));
+    return value.<Validation<E, T>>fix().flatMap(map);
   }
 
   @Override
@@ -136,7 +135,7 @@ interface ValidationMonad<E> extends ValidationPure<E>, Monad<Validation<E, ?>> 
   }
 
   private <T, R> Trampoline<Kind<Validation<E, ?>, R>> loop(T value, Function1<T, ? extends Kind<Validation<E, ?>, Either<T, R>>> map) {
-    return switch (map.andThen(ValidationOf::toValidation).apply(value)) {
+    return switch (map.apply(value).<Validation<E, Either<T, R>>>fix()) {
       case Validation.Invalid<E, Either<T, R>>(var error) -> Trampoline.done(Validation.invalid(error));
       case Validation.Valid<E, Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Validation.valid(right));
       case Validation.Valid<E, Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
@@ -157,7 +156,7 @@ interface ValidationMonadError<E> extends ValidationMonad<E>, MonadError<Validat
   @Override
   default <A> Validation<E, A> handleErrorWith(Kind<Validation<E, ?>, A> value,
       Function1<? super E, ? extends Kind<Validation<E, ?>, ? extends A>> handler) {
-    return ValidationOf.toValidation(value).fold(handler.andThen(ValidationOf::toValidation), Validation::valid);
+    return value.<Validation<E, A>>fix().fold(handler, Validation::valid).fix();
   }
 }
 

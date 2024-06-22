@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -130,7 +129,7 @@ interface IOMonad extends Monad<IO<?>>, IOPure {
   default <T, R> IO<R> flatMap(
       Kind<IO<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<IO<?>, ? extends R>> map) {
-    return value.<IO<T>>fix().flatMap(map.andThen(IOOf::toIO));
+    return value.<IO<T>>fix().flatMap(map);
   }
 }
 
@@ -147,7 +146,7 @@ interface IOMonadError extends MonadError<IO<?>, Throwable>, IOMonad {
   default <A> IO<A> handleErrorWith(
       Kind<IO<?>, A> value,
       Function1<? super Throwable, ? extends Kind<IO<?>, ? extends A>> handler) {
-    return IOOf.toIO(value).redeemWith(handler.andThen(IOOf::toIO), IO::pure);
+    return value.<IO<A>>fix().redeemWith(handler, IO::pure);
   }
 }
 
@@ -160,7 +159,7 @@ interface IODefer extends Defer<IO<?>> {
 
   @Override
   default <A> IO<A> defer(Producer<? extends Kind<IO<?>, ? extends A>> defer) {
-    return IO.suspend(defer.map(IOOf::toIO));
+    return IO.suspend(defer);
   }
 }
 
@@ -191,7 +190,7 @@ interface IOAsync extends Async<IO<?>>, IOMonadDefer {
 
   @Override
   default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO<?>, Unit>> consumer) {
-    return IO.cancellable(consumer.andThen(IOOf::toIO));
+    return IO.cancellable(consumer);
   }
 }
 
@@ -243,7 +242,7 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<IO<?>, T>> values) {
-    return run(IO.traverse(values.map(IOOf::<T>toIO)));
+    return run(IO.traverse(values));
   }
 
   @Override
@@ -253,6 +252,6 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<IO<?>, T>> values, Executor executor) {
-    return parRun(IO.traverse(values.map(IOOf::<T>toIO)), executor);
+    return parRun(IO.traverse(values), executor);
   }
 }

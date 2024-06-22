@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
@@ -20,8 +19,7 @@ import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
-public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<F, S, A>, Bindable<StateT<F, S, ?>, A> {
+public interface StateT<F extends Kind<F, ?>, S, A> extends Kind<StateT<F, S, ?>, A>, Bindable<StateT<F, S, ?>, A> {
 
   Monad<F> monad();
   Kind<F, Tuple2<S, A>> run(S state);
@@ -39,7 +37,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
   default <R> StateT<F, S, R> flatMap(Function1<? super A, ? extends Kind<StateT<F, S, ?>, ? extends R>> map) {
     return state(monad(), state -> {
       Kind<F, Tuple2<S, A>> newState = run(state);
-      return monad().flatMap(newState, state2 -> map.andThen(StateTOf::<F, S, R>toStateT).apply(state2.get2()).run(state2.get1()));
+      return monad().flatMap(newState, state2 -> map.apply(state2.get2()).<StateT<F, S, R>>fix().run(state2.get1()));
     });
   }
 

@@ -4,7 +4,7 @@
  */
 package com.github.tonivade.purefun.core;
 
-import com.github.tonivade.purefun.HigherKind;
+import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
@@ -14,9 +14,8 @@ import com.github.tonivade.purefun.type.Try;
  * but with additional functionality like the ability to memoize the result.
  * @param <T> the returned type
  */
-@HigherKind
 @FunctionalInterface
-public non-sealed interface Producer<T> extends ProducerOf<T>, Recoverable {
+public interface Producer<T> extends Kind<Producer<?>, T>, Recoverable {
 
   default T get() {
     try {

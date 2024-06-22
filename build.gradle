@@ -20,7 +20,6 @@ dependencies {
   jacocoAggregation projects.purefunInstances
   jacocoAggregation projects.purefunMonad
   jacocoAggregation projects.purefunOptics
-  jacocoAggregation projects.purefunProcessor
   jacocoAggregation projects.purefunStream
   jacocoAggregation projects.purefunTransformer
   jacocoAggregation projects.purefunTypeclasses
@@ -31,7 +30,6 @@ dependencies {
   testReportAggregation projects.purefunInstances
   testReportAggregation projects.purefunMonad
   testReportAggregation projects.purefunOptics
-  testReportAggregation projects.purefunProcessor
   testReportAggregation projects.purefunStream
   testReportAggregation projects.purefunTransformer
   testReportAggregation projects.purefunTypeclasses

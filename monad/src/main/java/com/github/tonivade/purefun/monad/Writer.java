@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.monad;
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
@@ -15,8 +14,7 @@ import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-@HigherKind
-public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Writer<L, ?>, A> {
+public interface Writer<L, A> extends Kind<Writer<L, ?>, A>, Bindable<Writer<L, ?>, A> {
 
   Monoid<L> monoid();
   Tuple2<L, A> value();
@@ -54,7 +52,7 @@ public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Writer
 
   @Override
   default <B> Writer<L, B> flatMap(Function1<? super A, ? extends Kind<Writer<L, ?>, ? extends B>> mapper) {
-    Writer<L, B> apply = mapper.andThen(WriterOf::<L, B>toWriter).apply(value().get2());
+    Writer<L, B> apply = mapper.apply(value().get2()).fix();
     Tuple2<L, A> combine = value().map1(log -> monoid().combine(log, apply.getLog()));
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
   }

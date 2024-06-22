@@ -10,11 +10,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.data.Sequence;
 
-@HigherKind
-public final class Tuple2<A, B> implements Tuple, Tuple2Of<A, B>, Serializable {
+public final class Tuple2<A, B> implements Tuple, Serializable {
 
   @Serial
   private static final long serialVersionUID = 5034828839532504174L;

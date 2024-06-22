@@ -4,14 +4,12 @@
  */
 package com.github.tonivade.purefun.monad;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 
-@HigherKind
 @FunctionalInterface
-public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Reader<R, ?>, A> {
+public interface Reader<R, A> extends Kind<Reader<R, ?>, A>, Bindable<Reader<R, ?>, A> {
 
   A eval(R reader);
 
@@ -22,7 +20,7 @@ public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Reader
 
   @Override
   default <B> Reader<R, B> flatMap(Function1<? super A, ? extends Kind<Reader<R, ?>, ? extends B>> mapper) {
-    return reader -> mapper.andThen(ReaderOf::toReader).apply(eval(reader)).eval(reader);
+    return reader -> mapper.apply(eval(reader)).<Reader<R, B>>fix().eval(reader);
   }
 
   default <B> Reader<R, B> andThen(Reader<R, ? extends B> next) {

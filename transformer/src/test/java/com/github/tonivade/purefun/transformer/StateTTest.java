@@ -18,10 +18,8 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
@@ -58,7 +56,7 @@ public class StateTTest {
     StateT<IO<?>, ImmutableList<String>, Unit> state =
         pure("a").flatMap(append("b")).flatMap(append("c")).flatMap(end());
 
-    IO<Tuple2<ImmutableList<String>, Unit>> result = IOOf.toIO(state.run(ImmutableList.empty()));
+    IO<Tuple2<ImmutableList<String>, Unit>> result = state.run(ImmutableList.empty()).fix();
 
     assertEquals(Tuple.of(listOf("a", "b", "c"), unit()), result.unsafeRunSync());
   }
@@ -71,7 +69,7 @@ public class StateTTest {
 
     Kind<IO<?>, Tuple2<Unit, Sequence<String>>> result = StateT.traverse(monad, listOf(sa, sb, sc)).run(unit());
 
-    assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), IOOf.toIO(result).unsafeRunSync());
+    assertEquals(Tuple.of(unit(), listOf("a", "b", "c")), result.<IO<Tuple2<Unit, Sequence<String>>>>fix().unsafeRunSync());
   }
 
   @Test
@@ -79,7 +77,7 @@ public class StateTTest {
     StateT<IO<?>, ImmutableList<String>, Option<String>> read =
         StateT.lift(monad, state -> Tuple.of(state.tail(), state.head()));
 
-    IO<Tuple2<ImmutableList<String>, Option<String>>> result = IOOf.toIO(read.run(listOf("a", "b", "c")));
+    IO<Tuple2<ImmutableList<String>, Option<String>>> result = read.run(listOf("a", "b", "c")).fix();
 
     assertEquals(Tuple.of(listOf("b", "c"), Option.some("a")), result.unsafeRunSync());
   }
@@ -90,7 +88,7 @@ public class StateTTest {
 
     StateT<Try<?>, Unit, String> stateTry = stateIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success(Tuple2.of(unit(), "abc")), TryOf.toTry(stateTry.run(unit())));
+    assertEquals(Try.success(Tuple2.of(unit(), "abc")), stateTry.run(unit()));
   }
 
   private StateT<IO<?>, ImmutableList<String>, String> pure(String value) {

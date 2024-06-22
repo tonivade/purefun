@@ -10,7 +10,6 @@ import static com.github.tonivade.purefun.data.Sequence.asStream;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
@@ -29,10 +28,8 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.MonadDefer;
 
-@HigherKind
 public sealed interface PureStream<F extends Kind<F, ?>, T>
-  extends PureStreamOf<F, T>, Bindable<PureStream<F, ?>, T>
-    permits Cons, Suspend, Nil {
+  extends Kind<PureStream<F, ?>, T>, Bindable<PureStream<F, ?>, T> permits Cons, Suspend, Nil {
 
   default PureStream<F, T> head() {
     return take(1);
@@ -216,7 +213,7 @@ public sealed interface PureStream<F extends Kind<F, ?>, T>
     default <T> PureStream<F, T> suspend(Producer<? extends PureStream<F, ? extends T>> lazy) {
       return new Suspend<>(monadDefer(),
           monadDefer().defer(
-              lazy.andThen(PureStreamOf::<F, T>toPureStream).map(monadDefer()::<PureStream<F, T>>pure)));
+              lazy.andThen(Kind::<PureStream<F, T>>fix).map(monadDefer()::<PureStream<F, T>>pure)));
     }
 
     default <T> PureStream<F, T> eval(Kind<F, ? extends T> value) {

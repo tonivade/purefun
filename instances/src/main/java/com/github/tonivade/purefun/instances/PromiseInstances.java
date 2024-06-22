@@ -11,7 +11,6 @@ import java.util.concurrent.Executor;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
-import com.github.tonivade.purefun.concurrent.PromiseOf;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -84,7 +83,7 @@ interface PromiseMonad extends PromisePure, Monad<Promise<?>> {
   @Override
   default <T, R> Kind<Promise<?>, R> flatMap(Kind<Promise<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> map) {
-    return value.<Promise<T>>fix().flatMap(map.andThen(PromiseOf::toPromise));
+    return value.<Promise<T>>fix().flatMap(map);
   }
 
   /**

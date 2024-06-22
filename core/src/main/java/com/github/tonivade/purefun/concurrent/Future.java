@@ -18,7 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.CheckedRunnable;
@@ -32,7 +31,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 
 /**
  * <p>This type is an abstraction of a computation executed in another thread. To run the computation an {@code Executor}
@@ -66,8 +64,7 @@ import com.github.tonivade.purefun.type.TryOf;
  * @see Try
  * @see Promise
  */
-@HigherKind
-public sealed interface Future<T> extends FutureOf<T>, Bindable<Future<?>, T> {
+public sealed interface Future<T> extends Kind<Future<?>, T>, Bindable<Future<?>, T> {
 
   Executor DEFAULT_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -382,7 +379,7 @@ final class FutureImpl<T> implements Future<T> {
   @Override
   public <X extends Throwable> Future<T> recoverWith(Class<X> type, Function1<? super X, ? extends T> mapper) {
     return transform(value -> {
-      Try<T> try1 = TryOf.toTry(value);
+      Try<T> try1 = value.fix();
       return try1.recoverWith(type, mapper);
     });
   }
@@ -424,7 +421,7 @@ final class FutureImpl<T> implements Future<T> {
     checkNonNull(mapper);
     return new FutureImpl<>(executor,
         (p, c) ->
-          promise.onComplete(value -> mapper.andThen(FutureOf::<R>toFuture).apply(value).onComplete(p::tryComplete)), this::cancel);
+          promise.onComplete(value -> mapper.apply(value).<Future<R>>fix().onComplete(p::tryComplete)), this::cancel);
   }
 
   static <T> Future<T> sync(Executor executor, Try<? extends T> result) {

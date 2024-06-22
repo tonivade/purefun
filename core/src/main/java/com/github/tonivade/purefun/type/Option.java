@@ -15,7 +15,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.core.Applicable;
@@ -37,8 +36,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@HigherKind
-public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, Applicable<Option<?>, T> {
+public sealed interface Option<T> extends Kind<Option<?>, T>, Bindable<Option<?>, T>, Applicable<Option<?>, T> {
 
   static <T> Option<T> some(T value) {
     return new Some<>(value);
@@ -84,7 +82,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, A
   @Override
   default <R> Option<R> flatMap(Function1<? super T, ? extends Kind<Option<?>, ? extends R>> map) {
     return switch (this) {
-      case Some<T>(var value) -> map.andThen(OptionOf::<R>toOption).apply(value);
+      case Some<T>(var value) -> map.apply(value).fix();
       case None<T> n -> none();
     };
   }
@@ -116,7 +114,7 @@ public sealed interface Option<T> extends OptionOf<T>, Bindable<Option<?>, T>, A
 
   default Option<T> or(Producer<Kind<Option<?>, T>> orElse) {
     if (this instanceof None) {
-      return orElse.andThen(OptionOf::toOption).get();
+      return orElse.get().fix();
     }
     return this;
   }

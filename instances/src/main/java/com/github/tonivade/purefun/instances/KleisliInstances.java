@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.Kleisli;
-import com.github.tonivade.purefun.transformer.KleisliOf;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
@@ -51,7 +50,7 @@ interface KleisliMonad<F extends Kind<F, ?>, Z> extends Monad<Kleisli<F, Z, ?>> 
   @Override
   default <T, R> Kleisli<F, Z, R> flatMap(Kind<Kleisli<F, Z, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Kleisli<F, Z, ?>, ? extends R>> map) {
-    return value.<Kleisli<F, Z, T>>fix().flatMap(map.andThen(KleisliOf::toKleisli));
+    return value.<Kleisli<F, Z, T>>fix().flatMap(map);
   }
 }
 

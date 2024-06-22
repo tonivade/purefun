@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
@@ -19,8 +18,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
-public non-sealed interface OptionT<F extends Kind<F, ?>, T> extends OptionTOf<F, T>, Bindable<OptionT<F, ?>, T> {
+public interface OptionT<F extends Kind<F, ?>, T> extends Kind<OptionT<F, ?>, T>, Bindable<OptionT<F, ?>, T> {
 
   Monad<F> monad();
   Kind<F, Option<T>> value();
@@ -32,7 +30,7 @@ public non-sealed interface OptionT<F extends Kind<F, ?>, T> extends OptionTOf<F
 
   @Override
   default <R> OptionT<F, R> flatMap(Function1<? super T, ? extends Kind<OptionT<F, ?>, ? extends R>> map) {
-    return OptionT.of(monad(), flatMapF(v -> map.andThen(OptionTOf::<F, R>toOptionT).apply(v).value()));
+    return OptionT.of(monad(), flatMapF(v -> map.apply(v).<OptionT<F, R>>fix().value()));
   }
 
   default <R> Kind<F, R> fold(Producer<? extends R> orElse, Function1<? super T, ? extends R> map) {

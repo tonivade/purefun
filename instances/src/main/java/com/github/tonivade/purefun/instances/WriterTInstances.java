@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.transformer.WriterT;
-import com.github.tonivade.purefun.transformer.WriterTOf;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadWriter;
@@ -62,7 +61,7 @@ interface WriterTMonad<F extends Kind<F, ?>, L> extends Monad<WriterT<F, L, ?>> 
   @Override
   default <T, R> WriterT<F, L, R> flatMap(Kind<WriterT<F, L, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<WriterT<F, L, ?>, ? extends R>> map) {
-    return WriterTOf.toWriterT(value).flatMap(map.andThen(WriterTOf::toWriterT));
+    return value.<WriterT<F, L, T>>fix().flatMap(map);
   }
 }
 

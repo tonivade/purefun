@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Bindable;
@@ -32,10 +31,8 @@ import com.github.tonivade.purefun.core.Function5;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 
-@HigherKind
-public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise<?>, T>, Applicable<Promise<?>, T> permits PromiseImpl {
+public sealed interface Promise<T> extends Kind<Promise<?>, T>, Bindable<Promise<?>, T>, Applicable<Promise<?>, T> permits PromiseImpl {
 
   boolean tryComplete(Try<? extends T> value);
 
@@ -75,7 +72,7 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise<?>, T>
 
   @Override
   default <R> Promise<R> andThen(Kind<Promise<?>, ? extends R> next) {
-    return PromiseOf.toPromise(Bindable.super.andThen(next));
+    return Bindable.super.andThen(next).fix();
   }
 
   @Override
@@ -238,7 +235,7 @@ final class PromiseImpl<T> implements Promise<T> {
   @Override
   public <R> Promise<R> ap(Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply) {
     Promise<R> result = new PromiseImpl<>(executor);
-    onComplete(try1 -> PromiseOf.toPromise(apply).onComplete(
+    onComplete(try1 -> apply.<Promise<Function1<T, R>>>fix().onComplete(
         try2 -> result.tryComplete(Try.map2(try2,  try1, Function1::apply))));
     return result;
   }
@@ -254,7 +251,7 @@ final class PromiseImpl<T> implements Promise<T> {
   public <R> Promise<R> flatMap(Function1<? super T, ? extends Kind<Promise<?>, ? extends R>> mapper) {
     Promise<R> other = new PromiseImpl<>(executor);
     onComplete(value -> {
-      Try<Promise<R>> map = value.map(mapper.andThen(PromiseOf::toPromise));
+      Try<Promise<R>> map = value.map(mapper).fix();
       map.fold(
         error -> other.tryComplete(Try.failure(error)),
         next -> next.onComplete(other::tryComplete));
@@ -276,9 +273,9 @@ final class PromiseImpl<T> implements Promise<T> {
     return Option.of(safeGet());
   }
 
-  @SuppressWarnings("NullAway")
+  @SuppressWarnings({ "NullAway", "unchecked" })
   private Try<T> safeGet() {
-    return TryOf.toTry(reference.get());
+    return (Try<T>) reference.get();
   }
 
   private void set(Try<? extends T> value) {

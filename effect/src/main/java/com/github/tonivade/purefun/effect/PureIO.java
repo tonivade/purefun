@@ -18,7 +18,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -39,13 +38,11 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
-import com.github.tonivade.purefun.type.EitherOf;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
-@HigherKind
-public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO<R, E, ?>, A> {
+public sealed interface PureIO<R, E, A> extends Kind<PureIO<R, E, ?>, A>, Effect<PureIO<R, E, ?>, A> {
 
   default Either<E, A> provide(@Nullable R env) {
     return runAsync(env).getOrElseThrow();
@@ -275,7 +272,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
       Promise<Either<E, B>> promiseB = runAsync(env, PureIO.<R, E>forked(executor).andThen(zb), connection2);
 
       promiseA.onComplete(a -> promiseB.onComplete(
-        b -> callback.accept(Try.map2(a, b, (e1, e2) -> EitherOf.toEither(Either.map2(e1, e2, mapper))))));
+        b -> callback.accept(Try.map2(a, b, (e1, e2) -> Either.map2(e1, e2, mapper)))));
 
       return PureIO.exec(() -> {
         try {
@@ -472,7 +469,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
 
       PureIOConnection cancellable = PureIOConnection.cancellable();
 
-      Promise<Either<E, A>> promise = runAsync(env, acquire, cancellable);
+      Promise<Either<E, A>> promise = runAsync(env, acquire.fix(), cancellable);
 
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
@@ -480,13 +477,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
           callback.accept(Try.success(Either.left(error)));
           return Unit.unit();
         }, resource -> {
-          Promise<Either<E, B>> runAsync = runAsync(env, use.apply(resource), cancellable);
+          Promise<Either<E, B>> runAsync = runAsync(env, use.apply(resource).fix(), cancellable);
 
           runAsync
             .onFailure(e -> callback.accept(Try.failure(e)))
             .onSuccess(result -> {
 
-              Promise<Either<E, Unit>> run = runAsync(env, release.apply(resource), cancellable);
+              Promise<Either<E, Unit>> run = runAsync(env, release.apply(resource).fix(), cancellable);
 
               run.onComplete(ignore -> result.fold(error -> {
                 callback.accept(Try.success(Either.left(error)));
@@ -639,7 +636,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
   @SuppressWarnings("NullAway")
   private static <R, E, A> void setCancelToken(
       @Nullable R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {
-    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.map(EitherOf::toEither))));
+    connection.setCancelToken(current.callback.apply(env, result -> promise.tryComplete(result.fix())));
   }
 
   final class Pure<R, E, A> implements PureIO<R, E, A> {
@@ -1014,7 +1011,7 @@ final class StackItem<R, E, A> {
     while (!recover.isEmpty()) {
       var mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        return Option.some(mapError.andThen(PureIOOf::<R, E, A>toPureIO).apply(error));
+        return Option.some(mapError.apply(error).fix());
       }
     }
     return Option.none();

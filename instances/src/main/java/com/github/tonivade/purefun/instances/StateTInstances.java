@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.StateT;
-import com.github.tonivade.purefun.transformer.StateTOf;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
@@ -53,7 +52,7 @@ interface StateTMonad<F extends Kind<F, ?>, S> extends Monad<StateT<F, S, ?>> {
   @Override
   default <T, R> StateT<F, S, R> flatMap(Kind<StateT<F, S, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<StateT<F, S, ?>, ? extends R>> map) {
-    return StateTOf.toStateT(value).flatMap(map.andThen(StateTOf::toStateT));
+    return value.<StateT<F, S, T>>fix().flatMap(map);
   }
 }
 

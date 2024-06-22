@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
@@ -80,7 +79,7 @@ public class EitherTTest {
 
     EitherT<Try<?>, Void, String> rightTry = rightIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success("abc"), TryOf.toTry(rightTry.get()));
+    assertEquals(Try.success("abc"), rightTry.get());
   }
 
   @Test

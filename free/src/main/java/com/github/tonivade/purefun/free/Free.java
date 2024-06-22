@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Unit.unit;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
@@ -18,8 +17,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.InjectK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
-public sealed interface Free<F extends Kind<F, ?>, A> extends FreeOf<F, A>, Bindable<Free<F, ?>, A> {
+public sealed interface Free<F extends Kind<F, ?>, A> extends Kind<Free<F, ?>, A>, Bindable<Free<F, ?>, A> {
 
   static <F extends Kind<F, ?>, T> Free<F, T> pure(T value) {
     return new Pure<>(value);
@@ -103,12 +101,12 @@ public sealed interface Free<F extends Kind<F, ?>, A> extends FreeOf<F, A>, Bind
 
     @Override
     public <C> Free<F, C> flatMap(Function1<? super B, ? extends Kind<Free<F, ?>, ? extends C>> map) {
-      return new FlatMapped<>(value, free -> new FlatMapped<>(next.andThen(FreeOf::toFree).apply(free), map));
+      return new FlatMapped<>(value, free -> new FlatMapped<>(next.apply(free).fix(), map));
     }
 
     private <G extends Kind<G, ?>> Kind<G, Either<Free<F, B>, B>> foldStep(Monad<G> monad, FunctionK<F, G> interpreter) {
       Kind<G, ? extends A> foldMap = value.foldMap(monad, interpreter);
-      Function1<? super A, Free<F, B>> andThen = next.andThen(FreeOf::toFree);
+      Function1<? super A, Free<F, B>> andThen = next.andThen(Kind::<Free<F, B>>fix);
       return monad.map(foldMap, andThen.andThen(Either::left));
     }
   }
@@ -135,6 +133,6 @@ interface FreeMonad<F extends Kind<F, ?>> extends Monad<Free<F, ?>> {
   @Override
   default <T, R> Free<F, R> flatMap(
       Kind<Free<F, ?>, ? extends T> value, Function1<? super T, ? extends Kind<Free<F, ?>, ? extends R>> map) {
-    return value.<Free<F, T>>fix().flatMap(map.andThen(FreeOf::toFree));
+    return value.<Free<F, T>>fix().flatMap(map).fix();
   }
 }

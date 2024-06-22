@@ -10,9 +10,7 @@ import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Id;
-import com.github.tonivade.purefun.type.IdOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -23,7 +21,7 @@ import com.github.tonivade.purefun.typeclasses.Traverse;
 public interface IdInstances {
 
   static <T> Eq<Kind<Id<?>, T>> eq(Eq<T> idEq) {
-    return (a, b) -> idEq.eqv(IdOf.toId(a).value(), IdOf.toId(b).value());
+    return (a, b) -> idEq.eqv(a.<Id<T>>fix().value(), b.<Id<T>>fix().value());
   }
 
   static Functor<Id<?>> functor() {
@@ -57,7 +55,7 @@ interface IdFunctor extends Functor<Id<?>> {
 
   @Override
   default <T, R> Kind<Id<?>, R> map(Kind<Id<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return IdOf.toId(value).map(map);
+    return value.<Id<T>>fix().map(map);
   }
 }
 
@@ -76,7 +74,7 @@ interface IdApplicative extends IdPure {
   @Override
   default <T, R> Kind<Id<?>, R> ap(Kind<Id<?>, ? extends T> value,
       Kind<Id<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return IdOf.toId(value).flatMap(t -> IdOf.toId(apply).map(f -> f.apply(t)));
+    return value.<Id<T>>fix().ap(apply);
   }
 }
 
@@ -86,7 +84,7 @@ interface IdMonad extends IdPure, Monad<Id<?>> {
 
   @Override
   default <T, R> Kind<Id<?>, R> flatMap(Kind<Id<?>, ? extends T> value, Function1<? super T, ? extends Kind<Id<?>, ? extends R>> map) {
-    return IdOf.toId(value).flatMap(map.andThen(IdOf::toId));
+    return value.<Id<T>>fix().flatMap(map);
   }
 }
 
@@ -101,7 +99,7 @@ interface IdComonad extends IdFunctor, Comonad<Id<?>> {
 
   @Override
   default <A> A extract(Kind<Id<?>, ? extends A> value) {
-    return IdOf.toId(value).value();
+    return value.<Id<A>>fix().value();
   }
 }
 
@@ -116,7 +114,7 @@ interface IdFoldable extends Foldable<Id<?>> {
 
   @Override
   default <A, B> Eval<B> foldRight(Kind<Id<?>, ? extends A> value, Eval<? extends B> initial, Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    return EvalOf.toEval(mapper.apply(value.<Id<A>>fix().value(), initial));
+    return mapper.apply(value.<Id<A>>fix().value(), initial).fix();
   }
 }
 

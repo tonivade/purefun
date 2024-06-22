@@ -10,7 +10,6 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
@@ -18,8 +17,7 @@ import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind
-public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
+public final class Managed<R, E, A> implements Kind<Managed<R, E, ?>, A> {
 
   private final PureIO<R, E, Tuple2<A, Consumer1<? super A>>> resource;
 
@@ -37,19 +35,19 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
 
   public <B> Managed<R, E, B> flatMap(Function1<? super A, ? extends Kind<Managed<R, E, ?>, ? extends B>> mapper) {
     PureIO<R, E, Tuple2<B, Consumer1<? super B>>> result = resource.flatMap(t -> {
-      Managed<R, E, B> apply = ManagedOf.toManaged(mapper.apply(t.get1()));
+      Managed<R, E, B> apply = mapper.apply(t.get1()).fix();
       return apply.resource.map(r -> r.map2(ignore -> releaseAndThen(t, r)));
     });
     return new Managed<>(result);
   }
 
   public <F> Managed<R, F, A> flatMapError(Function1<? super E, ? extends Kind<Managed<R, F, ?>, ? extends A>> mapper) {
-    return new Managed<>(resource.flatMapError(e -> ManagedOf.<R, F, A>toManaged(mapper.apply(e)).resource));
+    return new Managed<>(resource.flatMapError(e -> mapper.apply(e).<Managed<R, F, A>>fix().resource));
   }
 
   public <B> Managed<R, E, B> andThen(Kind<Managed<A, E, ?>, B> other) {
     PureIO<R, E, Tuple2<B, Consumer1<? super B>>> flatMap = resource.flatMap(a -> {
-      Either<E, Tuple2<B, Consumer1<? super B>>> next = ManagedOf.toManaged(other).resource.provide(a.get1());
+      Either<E, Tuple2<B, Consumer1<? super B>>> next = other.<Managed<A, E, B>>fix().resource.provide(a.get1());
       return PureIO.fromEither(() -> next.map(t -> t.map2(ignore -> releaseAndThen(a, t))));
     });
     return new Managed<>(flatMap);
@@ -79,8 +77,8 @@ public final class Managed<R, E, A> implements ManagedOf<R, E, A> {
       Function1<? super A, ? extends Kind<Managed<R, F, ?>, ? extends B>> mapper) {
     PureIO<R, F, Tuple2<B, Consumer1<? super B>>> foldM =
         resource.foldM(
-            error -> ManagedOf.<R, F, B>toManaged(mapError.apply(error)).resource,
-            a -> ManagedOf.<R, F, B>toManaged(mapper.apply(a.get1())).resource.map(b -> b.map2(ignore -> releaseAndThen(a, b))));
+            error -> mapError.apply(error).<Managed<R, F, B>>fix().resource,
+            a -> mapper.apply(a.get1()).<Managed<R, F, B>>fix().resource.map(b -> b.map2(ignore -> releaseAndThen(a, b))));
     return new Managed<>(foldM);
   }
 

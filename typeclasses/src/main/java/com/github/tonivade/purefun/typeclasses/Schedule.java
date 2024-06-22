@@ -9,7 +9,6 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import java.time.Duration;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -22,8 +21,7 @@ import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.type.Either;
 
-@HigherKind
-public sealed interface Schedule<F extends Kind<F, ?>, A, B> extends ScheduleOf<F, A, B> {
+public sealed interface Schedule<F extends Kind<F, ?>, A, B> extends Kind<Schedule<F, A, ?>, B> {
 
   static <F extends Kind<F, ?>> Schedule.Of<F> of(MonadDefer<F> monad) {
     return () -> monad;

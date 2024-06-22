@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
@@ -32,8 +31,7 @@ import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 
-@HigherKind
-public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bindable<Sequence<?>, E> {
+public interface Sequence<E> extends Kind<Sequence<?>, E>, Iterable<E>, Bindable<Sequence<?>, E> {
 
   int size();
 

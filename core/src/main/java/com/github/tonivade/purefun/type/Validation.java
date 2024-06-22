@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.core.Bindable;
@@ -48,8 +47,7 @@ import com.github.tonivade.purefun.data.NonEmptyList;
  * @param <E> type of the error when invalid
  * @param <T> type of the value when valid
  */
-@HigherKind
-public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Validation<E, ?>, T> {
+public sealed interface Validation<E, T> extends Kind<Validation<E, ?>, T>, Bindable<Validation<E, ?>, T> {
 
   static <E, T> Validation<E, T> valid(T value) {
     return new Valid<>(value);
@@ -107,7 +105,7 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Va
   @SuppressWarnings("unchecked")
   default <R> Validation<E, R> flatMap(Function1<? super T, ? extends Kind<Validation<E, ?>, ? extends R>> mapper) {
     if (this instanceof Valid<E, T>(var value)) {
-      return mapper.andThen(ValidationOf::<E, R>toValidation).apply(value);
+      return mapper.apply(value).fix();
     }
     return (Validation<E, R>) this;
   }
@@ -133,12 +131,12 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Va
     if (this instanceof Valid<E, T>(var value) && matcher.match(value)) {
       return this;
     }
-    return orElse.andThen(ValidationOf::toValidation).get();
+    return orElse.get().fix();
   }
 
   default Validation<E, T> or(Producer<Kind<Validation<E, ?>, T>> orElse) {
     if (this instanceof Invalid) {
-      return orElse.andThen(ValidationOf::toValidation).get();
+      return orElse.get().fix();
     }
     return this;
   }

@@ -1,5 +1,4 @@
 dependencies {
-  annotationProcessor projects.purefunProcessor
   api projects.purefunCore
   api projects.purefunTypeclasses
   implementation projects.purefunMonad
