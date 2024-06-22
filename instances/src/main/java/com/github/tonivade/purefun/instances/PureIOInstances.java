@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -91,7 +90,7 @@ interface PureIOFunctor<R, E> extends Functor<PureIO<R, E, ?>> {
   default <A, B> PureIO<R, E, B> map(
       Kind<PureIO<R, E, ?>, ? extends A> value,
       Function1<? super A, ? extends B> map) {
-    return PureIOOf.toPureIO(value).map(map);
+    return value.<PureIO<R, E, A>>fix().map(map);
   }
 }
 
@@ -125,7 +124,7 @@ interface PureIOMonad<R, E> extends PureIOPure<R, E>, Monad<PureIO<R, E, ?>> {
   default <A, B> PureIO<R, E, B>
           flatMap(Kind<PureIO<R, E, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<PureIO<R, E, ?>, ? extends B>> map) {
-    return value.<PureIO<R, E, A>>fix().flatMap(map.andThen(PureIOOf::toPureIO));
+    return value.<PureIO<R, E, A>>fix().flatMap(map);
   }
 }
 
@@ -143,7 +142,7 @@ interface PureIOMonadError<R, E> extends PureIOMonad<R, E>, MonadError<PureIO<R,
   default <A> PureIO<R, E, A> handleErrorWith(
       Kind<PureIO<R, E, ?>, A> value,
       Function1<? super E, ? extends Kind<PureIO<R, E, ?>, ? extends A>> handler) {
-    return PureIOOf.toPureIO(value).foldM(handler, PureIO::pure);
+    return value.<PureIO<R, E, A>>fix().foldM(handler, PureIO::pure);
   }
 }
 
@@ -158,7 +157,7 @@ interface PureIODefer<R, E> extends Defer<PureIO<R, E, ?>> {
   @Override
   default <A> PureIO<R, E, A>
           defer(Producer<? extends Kind<PureIO<R, E, ?>, ? extends A>> defer) {
-    return PureIO.defer(() -> defer.map(PureIOOf::<R, E, A>toPureIO).get());
+    return PureIO.defer(() -> defer.get().fix());
   }
 }
 
@@ -193,7 +192,7 @@ interface PureIOAsync<R> extends Async<PureIO<R, Throwable, ?>>, PureIOMonadDefe
 
   @Override
   default <A> PureIO<R, Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<PureIO<R, Throwable, ?>, Unit>> consumer) {
-    return PureIO.cancellable((env, cb) -> consumer.andThen(PureIOOf::toPureIO).apply(e -> cb.accept(Try.success(e.toEither()))));
+    return PureIO.cancellable((env, cb) -> consumer.apply(e -> cb.accept(Try.success(e.toEither()))).fix());
   }
 }
 

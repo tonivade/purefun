@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
@@ -36,8 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind
-public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
+public final class UIO<A> implements Kind<UIO<?>, A>, Effect<UIO<?>, A>, Recoverable {
 
   private static final UIO<Unit> UNIT = new UIO<>(PureIO.unit());
 
@@ -103,7 +101,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
   @Override
   public <B> UIO<B> flatMap(Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return new UIO<>(instance.flatMap(x -> {
-      UIO<? extends B> apply = map.andThen(UIOOf::toUIO).apply(x);
+      UIO<B> apply = map.apply(x).fix();
       return apply.instance;
     }));
   }
@@ -141,8 +139,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
       Function1<? super Throwable, ? extends Kind<UIO<?>, ? extends B>> mapError,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return new UIO<>(PureIO.redeem(instance).foldM(
-        error -> mapError.andThen(UIOOf::toUIO).apply(error).instance,
-        value -> map.andThen(UIOOf::toUIO).apply(value).instance));
+        error -> mapError.apply(error).<UIO<B>>fix().instance,
+        value -> map.apply(value).<UIO<B>>fix().instance));
   }
 
   @Override
@@ -310,7 +308,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
   }
 
   public static <A> UIO<A> defer(Producer<Kind<UIO<?>, ? extends A>> lazy) {
-    return new UIO<>(PureIO.defer(() -> lazy.andThen(UIOOf::toUIO).get().instance));
+    return new UIO<>(PureIO.defer(() -> lazy.get().<UIO<A>>fix().instance));
   }
 
   public static <A> UIO<A> task(Producer<? extends A> task) {
@@ -375,20 +373,25 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(
       Kind<UIO<?>, ? extends A> acquire, Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use) {
-    return fold(PureIO.bracket(PureIO.redeem(acquire.<UIO<A>>fix().instance),
-        resource -> PureIO.redeem(use.andThen(UIOOf::toUIO).apply(resource).instance)));
+    return fold(PureIO.bracket(PureIO.redeem(
+        acquire.<UIO<A>>fix().instance),
+        resource -> PureIO.redeem(use.apply(resource).<UIO<B>>fix().instance)));
   }
 
   public static <A, B> UIO<B> bracket(Kind<UIO<?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use, Consumer1<? super A> release) {
-    return fold(PureIO.bracket(PureIO.redeem(acquire.<UIO<A>>fix().instance),
-        resource -> PureIO.redeem(use.andThen(UIOOf::toUIO).apply(resource).instance), release));
+    return fold(PureIO.bracket(PureIO.redeem(
+        acquire.<UIO<A>>fix().instance),
+        resource -> PureIO.redeem(use.apply(resource).<UIO<B>>fix().instance),
+        release));
   }
 
   public static <A, B> UIO<B> bracket(Kind<UIO<?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use, Function1<? super A, ? extends Kind<UIO<?>, Unit>> release) {
-    return fold(PureIO.bracket(PureIO.redeem(acquire.<UIO<A>>fix().instance),
-        resource -> PureIO.redeem(use.andThen(UIOOf::toUIO).apply(resource).instance), release.andThen(UIOOf::toUIO).andThen(UIO::toPureIO)));
+    return fold(PureIO.bracket(
+        PureIO.redeem(acquire.<UIO<A>>fix().instance),
+        resource -> PureIO.redeem(use.apply(resource).<UIO<B>>fix().instance),
+        release.andThen(Kind::<UIO<Unit>>fix).andThen(UIO::toPureIO)));
   }
 
   public static UIO<Unit> unit() {

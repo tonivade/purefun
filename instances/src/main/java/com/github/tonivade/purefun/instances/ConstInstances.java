@@ -11,7 +11,6 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.type.Const;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -107,7 +106,7 @@ interface ConstFoldable<T> extends Foldable<Const<T, ?>> {
   default <A, B> Eval<B> foldRight(
       Kind<Const<T, ?>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    return EvalOf.toEval(initial);
+    return initial.fix();
   }
 }
 

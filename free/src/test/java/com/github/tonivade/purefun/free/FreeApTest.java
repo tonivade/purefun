@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
@@ -134,8 +133,7 @@ public class FreeApTest {
   }
 }
 
-@HigherKind
-sealed interface DSL<A> extends DSLOf<A> {
+sealed interface DSL<A> extends Kind<DSL<?>, A> {
 
   A value();
 

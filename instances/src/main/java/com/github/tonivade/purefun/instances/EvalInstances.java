@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Comonad;
@@ -55,7 +54,7 @@ interface EvalFunctor extends Functor<Eval<?>> {
 
   @Override
   default <T, R> Eval<R> map(Kind<Eval<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return EvalOf.toEval(value).map(mapper);
+    return value.<Eval<T>>fix().map(mapper);
   }
 }
 
@@ -72,9 +71,9 @@ interface EvalApplicative extends EvalPure {
   EvalApplicative INSTANCE = new EvalApplicative() {};
 
   @Override
-  default <T, R> Kind<Eval<?>, R> ap(Kind<Eval<?>, ? extends T> value,
+  default <T, R> Eval<R> ap(Kind<Eval<?>, ? extends T> value,
       Kind<Eval<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return EvalOf.toEval(value).flatMap(t -> EvalOf.toEval(apply).map(f -> f.apply(t)));
+    return value.<Eval<T>>fix().flatMap(t -> apply.<Eval<Function1<T, R>>>fix().map(f -> f.apply(t)));
   }
 }
 
@@ -83,8 +82,8 @@ interface EvalMonad extends EvalPure, Monad<Eval<?>> {
   EvalMonad INSTANCE = new EvalMonad() {};
 
   @Override
-  default <T, R> Kind<Eval<?>, R> flatMap(Kind<Eval<?>, ? extends T> value, Function1<? super T, ? extends Kind<Eval<?>, ? extends R>> map) {
-    return EvalOf.toEval(value).flatMap(map.andThen(EvalOf::<R>toEval));
+  default <T, R> Eval<R> flatMap(Kind<Eval<?>, ? extends T> value, Function1<? super T, ? extends Kind<Eval<?>, ? extends R>> map) {
+    return value.<Eval<T>>fix().flatMap(map);
   }
 }
 
@@ -98,10 +97,10 @@ interface EvalMonadError extends EvalMonad, MonadError<Eval<?>, Throwable> {
   }
 
   @Override
-  default <A> Kind<Eval<?>, A> handleErrorWith(
+  default <A> Eval<A> handleErrorWith(
       Kind<Eval<?>, A> value, Function1<? super Throwable, ? extends Kind<Eval<?>, ? extends A>> handler) {
     Eval<Try<A>> attempt = Eval.always(() -> Try.of(value.<Eval<A>>fix()::value));
-    return attempt.flatMap(try_ -> try_.fold(handler.andThen(EvalOf::toEval), Eval::now));
+    return attempt.flatMap(try_ -> try_.fold(handler, Eval::now));
   }
 }
 
@@ -121,7 +120,7 @@ interface EvalComonad extends EvalFunctor, Comonad<Eval<?>> {
 
   @Override
   default <A> A extract(Kind<Eval<?>, ? extends A> value) {
-    return EvalOf.toEval(value).value();
+    return value.<Eval<A>>fix().value();
   }
 }
 
@@ -131,6 +130,6 @@ interface EvalDefer extends Defer<Eval<?>> {
 
   @Override
   default <A> Kind<Eval<?>, A> defer(Producer<? extends Kind<Eval<?>, ? extends A>> defer) {
-    return Eval.defer(defer.map(EvalOf::toEval));
+    return Eval.defer(defer);
   }
 }

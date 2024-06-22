@@ -16,7 +16,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -41,8 +40,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
-@HigherKind
-public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
+public sealed interface IO<T> extends Kind<IO<?>, T>, Effect<IO<?>, T>, Recoverable {
 
   IO<Unit> UNIT = pure(Unit.unit());
 
@@ -123,7 +121,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
   }
 
   default IO<T> recoverWith(PartialFunction1<? super Throwable, ? extends Kind<IO<?>, ? extends T>> mapper) {
-    return new Recover<>(this, mapper.andThen(IOOf::toIO));
+    return new Recover<>(this, mapper);
   }
 
   @Override

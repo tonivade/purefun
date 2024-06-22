@@ -17,9 +17,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Eval;
-import com.github.tonivade.purefun.type.EvalOf;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.typeclasses.Alternative;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Foldable;
@@ -81,7 +79,7 @@ interface OptionFunctor extends Functor<Option<?>> {
 
   @Override
   default <T, R> Kind<Option<?>, R> map(Kind<Option<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return OptionOf.toOption(value).map(mapper);
+    return value.<Option<T>>fix().map(mapper);
   }
 }
 
@@ -111,7 +109,7 @@ interface OptionMonad extends OptionPure, Monad<Option<?>> {
   @Override
   default <T, R> Kind<Option<?>, R> flatMap(Kind<Option<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Option<?>, ? extends R>> map) {
-    return value.<Option<T>>fix().flatMap(map.andThen(OptionOf::toOption));
+    return value.<Option<T>>fix().flatMap(map);
   }
 
   @Override
@@ -120,7 +118,7 @@ interface OptionMonad extends OptionPure, Monad<Option<?>> {
   }
 
   private <T, R> Trampoline<Kind<Option<?>, R>> loop(T value, Function1<T, ? extends Kind<Option<?>, Either<T, R>>> map) {
-    return switch (map.andThen(OptionOf::toOption).apply(value)) {
+    return switch (map.apply(value).<Option<Either<T, R>>>fix()) {
       case Option.None<Either<T, R>> n -> Trampoline.done(Option.none());
       case Option.Some<Either<T, R>>(Either.Right<T, R>(var right)) -> Trampoline.done(Option.some(right));
       case Option.Some<Either<T, R>>(Either.Left<T, R>(var left)) -> Trampoline.more(() -> loop(left, map));
@@ -134,7 +132,7 @@ interface OptionSemigroupK extends SemigroupK<Option<?>> {
 
   @Override
   default <T> Kind<Option<?>, T> combineK(Kind<Option<?>, ? extends T> t1, Kind<Option<?>, ? extends T> t2) {
-    return OptionOf.toOption(t1).fold(cons(OptionOf.toOption(t2)), Option::some);
+    return t1.<Option<T>>fix().fold(cons(t2.fix()), Option::some);
   }
 }
 
@@ -165,7 +163,7 @@ interface OptionMonadError extends OptionMonad, MonadError<Option<?>, Unit> {
   @Override
   default <A> Kind<Option<?>, A> handleErrorWith(Kind<Option<?>, A> value,
       Function1<? super Unit, ? extends Kind<Option<?>, ? extends A>> handler) {
-    return OptionOf.toOption(value).fold(() -> OptionOf.toOption(handler.apply(unit())), this::pure);
+    return value.<Option<A>>fix().fold(() -> handler.apply(unit()).fix(), this::pure);
   }
 }
 
@@ -175,14 +173,14 @@ interface OptionFoldable extends Foldable<Option<?>> {
 
   @Override
   default <A, B> B foldLeft(Kind<Option<?>, ? extends A> value, B initial, Function2<? super B, ? super A, ? extends B> mapper) {
-    return OptionOf.toOption(value).fold(cons(initial), a -> mapper.apply(initial, a));
+    return value.<Option<A>>fix().fold(cons(initial), a -> mapper.apply(initial, a));
   }
 
   @Override
   default <A, B> Eval<B> foldRight(Kind<Option<?>, ? extends A> value, Eval<? extends B> initial,
       Function2<? super A, ? super Eval<? extends B>, ? extends Eval<? extends B>> mapper) {
-    return OptionOf.<A>toOption(value).fold(
-        cons(initial).andThen(EvalOf::<B>toEval), a -> mapper.andThen(EvalOf::<B>toEval).apply(a, initial));
+    return value.<Option<A>>fix().fold(
+        cons(initial), a -> mapper.apply(a, initial)).fix();
   }
 }
 
@@ -209,6 +207,6 @@ interface OptionSemigroupal extends Semigroupal<Option<?>> {
 
   @Override
   default <A, B> Kind<Option<?>, Tuple2<A, B>> product(Kind<Option<?>, ? extends A> fa, Kind<Option<?>, ? extends B> fb) {
-    return OptionOf.toOption(fa).flatMap(a -> OptionOf.toOption(fb).map(b -> Tuple.of(a, b)));
+    return fa.<Option<A>>fix().flatMap(a -> fb.<Option<B>>fix().map(b -> Tuple.of(a, b)));
   }
 }

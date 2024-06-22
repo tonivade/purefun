@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Function1;
@@ -16,8 +15,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-@HigherKind
-public sealed interface FreeAp<F extends Kind<F, ?>, A> extends FreeApOf<F, A>, Applicable<FreeAp<F, ?>, A> {
+public sealed interface FreeAp<F extends Kind<F, ?>, A> extends Kind<FreeAp<F, ?>, A>, Applicable<FreeAp<F, ?>, A> {
 
   @Override
   default <B> FreeAp<F, B> map(Function1<? super A, ? extends B> mapper) {

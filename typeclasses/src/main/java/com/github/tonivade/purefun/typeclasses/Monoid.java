@@ -7,10 +7,8 @@ package com.github.tonivade.purefun.typeclasses;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Operator2;
-import com.github.tonivade.purefun.HigherKind;
 
-@HigherKind
-public non-sealed interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
+public interface Monoid<T> extends Kind<Monoid<?>, T>, Semigroup<T> {
 
   T zero();
 

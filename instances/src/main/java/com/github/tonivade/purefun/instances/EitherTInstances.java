@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.EitherT;
-import com.github.tonivade.purefun.transformer.EitherTOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.typeclasses.Bracket;
 import com.github.tonivade.purefun.typeclasses.Defer;
@@ -31,7 +30,7 @@ import com.github.tonivade.purefun.typeclasses.Timer;
 public interface EitherTInstances {
 
   static <F extends Kind<F, ?>, L, R> Eq<Kind<EitherT<F, L, ?>, R>> eq(Eq<Kind<F, Either<L, R>>> eq) {
-    return (a, b) -> eq.eqv(EitherTOf.toEitherT(a).value(), EitherTOf.toEitherT(b).value());
+    return (a, b) -> eq.eqv(a.<EitherT<F, L, R>>fix().value(), b.<EitherT<F, L, R>>fix().value());
   }
 
   static <F extends Kind<F, ?>, L> Monad<EitherT<F, L, ?>> monad(Monad<F> monadF) {
@@ -81,7 +80,7 @@ interface EitherTMonad<F extends Kind<F, ?>, L> extends Monad<EitherT<F, L, ?>> 
   @Override
   default <T, R> EitherT<F, L, R> flatMap(Kind<EitherT<F, L, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<EitherT<F, L, ?>, ? extends R>> map) {
-    return EitherTOf.toEitherT(value).flatMap(map.andThen(EitherTOf::toEitherT));
+    return value.<EitherT<F, L, T>>fix().flatMap(map);
   }
 }
 
@@ -101,9 +100,9 @@ interface EitherTMonadErrorFromMonad<F extends Kind<F, ?>, E>
   default <A> EitherT<F, E, A> handleErrorWith(Kind<EitherT<F, E, ?>, A> value,
       Function1<? super E, ? extends Kind<EitherT<F, E, ?>, ? extends A>> handler) {
     return EitherT.of(monadF(),
-        monadF().flatMap(EitherTOf.toEitherT(value).value(),
+        monadF().flatMap(value.<EitherT<F, E, A>>fix().value(),
             either -> either.fold(
-                e -> handler.andThen(EitherTOf::<F, E, A>toEitherT).apply(e).value(),
+                e -> handler.apply(e).<EitherT<F, E, A>>fix().value(),
                 a -> monadF().pure(Either.right(a)))));
   }
 }
@@ -128,8 +127,8 @@ interface EitherTMonadErrorFromMonadError<F extends Kind<F, ?>, E>
   default <A> EitherT<F, E, A> handleErrorWith(Kind<EitherT<F, E, ?>, A> value,
       Function1<? super E, ? extends Kind<EitherT<F, E, ?>, ? extends A>> handler) {
     return EitherT.of(monadF(),
-                      monadF().handleErrorWith(EitherTOf.toEitherT(value).value(),
-                                               error -> handler.andThen(EitherTOf::<F, E, A>toEitherT).apply(error).value()));
+                      monadF().handleErrorWith(value.<EitherT<F, E, A>>fix().value(),
+                                               error -> handler.apply(error).<EitherT<F, E, A>>fix().value()));
   }
 }
 
@@ -157,7 +156,7 @@ interface EitherTDefer<F extends Kind<F, ?>, E> extends Defer<EitherT<F, E, ?>> 
 
   @Override
   default <A> EitherT<F, E, A> defer(Producer<? extends Kind<EitherT<F, E, ?>, ? extends A>> defer) {
-    return EitherT.of(monadF(), monadF().defer(() -> defer.map(EitherTOf::<F, E, A>toEitherT).get().value()));
+    return EitherT.of(monadF(), monadF().defer(() -> defer.get().<EitherT<F, E, A>>fix().value()));
   }
 }
 
@@ -177,7 +176,7 @@ interface EitherTBracket<F extends Kind<F, ?>, E> extends Bracket<EitherT<F, E, 
             acquire.<EitherT<F, E, A>>fix().value(),
             either -> either.fold(
                 this::acquireRecover,
-                value -> use.andThen(EitherTOf::<F, E, B>toEitherT).apply(value).value()),
+                value -> use.apply(value).<EitherT<F, E, B>>fix().value()),
             either -> {
               Kind<EitherT<F, E, ?>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release);
               Kind<F, Either<E, Unit>> value = fold.<EitherT<F, E, Unit>>fix().value();

@@ -17,7 +17,6 @@ import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
-import com.github.tonivade.purefun.effect.URIOOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -86,7 +85,7 @@ interface URIOFunctor<R> extends Functor<URIO<R, ?>> {
   @Override
   default <A, B> URIO<R, B> map(Kind<URIO<R, ?>, ? extends A> value,
       Function1<? super A, ? extends B> map) {
-    return URIOOf.toURIO(value).map(map);
+    return value.<URIO<R, A>>fix().map(map);
   }
 }
 
@@ -120,7 +119,7 @@ interface URIOMonad<R> extends URIOPure<R>, Monad<URIO<R, ?>> {
   default <A, B> URIO<R, B>
           flatMap(Kind<URIO<R, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<URIO<R, ?>, ? extends B>> map) {
-    return value.<URIO<R, A>>fix().flatMap(map.andThen(URIOOf::toURIO));
+    return value.<URIO<R, A>>fix().flatMap(map);
   }
 }
 
@@ -140,9 +139,9 @@ interface URIOMonadError<R> extends URIOMonad<R>, MonadError<URIO<R, ?>, Throwab
       Kind<URIO<R, ?>, A> value,
       Function1<? super Throwable, ? extends Kind<URIO<R, ?>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<? super Throwable, URIO<R, A>> mapError = handler.andThen(URIOOf::toURIO);
+    Function1<? super Throwable, URIO<R, A>> mapError = handler.fix();
     Function1<A, URIO<R, A>> map = URIO::pure;
-    URIO<R, A> urio = URIOOf.toURIO(value);
+    URIO<R, A> urio = value.fix();
     return urio.redeemWith(mapError, map);
   }
 }
@@ -196,7 +195,7 @@ interface URIOAsync<R> extends Async<URIO<R, ?>>, URIOMonadDefer<R> {
 
   @Override
   default <A> URIO<R, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<URIO<R, ?>, Unit>> consumer) {
-    return URIO.cancellable((env, cb) -> consumer.andThen(URIOOf::toURIO).apply(cb));
+    return URIO.cancellable((env, cb) -> consumer.apply(cb).fix());
   }
 }
 
@@ -255,7 +254,7 @@ interface URIORuntime<R> extends Runtime<URIO<R, ?>> {
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<URIO<R, ?>, T>> values) {
-    return run(URIO.traverse(values.map(URIOOf::<R, T>toURIO)));
+    return run(URIO.traverse(values));
   }
 
   @Override
@@ -265,6 +264,6 @@ interface URIORuntime<R> extends Runtime<URIO<R, ?>> {
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<URIO<R, ?>, T>> values, Executor executor) {
-    return parRun(URIO.traverse(values.map(URIOOf::<R, T>toURIO)), executor);
+    return parRun(URIO.traverse(values), executor);
   }
 }

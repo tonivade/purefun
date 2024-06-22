@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -86,7 +85,7 @@ interface UIOFunctor extends Functor<UIO<?>> {
 
   @Override
   default <A, B> UIO<B> map(Kind<UIO<?>, ? extends A> value, Function1<? super A, ? extends B> map) {
-    return UIOOf.toUIO(value).map(map);
+    return value.<UIO<A>>fix().map(map);
   }
 }
 
@@ -116,7 +115,7 @@ interface UIOMonad extends UIOPure, Monad<UIO<?>> {
   @Override
   default <A, B> UIO<B> flatMap(Kind<UIO<?>, ? extends A> value,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
-    return value.<UIO<A>>fix().flatMap(map.andThen(UIOOf::toUIO));
+    return value.<UIO<A>>fix().flatMap(map);
   }
 }
 
@@ -133,9 +132,9 @@ interface UIOMonadError extends UIOMonad, MonadError<UIO<?>, Throwable> {
   default <A> UIO<A> handleErrorWith(
       Kind<UIO<?>, A> value,
       Function1<? super Throwable, ? extends Kind<UIO<?>, ? extends A>> handler) {
-    Function1<? super Throwable, UIO<A>> mapError = handler.andThen(UIOOf::toUIO);
+    Function1<? super Throwable, UIO<A>> mapError = handler.fix();
     Function1<A, UIO<A>> map = UIO::pure;
-    UIO<A> uio = UIOOf.toUIO(value);
+    UIO<A> uio = value.fix();
     return uio.redeemWith(mapError, map);
   }
 }
@@ -182,7 +181,7 @@ interface UIOAsync extends Async<UIO<?>>, UIOMonadDefer {
 
   @Override
   default <A> UIO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<UIO<?>, Unit>> consumer) {
-    return UIO.cancellable(consumer.andThen(UIOOf::toUIO));
+    return UIO.cancellable(consumer.andThen(Kind::fix));
   }
 }
 
@@ -234,7 +233,7 @@ interface UIORuntime extends Runtime<UIO<?>> {
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<UIO<?>, T>> values) {
-    return run(UIO.traverse(values.map(UIOOf::<T>toUIO)));
+    return run(UIO.traverse(values));
   }
 
   @Override
@@ -244,6 +243,6 @@ interface UIORuntime extends Runtime<UIO<?>> {
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<UIO<?>, T>> values, Executor executor) {
-    return parRun(UIO.traverse(values.map(UIOOf::<T>toUIO)), executor);
+    return parRun(UIO.traverse(values), executor);
   }
 }

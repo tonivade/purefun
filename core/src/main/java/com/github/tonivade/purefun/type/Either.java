@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.core.Applicable;
@@ -37,8 +36,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * @param <L> type of the left value, negative case
  * @param <R> type of the right value, positive case
  */
-@HigherKind
-public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, ?>, R>, Applicable<Either<L, ?>, R> {
+public sealed interface Either<L, R> extends Kind<Either<L, ?>, R>, Bindable<Either<L, ?>, R>, Applicable<Either<L, ?>, R> {
 
   static <L, R> Either<L, R> left(L value) {
     return new Left<>(value);
@@ -119,7 +117,7 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, 
   @SuppressWarnings("unchecked")
   default <T> Either<L, T> flatMap(Function1<? super R, ? extends Kind<Either<L, ?>, ? extends T>> map) {
     if (this instanceof Right<L, R>(var right)) {
-      return map.andThen(EitherOf::<L, T>toEither).apply(right);
+      return map.apply(right).fix();
     }
     return (Either<L, T>) this;
   }
@@ -150,12 +148,12 @@ public sealed interface Either<L, R> extends EitherOf<L, R>, Bindable<Either<L, 
     if (this instanceof Right<L, R>(var right) && matcher.match(right)) {
       return this;
     }
-    return orElse.andThen(EitherOf::toEither).get();
+    return orElse.get().fix();
   }
 
   default Either<L, R> or(Producer<Kind<Either<L, ?>, R>> orElse) {
     if (this instanceof Left) {
-      return orElse.andThen(EitherOf::toEither).get();
+      return orElse.get().fix();
     }
     return this;
   }

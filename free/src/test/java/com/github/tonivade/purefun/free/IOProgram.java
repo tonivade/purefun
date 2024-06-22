@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.free;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.free.Free.liftF;
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -16,8 +15,7 @@ import com.github.tonivade.purefun.typeclasses.Console;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Instances;
 
-@HigherKind
-public sealed interface IOProgram<T> extends IOProgramOf<T> {
+public sealed interface IOProgram<T> extends Kind<IOProgram<?>, T> {
 
   static Free<IOProgram<?>, String> read() {
     return liftF(new IOProgram.Read());

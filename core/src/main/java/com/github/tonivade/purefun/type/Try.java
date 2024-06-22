@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.core.Applicable;
@@ -38,8 +37,7 @@ import com.github.tonivade.purefun.data.Sequence;
  * <p><strong>Note:</strong> it's serializable</p>
  * @param <T> the wrapped value
  */
-@HigherKind
-public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable<Try<?>, T> {
+public sealed interface Try<T> extends Kind<Try<?>, T>, Bindable<Try<?>, T>, Applicable<Try<?>, T> {
 
   static <T> Try<T> success(T value) {
     return new Success<>(value);
@@ -135,7 +133,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
   @SuppressWarnings("unchecked")
   default <R> Try<R> flatMap(Function1<? super T, ? extends Kind<Try<?>, ? extends R>> mapper) {
     return switch (this) {
-      case Success<T>(var value) -> mapper.andThen(TryOf::<R>toTry).apply(value);
+      case Success<T>(var value) -> mapper.apply(value).fix();
       case Failure<T> f -> (Try<R>) this;
     };
   }
@@ -184,7 +182,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
     if (this instanceof Success<T>(var value) && matcher.match(value)) {
       return this;
     }
-    return producer.andThen(TryOf::<T>toTry).get();
+    return producer.get().fix();
   }
 
   default <U> U fold(Function1<? super Throwable, ? extends U> failureMapper, Function1<? super T, ? extends U> successMapper) {
@@ -196,7 +194,7 @@ public sealed interface Try<T> extends TryOf<T>, Bindable<Try<?>, T>, Applicable
 
   default Try<T> or(Producer<Kind<Try<?>, T>> orElse) {
     if (this instanceof Failure) {
-      return orElse.andThen(TryOf::toTry).get();
+      return orElse.get().fix();
     }
     return this;
   }

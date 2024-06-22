@@ -11,8 +11,6 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.HigherKind;
-
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.type.Either;
@@ -21,8 +19,7 @@ import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Functor;
 
-@HigherKind
-public final class EitherK<F extends Kind<F, ?>, G extends Kind<G, ?>, T> implements EitherKOf<F, G, T>, Serializable {
+public final class EitherK<F extends Kind<F, ?>, G extends Kind<G, ?>, T> implements Kind<EitherK<F, G, ?>, T>, Serializable {
 
   @Serial
   private static final long serialVersionUID = -2305737717835278018L;

@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.core.CheckedRunnable;
@@ -34,8 +33,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind
-public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable {
+public final class Task<A> implements Kind<Task<?>, A>, Effect<Task<?>, A>, Recoverable {
 
   private static final Task<Unit> UNIT = new Task<>(PureIO.unit());
 
@@ -87,7 +85,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
   @Override
   public <B> Task<B> flatMap(Function1<? super A, ? extends Kind<Task<?>, ? extends B>> map) {
     return new Task<>(instance.flatMap(value -> {
-      Task<? extends B> apply = map.andThen(TaskOf::toTask).apply(value);
+      Task<B> apply = map.apply(value).fix();
       return apply.instance;
     }));
   }
@@ -106,8 +104,8 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
       Function1<? super Throwable, ? extends Kind<Task<?>, ? extends B>> mapError,
       Function1<? super A, ? extends Kind<Task<?>, ? extends B>> map) {
     return new Task<>(instance.foldM(
-        error -> mapError.andThen(TaskOf::toTask).apply(error).instance,
-        value -> map.andThen(TaskOf::toTask).apply(value).instance));
+        error -> mapError.apply(error).<Task<B>>fix().instance,
+        value -> map.apply(value).<Task<B>>fix().instance));
   }
 
   public <B> UIO<B> fold(
@@ -322,7 +320,7 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
   }
 
   public static <A> Task<A> defer(Producer<? extends Kind<Task<?>, ? extends A>> lazy) {
-    return new Task<>(PureIO.defer(() -> lazy.andThen(TaskOf::toTask).get().instance));
+    return new Task<>(PureIO.defer(() -> lazy.get().<Task<A>>fix().instance));
   }
 
   public static <A> Task<A> task(Producer<? extends A> task) {
@@ -358,17 +356,25 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
 
   public static <A extends AutoCloseable, B> Task<B> bracket(
       Kind<Task<?>, ? extends A> acquire, Function1<? super A, ? extends Kind<Task<?>, ? extends B>> use) {
-    return new Task<>(PureIO.bracket(acquire.<Task<A>>fix().instance, resource -> use.andThen(TaskOf::toTask).apply(resource).instance));
+    return new Task<>(PureIO.bracket(
+        acquire.<Task<A>>fix().instance,
+        resource -> use.apply(resource).<Task<B>>fix().instance));
   }
 
   public static <A, B> Task<B> bracket(
       Kind<Task<?>, ? extends A> acquire, Function1<? super A, ? extends Kind<Task<?>, ? extends B>> use, Consumer1<? super A> release) {
-    return new Task<>(PureIO.bracket(acquire.<Task<A>>fix().instance, resource -> use.andThen(TaskOf::toTask).apply(resource).instance, release));
+    return new Task<>(PureIO.bracket(
+        acquire.<Task<A>>fix().instance,
+        resource -> use.apply(resource).<Task<B>>fix().instance,
+        release));
   }
 
   public static <A, B> Task<B> bracket(
       Kind<Task<?>, ? extends A> acquire, Function1<? super A, ? extends Kind<Task<?>, ? extends B>> use, Function1<? super A, ? extends Kind<Task<?>, Unit>> release) {
-    return new Task<>(PureIO.bracket(acquire.<Task<A>>fix().instance, resource -> use.andThen(TaskOf::toTask).apply(resource).instance, release.andThen(TaskOf::toTask).andThen(Task::toPureIO)));
+    return new Task<>(PureIO.bracket(
+        acquire.<Task<A>>fix().instance,
+        resource -> use.apply(resource).<Task<B>>fix().instance,
+        release.andThen(Kind::<Task<Unit>>fix).andThen(Task::toPureIO)));
   }
 
   public static Task<Unit> unit() {

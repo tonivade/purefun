@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Function1Of;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -70,6 +69,6 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Function1<T, ?>> {
   default <A, R> Function1<T, R> flatMap(Kind<Function1<T, ?>, ? extends A> value,
       Function1<? super A, ? extends Kind<Function1<T, ?>, ? extends R>> map) {
     Function1<T, A> function = value.fix();
-    return function.flatMap(map.andThen(Function1Of::toFunction1));
+    return function.flatMap(map.fix());
   }
 }

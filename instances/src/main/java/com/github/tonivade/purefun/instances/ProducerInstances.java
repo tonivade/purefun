@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.instances;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.ProducerOf;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -67,7 +66,7 @@ interface ProducerMonad extends ProducerPure, Monad<Producer<?>> {
 
   @Override
   default <T, R> Kind<Producer<?>, R> flatMap(Kind<Producer<?>, ? extends T> value, Function1<? super T, ? extends Kind<Producer<?>, ? extends R>> mapper) {
-    return value.<Producer<T>>fix().flatMap(mapper.andThen(ProducerOf::toProducer));
+    return value.<Producer<T>>fix().flatMap(mapper.fix());
   }
 }
 

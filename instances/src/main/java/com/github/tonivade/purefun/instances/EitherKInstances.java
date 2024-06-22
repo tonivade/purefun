@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.free.EitherK;
-import com.github.tonivade.purefun.free.EitherKOf;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -21,8 +20,8 @@ public interface EitherKInstances {
   static <F extends Kind<F, ?>, G extends Kind<G, ?>, T> Eq<Kind<EitherK<F, G, ?>, T>> eq(
       Eq<Kind<F, T>> leftEq, Eq<Kind<G, T>> rightEq) {
     return (a, b) -> {
-      var x = EitherKOf.toEitherK(a);
-      var y = EitherKOf.toEitherK(b);
+      EitherK<F, G, T> x = a.fix();
+      EitherK<F, G, T> y = b.fix();
       if (x.isLeft() && y.isLeft()) {
         return leftEq.eqv(x.getLeft(), y.getLeft());
       }

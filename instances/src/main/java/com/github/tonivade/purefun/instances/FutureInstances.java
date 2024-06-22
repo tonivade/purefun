@@ -11,7 +11,6 @@ import java.util.concurrent.Executor;
 
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -55,7 +54,7 @@ interface FutureFunctor extends Functor<Future<?>> {
   FutureFunctor INSTANCE = new FutureFunctor() {};
 
   @Override
-  default <T, R> Kind<Future<?>, R> map(Kind<Future<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
+  default <T, R> Future<R> map(Kind<Future<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
     return value.<Future<T>>fix().map(mapper);
   }
 }
@@ -67,7 +66,7 @@ interface ExecutorHolder {
 interface FuturePure extends Applicative<Future<?>>, ExecutorHolder {
 
   @Override
-  default <T> Kind<Future<?>, T> pure(T value) {
+  default <T> Future<T> pure(T value) {
     return Future.success(executor(), value);
   }
 }
@@ -79,7 +78,7 @@ interface FutureApplicative extends FuturePure {
   }
 
   @Override
-  default <T, R> Kind<Future<?>, R> ap(Kind<Future<?>, ? extends T> value,
+  default <T, R> Future<R> ap(Kind<Future<?>, ? extends T> value,
       Kind<Future<?>, ? extends Function1<? super T, ? extends R>> apply) {
     return value.<Future<T>>fix().ap(apply.<Future<Function1<? super T, ? extends R>>>fix());
   }
@@ -92,9 +91,9 @@ interface FutureMonad extends FuturePure, Monad<Future<?>> {
   }
 
   @Override
-  default <T, R> Kind<Future<?>, R> flatMap(Kind<Future<?>, ? extends T> value,
+  default <T, R> Future<R> flatMap(Kind<Future<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Future<?>, ? extends R>> map) {
-    return value.<Future<T>>fix().flatMap(map.andThen(FutureOf::toFuture));
+    return value.<Future<T>>fix().flatMap(map);
   }
 
   /**
@@ -102,9 +101,9 @@ interface FutureMonad extends FuturePure, Monad<Future<?>> {
    * applicative version of the ap method
    */
   @Override
-  default <T, R> Kind<Future<?>, R> ap(Kind<Future<?>, ? extends T> value,
+  default <T, R> Future<R> ap(Kind<Future<?>, ? extends T> value,
       Kind<Future<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return FutureInstances.applicative(executor()).ap(value, apply);
+    return FutureInstances.applicative(executor()).ap(value, apply).fix();
   }
 }
 
@@ -115,15 +114,15 @@ interface FutureMonadThrow extends FutureMonad, MonadThrow<Future<?>> {
   }
 
   @Override
-  default <A> Kind<Future<?>, A> raiseError(Throwable error) {
+  default <A> Future<A> raiseError(Throwable error) {
     return Future.failure(executor(), error);
   }
 
   @Override
-  default <A> Kind<Future<?>, A> handleErrorWith(
+  default <A> Future<A> handleErrorWith(
       Kind<Future<?>, A> value,
       Function1<? super Throwable, ? extends Kind<Future<?>, ? extends A>> handler) {
-    return value.<Future<A>>fix().fold(handler.andThen(FutureOf::toFuture),
+    return value.<Future<A>>fix().fold(handler,
                                       success -> Future.success(executor(), success)).flatMap(identity());
   }
 }
