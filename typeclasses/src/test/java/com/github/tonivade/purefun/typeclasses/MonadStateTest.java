@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.data.ImmutableArray;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 
 public class MonadStateTest {
 
@@ -24,7 +23,8 @@ public class MonadStateTest {
         .then(monadState.modify(list -> list.append("a")))
         .then(monadState.modify(list -> list.append("b")))
         .then(monadState.modify(list -> list.append("c")))
-        .then(monadState.get()).fix(IOOf::toIO);
+        .then(monadState.get())
+        .fix();
 
     assertEquals(arrayOf("a", "b", "c"), result.unsafeRunSync());
   }

@@ -7,7 +7,6 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import java.io.Serializable;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Bindable;
@@ -19,8 +18,7 @@ import com.github.tonivade.purefun.core.Function1;
  * without loosing information.</p>
  * @param <T> the wrapped value
  */
-@HigherKind
-public record Id<T>(T value) implements IdOf<T>, Bindable<Id<?>, T>, Applicable<Id<?>, T>, Serializable {
+public record Id<T>(T value) implements Kind<Id<?>, T>, Bindable<Id<?>, T>, Applicable<Id<?>, T>, Serializable {
 
   public Id {
     checkNonNull(value);
@@ -33,12 +31,12 @@ public record Id<T>(T value) implements IdOf<T>, Bindable<Id<?>, T>, Applicable<
 
   @Override
   public <R> Id<R> ap(Kind<Id<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return apply.fix(IdOf::toId).flatMap(this::map);
+    return apply.<Id<Function1<T, R>>>fix().flatMap(this::map);
   }
 
   @Override
   public <R> Id<R> flatMap(Function1<? super T, ? extends Kind<Id<?>, ? extends R>> map) {
-    return map.andThen(IdOf::<R>toId).apply(value);
+    return map.apply(value).fix();
   }
 
   @Override

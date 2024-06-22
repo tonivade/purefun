@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.core.Producer.cons;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
@@ -21,8 +20,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
-public non-sealed interface EitherT<F extends Kind<F, ?>, L, R> extends EitherTOf<F, L, R>, Bindable<EitherT<F, L, ?>, R> {
+public interface EitherT<F extends Kind<F, ?>, L, R> extends Kind<EitherT<F, L, ?>, R>, Bindable<EitherT<F, L, ?>, R> {
 
   Monad<F> monad();
   Kind<F, Either<L, R>> value();
@@ -34,7 +32,7 @@ public non-sealed interface EitherT<F extends Kind<F, ?>, L, R> extends EitherTO
 
   @Override
   default <V> EitherT<F, L, V> flatMap(Function1<? super R, ? extends Kind<EitherT<F, L, ?>, ? extends V>> map) {
-    return EitherT.of(monad(), flatMapF(v -> map.andThen(EitherTOf::<F, L, V>toEitherT).apply(v).value()));
+    return EitherT.of(monad(), flatMapF(v -> map.apply(v).<EitherT<F, L, V>>fix().value()));
   }
 
   default <T, V> EitherT<F, T, V> bimap(Function1<? super L, ? extends T> leftMapper, Function1<? super R, ? extends V> rightMapper) {

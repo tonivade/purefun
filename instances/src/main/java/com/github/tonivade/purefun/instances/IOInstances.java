@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Applicative;
@@ -95,7 +94,7 @@ interface IOFunctor extends Functor<IO<?>> {
 
   @Override
   default <T, R> Kind<IO<?>, R> map(Kind<IO<?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(IOOf::toIO).map(map);
+    return value.<IO<T>>fix().map(map);
   }
 }
 
@@ -118,7 +117,7 @@ interface IOApplicative extends IOPure, Applicative<IO<?>> {
   @Override
   default <T, R> IO<R> ap(Kind<IO<?>, ? extends T> value,
       Kind<IO<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return IO.parMap2(executor(), value.fix(IOOf::toIO), apply.fix(IOOf::toIO), (v, a) -> a.apply(v));
+    return value.<IO<T>>fix().ap(apply);
   }
 }
 
@@ -130,7 +129,7 @@ interface IOMonad extends Monad<IO<?>>, IOPure {
   default <T, R> IO<R> flatMap(
       Kind<IO<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<IO<?>, ? extends R>> map) {
-    return value.fix(IOOf::toIO).flatMap(map.andThen(IOOf::toIO));
+    return value.<IO<T>>fix().flatMap(map);
   }
 }
 
@@ -147,7 +146,7 @@ interface IOMonadError extends MonadError<IO<?>, Throwable>, IOMonad {
   default <A> IO<A> handleErrorWith(
       Kind<IO<?>, A> value,
       Function1<? super Throwable, ? extends Kind<IO<?>, ? extends A>> handler) {
-    return IOOf.toIO(value).redeemWith(handler.andThen(IOOf::toIO), IO::pure);
+    return value.<IO<A>>fix().redeemWith(handler, IO::pure);
   }
 }
 
@@ -160,7 +159,7 @@ interface IODefer extends Defer<IO<?>> {
 
   @Override
   default <A> IO<A> defer(Producer<? extends Kind<IO<?>, ? extends A>> defer) {
-    return IO.suspend(defer.map(IOOf::toIO));
+    return IO.suspend(defer);
   }
 }
 
@@ -191,7 +190,7 @@ interface IOAsync extends Async<IO<?>>, IOMonadDefer {
 
   @Override
   default <A> IO<A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<IO<?>, Unit>> consumer) {
-    return IO.cancellable(consumer.andThen(IOOf::toIO));
+    return IO.cancellable(consumer);
   }
 }
 
@@ -210,7 +209,7 @@ interface IOConcurrent extends Concurrent<IO<?>>, IOAsync {
 
   @Override
   default <A> IO<Fiber<IO<?>, A>> fork(Kind<IO<?>, ? extends A> value) {
-    IO<A> fix = value.fix(IOOf::toIO);
+    IO<A> fix = value.fix();
     return fix.fork();
   }
 }
@@ -238,21 +237,21 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> T run(Kind<IO<?>, T> value) {
-    return value.fix(IOOf::toIO).unsafeRunSync();
+    return value.<IO<T>>fix().unsafeRunSync();
   }
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<IO<?>, T>> values) {
-    return run(IO.traverse(values.map(IOOf::<T>toIO)));
+    return run(IO.traverse(values));
   }
 
   @Override
   default <T> Future<T> parRun(Kind<IO<?>, T> value, Executor executor) {
-    return value.fix(IOOf::<T>toIO).runAsync(executor);
+    return value.<IO<T>>fix().runAsync(executor);
   }
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<IO<?>, T>> values, Executor executor) {
-    return parRun(IO.traverse(values.map(IOOf::<T>toIO)), executor);
+    return parRun(IO.traverse(values), executor);
   }
 }

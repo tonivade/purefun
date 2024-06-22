@@ -12,7 +12,6 @@ import static com.github.tonivade.purefun.core.Unit.unit;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
@@ -29,8 +28,7 @@ import com.github.tonivade.purefun.core.Unit;
  * </ul>
  * @param <A> result of the computation
  */
-@HigherKind
-public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
+public sealed interface Eval<A> extends Kind<Eval<?>, A>, Bindable<Eval<?>, A> {
 
   Eval<Boolean> TRUE = now(true);
   Eval<Boolean> FALSE = now(false);
@@ -142,11 +140,11 @@ public sealed interface Eval<A> extends EvalOf<A>, Bindable<Eval<?>, A> {
     }
 
     private Eval<A> start() {
-      return EvalOf.toEval(start.get());
+      return start.get().fix();
     }
 
     private Eval<B> run(A value) {
-      Function1<? super A, Eval<B>> andThen = run.andThen(EvalOf::toEval);
+      Function1<? super A, Eval<B>> andThen = run.fix();
       return andThen.apply(value);
     }
 

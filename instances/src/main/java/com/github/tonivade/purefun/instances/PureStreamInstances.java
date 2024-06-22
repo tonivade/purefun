@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.effect.URIO;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.stream.PureStream;
-import com.github.tonivade.purefun.stream.PureStreamOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Functor;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -68,7 +67,7 @@ interface PureStreamFunctor<F extends Kind<F, ?>> extends Functor<PureStream<F, 
 
   @Override
   default <T, R> PureStream<F, R> map(Kind<PureStream<F, ?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return PureStreamOf.toPureStream(value).map(mapper);
+    return value.<PureStream<F, T>>fix().map(mapper);
   }
 }
 
@@ -91,6 +90,6 @@ interface PureStreamMonad<F extends Kind<F, ?>> extends Monad<PureStream<F, ?>>,
   @Override
   default <T, R> PureStream<F, R> flatMap(Kind<PureStream<F, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<PureStream<F, ?>, ? extends R>> mapper) {
-    return PureStreamOf.toPureStream(value).flatMap(mapper.andThen(PureStreamOf::toPureStream));
+    return value.<PureStream<F, T>>fix().flatMap(mapper);
   }
 }

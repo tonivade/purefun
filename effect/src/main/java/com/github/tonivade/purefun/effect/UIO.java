@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
@@ -36,8 +35,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind
-public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
+public final class UIO<A> implements Kind<UIO<?>, A>, Effect<UIO<?>, A>, Recoverable {
 
   private static final UIO<Unit> UNIT = new UIO<>(PureIO.unit());
 
@@ -103,19 +101,19 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
   @Override
   public <B> UIO<B> flatMap(Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return new UIO<>(instance.flatMap(x -> {
-      UIO<? extends B> apply = map.andThen(UIOOf::toUIO).apply(x);
+      UIO<B> apply = map.apply(x).fix();
       return apply.instance;
     }));
   }
 
   @Override
   public <B> UIO<B> andThen(Kind<UIO<?>, ? extends B> next) {
-    return new UIO<>(instance.andThen(next.fix(UIOOf::toUIO).instance));
+    return new UIO<>(instance.andThen(next.<UIO<B>>fix().instance));
   }
 
   @Override
   public <B> UIO<B> ap(Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return new UIO<>(instance.ap(apply.fix(UIOOf::toUIO).instance));
+    return new UIO<>(instance.ap(apply.<UIO<Function1<A, B>>>fix().instance));
   }
 
   public UIO<A> recover(Function1<? super Throwable, ? extends A> mapError) {
@@ -141,8 +139,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
       Function1<? super Throwable, ? extends Kind<UIO<?>, ? extends B>> mapError,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> map) {
     return new UIO<>(PureIO.redeem(instance).foldM(
-        error -> mapError.andThen(UIOOf::toUIO).apply(error).instance,
-        value -> map.andThen(UIOOf::toUIO).apply(value).instance));
+        error -> mapError.apply(error).<UIO<B>>fix().instance,
+        value -> map.apply(value).<UIO<B>>fix().instance));
   }
 
   @Override
@@ -163,14 +161,14 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
   @Override
   public <B, C> UIO<C> zipWith(Kind<UIO<?>, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return parMap2(this, other.fix(UIOOf::toUIO), mapper);
+    return parMap2(this, other.fix(), mapper);
   }
 
   public UIO<Fiber<UIO<?>, A>> fork() {
     return new UIO<>(instance.fork().map(f -> f.<UIO<?>>mapK(new FunctionK<>() {
       @Override
       public <T> UIO<T> apply(Kind<PureIO<Void, Void, ?>, ? extends T> from) {
-        return new UIO<>(from.fix(PureIOOf::toPureIO));
+        return new UIO<>(from.fix());
       }
     })));
   }
@@ -182,8 +180,8 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
 
   public UIO<A> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(UIOOf::toUIO).map(x -> ta.get1()),
-        tb -> tb.get1().cancel().fix(UIOOf::toUIO).flatMap(x -> UIO.raiseError(new TimeoutException()))));
+        ta -> ta.get2().cancel().<UIO<Unit>>fix().map(x -> ta.get1()),
+        tb -> tb.get1().cancel().<UIO<Unit>>fix().flatMap(x -> UIO.raiseError(new TimeoutException()))));
   }
 
   @Override
@@ -242,7 +240,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
 
   public static <A, B, C> UIO<C> parMap2(Executor executor, Kind<UIO<?>, ? extends A> za, Kind<UIO<?>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new UIO<>(PureIO.parMap2(executor, za.fix(UIOOf::toUIO).instance, zb.fix(UIOOf::toUIO).instance, mapper));
+    return new UIO<>(PureIO.parMap2(executor, za.<UIO<A>>fix().instance, zb.<UIO<B>>fix().instance, mapper));
   }
 
   public static <A, B> UIO<Either<A, B>> race(Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
@@ -251,24 +249,24 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
 
   public static <A, B> UIO<Either<A, B>> race(Executor executor, Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(UIOOf::toUIO).map(x -> Either.left(ta.get1())),
-        tb -> tb.get1().cancel().fix(UIOOf::toUIO).map(x -> Either.right(tb.get2()))));
+        ta -> ta.get2().cancel().<UIO<Unit>>fix().map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().<UIO<Unit>>fix().map(x -> Either.right(tb.get2()))));
   }
 
   public static <A, B> UIO<Either<Tuple2<A, Fiber<UIO<?>, B>>, Tuple2<Fiber<UIO<?>, A>, B>>>
       racePair(Executor executor, Kind<UIO<?>, ? extends A> fa, Kind<UIO<?>, ? extends B> fb) {
-    PureIO<Void, Void, A> instance1 = fa.fix(UIOOf::toUIO).instance.fix(PureIOOf::toPureIO);
-    PureIO<Void, Void, B> instance2 = fb.fix(UIOOf::toUIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<Void, Void, A> instance1 = fa.<UIO<A>>fix().instance;
+    PureIO<Void, Void, B> instance2 = fb.<UIO<B>>fix().instance;
     return new UIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.<UIO<?>>mapK(new FunctionK<>() {
         @Override
         public <T> UIO<T> apply(Kind<PureIO<Void, Void, ?>, ? extends T> from) {
-          return new UIO<>(from.fix(PureIOOf::toPureIO));
+          return new UIO<>(from.fix());
         }
       })), b -> b.map1(f -> f.<UIO<?>>mapK(new FunctionK<>() {
         @Override
         public <T> UIO<T> apply(Kind<PureIO<Void, Void, ?>, ? extends T> from) {
-          return new UIO<>(from.fix(PureIOOf::toPureIO));
+          return new UIO<>(from.fix());
         }
       })))));
   }
@@ -310,7 +308,7 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
   }
 
   public static <A> UIO<A> defer(Producer<Kind<UIO<?>, ? extends A>> lazy) {
-    return new UIO<>(PureIO.defer(() -> lazy.andThen(UIOOf::toUIO).get().instance));
+    return new UIO<>(PureIO.defer(() -> lazy.get().<UIO<A>>fix().instance));
   }
 
   public static <A> UIO<A> task(Producer<? extends A> task) {
@@ -375,20 +373,25 @@ public final class UIO<A> implements UIOOf<A>, Effect<UIO<?>, A>, Recoverable {
 
   public static <A extends AutoCloseable, B> UIO<B> bracket(
       Kind<UIO<?>, ? extends A> acquire, Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use) {
-    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::toUIO).instance),
-        resource -> PureIO.redeem(use.andThen(UIOOf::toUIO).apply(resource).instance)));
+    return fold(PureIO.bracket(PureIO.redeem(
+        acquire.<UIO<A>>fix().instance),
+        resource -> PureIO.redeem(use.apply(resource).<UIO<B>>fix().instance)));
   }
 
   public static <A, B> UIO<B> bracket(Kind<UIO<?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use, Consumer1<? super A> release) {
-    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::toUIO).instance),
-        resource -> PureIO.redeem(use.andThen(UIOOf::toUIO).apply(resource).instance), release));
+    return fold(PureIO.bracket(PureIO.redeem(
+        acquire.<UIO<A>>fix().instance),
+        resource -> PureIO.redeem(use.apply(resource).<UIO<B>>fix().instance),
+        release));
   }
 
   public static <A, B> UIO<B> bracket(Kind<UIO<?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<UIO<?>, ? extends B>> use, Function1<? super A, ? extends Kind<UIO<?>, Unit>> release) {
-    return fold(PureIO.bracket(PureIO.redeem(acquire.fix(UIOOf::toUIO).instance),
-        resource -> PureIO.redeem(use.andThen(UIOOf::toUIO).apply(resource).instance), release.andThen(UIOOf::toUIO).andThen(UIO::toPureIO)));
+    return fold(PureIO.bracket(
+        PureIO.redeem(acquire.<UIO<A>>fix().instance),
+        resource -> PureIO.redeem(use.apply(resource).<UIO<B>>fix().instance),
+        release.andThen(Kind::<UIO<Unit>>fix).andThen(UIO::toPureIO)));
   }
 
   public static UIO<Unit> unit() {

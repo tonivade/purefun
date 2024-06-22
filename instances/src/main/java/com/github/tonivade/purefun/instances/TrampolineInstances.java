@@ -8,7 +8,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Trampoline;
-import com.github.tonivade.purefun.core.TrampolineOf;
 import com.github.tonivade.purefun.typeclasses.Applicative;
 import com.github.tonivade.purefun.typeclasses.Defer;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -40,7 +39,7 @@ interface TrampolineFunctor extends Functor<Trampoline<?>> {
   @Override
   default <T, R> Kind<Trampoline<?>, R> map(
       Kind<Trampoline<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return TrampolineOf.toTrampoline(value).map(mapper);
+    return value.<Trampoline<T>>fix().map(mapper);
   }
 }
 
@@ -59,7 +58,7 @@ interface TrampolineApplicative extends TrampolinePure {
   @Override
   default <T, R> Kind<Trampoline<?>, R> ap(Kind<Trampoline<?>, ? extends T> value,
       Kind<Trampoline<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return TrampolineOf.toTrampoline(value).flatMap(t -> TrampolineOf.toTrampoline(apply).map(f -> f.apply(t)));
+    return value.<Trampoline<T>>fix().flatMap(t -> apply.<Trampoline<Function1<T, R>>>fix().map(f -> f.apply(t)));
   }
 }
 
@@ -70,7 +69,7 @@ interface TrampolineMonad extends TrampolinePure, Monad<Trampoline<?>> {
   @Override
   default <T, R> Kind<Trampoline<?>, R> flatMap(Kind<Trampoline<?>, ? extends T> value,
       Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> map) {
-    return TrampolineOf.toTrampoline(value).flatMap(map.andThen(TrampolineOf::toTrampoline));
+    return value.<Trampoline<T>>fix().flatMap(map);
   }
 }
 
@@ -80,6 +79,6 @@ interface TrampolineDefer extends Defer<Trampoline<?>> {
 
   @Override
   default <A> Kind<Trampoline<?>, A> defer(Producer<? extends Kind<Trampoline<?>, ? extends A>> defer) {
-    return Trampoline.more(() -> defer.get().fix(TrampolineOf::toTrampoline));
+    return Trampoline.more(() -> defer.get().fix());
   }
 }

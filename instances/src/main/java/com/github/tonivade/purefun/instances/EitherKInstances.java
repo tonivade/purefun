@@ -10,7 +10,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.free.EitherK;
-import com.github.tonivade.purefun.free.EitherKOf;
 import com.github.tonivade.purefun.typeclasses.Comonad;
 import com.github.tonivade.purefun.typeclasses.Contravariant;
 import com.github.tonivade.purefun.typeclasses.Functor;
@@ -21,8 +20,8 @@ public interface EitherKInstances {
   static <F extends Kind<F, ?>, G extends Kind<G, ?>, T> Eq<Kind<EitherK<F, G, ?>, T>> eq(
       Eq<Kind<F, T>> leftEq, Eq<Kind<G, T>> rightEq) {
     return (a, b) -> {
-      var x = EitherKOf.toEitherK(a);
-      var y = EitherKOf.toEitherK(b);
+      EitherK<F, G, T> x = a.fix();
+      EitherK<F, G, T> y = b.fix();
       if (x.isLeft() && y.isLeft()) {
         return leftEq.eqv(x.getLeft(), y.getLeft());
       }
@@ -76,7 +75,7 @@ interface EitherKFunctor<F extends Kind<F, ?>, G extends Kind<G, ?>> extends Fun
   @Override
   default <T, R> EitherK<F, G, R> map(
       Kind<EitherK<F, G, ?>, ? extends T> value, Function1<? super T, ? extends R> map) {
-    return value.fix(EitherKOf::toEitherK).map(f(), g(), map);
+    return value.<EitherK<F, G, T>>fix().map(f(), g(), map);
   }
 }
 
@@ -99,7 +98,7 @@ interface EitherKContravariant<F extends Kind<F, ?>, G extends Kind<G, ?>>
   @Override
   default <A, B> EitherK<F, G, B> contramap(
       Kind<EitherK<F, G, ?>, ? extends A> value, Function1<? super B, ? extends A> map) {
-    return value.fix(EitherKOf::<F, G, A>toEitherK).contramap(f(), g(), map);
+    return value.<EitherK<F, G, A>>fix().contramap(f(), g(), map);
   }
 }
 
@@ -124,12 +123,12 @@ interface EitherKComonad<F extends Kind<F, ?>, G extends Kind<G, ?>>
   default <A, B> EitherK<F, G, B> coflatMap(
       Kind<EitherK<F, G, ?>, ? extends A> value,
       Function1<? super Kind<EitherK<F, G, ?>, ? extends A>, ? extends B> map) {
-    return value.fix(EitherKOf::toEitherK).coflatMap(f(), g(), map);
+    return value.<EitherK<F, G, A>>fix().coflatMap(f(), g(), map);
   }
 
   @Override
   default <A> A extract(Kind<EitherK<F, G, ?>, ? extends A> value) {
-    return value.fix(EitherKOf::toEitherK).extract(f(), g());
+    return value.<EitherK<F, G, A>>fix().extract(f(), g());
   }
 }
 

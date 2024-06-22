@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.core.CheckedRunnable;
@@ -33,8 +32,7 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 
-@HigherKind
-public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
+public final class EIO<E, A> implements Kind<EIO<E, ?>, A>, Effect<EIO<E, ?>, A> {
 
   private static final EIO<?, Unit> UNIT = new EIO<>(PureIO.unit());
 
@@ -77,19 +75,19 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
   @Override
   public <B> EIO<E, B> flatMap(Function1<? super A, ? extends Kind<EIO<E, ?>, ? extends B>> map) {
     return new EIO<>(instance.flatMap(value -> {
-      EIO<E, ? extends B> apply = map.andThen(EIOOf::toEIO).apply(value);
+      EIO<E, ? extends B> apply = map.apply(value).fix();
       return apply.instance;
     }));
   }
 
   @Override
   public <B> EIO<E, B> andThen(Kind<EIO<E, ?>, ? extends B> next) {
-    return new EIO<>(instance.andThen(next.fix(EIOOf::toEIO).instance));
+    return new EIO<>(instance.andThen(next.<EIO<E, B>>fix().instance));
   }
 
   @Override
   public <B> EIO<E, B> ap(Kind<EIO<E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return new EIO<>(instance.ap(apply.fix(EIOOf::toEIO).toPureIO()));
+    return new EIO<>(instance.ap(apply.<EIO<E, Function1<? super A, ? extends B>>>fix().toPureIO()));
   }
 
   public EIO<A, E> swap() {
@@ -102,7 +100,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
 
   public <F> EIO<F, A> flatMapError(Function1<? super E, ? extends Kind<EIO<F, ?>, ? extends A>> map) {
     return new EIO<>(instance.flatMapError(error -> {
-      EIO<F, ? extends A> apply = map.andThen(EIOOf::toEIO).apply(error);
+      EIO<F, ? extends A> apply = map.apply(error).fix();
       return apply.instance;
     }));
   }
@@ -115,8 +113,8 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
       Function1<? super E, ? extends Kind<EIO<F, ?>, ? extends B>> mapError,
       Function1<? super A, ? extends Kind<EIO<F, ?>, ? extends B>> map) {
     return new EIO<>(instance.foldM(
-        error -> mapError.andThen(EIOOf::toEIO).apply(error).instance,
-        value -> map.andThen(EIOOf::toEIO).apply(value).instance));
+        error -> mapError.apply(error).<EIO<F, B>>fix().instance,
+        value -> map.apply(value).<EIO<F, B>>fix().instance));
   }
 
   public <B> UIO<B> fold(Function1<? super E, ? extends B> mapError, Function1<? super A, ? extends B> map) {
@@ -149,14 +147,14 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
   @Override
   public <B, C> EIO<E, C> zipWith(Kind<EIO<E, ?>, ? extends B> other,
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return parMap2(this, other.fix(EIOOf::toEIO), mapper);
+    return parMap2(this, other.fix(), mapper);
   }
 
   public EIO<E, Fiber<EIO<E, ?>, A>> fork() {
     return new EIO<>(instance.fork().map(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
-        return new EIO<>(from.fix(PureIOOf::toPureIO));
+        return new EIO<>(from.fix());
       }
     })));
   }
@@ -168,8 +166,8 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
 
   public EIO<E, A> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, EIO.sleep(duration)).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(EIOOf::toEIO).map(x -> ta.get1()),
-        tb -> tb.get1().cancel().fix(EIOOf::toEIO).flatMap(x -> EIO.throwError(new TimeoutException()))));
+        ta -> ta.get2().cancel().<EIO<E, Unit>>fix().map(x -> ta.get1()),
+        tb -> tb.get1().cancel().<EIO<E, Unit>>fix().flatMap(x -> EIO.throwError(new TimeoutException()))));
   }
 
   @Override
@@ -232,7 +230,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
 
   public static <E, A, B, C> EIO<E, C> parMap2(Executor executor, Kind<EIO<E, ?>, ? extends A> za, Kind<EIO<E, ?>, ? extends B> zb,
       Function2<? super A, ? super B, ? extends C> mapper) {
-    return new EIO<>(PureIO.parMap2(executor, za.fix(EIOOf::toEIO).instance, zb.fix(EIOOf::toEIO).instance, mapper));
+    return new EIO<>(PureIO.parMap2(executor, za.<EIO<E, A>>fix().instance, zb.<EIO<E, B>>fix().instance, mapper));
   }
 
   public static <E, A, B> EIO<E, Either<A, B>> race(Kind<EIO<E, ?>, ? extends A> fa, Kind<EIO<E, ?>, ? extends B> fb) {
@@ -241,24 +239,24 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
 
   public static <E, A, B> EIO<E, Either<A, B>> race(Executor executor, Kind<EIO<E, ?>, ? extends A> fa, Kind<EIO<E, ?>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(EIOOf::toEIO).map(x -> Either.left(ta.get1())),
-        tb -> tb.get1().cancel().fix(EIOOf::toEIO).map(x -> Either.right(tb.get2()))));
+        ta -> ta.get2().cancel().<EIO<E, Unit>>fix().map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().<EIO<E, Unit>>fix().map(x -> Either.right(tb.get2()))));
   }
 
   public static <E, A, B> EIO<E, Either<Tuple2<A, Fiber<EIO<E, ?>, B>>, Tuple2<Fiber<EIO<E, ?>, A>, B>>>
       racePair(Executor executor, Kind<EIO<E, ?>, ? extends A> fa, Kind<EIO<E, ?>, ? extends B> fb) {
-    PureIO<Void, E, A> instance1 = fa.fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
-    PureIO<Void, E, B> instance2 = fb.fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<Void, E, A> instance1 = fa.<EIO<E, A>>fix().instance;
+    PureIO<Void, E, B> instance2 = fb.<EIO<E, B>>fix().instance;
     return new EIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
-          return new EIO<>(from.fix(PureIOOf::toPureIO));
+          return new EIO<>(from.fix());
         }
       })), b -> b.map1(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
-          return new EIO<>(from.fix(PureIOOf::toPureIO));
+          return new EIO<>(from.fix());
         }
       })))));
   }
@@ -324,7 +322,7 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
   }
 
   public static <E, A> EIO<E, A> defer(Producer<Kind<EIO<E, ?>, ? extends A>> lazy) {
-    return new EIO<>(PureIO.defer(() -> lazy.andThen(EIOOf::toEIO).get().instance));
+    return new EIO<>(PureIO.defer(() -> lazy.get().<EIO<E, A>>fix().instance));
   }
 
   public static <A> EIO<Throwable, A> task(Producer<? extends A> task) {
@@ -362,20 +360,21 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
 
   public static <E, A extends AutoCloseable, B> EIO<E, B> bracket(Kind<EIO<E, ?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<EIO<E, ?>, ? extends B>> use) {
-    return new EIO<>(PureIO.bracket(acquire.fix(EIOOf::toEIO).instance,
-        resource -> use.andThen(EIOOf::<E, B>toEIO).apply(resource).instance));
+    return new EIO<>(PureIO.bracket(acquire.<EIO<E, A>>fix().instance,
+        resource -> use.apply(resource).<EIO<E, B>>fix().instance));
   }
 
   public static <E, A, B> EIO<E, B> bracket(Kind<EIO<E, ?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<EIO<E, ?>, ? extends B>> use, Consumer1<? super A> release) {
-    return new EIO<>(PureIO.bracket(acquire.fix(EIOOf::toEIO).instance,
-        resource -> use.andThen(EIOOf::<E, B>toEIO).apply(resource).instance, release));
+    return new EIO<>(PureIO.bracket(acquire.<EIO<E, A>>fix().instance,
+        resource -> use.apply(resource).<EIO<E, B>>fix().instance, release));
   }
 
   public static <E, A, B> EIO<E, B> bracket(Kind<EIO<E, ?>, ? extends A> acquire,
       Function1<? super A, ? extends Kind<EIO<E, ?>, ? extends B>> use, Function1<? super A, ? extends Kind<EIO<E, ?>, Unit>> release) {
-    return new EIO<>(PureIO.bracket(acquire.fix(EIOOf::toEIO).instance,
-        resource -> use.andThen(EIOOf::<E, B>toEIO).apply(resource).instance, release.andThen(EIOOf::toEIO).andThen(EIO::toPureIO)));
+    return new EIO<>(PureIO.bracket(acquire.<EIO<E, A>>fix().instance,
+        resource -> use.apply(resource).<EIO<E, B>>fix().instance,
+        release.andThen(Kind::<EIO<E, Unit>>fix).andThen(EIO::toPureIO)));
   }
 
   @SuppressWarnings("unchecked")

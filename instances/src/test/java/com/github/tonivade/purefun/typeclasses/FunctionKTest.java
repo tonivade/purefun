@@ -8,9 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.OptionOf;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 
 public class FunctionKTest {
 
@@ -39,13 +37,13 @@ public class FunctionKTest {
 class OptionToTry implements FunctionK<Option<?>, Try<?>> {
   @Override
   public <X> Kind<Try<?>, X> apply(Kind<Option<?>, ? extends X> from) {
-    return OptionOf.<X>toOption(from).map(Try::success).getOrElse(Try::failure);
+    return from.<Option<X>>fix().map(Try::success).getOrElse(Try::failure);
   }
 }
 
 class TryToOption implements FunctionK<Try<?>, Option<?>> {
   @Override
   public <X> Kind<Option<?>, X> apply(Kind<Try<?>, ? extends X> from) {
-    return TryOf.<X>toTry(from).toOption();
+    return from.<Try<X>>fix().toOption();
   }
 }

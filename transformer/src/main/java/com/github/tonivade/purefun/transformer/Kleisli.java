@@ -6,15 +6,13 @@ package com.github.tonivade.purefun.transformer;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
-@HigherKind
-public non-sealed interface Kleisli<F extends Kind<F, ?>, Z, A> extends KleisliOf<F, Z, A>, Bindable<Kleisli<F, Z, ?>, A> {
+public interface Kleisli<F extends Kind<F, ?>, Z, A> extends Kind<Kleisli<F, Z, ?>, A>, Bindable<Kleisli<F, Z, ?>, A> {
 
   Monad<F> monad();
   Kind<F, A> run(Z value);
@@ -26,7 +24,7 @@ public non-sealed interface Kleisli<F extends Kind<F, ?>, Z, A> extends KleisliO
 
   @Override
   default <R> Kleisli<F, Z, R> flatMap(Function1<? super A, ? extends Kind<Kleisli<F, Z, ?>, ? extends R>> map) {
-    return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.andThen(KleisliOf::toKleisli).apply(a).run(value)));
+    return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.apply(a).<Kleisli<F, Z, R>>fix().run(value)));
   }
 
   default <B> Kleisli<F, Z, B> compose(Kleisli<F, A, B> other) {

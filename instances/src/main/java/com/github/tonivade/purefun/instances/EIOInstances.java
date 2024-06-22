@@ -16,7 +16,6 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
 import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.EIOOf;
 import com.github.tonivade.purefun.effect.UIO;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Try;
@@ -85,7 +84,7 @@ interface EIOFunctor<E> extends Functor<EIO<E, ?>> {
   @Override
   default <A, B> EIO<E, B>
           map(Kind<EIO<E, ?>, ? extends A> value, Function1<? super A, ? extends B> map) {
-    return EIOOf.toEIO(value).map(map);
+    return value.<EIO<E, A>>fix().map(map);
   }
 }
 
@@ -106,7 +105,7 @@ interface EIOApplicative<E> extends EIOPure<E> {
   default <A, B> EIO<E, B>
           ap(Kind<EIO<E, ?>, ? extends A> value,
              Kind<EIO<E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(EIOOf::<E, A>toEIO).ap(apply.fix(EIOOf::toEIO));
+    return value.<EIO<E, A>>fix().ap(apply);
   }
 }
 
@@ -119,7 +118,7 @@ interface EIOMonad<E> extends EIOPure<E>, Monad<EIO<E, ?>> {
   default <A, B> EIO<E, B>
           flatMap(Kind<EIO<E, ?>, ? extends A> value,
                   Function1<? super A, ? extends Kind<EIO<E, ?>, ? extends B>> map) {
-    return value.fix(EIOOf::toEIO).flatMap(map.andThen(EIOOf::toEIO));
+    return value.<EIO<E, A>>fix().flatMap(map);
   }
 }
 
@@ -138,9 +137,9 @@ interface EIOMonadError<E> extends EIOMonad<E>, MonadError<EIO<E, ?>, E> {
       Kind<EIO<E, ?>, A> value,
       Function1<? super E, ? extends Kind<EIO<E, ?>, ? extends A>> handler) {
     // XXX: java8 fails to infer types, I have to do this in steps
-    Function1<? super E, EIO<E, A>> mapError = handler.andThen(EIOOf::toEIO);
+    Function1<? super E, EIO<E, A>> mapError = handler.andThen(Kind::fix);
     Function1<A, EIO<E, A>> map = EIO::pure;
-    EIO<E, A> eio = EIOOf.toEIO(value);
+    EIO<E, A> eio = value.fix();
     return eio.foldM(mapError, map);
   }
 }
@@ -189,7 +188,7 @@ interface EIOAsync extends Async<EIO<Throwable, ?>>, EIOMonadDefer {
 
   @Override
   default <A> EIO<Throwable, A> asyncF(Function1<Consumer1<? super Try<? extends A>>, Kind<EIO<Throwable, ?>, Unit>> consumer) {
-    return EIO.cancellable(cb -> consumer.andThen(EIOOf::toEIO).apply(e -> cb.accept(Try.success(e.toEither()))));
+    return EIO.cancellable(cb -> consumer.apply(e -> cb.accept(Try.success(e.toEither()))).fix());
   }
 }
 
@@ -209,7 +208,7 @@ interface EIOConcurrent extends EIOAsync, Concurrent<EIO<Throwable, ?>> {
 
   @Override
   default <A> EIO<Throwable, Fiber<EIO<Throwable, ?>, A>> fork(Kind<EIO<Throwable, ?>, ? extends A> value) {
-    EIO<Throwable, A> fix = value.fix(EIOOf::toEIO);
+    EIO<Throwable, A> fix = value.fix();
     return fix.fork();
   }
 }
@@ -221,21 +220,21 @@ interface EIORuntime<E> extends Runtime<EIO<E, ?>> {
 
   @Override
   default <T> T run(Kind<EIO<E, ?>, T> value) {
-    return value.fix(EIOOf::toEIO).safeRunSync().getRight();
+    return value.<EIO<E, T>>fix().safeRunSync().getRight();
   }
 
   @Override
   default <T> Sequence<T> run(Sequence<Kind<EIO<E, ?>, T>> values) {
-    return run(EIO.traverse(values.map(EIOOf::<E, T>toEIO)));
+    return run(EIO.traverse(values));
   }
 
   @Override
   default <T> Future<T> parRun(Kind<EIO<E, ?>, T> value, Executor executor) {
-    return value.fix(EIOOf::toEIO).runAsync().map(Either::get);
+    return value.<EIO<E, T>>fix().runAsync().map(Either::get);
   }
 
   @Override
   default <T> Future<Sequence<T>> parRun(Sequence<Kind<EIO<E, ?>, T>> values, Executor executor) {
-    return parRun(EIO.traverse(values.map(EIOOf::<E, T>toEIO)), executor);
+    return parRun(EIO.traverse(values), executor);
   }
 }

@@ -16,7 +16,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.Nullable;
 import com.github.tonivade.purefun.concurrent.Future;
@@ -41,8 +40,7 @@ import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.Fiber;
 
-@HigherKind
-public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
+public sealed interface IO<T> extends Kind<IO<?>, T>, Effect<IO<?>, T>, Recoverable {
 
   IO<Unit> UNIT = pure(Unit.unit());
 
@@ -123,7 +121,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
   }
 
   default IO<T> recoverWith(PartialFunction1<? super Throwable, ? extends Kind<IO<?>, ? extends T>> mapper) {
-    return new Recover<>(this, mapper.andThen(IOOf::toIO));
+    return new Recover<>(this, mapper);
   }
 
   @Override
@@ -151,8 +149,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
 
   default IO<T> timeout(Executor executor, Duration duration) {
     return racePair(executor, this, sleep(duration)).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(IOOf::toIO).map(x -> ta.get1()),
-        tb -> tb.get1().cancel().fix(IOOf::toIO).flatMap(x -> IO.raiseError(new TimeoutException()))));
+        ta -> ta.get2().cancel().<IO<Unit>>fix().map(x -> ta.get1()),
+        tb -> tb.get1().cancel().<IO<Unit>>fix().flatMap(x -> IO.raiseError(new TimeoutException()))));
   }
 
   @Override
@@ -205,8 +203,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
 
   static <A, B> IO<Either<A, B>> race(Executor executor, Kind<IO<?>, ? extends A> fa, Kind<IO<?>, ? extends B> fb) {
     return racePair(executor, fa, fb).flatMap(either -> either.fold(
-        ta -> ta.get2().cancel().fix(IOOf::toIO).map(x -> Either.left(ta.get1())),
-        tb -> tb.get1().cancel().fix(IOOf::toIO).map(x -> Either.right(tb.get2()))));
+        ta -> ta.get2().cancel().<IO<Unit>>fix().map(x -> Either.left(ta.get1())),
+        tb -> tb.get1().cancel().<IO<Unit>>fix().map(x -> Either.right(tb.get2()))));
   }
 
   static <A, B> IO<Either<Tuple2<A, Fiber<IO<?>, B>>, Tuple2<Fiber<IO<?>, A>, B>>> racePair(Executor executor, Kind<IO<?>, ? extends A> fa, Kind<IO<?>, ? extends B> fb) {
@@ -242,7 +240,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
   }
 
   static <T> IO<T> suspend(Producer<? extends Kind<IO<?>, ? extends T>> lazy) {
-    return new Suspend<>(() -> lazy.get().fix(IOOf::toIO));
+    return new Suspend<>(() -> lazy.get().fix());
   }
 
   static <T, R> Function1<T, IO<R>> lift(Function1<T, R> task) {
@@ -348,12 +346,12 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
 
       IOConnection cancellable = IOConnection.cancellable();
 
-      Promise<? extends T> promise = runAsync(acquire.fix(IOOf::toIO), cancellable);
+      Promise<? extends T> promise = runAsync(acquire.fix(), cancellable);
 
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
-        .onSuccess(resource -> runAsync(use.apply(resource).fix(IOOf::toIO), cancellable)
-          .onComplete(result -> runAsync(release.apply(resource).fix(IOOf::toIO), cancellable)
+        .onSuccess(resource -> runAsync(use.apply(resource).<IO<R>>fix(), cancellable)
+          .onComplete(result -> runAsync(release.apply(resource).<IO<Unit>>fix(), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
 
@@ -374,7 +372,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
   static IO<Unit> sequence(Sequence<? extends Kind<IO<?>, ?>> sequence) {
     Kind<IO<?>, ?> initial = IO.unit().kind();
     return sequence.foldLeft(initial,
-        (Kind<IO<?>, ?> a, Kind<IO<?>, ?> b) -> a.fix(IOOf::toIO).andThen(b.fix(IOOf::toIO))).fix(IOOf::toIO).andThen(IO.unit());
+        (Kind<IO<?>, ?> a, Kind<IO<?>, ?> b) -> a.<IO<?>>fix().andThen(b.<IO<?>>fix())).<IO<?>>fix().andThen(IO.unit());
   }
 
   static <A> IO<Sequence<A>> traverse(Sequence<? extends Kind<IO<?>, A>> sequence) {
@@ -443,12 +441,12 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
           stack.push();
 
           var flatMapped = (FlatMapped<U, T>) current;
-          IO<U> source = unwrap(flatMapped.current, stack, u -> u.fix(IOOf::toIO).flatMap(flatMapped.next)).fix(IOOf::toIO);
+          IO<U> source = unwrap(flatMapped.current, stack, u -> u.<IO<U>>fix().flatMap(flatMapped.next)).fix();
 
           if (source instanceof Async<U> async) {
             Promise<U> nextPromise = Promise.make();
 
-            nextPromise.then(u -> runAsync(flatMapped.next.apply(u).fix(IOOf::toIO), connection, stack, promise));
+            nextPromise.then(u -> runAsync(flatMapped.next.apply(u).fix(), connection, stack, promise));
 
             executeAsync(async, connection, nextPromise);
 
@@ -456,11 +454,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
           }
 
           if (source instanceof Pure<U> pure) {
-            current = flatMapped.next.apply(pure.value).fix(IOOf::toIO);
+            current = flatMapped.next.apply(pure.value).fix();
           } else if (source instanceof FlatMapped) {
             var flatMapped2 = (FlatMapped<V, U>) source;
-            current = flatMapped2.current.fix(IOOf::toIO)
-                .flatMap(a -> flatMapped2.next.apply(a).fix(IOOf::toIO)
+            current = flatMapped2.current.<IO<V>>fix()
+                .flatMap(a -> flatMapped2.next.apply(a).<IO<U>>fix()
                     .flatMap(flatMapped.next));
           }
         } else {
@@ -486,7 +484,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
         stack.add(recover.mapper.andThen(next));
         current = recover.current;
       } else if (current instanceof Suspend<T> suspend) {
-        current = suspend.lazy.get().fix(IOOf::toIO);
+        current = suspend.lazy.get().fix();
       } else if (current instanceof Delay<T> delay) {
         return IO.pure(delay.task.get());
       } else if (current instanceof Pure) {
@@ -706,7 +704,7 @@ sealed interface IOConnection {
 
     @Override
     public void cancelNow() {
-      cancelToken.fix(IOOf::toIO).runAsync();
+      cancelToken.<IO<Unit>>fix().runAsync();
     }
 
     @Override
@@ -866,7 +864,7 @@ final class StackItem<T> {
     while (!recover.isEmpty()) {
       var mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        return Option.some(mapError.apply(error).fix(IOOf::toIO));
+        return Option.some(mapError.apply(error).<IO<T>>fix());
       }
     }
     return Option.none();

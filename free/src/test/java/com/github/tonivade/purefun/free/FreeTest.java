@@ -9,9 +9,7 @@ import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.monad.State;
-import com.github.tonivade.purefun.monad.StateOf;
 import com.github.tonivade.purefun.runtimes.ConsoleExecutor;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import org.junit.jupiter.api.Test;
@@ -28,7 +26,7 @@ public class FreeTest {
   public void interpretState() {
     var foldMap = echo.foldMap(Instances.monad(), new IOProgramToState());
 
-    State<ImmutableList<String>, Unit> state = StateOf.toState(foldMap);
+    State<ImmutableList<String>, Unit> state = foldMap.fix();
 
     Tuple2<ImmutableList<String>, Unit> run = state.run(ImmutableList.of("Toni"));
 
@@ -41,7 +39,7 @@ public class FreeTest {
 
     var executor = new ConsoleExecutor().read("Toni");
 
-    IO<Unit> fix = foldMap.fix(IOOf::toIO);
+    IO<Unit> fix = foldMap.fix();
     executor.run(fix);
 
     assertEquals("what's your name?\nHello Toni\nend\n", executor.getOutput());

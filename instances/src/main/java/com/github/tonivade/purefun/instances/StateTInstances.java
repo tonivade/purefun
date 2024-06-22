@@ -12,7 +12,6 @@ import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.transformer.StateT;
-import com.github.tonivade.purefun.transformer.StateTOf;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
 import com.github.tonivade.purefun.typeclasses.MonadReader;
@@ -53,7 +52,7 @@ interface StateTMonad<F extends Kind<F, ?>, S> extends Monad<StateT<F, S, ?>> {
   @Override
   default <T, R> StateT<F, S, R> flatMap(Kind<StateT<F, S, ?>, ? extends T> value,
       Function1<? super T, ? extends Kind<StateT<F, S, ?>, ? extends R>> map) {
-    return StateTOf.toStateT(value).flatMap(map.andThen(StateTOf::toStateT));
+    return value.<StateT<F, S, T>>fix().flatMap(map);
   }
 }
 
@@ -76,10 +75,10 @@ interface StateTMonadError<F extends Kind<F, ?>, S, E> extends MonadError<StateT
   default <A> StateT<F, S, A> handleErrorWith(
       Kind<StateT<F, S, ?>, A> value,
       Function1<? super E, ? extends Kind<StateT<F, S, ?>, ? extends A>> handler) {
-    StateT<F, S, A> stateT = value.fix(StateTOf::toStateT);
+    StateT<F, S, A> stateT = value.fix();
     return StateT.state(monadF(),
         state -> monadF().handleErrorWith(stateT.run(state),
-            error -> handler.apply(error).fix(StateTOf::<F, S, A>toStateT).run(state)));
+            error -> handler.apply(error).<StateT<F, S, A>>fix().run(state)));
   }
 }
 

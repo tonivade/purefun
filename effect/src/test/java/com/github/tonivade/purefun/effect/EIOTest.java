@@ -243,7 +243,7 @@ public class EIOTest {
         EIO<Throwable, String> task = EIO.task(() -> hello + " toni");
         return sleep.andThen(task).fork();
       })
-      .flatMap(Fiber::join).fix(EIOOf::toEIO);
+      .flatMap(Fiber::join).fix();
 
     Either<Throwable, String> orElseThrow = result.safeRunSync();
 

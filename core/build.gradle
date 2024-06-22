@@ -1,6 +1,5 @@
 
 dependencies {
-  annotationProcessor projects.purefunProcessor
   api projects.purefunAnnotation
   api libs.pcollections
   testImplementation libs.assertj

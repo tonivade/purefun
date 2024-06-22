@@ -8,7 +8,6 @@ import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
-import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
 
 import com.github.tonivade.purefun.core.Bindable;
@@ -19,8 +18,7 @@ import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
-@HigherKind
-public non-sealed interface WriterT<F extends Kind<F, ?>, L, A> extends WriterTOf<F, L, A>, Bindable<WriterT<F, L, ?>, A> {
+public interface WriterT<F extends Kind<F, ?>, L, A> extends Kind<WriterT<F, L, ?>, A>, Bindable<WriterT<F, L, ?>, A> {
 
   Monoid<L> monoid();
   Monad<F> monad();
@@ -69,7 +67,7 @@ public non-sealed interface WriterT<F extends Kind<F, ?>, L, A> extends WriterTO
   default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends Kind<WriterT<F, L, ?>, ? extends R>> mapper) {
     return writer(monoid(), monad(),
         monad().flatMap(value(),
-            current -> monad().map(mapper.andThen(WriterTOf::toWriterT).apply(current.get2()).value(),
+            current -> monad().map(mapper.apply(current.get2()).<WriterT<F, L, R>>fix().value(),
                 other -> Tuple.of(monoid().combine(current.get1(), other.get1()), other.get2()))));
   }
 

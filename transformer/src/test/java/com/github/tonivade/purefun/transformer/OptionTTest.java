@@ -11,17 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
-import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.core.Eq;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.instances.IdInstances;
 import com.github.tonivade.purefun.instances.OptionTInstances;
 import com.github.tonivade.purefun.monad.IO;
-import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
@@ -84,7 +81,7 @@ public class OptionTTest {
 
     OptionT<Try<?>, String> someTry = someIo.mapK(Instances.monad(), new IOToTryFunctionK());
 
-    assertEquals(Try.success("abc"), TryOf.toTry(someTry.getOrElseThrow()));
+    assertEquals(Try.success("abc"), someTry.getOrElseThrow());
   }
 
   @Test
@@ -119,10 +116,10 @@ public class OptionTTest {
         monadError.ensure(pure, () -> error, value -> "is ok?".equals(value));
 
     assertAll(
-        () -> assertEquals(Try.failure(error), FutureOf.toFuture(OptionTOf.toOptionT(raiseError).value()).await()),
-        () -> assertEquals(Try.success(Option.some("not an error")), FutureOf.toFuture(OptionTOf.toOptionT(handleError).value()).await()),
-        () -> assertEquals(Try.failure(error), FutureOf.toFuture(OptionTOf.toOptionT(ensureError).value()).await()),
-        () -> assertEquals(Try.success(Option.some("is not ok")), FutureOf.toFuture(OptionTOf.toOptionT(ensureOk).value()).await()));
+        () -> assertEquals(Try.failure(error), raiseError.<OptionT<Future<?>, String>>fix().value().<Future<String>>fix().await()),
+        () -> assertEquals(Try.success(Option.some("not an error")), handleError.<OptionT<Future<?>, String>>fix().value().<Future<String>>fix().await()),
+        () -> assertEquals(Try.failure(error), ensureError.<OptionT<Future<?>, String>>fix().value().<Future<String>>fix().await()),
+        () -> assertEquals(Try.success(Option.some("is not ok")), ensureOk.<OptionT<Future<?>, String>>fix().value().<Future<String>>fix().await()));
   }
 
   @Test
@@ -139,10 +136,10 @@ public class OptionTTest {
         monadError.ensure(pure, Unit::unit, "is ok?"::equals);
 
     assertAll(
-        () -> assertEquals(Id.of(Option.none()), OptionTOf.toOptionT(raiseError).value()),
-        () -> assertEquals(Id.of(Option.some("not an error")), OptionTOf.toOptionT(handleError).value()),
-        () -> assertEquals(Id.of(Option.none()), OptionTOf.toOptionT(ensureError).value()),
-        () -> assertEquals(Id.of(Option.some("is not ok")), OptionTOf.toOptionT(ensureOk).value()));
+        () -> assertEquals(Id.of(Option.none()), raiseError.<OptionT<Id<?>, String>>fix().value()),
+        () -> assertEquals(Id.of(Option.some("not an error")), handleError.<OptionT<Id<?>, String>>fix().value()),
+        () -> assertEquals(Id.of(Option.none()), ensureError.<OptionT<Id<?>, String>>fix().value()),
+        () -> assertEquals(Id.of(Option.some("is not ok")), ensureOk.<OptionT<Id<?>, String>>fix().value()));
   }
 }
 
@@ -150,6 +147,6 @@ class IOToTryFunctionK implements FunctionK<IO<?>, Try<?>> {
 
   @Override
   public <T> Kind<Try<?>, T> apply(Kind<IO<?>, ? extends T> from) {
-    return Try.of(from.fix(IOOf::toIO)::unsafeRunSync);
+    return Try.of(from.<IO<T>>fix()::unsafeRunSync);
   }
 }
