@@ -156,7 +156,8 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<URIO<R, ?>, A>, Re
     return new URIO<>(instance.fork().map(f -> f.<URIO<R, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> URIO<R, T> apply(Kind<PureIO<R, Void, ?>, ? extends T> from) {
-        return new URIO<>(from.fix(PureIOOf::toPureIO));
+        Kind<PureIO<R, Void, ?>, T> narrowK = Kind.narrowK(from);
+        return new URIO<>(narrowK.fix(PureIOOf::toPureIO));
       }
     })));
   }
@@ -255,18 +256,20 @@ public final class URIO<R, A> implements URIOOf<R, A>, Effect<URIO<R, ?>, A>, Re
 
   public static <R, A, B> URIO<R, Either<Tuple2<A, Fiber<URIO<R, ?>, B>>, Tuple2<Fiber<URIO<R, ?>, A>, B>>>
       racePair(Executor executor, Kind<URIO<R, ?>, ? extends A> fa, Kind<URIO<R, ?>, ? extends B> fb) {
-    PureIO<R, Void, A> instance1 = fa.fix(URIOOf::toURIO).instance.fix(PureIOOf::toPureIO);
-    PureIO<R, Void, B> instance2 = fb.fix(URIOOf::toURIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<R, Void, A> instance1 = Kind.<URIO<R, ?>, A>narrowK(fa).fix(URIOOf::toURIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<R, Void, B> instance2 = Kind.<URIO<R, ?>, B>narrowK(fb).fix(URIOOf::toURIO).instance.fix(PureIOOf::toPureIO);
     return new URIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.<URIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> URIO<R, T> apply(Kind<PureIO<R, Void, ?>, ? extends T> from) {
-          return new URIO<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<R, Void, ?>, T> narrowK = Kind.narrowK(from);
+          return new URIO<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })), b -> b.map1(f -> f.<URIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> URIO<R, T> apply(Kind<PureIO<R, Void, ?>, ? extends T> from) {
-          return new URIO<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<R, Void, ?>, T> narrowK = Kind.narrowK(from);
+          return new URIO<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })))));
   }

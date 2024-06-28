@@ -107,7 +107,8 @@ interface RIOApplicative<R> extends RIOPure<R> {
   default <A, B> RIO<R, B>
           ap(Kind<RIO<R, ?>, ? extends A> value,
              Kind<RIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(RIOOf::<R, A>toRIO).ap(apply.fix(RIOOf::toRIO));
+    Kind<RIO<R, ?>, A> narrowK = Kind.narrowK(value);
+    return narrowK.fix(RIOOf::<R, A>toRIO).ap(apply);
   }
 }
 
@@ -216,7 +217,8 @@ interface RIOConcurrent<R> extends RIOAsync<R>, Concurrent<RIO<R, ?>> {
 
   @Override
   default <A> RIO<R, Fiber<RIO<R, ?>, A>> fork(Kind<RIO<R, ?>, ? extends A> value) {
-    RIO<R, A> fix = value.fix(RIOOf::toRIO);
+    Kind<RIO<R, ?>, A> narrowK = Kind.narrowK(value);
+    RIO<R, A> fix = narrowK.fix(RIOOf::toRIO);
     return fix.fork();
   }
 }

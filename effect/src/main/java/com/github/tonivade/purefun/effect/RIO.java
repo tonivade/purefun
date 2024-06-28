@@ -155,7 +155,8 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
     return new RIO<>(instance.fork().map(f -> f.<RIO<R, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> RIO<R, T> apply(Kind<PureIO<R, Throwable, ?>, ? extends T> from) {
-        return new RIO<>(from.fix(PureIOOf::toPureIO));
+        Kind<PureIO<R, Throwable, ?>, T> narrowK = Kind.narrowK(from);
+        return new RIO<>(narrowK.fix(PureIOOf::toPureIO));
       }
     })));
   }
@@ -258,18 +259,20 @@ public final class RIO<R, A> implements RIOOf<R, A>, Effect<RIO<R, ?>, A>, Recov
 
   public static <R, A, B> RIO<R, Either<Tuple2<A, Fiber<RIO<R, ?>, B>>, Tuple2<Fiber<RIO<R, ?>, A>, B>>>
       racePair(Executor executor, Kind<RIO<R, ?>, ? extends A> fa, Kind<RIO<R, ?>, ? extends B> fb) {
-    PureIO<R, Throwable, A> instance1 = fa.fix(RIOOf::toRIO).instance.fix(PureIOOf::toPureIO);
-    PureIO<R, Throwable, B> instance2 = fb.fix(RIOOf::toRIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<R, Throwable, A> instance1 = Kind.<RIO<R, ?>, A>narrowK(fa).fix(RIOOf::toRIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<R, Throwable, B> instance2 = Kind.<RIO<R, ?>, B>narrowK(fb).fix(RIOOf::toRIO).instance.fix(PureIOOf::toPureIO);
     return new RIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.<RIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> RIO<R, T> apply(Kind<PureIO<R, Throwable, ?>, ? extends T> from) {
-          return new RIO<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<R, Throwable, ?>, T> narrowK = Kind.narrowK(from);
+          return new RIO<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })), b -> b.map1(f -> f.<RIO<R, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> RIO<R, T> apply(Kind<PureIO<R, Throwable, ?>, ? extends T> from) {
-          return new RIO<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<R, Throwable, ?>, T> narrowK = Kind.narrowK(from);
+          return new RIO<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })))));
   }

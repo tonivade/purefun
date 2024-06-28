@@ -38,7 +38,8 @@ interface ProducerFunctor extends Functor<Producer<?>> {
 
   @Override
   default <T, R> Kind<Producer<?>, R> map(Kind<Producer<?>, ? extends T> value, Function1<? super T, ? extends R> mapper) {
-    return value.fix(ProducerOf::<T>toProducer).map(mapper);
+    Kind<Producer<?>, T> narrowK = Kind.narrowK(value);
+    return narrowK.fix(ProducerOf::<T>toProducer).map(mapper);
   }
 }
 

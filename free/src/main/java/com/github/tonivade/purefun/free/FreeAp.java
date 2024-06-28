@@ -121,7 +121,9 @@ public sealed interface FreeAp<F extends Kind<F, ?>, A> extends FreeApOf<F, A>, 
 
   static <F extends Kind<F, ?>, T, R> FreeAp<F, R> apply(Kind<FreeAp<F, ?>, ? extends T> value,
       Kind<FreeAp<F, ?>, ? extends Function1<? super T, ? extends R>> mapper) {
-    return new Apply<>(value.fix(FreeApOf::toFreeAp), mapper.fix(FreeApOf::toFreeAp));
+    FreeAp<F, ? extends T> v = value.fix(FreeApOf::toFreeAp);
+    FreeAp<F, ? extends Function1<? super T, ? extends R>> f = mapper.fix(FreeApOf::toFreeAp);
+    return new Apply<>(v, f);
   }
 
   static <F extends Kind<F, ?>, G extends Kind<G, ?>> FunctionK<F, FreeAp<G, ?>> functionKF(FunctionK<F, G> functionK) {

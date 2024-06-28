@@ -52,7 +52,8 @@ public class FreeAlgTest {
     return new FunctionK<>() {
       @Override
       public <T> Kind<IO<?>, T> apply(Kind<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, ? extends T> from) {
-        return from.fix(EitherKOf::<ConsoleAlg<?>, EmailAlg<?>, T>toEitherK).<IO<?>>foldK(
+        Kind<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, T> narrowK = Kind.narrowK(from);
+        return narrowK.fix(EitherKOf::toEitherK).<IO<?>>foldK(
           new FunctionK<>() {
             @Override
             public <X> IO<X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {

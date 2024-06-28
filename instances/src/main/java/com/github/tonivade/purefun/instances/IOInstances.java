@@ -210,7 +210,8 @@ interface IOConcurrent extends Concurrent<IO<?>>, IOAsync {
 
   @Override
   default <A> IO<Fiber<IO<?>, A>> fork(Kind<IO<?>, ? extends A> value) {
-    IO<A> fix = value.fix(IOOf::toIO);
+    Kind<IO<?>, A> narrowK = Kind.narrowK(value);
+    IO<A> fix = narrowK.fix(IOOf::toIO);
     return fix.fork();
   }
 }

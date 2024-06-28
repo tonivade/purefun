@@ -158,7 +158,8 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
     return new Task<>(instance.fork().map(f -> f.<Task<?>>mapK(new FunctionK<>() {
       @Override
       public <T> Task<T> apply(Kind<PureIO<Void, Throwable, ?>, ? extends T> from) {
-        return new Task<>(from.fix(PureIOOf::toPureIO));
+        Kind<PureIO<Void, Throwable, ?>, T> narrowK = Kind.narrowK(from);
+        return new Task<>(narrowK.fix(PureIOOf::toPureIO));
       }
     })));
   }
@@ -245,18 +246,20 @@ public final class Task<A> implements TaskOf<A>, Effect<Task<?>, A>, Recoverable
 
   public static <A, B> Task<Either<Tuple2<A, Fiber<Task<?>, B>>, Tuple2<Fiber<Task<?>, A>, B>>>
       racePair(Executor executor, Kind<Task<?>, ? extends A> fa, Kind<Task<?>, ? extends B> fb) {
-    PureIO<Void, Throwable, A> instance1 = fa.fix(TaskOf::toTask).instance.fix(PureIOOf::toPureIO);
-    PureIO<Void, Throwable, B> instance2 = fb.fix(TaskOf::toTask).instance.fix(PureIOOf::toPureIO);
+    PureIO<Void, Throwable, A> instance1 = Kind.<Task<?>, A>narrowK(fa).fix(TaskOf::toTask).instance.fix(PureIOOf::toPureIO);
+    PureIO<Void, Throwable, B> instance2 = Kind.<Task<?>, B>narrowK(fb).fix(TaskOf::toTask).instance.fix(PureIOOf::toPureIO);
     return new Task<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.<Task<?>>mapK(new FunctionK<>() {
         @Override
         public <T> Task<T> apply(Kind<PureIO<Void, Throwable, ?>, ? extends T> from) {
-          return new Task<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<Void, Throwable, ?>, T> narrowK = Kind.narrowK(from);
+          return new Task<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })), b -> b.map1(f -> f.<Task<?>>mapK(new FunctionK<>() {
         @Override
         public <T> Task<T> apply(Kind<PureIO<Void, Throwable, ?>, ? extends T> from) {
-          return new Task<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<Void, Throwable, ?>, T> narrowK = Kind.narrowK(from);
+          return new Task<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })))));
   }

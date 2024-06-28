@@ -107,7 +107,8 @@ interface URIOApplicative<R> extends URIOPure<R> {
   default <A, B> URIO<R, B>
           ap(Kind<URIO<R, ?>, ? extends A> value,
              Kind<URIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(URIOOf::<R, A>toURIO).ap(apply.fix(URIOOf::toURIO));
+    Kind<URIO<R, ?>, A> narrowK = Kind.narrowK(value);
+    return narrowK.fix(URIOOf::<R, A>toURIO).ap(apply);
   }
 }
 
@@ -216,7 +217,8 @@ interface URIOConcurrent<R> extends URIOAsync<R>, Concurrent<URIO<R, ?>> {
 
   @Override
   default <A> URIO<R, Fiber<URIO<R, ?>, A>> fork(Kind<URIO<R, ?>, ? extends A> value) {
-    URIO<R, A> fix = value.fix(URIOOf::toURIO);
+    Kind<URIO<R, ?>, A> narrowK = Kind.narrowK(value);
+    URIO<R, A> fix = narrowK.fix(URIOOf::toURIO);
     return fix.fork();
   }
 

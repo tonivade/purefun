@@ -106,7 +106,8 @@ interface EIOApplicative<E> extends EIOPure<E> {
   default <A, B> EIO<E, B>
           ap(Kind<EIO<E, ?>, ? extends A> value,
              Kind<EIO<E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(EIOOf::<E, A>toEIO).ap(apply.fix(EIOOf::toEIO));
+    Kind<EIO<E, ?>, A> narrowK = Kind.narrowK(value);
+    return narrowK.fix(EIOOf::toEIO).ap(apply);
   }
 }
 
@@ -209,7 +210,8 @@ interface EIOConcurrent extends EIOAsync, Concurrent<EIO<Throwable, ?>> {
 
   @Override
   default <A> EIO<Throwable, Fiber<EIO<Throwable, ?>, A>> fork(Kind<EIO<Throwable, ?>, ? extends A> value) {
-    EIO<Throwable, A> fix = value.fix(EIOOf::toEIO);
+    Kind<EIO<Throwable, ? >, A> narrowK = Kind.narrowK(value);
+    EIO<Throwable, A> fix = narrowK.fix(EIOOf::toEIO);
     return fix.fork();
   }
 }

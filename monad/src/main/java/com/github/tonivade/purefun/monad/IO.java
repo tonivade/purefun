@@ -348,12 +348,12 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
 
       IOConnection cancellable = IOConnection.cancellable();
 
-      Promise<? extends T> promise = runAsync(acquire.fix(IOOf::toIO), cancellable);
+      Promise<? extends T> promise = runAsync(acquire, cancellable);
 
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
-        .onSuccess(resource -> runAsync(use.apply(resource).fix(IOOf::toIO), cancellable)
-          .onComplete(result -> runAsync(release.apply(resource).fix(IOOf::toIO), cancellable)
+        .onSuccess(resource -> runAsync(use.apply(resource), cancellable)
+          .onComplete(result -> runAsync(release.apply(resource), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
 
@@ -421,7 +421,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
     return parMap2(executor, fa, fb, Tuple::of);
   }
 
-  private static <T> Promise<T> runAsync(IO<T> current, IOConnection connection) {
+  private static <T> Promise<T> runAsync(Kind<IO<?>, T> current, IOConnection connection) {
     return runAsync(current, connection, new CallStack<>(), Promise.make());
   }
 
@@ -443,12 +443,16 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
           stack.push();
 
           var flatMapped = (FlatMapped<U, T>) current;
-          IO<U> source = unwrap(flatMapped.current, stack, u -> u.fix(IOOf::toIO).flatMap(flatMapped.next)).fix(IOOf::toIO);
+          Kind<IO<?>, U> unwrap = Kind.narrowK(unwrap(flatMapped.current, stack, u -> u.fix(IOOf::toIO).flatMap(flatMapped.next)));
+          IO<U> source = unwrap.fix(IOOf::toIO);
 
           if (source instanceof Async<U> async) {
             Promise<U> nextPromise = Promise.make();
 
-            nextPromise.then(u -> runAsync(flatMapped.next.apply(u).fix(IOOf::toIO), connection, stack, promise));
+            nextPromise.then(u -> {
+              Kind<IO<?>, T> apply = Kind.narrowK(flatMapped.next.apply(u));
+              runAsync(apply, connection, stack, promise);
+            });
 
             executeAsync(async, connection, nextPromise);
 
@@ -456,7 +460,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
           }
 
           if (source instanceof Pure<U> pure) {
-            current = flatMapped.next.apply(pure.value).fix(IOOf::toIO);
+            Kind<IO<?>, T> apply = Kind.narrowK(flatMapped.next.apply(pure.value));
+            current = apply.fix(IOOf::toIO);
           } else if (source instanceof FlatMapped) {
             var flatMapped2 = (FlatMapped<V, U>) source;
             current = flatMapped2.current.fix(IOOf::toIO)
@@ -486,7 +491,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
         stack.add(recover.mapper.andThen(next));
         current = recover.current;
       } else if (current instanceof Suspend<T> suspend) {
-        current = suspend.lazy.get().fix(IOOf::toIO);
+        Kind<IO<?>, T> kind = Kind.narrowK(suspend.lazy.get());
+        current = kind.fix(IOOf::toIO);
       } else if (current instanceof Delay<T> delay) {
         return IO.pure(delay.task.get());
       } else if (current instanceof Pure) {
@@ -866,7 +872,8 @@ final class StackItem<T> {
     while (!recover.isEmpty()) {
       var mapError = recover.removeFirst();
       if (mapError.isDefinedAt(error)) {
-        return Option.some(mapError.apply(error).fix(IOOf::toIO));
+        Kind<IO<?>, T> apply = Kind.narrowK(mapError.apply(error));
+        return Option.some(apply.fix(IOOf::toIO));
       }
     }
     return Option.none();

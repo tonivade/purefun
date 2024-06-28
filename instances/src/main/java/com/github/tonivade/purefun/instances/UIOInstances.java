@@ -105,7 +105,8 @@ interface UIOApplicative extends UIOPure {
   @Override
   default <A, B> UIO<B> ap(Kind<UIO<?>, ? extends A> value,
       Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
-    return value.fix(UIOOf::<A>toUIO).ap(apply.fix(UIOOf::toUIO));
+    Kind<UIO<?>, A> narrowK = Kind.narrowK(value);
+    return narrowK.fix(UIOOf::<A>toUIO).ap(apply);
   }
 }
 
@@ -201,7 +202,8 @@ interface UIOConcurrent extends Concurrent<UIO<?>>, UIOAsync {
 
   @Override
   default <A> UIO<Fiber<UIO<?>, A>> fork(Kind<UIO<?>, ? extends A> value) {
-    UIO<A> fix = value.fix(UIOOf::toUIO);
+    Kind<UIO<?>, A> narrowK = Kind.narrowK(value);
+    UIO<A> fix = narrowK.fix(UIOOf::toUIO);
     return fix.fork();
   }
 }

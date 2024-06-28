@@ -35,7 +35,8 @@ interface Function1Functor<T> extends Functor<Function1<T, ?>> {
   @Override
   default <A, R> Function1<T, R> map(Kind<Function1<T, ?>, ? extends A> value,
       Function1<? super A, ? extends R> map) {
-    Function1<T, A> function = value.fix(Function1Of::toFunction1);
+    Kind<Function1<T, ?>, A> narrowK = Kind.narrowK(value);
+    Function1<T, A> function = narrowK.fix(Function1Of::toFunction1);
     return function.andThen(map);
   }
 }
@@ -69,7 +70,8 @@ interface Function1Monad<T> extends Function1Pure<T>, Monad<Function1<T, ?>> {
   @Override
   default <A, R> Function1<T, R> flatMap(Kind<Function1<T, ?>, ? extends A> value,
       Function1<? super A, ? extends Kind<Function1<T, ?>, ? extends R>> map) {
-    Function1<T, A> function = value.fix(Function1Of::toFunction1);
+    Kind<Function1<T, ?>, A> narrowK = Kind.narrowK(value);
+    Function1<T, A> function = narrowK.fix(Function1Of::toFunction1);
     return function.flatMap(map.andThen(Function1Of::toFunction1));
   }
 }
