@@ -249,7 +249,7 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<IO<?>, T> value, Executor executor) {
-    return value.fix(IOOf::<T>toIO).runAsync(executor);
+    return value.fix(IOOf::toIO).runAsync(executor);
   }
 
   @Override

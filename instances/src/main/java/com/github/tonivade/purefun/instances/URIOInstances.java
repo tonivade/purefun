@@ -108,7 +108,7 @@ interface URIOApplicative<R> extends URIOPure<R> {
           ap(Kind<URIO<R, ?>, ? extends A> value,
              Kind<URIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
     Kind<URIO<R, ?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(URIOOf::<R, A>toURIO).ap(apply);
+    return narrowK.fix(URIOOf::toURIO).ap(apply);
   }
 }
 
@@ -262,7 +262,7 @@ interface URIORuntime<R> extends Runtime<URIO<R, ?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<URIO<R, ?>, T> value, Executor executor) {
-    return value.fix(URIOOf::<R, T>toURIO).runAsync(env());
+    return value.fix(URIOOf::toURIO).runAsync(env());
   }
 
   @Override

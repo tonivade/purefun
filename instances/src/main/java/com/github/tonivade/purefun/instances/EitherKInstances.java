@@ -100,7 +100,7 @@ interface EitherKContravariant<F extends Kind<F, ?>, G extends Kind<G, ?>>
   default <A, B> EitherK<F, G, B> contramap(
       Kind<EitherK<F, G, ?>, ? extends A> value, Function1<? super B, ? extends A> map) {
     Kind<EitherK<F, G, ?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(EitherKOf::<F, G, A>toEitherK).contramap(f(), g(), map);
+    return narrowK.fix(EitherKOf::toEitherK).contramap(f(), g(), map);
   }
 }
 

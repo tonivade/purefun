@@ -113,7 +113,7 @@ interface PureIOApplicative<R, E> extends PureIOPure<R, E> {
           ap(Kind<PureIO<R, E, ?>, ? extends A> value,
              Kind<PureIO<R, E, ?>, ? extends Function1<? super A, ? extends B>> apply) {
     Kind<PureIO<R, E, ?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(PureIOOf::<R, E, A>toPureIO).ap(apply);
+    return narrowK.fix(PureIOOf::toPureIO).ap(apply);
   }
 }
 
@@ -215,7 +215,7 @@ interface PureIOConcurrent<R> extends Concurrent<PureIO<R, Throwable, ?>>, PureI
   @Override
   default <A> PureIO<R, Throwable, Fiber<PureIO<R, Throwable, ?>, A>> fork(Kind<PureIO<R, Throwable, ?>, ? extends A> value) {
     Kind<PureIO<R, Throwable, ?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(PureIOOf::<R, Throwable, A>toPureIO).fork();
+    return narrowK.fix(PureIOOf::toPureIO).fork();
   }
 }
 

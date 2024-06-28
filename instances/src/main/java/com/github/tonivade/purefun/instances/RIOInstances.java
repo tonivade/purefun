@@ -108,7 +108,7 @@ interface RIOApplicative<R> extends RIOPure<R> {
           ap(Kind<RIO<R, ?>, ? extends A> value,
              Kind<RIO<R, ?>, ? extends Function1<? super A, ? extends B>> apply) {
     Kind<RIO<R, ?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(RIOOf::<R, A>toRIO).ap(apply);
+    return narrowK.fix(RIOOf::toRIO).ap(apply);
   }
 }
 
@@ -261,7 +261,7 @@ interface RIORuntime<R> extends Runtime<RIO<R, ?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<RIO<R, ?>, T> value, Executor executor) {
-    return value.fix(RIOOf::<R, T>toRIO).runAsync(env());
+    return value.fix(RIOOf::toRIO).runAsync(env());
   }
 
   @Override

@@ -121,7 +121,7 @@ interface TaskApplicative extends TaskPure {
           ap(Kind<Task<?>, ? extends A> value,
              Kind<Task<?>, ? extends Function1<? super A, ? extends B>> apply) {
     Kind<Task<?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(TaskOf::<A>toTask).ap(apply.fix(TaskOf::toTask));
+    return narrowK.fix(TaskOf::toTask).ap(apply.fix(TaskOf::toTask));
   }
 }
 
@@ -260,7 +260,7 @@ interface TaskRuntime extends Runtime<Task<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<Task<?>, T> value, Executor executor) {
-    return value.fix(TaskOf::<T>toTask).runAsync();
+    return value.fix(TaskOf::toTask).runAsync();
   }
 
   @Override

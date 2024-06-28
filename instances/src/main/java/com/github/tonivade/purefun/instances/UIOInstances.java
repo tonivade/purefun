@@ -106,7 +106,7 @@ interface UIOApplicative extends UIOPure {
   default <A, B> UIO<B> ap(Kind<UIO<?>, ? extends A> value,
       Kind<UIO<?>, ? extends Function1<? super A, ? extends B>> apply) {
     Kind<UIO<?>, A> narrowK = Kind.narrowK(value);
-    return narrowK.fix(UIOOf::<A>toUIO).ap(apply);
+    return narrowK.fix(UIOOf::toUIO).ap(apply);
   }
 }
 
@@ -241,7 +241,7 @@ interface UIORuntime extends Runtime<UIO<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<UIO<?>, T> value, Executor executor) {
-    return value.fix(UIOOf::<T>toUIO).runAsync();
+    return value.fix(UIOOf::toUIO).runAsync();
   }
 
   @Override

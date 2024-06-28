@@ -58,10 +58,10 @@ public class MonadMTL<F extends Kind<F, ?>, S, R, E>
       Function1<? super A, ? extends Kind<EffectS<F, S, R, E, ?>, ? extends B>> map) {
     Kind<EffectS<F, S, R, E, ?>, A> narrowK = Kind.narrowK(value);
     return new EffectS<>(monadStateS.flatMap(
-        narrowK.fix(EffectS::<F, S, R, E, A>toEffectS).value(),
+        narrowK.fix(EffectS::toEffectS).value(),
         x -> {
           Kind<EffectS<F, S, R, E, ?>, B> apply = Kind.narrowK(map.apply(x));
-          return apply.fix(EffectS::<F, S, R, E, B>toEffectS).value();
+          return apply.fix(EffectS::toEffectS).value();
         }));
   }
 
@@ -84,10 +84,10 @@ public class MonadMTL<F extends Kind<F, ?>, S, R, E>
   public <A> EffectS<F, S, R, E, A> handleErrorWith(
       Kind<EffectS<F, S, R, E, ?>, A> value, Function1<? super E, ? extends Kind<EffectS<F, S, R, E, ?>, ? extends A>> handler) {
     return new EffectS<>(monadErrorS.handleErrorWith(
-        value.fix(EffectS::<F, S, R, E, A>toEffectS).value(),
+        value.fix(EffectS::toEffectS).value(),
         error -> {
           Kind<EffectS<F, S, R, E, ?>, A> apply = Kind.narrowK(handler.apply(error));
-          return apply.fix(EffectS::<F, S, R, E, A>toEffectS).value();
+          return apply.fix(EffectS::toEffectS).value();
         }));
   }
 
@@ -197,10 +197,10 @@ class EffectEMonadError<F extends Kind<F, ?>, E> implements MonadError<EffectE<F
       Function1<? super A, ? extends Kind<EffectE<F, E, ?>, ? extends B>> map) {
     Kind<EffectE<F, E, ?>, A> narrowK = Kind.narrowK(value);
     return new EffectE<>(monad.flatMap(
-        narrowK.fix(EffectE::<F, E, A>toEffectE).value(),
+        narrowK.fix(EffectE::toEffectE).value(),
         x -> {
           Kind<EffectE<F, E, ?>, B> apply = Kind.narrowK(map.apply(x));
-          return apply.fix(EffectE::<F, E, B>toEffectE).value();
+          return apply.fix(EffectE::toEffectE).value();
         }));
   }
 
@@ -212,10 +212,10 @@ class EffectEMonadError<F extends Kind<F, ?>, E> implements MonadError<EffectE<F
   @Override
   public <A> EffectE<F, E, A> handleErrorWith(Kind<EffectE<F, E, ?>, A> value,
       Function1<? super E, ? extends Kind<EffectE<F, E, ?>, ? extends A>> handler) {
-    return new EffectE<>(monad.handleErrorWith(value.fix(EffectE::<F, E, A>toEffectE).value(),
+    return new EffectE<>(monad.handleErrorWith(value.fix(EffectE::toEffectE).value(),
             error -> {
               Kind<EffectE<F, E, ?>, A> apply = Kind.narrowK(handler.apply(error));
-              return apply.fix(EffectE::<F, E, A>toEffectE).value();
+              return apply.fix(EffectE::toEffectE).value();
             }));
   }
 }
@@ -237,10 +237,10 @@ class EffectRMonad<F extends Kind<F, ?>, R, E> implements Monad<EffectR<F, R, E,
   public <A, B> EffectR<F, R, E, B> flatMap(Kind<EffectR<F, R, E, ?>, ? extends A> value,
       Function1<? super A, ? extends Kind<EffectR<F, R, E, ?>, ? extends B>> map) {
     Kind<EffectR<F, R, E, ?>, A> narrowK = Kind.narrowK(value);
-    return new EffectR<>(monad.flatMap(narrowK.fix(EffectR::<F, R, E, A>toEffectR).value(),
+    return new EffectR<>(monad.flatMap(narrowK.fix(EffectR::toEffectR).value(),
         t -> {
           Kind<EffectR<F, R, E, ?>, B> apply = Kind.narrowK(map.apply(t));
-          return apply.fix(EffectR::<F, R, E, B>toEffectR).value();
+          return apply.fix(EffectR::toEffectR).value();
         }));
   }
 }
