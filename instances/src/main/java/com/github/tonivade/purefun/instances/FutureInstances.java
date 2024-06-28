@@ -81,7 +81,9 @@ interface FutureApplicative extends FuturePure {
   @Override
   default <T, R> Kind<Future<?>, R> ap(Kind<Future<?>, ? extends T> value,
       Kind<Future<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(FutureOf::<T>toFuture).ap(apply.fix(FutureOf::toFuture));
+    Kind<Future<?>, T> narrowK = Kind.narrowK(value);
+    Kind<Future<?>, Function1<? super T, ? extends R>> fnarrowK = Kind.narrowK(apply);
+    return narrowK.fix(FutureOf::<T>toFuture).ap(fnarrowK.fix(FutureOf::toFuture));
   }
 }
 

@@ -210,7 +210,8 @@ interface IOConcurrent extends Concurrent<IO<?>>, IOAsync {
 
   @Override
   default <A> IO<Fiber<IO<?>, A>> fork(Kind<IO<?>, ? extends A> value) {
-    IO<A> fix = value.fix(IOOf::toIO);
+    Kind<IO<?>, A> narrowK = Kind.narrowK(value);
+    IO<A> fix = narrowK.fix(IOOf::toIO);
     return fix.fork();
   }
 }
@@ -248,7 +249,7 @@ interface IORuntime extends Runtime<IO<?>> {
 
   @Override
   default <T> Future<T> parRun(Kind<IO<?>, T> value, Executor executor) {
-    return value.fix(IOOf::<T>toIO).runAsync(executor);
+    return value.fix(IOOf::toIO).runAsync(executor);
   }
 
   @Override

@@ -128,7 +128,8 @@ public class FreeApTest {
     return new FunctionK<>() {
       @Override
       public <T> Const<String, T> apply(Kind<DSL<?>, ? extends T> from) {
-        DSL<T> dsl = from.fix(DSLOf::toDSL);
+        Kind<DSL<?>, T> narrowK = Kind.narrowK(from);
+        DSL<T> dsl = narrowK.fix(DSLOf::toDSL);
         return Const.of(dsl.getClass().getSimpleName() + "(" + dsl.value() + ")\n");
       }
     };

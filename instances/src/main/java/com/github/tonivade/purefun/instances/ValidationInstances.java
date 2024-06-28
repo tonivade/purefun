@@ -90,8 +90,10 @@ interface ValidationApplicative<E> extends ValidationPure<E>, Applicative<Valida
   @Override
   default <T, R> Validation<E, R> ap(Kind<Validation<E, ?>, ? extends T> value,
                                      Kind<Validation<E, ?>, ? extends Function1<? super T, ? extends R>> apply) {
-    Validation<E, T> validation = value.fix(ValidationOf::toValidation);
-    Validation<E, Function1<? super T, ? extends R>> validationF = apply.fix(ValidationOf::toValidation);
+    Kind<Validation<E, ?>, T> narrowK = Kind.narrowK(value);
+    Kind<Validation<E, ?>, Function1<? super T, ? extends R>> fnarrowK = Kind.narrowK(apply);
+    Validation<E, T> validation = narrowK.fix(ValidationOf::toValidation);
+    Validation<E, Function1<? super T, ? extends R>> validationF = fnarrowK.fix(ValidationOf::toValidation);
 
     if (validation.isValid() && validationF.isValid()) {
       return Validation.valid(validationF.get().apply(validation.get()));

@@ -71,7 +71,8 @@ interface PromiseApplicative extends PromisePure {
   @Override
   default <T, R> Kind<Promise<?>, R> ap(Kind<Promise<?>, ? extends T> value,
       Kind<Promise<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return value.fix(PromiseOf::<T>toPromise).ap(apply.fix(PromiseOf::toPromise));
+    Kind<Promise<?>, T> narrowK = Kind.narrowK(value);
+    return narrowK.fix(PromiseOf::<T>toPromise).ap(apply.fix(PromiseOf::toPromise));
   }
 }
 

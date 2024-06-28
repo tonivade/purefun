@@ -429,7 +429,8 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
   }
 
   static <R, A> PureIO<R, Throwable, A> redeem(Kind<PureIO<R, Void, ?>, ? extends A> value) {
-    return new Recover<>(value.fix(PureIOOf::toPureIO), PartialFunction1.of(always(), PureIO::raiseError));
+    Kind<PureIO<R, Void, ?>, A> narrowK = Kind.narrowK(value);
+    return new Recover<>(narrowK.fix(PureIOOf::toPureIO), PartialFunction1.of(always(), PureIO::raiseError));
   }
 
   static <R, E> PureIO<R, E, Unit> sleep(Duration delay) {
@@ -471,8 +472,8 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
     return cancellable((env, callback) -> {
 
       PureIOConnection cancellable = PureIOConnection.cancellable();
-
-      Promise<Either<E, A>> promise = runAsync(env, acquire.fix(PureIOOf::toPureIO), cancellable);
+      Kind<PureIO<R, E, ?>, A> narrowK = Kind.narrowK(acquire);
+      Promise<Either<E, A>> promise = runAsync(env, narrowK, cancellable);
 
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
@@ -480,13 +481,14 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
           callback.accept(Try.success(Either.left(error)));
           return Unit.unit();
         }, resource -> {
-          Promise<Either<E, B>> runAsync = runAsync(env, use.apply(resource).fix(PureIOOf::toPureIO), cancellable);
+          Kind<PureIO<R, E, ?>, B> apply = Kind.narrowK(use.apply(resource));
+          Promise<Either<E, B>> runAsync = runAsync(env, apply, cancellable);
 
           runAsync
             .onFailure(e -> callback.accept(Try.failure(e)))
             .onSuccess(result -> {
 
-              Promise<Either<E, Unit>> run = runAsync(env, release.apply(resource).fix(PureIOOf::toPureIO), cancellable);
+              Promise<Either<E, Unit>> run = runAsync(env, release.apply(resource), cancellable);
 
               run.onComplete(ignore -> result.fold(error -> {
                 callback.accept(Try.success(Either.left(error)));
@@ -510,7 +512,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
 
   PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
 
-  private static <R, E, A> Promise<Either<E, A>> runAsync(@Nullable R env, PureIO<R, E, A> current, PureIOConnection connection) {
+  private static <R, E, A> Promise<Either<E, A>> runAsync(@Nullable R env, Kind<PureIO<R, E, ?>, A> current, PureIOConnection connection) {
     return runAsync(env, current, connection, new CallStack<>(), Promise.make());
   }
 
@@ -544,9 +546,9 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
             Promise<Either<F, B>> nextPromise = Promise.make();
 
             nextPromise.then(either -> {
-              PureIO<R, E, A> fold = either.fold(
-                  error -> flatMapped.nextError.apply(error).fix(PureIOOf::toPureIO),
-                  value -> flatMapped.next.apply(value).fix(PureIOOf::toPureIO));
+              Kind<PureIO<R, E, ?>, A> fold = Kind.narrowK(either.fold(
+                  flatMapped.nextError::apply,
+                  flatMapped.next::apply));
               runAsync(env, fold, connection, stack, promise);
             });
 
@@ -556,9 +558,11 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
           }
 
           if (source instanceof Pure<R, F, B> pure) {
-            current = flatMapped.next.apply(pure.value).fix(PureIOOf::toPureIO);
+            Kind<PureIO<R, E, ?>, A> apply = Kind.narrowK(flatMapped.next.apply(pure.value));
+            current = apply.fix(PureIOOf::toPureIO);
           } else if (source instanceof Failure<R, F, B> failure) {
-            current = flatMapped.nextError.apply(failure.error).fix(PureIOOf::toPureIO);
+            Kind<PureIO<R, E, ?>, A> apply = Kind.narrowK(flatMapped.nextError.apply(failure.error));
+            current = apply.fix(PureIOOf::toPureIO);
           } else if (source instanceof FlatMapped) {
             FlatMapped<R, G, C, F, B> flatMapped2 = (FlatMapped<R, G, C, F, B>) source;
 
@@ -602,7 +606,8 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
       } else if (current instanceof AccessM<R, E, A> accessM) {
         current = accessM(env, accessM);
       } else if (current instanceof Suspend<R, E, A> suspend) {
-        current = suspend.lazy.get().fix(PureIOOf::toPureIO);
+        Kind<PureIO<R, E, ?>, A> kind = Kind.narrowK(suspend.lazy.get());
+        current = kind.fix(PureIOOf::toPureIO);
       } else if (current instanceof Delay<R, E, A> delay) {
         Either<E, ? extends A> value = delay.task.get();
         return value.fold(PureIO::raiseError, PureIO::pure);
@@ -617,7 +622,8 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
 
   @SuppressWarnings("NullAway")
   static <R, E, A> Kind<PureIO<R, E, ?>, A> accessM(@Nullable R env, AccessM<R, E, A> accessM) {
-    return accessM.function.apply(env).fix(PureIOOf::toPureIO);
+    Kind<PureIO<R, E, ?>, A> apply = Kind.narrowK(accessM.function.apply(env));
+    return apply.fix(PureIOOf::toPureIO);
   }
 
   private static <R, E, A> Promise<Either<E, A>> executeAsync(@Nullable R env, Async<R, E, A> current, PureIOConnection connection, Promise<Either<E, A>> promise) {

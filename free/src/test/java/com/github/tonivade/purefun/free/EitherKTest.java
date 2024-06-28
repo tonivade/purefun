@@ -97,7 +97,8 @@ class EitherKTest {
     EitherK<Option<?>, Option<?>, String> result = eitherK.<Option<?>>mapK(new FunctionK<>() {
       @Override
       public <T> Option<T> apply(Kind<Try<?>, ? extends T> from) {
-        return from.fix(TryOf::<T>toTry).toOption();
+        Kind<Try<?>, T> narrowK = Kind.narrowK(from);
+        return narrowK.fix(TryOf::toTry).toOption();
       }
     });
 
@@ -111,7 +112,8 @@ class EitherKTest {
     EitherK<Try<?>, Try<?>, String> result = eitherK.<Try<?>>mapLeftK(new FunctionK<>() {
       @Override
       public <T> Try<T> apply(Kind<Option<?>, ? extends T> from) {
-        return from.fix(OptionOf::<T>toOption).fold(Try::failure, Try::success);
+        Kind<Option<?>, T> narrowK = Kind.narrowK(from);
+        return narrowK.fix(OptionOf::toOption).fold(Try::failure, Try::success);
       }
     });
 

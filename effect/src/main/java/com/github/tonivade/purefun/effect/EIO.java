@@ -156,7 +156,8 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
     return new EIO<>(instance.fork().map(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
       @Override
       public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
-        return new EIO<>(from.fix(PureIOOf::toPureIO));
+        Kind<PureIO<Void, E, ?>, T> narrowK = Kind.narrowK(from);
+        return new EIO<>(narrowK.fix(PureIOOf::toPureIO));
       }
     })));
   }
@@ -247,18 +248,20 @@ public final class EIO<E, A> implements EIOOf<E, A>, Effect<EIO<E, ?>, A> {
 
   public static <E, A, B> EIO<E, Either<Tuple2<A, Fiber<EIO<E, ?>, B>>, Tuple2<Fiber<EIO<E, ?>, A>, B>>>
       racePair(Executor executor, Kind<EIO<E, ?>, ? extends A> fa, Kind<EIO<E, ?>, ? extends B> fb) {
-    PureIO<Void, E, A> instance1 = fa.fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
-    PureIO<Void, E, B> instance2 = fb.fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<Void, E, A> instance1 = Kind.<EIO<E, ?>, A>narrowK(fa).fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
+    PureIO<Void, E, B> instance2 = Kind.<EIO<E, ?>, B>narrowK(fb).fix(EIOOf::toEIO).instance.fix(PureIOOf::toPureIO);
     return new EIO<>(PureIO.racePair(executor, instance1, instance2).map(
       either -> either.bimap(a -> a.map2(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
-          return new EIO<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<Void, E, ?>, T> narrowK = Kind.narrowK(from);
+          return new EIO<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })), b -> b.map1(f -> f.<EIO<E, ?>>mapK(new FunctionK<>() {
         @Override
         public <T> EIO<E, T> apply(Kind<PureIO<Void, E, ?>, ? extends T> from) {
-          return new EIO<>(from.fix(PureIOOf::toPureIO));
+          Kind<PureIO<Void, E, ?>, T> narrowK = Kind.narrowK(from);
+          return new EIO<>(narrowK.fix(PureIOOf::toPureIO));
         }
       })))));
   }

@@ -172,15 +172,16 @@ interface EitherTBracket<F extends Kind<F, ?>, E> extends Bracket<EitherT<F, E, 
           bracket(Kind<EitherT<F, E, ?>, ? extends A> acquire,
                   Function1<? super A, ? extends Kind<EitherT<F, E, ?>, ? extends B>> use,
                   Function1<? super A, ? extends Kind<EitherT<F, E, ?>, Unit>> release) {
+    Kind<EitherT<F, E, ?>, A> narrowK = Kind.narrowK(acquire);
     Kind<F, Either<E, B>> bracket =
         monadF().bracket(
-            acquire.fix(EitherTOf::<F, E, A>toEitherT).value(),
+            narrowK.fix(EitherTOf::toEitherT).value(),
             either -> either.fold(
                 this::acquireRecover,
                 value -> use.andThen(EitherTOf::<F, E, B>toEitherT).apply(value).value()),
             either -> {
               Kind<EitherT<F, E, ?>, Unit> fold = either.fold(error -> EitherT.left(monadF(), error), release);
-              Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::<F, E, Unit>toEitherT).value();
+              Kind<F, Either<E, Unit>> value = fold.fix(EitherTOf::toEitherT).value();
               return monadF().map(value, x -> x.fold(cons(unit()), identity()));
             });
     return EitherT.of(monadF(), bracket);

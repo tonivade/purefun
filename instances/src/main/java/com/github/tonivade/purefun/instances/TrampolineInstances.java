@@ -80,6 +80,9 @@ interface TrampolineDefer extends Defer<Trampoline<?>> {
 
   @Override
   default <A> Kind<Trampoline<?>, A> defer(Producer<? extends Kind<Trampoline<?>, ? extends A>> defer) {
-    return Trampoline.more(() -> defer.get().fix(TrampolineOf::toTrampoline));
+    return Trampoline.more(() -> {
+      Kind<Trampoline<?>, A> value = Kind.narrowK(defer.get());
+      return value.fix(TrampolineOf::toTrampoline);
+    });
   }
 }
