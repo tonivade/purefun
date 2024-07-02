@@ -472,7 +472,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
 
       PureIOConnection cancellable = PureIOConnection.cancellable();
 
-      Promise<Either<E, A>> promise = runAsync(env, acquire.fix(PureIOOf::toPureIO), cancellable);
+      Promise<Either<E, A>> promise = runAsync(env, acquire.fix(Kind::narrowK), cancellable);
 
       promise
         .onFailure(e -> callback.accept(Try.failure(e)))
@@ -480,13 +480,13 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
           callback.accept(Try.success(Either.left(error)));
           return Unit.unit();
         }, resource -> {
-          Promise<Either<E, B>> runAsync = runAsync(env, use.apply(resource).fix(PureIOOf::toPureIO), cancellable);
+          Promise<Either<E, B>> runAsync = runAsync(env, use.apply(resource).fix(Kind::narrowK), cancellable);
 
           runAsync
             .onFailure(e -> callback.accept(Try.failure(e)))
             .onSuccess(result -> {
 
-              Promise<Either<E, Unit>> run = runAsync(env, release.apply(resource).fix(PureIOOf::toPureIO), cancellable);
+              Promise<Either<E, Unit>> run = runAsync(env, release.apply(resource), cancellable);
 
               run.onComplete(ignore -> result.fold(error -> {
                 callback.accept(Try.success(Either.left(error)));
@@ -510,7 +510,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
 
   PureIO<?, ?, Unit> UNIT = PureIO.pure(Unit.unit());
 
-  private static <R, E, A> Promise<Either<E, A>> runAsync(@Nullable R env, PureIO<R, E, A> current, PureIOConnection connection) {
+  private static <R, E, A> Promise<Either<E, A>> runAsync(@Nullable R env, Kind<PureIO<R, E, ?>, A> current, PureIOConnection connection) {
     return runAsync(env, current, connection, new CallStack<>(), Promise.make());
   }
 

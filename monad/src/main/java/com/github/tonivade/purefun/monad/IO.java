@@ -348,12 +348,12 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
 
       IOConnection cancellable = IOConnection.cancellable();
 
-      Promise<? extends T> promise = runAsync(acquire.fix(IOOf::toIO), cancellable);
+      Promise<? extends T> promise = runAsync(acquire, cancellable);
 
       promise
         .onFailure(error -> callback.accept(Try.failure(error)))
-        .onSuccess(resource -> runAsync(use.apply(resource).fix(IOOf::toIO), cancellable)
-          .onComplete(result -> runAsync(release.apply(resource).fix(IOOf::toIO), cancellable)
+        .onSuccess(resource -> runAsync(use.apply(resource), cancellable)
+          .onComplete(result -> runAsync(release.apply(resource), cancellable)
             .onComplete(ignore -> callback.accept(result))
         ));
 
@@ -421,7 +421,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
     return parMap2(executor, fa, fb, Tuple::of);
   }
 
-  private static <T> Promise<T> runAsync(IO<T> current, IOConnection connection) {
+  private static <T> Promise<T> runAsync(Kind<IO<?>, T> current, IOConnection connection) {
     return runAsync(current, connection, new CallStack<>(), Promise.make());
   }
 
