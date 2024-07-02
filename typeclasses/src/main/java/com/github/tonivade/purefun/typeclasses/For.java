@@ -74,7 +74,7 @@ abstract class AbstractFlatMap<F extends Kind<F, ?>, A, B> {
 
   public abstract Kind<F, B> run();
 
-  public <R> R fix(Function<? super Kind<F, ? extends B>, ? extends R> fixer) {
+  public <R extends Kind<F, ?>> R fix(Function<? super Kind<F, ? extends B>, ? extends R> fixer) {
     return run().fix(fixer);
   }
 
@@ -99,7 +99,7 @@ abstract class AbstractApply<F extends Kind<F, ?>, A> {
 
   public abstract Kind<F, A> run();
 
-  public <R> R fix(Function<? super Kind<F, ? extends A>, ? extends R> fixer) {
+  public <R extends Kind<F, ?>> R fix(Function<? super Kind<F, ? extends A>, ? extends R> fixer) {
     return run().fix(fixer);
   }
 
