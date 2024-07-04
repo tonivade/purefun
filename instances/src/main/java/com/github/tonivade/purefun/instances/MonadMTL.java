@@ -5,6 +5,9 @@
 package com.github.tonivade.purefun.instances;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
+import java.util.function.Function;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
@@ -121,6 +124,10 @@ public class MonadMTL<F extends Kind<F, ?>, S, R, E>
       return value.value();
     }
 
+    public <R extends Kind<F, Either<E, A>>> R run(Function<Kind<F, ? extends Either<E, A>>, R> fixer) {
+      return run().fix(fixer);
+    }
+
     @SuppressWarnings("unchecked")
     public static <F extends Kind<F, ?>, E, A> EffectE<F, E, A> toEffectE(Kind<EffectE<F, E, ?>, ? extends A> hkt) {
       return (EffectE<F, E, A>) hkt;
@@ -163,6 +170,10 @@ public class MonadMTL<F extends Kind<F, ?>, S, R, E>
 
     public EffectR<F, R, E, Tuple2<S, A>> run(S state) {
       return value.run(state).fix(EffectR::toEffectR);
+    }
+
+    public EffectE<F, E, Tuple2<S, A>> run(S state, R env) {
+      return run(state).run(env);
     }
 
     @SuppressWarnings("unchecked")
