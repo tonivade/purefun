@@ -19,7 +19,7 @@ public non-sealed interface Monoid<T> extends MonoidOf<T>, Semigroup<T> {
   }
 
   static Monoid<String> string() {
-    return Monoid.of("", (a, b) -> a + b);
+    return Monoid.of("", String::concat);
   }
 
   static Monoid<Integer> integer() {
