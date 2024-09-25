@@ -2,7 +2,7 @@
 pcollectionsVersion = "4.0.2"
 junitEngineVersion = "5.11.0"
 junitPlatformVersion = "1.11.0"
-equalsVerifierVersion = "3.16.2"
+equalsVerifierVersion = "3.17"
 mockitoVersion = "5.13.0"
 compileTestingVersion = "0.21.0"
 sonarVersion = "5.1.0.4882"
