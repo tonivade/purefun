@@ -39,7 +39,6 @@ public class MonadMTL<F extends Kind<F, ?>, S, R, E>
   private final Monad<EffectR<F, R, E, ?>> monadR;
   private final MonadError<StateT<EffectR<F, R, E, ?>, S, ?>, E> monadErrorS;
   private final MonadReader<StateT<EffectR<F, R, E, ?>, S, ?>, R> monadReaderS;
-
   private final MonadState<StateT<EffectR<F, R, E, ?>, S, ?>, S> monadStateS;
 
   public MonadMTL(Monad<F> monad) {
