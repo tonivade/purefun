@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.data.ImmutableMap.entry;
+import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,6 +44,7 @@ public class ImmutableMapTest {
               () -> assertTrue(map.values().contains("bbb")),
               () -> assertTrue(map.values().contains("ccc")),
               () -> assertEquals(ImmutableMap.of(entry("c", "ccc")), map.remove("a").remove("b")),
+              () -> assertEquals(ImmutableMap.of(entry("c", "ccc")), map.removeAll(arrayOf("a", "b"))),
               () -> assertEquals(ImmutableSet.of(entry("a", "aaa"),
                                                  entry("b", "bbb"),
                                                  entry("c", "ccc")), map.entries()),
@@ -71,7 +73,7 @@ public class ImmutableMapTest {
                                  map.put("a", "aaa").mapValues(String::toUpperCase))
               );
   }
-  
+
   @Test
   void serialization() throws IOException, ClassNotFoundException {
     ImmutableMap<Integer, String> map = ImmutableMap.of(entry(1, "uno"), entry(2, "dos"), entry(3, "tres"));
@@ -81,14 +83,14 @@ public class ImmutableMapTest {
       objectOutputStream.writeObject(map);
       objectOutputStream.writeObject(ImmutableMap.empty());
     }
-    
+
     Object result = null;
     Object empty = null;
     try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
       result = objectInputStream.readObject();
       empty = objectInputStream.readObject();
     }
-    
+
     assertEquals(map, result);
     assertSame(ImmutableMap.empty(), empty);
   }

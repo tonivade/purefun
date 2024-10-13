@@ -214,7 +214,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
     @Override
     public ImmutableMap<K, V> removeAll(Sequence<? extends K> keys) {
-      return new PImmutableMap<>(backend.minus(keys));
+      return new PImmutableMap<>(backend.minusAll(keys.toCollection()));
     }
 
     @Override

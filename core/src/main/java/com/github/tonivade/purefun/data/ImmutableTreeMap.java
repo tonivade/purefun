@@ -292,7 +292,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Override
     public ImmutableTreeMap<K, V> removeAll(Sequence<? extends K> keys) {
-      return new PImmutableTreeMap<>(backend.minus(keys));
+      return new PImmutableTreeMap<>(backend.minusAll(keys.toCollection()));
     }
 
     @Override

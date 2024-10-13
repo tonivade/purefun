@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.data.ImmutableTreeMap.entry;
+import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,6 +44,7 @@ public class ImmutableTreeMapTest {
               () -> assertTrue(treeMap.values().contains("bbb")),
               () -> assertTrue(treeMap.values().contains("ccc")),
               () -> assertEquals(ImmutableTreeMap.of(entry("c", "ccc")), treeMap.remove("a").remove("b")),
+              () -> assertEquals(ImmutableTreeMap.of(entry("c", "ccc")), treeMap.removeAll(arrayOf("a", "b"))),
               () -> assertEquals(ImmutableSet.of(entry("a", "aaa"),
                                                  entry("b", "bbb"),
                                                  entry("c", "ccc")), treeMap.entries()),
@@ -99,7 +101,7 @@ public class ImmutableTreeMapTest {
               () -> assertEquals(Option.none(), treeMap.ceilingKey("c"))
               );
   }
-  
+
   @Test
   void serialization() throws IOException, ClassNotFoundException {
     ImmutableTreeMap<Integer, String> treeMap = ImmutableTreeMap.of(entry(1, "uno"), entry(2, "dos"), entry(3, "tres"));
@@ -109,14 +111,14 @@ public class ImmutableTreeMapTest {
       objectOutputStream.writeObject(treeMap);
       objectOutputStream.writeObject(ImmutableTreeMap.empty());
     }
-    
+
     Object result = null;
     Object empty = null;
     try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
       result = objectInputStream.readObject();
       empty = objectInputStream.readObject();
     }
-    
+
     assertEquals(treeMap, result);
     assertSame(ImmutableTreeMap.empty(), empty);
   }
