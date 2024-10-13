@@ -73,6 +73,11 @@ public non-sealed interface WriterT<F extends Kind<F, ?>, L, A> extends WriterTO
                 other -> Tuple.of(monoid().combine(current.get1(), other.get1()), other.get2()))));
   }
 
+  @Override
+  default <R> WriterT<F, L, R> andThen(Kind<WriterT<F, L, ?>, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+
   static <F extends Kind<F, ?>, L, A> WriterT<F, L, A> pure(Monoid<L> monoid, Monad<F> monad, A value) {
     return lift(monoid, monad, Tuple2.of(monoid.zero(), value));
   }

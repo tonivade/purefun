@@ -29,6 +29,11 @@ public non-sealed interface Kleisli<F extends Kind<F, ?>, Z, A> extends KleisliO
     return Kleisli.of(monad(), value -> monad().flatMap(run(value), a -> map.andThen(KleisliOf::toKleisli).apply(a).run(value)));
   }
 
+  @Override
+  default <R> Kleisli<F, Z, R> andThen(Kind<Kleisli<F, Z, ?>, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+
   default <B> Kleisli<F, Z, B> compose(Kleisli<F, A, B> other) {
     return Kleisli.of(monad(), value -> monad().flatMap(run(value), other::run));
   }

@@ -59,6 +59,11 @@ public non-sealed interface Writer<L, A> extends WriterOf<L, A>, Bindable<Writer
     return writer(monoid(), Tuple.of(combine.get1(), apply.getValue()));
   }
 
+  @Override
+  default <R> Writer<L, R> andThen(Kind<Writer<L, ?>, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+
   static <L, A> Writer<L, A> pure(Monoid<L> monoid, A value) {
     return writer(monoid, Tuple.of(monoid.zero(), value));
   }
