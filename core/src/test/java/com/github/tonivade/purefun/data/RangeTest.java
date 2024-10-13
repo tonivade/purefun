@@ -30,6 +30,22 @@ public class RangeTest {
   }
 
   @Test
+  public void revRange() {
+    Range range = Range.of(1, 10).reverse();
+
+    assertAll(
+        () -> assertEquals(0, Range.of(1, 1).reverse().size()),
+        () -> assertEquals(10, range.begin()),
+        () -> assertEquals(1, range.end()),
+        () -> assertEquals(9, range.size()),
+        () -> assertFalse(range.contains(0)),
+        () -> assertFalse(range.contains(10)),
+        () -> assertTrue(range.contains(1)),
+        () -> assertEquals(arrayOf(9, 8, 7, 6, 5, 4, 3, 2, 1), range.collect())
+    );
+  }
+
+  @Test
   public void validRange() {
     assertThrows(IllegalArgumentException.class, () -> Range.of(10, 1));
   }

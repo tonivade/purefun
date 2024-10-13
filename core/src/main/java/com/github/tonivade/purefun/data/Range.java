@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
-
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.check;
 import static com.github.tonivade.purefun.core.Precondition.greaterThanOrEquals;
@@ -18,21 +17,40 @@ import static com.github.tonivade.purefun.type.Validation.mapN;
 import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEqual;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqual;
+import static com.github.tonivade.purefun.type.Validation.requireNonEquals;
 
-public record Range(int begin, int end) implements Iterable<Integer> {
+public record Range(int begin, int end, int increment) implements Iterable<Integer> {
+
+  public Range(int begin, int end) {
+    this(begin, end, 1);
+  }
 
   public Range {
-    check(greaterThanOrEquals(end, begin));
+    check(() -> increment != 0);
+    if (increment > 0) {
+      check(greaterThanOrEquals(end, begin));
+    } else {
+      check(greaterThanOrEquals(begin, end));
+    }
+  }
+
+  public Range reverse() {
+    return new Range(end, begin, -increment);
   }
 
   public boolean contains(int value) {
+    if (increment < 0) {
+      return mapN(
+          requireGreaterThanOrEqual(value, end),
+          requireLowerThan(value, begin), Tuple::of).isValid();
+    }
     return mapN(
         requireGreaterThanOrEqual(value, begin),
         requireLowerThan(value, end), Tuple::of).isValid();
   }
 
   public int size() {
-    return end - begin;
+    return Math.abs(end - begin);
   }
 
   public ImmutableArray<Integer> collect() {
@@ -44,6 +62,9 @@ public record Range(int begin, int end) implements Iterable<Integer> {
   }
 
   public IntStream intStream() {
+    if (increment < 0) {
+      return IntStream.range(end, begin).map(i -> begin - i + end - 1);
+    }
     return IntStream.range(begin, end);
   }
 
@@ -58,12 +79,19 @@ public record Range(int begin, int end) implements Iterable<Integer> {
 
   @Override
   public String toString() {
-    return String.format("Range(%d..%d)", begin, end);
+    return String.format("Range(%d..%d, increment=%d)", begin, end, increment);
   }
 
   public static Range of(int begin, int end) {
     return mapN(
         requireLowerThanOrEqual(begin, end),
         requireGreaterThanOrEqual(end, begin), Range::new).getOrElseThrow();
+  }
+
+  public static Range of(int begin, int end, int increment) {
+    return mapN(
+        requireLowerThanOrEqual(begin, end),
+        requireGreaterThanOrEqual(end, begin),
+        requireNonEquals(increment, 0), Range::new).getOrElseThrow();
   }
 }

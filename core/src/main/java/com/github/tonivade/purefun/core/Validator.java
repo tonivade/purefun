@@ -337,6 +337,14 @@ public interface Validator<E, T> {
     return lowerThan(length, message).compose(String::length);
   }
 
+  static <T extends Comparable<T>> Validator<String, T> nonEquals(T value) {
+    return nonEquals(value, () -> "require non equals to " + value);
+  }
+
+  static <T extends Comparable<T>> Validator<String, T> nonEquals(T value, Producer<String> message) {
+    return from(input -> input.compareTo(value) != 0, message);
+  }
+
   static Validator<String, Integer> positive() {
     return greaterThan(0);
   }

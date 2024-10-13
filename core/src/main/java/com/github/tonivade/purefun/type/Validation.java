@@ -11,6 +11,7 @@ import static com.github.tonivade.purefun.core.Validator.greaterThanOrEqual;
 import static com.github.tonivade.purefun.core.Validator.lowerThan;
 import static com.github.tonivade.purefun.core.Validator.lowerThanOrEqual;
 import static com.github.tonivade.purefun.core.Validator.nonEmpty;
+import static com.github.tonivade.purefun.core.Validator.nonEquals;
 import static com.github.tonivade.purefun.core.Validator.nonNullAnd;
 import static com.github.tonivade.purefun.core.Validator.positive;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
@@ -245,6 +246,10 @@ public sealed interface Validation<E, T> extends ValidationOf<E, T>, Bindable<Va
 
   static Validation<String, String> requireNonEmpty(String value) {
     return nonNullAnd(nonEmpty()).validate(value);
+  }
+
+  static Validation<String, Integer> requireNonEquals(Integer value, int x) {
+    return nonNullAnd(nonEquals(x)).validate(value);
   }
 
   static Validation<String, Integer> requirePositive(Integer value) {
