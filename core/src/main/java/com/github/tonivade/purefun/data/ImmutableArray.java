@@ -55,6 +55,9 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
   ImmutableArray<E> drop(int n);
 
+  ImmutableArray<E> dropWhile(Matcher1<? super E> condition);
+  ImmutableArray<E> takeWhile(Matcher1<? super E> condition);
+
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
     return ImmutableArray.from(stream().map(mapper::apply));
@@ -155,6 +158,24 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> removeAll(Sequence<? extends E> other) {
       return new PImmutableArray<>(backend.minusAll(other.toCollection()));
+    }
+
+    @Override
+    public ImmutableArray<E> dropWhile(Matcher1<? super E> matcher) {
+      var current = backend;
+      while (!current.isEmpty() && matcher.match(current.get(0))) {
+        current = current.minus(0);
+      }
+      return from(current);
+    }
+
+    @Override
+    public ImmutableArray<E> takeWhile(Matcher1<? super E> matcher) {
+      var current = TreePVector.<E>empty();
+      for (int i = 0; !backend.isEmpty() && matcher.match(backend.get(i)); i++) {
+        current = current.plus(current.size(), backend.get(i));
+      }
+      return from(current);
     }
 
     @Override

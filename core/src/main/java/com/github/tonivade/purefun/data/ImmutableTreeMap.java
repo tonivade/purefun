@@ -60,6 +60,9 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   ImmutableTreeMap<K, V> remove(K key);
 
   @Override
+  ImmutableTreeMap<K, V> removeAll(Sequence<? extends K> keys);
+
+  @Override
   ImmutableTreeMap<K, V> merge(K key, V value, Operator2<V> merger);
 
   ImmutableTreeMap<K, V> headMap(K toKey);
@@ -288,6 +291,11 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     }
 
     @Override
+    public ImmutableTreeMap<K, V> removeAll(Sequence<? extends K> keys) {
+      return new PImmutableTreeMap<>(backend.minus(keys));
+    }
+
+    @Override
     public Option<V> get(K key) {
       return Option.of(backend.get(key));
     }
@@ -379,8 +387,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
     @Serial
     private Object readResolve() {
-      // XXX: this is a issue in pcollections: see https://github.com/hrldcpr/pcollections/pull/115
-      if (backend.size() == 0) {
+      if (backend.isEmpty()) {
         return EMPTY;
       }
       return this;

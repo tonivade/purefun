@@ -8,11 +8,11 @@ import static com.github.tonivade.purefun.core.Unit.unit;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Operator1;
+import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.ImmutableList;
@@ -43,6 +43,11 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     });
   }
 
+  @Override
+  default <R> StateT<F, S, R> andThen(Kind<StateT<F, S, ?>, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+
   default <G extends Kind<G, ?>> StateT<G, S, A> mapK(Monad<G> other, FunctionK<F, G> functionK) {
     return state(other, state -> functionK.apply(run(state)));
   }
@@ -56,6 +61,10 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
       @Override
       public Kind<F, Tuple2<S, A>> run(S state) { return run.apply(state); }
     };
+  }
+
+  static <F extends Kind<F, ?>, S, A> StateT<F, S, A> lift(Monad<F> monad, Kind<F, A> value) {
+    return state(monad, state -> monad.map(value, a -> Tuple.<S, A>of(state, a)));
   }
 
   static <F extends Kind<F, ?>, S, A> StateT<F, S, A> lift(Monad<F> monad, Function1<S, Tuple2<S, A>> run) {

@@ -37,8 +37,17 @@ public non-sealed interface State<S, A> extends StateOf<S, A>, Bindable<State<S,
     };
   }
 
+  @Override
+  default <R> State<S, R> andThen(Kind<State<S, ?>, ? extends R> next) {
+    return flatMap(ignore -> next);
+  }
+
   default A eval(S state) {
     return run(state).get2();
+  }
+
+  default S runS(S state) {
+    return run(state).get1();
   }
 
   static <S, A> State<S, A> state(Function1<S, Tuple2<S, A>> runState) {

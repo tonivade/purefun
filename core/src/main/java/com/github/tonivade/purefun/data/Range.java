@@ -35,11 +35,11 @@ public record Range(int begin, int end) implements Iterable<Integer> {
     return end - begin;
   }
 
-  public Sequence<Integer> collect() {
+  public ImmutableArray<Integer> collect() {
     return map(identity());
   }
 
-  public <T> Sequence<T> map(Function1<? super Integer, ? extends T> map) {
+  public <T> ImmutableArray<T> map(Function1<? super Integer, ? extends T> map) {
     return ImmutableArray.from(intStream().boxed()).map(map);
   }
 

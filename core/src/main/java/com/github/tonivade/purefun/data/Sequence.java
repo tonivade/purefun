@@ -65,6 +65,10 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
+  default Option<E> findFirst(Matcher1<? super E> matcher) {
+    return Option.from(stream().filter(matcher::match).findFirst());
+  }
+
   default Collection<E> toCollection() {
     return toSequencedCollection();
   }
