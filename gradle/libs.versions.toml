@@ -12,7 +12,7 @@ errorproneVersion = "2.36.0"
 errorpronePluginVersion = "4.1.0"
 nullawayVersion = "0.12.1"
 assertjVersion = "3.26.3"
-eclipseVersion = "4.1.0"
+eclipseVersion = "4.2.0"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
