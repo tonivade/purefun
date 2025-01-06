@@ -64,6 +64,7 @@ public class FreeApTest {
 
     assertEquals(Id.of(Tuple.of(2, false, 2.1, "hola mundo", unit())), map.fix(IdOf::toId));
   }
+
   @Test
   public void pure() {
     FreeAp<DSL<?>, Tuple5<Integer, String, Double, Boolean, Unit>> tuple =

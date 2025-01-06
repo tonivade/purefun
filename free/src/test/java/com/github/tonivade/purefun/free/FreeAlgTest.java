@@ -53,25 +53,25 @@ public class FreeAlgTest {
       @Override
       public <T> Kind<IO<?>, T> apply(Kind<EitherK<ConsoleAlg<?>, EmailAlg<?>, ?>, ? extends T> from) {
         return from.fix(EitherKOf::<ConsoleAlg<?>, EmailAlg<?>, T>toEitherK).<IO<?>>foldK(
-          new FunctionK<>() {
-            @Override
-            public <X> IO<X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {
-              return (IO<X>) switch(kind.fix(ConsoleAlgOf::toConsoleAlg)) {
-                case ConsoleAlg.ReadLine() -> console.readln();
-                case ConsoleAlg.WriteLine(var line) -> console.println(line);
-              };
-            }
-          },
+            new FunctionK<>() {
+              @Override
+              public <X> IO<X> apply(Kind<ConsoleAlg<?>, ? extends X> kind) {
+                return (IO<X>) switch(kind.fix(ConsoleAlgOf::toConsoleAlg)) {
+                  case ConsoleAlg.ReadLine() -> console.readln();
+                  case ConsoleAlg.WriteLine(var line) -> console.println(line);
+                };
+              }
+            },
             new FunctionK<>() {
               @Override
               public <X> IO<X> apply(Kind<EmailAlg<?>, ? extends X> kind) {
                 return (IO<X>) switch (kind.fix(EmailAlgOf::toEmailAlg)) {
-                case EmailAlg.SendEmail(var to, var content)
-                  -> console.println("email to " + to + " with content " + content);
+                  case EmailAlg.SendEmail(var to, var content)
+                    -> console.println("email to " + to + " with content " + content);
                 };
               }
             }
-        );
+          );
       }
     };
   }
