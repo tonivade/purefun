@@ -318,7 +318,7 @@ public sealed interface PureIO<R, E, A> extends PureIOOf<R, E, A>, Effect<PureIO
 
       promiseB.onComplete(result -> {
         PureIO<R, E, A> fromPromiseA = PureIO.fromPromise(promiseA);
-        PureIO<R, E, Unit> cancelA = PureIO.run(connection2::cancel);
+        PureIO<R, E, Unit> cancelA = PureIO.run(connection1::cancel);
         Fiber<PureIO<R, E, ?>, A> fiberA = Fiber.of(fromPromiseA, cancelA);
         callback.accept(result.map(
           either -> either.map(

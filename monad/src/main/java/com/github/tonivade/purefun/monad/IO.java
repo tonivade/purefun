@@ -209,7 +209,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
         tb -> tb.get1().cancel().fix(IOOf::toIO).map(x -> Either.right(tb.get2()))));
   }
 
-  static <A, B> IO<Either<Tuple2<A, Fiber<IO<?>, B>>, Tuple2<Fiber<IO<?>, A>, B>>> racePair(Executor executor, Kind<IO<?>, ? extends A> fa, Kind<IO<?>, ? extends B> fb) {
+  static <A, B> IO<Either<Tuple2<A, Fiber<IO<?>, B>>, Tuple2<Fiber<IO<?>, A>, B>>> racePair(
+      Executor executor, Kind<IO<?>, ? extends A> fa, Kind<IO<?>, ? extends B> fb) {
     return cancellable(callback -> {
 
       IOConnection connection1 = IOConnection.cancellable();
@@ -219,9 +220,11 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
       Promise<B> promiseB = runAsync(IO.forked(executor).andThen(fb), connection2);
 
       promiseA.onComplete(result -> callback.accept(
-          result.map(a -> Either.left(Tuple.of(a, Fiber.of(IO.fromPromise(promiseB), IO.exec(connection2::cancel)))))));
+          result.map(a -> Either.left(
+              Tuple.of(a, Fiber.of(IO.fromPromise(promiseB), IO.exec(connection2::cancel)))))));
       promiseB .onComplete(result -> callback.accept(
-          result.map(b -> Either.right(Tuple.of(Fiber.of(IO.fromPromise(promiseA), IO.exec(connection2::cancel)), b)))));
+          result.map(b -> Either.right(
+              Tuple.of(Fiber.of(IO.fromPromise(promiseA), IO.exec(connection1::cancel)), b)))));
 
       return IO.exec(() -> {
         try {
@@ -342,8 +345,10 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
     return UNIT;
   }
 
-  static <T, R> IO<R> bracket(Kind<IO<?>, ? extends T> acquire,
-      Function1<? super T, ? extends Kind<IO<?>, ? extends R>> use, Function1<? super T, ? extends Kind<IO<?>, Unit>> release) {
+  static <T, R> IO<R> bracket(
+      Kind<IO<?>, ? extends T> acquire,
+      Function1<? super T, ? extends Kind<IO<?>, ? extends R>> use,
+      Function1<? super T, ? extends Kind<IO<?>, Unit>> release) {
     return cancellable(callback -> {
 
       IOConnection cancellable = IOConnection.cancellable();
@@ -374,7 +379,7 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
   static IO<Unit> sequence(Sequence<? extends Kind<IO<?>, ?>> sequence) {
     Kind<IO<?>, ?> initial = IO.unit().kind();
     return sequence.foldLeft(initial,
-        (Kind<IO<?>, ?> a, Kind<IO<?>, ?> b) -> a.fix(IOOf::toIO).andThen(b.fix(IOOf::toIO))).fix(IOOf::toIO).andThen(IO.unit());
+        (Kind<IO<?>, ?> a, Kind<IO<?>, ?> b) -> a.fix(IOOf::toIO).andThen(b)).fix(IOOf::toIO).andThen(IO.unit());
   }
 
   static <A> IO<Sequence<A>> traverse(Sequence<? extends Kind<IO<?>, A>> sequence) {
@@ -426,7 +431,8 @@ public sealed interface IO<T> extends IOOf<T>, Effect<IO<?>, T>, Recoverable {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T, U, V> Promise<T> runAsync(Kind<IO<?>, T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
+  private static <T, U, V> Promise<T> runAsync(
+      Kind<IO<?>, T> current, IOConnection connection, CallStack<T> stack, Promise<T> promise) {
     while (true) {
       try {
         current = unwrap(current, stack, identity());
