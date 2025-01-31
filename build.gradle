@@ -192,8 +192,9 @@ subprojects {
   dependencies {
     errorprone libs.nullaway
     errorprone libs.errorprone
+    testImplementation platform(libs.junitBom)
     testImplementation libs.junitJupiter
-    testRuntimeOnly libs.junitRunner
+    testRuntimeOnly libs.junitLauncher
     testImplementation libs.equalsVerifier
     testImplementation libs.mockitoCore
     testImplementation libs.mockitoJunit

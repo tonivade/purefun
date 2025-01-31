@@ -1,7 +1,6 @@
 [versions]
 pcollectionsVersion = "4.0.2"
-junitEngineVersion = "5.11.4"
-junitPlatformVersion = "1.11.4"
+junitVersion = "5.11.4"
 equalsVerifierVersion = "3.18.2"
 mockitoVersion = "5.15.2"
 compileTestingVersion = "0.21.0"
@@ -15,8 +14,9 @@ assertjVersion = "3.27.2"
 eclipseVersion = "4.2.0"
 
 [libraries]
-junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
-junitRunner = { group = "org.junit.platform", name = "junit-platform-runner", version.ref = "junitPlatformVersion" }
+junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junitVersion" }
+junitJupiter = { module = "org.junit.jupiter:junit-jupiter-engine" }
+junitLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 equalsVerifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsVerifierVersion" }
 mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoVersion" }
 mockitoJunit = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockitoVersion" }
