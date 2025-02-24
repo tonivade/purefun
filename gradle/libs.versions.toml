@@ -1,6 +1,6 @@
 [versions]
 pcollectionsVersion = "4.0.2"
-junitVersion = "5.11.4"
+junitVersion = "5.12.0"
 equalsVerifierVersion = "3.19.1"
 mockitoVersion = "5.15.2"
 compileTestingVersion = "0.21.0"
