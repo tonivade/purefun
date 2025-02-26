@@ -14,36 +14,19 @@ plugins {
 apply plugin: 'org.sonarqube'
 
 dependencies {
-  jacocoAggregation projects.purefunCore
-  jacocoAggregation projects.purefunEffect
-  jacocoAggregation projects.purefunFree
-  jacocoAggregation projects.purefunInstances
-  jacocoAggregation projects.purefunMonad
-  jacocoAggregation projects.purefunOptics
-  jacocoAggregation projects.purefunProcessor
-  jacocoAggregation projects.purefunStream
-  jacocoAggregation projects.purefunTransformer
-  jacocoAggregation projects.purefunTypeclasses
-
-  testReportAggregation projects.purefunCore
-  testReportAggregation projects.purefunEffect
-  testReportAggregation projects.purefunFree
-  testReportAggregation projects.purefunInstances
-  testReportAggregation projects.purefunMonad
-  testReportAggregation projects.purefunOptics
-  testReportAggregation projects.purefunProcessor
-  testReportAggregation projects.purefunStream
-  testReportAggregation projects.purefunTransformer
-  testReportAggregation projects.purefunTypeclasses
+  subprojects.forEach {
+    jacocoAggregation it
+    testReportAggregation it
+  }
 }
 
 reporting {
   reports {
     testCodeCoverageReport(JacocoCoverageReport) { 
-      testType = TestSuiteType.UNIT_TEST
+      testSuiteName = "test"
     }
     testAggregateTestReport(AggregateTestReport) { 
-      testType = TestSuiteType.UNIT_TEST
+      testSuiteName = "test"
     }
   }
 }
