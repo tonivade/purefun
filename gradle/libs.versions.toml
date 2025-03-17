@@ -2,7 +2,7 @@
 pcollectionsVersion = "4.0.2"
 junitVersion = "5.12.0"
 equalsVerifierVersion = "3.19.2"
-mockitoVersion = "5.16.0"
+mockitoVersion = "5.16.1"
 compileTestingVersion = "0.21.0"
 sonarVersion = "6.0.1.5171"
 versionsVersion = "0.52.0"
