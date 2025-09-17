@@ -126,7 +126,7 @@ public class HigherKindProcessorTest {
         "public sealed interface FooOf<T extends com.github.tonivade.purefun.Kind<T, ?>> extends Kind<Foo<?>, T> permits Foo {",
 
         "@SuppressWarnings(\"unchecked\")",
-        "static <T extends com.github.tonivade.purefun.Kind<T, ?> Foo<T> toFoo(Kind<Foo<?>, ? extends T> value) {",
+        "static <T extends com.github.tonivade.purefun.Kind<T, ?>> Foo<T> toFoo(Kind<Foo<?>, ? extends T> value) {",
         "return (Foo<T>) value;",
         "}",
 
