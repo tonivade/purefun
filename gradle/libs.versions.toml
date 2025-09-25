@@ -11,7 +11,7 @@ errorproneVersion = "2.42.0"
 errorpronePluginVersion = "4.3.0"
 nullawayVersion = "0.12.10"
 assertjVersion = "3.27.6"
-eclipseVersion = "4.3.0"
+eclipseVersion = "4.4.0"
 
 [libraries]
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junitVersion" }
