@@ -54,11 +54,11 @@ public final class Ref<A> {
   }
 
   public UIO<A> updateAndGet(Operator1<A> update) {
-    return UIO.task(() -> value.updateAndGet(update::apply));
+    return UIO.task(() -> value.updateAndGet(update));
   }
 
   public UIO<A> getAndUpdate(Operator1<A> update) {
-    return UIO.task(() -> value.getAndUpdate(update::apply));
+    return UIO.task(() -> value.getAndUpdate(update));
   }
 
   public static <A> UIO<Ref<A>> make(A value) {

@@ -4,8 +4,15 @@
  */
 package com.github.tonivade.purefun.core;
 
+import java.util.function.BiPredicate;
+
 @FunctionalInterface
-public interface Matcher2<A, B> extends Recoverable {
+public interface Matcher2<A, B> extends Recoverable, BiPredicate<A, B> {
+
+  @Override
+  default boolean test(A a, B b) {
+    return match(a, b);
+  }
 
   default boolean match(A a, B b) {
     try {

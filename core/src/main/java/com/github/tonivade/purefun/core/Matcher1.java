@@ -8,10 +8,16 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Objects.nonNull;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @FunctionalInterface
-public interface Matcher1<A> extends Recoverable {
+public interface Matcher1<A> extends Recoverable, Predicate<A> {
+
+  @Override
+  default boolean test(A target) {
+    return match(target);
+  }
 
   default boolean match(A target) {
     try {

@@ -14,7 +14,7 @@ public sealed interface TupleK<F extends Kind<F, ?>> permits TupleK1, TupleK2, T
   Sequence<Kind<F, ?>> toSequence();
 
   default void forEach(Consumer1<? super Kind<F, ?>> consumer) {
-    toSequence().forEach(consumer::accept);
+    toSequence().forEach(consumer);
   }
 
   static <F extends Kind<F, ?>, A> TupleK1<F, A> of(Kind<F, A> value1) {

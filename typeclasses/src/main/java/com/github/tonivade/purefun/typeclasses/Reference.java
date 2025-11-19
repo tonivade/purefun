@@ -77,12 +77,12 @@ final class MonadDeferReference<F extends Kind<F, ?>, A> implements Reference<F,
 
   @Override
   public Kind<F, A> updateAndGet(Operator1<A> update) {
-    return monadF.later(() -> value.updateAndGet(update::apply));
+    return monadF.later(() -> value.updateAndGet(update));
   }
 
   @Override
   public Kind<F, A> getAndUpdate(Operator1<A> update) {
-    return monadF.later(() -> value.getAndUpdate(update::apply));
+    return monadF.later(() -> value.getAndUpdate(update));
   }
 
   @Override

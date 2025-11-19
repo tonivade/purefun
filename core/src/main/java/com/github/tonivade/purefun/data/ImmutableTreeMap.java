@@ -398,7 +398,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
       Comparator<? super K> comparator,
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper::apply, valueMapper::apply, ImmutableTreeMap::throwingMerge, () -> new TreeMap<>(comparator));
+    return Collectors.toMap(keyMapper, valueMapper, ImmutableTreeMap::throwingMerge, () -> new TreeMap<>(comparator));
   }
 
   private static <V> V throwingMerge(V a, V b) {

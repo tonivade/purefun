@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.core;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
 
+import java.util.function.BiConsumer;
+
 /**
  * <p>This interface represents a function that receives two parameters but it doesn't generate any result.</p>
  * <p>It's like a {@code Function2<A, B, Unit>}</p>
@@ -13,8 +15,9 @@ import static com.github.tonivade.purefun.core.Unit.unit;
  * @param <B> the type of second parameter received by the function
  */
 @FunctionalInterface
-public interface Consumer2<A, B> extends Recoverable {
+public interface Consumer2<A, B> extends Recoverable, BiConsumer<A, B> {
 
+  @Override
   default void accept(A value1, B value2) {
     try {
       run(value1, value2);

@@ -66,7 +66,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
   default Option<E> findFirst(Matcher1<? super E> matcher) {
-    return Option.from(stream().filter(matcher::match).findFirst());
+    return Option.from(stream().filter(matcher).findFirst());
   }
 
   default Collection<E> toCollection() {
@@ -78,11 +78,11 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default Option<E> reduce(Operator2<E> operator) {
-    return Option.from(stream().reduce(operator::apply));
+    return Option.from(stream().reduce(operator));
   }
 
   default E fold(E initial, Operator2<E> operator) {
-    return stream().reduce(initial, operator::apply);
+    return stream().reduce(initial, operator);
   }
 
   default <U> U foldLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
@@ -116,7 +116,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   @SuppressWarnings("unchecked")
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
     return (ImmutableMap<G, ImmutableList<E>>)
-        ImmutableMap.from(stream().collect(groupingBy(selector::apply))).mapValues(ImmutableList::from);
+        ImmutableMap.from(stream().collect(groupingBy(selector))).mapValues(ImmutableList::from);
   }
 
   default ImmutableList<E> asList() {

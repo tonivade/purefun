@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.core;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.HigherKind;
@@ -25,8 +26,9 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverable {
+public non-sealed interface Function1<A, R> extends Function1Of<A, R>, Recoverable, Function<A, R> {
 
+  @Override
   default R apply(A value) {
     try {
       return run(value);
