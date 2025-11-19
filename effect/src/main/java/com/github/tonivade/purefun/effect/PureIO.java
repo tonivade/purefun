@@ -890,7 +890,7 @@ sealed interface PureIOConnection {
 
     @Override
     public StateIO updateState(Operator1<StateIO> update) {
-      return state.updateAndGet(update::apply);
+      return state.updateAndGet(update);
     }
   }
 }

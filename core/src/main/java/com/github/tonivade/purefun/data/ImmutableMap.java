@@ -279,7 +279,7 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   private static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper::apply, valueMapper::apply, ImmutableMap::throwingMerge, LinkedHashMap::new);
+    return Collectors.toMap(keyMapper, valueMapper, ImmutableMap::throwingMerge, LinkedHashMap::new);
   }
 
   private static <V> V throwingMerge(V a, V b) {

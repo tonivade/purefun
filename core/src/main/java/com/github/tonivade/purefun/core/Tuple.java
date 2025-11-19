@@ -13,7 +13,7 @@ public sealed interface Tuple permits Tuple1, Tuple2, Tuple3, Tuple4, Tuple5 {
   Sequence<?> toSequence();
 
   default void forEach(Consumer1<? super Object> consumer) {
-    toSequence().forEach(consumer::accept);
+    toSequence().forEach(consumer);
   }
 
   static <A> Tuple1<A> of(A value1) {

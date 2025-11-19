@@ -4,7 +4,9 @@
  */
 package com.github.tonivade.purefun.core;
 
+import java.util.function.UnaryOperator;
+
 @FunctionalInterface
-public interface Operator1<T> extends Function1<T, T> {
+public interface Operator1<T> extends Function1<T, T>, UnaryOperator<T> {
 
 }

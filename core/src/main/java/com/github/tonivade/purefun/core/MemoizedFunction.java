@@ -20,7 +20,7 @@ final class MemoizedFunction<T, R> implements Function1<T, R> {
 
   @Override
   public R run(T value) {
-    return cache.computeIfAbsent(value, function::apply);
+    return cache.computeIfAbsent(value, function);
   }
 
   @Override

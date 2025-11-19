@@ -44,7 +44,7 @@ public final class PIso<S, T, A, B> {
   }
 
   public Function1<S, T> lift(Function1<A, B> mapper) {
-    return mapper.compose(get).andThen(reverseGet)::apply;
+    return mapper.compose(get).andThen(reverseGet);
   }
 
   public PLens<S, T, A, B> asLens() {

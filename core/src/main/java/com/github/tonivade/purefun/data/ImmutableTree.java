@@ -70,25 +70,25 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableTree.from(naturalOrder(), stream().map(mapper::apply));
+    return ImmutableTree.from(naturalOrder(), stream().map(mapper));
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return ImmutableTree.from(comparator, stream().map(mapper::apply));
+    return ImmutableTree.from(comparator, stream().map(mapper));
   }
 
   @Override
   default <R> ImmutableTree<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableTree.from(naturalOrder(), stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)::apply));
+    return ImmutableTree.from(naturalOrder(), stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableTree.from(comparator, stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)::apply));
+    return ImmutableTree.from(comparator, stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableTree.from(comparator(), stream().filter(matcher::match));
+    return ImmutableTree.from(comparator(), stream().filter(matcher));
   }
 
   @Override

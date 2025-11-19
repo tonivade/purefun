@@ -60,17 +60,17 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableArray.from(stream().map(mapper::apply));
+    return ImmutableArray.from(stream().map(mapper));
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableArray.from(stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)::apply));
+    return ImmutableArray.from(stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableArray.from(stream().filter(matcher::match));
+    return ImmutableArray.from(stream().filter(matcher));
   }
 
   @Override

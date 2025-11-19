@@ -54,11 +54,11 @@ public final class Ref<A> {
   }
 
   public IO<A> updateAndGet(Operator1<A> update) {
-    return IO.task(() -> value.updateAndGet(update::apply));
+    return IO.task(() -> value.updateAndGet(update));
   }
 
   public IO<A> getAndUpdate(Operator1<A> update) {
-    return IO.task(() -> value.getAndUpdate(update::apply));
+    return IO.task(() -> value.getAndUpdate(update));
   }
 
   public static <A> IO<Ref<A>> make(A value) {

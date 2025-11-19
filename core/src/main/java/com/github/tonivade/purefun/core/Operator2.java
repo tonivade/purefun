@@ -4,7 +4,9 @@
  */
 package com.github.tonivade.purefun.core;
 
+import java.util.function.BinaryOperator;
+
 @FunctionalInterface
-public interface Operator2<T> extends Function2<T, T, T> {
+public interface Operator2<T> extends Function2<T, T, T>, BinaryOperator<T> {
 
 }
