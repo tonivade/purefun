@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.core;
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
+import java.util.function.BiFunction;
 
 /**
  * <p>This interface represents a function with a two parameters. Similar to {@link java.util.function.BiFunction}.</p>
@@ -17,8 +18,9 @@ import com.github.tonivade.purefun.type.Try;
  * @param <R> type of return value
  */
 @FunctionalInterface
-public interface Function2<A, B, R> extends Recoverable {
+public interface Function2<A, B, R> extends Recoverable, BiFunction<A, B, R> {
 
+  @Override
   default R apply(A a, B b) {
     try {
       return run(a, b);

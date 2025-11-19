@@ -6,14 +6,17 @@ package com.github.tonivade.purefun.core;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
 
+import java.util.function.Consumer;
+
 /**
  * <p>This interface represents a function that receives a single parameter but it doesn't generate any result.</p>
  * <p>It's like a {@code Function1<A, Unit>}</p>
  * @param <A> the type of parameter received by the function
  */
 @FunctionalInterface
-public interface Consumer1<A> extends Recoverable {
+public interface Consumer1<A> extends Recoverable, Consumer<A> {
 
+  @Override
   default void accept(A value) {
     try {
       run(value);

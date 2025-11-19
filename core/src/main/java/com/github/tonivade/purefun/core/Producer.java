@@ -9,6 +9,8 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
+import java.util.function.Supplier;
+
 /**
  * This interface represents a function without any parameter. Similar to {@link java.util.function.Supplier}
  * but with additional functionality like the ability to memoize the result.
@@ -16,8 +18,9 @@ import com.github.tonivade.purefun.type.Try;
  */
 @HigherKind
 @FunctionalInterface
-public non-sealed interface Producer<T> extends ProducerOf<T>, Recoverable {
+public non-sealed interface Producer<T> extends ProducerOf<T>, Recoverable, Supplier<T> {
 
+  @Override
   default T get() {
     try {
       return run();

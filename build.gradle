@@ -115,6 +115,7 @@ subprojects {
     if (!name.toLowerCase().contains("test")) {
       options.errorprone {
         check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("FunctionalInterfaceMethodChanged", net.ltgt.gradle.errorprone.CheckSeverity.WARN)
         option("NullAway:AnnotatedPackages", "com.github.tonivade.purefun")
         option("NullAway:SuggestSuppressions", "true")
       }
