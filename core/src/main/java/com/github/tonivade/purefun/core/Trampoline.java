@@ -24,15 +24,8 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   @Override
   default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> map) {
     return fold(
-        next -> more(() -> next.flatMap(map)),
+        next -> more(() -> next.step(map)),
         value -> map.apply(value).fix(TrampolineOf::toTrampoline));
-  }
-
-  default <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {
-    return switch (this) {
-      case Done(var value) -> done.apply(value);
-      case More(var next) -> more.apply(next.get());
-    };
   }
 
   default T run() {
@@ -64,5 +57,19 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
   private Trampoline<T> iterate() {
     return Stream.iterate(this, t -> t.fold(identity(), cons(t)))
         .dropWhile(t -> t instanceof More).findFirst().orElseThrow();
+  }
+
+  private <R> Trampoline<R> step(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> mapper) {
+    return switch (this) {
+      case Done<T>(var value) -> mapper.apply(value).fix(TrampolineOf::toTrampoline);
+      case More<T>(var next) -> next.get().flatMap(mapper);
+    };
+  }
+
+  private <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {
+    return switch (this) {
+      case Done(var value) -> done.apply(value);
+      case More(var next) -> more.apply(next.get());
+    };
   }
 }
