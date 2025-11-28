@@ -4,14 +4,11 @@
  */
 package com.github.tonivade.purefun.core;
 
-import static com.github.tonivade.purefun.core.Function1.cons;
-import static com.github.tonivade.purefun.core.Function1.fail;
-import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.Nullable;
 
 @HigherKind
 public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoline<?>, T> {
@@ -23,13 +20,65 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
 
   @Override
   default <R> Trampoline<R> flatMap(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> map) {
-    return fold(
-        next -> more(() -> next.step(map)),
-        value -> map.apply(value).fix(TrampolineOf::toTrampoline));
+    return new FlatMap<>(this, map);
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   default T run() {
-    return iterate().fold(fail(IllegalStateException::new), identity());
+    Trampoline<?> current = this;
+    Function1<Object, Trampoline<?>> continuation = null;
+
+    while (true) {
+      if (current instanceof Done<?> done) {
+        Object value = done.value();
+
+        if (continuation == null) {
+          return (T) value;  // end of program
+        }
+
+        Function1<Object, Trampoline<?>> k = continuation;
+        continuation = null; // clear before applying
+        current = k.apply(value);
+      } else if (current instanceof More<?> more) {
+        current = more.next().get();
+      } else if (current instanceof FlatMap<?, ?> flatMap) {
+        Trampoline<Object> source = (Trampoline<Object>) flatMap.current();
+        Function1<Object, Trampoline<?>> nextFn = (Function1) flatMap.mapper();
+
+        if (source instanceof FlatMap<?, ?> sourceFlatMap) {
+          // Reassociate:
+          // FlatMap(FlatMap(x, f), g)
+          // becomes
+          // FlatMap(x, v -> FlatMap(f(v), g))
+          Trampoline<Object> inner = (Trampoline<Object>) sourceFlatMap.current();
+          Function1<Object, Trampoline<?>> innerFn = (Function1) sourceFlatMap.mapper();
+
+          Function1<Object, Trampoline<?>> merged = v -> {
+            Trampoline t = innerFn.apply(v);
+            return t.flatMap(nextFn);
+          };
+
+          current = inner;
+          continuation = chain(merged, continuation);
+        } else {
+          current = source;
+          continuation = chain(nextFn, continuation);
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private static Function1<Object, Trampoline<?>> chain(
+      Function1<Object, Trampoline<?>> newK, @Nullable Function1<Object, Trampoline<?>> existing) {
+    if (existing == null) {
+      return newK;
+    }
+
+    return value -> {
+      Trampoline<?> next = newK.apply(value);
+      return new FlatMap(next, existing);
+    };
   }
 
   static <T> Trampoline<T> done(T value) {
@@ -54,22 +103,12 @@ public sealed interface Trampoline<T> extends TrampolineOf<T>, Bindable<Trampoli
     }
   }
 
-  private Trampoline<T> iterate() {
-    return Stream.iterate(this, t -> t.fold(identity(), cons(t)))
-        .dropWhile(t -> t instanceof More).findFirst().orElseThrow();
+  record FlatMap<T, R>(Trampoline<T> current, Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> mapper) implements Trampoline<R> {
+
+    public FlatMap {
+      checkNonNull(current);
+      checkNonNull(mapper);
+    }
   }
 
-  private <R> Trampoline<R> step(Function1<? super T, ? extends Kind<Trampoline<?>, ? extends R>> mapper) {
-    return switch (this) {
-      case Done<T>(var value) -> mapper.apply(value).fix(TrampolineOf::toTrampoline);
-      case More<T>(var next) -> next.get().flatMap(mapper);
-    };
-  }
-
-  private <R> R fold(Function1<Trampoline<T>, R> more, Function1<T, R> done) {
-    return switch (this) {
-      case Done(var value) -> done.apply(value);
-      case More(var next) -> more.apply(next.get());
-    };
-  }
 }
