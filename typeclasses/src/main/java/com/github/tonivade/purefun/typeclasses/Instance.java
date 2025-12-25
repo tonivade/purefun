@@ -139,9 +139,10 @@ public abstract class Instance<F extends Kind<F, ?>> {
       .getOrElseThrow();
   }
 
-  private static <F extends Kind<F, ?>> Class<?> findClass(Instance<F> instance)
+  @SuppressWarnings("unchecked")
+  private static <F extends Kind<F, ?>> Class<F> findClass(Instance<F> instance)
       throws ClassNotFoundException {
-    return Class.forName(instance.instanceName());
+    return (Class<F>) Class.forName(instance.instanceName());
   }
 
   private static Method findMethod(Class<?> instanceClass, Class<?> typeClass, Object... args)
