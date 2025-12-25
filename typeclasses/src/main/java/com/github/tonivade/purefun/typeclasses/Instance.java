@@ -113,8 +113,13 @@ public abstract class Instance<F extends Kind<F, ?>> {
     return load(this, Traverse.class, params);
   }
 
-  protected String instanceName() {
+  private String instanceName() {
     return "com.github.tonivade.purefun.instances." + kindType.getSimpleName() + "Instances";
+  }
+
+  @SuppressWarnings("unchecked")
+  private Try<Class<F>> instanceType() {
+    return Try.of(() -> (Class<F>) Class.forName(instanceName()));
   }
 
   private static Type genericType(Type type) {
@@ -132,17 +137,11 @@ public abstract class Instance<F extends Kind<F, ?>> {
   }
 
   private static <F extends Kind<F, ?>, T> T load(Instance<F> instance, Class<?> typeClass, Object... args) {
-    return Try.of(() -> findClass(instance))
+    return instance.instanceType()
       .map(clazz -> findMethod(clazz, typeClass, args))
       .map(method -> Instance.<T>getInstance(method, args))
       .mapError(error -> new InstanceNotFoundException(instance.getType(), typeClass, error))
       .getOrElseThrow();
-  }
-
-  @SuppressWarnings("unchecked")
-  private static <F extends Kind<F, ?>> Class<F> findClass(Instance<F> instance)
-      throws ClassNotFoundException {
-    return (Class<F>) Class.forName(instance.instanceName());
   }
 
   private static Method findMethod(Class<?> instanceClass, Class<?> typeClass, Object... args)
