@@ -63,7 +63,7 @@ allprojects {
   }
 
   jacoco {
-    toolVersion = "0.8.11"
+    toolVersion = "0.8.14"
   }
 
   javadoc.options {
@@ -73,6 +73,7 @@ allprojects {
   compileJava {
     options.compilerArgs << '-Xlint:unchecked'
     options.compilerArgs << '-Xlint:rawtypes'
+    options.compilerArgs << '-XDaddTypeAnnotationsToSymbol=true'
     options.release = 21
   }
 
