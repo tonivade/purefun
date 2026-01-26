@@ -10,7 +10,7 @@ nexusVersion = "2.0.0"
 errorproneVersion = "2.46.0"
 errorpronePluginVersion = "4.4.0"
 nullawayVersion = "0.13.0"
-assertjVersion = "3.27.6"
+assertjVersion = "3.27.7"
 eclipseVersion = "4.4.1"
 
 [libraries]
