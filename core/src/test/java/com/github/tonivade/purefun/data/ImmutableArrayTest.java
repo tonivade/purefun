@@ -7,6 +7,9 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
+import static com.github.tonivade.purefun.data.Transducer.compose;
+import static com.github.tonivade.purefun.data.Transducer.filter;
+import static com.github.tonivade.purefun.data.Transducer.map;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -61,6 +64,7 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("a", "b", "c", "z"), array.appendAll(arrayOf("z"))),
               () -> assertEquals(arrayOf("a", "b", "c"), array.map(identity())),
               () -> assertEquals(arrayOf("A", "B", "C"), array.map(toUpperCase)),
+              () -> assertEquals(arrayOf("A", "B", "C"), array.transduce(compose(map(toUpperCase), filter(e -> e.length() > 0)))),
               () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
@@ -101,7 +105,7 @@ public class ImmutableArrayTest {
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1))
               );
   }
-  
+
   @Test
   void serialization() throws IOException, ClassNotFoundException {
     ImmutableArray<Integer> array = arrayOf(1, 2, 3, 4, 5);
@@ -111,14 +115,14 @@ public class ImmutableArrayTest {
       objectOutputStream.writeObject(array);
       objectOutputStream.writeObject(Sequence.emptyArray());
     }
-    
+
     Object result = null;
     Object empty = null;
     try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
       result = objectInputStream.readObject();
       empty = objectInputStream.readObject();
     }
-    
+
     assertEquals(array, result);
     assertSame(Sequence.emptyArray(), empty);
   }

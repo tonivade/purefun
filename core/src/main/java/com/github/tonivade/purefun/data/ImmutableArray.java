@@ -59,18 +59,22 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> takeWhile(Matcher1<? super E> condition);
 
   @Override
+  <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableArray.from(stream().map(mapper));
+    return transduce(Transducer.map(mapper));
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableArray.from(stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
+    var andThen = mapper.andThen(SequenceOf::toSequence);
+    return transduce(Transducer.flatMap(x -> andThen.apply(x)));
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableArray.from(stream().filter(matcher));
+    return transduce(Transducer.filter(matcher));
   }
 
   @Override
@@ -138,6 +142,12 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public List<E> toList() {
       return new ArrayList<>(backend);
+    }
+
+    @Override
+    public <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
+      var result = Transducer.transduce(transducer.<TreePVector<R>>narrowK(), TreePVector::plus, TreePVector.<R>empty(), this);
+      return new PImmutableArray<>(result);
     }
 
     @Override

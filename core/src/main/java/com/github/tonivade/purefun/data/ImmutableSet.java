@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,7 +19,9 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.pcollections.HashTreePSet;
+import org.pcollections.MapPSet;
 import org.pcollections.PSet;
 
 import com.github.tonivade.purefun.Kind;
@@ -51,18 +54,22 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> difference(ImmutableSet<? extends E> other);
 
   @Override
+  <R> ImmutableSet<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableSet.from(stream().map(mapper));
+    return transduce(Transducer.map(mapper));
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableSet.from(stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
+    var andThen = mapper.andThen(SequenceOf::toSequence);
+    return transduce(Transducer.flatMap(x -> andThen.apply(x)));
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableSet.from(stream().filter(matcher));
+    return transduce(Transducer.filter(matcher));
   }
 
   @Override
@@ -115,6 +122,12 @@ public interface ImmutableSet<E> extends Sequence<E> {
     @Override
     public int size() {
       return backend.size();
+    }
+
+    @Override
+    public <R> ImmutableSet<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
+      var result = Transducer.transduce(transducer.narrowK(), MapPSet::plus, HashTreePSet.empty(), this);
+      return new PImmutableSet<>(result);
     }
 
     @Override

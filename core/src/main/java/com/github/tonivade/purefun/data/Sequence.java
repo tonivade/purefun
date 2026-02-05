@@ -65,6 +65,8 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
+  <R> Sequence<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
   default Option<E> findFirst(Matcher1<? super E> matcher) {
     return Option.from(stream().filter(matcher).findFirst());
   }

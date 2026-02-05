@@ -61,17 +61,23 @@ public interface ImmutableList<E> extends Sequence<E> {
   ImmutableList<E> takeWhile(Matcher1<? super E> matcher);
 
   @Override
+  <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableList.from(stream().map(mapper));
+    return transduce(Transducer.map(mapper));
   }
 
   @Override
   default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableList.from(stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
+    var andThen = mapper.andThen(SequenceOf::toSequence);
+    return transduce(Transducer.flatMap(x -> andThen.apply(x)));
   }
 
   @Override
-  ImmutableList<E> filter(Matcher1<? super E> matcher);
+  default ImmutableList<E> filter(Matcher1<? super E> matcher) {
+    return transduce(Transducer.filter(matcher));
+  }
 
   @Override
   default ImmutableList<E> filterNot(Matcher1<? super E> matcher) {
@@ -148,6 +154,12 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
+    public <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
+      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> acc.plus(acc.size(), e), ConsPStack.empty(), this);
+      return new PImmutableList<>(result);
+    }
+
+    @Override
     public ImmutableList<E> append(E element) {
       return from(backend.plus(backend.size(), element));
     }
@@ -212,17 +224,6 @@ public interface ImmutableList<E> extends Sequence<E> {
       var current = ConsPStack.<E>empty();
       for (int i = 0; !backend.isEmpty() && matcher.match(backend.get(i)); i++) {
         current = current.plus(current.size(), backend.get(i));
-      }
-      return from(current);
-    }
-
-    @Override
-    public ImmutableList<E> filter(Matcher1<? super E> matcher) {
-      var current = ConsPStack.<E>empty();
-      for (E item : backend) {
-        if (matcher.match(item)) {
-          current = current.plus(current.size(), item);
-        }
       }
       return from(current);
     }

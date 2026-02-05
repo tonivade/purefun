@@ -69,26 +69,34 @@ public interface ImmutableTree<E> extends Sequence<E> {
   Option<E> floor(E value);
 
   @Override
+  default <R> ImmutableTree<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
+    return transduce(naturalOrder(), transducer);
+  }
+
+  <R> ImmutableTree<R> transduce(Comparator<? super R> comparator, Transducer<? extends Sequence<R>, E, R> transducer);
+
+  @Override
   default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
-    return ImmutableTree.from(naturalOrder(), stream().map(mapper));
+    return transduce(Transducer.map(mapper));
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return ImmutableTree.from(comparator, stream().map(mapper));
+    return transduce(comparator, Transducer.map(mapper));
   }
 
   @Override
   default <R> ImmutableTree<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableTree.from(naturalOrder(), stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
+    return flatMap(naturalOrder(), mapper);
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return ImmutableTree.from(comparator, stream().flatMap(mapper.andThen(SequenceOf::toSequence).andThen(Sequence::stream)));
+    var andThen = mapper.andThen(SequenceOf::toSequence);
+    return transduce(comparator, Transducer.flatMap(x -> andThen.apply(x)));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return ImmutableTree.from(comparator(), stream().filter(matcher));
+    return transduce(Transducer.filter(matcher));
   }
 
   @Override
@@ -122,6 +130,10 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return (ImmutableTree<T>) PImmutableTree.EMPTY;
   }
 
+  static <T> ImmutableTree<T> empty(Comparator<? super T> comparator) {
+    return new PImmutableTree<>(TreePSet.empty(comparator));
+  }
+
   static <E> Collector<E, ?, ImmutableTree<E>> toImmutableTree() {
     return collectingAndThen(Collectors.toCollection(TreeSet::new), PImmutableTree::new);
   }
@@ -153,6 +165,13 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     private PImmutableTree(PSortedSet<E> backend) {
       this.backend = checkNonNull(backend);
+    }
+
+    @Override
+    public <R> ImmutableTree<R> transduce(Comparator<? super R> comparator,
+        Transducer<? extends Sequence<R>, E, R> transducer) {
+      var result = Transducer.transduce(transducer.<TreePSet<R>>narrowK(), TreePSet::plus, TreePSet.<R>empty(comparator), this);
+      return new PImmutableTree<>(result);
     }
 
     @SuppressWarnings("unchecked")
