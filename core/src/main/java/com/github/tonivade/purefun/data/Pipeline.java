@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Reducer.Step;
@@ -35,6 +37,72 @@ public interface Pipeline<A, T, U> {
   @SuppressWarnings("unchecked")
   default <R extends Iterable<U>> Pipeline<R, T, U> fix() {
     return (Pipeline<R, T, U>) this;
+  }
+
+  sealed interface Transition<S, U> {
+    record Emit<S, U>(S state, U value) implements Transition<S, U> {}
+    record EmitMany<S, U>(S state, Iterable<U> value) implements Transition<S, U> {}
+    record Skip<S, U>(S state) implements Transition<S, U> {}
+    record Stop<S, U>(S state) implements Transition<S, U> {}
+
+    static <S, U> Transition<S, U> emit(S state, U value) {
+      return new Emit<>(state, value);
+    }
+
+    static <S, U> Transition<S, U> emitMany(S state, Iterable<U> value) {
+      return new EmitMany<>(state, value);
+    }
+
+    static <S, U> Transition<S, U> skip(S state) {
+      return new Skip<>(state);
+    }
+
+    static <S, U> Transition<S, U> stop(S state) {
+      return new Stop<>(state);
+    }
+  }
+
+  static <A, T, S, U> Pipeline<A, T, U> statefulMap(
+      Producer<S> init, Function2<? super S, ? super T, ? extends Transition<S, U>> step) {
+    return new Pipeline<>() {
+
+      S state = init.get();
+
+      @Override
+      public Reducer<A, T> apply(Reducer<A, U> reducer) {
+
+        return (acc, value) -> {
+          var t = step.apply(state, value);
+
+          return switch (t) {
+            case Transition.Emit<S, U>(var nextState, var nextValue) -> {
+              state = nextState;
+              yield reducer.apply(acc, nextValue);
+            }
+            case Transition.EmitMany<S, U>(var nextState, var nextValues) -> {
+              state = nextState;
+              var result = acc;
+              for (var u : nextValues) {
+                var inner = reducer.apply(result, u);
+                if (inner instanceof Step.Done) {
+                  yield inner;
+                }
+                result = inner.value();
+              }
+              yield Step.more(result);
+            }
+            case Transition.Skip<S, U>(var nextState) -> {
+              state = nextState;
+              yield Step.more(acc);
+            }
+            case Transition.Stop<S, U>(var nextState) -> {
+              state = nextState;
+              yield Step.done(acc);
+            }
+          };
+        };
+      }
+    };
   }
 
   /**
@@ -77,8 +145,7 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the mapping function
    */
   static <A, T, U> Pipeline<A, T, U> map(Function1<? super T, ? extends U> mapper) {
-    return reducer ->
-        (acc, value) -> reducer.apply(acc, mapper.apply(value));
+    return statefulMap(() -> null, (s, t) -> Transition.emit(null, mapper.apply(t)));
   }
 
   /**
@@ -88,18 +155,7 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the flat-mapping function
    */
   static <A, T, U> Pipeline<A, T, U> flatMap(Function1<? super T, ? extends Sequence<U>> mapper) {
-    return reducer ->
-        (init, value) -> {
-          var acc = init;
-          for (var u : mapper.apply(value)) {
-            var step = reducer.apply(acc, u);
-            if (step instanceof Step.Done) {
-              return step;
-            }
-            acc = step.value();
-          }
-          return Step.more(acc);
-        };
+    return statefulMap(() -> null, (s, t) -> Transition.emitMany(null, mapper.apply(t)));
   }
 
   /**
@@ -109,10 +165,12 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the filtering logic
    */
   static <A, T> Pipeline<A, T, T> filter(Matcher1<? super T> matcher) {
-    return reducer ->
-        (acc, value) -> matcher.test(value)
-            ? reducer.apply(acc, value)
-            : Step.more(acc);
+    return statefulMap(() -> null, (s, t) -> {
+      if (matcher.test(t)) {
+        return Transition.emit(null, t);
+      }
+      return Transition.skip(null);
+    });
   }
 
   /**
@@ -122,20 +180,12 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the take logic
    */
   static <A, T> Pipeline<A, T, T> take(int n) {
-    return new Pipeline<>() {
-
-      int state = n;
-
-      public Reducer<A, T> apply(Reducer<A, T> reducer) {
-        return (acc, value) -> {
-          if (state > 0) {
-            state--;
-            return reducer.apply(acc, value);
-          }
-          return Step.done(acc);
-        };
+    return statefulMap(() -> n, (state, value) -> {
+      if (state > 0) {
+        return Transition.emit(state - 1, value);
       }
-    };
+      return Transition.stop(state);
+    });
   }
 
   /**
@@ -145,14 +195,12 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the takeWhile logic
    */
   static <A, T> Pipeline<A, T, T> takeWhile(Matcher1<? super T> matcher) {
-    return reducer -> {
-      return (acc, value) -> {
-        if (matcher.test(value)) {
-          return reducer.apply(acc, value);
-        }
-        return Step.done(acc);
-      };
-    };
+    return statefulMap(() -> true, (state, value) -> {
+      if (state && matcher.test(value)) {
+        return Transition.emit(true, value);
+      }
+      return Transition.stop(false);
+    });
   }
 
   /**
@@ -162,20 +210,12 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the drop logic
    */
   static <A, T> Pipeline<A, T, T> drop(int n) {
-    return new Pipeline<>() {
-
-      int state = n;
-
-      public Reducer<A, T> apply(Reducer<A, T> reducer) {
-        return (acc, value) -> {
-          if (state > 0) {
-            state--;
-            return Step.more(acc);
-          }
-          return reducer.apply(acc, value);
-        };
+    return statefulMap(() -> n, (state, value) -> {
+      if (state > 0) {
+        return Transition.skip(state - 1);
       }
-    };
+      return Transition.emit(state, value);
+    });
   }
 
   /**
@@ -185,14 +225,12 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the dropWhile logic
    */
   static <A, T> Pipeline<A, T, T> dropWhile(Matcher1<? super T> matcher) {
-    return reducer -> {
-      return (acc, value) -> {
-        if (matcher.test(value)) {
-          return Step.more(acc);
-        }
-        return reducer.apply(acc, value);
-      };
-    };
+    return statefulMap(() -> true, (state, value) -> {
+      if (state && matcher.test(value)) {
+        return Transition.skip(true);
+      }
+      return Transition.emit(false, value);
+    });
   }
 
   /**
@@ -204,17 +242,12 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that filters out duplicate elements, allowing only distinct elements to be processed by the reducer
    */
   static <A, T> Pipeline<A, T, T> distinct() {
-    return reducer -> {
-      var seen = new HashSet<T>();
-
-      return (acc, value) -> {
-        if (seen.contains(value)) {
-          return Step.more(acc);
-        }
-        seen.add(value);
-        return reducer.apply(acc, value);
-      };
-    };
+    return statefulMap(() -> new HashSet<T>(), (seen, value) -> {
+      if (seen.add(value)) {
+        return Transition.emit(seen, value);
+      }
+      return Transition.skip(seen);
+    });
   }
 
   /**
@@ -224,15 +257,7 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the zipWithIndex logic
    */
   static <A, T> Pipeline<A, T, Tuple2<Integer, T>> zipWithIndex() {
-    return new Pipeline<>() {
-
-      int index = 0;
-
-      @Override
-      public Reducer<A, T> apply(Reducer<A, Tuple2<Integer, T>> reducer) {
-        return (acc, value) -> reducer.apply(acc, Tuple.of(index++, value));
-      }
-    };
+    return statefulMap(() -> 0, (index, value) -> Transition.emit(index + 1, Tuple.of(index, value)));
   }
 
   /**
@@ -243,19 +268,15 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the tumbling window logic
    */
   static <A, T> Pipeline<A, T, Sequence<T>> tumbling(int size) {
-    return reducer -> {
-      var window = new ArrayList<T>(size);
-
-      return (acc, value) -> {
-        window.add(value);
-        if (window.size() == size) {
-          var step = reducer.apply(acc, ImmutableList.from(window));
-          window.clear();
-          return step;
-        }
-        return Step.more(acc);
-      };
-    };
+    return Pipeline.<A, T, ArrayList<T>, Sequence<T>>statefulMap(() -> new ArrayList<T>(size), (window, value) -> {
+      window.add(value);
+      if (window.size() == size) {
+        var result = ImmutableList.from(window);
+        window.clear();
+        return Transition.emit(window, result);
+      }
+      return Transition.skip(window);
+    });
   }
 
   /**
@@ -267,20 +288,16 @@ public interface Pipeline<A, T, U> {
    * @return A new pipeline that applies the sliding window logic
    */
   static <A, T> Pipeline<A, T, Sequence<T>> sliding(int size) {
-    return reducer -> {
-      var window = new ArrayDeque<T>(size);
-
-      return (acc, value) -> {
-        window.addLast(value);
-        if (window.size() < size) {
-          return Step.more(acc);
-        }
-        if (window.size() > size) {
-          window.removeFirst();
-        }
-        return reducer.apply(acc, ImmutableList.from(window));
-      };
-    };
+    return statefulMap(() -> new ArrayDeque<T>(size), (window, value) -> {
+      window.addLast(value);
+      if (window.size() > size) {
+        window.removeFirst();
+      }
+      if (window.size() == size) {
+        return Transition.emit(window, ImmutableList.from(window));
+      }
+      return Transition.skip(window);
+    });
   }
 
   /**
