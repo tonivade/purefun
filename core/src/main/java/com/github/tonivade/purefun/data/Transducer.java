@@ -60,7 +60,7 @@ public interface Transducer<A, T, U> {
    * @param f The flat-mapping function that returns a sequence of output elements for each input element
    * @return A new transducer that applies the flat-mapping function
    */
-  static <A, T, U> Transducer<A, T, U> flatMap(Function1<T, ? extends Sequence<U>> f) {
+  static <A, T, U> Transducer<A, T, U> flatMap(Function1<? super T, ? extends Sequence<U>> f) {
     return reducer ->
         (acc, value) -> {
             for (var u : f.apply(value)) {

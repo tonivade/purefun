@@ -89,10 +89,8 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return flatMap(naturalOrder(), mapper);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    Function1 andThen = mapper.andThen(SequenceOf::toSequence);
-    return transduce(comparator, Transducer.flatMap(andThen));
+    return transduce(comparator, Transducer.flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override

@@ -62,10 +62,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   @Override
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    Function1 andThen = mapper.andThen(SequenceOf::toSequence);
-    return transduce(Transducer.flatMap(andThen));
+    return transduce(Transducer.flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override

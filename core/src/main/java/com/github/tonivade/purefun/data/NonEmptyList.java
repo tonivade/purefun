@@ -35,20 +35,18 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public <R> NonEmptyList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-    return new NonEmptyList<>(Transducer.transduce(transducer.<ImmutableList<R>>narrowK(), ImmutableList::append, ImmutableList.<R>empty(), this));
+  public <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
+    return Transducer.transduce(transducer.<ImmutableList<R>>narrowK(), ImmutableList::append, ImmutableList.<R>empty(), this);
   }
 
   @Override
   public <R> NonEmptyList<R> map(Function1<? super E, ? extends R> mapper) {
-    return transduce(Transducer.map(mapper));
+    return new NonEmptyList<>(transduce(Transducer.map(mapper)));
   }
 
   @Override
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    Function1 andThen = mapper.andThen(SequenceOf::toSequence);
-    return transduce(Transducer.flatMap(andThen));
+    return new NonEmptyList<>(transduce(Transducer.flatMap(mapper.andThen(SequenceOf::toSequence))));
   }
 
   @Override
