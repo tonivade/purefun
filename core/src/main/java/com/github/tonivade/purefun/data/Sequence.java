@@ -112,7 +112,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return filter(function::isDefinedAt).map(function::apply);
+    return transduce(Transducer.compose(Transducer.filter(function::isDefinedAt), Transducer.map(function::apply)));
   }
 
   @SuppressWarnings("unchecked")
