@@ -67,9 +67,10 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    var andThen = mapper.andThen(SequenceOf::toSequence);
-    return transduce(Transducer.flatMap(x -> andThen.apply(x)));
+    Function1 andThen = mapper.andThen(SequenceOf::toSequence);
+    return transduce(Transducer.flatMap(andThen));
   }
 
   @Override

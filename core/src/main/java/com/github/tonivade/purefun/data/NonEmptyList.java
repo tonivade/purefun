@@ -45,9 +45,10 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    var andThen = mapper.andThen(SequenceOf::toSequence);
-    return transduce(Transducer.flatMap(x -> andThen.apply(x)));
+    Function1 andThen = mapper.andThen(SequenceOf::toSequence);
+    return transduce(Transducer.flatMap(andThen));
   }
 
   @Override
