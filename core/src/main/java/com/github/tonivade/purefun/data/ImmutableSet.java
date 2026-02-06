@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serial;
@@ -28,6 +27,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.data.Reducer.Step;
 
 /**
  * Similar to a HashSet
@@ -54,7 +54,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> difference(ImmutableSet<? extends E> other);
 
   @Override
-  <R> ImmutableSet<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline);
+  <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline);
 
   @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
@@ -124,8 +124,9 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableSet<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
-      var result = Pipeline.run(pipeline.fix(), (acc, e) -> more(acc.plus(e)), HashTreePSet.empty(), this);
+    public <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline) {
+      var result = Pipeline.<E, R>narrowK(pipeline)
+          .run(backend, HashTreePSet.<R>empty(), (acc, e) -> Step.more(acc.plus(e)));
       return new PImmutableSet<>(result);
     }
 

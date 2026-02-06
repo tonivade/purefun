@@ -5,7 +5,6 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
 
 import java.io.Serial;
@@ -29,6 +28,7 @@ import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.data.Reducer.Step;
 
 /**
  * Similar to a ArrayList
@@ -60,7 +60,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> drop(int n);
 
   @Override
-  <R> ImmutableArray<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline);
+  <R> ImmutableArray<R> run(Pipeline<? super E, ? extends R> pipeline);
 
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
     return run(Pipeline.zipWithIndex());
@@ -157,8 +157,9 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableArray<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
-      var result = Pipeline.run(pipeline.fix(), (acc, e) -> more(acc.plus(e)), TreePVector.empty(), this);
+    public <R> ImmutableArray<R> run(Pipeline<? super E, ? extends R> pipeline) {
+      var result = Pipeline.<E, R>narrowK(pipeline)
+          .run(backend, TreePVector.<R>empty(), (acc, e) -> Step.more(acc.plus(e)));
       return new PImmutableArray<>(result);
     }
 
