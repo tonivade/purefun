@@ -11,6 +11,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
 import java.io.Serial;
 import java.io.Serializable;
@@ -60,6 +61,10 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   @Override
   <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  default ImmutableList<Tuple2<Integer, E>> zipWithIndex() {
+    return transduce(Transducer.zipWithIndex());
+  }
 
   default ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
     return transduce(Transducer.dropWhile(matcher));

@@ -6,6 +6,8 @@ package com.github.tonivade.purefun.data;
 
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Reducer.Step;
 
 /**
@@ -177,6 +179,20 @@ public interface Transducer<A, T, U> {
         }
         return reducer.apply(acc, value);
       };
+    };
+  }
+
+  static <A, T> Transducer<A, T, Tuple2<Integer, T>> zipWithIndex() {
+    return new Transducer<>() {
+
+      int index = 0;
+
+      @Override
+      public Reducer<A, T> apply(Reducer<A, Tuple2<Integer, T>> reducer) {
+        return (acc, value) -> {
+          return reducer.apply(acc, Tuple.of(index++, value));
+        };
+      }
     };
   }
 

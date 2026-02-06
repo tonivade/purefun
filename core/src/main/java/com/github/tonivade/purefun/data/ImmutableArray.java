@@ -7,6 +7,11 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Tuple2;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -21,11 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.pcollections.PVector;
 import org.pcollections.TreePVector;
-
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
 
 /**
  * Similar to a ArrayList
@@ -58,6 +58,10 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
   @Override
   <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
+    return transduce(Transducer.zipWithIndex());
+  }
 
   default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
     return transduce(Transducer.dropWhile(condition));

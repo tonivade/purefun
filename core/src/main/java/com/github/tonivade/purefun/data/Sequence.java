@@ -149,10 +149,6 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     return size() == 0;
   }
 
-  default Stream<Tuple2<Integer, E>> zipWithIndex() {
-    return zip(Range.of(0, size()).stream(), stream());
-  }
-
   default E[] toArray(Function1<Integer, E[]> supplier) {
     E[] array = supplier.apply(size());
     int i = 0;
