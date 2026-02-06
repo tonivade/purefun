@@ -7,12 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -27,8 +22,16 @@ import java.util.TreeSet;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.pcollections.PSortedSet;
 import org.pcollections.TreePSet;
+
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 /**
  * Similar to a TreeSet

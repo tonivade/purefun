@@ -6,23 +6,24 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
-import static com.github.tonivade.purefun.data.Sequence.arrayOf;
-import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static com.github.tonivade.purefun.data.Pipeline.chain;
 import static com.github.tonivade.purefun.data.Pipeline.drop;
 import static com.github.tonivade.purefun.data.Pipeline.dropWhile;
 import static com.github.tonivade.purefun.data.Pipeline.filter;
-import static com.github.tonivade.purefun.data.Pipeline.tumbling;
 import static com.github.tonivade.purefun.data.Pipeline.map;
 import static com.github.tonivade.purefun.data.Pipeline.sliding;
 import static com.github.tonivade.purefun.data.Pipeline.take;
 import static com.github.tonivade.purefun.data.Pipeline.takeWhile;
+import static com.github.tonivade.purefun.data.Pipeline.tumbling;
+import static com.github.tonivade.purefun.data.Sequence.arrayOf;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Function1;

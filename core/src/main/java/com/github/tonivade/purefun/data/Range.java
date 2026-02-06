@@ -4,12 +4,6 @@
  */
 package com.github.tonivade.purefun.data;
 
-import java.util.Iterator;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Tuple;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.check;
 import static com.github.tonivade.purefun.core.Precondition.greaterThanOrEquals;
@@ -18,6 +12,13 @@ import static com.github.tonivade.purefun.type.Validation.requireGreaterThanOrEq
 import static com.github.tonivade.purefun.type.Validation.requireLowerThan;
 import static com.github.tonivade.purefun.type.Validation.requireLowerThanOrEqual;
 import static com.github.tonivade.purefun.type.Validation.requireNonEquals;
+
+import java.util.Iterator;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Tuple;
 
 public record Range(int begin, int end, int increment) implements Iterable<Integer> {
 

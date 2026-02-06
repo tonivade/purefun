@@ -4,14 +4,15 @@
  */
 package com.github.tonivade.purefun.data;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Reducer.Step;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashSet;
 
 /**
  * Pipeline is a higher-order function that takes a reducer and returns a new reducer.

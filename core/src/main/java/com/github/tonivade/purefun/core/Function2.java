@@ -4,10 +4,11 @@
  */
 package com.github.tonivade.purefun.core;
 
+import java.util.function.BiFunction;
+
 import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
-import java.util.function.BiFunction;
 
 /**
  * <p>This interface represents a function with a two parameters. Similar to {@link java.util.function.BiFunction}.</p>

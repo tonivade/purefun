@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.pcollections.HashTreePMap;
 import org.pcollections.PMap;
 

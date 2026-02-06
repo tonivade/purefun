@@ -7,12 +7,7 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.core.Tuple2;
-import com.github.tonivade.purefun.type.Option;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -25,8 +20,16 @@ import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.pcollections.ConsPStack;
 import org.pcollections.PStack;
+
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.type.Option;
 
 /**
  * Similar to a LinkedList

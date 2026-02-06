@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;

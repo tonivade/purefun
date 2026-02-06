@@ -6,15 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.core.Operator2;
-import com.github.tonivade.purefun.core.Producer;
-import com.github.tonivade.purefun.core.Tuple;
-import com.github.tonivade.purefun.core.Tuple2;
-import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
@@ -28,8 +20,19 @@ import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.pcollections.PSortedMap;
 import org.pcollections.TreePMap;
+
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Operator2;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 /**
  * Similar to a TreeMap

@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static com.github.tonivade.purefun.type.Validation.requireNonEmpty;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -11,8 +13,6 @@ import java.util.Objects;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Operator1;
-
-import static com.github.tonivade.purefun.type.Validation.requireNonEmpty;
 
 public class NonEmptyString implements Serializable {
 
