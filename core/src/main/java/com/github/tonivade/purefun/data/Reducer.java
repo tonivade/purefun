@@ -21,6 +21,21 @@ public interface Reducer<A, E> {
    * @param element The element to be added to the accumulator
    * @return A new accumulator that includes the element
    */
-  A apply(A accumulator, E element);
+  Step<A> apply(A accumulator, E element);
 
+  sealed interface Step<A> {
+
+    record More<A>(A value) implements Step<A> {}
+    record Done<A>(A value) implements Step<A> {}
+
+    A value();
+
+    static <A> More<A> more(A value) {
+      return new More<>(value);
+    }
+
+    static <A> Done<A> done(A value) {
+      return new Done<>(value);
+    }
+  }
 }

@@ -5,8 +5,12 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
-
+import com.github.tonivade.purefun.Kind;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,15 +23,8 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.pcollections.HashTreePSet;
-import org.pcollections.MapPSet;
 import org.pcollections.PSet;
-
-import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
 
 /**
  * Similar to a HashSet
@@ -125,7 +122,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableSet<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), MapPSet::plus, HashTreePSet.empty(), this);
+      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(e)), HashTreePSet.empty(), this);
       return new PImmutableSet<>(result);
     }
 

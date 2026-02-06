@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
@@ -169,7 +170,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public <R> ImmutableTree<R> transduce(Comparator<? super R> comparator,
         Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), TreePSet::plus, TreePSet.empty(comparator), this);
+      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(e)), TreePSet.empty(comparator), this);
       return new PImmutableTree<>(result);
     }
 

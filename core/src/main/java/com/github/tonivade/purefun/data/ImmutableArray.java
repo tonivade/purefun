@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
 import java.io.Serial;
 import java.io.Serializable;
@@ -55,11 +56,16 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
   ImmutableArray<E> drop(int n);
 
-  ImmutableArray<E> dropWhile(Matcher1<? super E> condition);
-  ImmutableArray<E> takeWhile(Matcher1<? super E> condition);
-
   @Override
   <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
+    return transduce(Transducer.dropWhile(condition));
+  }
+
+  default ImmutableArray<E> takeWhile(Matcher1<? super E> condition) {
+    return transduce(Transducer.takeWhile(condition));
+  }
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
@@ -145,7 +151,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), TreePVector::plus, TreePVector.empty(), this);
+      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(e)), TreePVector.empty(), this);
       return new PImmutableArray<>(result);
     }
 
@@ -167,24 +173,6 @@ public interface ImmutableArray<E> extends Sequence<E> {
     @Override
     public ImmutableArray<E> removeAll(Sequence<? extends E> other) {
       return new PImmutableArray<>(backend.minusAll(other.toCollection()));
-    }
-
-    @Override
-    public ImmutableArray<E> dropWhile(Matcher1<? super E> matcher) {
-      var current = backend;
-      while (!current.isEmpty() && matcher.match(current.get(0))) {
-        current = current.minus(0);
-      }
-      return from(current);
-    }
-
-    @Override
-    public ImmutableArray<E> takeWhile(Matcher1<? super E> matcher) {
-      var current = TreePVector.<E>empty();
-      for (int i = 0; !backend.isEmpty() && matcher.match(backend.get(i)); i++) {
-        current = current.plus(current.size(), backend.get(i));
-      }
-      return from(current);
     }
 
     @Override

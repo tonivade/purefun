@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+import static com.github.tonivade.purefun.data.Reducer.Step.more;
 import static java.util.stream.Collectors.collectingAndThen;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
@@ -57,11 +58,16 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   ImmutableList<E> drop(int n);
 
-  ImmutableList<E> dropWhile(Matcher1<? super E> matcher);
-  ImmutableList<E> takeWhile(Matcher1<? super E> matcher);
-
   @Override
   <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+
+  default ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
+    return transduce(Transducer.dropWhile(matcher));
+  }
+
+  default ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
+    return transduce(Transducer.takeWhile(matcher));
+  }
 
   @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
@@ -154,7 +160,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> acc.plus(acc.size(), e), ConsPStack.empty(), this);
+      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(acc.size(), e)), ConsPStack.empty(), this);
       return new PImmutableList<>(result);
     }
 
@@ -207,24 +213,6 @@ public interface ImmutableList<E> extends Sequence<E> {
         return empty();
       }
       return from(backend.subList(n));
-    }
-
-    @Override
-    public ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
-      var current = backend;
-      while (!current.isEmpty() && matcher.match(current.get(0))) {
-        current = current.minus(0);
-      }
-      return from(current);
-    }
-
-    @Override
-    public ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
-      var current = ConsPStack.<E>empty();
-      for (int i = 0; !backend.isEmpty() && matcher.match(backend.get(i)); i++) {
-        current = current.plus(current.size(), backend.get(i));
-      }
-      return from(current);
     }
 
     @Override

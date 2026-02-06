@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.data.Reducer.Step;
 
 /**
  * Transducer is a higher-order function that takes a reducer and returns a new reducer.
@@ -76,9 +77,13 @@ public interface Transducer<A, T, U> {
         (init, value) -> {
           var acc = init;
           for (var u : mapper.apply(value)) {
-            acc = reducer.apply(acc, u);
+            var step = reducer.apply(acc, u);
+            if (step instanceof Step.Done) {
+              return step;
+            }
+            acc = step.value();
           }
-          return acc;
+          return Step.more(acc);
         };
   }
 
@@ -92,7 +97,87 @@ public interface Transducer<A, T, U> {
     return reducer ->
         (acc, value) -> matcher.test(value)
             ? reducer.apply(acc, value)
-            : acc;
+            : Step.more(acc);
+  }
+
+  /**
+   * Creates a transducer that takes only the first n elements from the input, passing them to the reducer and ignoring the rest.
+   *
+   * @param n The number of elements to take from the input
+   * @return A new transducer that applies the take logic
+   */
+  static <A, T> Transducer<A, T, T> take(int n) {
+    return new Transducer<>() {
+
+      int state = n;
+
+      public Reducer<A, T> apply(Reducer<A, T> reducer) {
+        return (acc, value) -> {
+          if (state > 0) {
+            state--;
+            return reducer.apply(acc, value);
+          }
+          return Step.done(acc);
+        };
+      }
+    };
+  }
+
+  /**
+   * Creates a transducer that takes elements from the input as long as they satisfy a given predicate, passing them to the reducer and ignoring the rest.
+   *
+   * @param matcher The predicate function that determines whether to continue taking elements
+   * @return A new transducer that applies the takeWhile logic
+   */
+  static <A, T> Transducer<A, T, T> takeWhile(Matcher1<? super T> matcher) {
+    return reducer -> {
+      return (acc, value) -> {
+        if (matcher.test(value)) {
+          return reducer.apply(acc, value);
+        }
+        return Step.done(acc);
+      };
+    };
+  }
+
+  /**
+   * Creates a transducer that drops the first n elements from the input, passing the rest to the reducer.
+   *
+   * @param n The number of elements to drop from the input
+   * @return A new transducer that applies the drop logic
+   */
+  static <A, T> Transducer<A, T, T> drop(int n) {
+    return new Transducer<>() {
+
+      int state = n;
+
+      public Reducer<A, T> apply(Reducer<A, T> reducer) {
+        return (acc, value) -> {
+          if (state > 0) {
+            state--;
+            return Step.more(acc);
+          }
+          return reducer.apply(acc, value);
+        };
+      }
+    };
+  }
+
+  /**
+   * Creates a transducer that drops elements from the input as long as they satisfy a given predicate, passing the rest to the reducer.
+   *
+   * @param matcher The predicate function that determines whether to continue dropping elements
+   * @return A new transducer that applies the dropWhile logic
+   */
+  static <A, T> Transducer<A, T, T> dropWhile(Matcher1<? super T> matcher) {
+    return reducer -> {
+      return (acc, value) -> {
+        if (matcher.test(value)) {
+          return Step.more(acc);
+        }
+        return reducer.apply(acc, value);
+      };
+    };
   }
 
   /**
@@ -109,7 +194,11 @@ public interface Transducer<A, T, U> {
     var r = transducer.apply(reducer);
     var acc = init;
     for (var value : input) {
-      acc = r.apply(acc, value);
+      var step = r.apply(acc, value);
+      if (step instanceof Step.Done(var result)) {
+        return result;
+      }
+      acc = step.value();
     }
     return acc;
   }

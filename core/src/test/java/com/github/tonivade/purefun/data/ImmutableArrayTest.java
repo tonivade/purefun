@@ -8,8 +8,12 @@ import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static com.github.tonivade.purefun.data.Transducer.compose;
+import static com.github.tonivade.purefun.data.Transducer.drop;
+import static com.github.tonivade.purefun.data.Transducer.dropWhile;
 import static com.github.tonivade.purefun.data.Transducer.filter;
 import static com.github.tonivade.purefun.data.Transducer.map;
+import static com.github.tonivade.purefun.data.Transducer.take;
+import static com.github.tonivade.purefun.data.Transducer.takeWhile;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -65,6 +69,10 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("a", "b", "c"), array.map(identity())),
               () -> assertEquals(arrayOf("A", "B", "C"), array.map(toUpperCase)),
               () -> assertEquals(arrayOf("A", "B", "C"), array.transduce(compose(map(toUpperCase), filter(e -> e.length() > 0)))),
+              () -> assertEquals(arrayOf("a", "b"), array.transduce(take(2))),
+              () -> assertEquals(arrayOf("a", "b"), arrayOf("a", "b", "cc").transduce(takeWhile(e -> e.length() == 1))),
+              () -> assertEquals(arrayOf("c"), array.transduce(drop(2))),
+              () -> assertEquals(arrayOf("cc"), arrayOf("a", "b", "cc").transduce(dropWhile(e -> e.length() == 1))),
               () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),

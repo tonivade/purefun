@@ -36,7 +36,7 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
 
   @Override
   public <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-    return Transducer.transduce(transducer.narrowK(), ImmutableList::append, ImmutableList.empty(), this);
+    return value.transduce(transducer);
   }
 
   @Override
