@@ -8,15 +8,15 @@ import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-import static com.github.tonivade.purefun.data.Transducer.compose;
-import static com.github.tonivade.purefun.data.Transducer.drop;
-import static com.github.tonivade.purefun.data.Transducer.dropWhile;
-import static com.github.tonivade.purefun.data.Transducer.filter;
-import static com.github.tonivade.purefun.data.Transducer.tumbling;
-import static com.github.tonivade.purefun.data.Transducer.map;
-import static com.github.tonivade.purefun.data.Transducer.sliding;
-import static com.github.tonivade.purefun.data.Transducer.take;
-import static com.github.tonivade.purefun.data.Transducer.takeWhile;
+import static com.github.tonivade.purefun.data.Pipeline.chain;
+import static com.github.tonivade.purefun.data.Pipeline.drop;
+import static com.github.tonivade.purefun.data.Pipeline.dropWhile;
+import static com.github.tonivade.purefun.data.Pipeline.filter;
+import static com.github.tonivade.purefun.data.Pipeline.tumbling;
+import static com.github.tonivade.purefun.data.Pipeline.map;
+import static com.github.tonivade.purefun.data.Pipeline.sliding;
+import static com.github.tonivade.purefun.data.Pipeline.take;
+import static com.github.tonivade.purefun.data.Pipeline.takeWhile;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,14 +71,14 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("a", "b", "c", "z"), array.appendAll(arrayOf("z"))),
               () -> assertEquals(arrayOf("a", "b", "c"), array.map(identity())),
               () -> assertEquals(arrayOf("A", "B", "C"), array.map(toUpperCase)),
-              () -> assertEquals(arrayOf("A", "B", "C"), array.transduce(compose(map(toUpperCase), filter(e -> e.length() > 0)))),
-              () -> assertEquals(arrayOf("a", "b"), array.transduce(take(2))),
-              () -> assertEquals(arrayOf("a", "b"), arrayOf("a", "b", "cc").transduce(takeWhile(e -> e.length() == 1))),
-              () -> assertEquals(arrayOf("c"), array.transduce(drop(2))),
-              () -> assertEquals(arrayOf("cc"), arrayOf("a", "b", "cc").transduce(dropWhile(e -> e.length() == 1))),
-              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("b", "c"), listOf("c", "d")), arrayOf("a", "b", "c", "d").transduce(sliding(2))),
-              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d").transduce(tumbling(2))),
-              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d", "e").transduce(tumbling(2))),
+              () -> assertEquals(arrayOf("A", "B", "C"), array.run(chain(map(toUpperCase), filter(e -> e.length() > 0)))),
+              () -> assertEquals(arrayOf("a", "b"), array.run(take(2))),
+              () -> assertEquals(arrayOf("a", "b"), arrayOf("a", "b", "cc").run(takeWhile(e -> e.length() == 1))),
+              () -> assertEquals(arrayOf("c"), array.run(drop(2))),
+              () -> assertEquals(arrayOf("cc"), arrayOf("a", "b", "cc").run(dropWhile(e -> e.length() == 1))),
+              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("b", "c"), listOf("c", "d")), arrayOf("a", "b", "c", "d").run(sliding(2))),
+              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d").run(tumbling(2))),
+              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d", "e").run(tumbling(2))),
               () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),

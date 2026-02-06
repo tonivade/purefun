@@ -57,33 +57,33 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> drop(int n);
 
   @Override
-  <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+  <R> ImmutableArray<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline);
 
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
-    return transduce(Transducer.zipWithIndex());
+    return run(Pipeline.zipWithIndex());
   }
 
   default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
-    return transduce(Transducer.dropWhile(condition));
+    return run(Pipeline.dropWhile(condition));
   }
 
   default ImmutableArray<E> takeWhile(Matcher1<? super E> condition) {
-    return transduce(Transducer.takeWhile(condition));
+    return run(Pipeline.takeWhile(condition));
   }
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return transduce(Transducer.map(mapper));
+    return run(Pipeline.map(mapper));
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return transduce(Transducer.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return transduce(Transducer.filter(matcher));
+    return run(Pipeline.filter(matcher));
   }
 
   @Override
@@ -154,8 +154,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(e)), TreePVector.empty(), this);
+    public <R> ImmutableArray<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
+      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(e)), TreePVector.empty(), this);
       return new PImmutableArray<>(result);
     }
 

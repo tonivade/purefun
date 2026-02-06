@@ -60,33 +60,33 @@ public interface ImmutableList<E> extends Sequence<E> {
   ImmutableList<E> drop(int n);
 
   @Override
-  <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+  <R> ImmutableList<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline);
 
   default ImmutableList<Tuple2<Integer, E>> zipWithIndex() {
-    return transduce(Transducer.zipWithIndex());
+    return run(Pipeline.zipWithIndex());
   }
 
   default ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
-    return transduce(Transducer.dropWhile(matcher));
+    return run(Pipeline.dropWhile(matcher));
   }
 
   default ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
-    return transduce(Transducer.takeWhile(matcher));
+    return run(Pipeline.takeWhile(matcher));
   }
 
   @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
-    return transduce(Transducer.map(mapper));
+    return run(Pipeline.map(mapper));
   }
 
   @Override
   default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return transduce(Transducer.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableList<E> filter(Matcher1<? super E> matcher) {
-    return transduce(Transducer.filter(matcher));
+    return run(Pipeline.filter(matcher));
   }
 
   @Override
@@ -164,8 +164,8 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(acc.size(), e)), ConsPStack.empty(), this);
+    public <R> ImmutableList<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
+      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(acc.size(), e)), ConsPStack.empty(), this);
       return new PImmutableList<>(result);
     }
 

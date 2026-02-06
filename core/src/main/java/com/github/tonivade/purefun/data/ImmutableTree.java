@@ -70,19 +70,19 @@ public interface ImmutableTree<E> extends Sequence<E> {
   Option<E> floor(E value);
 
   @Override
-  default <R> ImmutableTree<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-    return transduce(naturalOrder(), transducer);
+  default <R> ImmutableTree<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
+    return run(naturalOrder(), pipeline);
   }
 
-  <R> ImmutableTree<R> transduce(Comparator<? super R> comparator, Transducer<? extends Sequence<R>, E, R> transducer);
+  <R> ImmutableTree<R> run(Comparator<? super R> comparator, Pipeline<? extends Sequence<R>, E, R> pipeline);
 
   @Override
   default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
-    return transduce(Transducer.map(mapper));
+    return run(Pipeline.map(mapper));
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return transduce(comparator, Transducer.map(mapper));
+    return run(comparator, Pipeline.map(mapper));
   }
 
   @Override
@@ -91,12 +91,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return transduce(comparator, Transducer.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(comparator, Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return transduce(Transducer.filter(matcher));
+    return run(Pipeline.filter(matcher));
   }
 
   @Override
@@ -168,9 +168,9 @@ public interface ImmutableTree<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableTree<R> transduce(Comparator<? super R> comparator,
-        Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(e)), TreePSet.empty(comparator), this);
+    public <R> ImmutableTree<R> run(Comparator<? super R> comparator,
+        Pipeline<? extends Sequence<R>, E, R> pipeline) {
+      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(e)), TreePSet.empty(comparator), this);
       return new PImmutableTree<>(result);
     }
 

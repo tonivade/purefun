@@ -51,21 +51,21 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> difference(ImmutableSet<? extends E> other);
 
   @Override
-  <R> ImmutableSet<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer);
+  <R> ImmutableSet<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline);
 
   @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return transduce(Transducer.map(mapper));
+    return run(Pipeline.map(mapper));
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return transduce(Transducer.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return transduce(Transducer.filter(matcher));
+    return run(Pipeline.filter(matcher));
   }
 
   @Override
@@ -121,8 +121,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableSet<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.narrowK(), (acc, e) -> more(acc.plus(e)), HashTreePSet.empty(), this);
+    public <R> ImmutableSet<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
+      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(e)), HashTreePSet.empty(), this);
       return new PImmutableSet<>(result);
     }
 

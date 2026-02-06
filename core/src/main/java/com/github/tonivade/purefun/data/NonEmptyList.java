@@ -35,23 +35,23 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public <R> ImmutableList<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-    return value.transduce(transducer);
+  public <R> ImmutableList<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
+    return value.run(pipeline);
   }
 
   @Override
   public <R> NonEmptyList<R> map(Function1<? super E, ? extends R> mapper) {
-    return new NonEmptyList<>(transduce(Transducer.map(mapper)));
+    return new NonEmptyList<>(run(Pipeline.map(mapper)));
   }
 
   @Override
   public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return new NonEmptyList<>(transduce(Transducer.flatMap(mapper.andThen(SequenceOf::toSequence))));
+    return new NonEmptyList<>(run(Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence))));
   }
 
   @Override
   public ImmutableList<E> filter(Matcher1<? super E> matcher) {
-    return transduce(Transducer.filter(matcher));
+    return run(Pipeline.filter(matcher));
   }
 
   @Override

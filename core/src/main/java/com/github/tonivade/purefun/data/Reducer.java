@@ -6,7 +6,7 @@ package com.github.tonivade.purefun.data;
 
 /**
  * Reducer is a functional interface that represents a function that takes an accumulator and an element, and returns a new accumulator.
- * It is used in the context of transducers to define how to combine elements into a result.
+ * It is used in the context of pipelines to define how to combine elements into a result.
  *
  * @param <A> The type of the accumulator (e.g., List, Set, etc.)
  * @param <E> The type of the input elements
