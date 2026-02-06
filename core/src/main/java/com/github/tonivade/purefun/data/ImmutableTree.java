@@ -169,7 +169,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public <R> ImmutableTree<R> transduce(Comparator<? super R> comparator,
         Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.<TreePSet<R>>narrowK(), TreePSet::plus, TreePSet.<R>empty(comparator), this);
+      var result = Transducer.transduce(transducer.narrowK(), TreePSet::plus, TreePSet.empty(comparator), this);
       return new PImmutableTree<>(result);
     }
 

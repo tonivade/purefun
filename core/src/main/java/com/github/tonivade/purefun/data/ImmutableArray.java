@@ -86,7 +86,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
-    ArrayList<T> collect = stream.collect(Collectors.toCollection(ArrayList::new));
+    var collect = stream.reduce(TreePVector.<T>empty(), TreePVector::plus, TreePVector::plusAll);
     return new PImmutableArray<>(collect);
   }
 
@@ -145,7 +145,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableArray<R> transduce(Transducer<? extends Sequence<R>, E, R> transducer) {
-      var result = Transducer.transduce(transducer.<TreePVector<R>>narrowK(), TreePVector::plus, TreePVector.<R>empty(), this);
+      var result = Transducer.transduce(transducer.narrowK(), TreePVector::plus, TreePVector.empty(), this);
       return new PImmutableArray<>(result);
     }
 
