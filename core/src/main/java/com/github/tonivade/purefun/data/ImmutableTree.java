@@ -173,7 +173,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public <R> ImmutableTree<R> run(Comparator<? super R> comparator,
         Pipeline<? extends Sequence<R>, E, R> pipeline) {
-      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(e)), TreePSet.empty(comparator), this);
+      var result = Pipeline.run(pipeline.fix(), (acc, e) -> more(acc.plus(e)), TreePSet.empty(comparator), this);
       return new PImmutableTree<>(result);
     }
 

@@ -125,7 +125,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableSet<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
-      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(e)), HashTreePSet.empty(), this);
+      var result = Pipeline.run(pipeline.fix(), (acc, e) -> more(acc.plus(e)), HashTreePSet.empty(), this);
       return new PImmutableSet<>(result);
     }
 

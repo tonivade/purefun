@@ -158,7 +158,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableArray<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
-      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(e)), TreePVector.empty(), this);
+      var result = Pipeline.run(pipeline.fix(), (acc, e) -> more(acc.plus(e)), TreePVector.empty(), this);
       return new PImmutableArray<>(result);
     }
 

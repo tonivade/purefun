@@ -168,7 +168,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableList<R> run(Pipeline<? extends Sequence<R>, E, R> pipeline) {
-      var result = Pipeline.run(pipeline.narrowK(), (acc, e) -> more(acc.plus(acc.size(), e)), ConsPStack.empty(), this);
+      var result = Pipeline.run(pipeline.fix(), (acc, e) -> more(acc.plus(acc.size(), e)), ConsPStack.empty(), this);
       return new PImmutableList<>(result);
     }
 

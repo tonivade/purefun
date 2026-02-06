@@ -33,7 +33,7 @@ public interface Pipeline<A, T, U> {
   Reducer<A, T> apply(Reducer<A, U> reducer);
 
   @SuppressWarnings("unchecked")
-  default <R extends Iterable<U>> Pipeline<R, T, U> narrowK() {
+  default <R extends Iterable<U>> Pipeline<R, T, U> fix() {
     return (Pipeline<R, T, U>) this;
   }
 
