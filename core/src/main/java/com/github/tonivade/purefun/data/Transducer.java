@@ -4,6 +4,8 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static com.github.tonivade.purefun.core.Unit.unit;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -121,7 +123,7 @@ public interface Transducer<A, T, U> {
    * @return A new pipeline that applies the mapping function
    */
   static <A, T, U> Transducer<A, T, U> map(Function1<? super T, ? extends U> mapper) {
-    return statefulMap(() -> null, (s, t) -> Transition.emit(null, mapper.apply(t)));
+    return statefulMap(() -> unit(), (s, t) -> Transition.emit(s, mapper.apply(t)));
   }
 
   /**
@@ -131,7 +133,7 @@ public interface Transducer<A, T, U> {
    * @return A new pipeline that applies the flat-mapping function
    */
   static <A, T, U> Transducer<A, T, U> flatMap(Function1<? super T, ? extends Sequence<U>> mapper) {
-    return statefulMap(() -> null, (s, t) -> Transition.emitMany(null, mapper.apply(t)));
+    return statefulMap(() -> unit(), (s, t) -> Transition.emitMany(s, mapper.apply(t)));
   }
 
   /**
@@ -141,11 +143,11 @@ public interface Transducer<A, T, U> {
    * @return A new pipeline that applies the filtering logic
    */
   static <A, T> Transducer<A, T, T> filter(Matcher1<? super T> matcher) {
-    return statefulMap(() -> null, (s, t) -> {
+    return statefulMap(() -> unit(), (s, t) -> {
       if (matcher.test(t)) {
-        return Transition.emit(null, t);
+        return Transition.emit(s, t);
       }
-      return Transition.skip(null);
+      return Transition.skip(s);
     });
   }
 
