@@ -9,6 +9,9 @@ import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.data.Reducer.Step;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Transducer is a higher-order function that takes a reducer and returns a new reducer.
@@ -55,6 +58,15 @@ public interface Transducer<A, T, U> {
   static <A, T, U, V, W> Transducer<A, T, W> compose(
       Transducer<A, T, U> t1, Transducer<A, U, V> t2, Transducer<A, V, W> t3) {
     return reducer -> t1.apply(t2.apply(t3.apply(reducer)));
+  }
+
+  /**
+   * Creates a transducer that simply passes input elements through to the reducer without any transformation.
+   *
+   * @return A new transducer that acts as an identity function, passing input elements directly to the reducer
+   */
+  static <A, T> Transducer<A, T, T> identity() {
+    return reducer -> reducer;
   }
 
   /**
@@ -182,6 +194,34 @@ public interface Transducer<A, T, U> {
     };
   }
 
+  /**
+   * Creates a transducer that ensures only distinct elements are passed to the reducer, filtering out duplicates based on their natural equality.
+   * This transducer maintains a set of seen elements and only allows unique elements to be processed by the reducer.
+   * Note that this transducer may have performance implications for large inputs due to the need to maintain a set of seen elements.
+   * It is recommended to use this transducer when the input size is manageable and the uniqueness of elements is a requirement.
+   *
+   * @return A new transducer that filters out duplicate elements, allowing only distinct elements to be processed by the reducer
+   */
+  static <A, T> Transducer<A, T, T> distinct() {
+    return reducer -> {
+      var seen = new HashSet<T>();
+
+      return (acc, value) -> {
+        if (seen.contains(value)) {
+          return Step.more(acc);
+        }
+        seen.add(value);
+        return reducer.apply(acc, value);
+      };
+    };
+  }
+
+  /**
+   * Creates a transducer that zips each input element with its corresponding index, passing a tuple of (index, element) to the reducer.
+   * The index starts at 0 and increments for each element processed.
+   *
+   * @return A new transducer that applies the zipWithIndex logic
+   */
   static <A, T> Transducer<A, T, Tuple2<Integer, T>> zipWithIndex() {
     return new Transducer<>() {
 
@@ -189,10 +229,56 @@ public interface Transducer<A, T, U> {
 
       @Override
       public Reducer<A, T> apply(Reducer<A, Tuple2<Integer, T>> reducer) {
-        return (acc, value) -> {
-          return reducer.apply(acc, Tuple.of(index++, value));
-        };
+        return (acc, value) -> reducer.apply(acc, Tuple.of(index++, value));
       }
+    };
+  }
+
+  /**
+   * Creates a transducer that groups input elements into fixed-size windows (tumbling windows) and passes each window as a sequence to the reducer.
+   * The last window may contain fewer than the specified size if there are not enough remaining elements.
+   *
+   * @param size The size of each tumbling window
+   * @return A new transducer that applies the tumbling window logic
+   */
+  static <A, T> Transducer<A, T, Sequence<T>> tumbling(int size) {
+    return reducer -> {
+      var window = new ArrayList<T>(size);
+
+      return (acc, value) -> {
+        window.add(value);
+        if (window.size() == size) {
+          var step = reducer.apply(acc, ImmutableList.from(window));
+          window.clear();
+          return step;
+        }
+        return Step.more(acc);
+      };
+    };
+  }
+
+  /**
+   * Creates a transducer that groups input elements into fixed-size windows (sliding windows) and passes each window as a sequence to the reducer.
+   * The windows overlap, meaning that each window includes the last (size - 1) elements of the previous window.
+   * The first few windows will contain fewer than the specified size until enough elements have been processed.
+   *
+   * @param size The size of each sliding window
+   * @return A new transducer that applies the sliding window logic
+   */
+  static <A, T> Transducer<A, T, Sequence<T>> sliding(int size) {
+    return reducer -> {
+      var window = new ArrayDeque<T>(size);
+
+      return (acc, value) -> {
+        window.addLast(value);
+        if (window.size() < size) {
+          return Step.more(acc);
+        }
+        if (window.size() > size) {
+          window.removeFirst();
+        }
+        return reducer.apply(acc, ImmutableList.from(window));
+      };
     };
   }
 
