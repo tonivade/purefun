@@ -63,30 +63,30 @@ public interface ImmutableArray<E> extends Sequence<E> {
   <R> ImmutableArray<R> run(Pipeline<? super E, ? extends R> pipeline);
 
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
-    return run(Pipeline.zipWithIndex());
+    return run(Pipeline.<E>identity().zipWithIndex());
   }
 
   default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
-    return run(Pipeline.dropWhile(condition));
+    return run(Pipeline.<E>identity().dropWhile(condition));
   }
 
   default ImmutableArray<E> takeWhile(Matcher1<? super E> condition) {
-    return run(Pipeline.takeWhile(condition));
+    return run(Pipeline.<E>identity().takeWhile(condition));
   }
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(Pipeline.map(mapper));
+    return run(Pipeline.<E>identity().map(mapper));
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(Pipeline.<E>identity().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return run(Pipeline.filter(matcher));
+    return run(Pipeline.<E>identity().filter(matcher));
   }
 
   @Override

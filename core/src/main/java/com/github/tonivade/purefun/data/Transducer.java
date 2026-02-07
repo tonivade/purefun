@@ -41,6 +41,22 @@ public interface Transducer<A, T, U> {
     return (Transducer<R, T, U>) this;
   }
 
+  /**
+   * Composes two transducers into a single transducer that applies both transformations in sequence.
+   *
+   * @param t1 The first transducer to apply
+   * @param t2 The second transducer to apply after the first one
+   * @param <A> The type of the accumulator (e.g., List, Set, etc.)
+   * @param <T> The type of the input elements
+   * @param <U> The type of the intermediate output elements after the first transformation
+   * @param <V> The type of the final output elements after the second transformation
+   * @return A new transducer that represents the composition of t1 and t2
+   */
+  static <A, T, U, V> Transducer<A, T, V> chain(
+      Transducer<A, T, U> t1, Transducer<A, U, V> t2) {
+    return reducer -> t1.apply(t2.apply(reducer));
+  }
+
   sealed interface Transition<S, U> {
     record Emit<S, U>(S state, U value) implements Transition<S, U> {}
     record EmitMany<S, U>(S state, Iterable<U> value) implements Transition<S, U> {}

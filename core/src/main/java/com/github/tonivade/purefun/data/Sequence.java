@@ -113,10 +113,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    var chain = Pipeline.chain(
-        Pipeline.filter(function::isDefinedAt),
-        Pipeline.map(function::apply));
-    return run(chain);
+    return run(Pipeline.<E>identity().filter(function::isDefinedAt).map(function::apply));
   }
 
   @SuppressWarnings("unchecked")

@@ -58,17 +58,17 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(Pipeline.map(mapper));
+    return run(Pipeline.<E>identity().map(mapper));
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(Pipeline.<E>identity().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return run(Pipeline.filter(matcher));
+    return run(Pipeline.<E>identity().filter(matcher));
   }
 
   @Override

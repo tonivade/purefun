@@ -81,11 +81,11 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(Pipeline.map(mapper));
+    return map(naturalOrder(), mapper);
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return run(comparator, Pipeline.map(mapper));
+    return run(comparator, Pipeline.<E>identity().map(mapper));
   }
 
   @Override
@@ -94,12 +94,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(comparator, Pipeline.flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(comparator, Pipeline.<E>identity().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return run(Pipeline.filter(matcher));
+    return run(Pipeline.<E>identity().filter(matcher));
   }
 
   @Override
