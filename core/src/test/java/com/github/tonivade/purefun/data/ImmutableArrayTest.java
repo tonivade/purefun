@@ -35,9 +35,7 @@ public class ImmutableArrayTest {
 
   @Test
   public void notEmptyArray() {
-    ImmutableArray<String> array = arrayOf("a", "b", "c");
-
-    ImmutableArray<String> result = array.pipeline().map(toUpperCase).filter(e -> e.length() == 1).take(2).collect(Finisher.toImmutableArray(array));
+    var array = arrayOf("a", "b", "c");
 
     assertAll(() -> assertEquals(3, array.size()),
               () -> assertEquals("a", array.get(0)),
@@ -81,13 +79,13 @@ public class ImmutableArrayTest {
               () -> assertEquals(array, array.stream().collect(toImmutableArray())),
               () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), array.zipWithIndex()),
               () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove),
-              () -> assertEquals(arrayOf("A", "B"), Pipeline.<String>identity().map(toUpperCase).filter(e -> e.length() == 1).take(2).collect(Finisher.toImmutableArray(array)))
+              () -> assertEquals(arrayOf("A", "B"), Pipeline.<String>identity().map(toUpperCase).filter(e -> e.length() == 1).take(2).finish(Finisher.toImmutableArray(array)))
               );
   }
 
   @Test
   public void emptyArray() {
-    ImmutableArray<String> array = ImmutableArray.empty();
+    var array = ImmutableArray.<String>empty();
 
     assertAll(() -> assertEquals(0, array.size()),
               () -> assertThrows(IndexOutOfBoundsException.class, () -> array.get(5)),
@@ -118,7 +116,7 @@ public class ImmutableArrayTest {
 
   @Test
   void serialization() throws IOException, ClassNotFoundException {
-    ImmutableArray<Integer> array = arrayOf(1, 2, 3, 4, 5);
+    var array = arrayOf(1, 2, 3, 4, 5);
 
     var output = new ByteArrayOutputStream();
     try (var objectOutputStream = new ObjectOutputStream(output)) {

@@ -102,11 +102,11 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   static <T> ImmutableList<T> from(Iterable<? extends T> iterable) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableList(iterable));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableList(iterable));
   }
 
   static <T> ImmutableList<T> from(Stream<? extends T> stream) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableList(stream::iterator));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableList(stream::iterator));
   }
 
   @SafeVarargs
@@ -171,7 +171,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableList<R> run(Pipeline<? super E, ? extends R> pipeline) {
-      return Pipeline.collect(pipeline, Finisher.toImmutableList(backend));
+      return Pipeline.finish(pipeline, Finisher.toImmutableList(backend));
     }
 
     @Override

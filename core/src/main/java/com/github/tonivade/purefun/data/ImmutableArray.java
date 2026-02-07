@@ -99,11 +99,11 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <T> ImmutableArray<T> from(Iterable<? extends T> iterable) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableArray(iterable));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableArray(iterable));
   }
 
   static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableArray(stream::iterator));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableArray(stream::iterator));
   }
 
   @SafeVarargs
@@ -161,7 +161,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableArray<R> run(Pipeline<? super E, ? extends R> pipeline) {
-      return Pipeline.collect(pipeline, Finisher.toImmutableArray(backend));
+      return Pipeline.finish(pipeline, Finisher.toImmutableArray(backend));
     }
 
     @Override

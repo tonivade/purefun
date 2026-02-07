@@ -33,8 +33,8 @@ public final class Pipeline<T, U> {
    * @param <A> the type of the result produced by the finisher
    * @return the result produced by applying the pipeline and collecting with the finisher
    */
-  public <A> A collect(Finisher<A, T, U> finisher) {
-    return Pipeline.collect(this, finisher);
+  public <A> A finish(Finisher<A, T, U> finisher) {
+    return Pipeline.finish(this, finisher);
   }
 
   /**
@@ -48,7 +48,7 @@ public final class Pipeline<T, U> {
    * @return the result produced by applying the pipeline and collecting with the finisher
    */
   @SuppressWarnings("unchecked")
-  public static <A, T, U> A collect(Pipeline<? super T, ? extends U> pipeline, Finisher<A, T, U> finisher) {
+  public static <A, T, U> A finish(Pipeline<? super T, ? extends U> pipeline, Finisher<A, T, U> finisher) {
     return finisher.apply((Transducer<A, T, U>) pipeline.transducer);
   }
 

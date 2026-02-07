@@ -28,19 +28,31 @@ public interface Finisher<A, T, U> {
   A apply(Transducer<A, T, U> transducer);
 
   static <E, R> Finisher<ImmutableArray<R>, E, R> toImmutableArray(Iterable<E> input) {
-    return xf -> Transducer.run(xf, (acc, e) -> Step.more(acc.append(e)), ImmutableArray.<R>empty(), input);
+    return xf -> run(ImmutableArray.<R>empty(), input, xf.apply((acc, e) -> Step.more(acc.append(e))));
   }
 
   static <E, R> Finisher<ImmutableList<R>, E, R> toImmutableList(Iterable<E> input) {
-    return sf -> Transducer.run(sf, (acc, e) -> Step.more(acc.append(e)), ImmutableList.<R>empty(), input);
+    return sf -> run(ImmutableList.<R>empty(), input, sf.apply((acc, e) -> Step.more(acc.append(e))));
   }
 
   static <E, R> Finisher<ImmutableSet<R>, E, R> toImmutableSet(Iterable<E> input) {
-    return sf -> Transducer.run(sf, (acc, e) -> Step.more(acc.append(e)), ImmutableSet.<R>empty(), input);
+    return sf -> run(ImmutableSet.<R>empty(), input, sf.apply((acc, e) -> Step.more(acc.append(e))));
   }
 
   static <E, R> Finisher<ImmutableTree<R>, E, R> toImmutableTree(
       Comparator<? super R> comparator, Iterable<E> input) {
-    return sf -> Transducer.run(sf, (acc, e) -> Step.more(acc.append(e)), ImmutableTree.<R>empty(comparator), input);
+    return sf -> run(ImmutableTree.<R>empty(comparator), input, sf.apply((acc, e) -> Step.more(acc.append(e))));
+  }
+
+  private static <A extends Iterable<U>, T, U> A run(A init, Iterable<T> input, Reducer<A, T> reducer) {
+    var acc = init;
+    for (var value : input) {
+      var step = reducer.apply(acc, value);
+      if (step instanceof Step.Done(var result)) {
+        return result;
+      }
+      acc = step.value();
+    }
+    return acc;
   }
 }

@@ -81,11 +81,11 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   static <T> ImmutableSet<T> from(Iterable<? extends T> iterable) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableSet(iterable));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableSet(iterable));
   }
 
   static <T> ImmutableSet<T> from(Stream<? extends T> stream) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableSet(stream::iterator));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableSet(stream::iterator));
   }
 
   @SafeVarargs
@@ -128,7 +128,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline) {
-      return Pipeline.collect(pipeline, Finisher.toImmutableSet(backend));
+      return Pipeline.finish(pipeline, Finisher.toImmutableSet(backend));
     }
 
     @Override

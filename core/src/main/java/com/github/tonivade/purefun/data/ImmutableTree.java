@@ -116,7 +116,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Iterable<? extends T> iterable) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableTree(comparator, iterable));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableTree(comparator, iterable));
   }
 
   static <T> ImmutableTree<T> from(Stream<? extends T> stream) {
@@ -124,7 +124,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Stream<? extends T> stream) {
-    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableTree(comparator, stream::iterator));
+    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableTree(comparator, stream::iterator));
   }
 
   @SafeVarargs
@@ -177,7 +177,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public <R> ImmutableTree<R> run(Comparator<? super R> comparator,
         Pipeline<? super E, ? extends R> pipeline) {
-      return Pipeline.collect(pipeline, Finisher.toImmutableTree(comparator, this));
+      return Pipeline.finish(pipeline, Finisher.toImmutableTree(comparator, this));
     }
 
     @SuppressWarnings("unchecked")

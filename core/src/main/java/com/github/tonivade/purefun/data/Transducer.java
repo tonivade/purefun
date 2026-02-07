@@ -352,27 +352,4 @@ public interface Transducer<A, T, U> {
       return Transition.skip(window);
     });
   }
-
-  /**
-   * Applies the transducer to the input data using the provided transducer and reducer, starting with an initial accumulator value.
-   *
-   * @param transducer The transducer to apply to the input data
-   * @param reducer The reducer that will be used to accumulate the results
-   * @param init The initial value of the accumulator
-   * @param input The input data to be processed
-   * @return The final accumulated result after processing
-   */
-  static <A extends Iterable<U>, T, U> A run(
-      Transducer<A, T, U> transducer, Reducer<A, U> reducer, A init, Iterable<T> input) {
-    var r = transducer.apply(reducer);
-    var acc = init;
-    for (var value : input) {
-      var step = r.apply(acc, value);
-      if (step instanceof Step.Done(var result)) {
-        return result;
-      }
-      acc = step.value();
-    }
-    return acc;
-  }
 }
