@@ -62,7 +62,7 @@ public interface ImmutableList<E> extends Sequence<E> {
   ImmutableList<E> drop(int n);
 
   @Override
-  <R> ImmutableList<R> run(Pipeline<? super E, ? extends R> pipeline);
+  <R> ImmutableList<R> apply(Pipeline<? super E, ? extends R> pipeline);
 
   @Override
   default Pipeline<E, E> pipeline() {
@@ -70,30 +70,30 @@ public interface ImmutableList<E> extends Sequence<E> {
   }
 
   default ImmutableList<Tuple2<Integer, E>> zipWithIndex() {
-    return run(pipeline().zipWithIndex());
+    return apply(pipeline().zipWithIndex());
   }
 
   default ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
-    return run(pipeline().dropWhile(matcher));
+    return apply(pipeline().dropWhile(matcher));
   }
 
   default ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
-    return run(pipeline().takeWhile(matcher));
+    return apply(pipeline().takeWhile(matcher));
   }
 
   @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(pipeline().map(mapper));
+    return apply(pipeline().map(mapper));
   }
 
   @Override
   default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return apply(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableList<E> filter(Matcher1<? super E> matcher) {
-    return run(pipeline().filter(matcher));
+    return apply(pipeline().filter(matcher));
   }
 
   @Override
@@ -170,7 +170,7 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableList<R> run(Pipeline<? super E, ? extends R> pipeline) {
+    public <R> ImmutableList<R> apply(Pipeline<? super E, ? extends R> pipeline) {
       return Pipeline.finish(pipeline, Finisher.toImmutableList(backend));
     }
 

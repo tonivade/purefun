@@ -53,7 +53,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> difference(ImmutableSet<? extends E> other);
 
   @Override
-  <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline);
+  <R> ImmutableSet<R> apply(Pipeline<? super E, ? extends R> pipeline);
 
   @Override
   default Pipeline<E, E> pipeline() {
@@ -62,17 +62,17 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(pipeline().map(mapper));
+    return apply(pipeline().map(mapper));
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return apply(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return run(pipeline().filter(matcher));
+    return apply(pipeline().filter(matcher));
   }
 
   @Override
@@ -127,7 +127,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline) {
+    public <R> ImmutableSet<R> apply(Pipeline<? super E, ? extends R> pipeline) {
       return Pipeline.finish(pipeline, Finisher.toImmutableSet(backend));
     }
 

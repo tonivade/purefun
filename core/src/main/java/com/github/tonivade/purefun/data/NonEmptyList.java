@@ -35,8 +35,8 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public <R> ImmutableList<R> run(Pipeline<? super E, ? extends R> pipeline) {
-    return value.run(pipeline);
+  public <R> ImmutableList<R> apply(Pipeline<? super E, ? extends R> pipeline) {
+    return value.apply(pipeline);
   }
 
   @Override

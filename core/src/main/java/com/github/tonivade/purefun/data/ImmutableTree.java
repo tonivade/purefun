@@ -72,8 +72,8 @@ public interface ImmutableTree<E> extends Sequence<E> {
   Option<E> floor(E value);
 
   @Override
-  default <R> ImmutableTree<R> run(Pipeline<? super E, ? extends R> pipeline) {
-    return run(naturalOrder(), pipeline);
+  default <R> ImmutableTree<R> apply(Pipeline<? super E, ? extends R> pipeline) {
+    return apply(naturalOrder(), pipeline);
   }
 
   @Override
@@ -81,7 +81,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return Pipeline.identity();
   }
 
-  <R> ImmutableTree<R> run(Comparator<? super R> comparator, Pipeline<? super E, ? extends R> pipeline);
+  <R> ImmutableTree<R> apply(Comparator<? super R> comparator, Pipeline<? super E, ? extends R> pipeline);
 
   @Override
   default <R> ImmutableTree<R> map(Function1<? super E, ? extends R> mapper) {
@@ -89,7 +89,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return run(comparator, pipeline().map(mapper));
+    return apply(comparator, pipeline().map(mapper));
   }
 
   @Override
@@ -98,12 +98,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(comparator, pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return apply(comparator, pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return run(pipeline().filter(matcher));
+    return apply(pipeline().filter(matcher));
   }
 
   @Override
@@ -175,7 +175,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableTree<R> run(Comparator<? super R> comparator,
+    public <R> ImmutableTree<R> apply(Comparator<? super R> comparator,
         Pipeline<? super E, ? extends R> pipeline) {
       return Pipeline.finish(pipeline, Finisher.toImmutableTree(comparator, this));
     }
