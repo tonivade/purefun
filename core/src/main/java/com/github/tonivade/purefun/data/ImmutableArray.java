@@ -28,7 +28,6 @@ import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Tuple2;
-import com.github.tonivade.purefun.data.Reducer.Step;
 
 /**
  * Similar to a ArrayList
@@ -62,31 +61,36 @@ public interface ImmutableArray<E> extends Sequence<E> {
   @Override
   <R> ImmutableArray<R> run(Pipeline<? super E, ? extends R> pipeline);
 
+  @Override
+  default Pipeline<E, E> pipeline() {
+    return Pipeline.identity();
+  }
+
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
-    return run(Pipeline.<E>identity().zipWithIndex());
+    return run(pipeline().zipWithIndex());
   }
 
   default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
-    return run(Pipeline.<E>identity().dropWhile(condition));
+    return run(pipeline().dropWhile(condition));
   }
 
   default ImmutableArray<E> takeWhile(Matcher1<? super E> condition) {
-    return run(Pipeline.<E>identity().takeWhile(condition));
+    return run(pipeline().takeWhile(condition));
   }
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(Pipeline.<E>identity().map(mapper));
+    return run(pipeline().map(mapper));
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(Pipeline.<E>identity().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return run(Pipeline.<E>identity().filter(matcher));
+    return run(pipeline().filter(matcher));
   }
 
   @Override
@@ -95,12 +99,11 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <T> ImmutableArray<T> from(Iterable<? extends T> iterable) {
-    return from(Sequence.asStream(iterable.iterator()));
+    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableArray(iterable));
   }
 
   static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
-    var collect = stream.reduce(TreePVector.<T>empty(), TreePVector::plus, TreePVector::plusAll);
-    return new PImmutableArray<>(collect);
+    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableArray(stream::iterator));
   }
 
   @SafeVarargs
@@ -158,9 +161,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableArray<R> run(Pipeline<? super E, ? extends R> pipeline) {
-      var result = Pipeline.<E, R>narrowK(pipeline)
-          .run(backend, TreePVector.<R>empty(), (acc, e) -> Step.more(acc.plus(e)));
-      return new PImmutableArray<>(result);
+      return Pipeline.collect(pipeline, Finisher.toImmutableArray(backend));
     }
 
     @Override

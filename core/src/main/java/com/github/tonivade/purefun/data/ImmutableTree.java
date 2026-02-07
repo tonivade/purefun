@@ -29,7 +29,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.data.Reducer.Step;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 
@@ -77,6 +76,11 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return run(naturalOrder(), pipeline);
   }
 
+  @Override
+  default Pipeline<E, E> pipeline() {
+    return Pipeline.identity();
+  }
+
   <R> ImmutableTree<R> run(Comparator<? super R> comparator, Pipeline<? super E, ? extends R> pipeline);
 
   @Override
@@ -85,7 +89,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return run(comparator, Pipeline.<E>identity().map(mapper));
+    return run(comparator, pipeline().map(mapper));
   }
 
   @Override
@@ -94,12 +98,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(comparator, Pipeline.<E>identity().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(comparator, pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return run(Pipeline.<E>identity().filter(matcher));
+    return run(pipeline().filter(matcher));
   }
 
   @Override
@@ -108,19 +112,19 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Iterable<? extends T> iterable) {
-    return from(naturalOrder(), Sequence.asStream(iterable.iterator()));
+    return from(naturalOrder(), iterable);
   }
 
   static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Iterable<? extends T> iterable) {
-    return from(comparator, Sequence.asStream(iterable.iterator()));
+    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableTree(comparator, iterable));
   }
 
   static <T> ImmutableTree<T> from(Stream<? extends T> stream) {
-    return new PImmutableTree<>(naturalOrder(), stream.collect(Collectors.toCollection(TreeSet::new)));
+    return from(naturalOrder(), stream);
   }
 
   static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Stream<? extends T> stream) {
-    return new PImmutableTree<>(comparator, stream.collect(Collectors.toCollection(TreeSet::new)));
+    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableTree(comparator, stream::iterator));
   }
 
   @SafeVarargs
@@ -173,9 +177,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
     @Override
     public <R> ImmutableTree<R> run(Comparator<? super R> comparator,
         Pipeline<? super E, ? extends R> pipeline) {
-      var result = Pipeline.<E, R>narrowK(pipeline)
-          .run(backend, TreePSet.<R>empty(comparator), (acc, e) -> Step.more(acc.plus(e)));
-      return new PImmutableTree<>(result);
+      return Pipeline.collect(pipeline, Finisher.toImmutableTree(comparator, this));
     }
 
     @SuppressWarnings("unchecked")

@@ -27,7 +27,6 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.data.Reducer.Step;
 
 /**
  * Similar to a HashSet
@@ -57,18 +56,23 @@ public interface ImmutableSet<E> extends Sequence<E> {
   <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline);
 
   @Override
+  default Pipeline<E, E> pipeline() {
+    return Pipeline.identity();
+  }
+
+  @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return run(Pipeline.<E>identity().map(mapper));
+    return run(pipeline().map(mapper));
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return run(Pipeline.<E>identity().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return run(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return run(Pipeline.<E>identity().filter(matcher));
+    return run(pipeline().filter(matcher));
   }
 
   @Override
@@ -77,12 +81,11 @@ public interface ImmutableSet<E> extends Sequence<E> {
   }
 
   static <T> ImmutableSet<T> from(Iterable<? extends T> iterable) {
-    return from(Sequence.asStream(iterable.iterator()));
+    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableSet(iterable));
   }
 
   static <T> ImmutableSet<T> from(Stream<? extends T> stream) {
-    ArrayList<T> collect = stream.collect(Collectors.toCollection(ArrayList::new));
-    return new PImmutableSet<>(collect);
+    return Pipeline.collect(Pipeline.identity(), Finisher.toImmutableSet(stream::iterator));
   }
 
   @SafeVarargs
@@ -125,9 +128,7 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableSet<R> run(Pipeline<? super E, ? extends R> pipeline) {
-      var result = Pipeline.<E, R>narrowK(pipeline)
-          .run(backend, HashTreePSet.<R>empty(), (acc, e) -> Step.more(acc.plus(e)));
-      return new PImmutableSet<>(result);
+      return Pipeline.collect(pipeline, Finisher.toImmutableSet(backend));
     }
 
     @Override

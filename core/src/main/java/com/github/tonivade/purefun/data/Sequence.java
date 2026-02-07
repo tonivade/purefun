@@ -68,6 +68,8 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   <R> Sequence<R> run(Pipeline<? super E, ? extends R> pipeline);
 
+  Pipeline<E, E> pipeline();
+
   default Option<E> findFirst(Matcher1<? super E> matcher) {
     return Option.from(stream().filter(matcher).findFirst());
   }
@@ -113,7 +115,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return run(Pipeline.<E>identity().filter(function::isDefinedAt).map(function::apply));
+    return run(Pipeline.<E>identity().mapFilter(function));
   }
 
   @SuppressWarnings("unchecked")

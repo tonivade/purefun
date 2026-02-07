@@ -37,6 +37,8 @@ public class ImmutableArrayTest {
   public void notEmptyArray() {
     ImmutableArray<String> array = arrayOf("a", "b", "c");
 
+    ImmutableArray<String> result = array.pipeline().map(toUpperCase).filter(e -> e.length() == 1).take(2).collect(Finisher.toImmutableArray(array));
+
     assertAll(() -> assertEquals(3, array.size()),
               () -> assertEquals("a", array.get(0)),
               () -> assertThrows(IndexOutOfBoundsException.class, () -> array.get(5)),
@@ -78,7 +80,8 @@ public class ImmutableArrayTest {
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
               () -> assertEquals(array, array.stream().collect(toImmutableArray())),
               () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), array.zipWithIndex()),
-              () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove)
+              () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove),
+              () -> assertEquals(arrayOf("A", "B"), Pipeline.<String>identity().map(toUpperCase).filter(e -> e.length() == 1).take(2).collect(Finisher.toImmutableArray(array)))
               );
   }
 
