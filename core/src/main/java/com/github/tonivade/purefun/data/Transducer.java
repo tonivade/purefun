@@ -46,8 +46,7 @@ public interface Transducer<A, T, U> {
    * @param <V> The type of the final output elements after the second transformation
    * @return A new transducer that represents the composition of t1 and t2
    */
-  static <A, T, U, V> Transducer<A, T, V> chain(
-      Transducer<A, T, U> t1, Transducer<A, U, V> t2) {
+  static <A, T, U, V> Transducer<A, T, V> chain(Transducer<A, T, U> t1, Transducer<A, U, V> t2) {
     return reducer -> t1.apply(t2.apply(reducer));
   }
 
@@ -66,6 +65,7 @@ public interface Transducer<A, T, U> {
      * @param value The value to emit as output
      */
     record Emit<S, U>(S state, U value) implements Transition<S, U> {}
+
     /**
      * Represents a transition that emits multiple values and updates the state.
      *
@@ -73,12 +73,14 @@ public interface Transducer<A, T, U> {
      * @param value The iterable of values to emit as output
      */
     record EmitMany<S, U>(S state, Iterable<U> value) implements Transition<S, U> {}
+
     /**
      * Represents a transition that skips the current input and updates the state without emitting any value.
      *
      * @param state The new state after processing the input
      */
     record Skip<S, U>(S state) implements Transition<S, U> {}
+
     /**
      * Represents a transition that stops the processing entirely and updates the state.
      *
