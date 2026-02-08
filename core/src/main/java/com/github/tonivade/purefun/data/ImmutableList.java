@@ -24,6 +24,7 @@ import org.pcollections.PStack;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -103,6 +104,11 @@ public interface ImmutableList<E> extends Sequence<E> {
   @Override
   default <R> ImmutableList<R> collect(PartialFunction1<? super E, ? extends R> function) {
     return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableList);
+  }
+
+  @Override
+  default <R> ImmutableList<R> scanLeft(R initial, Function2<? super R, ? super E, ? extends R> combinator) {
+    return pipeline().scan(initial, combinator).finish(Finisher::toImmutableList);
   }
 
   static <T> ImmutableList<T> from(Iterable<? extends T> iterable) {

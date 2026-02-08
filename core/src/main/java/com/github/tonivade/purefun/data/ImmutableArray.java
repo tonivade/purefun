@@ -24,6 +24,7 @@ import org.pcollections.TreePVector;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -85,6 +86,11 @@ public interface ImmutableArray<E> extends Sequence<E> {
   @Override
   default <R> ImmutableArray<R> collect(PartialFunction1<? super E, ? extends R> function) {
     return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableArray);
+  }
+
+  @Override
+  default <U> Sequence<U> scanLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
+    return pipeline().scan(initial, combinator).finish(Finisher::toImmutableArray);
   }
 
   @Override

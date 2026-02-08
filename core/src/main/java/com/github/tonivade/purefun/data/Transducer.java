@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.data;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -229,16 +230,6 @@ public interface Transducer<A, T, U> {
   }
 
   /**
-   * Creates a transducer that finds the first element in the input that satisfies a given predicate and passes it to the reducer, ignoring the rest.
-   *
-   * @param matcher The predicate function that determines whether an input element is the one to find
-   * @return A new transducer that applies the findFirst logic
-   */
-  static <A, T> Transducer<A, T, T> findFirst(Matcher1<? super T> matcher) {
-    return statefulMap(Unit::unit, (s, t) -> matcher.test(t) ? Transition.stop(s) : Transition.skip(s));
-  }
-
-  /**
    * Creates a transducer that takes only the first n elements from the input, passing them to the reducer and ignoring the rest.
    *
    * @param n The number of elements to take from the input
@@ -375,9 +366,12 @@ public interface Transducer<A, T, U> {
    * @return A new transducer that applies the scan logic, emitting the accumulated value after processing each input element
    */
   static <A, T, R> Transducer<A, T, R> scan(R initial, Function2<? super R, ? super T, ? extends R> reducer) {
-    return statefulMap(() -> initial, (state, value) -> {
-      var next = reducer.apply(state, value);
-      return Transition.emit(next, next);
+    return statefulMap(() -> Tuple.of(initial, false), (state, value) -> {
+      R next = reducer.apply(state.get1(), value);
+      if (state.get2()) {
+        return Transition.emit(Tuple.of(next, true), next);
+      }
+      return Transition.emitMany(Tuple.of(next, true), List.of(state.get1(), next));
     });
   }
 }

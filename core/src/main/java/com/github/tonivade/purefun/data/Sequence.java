@@ -104,6 +104,8 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
 
+  <U> Sequence<U> scanLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator);
+
   default String join() {
     return join("");
   }

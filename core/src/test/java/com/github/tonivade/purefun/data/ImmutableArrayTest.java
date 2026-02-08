@@ -46,6 +46,7 @@ public class ImmutableArrayTest {
               () -> assertEquals("abc", array.fold("", (a, b) -> a + b)),
               () -> assertEquals("abc", array.foldLeft("", (a, b) -> a + b)),
               () -> assertEquals("abc", array.foldRight("", (a, b) -> a + b)),
+              () -> assertEquals(arrayOf("", "a", "ab", "abc"), array.scanLeft("", (a, b) -> a + b)),
               () -> assertEquals(Option.some("abc"), array.reduce((a, b) -> a + b)),
               () -> assertEquals(arrayOf("a", "b", "c"), array),
               () -> assertEquals(arrayOf("c", "b", "a"), array.reverse()),

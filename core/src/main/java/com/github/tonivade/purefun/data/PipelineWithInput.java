@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -86,5 +87,9 @@ public final class PipelineWithInput<T, U> {
 
   public PipelineWithInput<T, U> takeWhile(Matcher1<? super U> condition) {
     return new PipelineWithInput<>(pipeline.takeWhile(condition), input);
+  }
+
+  public <V> PipelineWithInput<T, V> scan(V init, Function2<? super V, ? super U, ? extends V> f) {
+    return new PipelineWithInput<>(pipeline.scan(init, f), input);
   }
 }

@@ -26,6 +26,7 @@ import org.pcollections.TreePSet;
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.type.Option;
@@ -117,6 +118,15 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
   default <R> ImmutableTree<R> collect(Comparator<? super R> comparator, PartialFunction1<? super E, ? extends R> function) {
     return pipeline().<R>mapFilter(function).finish(input -> Finisher.toImmutableTree(comparator, input));
+  }
+
+  @Override
+  default <U> Sequence<U> scanLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
+    return scanLeft(naturalOrder(), initial, combinator);
+  }
+
+  default <U> Sequence<U> scanLeft(Comparator<? super U> comparator, U initial, Function2<? super U, ? super E, ? extends U> combinator) {
+    return pipeline().scan(initial, combinator).finish(input -> Finisher.toImmutableTree(comparator, input));
   }
 
   static <T> ImmutableTree<T> from(Iterable<? extends T> iterable) {
