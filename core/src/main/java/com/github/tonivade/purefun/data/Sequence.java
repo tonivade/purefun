@@ -113,7 +113,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default String join(String separator) {
-    return stream().map(Object::toString).collect(joining(separator));
+    return pipeline().map(Object::toString).finish(input -> Finisher.join(input, separator));
   }
 
   default String join(String separator, String prefix, String suffix) {

@@ -49,6 +49,19 @@ public interface Finisher<A, T, U> {
   }
 
   /**
+   * Creates a Finisher that runs the given Transducer on the input collection and produces a String by joining the string representations of the output elements with the given separator.
+   *
+   * @param input the input collection to process
+   * @param separator the separator to use between the string representations of the output elements
+   * @param <E> the type of input elements to process
+   * @param <R> the type of output elements produced by the Transducer
+   * @return a Finisher that runs the given Transducer on the input collection and produces a String by joining the string representations of the output elements with the given separator
+   */
+  static <E, R> Finisher<String, E, R> join(Iterable<? extends E> input, String separator) {
+    return of(input, String::new, (acc, e) -> acc.isEmpty() ? e.toString() : acc + separator + e);
+  }
+
+  /**
    * Creates a Finisher that runs the given Transducer on the input collection and produces an Option containing the first output element, or None if there are no output elements.
    *
    * @param input the input collection to process
