@@ -76,11 +76,6 @@ public interface ImmutableTree<E> extends Sequence<E> {
     return apply(naturalOrder(), pipeline);
   }
 
-  @Override
-  default PipelineWithInput<E, E> pipeline() {
-    return new PipelineWithInput<>(Pipeline.identity(), this);
-  }
-
   <R> ImmutableTree<R> apply(Comparator<? super R> comparator, Pipeline<E, R> pipeline);
 
   @Override

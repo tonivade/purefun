@@ -64,11 +64,6 @@ public interface ImmutableList<E> extends Sequence<E> {
   @Override
   <R> ImmutableList<R> apply(Pipeline<E, R> pipeline);
 
-  @Override
-  default PipelineWithInput<E, E> pipeline() {
-    return new PipelineWithInput<>(Pipeline.identity(), this);
-  }
-
   default ImmutableList<Tuple2<Integer, E>> zipWithIndex() {
     return pipeline().zipWithIndex().finish(Finisher::toImmutableList);
   }

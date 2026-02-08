@@ -61,11 +61,6 @@ public interface ImmutableArray<E> extends Sequence<E> {
   @Override
   <R> ImmutableArray<R> apply(Pipeline<E, R> pipeline);
 
-  @Override
-  default PipelineWithInput<E, E> pipeline() {
-    return new PipelineWithInput<>(Pipeline.identity(), this);
-  }
-
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
     return pipeline().zipWithIndex().finish(Finisher::toImmutableArray);
   }

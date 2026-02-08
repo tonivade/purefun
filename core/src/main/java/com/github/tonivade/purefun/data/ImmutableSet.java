@@ -56,11 +56,6 @@ public interface ImmutableSet<E> extends Sequence<E> {
   <R> ImmutableSet<R> apply(Pipeline<E, R> pipeline);
 
   @Override
-  default PipelineWithInput<E, E> pipeline() {
-    return new PipelineWithInput<>(Pipeline.identity(), this);
-  }
-
-  @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
     return pipeline().<R>map(mapper).finish(Finisher::toImmutableSet);
   }

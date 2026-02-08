@@ -68,7 +68,9 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   <R> Sequence<R> apply(Pipeline<E, R> pipeline);
 
-  PipelineWithInput<E, E> pipeline();
+  default PipelineWithInput<E, E> pipeline() {
+    return new PipelineWithInput<>(Pipeline.identity(), this);
+  }
 
   default Option<E> findFirst(Matcher1<? super E> matcher) {
     return pipeline().filter(matcher).finish(Finisher::findFirst);
