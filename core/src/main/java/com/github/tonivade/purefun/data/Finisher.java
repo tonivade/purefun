@@ -72,7 +72,8 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces a result of type A
    */
-  static <A, E, R> Finisher<A, E, R> of(Iterable<? extends E> input, Producer<A> init, Function2<A, R, A> append) {
+  static <A, E, R> Finisher<A, E, R> of(
+      Iterable<? extends E> input, Producer<A> init, Function2<? super A, ? super R, ? extends A> append) {
     return xf -> run(init.get(), input, xf.apply((acc, e) -> Step.more(append.apply(acc, e))));
   }
 

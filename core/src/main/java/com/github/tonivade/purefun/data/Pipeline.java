@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
@@ -178,6 +179,18 @@ public final class Pipeline<T, U> {
    */
   public Pipeline<T, U> dropWhile(Matcher1<? super U> condition) {
     return chain(Transducer.dropWhile(condition));
+  }
+
+  /**
+   * Returns a pipeline that produces a cumulative result by applying the given function to each element of the input sequence and the accumulated value.
+   *
+   * @param init the initial value for the accumulation
+   * @param f the function to apply to each element and the accumulated value
+   * @param <V> the type of output elements produced by the scan operation
+   * @return a pipeline that produces cumulative results
+   */
+  public <V> Pipeline<T, V> scan(V init, Function2<? super V, ? super U, ? extends V> f) {
+    return chain(Transducer.scan(init, f));
   }
 
   /**

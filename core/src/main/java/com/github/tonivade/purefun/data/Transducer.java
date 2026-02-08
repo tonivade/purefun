@@ -364,4 +364,20 @@ public interface Transducer<A, T, U> {
       return Transition.skip(window);
     });
   }
+
+  /**
+   * Creates a transducer that performs a cumulative reduction (scan) on the input elements, producing a running total of the reduction.
+   * The initial value for the reduction is provided, and the reducer function defines how to combine the current accumulated value with each input element to produce the next accumulated value.
+   * The transducer emits the accumulated value after processing each input element, allowing you to track the progression of the reduction over time.
+   *
+   * @param initial The initial value for the cumulative reduction
+   * @param reducer A function that takes the current accumulated value and an input element, and returns the next accumulated value
+   * @return A new transducer that applies the scan logic, emitting the accumulated value after processing each input element
+   */
+  static <A, T, R> Transducer<A, T, R> scan(R initial, Function2<? super R, ? super T, ? extends R> reducer) {
+    return statefulMap(() -> initial, (state, value) -> {
+      var next = reducer.apply(state, value);
+      return Transition.emit(next, next);
+    });
+  }
 }

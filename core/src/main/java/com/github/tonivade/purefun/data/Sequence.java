@@ -83,19 +83,21 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default Option<E> reduce(Operator2<E> operator) {
-    return Option.from(stream().reduce(operator));
+    return foldLeft(Option.none(), (acc, e) -> {
+      var current = Option.some(e);
+      if (acc.isEmpty()) {
+        return current;
+      }
+      return Option.map2(acc, current, operator);
+    });
   }
 
   default E fold(E initial, Operator2<E> operator) {
-    return stream().reduce(initial, operator);
+    return foldLeft(initial, operator);
   }
 
   default <U> U foldLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
-    U accumulator = initial;
-    for (E element : this) {
-      accumulator = combinator.apply(accumulator, element);
-    }
-    return accumulator;
+    return Pipeline.<E>identity().finish(Finisher.of(this, () -> initial, combinator));
   }
 
   default <U> U foldRight(U initial, Function2<? super E, ? super U, ? extends U> combinator) {
