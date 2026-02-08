@@ -7,6 +7,7 @@ package com.github.tonivade.purefun.type;
 import static com.github.tonivade.purefun.core.Function1.cons;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.NoSuchElementException;

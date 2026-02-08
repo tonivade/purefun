@@ -35,13 +35,18 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
+  public <R> ImmutableList<R> apply(Pipeline<E, R> pipeline) {
+    return value.apply(pipeline);
+  }
+
+  @Override
   public <R> NonEmptyList<R> map(Function1<? super E, ? extends R> mapper) {
-    return of(value.map(mapper));
+    return new NonEmptyList<>(value.map(mapper));
   }
 
   @Override
   public <R> NonEmptyList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return of(value.flatMap(mapper));
+    return new NonEmptyList<>(value.flatMap(mapper));
   }
 
   @Override

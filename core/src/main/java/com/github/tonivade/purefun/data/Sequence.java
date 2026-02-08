@@ -8,6 +8,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -65,8 +66,12 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
+  <R> Sequence<R> apply(Pipeline<E, R> pipeline);
+
+  PipelineWithInput<E, E> pipeline();
+
   default Option<E> findFirst(Matcher1<? super E> matcher) {
-    return Option.from(stream().filter(matcher).findFirst());
+    return pipeline().filter(matcher).finish(Finisher::findFirst);
   }
 
   default Collection<E> toCollection() {
@@ -109,9 +114,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     return stream().map(Object::toString).collect(joining(separator, prefix, suffix));
   }
 
-  default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return filter(function::isDefinedAt).map(function::apply);
-  }
+  <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function);
 
   @SuppressWarnings("unchecked")
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
@@ -120,23 +123,23 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default ImmutableList<E> asList() {
-    return ImmutableList.from(stream());
+    return ImmutableList.from(this);
   }
 
   default ImmutableArray<E> asArray() {
-    return ImmutableArray.from(stream());
+    return ImmutableArray.from(this);
   }
 
   default ImmutableSet<E> asSet() {
-    return ImmutableSet.from(stream());
+    return ImmutableSet.from(this);
   }
 
   default ImmutableTree<E> asTree() {
-    return ImmutableTree.from(stream());
+    return ImmutableTree.from(this);
   }
 
   default ImmutableTree<E> asTree(Comparator<? super E> comparator) {
-    return ImmutableTree.from(comparator, stream());
+    return ImmutableTree.from(comparator, this);
   }
 
   default Stream<E> stream() {
@@ -145,10 +148,6 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   default boolean isEmpty() {
     return size() == 0;
-  }
-
-  default Stream<Tuple2<Integer, E>> zipWithIndex() {
-    return zip(Range.of(0, size()).stream(), stream());
   }
 
   default E[] toArray(Function1<Integer, E[]> supplier) {

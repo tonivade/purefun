@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -16,7 +17,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.pcollections.HashTreePMap;
 import org.pcollections.PMap;
 
@@ -128,10 +128,6 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   }
 
   static <K, V> ImmutableMap<K, V> from(Iterable<Tuple2<K, V>> entries) {
-    return from(ImmutableSet.from(entries));
-  }
-
-  static <K, V> ImmutableMap<K, V> from(Stream<Tuple2<K, V>> entries) {
     return from(ImmutableSet.from(entries));
   }
 

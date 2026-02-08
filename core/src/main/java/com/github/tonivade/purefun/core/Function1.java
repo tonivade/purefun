@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.core;
 
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;

@@ -76,8 +76,7 @@ public class ImmutableListTest {
       () -> assertEquals(ImmutableList.empty(), list.filter(e -> e.length() > 1)),
       () -> assertEquals(listOf("a", "b", "c"), list.filterNot(e -> e.length() > 1)),
       () -> assertEquals(list, list.stream().collect(toImmutableList())),
-      () -> assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
-        list.zipWithIndex().collect(toImmutableList())),
+      () -> assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), list.zipWithIndex()),
       () -> assertThrows(UnsupportedOperationException.class, list.iterator()::remove)
     );
   }
