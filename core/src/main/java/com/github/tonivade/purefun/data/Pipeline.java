@@ -70,7 +70,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that applies the function to each element
    */
   public <V> Pipeline<T, V> map(Function1<? super U, ? extends V> f) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.map(f)));
+    return chain(Transducer.map(f));
   }
 
   /**
@@ -91,7 +91,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that filters the input elements
    */
   public Pipeline<T, U> filter(Matcher1<? super U> p) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.filter(p)));
+    return chain(Transducer.filter(p));
   }
 
   /**
@@ -102,7 +102,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that applies the function and flattens the results
    */
   public <V> Pipeline<T, V> flatMap(Function1<? super U, ? extends Sequence<V>> f) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.flatMap(f)));
+    return chain(Transducer.flatMap(f));
   }
 
   /**
@@ -112,7 +112,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that takes only the first n elements
    */
   public Pipeline<T, U> take(int n) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.take(n)));
+    return chain(Transducer.take(n));
   }
 
   /**
@@ -122,7 +122,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that drops the first n elements
    */
   public Pipeline<T, U> drop(int n) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.drop(n)));
+    return chain(Transducer.drop(n));
   }
 
   /**
@@ -132,7 +132,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that produces sequences of tumbling windows
    */
   public Pipeline<T, Sequence<U>> tumbling(int size) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.tumbling(size)));
+    return chain(Transducer.tumbling(size));
   }
 
   /**
@@ -142,7 +142,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that produces sequences of sliding windows
    */
   public Pipeline<T, Sequence<U>> sliding(int size) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.sliding(size)));
+    return chain(Transducer.sliding(size));
   }
 
   /**
@@ -151,7 +151,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that filters out duplicate elements
    */
   public Pipeline<T, U> distinct() {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.distinct()));
+    return chain(Transducer.distinct());
   }
 
   /**
@@ -160,7 +160,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that produces tuples of (index, element)
    */
   public Pipeline<T, Tuple2<Integer, U>> zipWithIndex() {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.zipWithIndex()));
+    return chain(Transducer.zipWithIndex());
   }
 
   /**
@@ -170,7 +170,7 @@ public final class Pipeline<T, U> {
    * @return a pipeline that drops elements while the condition holds
    */
   public Pipeline<T, U> dropWhile(Matcher1<? super U> condition) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.dropWhile(condition)));
+    return chain(Transducer.dropWhile(condition));
   }
 
   /**
@@ -180,6 +180,10 @@ public final class Pipeline<T, U> {
    * @return a pipeline that takes elements while the condition holds
    */
   public Pipeline<T, U> takeWhile(Matcher1<? super U> condition) {
-    return new Pipeline<>(Transducer.chain(transducer, Transducer.takeWhile(condition)));
+    return chain(Transducer.takeWhile(condition));
+  }
+
+  private <V> Pipeline<T, V> chain(Transducer<Object, U, V> next) {
+    return new Pipeline<>(Transducer.chain(transducer, next));
   }
 }
