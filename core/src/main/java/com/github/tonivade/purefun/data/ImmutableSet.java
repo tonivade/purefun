@@ -18,8 +18,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.pcollections.HashTreePSet;
 import org.pcollections.PSet;
 
@@ -27,6 +25,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.PartialFunction1;
 
 /**
  * Similar to a HashSet
@@ -53,26 +52,26 @@ public interface ImmutableSet<E> extends Sequence<E> {
   ImmutableSet<E> difference(ImmutableSet<? extends E> other);
 
   @Override
-  <R> ImmutableSet<R> apply(Pipeline<? super E, ? extends R> pipeline);
+  <R> ImmutableSet<R> apply(Pipeline<E, R> pipeline);
 
   @Override
-  default Pipeline<E, E> pipeline() {
-    return Pipeline.identity();
+  default PipelineWithInput<E, E> pipeline() {
+    return new PipelineWithInput<>(Pipeline.identity(), this);
   }
 
   @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return apply(pipeline().map(mapper));
+    return pipeline().<R>map(mapper).finish(Finisher::toImmutableSet);
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return apply(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).finish(Finisher::toImmutableSet);
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return apply(pipeline().filter(matcher));
+    return pipeline().filter(matcher).finish(Finisher::toImmutableSet);
   }
 
   @Override
@@ -80,17 +79,18 @@ public interface ImmutableSet<E> extends Sequence<E> {
     return filter(matcher.negate());
   }
 
-  static <T> ImmutableSet<T> from(Iterable<? extends T> iterable) {
-    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableSet(iterable));
+  @Override
+  default <R> ImmutableSet<R> collect(PartialFunction1<? super E, ? extends R> function) {
+    return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableSet);
   }
 
-  static <T> ImmutableSet<T> from(Stream<? extends T> stream) {
-    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableSet(stream::iterator));
+  static <T> ImmutableSet<T> from(Iterable<? extends T> iterable) {
+    return Pipeline.<T>identity().finish(Finisher.toImmutableSet(iterable));
   }
 
   @SafeVarargs
   static <T> ImmutableSet<T> of(T... elements) {
-    return from(Arrays.stream(elements));
+    return from(Arrays.asList(elements));
   }
 
   @SuppressWarnings("unchecked")
@@ -127,8 +127,8 @@ public interface ImmutableSet<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableSet<R> apply(Pipeline<? super E, ? extends R> pipeline) {
-      return Pipeline.finish(pipeline, Finisher.toImmutableSet(backend));
+    public <R> ImmutableSet<R> apply(Pipeline<E, R> pipeline) {
+      return pipeline.finish(Finisher.toImmutableSet(this));
     }
 
     @Override

@@ -6,6 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
+import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
@@ -33,23 +34,19 @@ public final class Pipeline<T, U> {
    * @param <A> the type of the result produced by the finisher
    * @return the result produced by applying the pipeline and collecting with the finisher
    */
+  @SuppressWarnings("unchecked")
   public <A> A finish(Finisher<A, T, U> finisher) {
-    return Pipeline.finish(this, finisher);
+    return finisher.apply((Transducer<A, T, U>) transducer);
   }
 
   /**
-   * Collects the results of applying the pipeline to an input collection using the given finisher.
+   * Applies the pipeline to an input collection and performs the given action on each output element.
    *
-   * @param pipeline the pipeline to apply
-   * @param finisher the finisher to collect the results
-   * @param <A> the type of the result produced by the finisher
-   * @param <T> the type of input elements processed by the pipeline
-   * @param <U> the type of output elements produced by the pipeline
-   * @return the result produced by applying the pipeline and collecting with the finisher
+   * @param input the input collection to process
+   * @param action the action to perform on each output element
    */
-  @SuppressWarnings("unchecked")
-  public static <A, T, U> A finish(Pipeline<? super T, ? extends U> pipeline, Finisher<A, T, U> finisher) {
-    return finisher.apply((Transducer<A, T, U>) pipeline.transducer);
+  public void forEach(Iterable<? extends T> input, Consumer1<? super U> action) {
+    finish(Finisher.forEach(input, action));
   }
 
   /**
@@ -92,6 +89,16 @@ public final class Pipeline<T, U> {
    */
   public Pipeline<T, U> filter(Matcher1<? super U> p) {
     return chain(Transducer.filter(p));
+  }
+
+  /**
+   * Returns a pipeline that filters out the input elements that match the given predicate.
+   *
+   * @param p the predicate to test on each element
+   * @return a pipeline that filters out the matching elements
+   */
+  public Pipeline<T, U> filterNot(Matcher1<? super U> p) {
+    return filter(p.negate());
   }
 
   /**

@@ -229,6 +229,16 @@ public interface Transducer<A, T, U> {
   }
 
   /**
+   * Creates a transducer that finds the first element in the input that satisfies a given predicate and passes it to the reducer, ignoring the rest.
+   *
+   * @param matcher The predicate function that determines whether an input element is the one to find
+   * @return A new transducer that applies the findFirst logic
+   */
+  static <A, T> Transducer<A, T, T> findFirst(Matcher1<? super T> matcher) {
+    return statefulMap(Unit::unit, (s, t) -> matcher.test(t) ? Transition.stop(s) : Transition.skip(s));
+  }
+
+  /**
    * Creates a transducer that takes only the first n elements from the input, passing them to the reducer and ignoring the rest.
    *
    * @param n The number of elements to take from the input

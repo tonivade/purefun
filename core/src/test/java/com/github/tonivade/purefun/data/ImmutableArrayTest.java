@@ -74,12 +74,13 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d", "e").apply(Pipeline.<String>identity().tumbling(2))),
               () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
+              () -> assertEquals(Option.some("a"), array.findFirst(e -> e.length() > 0)),
               () -> assertEquals(arrayOf("a", "b", "c"), arrayOf("a", "a", "b", "c").apply(Pipeline.<String>identity().distinct())),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
               () -> assertEquals(array, array.stream().collect(toImmutableArray())),
               () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), array.zipWithIndex()),
               () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove),
-              () -> assertEquals(arrayOf("A", "B"), Pipeline.<String>identity().map(toUpperCase).filter(e -> e.length() == 1).take(2).finish(Finisher.toImmutableArray(array)))
+              () -> assertEquals(arrayOf("A", "B"), array.pipeline().map(toUpperCase).filter(e -> e.length() == 1).take(2).finish(Finisher::toImmutableArray))
               );
   }
 

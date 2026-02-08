@@ -66,12 +66,12 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
-  <R> Sequence<R> apply(Pipeline<? super E, ? extends R> pipeline);
+  <R> Sequence<R> apply(Pipeline<E, R> pipeline);
 
-  Pipeline<E, E> pipeline();
+  PipelineWithInput<E, E> pipeline();
 
   default Option<E> findFirst(Matcher1<? super E> matcher) {
-    return Option.from(stream().filter(matcher).findFirst());
+    return pipeline().filter(matcher).finish(Finisher::findFirst);
   }
 
   default Collection<E> toCollection() {
@@ -114,9 +114,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
     return stream().map(Object::toString).collect(joining(separator, prefix, suffix));
   }
 
-  default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return apply(pipeline().mapFilter(function));
-  }
+  <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function);
 
   @SuppressWarnings("unchecked")
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
@@ -125,23 +123,23 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default ImmutableList<E> asList() {
-    return ImmutableList.from(stream());
+    return ImmutableList.from(this);
   }
 
   default ImmutableArray<E> asArray() {
-    return ImmutableArray.from(stream());
+    return ImmutableArray.from(this);
   }
 
   default ImmutableSet<E> asSet() {
-    return ImmutableSet.from(stream());
+    return ImmutableSet.from(this);
   }
 
   default ImmutableTree<E> asTree() {
-    return ImmutableTree.from(stream());
+    return ImmutableTree.from(this);
   }
 
   default ImmutableTree<E> asTree(Comparator<? super E> comparator) {
-    return ImmutableTree.from(comparator, stream());
+    return ImmutableTree.from(comparator, this);
   }
 
   default Stream<E> stream() {

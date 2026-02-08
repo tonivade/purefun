@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.pcollections.PVector;
 import org.pcollections.TreePVector;
 
@@ -27,6 +25,7 @@ import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.core.Equal;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
 
 /**
@@ -59,38 +58,43 @@ public interface ImmutableArray<E> extends Sequence<E> {
   ImmutableArray<E> drop(int n);
 
   @Override
-  <R> ImmutableArray<R> apply(Pipeline<? super E, ? extends R> pipeline);
+  <R> ImmutableArray<R> apply(Pipeline<E, R> pipeline);
 
   @Override
-  default Pipeline<E, E> pipeline() {
-    return Pipeline.identity();
+  default PipelineWithInput<E, E> pipeline() {
+    return new PipelineWithInput<>(Pipeline.identity(), this);
   }
 
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
-    return apply(pipeline().zipWithIndex());
+    return pipeline().zipWithIndex().finish(Finisher::toImmutableArray);
   }
 
   default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
-    return apply(pipeline().dropWhile(condition));
+    return pipeline().dropWhile(condition).finish(Finisher::toImmutableArray);
   }
 
   default ImmutableArray<E> takeWhile(Matcher1<? super E> condition) {
-    return apply(pipeline().takeWhile(condition));
+    return pipeline().takeWhile(condition).finish(Finisher::toImmutableArray);
   }
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return apply(pipeline().map(mapper));
+    return pipeline().<R>map(mapper).finish(Finisher::toImmutableArray);
+  }
+
+  @Override
+  default <R> ImmutableArray<R> collect(PartialFunction1<? super E, ? extends R> function) {
+    return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableArray);
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return apply(pipeline().flatMap(mapper.andThen(SequenceOf::toSequence)));
+    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).finish(Finisher::toImmutableArray);
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return apply(pipeline().filter(matcher));
+    return pipeline().filter(matcher).finish(Finisher::toImmutableArray);
   }
 
   @Override
@@ -99,16 +103,12 @@ public interface ImmutableArray<E> extends Sequence<E> {
   }
 
   static <T> ImmutableArray<T> from(Iterable<? extends T> iterable) {
-    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableArray(iterable));
-  }
-
-  static <T> ImmutableArray<T> from(Stream<? extends T> stream) {
-    return Pipeline.finish(Pipeline.identity(), Finisher.toImmutableArray(stream::iterator));
+    return Pipeline.<T>identity().finish(Finisher.toImmutableArray(iterable));
   }
 
   @SafeVarargs
   static <T> ImmutableArray<T> of(T... elements) {
-    return from(Arrays.stream(elements));
+    return from(Arrays.asList(elements));
   }
 
   @SuppressWarnings("unchecked")
@@ -160,8 +160,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public <R> ImmutableArray<R> apply(Pipeline<? super E, ? extends R> pipeline) {
-      return Pipeline.finish(pipeline, Finisher.toImmutableArray(backend));
+    public <R> ImmutableArray<R> apply(Pipeline<E, R> pipeline) {
+      return pipeline.finish(Finisher.toImmutableArray(this));
     }
 
     @Override

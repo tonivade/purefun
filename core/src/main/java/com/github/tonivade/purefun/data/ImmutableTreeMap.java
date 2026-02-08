@@ -19,8 +19,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.pcollections.PSortedMap;
 import org.pcollections.TreePMap;
 
@@ -172,14 +170,6 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   @SuppressWarnings("unchecked")
   static <K, V> ImmutableTreeMap<K, V> empty() {
     return (ImmutableTreeMap<K, V>) PImmutableTreeMap.EMPTY;
-  }
-
-  static <K, V> ImmutableTreeMap<K, V> from(Stream<Tuple2<K, V>> entries) {
-    return from(naturalOrder(), entries);
-  }
-
-  static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, Stream<Tuple2<K, V>> entries) {
-    return from(comparator, ImmutableSet.from(entries));
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {

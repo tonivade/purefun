@@ -59,7 +59,7 @@ public record Range(int begin, int end, int increment) implements Iterable<Integ
   }
 
   public <T> ImmutableArray<T> map(Function1<? super Integer, ? extends T> map) {
-    return ImmutableArray.from(intStream().boxed()).map(map);
+    return ImmutableArray.from(intStream().boxed()::iterator).map(map);
   }
 
   public IntStream intStream() {
