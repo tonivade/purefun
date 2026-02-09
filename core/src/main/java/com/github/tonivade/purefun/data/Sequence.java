@@ -7,8 +7,6 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -113,11 +111,11 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default String join(String separator) {
-    return pipeline().map(Object::toString).finish(input -> Finisher.join(input, separator));
+    return join(separator, "", "");
   }
 
   default String join(String separator, String prefix, String suffix) {
-    return stream().map(Object::toString).collect(joining(separator, prefix, suffix));
+    return pipeline().map(Object::toString).finish(input -> Finisher.join(input, separator, prefix, suffix));
   }
 
   <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function);

@@ -75,7 +75,9 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d", "e").apply(Pipeline.<String>identity().tumbling(2))),
               () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
+              () -> assertEquals("abc", array.join()),
               () -> assertEquals("a,b,c", array.join(",")),
+              () -> assertEquals("[a,b,c]", array.join(",", "[", "]")),
               () -> assertEquals(Option.some("a"), array.findFirst(e -> e.length() > 0)),
               () -> assertEquals(arrayOf("a", "b", "c"), arrayOf("a", "a", "b", "c").apply(Pipeline.<String>identity().distinct())),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
@@ -113,7 +115,10 @@ public class ImmutableArrayTest {
               () -> assertEquals(ImmutableArray.empty(), array.map(identity())),
               () -> assertEquals(ImmutableArray.empty(), array.map(toUpperCase)),
               () -> assertEquals(ImmutableArray.empty(), array.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1))
+              () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
+              () -> assertEquals("", array.join()),
+              () -> assertEquals("", array.join(",")),
+              () -> assertEquals("[]", array.join(",", "[", "]"))
               );
   }
 

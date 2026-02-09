@@ -4,14 +4,14 @@
  */
 package com.github.tonivade.purefun.data;
 
-import java.util.Comparator;
-
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Reducer.Step;
 import com.github.tonivade.purefun.type.Option;
+import java.util.Comparator;
 
 /**
  * A Finisher is a function that takes a Transducer and produces a result of type A.
@@ -53,12 +53,14 @@ public interface Finisher<A, T, U> {
    *
    * @param input the input collection to process
    * @param separator the separator to use between the string representations of the output elements
+   * @param prefix the prefix to add at the beginning of the resulting string
+   * @param suffix the suffix to add at the end of the resulting string
    * @param <E> the type of input elements to process
    * @param <R> the type of output elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces a String by joining the string representations of the output elements with the given separator
    */
-  static <E, R> Finisher<String, E, R> join(Iterable<? extends E> input, String separator) {
-    return of(input, String::new, (acc, e) -> acc.isEmpty() ? e.toString() : acc + separator + e);
+  static <E, R> Finisher<String, E, R> join(Iterable<? extends E> input, String separator, String prefix, String suffix) {
+    return of(input, String::new, (acc, e) -> acc.isEmpty() ? acc + e : acc + separator + e, acc -> prefix + acc + suffix);
   }
 
   /**
@@ -87,7 +89,25 @@ public interface Finisher<A, T, U> {
    */
   static <A, E, R> Finisher<A, E, R> of(
       Iterable<? extends E> input, Producer<A> init, Function2<? super A, ? super R, ? extends A> append) {
-    return xf -> run(init.get(), input, xf.apply((acc, e) -> Step.more(append.apply(acc, e))));
+    return of(input, init, append, a -> a);
+  }
+
+  /**
+   * Creates a Finisher that runs the given Transducer on the input collection and produces a result of type A.
+   *
+   * @param input the input collection to process
+   * @param init a Producer that provides the initial value of type A
+   * @param append a Function2 that takes the current accumulated value of type A and an element of type E,
+   *               and produces a new accumulated value of type A
+   * @param onComplete an Operator1 that takes the final accumulated value of type A and produces the final result of type A
+   * @param <A> the type of the result produced by the Finisher
+   * @param <E> the type of input elements to process
+   * @param <R> the type of output elements produced by the Transducer
+   * @return a Finisher that runs the given Transducer on the input collection and produces a result of type A
+   */
+  static <A, E, R> Finisher<A, E, R> of(
+      Iterable<? extends E> input, Producer<A> init, Function2<? super A, ? super R, ? extends A> append, Operator1<A> onComplete) {
+    return xf -> run(init.get(), input, xf.apply((acc, e) -> Step.more(append.apply(acc, e))), onComplete);
   }
 
   /**
@@ -141,14 +161,18 @@ public interface Finisher<A, T, U> {
   }
 
   private static <A, T> A run(A init, Iterable<? extends T> input, Reducer<A, T> reducer) {
+    return run(init, input, reducer, a -> a);
+  }
+
+  private static <A, T> A run(A init, Iterable<? extends T> input, Reducer<A, T> reducer, Operator1<A> complete) {
     var acc = init;
     for (var value : input) {
       var step = reducer.apply(acc, value);
-      if (step instanceof Step.Done(var result)) {
-        return result;
-      }
       acc = step.value();
+      if (step instanceof Step.Done) {
+        break;
+      }
     }
-    return acc;
+    return complete.apply(acc);
   }
 }
