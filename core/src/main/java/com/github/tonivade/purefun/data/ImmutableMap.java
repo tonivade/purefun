@@ -6,7 +6,15 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-
+import com.github.tonivade.purefun.core.Consumer2;
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Operator2;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.type.Option;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -19,16 +27,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.pcollections.HashTreePMap;
 import org.pcollections.PMap;
-
-import com.github.tonivade.purefun.core.Consumer2;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.core.Operator2;
-import com.github.tonivade.purefun.core.Producer;
-import com.github.tonivade.purefun.core.Tuple;
-import com.github.tonivade.purefun.core.Tuple2;
-import com.github.tonivade.purefun.type.Option;
 
 /**
  * Similar to a HashMap
@@ -127,18 +125,14 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
     return (ImmutableMap<K, V>) PImmutableMap.EMPTY;
   }
 
-  static <K, V> ImmutableMap<K, V> from(Iterable<Tuple2<K, V>> entries) {
-    return from(ImmutableSet.from(entries));
-  }
-
   static <K, V> ImmutableMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
-    LinkedHashMap<K, V> collect = entries.stream().collect(toLinkedHashMap(Tuple2::get1, Tuple2::get2));
-    return new PImmutableMap<>(collect);
+    return Pipeline.<Tuple2<K, V>>identity()
+      .finish(Finisher.toImmutableMap(entries, Tuple2::get1, Tuple2::get2, ImmutableMap::throwingMerge));
   }
 
   static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<K, V>> entries) {
-    LinkedHashMap<K, V> collect = entries.stream().collect(toLinkedHashMap(Map.Entry::getKey, Map.Entry::getValue));
-    return new PImmutableMap<>(collect);
+    return Pipeline.<Map.Entry<K, V>>identity()
+      .finish(Finisher.toImmutableMap(entries, Map.Entry::getKey, Map.Entry::getValue, ImmutableMap::throwingMerge));
   }
 
   static <T, K, V> Collector<T, ?, ImmutableMap<K, V>> toImmutableMap(

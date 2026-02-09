@@ -164,7 +164,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Map<K, V> map) {
-    return new PImmutableTreeMap<>(naturalOrder(), map);
+    return from(naturalOrder(), map);
   }
 
   @SuppressWarnings("unchecked")
@@ -172,14 +172,17 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     return (ImmutableTreeMap<K, V>) PImmutableTreeMap.EMPTY;
   }
 
+  static <K, V> ImmutableTreeMap<K, V> empty(Comparator<? super K> comparator) {
+    return new PImmutableTreeMap<>(TreePMap.empty(comparator));
+  }
+
   static <K, V> ImmutableTreeMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
     return from(naturalOrder(), entries);
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, ImmutableSet<Tuple2<K, V>> entries) {
-    TreeMap<K, V> treeMap = entries.stream()
-        .collect(toTreeMap(comparator, Tuple2::get1, Tuple2::get2));
-    return new PImmutableTreeMap<>(treeMap);
+    return Pipeline.<Tuple2<K, V>>identity()
+      .finish(Finisher.toImmutableTreeMap(entries, comparator, Tuple2::get1, Tuple2::get2, ImmutableTreeMap::throwingMerge));
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Set<Map.Entry<K, V>> entries) {
@@ -187,9 +190,8 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, Set<Map.Entry<K, V>> entries) {
-    TreeMap<K, V> treeMap = entries.stream()
-        .collect(toTreeMap(comparator, Map.Entry::getKey, Map.Entry::getValue));
-    return new PImmutableTreeMap<>(treeMap);
+    return Pipeline.<Map.Entry<K, V>>identity()
+      .finish(Finisher.toImmutableTreeMap(entries, comparator, Map.Entry::getKey, Map.Entry::getValue, ImmutableTreeMap::throwingMerge));
   }
 
   static <T, K, V> Collector<T, ?, ImmutableTreeMap<K, V>> toImmutableTreeMap(
