@@ -187,9 +187,9 @@ public interface Finisher<A, T, U> {
    * The keys in the resulting ImmutableTreeMap are ordered according to their natural ordering.
    *
    * @param input the input collection to process
-   * @param comparator the Comparator to use for ordering the keys in the ImmutableTreeMap
    * @param keySelector the function to produce keys for the ImmutableTreeMap
    * @param valueSelector the function to produce values for the ImmutableTreeMap
+   * @param merger the function to merge values for duplicate keys in the ImmutableTreeMap
    * @param <K> the type of keys in the resulting ImmutableTreeMap
    * @param <V> the type of values in the resulting ImmutableTreeMap
    * @param <E> the type of input elements to process
