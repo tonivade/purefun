@@ -115,8 +115,8 @@ public final class NonEmptyList<E> implements ImmutableList<E>, Serializable {
   }
 
   @Override
-  public NonEmptyList<E> sort(Comparator<? super E> comparator) {
-    return of(value.sort(comparator));
+  public ImmutableTree<E> sort(Comparator<? super E> comparator) {
+    return ImmutableTree.from(comparator, this);
   }
 
   @Override

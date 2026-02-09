@@ -51,7 +51,7 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   @Override
   ImmutableList<E> reverse();
-  ImmutableList<E> sort(Comparator<? super E> comparator);
+  ImmutableTree<E> sort(Comparator<? super E> comparator);
 
   Option<E> head();
 
@@ -227,10 +227,8 @@ public interface ImmutableList<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableList<E> sort(Comparator<? super E> comparator) {
-      var copy = new ArrayList<>(backend);
-      copy.sort(comparator);
-      return PImmutableList.from(copy);
+    public ImmutableTree<E> sort(Comparator<? super E> comparator) {
+      return ImmutableTree.from(comparator, this);
     }
 
     @Override

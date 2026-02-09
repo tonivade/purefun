@@ -48,7 +48,7 @@ public interface ImmutableArray<E> extends Sequence<E> {
 
   @Override
   ImmutableArray<E> reverse();
-  ImmutableArray<E> sort(Comparator<? super E> comparator);
+  ImmutableTree<E> sort(Comparator<? super E> comparator);
 
   E get(int position);
   ImmutableArray<E> remove(int position);
@@ -199,10 +199,8 @@ public interface ImmutableArray<E> extends Sequence<E> {
     }
 
     @Override
-    public ImmutableArray<E> sort(Comparator<? super E> comparator) {
-      var copy = new ArrayList<>(backend);
-      copy.sort(comparator);
-      return new PImmutableArray<>(copy);
+    public ImmutableTree<E> sort(Comparator<? super E> comparator) {
+      return ImmutableTree.from(comparator, this);
     }
 
     @Override
