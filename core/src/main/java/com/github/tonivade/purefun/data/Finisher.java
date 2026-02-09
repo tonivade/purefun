@@ -140,7 +140,7 @@ public interface Finisher<A, T, U> {
     return of(input, () -> ImmutableTree.empty(comparator), ImmutableTree::append);
   }
 
-  private static <A, T, U> A run(A init, Iterable<? extends T> input, Reducer<A, T> reducer) {
+  private static <A, T> A run(A init, Iterable<? extends T> input, Reducer<A, T> reducer) {
     var acc = init;
     for (var value : input) {
       var step = reducer.apply(acc, value);
