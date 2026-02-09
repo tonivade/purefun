@@ -84,7 +84,8 @@ public class ImmutableArrayTest {
               () -> assertEquals(array, array.stream().collect(toImmutableArray())),
               () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), array.zipWithIndex()),
               () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove),
-              () -> assertEquals(arrayOf("A", "B"), array.pipeline().map(toUpperCase).filter(e -> e.length() == 1).take(2).finish(Finisher::toImmutableArray))
+              () -> assertEquals(arrayOf("A", "B"), array.pipeline().map(toUpperCase).filter(e -> e.length() == 1).take(2).finish(Finisher::toImmutableArray)),
+              () -> assertEquals(ImmutableMap.of(Tuple.of(1, listOf("a", "b")), Tuple.of(2, listOf("cc"))), arrayOf("a", "b", "cc").groupBy(String::length))
               );
   }
 

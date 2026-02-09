@@ -6,7 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.Collectors.groupingBy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -120,10 +119,8 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function);
 
-  @SuppressWarnings("unchecked")
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
-    return (ImmutableMap<G, ImmutableList<E>>)
-        ImmutableMap.from(stream().collect(groupingBy(selector))).mapValues(ImmutableList::from);
+    return pipeline().finish(input -> Finisher.groupBy(input, selector));
   }
 
   default ImmutableList<E> asList() {

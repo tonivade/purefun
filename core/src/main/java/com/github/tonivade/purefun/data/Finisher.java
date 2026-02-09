@@ -4,7 +4,9 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import com.github.tonivade.purefun.core.Consumer1;
+import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Producer;
@@ -73,6 +75,21 @@ public interface Finisher<A, T, U> {
    */
   static <E, R> Finisher<Option<R>, E, R> findFirst(Iterable<? extends E> input) {
     return xf -> run(Option.none(), input, xf.apply((acc, e) -> Step.done(Option.some(e))));
+  }
+
+  /**
+   * Creates a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap that groups the output elements by the keys produced by the given selector function.
+   *
+   * @param input the input collection to process
+   * @param selector the function to produce keys for grouping the output elements
+   * @param <K> the type of keys produced by the selector function
+   * @param <E> the type of input elements to process
+   * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap that groups the output elements by the keys produced by the given selector function
+   */
+  static <K, E> Finisher<ImmutableMap<K, ImmutableList<E>>, E, E> groupBy(
+        Iterable<? extends E> input, Function1<? super E, ? extends K> selector) {
+    return of(input, ImmutableMap::empty,
+      (acc, e) -> acc.merge(selector.apply(e), listOf(e), ImmutableList::appendAll));
   }
 
   /**
