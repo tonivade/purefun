@@ -5,6 +5,7 @@
 package com.github.tonivade.purefun.type;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
 import java.io.Serializable;
 
 import com.github.tonivade.purefun.HigherKind;

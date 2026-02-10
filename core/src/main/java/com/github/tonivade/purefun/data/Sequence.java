@@ -6,8 +6,6 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -65,8 +63,14 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   Sequence<E> filterNot(Matcher1<? super E> matcher);
 
+  <R> Sequence<R> apply(Pipeline<E, R> pipeline);
+
+  default PipelineWithInput<E, E> pipeline() {
+    return new PipelineWithInput<>(Pipeline.identity(), this);
+  }
+
   default Option<E> findFirst(Matcher1<? super E> matcher) {
-    return Option.from(stream().filter(matcher).findFirst());
+    return pipeline().filter(matcher).finish(Finisher::findFirst);
   }
 
   default Collection<E> toCollection() {
@@ -78,65 +82,65 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default Option<E> reduce(Operator2<E> operator) {
-    return Option.from(stream().reduce(operator));
+    return foldLeft(Option.none(), (acc, e) -> {
+      var current = Option.some(e);
+      if (acc.isEmpty()) {
+        return current;
+      }
+      return Option.map2(acc, current, operator);
+    });
   }
 
   default E fold(E initial, Operator2<E> operator) {
-    return stream().reduce(initial, operator);
+    return foldLeft(initial, operator);
   }
 
   default <U> U foldLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
-    U accumulator = initial;
-    for (E element : this) {
-      accumulator = combinator.apply(accumulator, element);
-    }
-    return accumulator;
+    return Pipeline.<E>identity().finish(Finisher.of(this, () -> initial, combinator));
   }
 
   default <U> U foldRight(U initial, Function2<? super E, ? super U, ? extends U> combinator) {
     return reverse().foldLeft(initial, (acc, e) -> combinator.apply(e, acc));
   }
 
+  <U> Sequence<U> scanLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator);
+
   default String join() {
     return join("");
   }
 
   default String join(String separator) {
-    return stream().map(Object::toString).collect(joining(separator));
+    return join(separator, "", "");
   }
 
   default String join(String separator, String prefix, String suffix) {
-    return stream().map(Object::toString).collect(joining(separator, prefix, suffix));
+    return pipeline().map(Object::toString).finish(input -> Finisher.join(input, separator, prefix, suffix));
   }
 
-  default <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return filter(function::isDefinedAt).map(function::apply);
-  }
+  <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function);
 
-  @SuppressWarnings("unchecked")
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
-    return (ImmutableMap<G, ImmutableList<E>>)
-        ImmutableMap.from(stream().collect(groupingBy(selector))).mapValues(ImmutableList::from);
+    return pipeline().finish(input -> Finisher.groupBy(input, selector));
   }
 
   default ImmutableList<E> asList() {
-    return ImmutableList.from(stream());
+    return ImmutableList.from(this);
   }
 
   default ImmutableArray<E> asArray() {
-    return ImmutableArray.from(stream());
+    return ImmutableArray.from(this);
   }
 
   default ImmutableSet<E> asSet() {
-    return ImmutableSet.from(stream());
+    return ImmutableSet.from(this);
   }
 
   default ImmutableTree<E> asTree() {
-    return ImmutableTree.from(stream());
+    return ImmutableTree.from(this);
   }
 
   default ImmutableTree<E> asTree(Comparator<? super E> comparator) {
-    return ImmutableTree.from(comparator, stream());
+    return ImmutableTree.from(comparator, this);
   }
 
   default Stream<E> stream() {
@@ -145,10 +149,6 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
 
   default boolean isEmpty() {
     return size() == 0;
-  }
-
-  default Stream<Tuple2<Integer, E>> zipWithIndex() {
-    return zip(Range.of(0, size()).stream(), stream());
   }
 
   default E[] toArray(Function1<Integer, E[]> supplier) {

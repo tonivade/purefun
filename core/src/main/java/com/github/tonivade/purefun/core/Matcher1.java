@@ -28,7 +28,7 @@ public interface Matcher1<A> extends Recoverable, Predicate<A> {
   }
 
   boolean run(A target) throws Throwable;
-  
+
   default Function1<A, Boolean> asFunction() {
     return this::match;
   }
@@ -41,6 +41,7 @@ public interface Matcher1<A> extends Recoverable, Predicate<A> {
     return value -> match(value) || other.match(value);
   }
 
+  @Override
   default Matcher1<A> negate() {
     return value -> !match(value);
   }

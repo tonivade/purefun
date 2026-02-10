@@ -7,12 +7,14 @@ package com.github.tonivade.purefun.data;
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.ImmutableArray.toImmutableArray;
 import static com.github.tonivade.purefun.data.Sequence.arrayOf;
+import static com.github.tonivade.purefun.data.Sequence.listOf;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.core.Function1;
@@ -32,7 +35,7 @@ public class ImmutableArrayTest {
 
   @Test
   public void notEmptyArray() {
-    ImmutableArray<String> array = arrayOf("a", "b", "c");
+    var array = arrayOf("a", "b", "c");
 
     assertAll(() -> assertEquals(3, array.size()),
               () -> assertEquals("a", array.get(0)),
@@ -43,6 +46,7 @@ public class ImmutableArrayTest {
               () -> assertEquals("abc", array.fold("", (a, b) -> a + b)),
               () -> assertEquals("abc", array.foldLeft("", (a, b) -> a + b)),
               () -> assertEquals("abc", array.foldRight("", (a, b) -> a + b)),
+              () -> assertEquals(arrayOf("", "a", "ab", "abc"), array.scanLeft("", (a, b) -> a + b)),
               () -> assertEquals(Option.some("abc"), array.reduce((a, b) -> a + b)),
               () -> assertEquals(arrayOf("a", "b", "c"), array),
               () -> assertEquals(arrayOf("c", "b", "a"), array.reverse()),
@@ -61,19 +65,33 @@ public class ImmutableArrayTest {
               () -> assertEquals(arrayOf("a", "b", "c", "z"), array.appendAll(arrayOf("z"))),
               () -> assertEquals(arrayOf("a", "b", "c"), array.map(identity())),
               () -> assertEquals(arrayOf("A", "B", "C"), array.map(toUpperCase)),
+              () -> assertEquals(arrayOf("A", "B", "C"), array.apply(Pipeline.<String>identity().map(toUpperCase).filter(e -> e.length() == 1))),
+              () -> assertEquals(arrayOf("a", "b"), array.apply(Pipeline.<String>identity().take(2))),
+              () -> assertEquals(arrayOf("a", "b"), arrayOf("a", "b", "cc").takeWhile(e -> e.length() == 1)),
+              () -> assertEquals(arrayOf("c"), array.apply(Pipeline.<String>identity().drop(2))),
+              () -> assertEquals(arrayOf("cc"), arrayOf("a", "b", "cc").dropWhile(e -> e.length() == 1)),
+              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("b", "c"), listOf("c", "d")), arrayOf("a", "b", "c", "d").apply(Pipeline.<String>identity().sliding(2))),
+              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d").apply(Pipeline.<String>identity().tumbling(2))),
+              () -> assertEquals(arrayOf(listOf("a", "b"), listOf("c", "d")), arrayOf("a", "b", "c", "d", "e").apply(Pipeline.<String>identity().tumbling(2))),
               () -> assertEquals(arrayOf("A", "B", "C"), array.flatMap(toUpperCase.sequence())),
               () -> assertEquals(arrayOf("a", "b", "c"), array.filter(e -> e.length() > 0)),
+              () -> assertEquals("abc", array.join()),
+              () -> assertEquals("a,b,c", array.join(",")),
+              () -> assertEquals("[a,b,c]", array.join(",", "[", "]")),
+              () -> assertEquals(Option.some("a"), array.findFirst(e -> e.length() > 0)),
+              () -> assertEquals(arrayOf("a", "b", "c"), arrayOf("a", "a", "b", "c").apply(Pipeline.<String>identity().distinct())),
               () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
               () -> assertEquals(array, array.stream().collect(toImmutableArray())),
-              () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")),
-                  array.zipWithIndex().collect(toImmutableArray())),
-              () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove)
+              () -> assertEquals(arrayOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), array.zipWithIndex()),
+              () -> assertThrows(UnsupportedOperationException.class, array.iterator()::remove),
+              () -> assertEquals(arrayOf("A", "B"), array.pipeline().map(toUpperCase).filter(e -> e.length() == 1).take(2).finish(Finisher::toImmutableArray)),
+              () -> assertEquals(ImmutableMap.of(Tuple.of(1, listOf("a", "b")), Tuple.of(2, listOf("cc"))), arrayOf("a", "b", "cc").groupBy(String::length))
               );
   }
 
   @Test
   public void emptyArray() {
-    ImmutableArray<String> array = ImmutableArray.empty();
+    var array = ImmutableArray.<String>empty();
 
     assertAll(() -> assertEquals(0, array.size()),
               () -> assertThrows(IndexOutOfBoundsException.class, () -> array.get(5)),
@@ -98,27 +116,30 @@ public class ImmutableArrayTest {
               () -> assertEquals(ImmutableArray.empty(), array.map(identity())),
               () -> assertEquals(ImmutableArray.empty(), array.map(toUpperCase)),
               () -> assertEquals(ImmutableArray.empty(), array.flatMap(toUpperCase.sequence())),
-              () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1))
+              () -> assertEquals(ImmutableArray.empty(), array.filter(e -> e.length() > 1)),
+              () -> assertEquals("", array.join()),
+              () -> assertEquals("", array.join(",")),
+              () -> assertEquals("[]", array.join(",", "[", "]"))
               );
   }
-  
+
   @Test
   void serialization() throws IOException, ClassNotFoundException {
-    ImmutableArray<Integer> array = arrayOf(1, 2, 3, 4, 5);
+    var array = arrayOf(1, 2, 3, 4, 5);
 
     var output = new ByteArrayOutputStream();
     try (var objectOutputStream = new ObjectOutputStream(output)) {
       objectOutputStream.writeObject(array);
       objectOutputStream.writeObject(Sequence.emptyArray());
     }
-    
+
     Object result = null;
     Object empty = null;
     try (var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(output.toByteArray()))) {
       result = objectInputStream.readObject();
       empty = objectInputStream.readObject();
     }
-    
+
     assertEquals(array, result);
     assertSame(Sequence.emptyArray(), empty);
   }

@@ -41,14 +41,6 @@ public class SequenceTest {
   }
 
   @Test
-  public void zipWithIndexTest() {
-    ImmutableList<Tuple2<Integer, String>> zipped =
-        listOf("a", "b", "c").zipWithIndex().collect(toImmutableList());
-
-    assertEquals(listOf(Tuple.of(0, "a"), Tuple.of(1, "b"), Tuple.of(2, "c")), zipped);
-  }
-
-  @Test
   void toCollection() {
     var list = Sequence.listOf(1, 2, 3, 4);
 

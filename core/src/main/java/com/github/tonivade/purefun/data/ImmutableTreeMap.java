@@ -6,15 +6,7 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import static java.util.stream.Collectors.collectingAndThen;
-import com.github.tonivade.purefun.core.Equal;
-import com.github.tonivade.purefun.core.Function1;
-import com.github.tonivade.purefun.core.Matcher1;
-import com.github.tonivade.purefun.core.Operator2;
-import com.github.tonivade.purefun.core.Producer;
-import com.github.tonivade.purefun.core.Tuple;
-import com.github.tonivade.purefun.core.Tuple2;
-import com.github.tonivade.purefun.type.Option;
-import com.github.tonivade.purefun.type.Try;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
@@ -27,9 +19,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.pcollections.PSortedMap;
 import org.pcollections.TreePMap;
+
+import com.github.tonivade.purefun.core.Equal;
+import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.core.Matcher1;
+import com.github.tonivade.purefun.core.Operator2;
+import com.github.tonivade.purefun.core.Producer;
+import com.github.tonivade.purefun.core.Tuple;
+import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.type.Option;
+import com.github.tonivade.purefun.type.Try;
 
 /**
  * Similar to a TreeMap
@@ -163,7 +164,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Map<K, V> map) {
-    return new PImmutableTreeMap<>(naturalOrder(), map);
+    return from(naturalOrder(), map);
   }
 
   @SuppressWarnings("unchecked")
@@ -171,12 +172,8 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
     return (ImmutableTreeMap<K, V>) PImmutableTreeMap.EMPTY;
   }
 
-  static <K, V> ImmutableTreeMap<K, V> from(Stream<Tuple2<K, V>> entries) {
-    return from(naturalOrder(), entries);
-  }
-
-  static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, Stream<Tuple2<K, V>> entries) {
-    return from(comparator, ImmutableSet.from(entries));
+  static <K, V> ImmutableTreeMap<K, V> empty(Comparator<? super K> comparator) {
+    return new PImmutableTreeMap<>(TreePMap.empty(comparator));
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
@@ -184,9 +181,8 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, ImmutableSet<Tuple2<K, V>> entries) {
-    TreeMap<K, V> treeMap = entries.stream()
-        .collect(toTreeMap(comparator, Tuple2::get1, Tuple2::get2));
-    return new PImmutableTreeMap<>(treeMap);
+    return Pipeline.<Tuple2<K, V>>identity()
+      .finish(Finisher.toImmutableTreeMap(entries, comparator, Tuple2::get1, Tuple2::get2, ImmutableTreeMap::throwingMerge));
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Set<Map.Entry<K, V>> entries) {
@@ -194,9 +190,8 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, Set<Map.Entry<K, V>> entries) {
-    TreeMap<K, V> treeMap = entries.stream()
-        .collect(toTreeMap(comparator, Map.Entry::getKey, Map.Entry::getValue));
-    return new PImmutableTreeMap<>(treeMap);
+    return Pipeline.<Map.Entry<K, V>>identity()
+      .finish(Finisher.toImmutableTreeMap(entries, comparator, Map.Entry::getKey, Map.Entry::getValue, ImmutableTreeMap::throwingMerge));
   }
 
   static <T, K, V> Collector<T, ?, ImmutableTreeMap<K, V>> toImmutableTreeMap(

@@ -5,8 +5,6 @@
 package com.github.tonivade.purefun.stream;
 
 import static com.github.tonivade.purefun.core.Unit.unit;
-import static com.github.tonivade.purefun.data.Sequence.asStream;
-
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -224,11 +222,11 @@ public sealed interface PureStream<F extends Kind<F, ?>, T>
     }
 
     default <T> PureStream<F, T> from(Iterable<? extends T> iterable) {
-      return from(asStream(iterable.iterator()));
+      return from(ImmutableList.from(iterable));
     }
 
     default <T> PureStream<F, T> from(java.util.stream.Stream<? extends T> stream) {
-      return from(ImmutableList.from(stream));
+      return from(ImmutableList.from(stream::iterator));
     }
 
     default <T> PureStream<F, T> from(Sequence<? extends T> sequence) {
