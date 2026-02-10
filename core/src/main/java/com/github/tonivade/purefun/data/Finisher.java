@@ -4,17 +4,19 @@
  */
 package com.github.tonivade.purefun.data;
 
+import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
+
+import java.util.Comparator;
+
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
-import com.github.tonivade.purefun.core.Operator1;
 import com.github.tonivade.purefun.core.Operator2;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Reducer.Step;
 import com.github.tonivade.purefun.type.Option;
-import java.util.Comparator;
 
 /**
  * A Finisher is a function that takes a Transducer and produces a result of type A.
@@ -25,7 +27,7 @@ import java.util.Comparator;
  * @param <U> the type of output elements produced by the Transducer
  */
 @FunctionalInterface
-public interface Finisher<A, T, U> {
+public interface Finisher<A, B, T, U> {
 
   /**
    * Applies the given Transducer to produce a result of type A.
@@ -33,7 +35,7 @@ public interface Finisher<A, T, U> {
    * @param transducer the Transducer to apply
    * @return the result produced by applying the Transducer
    */
-  A apply(Transducer<A, T, U> transducer);
+  B apply(Transducer<A, T, U> transducer);
 
   /**
    * Creates a Finisher that runs the given Transducer on the input collection and produces a result of type A.
@@ -47,9 +49,9 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces a result of type A
    */
-  static <A, E, R> Finisher<A, E, R> of(
+  static <A, E, R> Finisher<A, A, E, R> of(
       Iterable<? extends E> input, Producer<A> init, Function2<? super A, ? super R, ? extends A> append) {
-    return of(input, init, append, a -> a);
+    return of(input, init, append, identity());
   }
 
   /**
@@ -59,14 +61,14 @@ public interface Finisher<A, T, U> {
    * @param init a Producer that provides the initial value of type A
    * @param append a Function2 that takes the current accumulated value of type A and an element of type E,
    *               and produces a new accumulated value of type A
-   * @param onComplete an Operator1 that takes the final accumulated value of type A and produces the final result of type A
+   * @param onComplete a Function1 that takes the final accumulated value of type A and produces the final result of type B
    * @param <A> the type of the result produced by the Finisher
    * @param <E> the type of input elements to process
    * @param <R> the type of output elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces a result of type A
    */
-  static <A, E, R> Finisher<A, E, R> of(
-      Iterable<? extends E> input, Producer<A> init, Function2<? super A, ? super R, ? extends A> append, Operator1<A> onComplete) {
+  static <A, B, E, R> Finisher<A, B, E, R> of(
+      Iterable<? extends E> input, Producer<A> init, Function2<? super A, ? super R, ? extends A> append, Function1<A, B> onComplete) {
     return xf -> run(init.get(), input, xf.apply((acc, e) -> Step.more(append.apply(acc, e))), onComplete);
   }
 
@@ -79,7 +81,7 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and performs the given action on each output element
    */
-  static <E, R> Finisher<Unit, E, R> forEach(Iterable<? extends E> input, Consumer1<? super R> action) {
+  static <E, R> Finisher<Unit, Unit, E, R> forEach(Iterable<? extends E> input, Consumer1<? super R> action) {
     return of(input, Unit::unit, (acc, e) -> {
       action.accept(e);
       return acc;
@@ -96,7 +98,7 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces a String by joining the string representations of the output elements with the given separator
    */
-  static <E, R> Finisher<String, E, R> join(Iterable<? extends E> input, String separator) {
+  static <E, R> Finisher<StringBuilder, String, E, R> join(Iterable<? extends E> input, String separator) {
     return join(input, separator, "", "");
   }
 
@@ -113,8 +115,11 @@ public interface Finisher<A, T, U> {
    * @return a Finisher that runs the given Transducer on the input collection and produces a String by joining the
    *  string representations of the output elements with the given separator
    */
-  static <E, R> Finisher<String, E, R> join(Iterable<? extends E> input, String separator, String prefix, String suffix) {
-    return of(input, String::new, (acc, e) -> acc.isEmpty() ? acc + e : acc + separator + e, acc -> prefix + acc + suffix);
+  static <E, R> Finisher<StringBuilder, String, E, R> join(Iterable<? extends E> input, String separator, String prefix, String suffix) {
+    return of(input, StringBuilder::new, (acc, e) -> acc.length() == 0 ? acc.append(e) : acc.append(separator).append(e), acc -> {
+      acc.insert(0, prefix).append(suffix);
+      return acc.toString();
+    });
   }
 
   /**
@@ -127,7 +132,7 @@ public interface Finisher<A, T, U> {
    * @return a Finisher that runs the given Transducer on the input collection and produces an Option containing the
    *  first output element, or None if there are no output elements
    */
-  static <E, R> Finisher<Option<R>, E, R> findFirst(Iterable<? extends E> input) {
+  static <E, R> Finisher<Option<R>, Option<R>, E, R> findFirst(Iterable<? extends E> input) {
     return xf -> run(Option.none(), input, xf.apply((acc, e) -> Step.done(Option.some(e))));
   }
 
@@ -142,7 +147,7 @@ public interface Finisher<A, T, U> {
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap that groups
    *  the output elements by the keys produced by the given selector function
    */
-  static <K, E> Finisher<ImmutableMap<K, ImmutableList<E>>, E, E> groupBy(
+  static <K, E> Finisher<ImmutableMap<K, ImmutableList<E>>, ImmutableMap<K, ImmutableList<E>>, E, E> groupBy(
         Iterable<? extends E> input, Function1<? super E, ? extends K> selector) {
     return of(input, ImmutableMap::empty,
       (acc, e) -> acc.merge(selector.apply(e), listOf(e), ImmutableList::appendAll));
@@ -156,7 +161,7 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableArray of type R
    */
-  static <E, R> Finisher<ImmutableArray<R>, E, R> toImmutableArray(Iterable<? extends E> input) {
+  static <E, R> Finisher<ImmutableArray<R>, ImmutableArray<R>, E, R> toImmutableArray(Iterable<? extends E> input) {
     return of(input, ImmutableArray::empty, ImmutableArray::append);
   }
 
@@ -168,7 +173,7 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableList of type R
    */
-  static <E, R> Finisher<ImmutableList<R>, E, R> toImmutableList(Iterable<? extends E> input) {
+  static <E, R> Finisher<ImmutableList<R>, ImmutableList<R>, E, R> toImmutableList(Iterable<? extends E> input) {
     return of(input, ImmutableList::empty, ImmutableList::append);
   }
 
@@ -187,7 +192,7 @@ public interface Finisher<A, T, U> {
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, an IllegalArgumentException is thrown.
    */
-  static <E, K, V> Finisher<ImmutableMap<K, V>, E, E> toImmutableMap(
+  static <E, K, V> Finisher<ImmutableMap<K, V>, ImmutableMap<K, V>, E, E> toImmutableMap(
       Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector) {
     return of(input, ImmutableMap::empty,
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), Finisher::throwingMerge));
@@ -209,7 +214,7 @@ public interface Finisher<A, T, U> {
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, the values are merged using the given merger function.
    */
-  static <E, K, V> Finisher<ImmutableMap<K, V>, E, E> toImmutableMap(
+  static <E, K, V> Finisher<ImmutableMap<K, V>, ImmutableMap<K, V>, E, E> toImmutableMap(
       Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector, Operator2<V> merger) {
     return of(input, ImmutableMap::empty,
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), merger));
@@ -230,7 +235,7 @@ public interface Finisher<A, T, U> {
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, an IllegalArgumentException is thrown.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
+  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
       Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector) {
     return toImmutableTreeMap(input, keySelector, valueSelector, Finisher::throwingMerge);
   }
@@ -252,7 +257,7 @@ public interface Finisher<A, T, U> {
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, the values are merged using the given merger function.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
+  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
       Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector, Operator2<V> merger) {
     return of(input, ImmutableTreeMap::empty,
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), merger));
@@ -275,7 +280,7 @@ public interface Finisher<A, T, U> {
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, an IllegalArgumentException is thrown.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
+  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
       Iterable<? extends E> input, Comparator<? super K> comparator,
       Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector) {
     return toImmutableTreeMap(input, comparator, keySelector, valueSelector, Finisher::throwingMerge);
@@ -299,7 +304,7 @@ public interface Finisher<A, T, U> {
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, the values are merged using the given merger function.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
+  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
       Iterable<? extends E> input, Comparator<? super K> comparator,
       Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector, Operator2<V> merger) {
     return of(input, () -> ImmutableTreeMap.empty(comparator),
@@ -314,7 +319,7 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableSet of type R
    */
-  static <E, R> Finisher<ImmutableSet<R>, E, R> toImmutableSet(Iterable<? extends E> input) {
+  static <E, R> Finisher<ImmutableSet<R>, ImmutableSet<R>, E, R> toImmutableSet(Iterable<? extends E> input) {
     return of(input, ImmutableSet::empty, ImmutableSet::append);
   }
 
@@ -327,16 +332,16 @@ public interface Finisher<A, T, U> {
    * @param <R> the type of output elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableTree of type R
    */
-  static <E, R> Finisher<ImmutableTree<R>, E, R> toImmutableTree(
+  static <E, R> Finisher<ImmutableTree<R>, ImmutableTree<R>, E, R> toImmutableTree(
       Comparator<? super R> comparator, Iterable<? extends E> input) {
     return of(input, () -> ImmutableTree.empty(comparator), ImmutableTree::append);
   }
 
   private static <A, T> A run(A init, Iterable<? extends T> input, Reducer<A, T> reducer) {
-    return run(init, input, reducer, a -> a);
+    return run(init, input, reducer, identity());
   }
 
-  private static <A, T> A run(A init, Iterable<? extends T> input, Reducer<A, T> reducer, Operator1<A> complete) {
+  private static <A, B, T> B run(A init, Iterable<? extends T> input, Reducer<A, T> reducer, Function1<A, B> complete) {
     var acc = init;
     for (var value : input) {
       var step = reducer.apply(acc, value);

@@ -29,7 +29,7 @@ public final class PipelineWithInput<T, U> {
     this.input = checkNonNull(input, "input must not be null");
   }
 
-  public <A> A finish(Function1<Iterable<T>, Finisher<A, T, U>> finisher) {
+  public <A, B> B finish(Function1<Iterable<T>, Finisher<A, B, T, U>> finisher) {
     return pipeline.finish(finisher.apply(input));
   }
 

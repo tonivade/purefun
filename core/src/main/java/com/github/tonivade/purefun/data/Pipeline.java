@@ -36,7 +36,7 @@ public final class Pipeline<T, U> {
    * @return the result produced by applying the pipeline and collecting with the finisher
    */
   @SuppressWarnings("unchecked")
-  public <A> A finish(Finisher<A, T, U> finisher) {
+  public <A, B> B finish(Finisher<A, B, T, U> finisher) {
     return finisher.apply((Transducer<A, T, U>) transducer);
   }
 
