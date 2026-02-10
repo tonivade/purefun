@@ -127,12 +127,12 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
 
   static <K, V> ImmutableMap<K, V> from(ImmutableSet<Tuple2<K, V>> entries) {
     return Pipeline.<Tuple2<K, V>>identity()
-      .finish(Finisher.toImmutableMap(entries, Tuple2::get1, Tuple2::get2, ImmutableMap::throwingMerge));
+      .finish(Finisher.toImmutableMap(entries, Tuple2::get1, Tuple2::get2));
   }
 
   static <K, V> ImmutableMap<K, V> from(Set<? extends Map.Entry<K, V>> entries) {
     return Pipeline.<Map.Entry<K, V>>identity()
-      .finish(Finisher.toImmutableMap(entries, Map.Entry::getKey, Map.Entry::getValue, ImmutableMap::throwingMerge));
+      .finish(Finisher.toImmutableMap(entries, Map.Entry::getKey, Map.Entry::getValue));
   }
 
   static <T, K, V> Collector<T, ?, ImmutableMap<K, V>> toImmutableMap(
@@ -269,10 +269,6 @@ public interface ImmutableMap<K, V> extends Iterable<Tuple2<K, V>> {
   private static <T, K, V> Collector<T, ?, ? extends LinkedHashMap<K, V>> toLinkedHashMap(
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper, valueMapper, ImmutableMap::throwingMerge, LinkedHashMap::new);
-  }
-
-  private static <V> V throwingMerge(V a, V b) {
-    throw new IllegalArgumentException("conflict detected");
+    return Collectors.toMap(keyMapper, valueMapper, Finisher::throwingMerge, LinkedHashMap::new);
   }
 }

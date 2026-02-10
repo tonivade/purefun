@@ -182,7 +182,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, ImmutableSet<Tuple2<K, V>> entries) {
     return Pipeline.<Tuple2<K, V>>identity()
-      .finish(Finisher.toImmutableTreeMap(entries, comparator, Tuple2::get1, Tuple2::get2, ImmutableTreeMap::throwingMerge));
+      .finish(Finisher.toImmutableTreeMap(entries, comparator, Tuple2::get1, Tuple2::get2));
   }
 
   static <K, V> ImmutableTreeMap<K, V> from(Set<Map.Entry<K, V>> entries) {
@@ -191,7 +191,7 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
 
   static <K, V> ImmutableTreeMap<K, V> from(Comparator<? super K> comparator, Set<Map.Entry<K, V>> entries) {
     return Pipeline.<Map.Entry<K, V>>identity()
-      .finish(Finisher.toImmutableTreeMap(entries, comparator, Map.Entry::getKey, Map.Entry::getValue, ImmutableTreeMap::throwingMerge));
+      .finish(Finisher.toImmutableTreeMap(entries, comparator, Map.Entry::getKey, Map.Entry::getValue));
   }
 
   static <T, K, V> Collector<T, ?, ImmutableTreeMap<K, V>> toImmutableTreeMap(
@@ -393,10 +393,6 @@ public interface ImmutableTreeMap<K, V> extends ImmutableMap<K, V> {
       Comparator<? super K> comparator,
       Function1<? super T, ? extends K> keyMapper,
       Function1<? super T, ? extends V> valueMapper) {
-    return Collectors.toMap(keyMapper, valueMapper, ImmutableTreeMap::throwingMerge, () -> new TreeMap<>(comparator));
-  }
-
-  private static <V> V throwingMerge(V a, V b) {
-    throw new IllegalArgumentException("conflict detected");
+    return Collectors.toMap(keyMapper, valueMapper, Finisher::throwingMerge, () -> new TreeMap<>(comparator));
   }
 }
