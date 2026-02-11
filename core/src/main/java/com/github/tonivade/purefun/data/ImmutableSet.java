@@ -57,17 +57,17 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableSet<R> map(Function1<? super E, ? extends R> mapper) {
-    return pipeline().<R>map(mapper).finish(Finisher::toImmutableSet);
+    return pipeline().<R>map(mapper).toImmutableSet();
   }
 
   @Override
   default <R> ImmutableSet<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).finish(Finisher::toImmutableSet);
+    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).toImmutableSet();
   }
 
   @Override
   default ImmutableSet<E> filter(Matcher1<? super E> matcher) {
-    return pipeline().filter(matcher).finish(Finisher::toImmutableSet);
+    return pipeline().filter(matcher).toImmutableSet();
   }
 
   @Override
@@ -77,12 +77,12 @@ public interface ImmutableSet<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableSet<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableSet);
+    return pipeline().<R>mapFilter(function).toImmutableSet();
   }
 
   @Override
   default <U> Sequence<U> scanLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
-    return pipeline().scan(initial, combinator).finish(Finisher::toImmutableSet);
+    return pipeline().scan(initial, combinator).toImmutableSet();
   }
 
   static <T> ImmutableSet<T> from(Iterable<? extends T> iterable) {

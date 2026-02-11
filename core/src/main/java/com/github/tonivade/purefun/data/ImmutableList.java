@@ -65,30 +65,30 @@ public interface ImmutableList<E> extends Sequence<E> {
   <R> ImmutableList<R> apply(Pipeline<E, R> pipeline);
 
   default ImmutableList<Tuple2<Integer, E>> zipWithIndex() {
-    return pipeline().zipWithIndex().finish(Finisher::toImmutableList);
+    return pipeline().zipWithIndex().toImmutableList();
   }
 
   default ImmutableList<E> dropWhile(Matcher1<? super E> matcher) {
-    return pipeline().dropWhile(matcher).finish(Finisher::toImmutableList);
+    return pipeline().dropWhile(matcher).toImmutableList();
   }
 
   default ImmutableList<E> takeWhile(Matcher1<? super E> matcher) {
-    return pipeline().takeWhile(matcher).finish(Finisher::toImmutableList);
+    return pipeline().takeWhile(matcher).toImmutableList();
   }
 
   @Override
   default <R> ImmutableList<R> map(Function1<? super E, ? extends R> mapper) {
-    return pipeline().<R>map(mapper).finish(Finisher::toImmutableList);
+    return pipeline().<R>map(mapper).toImmutableList();
   }
 
   @Override
   default <R> ImmutableList<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).finish(Finisher::toImmutableList);
+    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).toImmutableList();
   }
 
   @Override
   default ImmutableList<E> filter(Matcher1<? super E> matcher) {
-    return pipeline().filter(matcher).finish(Finisher::toImmutableList);
+    return pipeline().filter(matcher).toImmutableList();
   }
 
   @Override
@@ -98,12 +98,12 @@ public interface ImmutableList<E> extends Sequence<E> {
 
   @Override
   default <R> ImmutableList<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableList);
+    return pipeline().<R>mapFilter(function).toImmutableList();
   }
 
   @Override
   default <R> ImmutableList<R> scanLeft(R initial, Function2<? super R, ? super E, ? extends R> combinator) {
-    return pipeline().scan(initial, combinator).finish(Finisher::toImmutableList);
+    return pipeline().scan(initial, combinator).toImmutableList();
   }
 
   static <T> ImmutableList<T> from(Iterable<? extends T> iterable) {

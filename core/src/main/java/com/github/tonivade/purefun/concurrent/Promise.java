@@ -46,7 +46,8 @@ public sealed interface Promise<T> extends PromiseOf<T>, Bindable<Promise<?>, T>
   default Promise<T> complete(Try<? extends T> value) {
     if (tryComplete(value)) {
       return this;
-    } else throw new IllegalStateException("promise already completed");
+    }
+    throw new IllegalStateException("promise already completed");
   }
 
   default Promise<T> succeeded(T value) {

@@ -6,17 +6,16 @@ package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Function1.identity;
 import static com.github.tonivade.purefun.data.Sequence.listOf;
-
-import java.util.Comparator;
-
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
+import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Operator2;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Reducer.Step;
 import com.github.tonivade.purefun.type.Option;
+import java.util.Comparator;
 
 /**
  * A Finisher is a function that takes a Transducer and produces a result of type A.
@@ -137,6 +136,35 @@ public interface Finisher<A, B, T, U> {
   }
 
   /**
+   * Creates a Finisher that runs the given Transducer on the input collection and produces true if any output element matches the given matcher,
+   * or false if there are no output elements or if no output element matches the given matcher.
+   *
+   * @param input the input collection to process
+   * @param matcher the Matcher to test each output element against
+   * @param <E> the type of input elements to process
+   * @param <R> the type of output elements produced by the Transducer
+   * @return a Finisher that runs the given Transducer on the input collection and produces true if any output element matches the given matcher,
+   *   or false if there are no output elements or if no output element matches the given matcher
+   */
+  static <E, R> Finisher<Boolean, Boolean, E, R> anyMatch(Iterable<? extends E> input, Matcher1<? super R> matcher) {
+    return xf -> run(false, input, xf.apply((acc, e) -> {
+      if (matcher.test(e)) {
+        return Step.done(true);
+      }
+      return Step.more(acc);
+    }));
+  }
+
+  static <E, R> Finisher<Boolean, Boolean, E, R> allMatch(Iterable<? extends E> input, Matcher1<? super R> matcher) {
+    return xf -> run(true, input, xf.apply((acc, e) -> {
+      if (!matcher.test(e)) {
+        return Step.done(false);
+      }
+      return Step.more(acc);
+    }));
+  }
+
+  /**
    * Creates a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap that groups
    * the output elements by the keys produced by the given selector function.
    *
@@ -144,11 +172,12 @@ public interface Finisher<A, B, T, U> {
    * @param selector the function to produce keys for grouping the output elements
    * @param <K> the type of keys produced by the selector function
    * @param <E> the type of input elements to process
+   * @param <R> the type of output elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap that groups
    *  the output elements by the keys produced by the given selector function
    */
-  static <K, E> Finisher<ImmutableMap<K, ImmutableList<E>>, ImmutableMap<K, ImmutableList<E>>, E, E> groupBy(
-        Iterable<? extends E> input, Function1<? super E, ? extends K> selector) {
+  static <K, E, R> Finisher<ImmutableMap<K, ImmutableList<R>>, ImmutableMap<K, ImmutableList<R>>, E, R> groupBy(
+        Iterable<? extends E> input, Function1<? super R, ? extends K> selector) {
     return of(input, ImmutableMap::empty,
       (acc, e) -> acc.merge(selector.apply(e), listOf(e), ImmutableList::appendAll));
   }
@@ -188,12 +217,13 @@ public interface Finisher<A, B, T, U> {
    * @param <K> the type of keys in the resulting ImmutableMap
    * @param <V> the type of values in the resulting ImmutableMap
    * @param <E> the type of input elements to process
+   * @param <R> the type of intermediate elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap of type K to V,
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, an IllegalArgumentException is thrown.
    */
-  static <E, K, V> Finisher<ImmutableMap<K, V>, ImmutableMap<K, V>, E, E> toImmutableMap(
-      Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector) {
+  static <E, R, K, V> Finisher<ImmutableMap<K, V>, ImmutableMap<K, V>, E, R> toImmutableMap(
+      Iterable<? extends E> input, Function1<? super R, ? extends K> keySelector, Function1<? super R, ? extends V> valueSelector) {
     return of(input, ImmutableMap::empty,
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), Finisher::throwingMerge));
   }
@@ -210,12 +240,13 @@ public interface Finisher<A, B, T, U> {
    * @param <K> the type of keys in the resulting ImmutableMap
    * @param <V> the type of values in the resulting ImmutableMap
    * @param <E> the type of input elements to process
+   * @param <R> the type of intermediate elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap of type K to V,
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, the values are merged using the given merger function.
    */
-  static <E, K, V> Finisher<ImmutableMap<K, V>, ImmutableMap<K, V>, E, E> toImmutableMap(
-      Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector, Operator2<V> merger) {
+  static <E, R, K, V> Finisher<ImmutableMap<K, V>, ImmutableMap<K, V>, E, R> toImmutableMap(
+      Iterable<? extends E> input, Function1<? super R, ? extends K> keySelector, Function1<? super R, ? extends V> valueSelector, Operator2<V> merger) {
     return of(input, ImmutableMap::empty,
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), merger));
   }
@@ -231,12 +262,13 @@ public interface Finisher<A, B, T, U> {
    * @param <K> the type of keys in the resulting ImmutableMap
    * @param <V> the type of values in the resulting ImmutableMap
    * @param <E> the type of input elements to process
+   * @param <R> the type of intermediate elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableMap of type K to V,
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, an IllegalArgumentException is thrown.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
-      Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector) {
+  static <E, R, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, R> toImmutableTreeMap(
+      Iterable<? extends E> input, Function1<? super R, ? extends K> keySelector, Function1<? super R, ? extends V> valueSelector) {
     return toImmutableTreeMap(input, keySelector, valueSelector, Finisher::throwingMerge);
   }
 
@@ -253,12 +285,13 @@ public interface Finisher<A, B, T, U> {
    * @param <K> the type of keys in the resulting ImmutableTreeMap
    * @param <V> the type of values in the resulting ImmutableTreeMap
    * @param <E> the type of input elements to process
+   * @param <R> the type of intermediate elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableTreeMap of type K to V,
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, the values are merged using the given merger function.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
-      Iterable<? extends E> input, Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector, Operator2<V> merger) {
+  static <E, R, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, R> toImmutableTreeMap(
+      Iterable<? extends E> input, Function1<? super R, ? extends K> keySelector, Function1<? super R, ? extends V> valueSelector, Operator2<V> merger) {
     return of(input, ImmutableTreeMap::empty,
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), merger));
   }
@@ -276,13 +309,14 @@ public interface Finisher<A, B, T, U> {
    * @param <K> the type of keys in the resulting ImmutableTreeMap
    * @param <V> the type of values in the resulting ImmutableTreeMap
    * @param <E> the type of input elements to process
+   * @param <R> the type of intermediate elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableTreeMap of type K to V,
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, an IllegalArgumentException is thrown.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
+  static <E, R, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, R> toImmutableTreeMap(
       Iterable<? extends E> input, Comparator<? super K> comparator,
-      Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector) {
+      Function1<? super R, ? extends K> keySelector, Function1<? super R, ? extends V> valueSelector) {
     return toImmutableTreeMap(input, comparator, keySelector, valueSelector, Finisher::throwingMerge);
   }
 
@@ -300,13 +334,14 @@ public interface Finisher<A, B, T, U> {
    * @param <K> the type of keys in the resulting ImmutableTreeMap
    * @param <V> the type of values in the resulting ImmutableTreeMap
    * @param <E> the type of input elements to process
+   * @param <R> the type of intermediate elements produced by the Transducer
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableTreeMap of type K to V,
    *  where the keys and values are produced by the given keySelector and valueSelector functions, respectively.
    *  If there are duplicate keys, the values are merged using the given merger function.
    */
-  static <E, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, E> toImmutableTreeMap(
+  static <E, R, K, V> Finisher<ImmutableTreeMap<K, V>, ImmutableTreeMap<K, V>, E, R> toImmutableTreeMap(
       Iterable<? extends E> input, Comparator<? super K> comparator,
-      Function1<? super E, ? extends K> keySelector, Function1<? super E, ? extends V> valueSelector, Operator2<V> merger) {
+      Function1<? super R, ? extends K> keySelector, Function1<? super R, ? extends V> valueSelector, Operator2<V> merger) {
     return of(input, () -> ImmutableTreeMap.empty(comparator),
       (acc, e) -> acc.merge(keySelector.apply(e), valueSelector.apply(e), merger));
   }
@@ -332,8 +367,21 @@ public interface Finisher<A, B, T, U> {
    * @param <R> the type of output elements
    * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableTree of type R
    */
+  static <E, R> Finisher<ImmutableTree<R>, ImmutableTree<R>, E, R> toImmutableTree(Iterable<? extends E> input) {
+    return of(input, ImmutableTree::empty, ImmutableTree::append);
+  }
+
+  /**
+   * Creates a Finisher that runs the given Transducer on the input collection and produces an ImmutableTree of type R.
+   *
+   * @param comparator the Comparator to use for ordering the elements in the ImmutableTree
+   * @param input the input collection to process
+   * @param <E> the type of input elements to process
+   * @param <R> the type of output elements
+   * @return a Finisher that runs the given Transducer on the input collection and produces an ImmutableTree of type R
+   */
   static <E, R> Finisher<ImmutableTree<R>, ImmutableTree<R>, E, R> toImmutableTree(
-      Comparator<? super R> comparator, Iterable<? extends E> input) {
+      Iterable<? extends E> input, Comparator<? super R> comparator) {
     return of(input, () -> ImmutableTree.empty(comparator), ImmutableTree::append);
   }
 
@@ -353,6 +401,7 @@ public interface Finisher<A, B, T, U> {
     return complete.apply(acc);
   }
 
+  @SuppressWarnings("unused")
   static <V> V throwingMerge(V a, V b) {
     throw new IllegalArgumentException("conflict detected");
   }

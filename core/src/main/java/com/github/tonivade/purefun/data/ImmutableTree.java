@@ -84,7 +84,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> map(Comparator<? super R> comparator, Function1<? super E, ? extends R> mapper) {
-    return pipeline().<R>map(mapper).finish(input -> Finisher.toImmutableTree(comparator, input));
+    return pipeline().<R>map(mapper).toImmutableTree(comparator);
   }
 
   @Override
@@ -93,12 +93,12 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> flatMap(Comparator<? super R> comparator, Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).finish(input -> Finisher.toImmutableTree(comparator, input));
+    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).toImmutableTree(comparator);
   }
 
   @Override
   default ImmutableTree<E> filter(Matcher1<? super E> matcher) {
-    return pipeline().filter(matcher).finish(input -> Finisher.toImmutableTree(comparator(), input));
+    return pipeline().filter(matcher).toImmutableTree(comparator());
   }
 
   @Override
@@ -112,7 +112,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <R> ImmutableTree<R> collect(Comparator<? super R> comparator, PartialFunction1<? super E, ? extends R> function) {
-    return pipeline().<R>mapFilter(function).finish(input -> Finisher.toImmutableTree(comparator, input));
+    return pipeline().<R>mapFilter(function).toImmutableTree(comparator);
   }
 
   @Override
@@ -121,7 +121,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   default <U> Sequence<U> scanLeft(Comparator<? super U> comparator, U initial, Function2<? super U, ? super E, ? extends U> combinator) {
-    return pipeline().scan(initial, combinator).finish(input -> Finisher.toImmutableTree(comparator, input));
+    return pipeline().scan(initial, combinator).toImmutableTree(comparator);
   }
 
   static <T> ImmutableTree<T> from(Iterable<? extends T> iterable) {
@@ -129,7 +129,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
   }
 
   static <T> ImmutableTree<T> from(Comparator<? super T> comparator, Iterable<? extends T> iterable) {
-    return Pipeline.<T>identity().finish(Finisher.toImmutableTree(comparator, iterable));
+    return Pipeline.<T>identity().finish(Finisher.toImmutableTree(iterable, comparator));
   }
 
   @SafeVarargs
@@ -181,7 +181,7 @@ public interface ImmutableTree<E> extends Sequence<E> {
 
     @Override
     public <R> ImmutableTree<R> apply(Comparator<? super R> comparator, Pipeline<E, R> pipeline) {
-      return pipeline.finish(Finisher.toImmutableTree(comparator, this));
+      return pipeline.finish(Finisher.toImmutableTree(this, comparator));
     }
 
     @SuppressWarnings("unchecked")

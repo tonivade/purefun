@@ -62,40 +62,40 @@ public interface ImmutableArray<E> extends Sequence<E> {
   <R> ImmutableArray<R> apply(Pipeline<E, R> pipeline);
 
   default ImmutableArray<Tuple2<Integer, E>> zipWithIndex() {
-    return pipeline().zipWithIndex().finish(Finisher::toImmutableArray);
+    return pipeline().zipWithIndex().toImmutableArray();
   }
 
   default ImmutableArray<E> dropWhile(Matcher1<? super E> condition) {
-    return pipeline().dropWhile(condition).finish(Finisher::toImmutableArray);
+    return pipeline().dropWhile(condition).toImmutableArray();
   }
 
   default ImmutableArray<E> takeWhile(Matcher1<? super E> condition) {
-    return pipeline().takeWhile(condition).finish(Finisher::toImmutableArray);
+    return pipeline().takeWhile(condition).toImmutableArray();
   }
 
   @Override
   default <R> ImmutableArray<R> map(Function1<? super E, ? extends R> mapper) {
-    return pipeline().<R>map(mapper).finish(Finisher::toImmutableArray);
+    return pipeline().<R>map(mapper).toImmutableArray();
   }
 
   @Override
   default <R> ImmutableArray<R> collect(PartialFunction1<? super E, ? extends R> function) {
-    return pipeline().<R>mapFilter(function).finish(Finisher::toImmutableArray);
+    return pipeline().<R>mapFilter(function).toImmutableArray();
   }
 
   @Override
   default <U> Sequence<U> scanLeft(U initial, Function2<? super U, ? super E, ? extends U> combinator) {
-    return pipeline().scan(initial, combinator).finish(Finisher::toImmutableArray);
+    return pipeline().scan(initial, combinator).toImmutableArray();
   }
 
   @Override
   default <R> ImmutableArray<R> flatMap(Function1<? super E, ? extends Kind<Sequence<?>, ? extends R>> mapper) {
-    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).finish(Finisher::toImmutableArray);
+    return pipeline().<R>flatMap(mapper.andThen(SequenceOf::toSequence)).toImmutableArray();
   }
 
   @Override
   default ImmutableArray<E> filter(Matcher1<? super E> matcher) {
-    return pipeline().filter(matcher).finish(Finisher::toImmutableArray);
+    return pipeline().filter(matcher).toImmutableArray();
   }
 
   @Override

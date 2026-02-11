@@ -5,13 +5,14 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
-
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
+import com.github.tonivade.purefun.type.Option;
+import java.util.Comparator;
 
 /**
  * A pipeline with an input, used to apply the pipeline to the input when finished
@@ -35,6 +36,58 @@ public final class PipelineWithInput<T, U> {
 
   public void forEach(Consumer1<? super U> action) {
     pipeline.forEach(input, action);
+  }
+
+  public ImmutableArray<U> toImmutableArray() {
+    return pipeline.finish(Finisher.toImmutableArray(input));
+  }
+
+  public ImmutableList<U> toImmutableList() {
+    return pipeline.finish(Finisher.toImmutableList(input));
+  }
+
+  public ImmutableSet<U> toImmutableSet() {
+    return pipeline.finish(Finisher.toImmutableSet(input));
+  }
+
+  public ImmutableTree<U> toImmutableTree() {
+    return pipeline.finish(Finisher.toImmutableTree(input));
+  }
+
+  public ImmutableTree<U> toImmutableTree(Comparator<? super U> comparator) {
+    return pipeline.finish(Finisher.toImmutableTree(input, comparator));
+  }
+
+  public <K, V> ImmutableMap<K, V> toImmutableMap(Function1<? super U, ? extends K> keyMapper, Function1<? super U, ? extends V> valueMapper) {
+    return pipeline.finish(Finisher.toImmutableMap(input, keyMapper, valueMapper));
+  }
+
+  public <K, V> ImmutableTreeMap<K, V> toImmutableTreeMap(Comparator<? super K> comparator, Function1<? super U, ? extends K> keyMapper, Function1<? super U, ? extends V> valueMapper) {
+    return pipeline.finish(Finisher.toImmutableTreeMap(input, comparator, keyMapper, valueMapper));
+  }
+
+  public <K> ImmutableMap<K, ImmutableList<U>> groupBy(Function1<? super U, ? extends K> keyMapper) {
+    return pipeline.finish(Finisher.groupBy(input, keyMapper));
+  }
+
+  public String join(String separator) {
+    return pipeline.finish(Finisher.join(input, separator));
+  }
+
+  public String join(String separator, String prefix, String suffix) {
+    return pipeline.finish(Finisher.join(input, separator, prefix, suffix));
+  }
+
+  public Option<U> findFirst() {
+    return pipeline.finish(Finisher.findFirst(input));
+  }
+
+  public boolean anyMatch(Matcher1<? super U> condition) {
+    return pipeline.finish(Finisher.anyMatch(input, condition));
+  }
+
+  public boolean allMatch(Matcher1<? super U> condition) {
+    return pipeline.finish(Finisher.allMatch(input, condition));
   }
 
   public <V> PipelineWithInput<T, V> map(Function1<? super U, ? extends V> f) {

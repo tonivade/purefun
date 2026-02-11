@@ -70,7 +70,7 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default Option<E> findFirst(Matcher1<? super E> matcher) {
-    return pipeline().filter(matcher).finish(Finisher::findFirst);
+    return pipeline().filter(matcher).findFirst();
   }
 
   default Collection<E> toCollection() {
@@ -114,13 +114,13 @@ public non-sealed interface Sequence<E> extends SequenceOf<E>, Iterable<E>, Bind
   }
 
   default String join(String separator, String prefix, String suffix) {
-    return pipeline().map(Object::toString).finish(input -> Finisher.join(input, separator, prefix, suffix));
+    return pipeline().map(Object::toString).join(separator, prefix, suffix);
   }
 
   <R> Sequence<R> collect(PartialFunction1<? super E, ? extends R> function);
 
   default <G> ImmutableMap<G, ImmutableList<E>> groupBy(Function1<? super E, ? extends G> selector) {
-    return pipeline().finish(input -> Finisher.groupBy(input, selector));
+    return pipeline().groupBy(selector);
   }
 
   default ImmutableList<E> asList() {
