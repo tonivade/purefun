@@ -361,7 +361,6 @@ public interface Finisher<A, B, T, U> {
   /**
    * Creates a Finisher that runs the given Transducer on the input collection and produces an ImmutableTree of type R.
    *
-   * @param comparator the Comparator to use for ordering the elements in the ImmutableTree
    * @param input the input collection to process
    * @param <E> the type of input elements to process
    * @param <R> the type of output elements
