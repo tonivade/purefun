@@ -155,6 +155,17 @@ public interface Finisher<A, B, T, U> {
     }));
   }
 
+  /**
+   * Creates a Finisher that runs the given Transducer on the input collection and produces true if all output elements match the given matcher,
+   * or false if there are no output elements or if any output element does not match the given matcher.
+   *
+   * @param input the input collection to process
+   * @param matcher the Matcher to test each output element against
+   * @param <E> the type of input elements to process
+   * @param <R> the type of output elements produced by the Transducer
+   * @return a Finisher that runs the given Transducer on the input collection and produces
+   *  true if all output elements match the given matcher, or false if there are no output elements or if any output element does not match the given matcher
+   */
   static <E, R> Finisher<Boolean, Boolean, E, R> allMatch(Iterable<? extends E> input, Matcher1<? super R> matcher) {
     return xf -> run(true, input, xf.apply((acc, e) -> {
       if (!matcher.test(e)) {
