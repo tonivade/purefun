@@ -203,6 +203,16 @@ public final class Pipeline<T, U> {
     return chain(Transducer.takeWhile(condition));
   }
 
+  /**
+   * Returns a pipeline that performs the given action on each element of the output sequence without modifying the elements.
+   *
+   * @param consumer the action to perform on each output element
+   * @return a pipeline that performs the action on each output element
+   */
+  public Pipeline<T, U> peek(Consumer1<? super U> consumer) {
+    return chain(Transducer.peek(consumer));
+  }
+
   private <V> Pipeline<T, V> chain(Transducer<Object, U, V> next) {
     return new Pipeline<>(Transducer.chain(transducer, next));
   }

@@ -5,6 +5,9 @@
 package com.github.tonivade.purefun.data;
 
 import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
+
+import java.util.Comparator;
+
 import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
@@ -12,7 +15,6 @@ import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.type.Option;
-import java.util.Comparator;
 
 /**
  * A pipeline with an input, used to apply the pipeline to the input when finished
@@ -58,11 +60,13 @@ public final class PipelineWithInput<T, U> {
     return pipeline.finish(Finisher.toImmutableTree(input, comparator));
   }
 
-  public <K, V> ImmutableMap<K, V> toImmutableMap(Function1<? super U, ? extends K> keyMapper, Function1<? super U, ? extends V> valueMapper) {
+  public <K, V> ImmutableMap<K, V> toImmutableMap(
+      Function1<? super U, ? extends K> keyMapper, Function1<? super U, ? extends V> valueMapper) {
     return pipeline.finish(Finisher.toImmutableMap(input, keyMapper, valueMapper));
   }
 
-  public <K, V> ImmutableTreeMap<K, V> toImmutableTreeMap(Comparator<? super K> comparator, Function1<? super U, ? extends K> keyMapper, Function1<? super U, ? extends V> valueMapper) {
+  public <K, V> ImmutableTreeMap<K, V> toImmutableTreeMap(
+      Comparator<? super K> comparator, Function1<? super U, ? extends K> keyMapper, Function1<? super U, ? extends V> valueMapper) {
     return pipeline.finish(Finisher.toImmutableTreeMap(input, comparator, keyMapper, valueMapper));
   }
 
@@ -144,5 +148,9 @@ public final class PipelineWithInput<T, U> {
 
   public <V> PipelineWithInput<T, V> scan(V init, Function2<? super V, ? super U, ? extends V> f) {
     return new PipelineWithInput<>(pipeline.scan(init, f), input);
+  }
+
+  public PipelineWithInput<T, U> peek(Consumer1<? super U> action) {
+    return new PipelineWithInput<>(pipeline.peek(action), input);
   }
 }

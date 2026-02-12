@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import com.github.tonivade.purefun.core.Consumer1;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Function2;
 import com.github.tonivade.purefun.core.Matcher1;
@@ -372,6 +373,21 @@ public interface Transducer<A, T, U> {
         return Transition.emit(Tuple.of(next, true), next);
       }
       return Transition.emitMany(Tuple.of(next, true), List.of(state.get1(), next));
+    });
+  }
+
+  /**
+   * Creates a transducer that allows you to perform side effects on each input element without modifying the elements themselves.
+   * The provided consumer function is called with each input element, allowing you to perform actions such as logging, debugging, or collecting statistics.
+   * The transducer emits the original input elements unchanged to the reducer, ensuring that the side effects do not interfere with the data processing logic.
+   *
+   * @param consumer A consumer function that takes an input element and performs side effects without modifying it
+   * @return A new transducer that applies the peek logic, allowing you to perform side effects on each input element while passing the original elements to the reducer
+   */
+  static <A, T> Transducer<A, T, T> peek(Consumer1<? super T> consumer) {
+    return statefulMap(Unit::unit, (s, t) -> {
+      consumer.accept(t);
+      return Transition.emit(s, t);
     });
   }
 }
