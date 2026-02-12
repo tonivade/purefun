@@ -134,13 +134,13 @@ public final class Pipeline<T, U> {
   }
 
   /**
-   * Returns a pipeline that produces tumbling windows of the input sequence.
+   * Returns a pipeline that produces fixed windows of the input sequence.
    *
-   * @param size the size of the tumbling window
-   * @return a pipeline that produces sequences of tumbling windows
+   * @param size the size of the fixed window
+   * @return a pipeline that produces sequences of fixed windows
    */
-  public Pipeline<T, Sequence<U>> tumbling(int size) {
-    return chain(Transducer.tumbling(size));
+  public Pipeline<T, Sequence<U>> windowFixed(int size) {
+    return chain(Transducer.windowFixed(size));
   }
 
   /**
@@ -149,8 +149,8 @@ public final class Pipeline<T, U> {
    * @param size the size of the sliding window
    * @return a pipeline that produces sequences of sliding windows
    */
-  public Pipeline<T, Sequence<U>> sliding(int size) {
-    return chain(Transducer.sliding(size));
+  public Pipeline<T, Sequence<U>> windowSliding(int size) {
+    return chain(Transducer.windowSliding(size));
   }
 
   /**

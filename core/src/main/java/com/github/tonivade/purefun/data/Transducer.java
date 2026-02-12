@@ -317,13 +317,13 @@ public interface Transducer<A, T, U> {
   }
 
   /**
-   * Creates a transducer that groups input elements into fixed-size windows (tumbling windows) and passes each window as a sequence to the reducer.
+   * Creates a transducer that groups input elements into fixed-size windows and passes each window as a sequence to the reducer.
    * The last window may contain fewer than the specified size if there are not enough remaining elements.
    *
-   * @param size The size of each tumbling window
-   * @return A new transducer that applies the tumbling window logic
+   * @param size The size of each fixed window
+   * @return A new transducer that applies the fixed window logic
    */
-  static <A, T> Transducer<A, T, Sequence<T>> tumbling(int size) {
+  static <A, T> Transducer<A, T, Sequence<T>> windowFixed(int size) {
     return Transducer.<A, T, ArrayList<T>, Sequence<T>>statefulMap(() -> new ArrayList<T>(size), (window, value) -> {
       window.add(value);
       if (window.size() == size) {
@@ -336,14 +336,14 @@ public interface Transducer<A, T, U> {
   }
 
   /**
-   * Creates a transducer that groups input elements into fixed-size windows (sliding windows) and passes each window as a sequence to the reducer.
+   * Creates a transducer that groups input elements into fixed-size sliding windows and passes each window as a sequence to the reducer.
    * The windows overlap, meaning that each window includes the last (size - 1) elements of the previous window.
    * The first few windows will contain fewer than the specified size until enough elements have been processed.
    *
    * @param size The size of each sliding window
    * @return A new transducer that applies the sliding window logic
    */
-  static <A, T> Transducer<A, T, Sequence<T>> sliding(int size) {
+  static <A, T> Transducer<A, T, Sequence<T>> windowSliding(int size) {
     return statefulMap(() -> new ArrayDeque<T>(size), (window, value) -> {
       window.addLast(value);
       if (window.size() > size) {

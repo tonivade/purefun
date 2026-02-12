@@ -119,11 +119,11 @@ public final class PipelineWithInput<T, U> {
   }
 
   public PipelineWithInput<T, Sequence<U>> tumbling(int size) {
-    return new PipelineWithInput<>(pipeline.tumbling(size), input);
+    return new PipelineWithInput<>(pipeline.windowFixed(size), input);
   }
 
   public PipelineWithInput<T, Sequence<U>> sliding(int size) {
-    return new PipelineWithInput<>(pipeline.sliding(size), input);
+    return new PipelineWithInput<>(pipeline.windowSliding(size), input);
   }
 
   public PipelineWithInput<T, U> distinct() {
