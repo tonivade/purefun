@@ -118,7 +118,8 @@ interface IOApplicative extends IOPure, Applicative<IO<?>> {
   @Override
   default <T, R> IO<R> ap(Kind<IO<?>, ? extends T> value,
       Kind<IO<?>, ? extends Function1<? super T, ? extends R>> apply) {
-    return IO.parMap2(executor(), value.fix(IOOf::toIO), apply.fix(IOOf::toIO), (v, a) -> a.apply(v));
+    var fix = value.fix(IOOf::<T>toIO);
+    return IO.parMap2(executor(), fix, apply.fix(IOOf::toIO), (v, a) -> a.apply(v));
   }
 }
 
