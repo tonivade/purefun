@@ -52,8 +52,6 @@ allprojects {
     }
   }
 
-  ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
   repositories {
     mavenLocal()
     mavenCentral()
@@ -155,7 +153,7 @@ subprojects {
             developer {
               id = 'tonivade'
               name = 'Antonio Muñoz'
-              email = 'antoniogmc@gmail.com'
+              email = 'me@tonivade.es'
             }
           }
         }
@@ -163,15 +161,16 @@ subprojects {
     }
   }
 
+  def isReleaseVersion = !version.endsWith("SNAPSHOT")
+
   signing {
-    def signingKey = project.findProperty("signingKey")
-    def signingPassword = project.findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
-  }
-  
-  tasks.withType(Sign) {
-    onlyIf { isReleaseVersion }
+    def signingKey = providers.gradleProperty("signingKey")
+    def signingPassword = providers.gradleProperty("signingPassword")
+    useInMemoryPgpKeys(signingKey.orNull, signingPassword.orNull)
+    
+    if (isReleaseVersion) {
+      sign publishing.publications.mavenJava
+    }
   }
 
   dependencies {
