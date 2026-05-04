@@ -21,3 +21,14 @@ You can report issues directly on Github.
 When submitting code, please make every effort to follow existing conventions and style in order to keep the code as readable as possible. Please also make sure your code compiles, passes the tests and the checkstyle configured for this repository.
 
 Describe the PR content and don't hesitate to add comments to explain us why you've added or changed something.
+
+## AI Usage Policy
+
+This project has strict rules for AI usage:
+
+- **All AI usage in any form must be disclosed.** You must state the tool you used (e.g. Claude Code, Cursor, Amp) 
+along with the extent that the work was AI-assisted.
+
+- **Pull requests created in any way by AI can only be for accepted issues.** Drive-by pull requests that do not 
+reference an accepted issue will be closed. If AI isn't disclosed but a maintainer suspects its use, the PR will be 
+closed. If you want to share code for a non-accepted issue, open a discussion or attach it to an existing discussion.
