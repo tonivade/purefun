@@ -1,4 +1,5 @@
 dependencies {
+  compileOnly(libs.jspecify)
   implementation projects.purefunAnnotation
   testImplementation libs.compileTesting
 }

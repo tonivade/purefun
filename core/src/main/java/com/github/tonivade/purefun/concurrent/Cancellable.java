@@ -9,7 +9,7 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.github.tonivade.purefun.Nullable;
+import org.jspecify.annotations.Nullable;
 import com.github.tonivade.purefun.type.Try;
 
 public sealed interface Cancellable {
