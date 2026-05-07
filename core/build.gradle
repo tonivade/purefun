@@ -1,6 +1,7 @@
 
 dependencies {
   annotationProcessor projects.purefunProcessor
+  compileOnly(libs.jspecify)
   api projects.purefunAnnotation
   api libs.pcollections
   testImplementation libs.assertj

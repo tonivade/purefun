@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nullable;
+import org.jspecify.annotations.Nullable;
 import com.github.tonivade.purefun.core.Applicable;
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Consumer1;

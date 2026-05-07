@@ -22,7 +22,7 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import com.github.tonivade.purefun.HigherKind;
-import com.github.tonivade.purefun.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @SupportedAnnotationTypes("com.github.tonivade.purefun.HigherKind")
 public class HigherKindProcessor extends AbstractProcessor {

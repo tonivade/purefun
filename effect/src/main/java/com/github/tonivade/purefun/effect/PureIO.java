@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.Nullable;
+import org.jspecify.annotations.Nullable;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.Promise;
 import com.github.tonivade.purefun.core.CheckedRunnable;

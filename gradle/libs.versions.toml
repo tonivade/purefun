@@ -12,6 +12,7 @@ errorpronePluginVersion = "5.1.0"
 nullawayVersion = "0.13.4"
 assertjVersion = "3.27.7"
 eclipseVersion = "4.4.1"
+jspecifyVersion = "1.0.0"
 
 [libraries]
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junitVersion" }
@@ -25,6 +26,7 @@ assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj
 pcollections = { group = "org.pcollections", name = "pcollections", version.ref = "pcollectionsVersion" }
 nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullawayVersion" }
 errorprone = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorproneVersion" }
+jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecifyVersion" }
 
 [plugins]
 sonar = { id = "org.sonarqube", version.ref = "sonarVersion" }

@@ -1,5 +1,6 @@
 dependencies {
   annotationProcessor projects.purefunProcessor
+  compileOnly(libs.jspecify)
   api projects.purefunCore
   api projects.purefunTypeclasses
   testImplementation projects.purefunEffect
