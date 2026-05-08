@@ -19,6 +19,7 @@ import com.github.tonivade.purefun.type.Either;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
@@ -98,8 +99,17 @@ public non-sealed interface EitherT<F extends Kind<F, ?>, L, R> extends EitherTO
     return OptionT.of(monad(), monad().map(value(), Either::toOption));
   }
 
+  default <V> Kind<F, Either<L, V>> flatMapF(Function1<? super R, ? extends Kind<F, ? extends Either<L, V>>> map) {
+   return monad().flatMap(value(), v -> v.fold(left -> monad().pure(Either.left(left)), map));
+  }
+
   static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> lift(Monad<F> monad, Either<L, R> either) {
     return of(monad, monad.pure(either));
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> lift(Either<L, R> either, F...reified) {
+    return lift(Instances.monad(reified), either);
   }
 
   static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> of(Monad<F> monad, Kind<F, Either<L, R>> value) {
@@ -115,23 +125,44 @@ public non-sealed interface EitherT<F extends Kind<F, ?>, L, R> extends EitherTO
     };
   }
 
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> of(Kind<F, Either<L, R>> value, F...reified) {
+    return of(Instances.monad(reified), value);
+  }
+
   static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> right(Monad<F> monad, R right) {
     return lift(monad, Either.right(right));
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> right(R right, F...reified) {
+    return right(Instances.monad(reified), right);
   }
 
   static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> left(Monad<F> monad, L left) {
     return lift(monad, Either.left(left));
   }
 
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, R> EitherT<F, L, R> left(L left, F...reified) {
+    return left(Instances.monad(reified), left);
+  }
+
   static <F extends Kind<F, ?>, R> EitherT<F, Throwable, R> fromOption(Monad<F> monad, Option<R> value) {
     return lift(monad, value.toEither());
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, R> EitherT<F, Throwable, R> fromOption(Option<R> value, F...reified) {
+    return fromOption(Instances.monad(reified), value);
   }
 
   static <F extends Kind<F, ?>, R> EitherT<F, Throwable, R> fromTry(Monad<F> monad, Try<R> value) {
     return lift(monad, value.toEither());
   }
 
-  default <V> Kind<F, Either<L, V>> flatMapF(Function1<? super R, ? extends Kind<F, ? extends Either<L, V>>> map) {
-   return monad().flatMap(value(), v -> v.fold(left -> monad().pure(Either.left(left)), map));
+  @SafeVarargs
+  static <F extends Kind<F, ?>, R> EitherT<F, Throwable, R> fromTry(Try<R> value, F...reified) {
+    return fromTry(Instances.monad(reified), value);
   }
 }

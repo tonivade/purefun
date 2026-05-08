@@ -8,6 +8,9 @@ import static com.github.tonivade.purefun.core.Producer.cons;
 import static com.github.tonivade.purefun.core.Unit.unit;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
@@ -19,17 +22,13 @@ import com.github.tonivade.purefun.type.Id;
 import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.Instances;
-import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
-import org.junit.jupiter.api.Test;
 
 public class EitherTTest {
 
-  private final Monad<Id<?>> monad = Instances.monad();
-
   @Test
   public void map() {
-    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right("abc");
 
     EitherT<Id<?>, Void, String> map = right.map(String::toUpperCase);
 
@@ -38,26 +37,26 @@ public class EitherTTest {
 
   @Test
   public void flatMap() {
-    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right("abc");
 
-    EitherT<Id<?>, Void, String> map = right.flatMap(value -> EitherT.right(monad, value.toUpperCase()));
+    EitherT<Id<?>, Void, String> map = right.flatMap(value -> EitherT.right(value.toUpperCase()));
 
     assertEquals(Id.of("ABC"), map.get());
   }
 
   @Test
   public void filterOrElse() {
-    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right("abc");
 
     EitherT<Id<?>, Void, String> filter = right.filterOrElse(String::isEmpty, cons(Either.right("not empty")));
-    EitherT<Id<?>, Void, String> orElse = EitherT.right(monad, "not empty");
+    EitherT<Id<?>, Void, String> orElse = EitherT.right("not empty");
 
     assertEquals(orElse.get(), filter.getOrElse("not empty"));
   }
 
   @Test
   public void left() {
-    EitherT<Id<?>, Unit, String> left = EitherT.left(monad, unit());
+    EitherT<Id<?>, Unit, String> left = EitherT.left(unit());
 
     assertAll(
         () -> assertEquals(Id.of(true), left.isLeft()),
@@ -67,7 +66,7 @@ public class EitherTTest {
 
   @Test
   public void right() {
-    EitherT<Id<?>, Void, String> right = EitherT.right(monad, "abc");
+    EitherT<Id<?>, Void, String> right = EitherT.right("abc");
 
     assertAll(
         () -> assertEquals(Id.of(false), right.isLeft()),
@@ -110,7 +109,7 @@ public class EitherTTest {
   public void monadErrorIO() {
     RuntimeException error = new RuntimeException("error");
     MonadError<EitherT<Id<?>, Throwable, ?>, Throwable> monadError =
-        EitherTInstances.monadError(monad);
+        EitherTInstances.monadError(Instances.<Id<?>>monad());
 
     Kind<EitherT<Id<?>, Throwable, ?>, String> pure = monadError.pure("is not ok");
     Kind<EitherT<Id<?>, Throwable, ?>, String> raiseError = monadError.raiseError(error);

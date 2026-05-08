@@ -10,12 +10,12 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
 import com.github.tonivade.purefun.core.Tuple;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.Monoid;
 
@@ -65,6 +65,11 @@ public non-sealed interface WriterT<F extends Kind<F, ?>, L, A> extends WriterTO
     return writer(monoid(), monadG, functionK.apply(value()));
   }
 
+  @SuppressWarnings("unchecked")
+  default <G extends Kind<G, ?>> WriterT<G, L, A> mapK(FunctionK<F, G> functionK, G...reified) {
+    return mapK(Instances.monad(reified), functionK);
+  }
+
   @Override
   default <R> WriterT<F, L, R> flatMap(Function1<? super A, ? extends Kind<WriterT<F, L, ?>, ? extends R>> mapper) {
     return writer(monoid(), monad(),
@@ -82,8 +87,18 @@ public non-sealed interface WriterT<F extends Kind<F, ?>, L, A> extends WriterTO
     return lift(monoid, monad, Tuple2.of(monoid.zero(), value));
   }
 
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, A> WriterT<F, L, A> pure(Monoid<L> monoid, A value, F...reified) {
+    return pure(monoid, Instances.monad(reified), value);
+  }
+
   static <F extends Kind<F, ?>, L, A> WriterT<F, L, A> lift(Monoid<L> monoid, Monad<F> monad, Tuple2<L, A> value) {
     return writer(monoid, monad, monad.pure(value));
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, A> WriterT<F, L, A> lift(Monoid<L> monoid, Tuple2<L, A> value, F...reified) {
+    return lift(monoid, Instances.monad(reified), value);
   }
 
   static <F extends Kind<F, ?>, L, A> WriterT<F, L, A> writer(Monoid<L> monoid, Monad<F> monad, Kind<F, Tuple2<L, A>> value) {
@@ -101,5 +116,10 @@ public non-sealed interface WriterT<F extends Kind<F, ?>, L, A> extends WriterTO
       @Override
       public Kind<F, Tuple2<L, A>> value() { return value; }
     };
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, L, A> WriterT<F, L, A> writer(Monoid<L> monoid, Kind<F, Tuple2<L, A>> value, F...reified) {
+    return writer(monoid, Instances.monad(reified), value);
   }
 }

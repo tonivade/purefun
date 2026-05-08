@@ -17,6 +17,7 @@ import com.github.tonivade.purefun.core.Matcher1;
 import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.type.Option;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
@@ -48,6 +49,11 @@ public non-sealed interface OptionT<F extends Kind<F, ?>, T> extends OptionTOf<F
     return OptionT.of(other, functionK.apply(value()));
   }
 
+  @SuppressWarnings("unchecked")
+  default <G extends Kind<G, ?>> OptionT<G, T> mapK(FunctionK<F, G> functionK, G...reified) {
+    return mapK(Instances.monad(reified), functionK);
+  }
+
   default Kind<F, T> getOrElseThrow() {
     return monad().map(value(), Option::getOrElseThrow);
   }
@@ -72,8 +78,17 @@ public non-sealed interface OptionT<F extends Kind<F, ?>, T> extends OptionTOf<F
     return filter(matcher.negate());
   }
 
+  default <R> Kind<F, Option<R>> flatMapF(Function1<? super T, ? extends Kind<F, ? extends Option<R>>> map) {
+   return monad().flatMap(value(), v -> v.fold(cons(monad().pure(Option.none())), map));
+  }
+
   static <F extends Kind<F, ?>, T> OptionT<F, T> lift(Monad<F> monad, Option<T> value) {
     return OptionT.of(monad, monad.pure(value));
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, T> OptionT<F, T> lift(Option<T> value, F...reified) {
+    return lift(Instances.monad(reified), value);
   }
 
   static <F extends Kind<F, ?>, T> OptionT<F, T> of(Monad<F> monad, Kind<F, Option<T>> value) {
@@ -89,15 +104,26 @@ public non-sealed interface OptionT<F extends Kind<F, ?>, T> extends OptionTOf<F
     };
   }
 
+  @SafeVarargs
+  static <F extends Kind<F, ?>, T> OptionT<F, T> of(Kind<F, Option<T>> value, F...reified) {
+    return of(Instances.monad(reified), value);
+  }
+
   static <F extends Kind<F, ?>, T> OptionT<F, T> some(Monad<F> monad, T value) {
     return lift(monad, Option.some(value));
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, T> OptionT<F, T> some(T value, F...reified) {
+    return some(Instances.monad(reified), value);
   }
 
   static <F extends Kind<F, ?>, T> OptionT<F, T> none(Monad<F> monad) {
     return lift(monad, Option.none());
   }
 
-  default <R> Kind<F, Option<R>> flatMapF(Function1<? super T, ? extends Kind<F, ? extends Option<R>>> map) {
-   return monad().flatMap(value(), v -> v.fold(cons(monad().pure(Option.none())), map));
+  @SafeVarargs
+  static <F extends Kind<F, ?>, T> OptionT<F, T> none(F...reified) {
+    return none(Instances.monad(reified));
   }
 }

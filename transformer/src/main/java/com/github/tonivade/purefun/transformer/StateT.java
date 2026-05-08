@@ -74,7 +74,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     };
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S, A> StateT<F, S, A> state(Function1<S, Kind<F, Tuple2<S, A>>> run, F...reified) {
     return state(Instances.monad(reified), run);
   }
@@ -92,7 +92,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     return state(monad, run.andThen(monad::<Tuple2<S, A>>pure));
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S, A> StateT<F, S, A> lift(Function1<S, Tuple2<S, A>> run, F...reified) {
     return lift(Instances.monad(reified), run);
   }
@@ -110,7 +110,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     return lift(monad, state -> Tuple2.of(state, state));
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S> StateT<F, S, S> get(F...reified) {
     return get(Instances.monad(reified));
   }
@@ -119,7 +119,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     return lift(monad, state -> Tuple2.of(value, unit()));
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S> StateT<F, S, Unit> set(S value, F...reified) {
     return set(Instances.monad(reified), value);
   }
@@ -128,7 +128,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     return lift(monad, state -> Tuple2.of(mapper.apply(state), unit()));
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S> StateT<F, S, Unit> modify(Operator1<S> mapper, F...reified) {
     return modify(Instances.monad(reified), mapper);
   }
@@ -137,7 +137,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     return lift(monad, state -> Tuple2.of(state, mapper.apply(state)));
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S, A> StateT<F, S, A> inspect(Function1<S, A> mapper, F...reified) {
     return inspect(Instances.monad(reified), mapper);
   }
@@ -148,7 +148,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
         (StateT<F, S, Sequence<A>> xs, StateT<F, S, A> a) -> map2(xs, a, Sequence::append));
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S, A> StateT<F, S, Sequence<A>> traverse(
       Sequence<StateT<F, S, A>> states, F...reified) {
     return traverse(Instances.monad(reified), states);
@@ -164,7 +164,7 @@ public non-sealed interface StateT<F extends Kind<F, ?>, S, A> extends StateTOf<
     return state(monad, run);
   }
 
-  @SuppressWarnings("unchecked")
+  @SafeVarargs
   static <F extends Kind<F, ?>, S, A> StateT<F, S, A> of(
       Function1<S, Kind<F, Tuple2<S, A>>> run, F...reified) {
     return of(Instances.monad(reified), run);

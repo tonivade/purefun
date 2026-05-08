@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
 import com.github.tonivade.purefun.Kind;
 import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
@@ -24,17 +27,13 @@ import com.github.tonivade.purefun.type.Try;
 import com.github.tonivade.purefun.type.TryOf;
 import com.github.tonivade.purefun.typeclasses.FunctionK;
 import com.github.tonivade.purefun.typeclasses.Instances;
-import com.github.tonivade.purefun.typeclasses.Monad;
 import com.github.tonivade.purefun.typeclasses.MonadError;
-import org.junit.jupiter.api.Test;
 
 public class OptionTTest {
 
-  private final Monad<Id<?>> monad = Instances.monad();
-
   @Test
   public void map() {
-    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some("abc");
 
     OptionT<Id<?>, String> map = some.map(String::toUpperCase);
 
@@ -43,26 +42,26 @@ public class OptionTTest {
 
   @Test
   public void flatMap() {
-    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some("abc");
 
-    OptionT<Id<?>, String> map = some.flatMap(value -> OptionT.some(monad, value.toUpperCase()));
+    OptionT<Id<?>, String> map = some.flatMap(value -> OptionT.some(value.toUpperCase()));
 
     assertEquals(Id.of("ABC"), map.getOrElseThrow());
   }
 
   @Test
   public void filter() {
-    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some("abc");
 
     OptionT<Id<?>, String> filter = some.filter(String::isEmpty);
-    OptionT<Id<?>, String> orElse = OptionT.some(monad, "not empty");
+    OptionT<Id<?>, String> orElse = OptionT.some("not empty");
 
     assertEquals(orElse.getOrElseThrow(), filter.getOrElse("not empty"));
   }
 
   @Test
   public void none() {
-    OptionT<Id<?>, String> none = OptionT.none(monad);
+    OptionT<Id<?>, String> none = OptionT.none();
 
     assertAll(
         () -> assertEquals(Id.of(true), none.isEmpty()),
@@ -71,7 +70,7 @@ public class OptionTTest {
 
   @Test
   public void some() {
-    OptionT<Id<?>, String> some = OptionT.some(monad, "abc");
+    OptionT<Id<?>, String> some = OptionT.some("abc");
 
     assertAll(
         () -> assertEquals(Id.of(false), some.isEmpty()),
@@ -89,10 +88,10 @@ public class OptionTTest {
 
   @Test
   public void eq() {
-    OptionT<Id<?>, String> some1 = OptionT.some(monad, "abc");
-    OptionT<Id<?>, String> some2 = OptionT.some(monad, "abc");
-    OptionT<Id<?>, String> none1 = OptionT.none(monad);
-    OptionT<Id<?>, String> none2 = OptionT.none(monad);
+    OptionT<Id<?>, String> some1 = OptionT.some("abc");
+    OptionT<Id<?>, String> some2 = OptionT.some("abc");
+    OptionT<Id<?>, String> none1 = OptionT.none();
+    OptionT<Id<?>, String> none2 = OptionT.none();
 
     Eq<Kind<OptionT<Id<?>, ?>, String>> instance = OptionTInstances.eq(IdInstances.eq(Eq.any()));
 
@@ -127,7 +126,7 @@ public class OptionTTest {
 
   @Test
   public void monadErrorIO() {
-    MonadError<OptionT<Id<?>, ?>, Unit> monadError = OptionTInstances.monadError(monad);
+    MonadError<OptionT<Id<?>, ?>, Unit> monadError = OptionTInstances.<Id<?>>monadError(Instances.monad());
 
     Kind<OptionT<Id<?>, ?>, String> pure = monadError.pure("is not ok");
     Kind<OptionT<Id<?>, ?>, String> raiseError = monadError.raiseError(unit());

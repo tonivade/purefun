@@ -8,9 +8,9 @@ import static com.github.tonivade.purefun.core.Precondition.checkNonNull;
 
 import com.github.tonivade.purefun.HigherKind;
 import com.github.tonivade.purefun.Kind;
-
 import com.github.tonivade.purefun.core.Bindable;
 import com.github.tonivade.purefun.core.Function1;
+import com.github.tonivade.purefun.typeclasses.Instances;
 import com.github.tonivade.purefun.typeclasses.Monad;
 
 @HigherKind
@@ -46,12 +46,27 @@ public non-sealed interface Kleisli<F extends Kind<F, ?>, Z, A> extends KleisliO
     return Kleisli.of(monad, map.andThen(monad::<B>pure));
   }
 
+  @SafeVarargs
+  static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> lift(Function1<? super A, ? extends B> map, F...reified) {
+    return lift(Instances.monad(reified), map);
+  }
+
   static <F extends Kind<F, ?>, Z> Kleisli<F, Z, Z> env(Monad<F> monad) {
     return Kleisli.of(monad, monad::<Z>pure);
   }
 
+  @SafeVarargs
+  static <F extends Kind<F, ?>, Z> Kleisli<F, Z, Z> env(F...reified) {
+    return env(Instances.monad(reified));
+  }
+
   static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> pure(Monad<F> monad, B value) {
     return Kleisli.of(monad, a -> monad.pure(value));
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> pure(B value, F...reified) {
+    return pure(Instances.monad(reified), value);
   }
 
   static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> of(Monad<F> monad,
@@ -66,5 +81,11 @@ public non-sealed interface Kleisli<F extends Kind<F, ?>, Z, A> extends KleisliO
       @Override
       public Kind<F, B> run(A value) { return run.andThen(Kind::<F, B>narrowK).apply(value); }
     };
+  }
+
+  @SafeVarargs
+  static <F extends Kind<F, ?>, A, B> Kleisli<F, A, B> of(
+      Function1<? super A, ? extends Kind<F, ? extends B>> run, F...reified) {
+    return of(Instances.monad(reified), run);
   }
 }
