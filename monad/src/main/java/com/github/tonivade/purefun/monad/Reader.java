@@ -17,7 +17,7 @@ public non-sealed interface Reader<R, A> extends ReaderOf<R, A>, Bindable<Reader
 
   @Override
   default <B> Reader<R, B> map(Function1<? super A, ? extends B> mapper) {
-    return reader -> mapper.apply(eval(reader));
+    return flatMap(mapper.andThen(Reader::pure));
   }
 
   @Override

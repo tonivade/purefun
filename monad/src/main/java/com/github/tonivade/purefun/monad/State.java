@@ -25,7 +25,7 @@ public non-sealed interface State<S, A> extends StateOf<S, A>, Bindable<State<S,
 
   @Override
   default <R> State<S, R> map(Function1<? super A, ? extends R> mapper) {
-    return flatMap(value -> pure(mapper.apply(value)));
+    return flatMap(mapper.andThen(State::pure));
   }
 
   @Override
