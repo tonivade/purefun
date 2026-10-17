@@ -390,9 +390,9 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
       monad,
       monad.map(initial, s -> Tuple.of(s, zero)),
       (a, sz) -> {
-        Kind<F, Either<Unit, S>> update = update(a, sz.get1());
-        Kind<F, Either<Unit, ? extends Z>> other = next.apply(sz.get2(), extract(a, sz.get1()));
-        return monad.mapN(update, other).apply((x, y) -> Either.<Unit, S, Z, Tuple2<S, Z>>map2(x, y, Tuple::of));
+        var update = update(a, sz.get1());
+        var other = next.apply(sz.get2(), extract(a, sz.get1()));
+        return monad.mapN(update, other).apply((x, y) -> Either.map2(x, y, Tuple::of));
       },
       (a, sz) -> sz.get2());
   }
@@ -400,13 +400,12 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
   @Override
   public Schedule<F, A, B> addDelayM(Function1<B, Kind<F, Duration>> map) {
     return updated(u -> (a, s) -> {
-      Kind<F, Either<Unit, Tuple2<Duration, S>>> map2 =
-        monad.mapN(map.apply(extract(a, s)), u.update(a, s)).apply(
-              (duration, either) -> either.map(x -> Tuple.of(duration, x)));
+      var map2 = monad.mapN(map.apply(extract(a, s)), u.update(a, s))
+          .apply((duration, either) -> either.map(x -> Tuple.of(duration, x)));
 
       return monad.flatMap(map2, either -> {
-        Kind<F, Unit> fold = either.fold(monad::pure, tuple -> monadDefer().sleep(tuple.get1()));
-        return monad.map(fold, ignore -> either.map(Tuple2<Duration, S>::get2));
+        var fold = either.fold(monad::pure, tuple -> monadDefer().sleep(tuple.get1()));
+        return monad.map(fold, ignore -> either.map(Tuple2::get2));
       });
     });
   }
@@ -414,7 +413,7 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
   @Override
   public Schedule<F, A, B> untilInputM(Function1<A, Kind<F, Boolean>> condition) {
     return updated(u -> (a, s) -> {
-      Kind<F, Boolean> apply = condition.apply(a);
+      var apply = condition.apply(a);
       return monad.flatMap(apply, test -> test ? monad.pure(Either.left(Unit.unit())) : update(a, s));
     });
   }
@@ -422,7 +421,7 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
   @Override
   public Schedule<F, A, B> untilOutputM(Function1<B, Kind<F, Boolean>> condition) {
     return updated(u -> (a, s) -> {
-      Kind<F, Boolean> apply = condition.apply(extract(a, s));
+      var apply = condition.apply(extract(a, s));
       return monad.flatMap(apply, test -> test ? monad.pure(Either.<Unit, S>left(Unit.unit())) : update(a, s));
     });
   }
@@ -430,25 +429,24 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
   @Override
   public Schedule<F, A, B> check(Function2<A, B, Kind<F, Boolean>> condition) {
     return updated(u -> (a, s) -> {
-      Kind<F, Boolean> apply = condition.apply(a, extract(a, s));
-      return monad.flatMap(apply, result -> result ? u.update(a, s) : monad.pure(Either.left(Unit.unit())));
+      var apply = condition.apply(a, extract(a, s));
+      return monad.flatMap(apply,
+          result -> result ? u.update(a, s) : monad.pure(Either.left(Unit.unit())));
     });
   }
 
   private <T, C> ScheduleImpl<F, Either<S, T>, A, Either<B, C>> doAndThenEither(ScheduleImpl<F, T, A, C> other) {
     return ScheduleImpl.<F, Either<S, T>, A, Either<B, C>>of(
         monad,
-        monad.map(initial, Either::<S, T>left),
+        monad.map(initial, Either::left),
         (a, st) -> st.fold(
             s -> {
-              Kind<F, Either<Unit, Either<S, T>>> orElse =
-                  monad.flatMap(other.initial, t -> {
-                    Kind<F, Either<Unit, T>> u = other.update(a, t);
-                    return monad.map(u, e -> e.map(Either::<S, T>right));
-                  });
-              Kind<F, Either<Unit, Either<S, T>>> map =
-                  monad.map(this.update(a, s), e -> e.map(Either::<S, T>left));
-              return monad.mapN(map, orElse).apply(Either<Unit, Either<S, T>>::orElse);
+              var orElse = monad.flatMap(other.initial, t -> {
+                var u = other.update(a, t);
+                return monad.map(u, e -> e.map(Either::<S, T>right));
+              });
+              var map = monad.map(this.update(a, s), e -> e.map(Either::<S, T>left));
+              return monad.mapN(map, orElse).apply(Either::orElse);
             },
             t -> monad.map(other.update(a, t), e -> e.map(Either::<S, T>right))),
         (a, st) -> st.fold(
@@ -461,8 +459,8 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
         monad,
         monad.tuple(this.initial, other.initial),
         (a, st) -> {
-          Kind<F, Either<Unit, S>> self = this.update(a, st.get1());
-          Kind<F, Either<Unit, T>> next = other.update(a, st.get2());
+          var self = this.update(a, st.get1());
+          var next = other.update(a, st.get2());
           return monad.mapN(self, next).apply((x, y) -> Either.map2(x, y, Tuple::of));
         },
         (a, st) -> Tuple.of(
@@ -475,8 +473,8 @@ final class ScheduleImpl<F extends Kind<F, ?>, S, A, B> implements Schedule<F, A
         monad,
         monad.tuple(this.initial, other.initial),
         (a, st) -> {
-          Kind<F, Either<Unit, S>> self = this.update(a, st.get1());
-          Kind<F, Either<Unit, T>> next = other.update(this.extract(a, st.get1()), st.get2());
+          var self = this.update(a, st.get1());
+          var next = other.update(this.extract(a, st.get1()), st.get2());
           return monad.mapN(self, next).apply((x, y) -> Either.map2(x, y, Tuple::of));
         },
         (a, st) -> other.extract(this.extract(a, st.get1()), st.get2()));
