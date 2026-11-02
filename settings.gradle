@@ -2,8 +2,8 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = 'purefun-parent'
 
-include "core", "monad", "stream", "typeclasses",
-        "optics", "effect", "free", "transformer",
+include "core", "monad", "typeclasses",
+        "optics", "free", "transformer",
         "instances", "annotation", "processor"
 
 rootProject.children.each { it.name = "purefun-" + it.name }

@@ -361,64 +361,6 @@ Kind<Try_, Double> result = toInt.compose(half).run("123");
 assertEquals(Try.success(61.5), result);
 ```
 
-## Stream
-
-An experimental version of a `Stream` like scala fs2 project.
-
-```java
-StreamOf<IO<?>> streamOfIO = Stream.ofIO();
-
-IO<String> readFile = streamOfIO.eval(IO.of(() -> reader(file)))
-  .flatMap(reader -> streamOfIO.iterate(() -> Option.of(() -> readLine(reader))))
-  .takeWhile(Option::isPresent)
-  .map(Option::get)
-  .foldLeft("", (a, b) -> a + "\n" + b)
-  .fix(IOOf::toIO)
-  .recoverWith(UncheckedIOException.class, cons("--- file not found ---"));
-
-String content = readFile.unsafeRunSync();
-```
-
-## Effects
-
-An experimental version of `PureIO` similar to ZIO.
-
-```java
-PureIO<Console, Throwable, Unit> echoProgram =
-  Console.println("what's your name?")
-      .andThen(Console.readln())
-      .flatMap(name -> Console.println("Hello " + name));
-
-interface Console {
-
-  <R extends Console> Console.Service<R> console();
-
-  static PureIO<Console, Throwable, String> readln() {
-    return PureIO.accessM(env -> env.console().readln());
-  }
-
-  static PureIO<Console, Throwable, Unit> println(String text) {
-    return PureIO.accessM(env -> env.console().println(text));
-  }
-
-  interface Service<R extends Console> {
-    PureIO<R, Throwable, String> readln();
-
-    PureIO<R, Throwable, Unit> println(String text);
-  }
-}
-```
-
-Additionally, there are aliases for some PureIO special cases:
-
-```
-UIO<T>      =>  PureIO<Void, Void, T>
-EIO<E, T>   =>  PureIO<Void, E, T>
-Task<T>     =>  PureIO<Void, Throwable, T>
-RIO<R, T>   =>  PureIO<R, Throwable, T>
-URIO<T>     =>  PureIO<R, Void, T>
-```
-
 ## Type Classes
 
 With higher kinded types simulation we can implement typeclases.

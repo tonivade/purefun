@@ -6,8 +6,6 @@ package com.github.tonivade.purefun.typeclasses;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Either;
@@ -42,33 +40,5 @@ public class ConcurrentTest {
     Either<Integer, String> orElseThrow = race.fix(IOOf::toIO).runAsync().await(TIMEOUT).getOrElseThrow();
 
     assertEquals(Either.right("b"), orElseThrow);
-  }
-
-  @Test
-  public void PureIORaceA() {
-    Concurrent<PureIO<Void, Throwable, ?>> concurrent = Instances.concurrent();
-
-    Kind<PureIO<Void, Throwable, ?>, Either<Integer, String>> race = concurrent.race(
-        PureIO.<Void, Throwable>sleep(Duration.ofMillis(10)).andThen(PureIO.task(() -> 10)),
-        PureIO.<Void, Throwable>sleep(Duration.ofMillis(100)).andThen(PureIO.task(() -> "b")));
-
-    Either<Throwable, Either<Integer, String>> orElseThrow =
-        race.fix(PureIOOf::<Void, Throwable, Either<Integer, String>>toPureIO).runAsync(null).await(TIMEOUT).getOrElseThrow();
-
-    assertEquals(Either.right(Either.left(10)), orElseThrow);
-  }
-
-  @Test
-  public void PureIORaceB() {
-    Concurrent<PureIO<Void, Throwable, ?>> concurrent = Instances.concurrent();
-
-    Kind<PureIO<Void, Throwable, ?>, Either<Integer, String>> race = concurrent.race(
-        PureIO.<Void, Throwable>sleep(Duration.ofMillis(100)).andThen(PureIO.task(() -> 10)),
-        PureIO.<Void, Throwable>sleep(Duration.ofMillis(10)).andThen(PureIO.task(() -> "b")));
-
-    Either<Throwable, Either<Integer, String>> orElseThrow =
-        race.fix(PureIOOf::<Void, Throwable, Either<Integer, String>>toPureIO).runAsync(null).await(TIMEOUT).getOrElseThrow();
-
-    assertEquals(Either.right(Either.right("b")), orElseThrow);
   }
 }
