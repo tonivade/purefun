@@ -10,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.github.tonivade.purefun.Kind;
-import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIOOf;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.transformer.EitherT;
@@ -39,15 +37,6 @@ public class InstanceTest {
     Either<String, Integer> result = functor.map(Either.right(1), x -> x + 1).fix(EitherOf::toEither);
 
     assertEquals(Either.right(2), result);
-  }
-
-  @Test
-  public void testPureIO() {
-    Functor<PureIO<Void, String, ?>> functor = new Instance<PureIO<Void, String, ?>>() { }.functor();
-
-    PureIO<Void, String, Integer> result = functor.map(PureIO.pure(1), x -> x + 1).fix(PureIOOf::toPureIO);
-
-    assertEquals(Either.right(2), result.provide(null));
   }
 
   @Test

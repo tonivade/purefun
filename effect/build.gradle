@@ -1,8 +1,0 @@
-dependencies {
-  annotationProcessor projects.purefunProcessor
-  compileOnly(libs.jspecify)
-  api projects.purefunCore
-  api projects.purefunTypeclasses
-  testImplementation projects.purefunMonad
-  testImplementation projects.purefunInstances
-}

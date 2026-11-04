@@ -23,8 +23,6 @@ import com.github.tonivade.purefun.core.Producer;
 import com.github.tonivade.purefun.core.Tuple2;
 import com.github.tonivade.purefun.core.Unit;
 import com.github.tonivade.purefun.data.Sequence;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.UIOOf;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 
@@ -52,19 +50,6 @@ public class ScheduleTest {
     Schedule<IO<?>, Unit, Unit> schedule = Schedule.<IO<?>, Unit>recurs(10000).zipRight(Schedule.identity());
 
     IO<Unit> repeat = monadError.repeat(print, schedule).fix(IOOf::toIO);
-
-    Unit result = repeat.unsafeRunSync();
-
-    assertEquals(unit(), result);
-    verify(console, times(10001)).accept("hola");
-  }
-
-  @Test
-  public void repeatStackSafeUIO(@Mock Consumer1<String> console) {
-    UIO<Unit> print = UIO.exec(() -> console.accept("hola"));
-    Schedule<UIO<?>, Unit, Unit> schedule = Schedule.<UIO<?>, Unit>recurs(10000).zipRight(Schedule.identity());
-
-    UIO<Unit> repeat = Instances.<UIO<?>, Throwable>monadError().repeat(print, schedule).fix(UIOOf::toUIO);
 
     Unit result = repeat.unsafeRunSync();
 

@@ -16,24 +16,12 @@ import com.github.tonivade.purefun.concurrent.Future;
 import com.github.tonivade.purefun.concurrent.FutureOf;
 import com.github.tonivade.purefun.core.PartialFunction1;
 import com.github.tonivade.purefun.core.Unit;
-import com.github.tonivade.purefun.effect.EIO;
-import com.github.tonivade.purefun.effect.EIOOf;
-import com.github.tonivade.purefun.effect.PureIO;
-import com.github.tonivade.purefun.effect.PureIOOf;
-import com.github.tonivade.purefun.effect.Task;
-import com.github.tonivade.purefun.effect.TaskOf;
-import com.github.tonivade.purefun.effect.UIO;
-import com.github.tonivade.purefun.effect.UIOOf;
-import com.github.tonivade.purefun.instances.EIOInstances;
 import com.github.tonivade.purefun.instances.EitherInstances;
 import com.github.tonivade.purefun.instances.EvalInstances;
 import com.github.tonivade.purefun.instances.FutureInstances;
 import com.github.tonivade.purefun.instances.IOInstances;
 import com.github.tonivade.purefun.instances.OptionInstances;
-import com.github.tonivade.purefun.instances.PureIOInstances;
-import com.github.tonivade.purefun.instances.TaskInstances;
 import com.github.tonivade.purefun.instances.TryInstances;
-import com.github.tonivade.purefun.instances.UIOInstances;
 import com.github.tonivade.purefun.monad.IO;
 import com.github.tonivade.purefun.monad.IOOf;
 import com.github.tonivade.purefun.type.Either;
@@ -199,77 +187,5 @@ public class MonadErrorTest {
         () -> assertEquals("not an error", handleError.fix(IOOf::toIO).unsafeRunSync()),
         () -> assertThrows(RuntimeException.class, () -> ensureError.fix(IOOf::toIO).unsafeRunSync()),
         () -> assertEquals("is not ok", ensureOk.fix(IOOf::toIO).unsafeRunSync()));
-  }
-
-  @Test
-  public void uio() {
-    RuntimeException error = new RuntimeException("error");
-    MonadError<UIO<?>, Throwable> monadError = UIOInstances.monadError();
-
-    Kind<UIO<?>, String> pure = monadError.pure("is not ok");
-    Kind<UIO<?>, String> raiseError = monadError.raiseError(error);
-    Kind<UIO<?>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<UIO<?>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<UIO<?>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
-
-    assertAll(
-        () -> assertThrows(RuntimeException.class, () -> UIOOf.toUIO(raiseError).unsafeRunSync()),
-        () -> assertEquals("not an error", UIOOf.toUIO(handleError).unsafeRunSync()),
-        () -> assertThrows(RuntimeException.class, () -> UIOOf.toUIO(ensureError).unsafeRunSync()),
-        () -> assertEquals("is not ok", UIOOf.toUIO(ensureOk).unsafeRunSync()));
-  }
-
-  @Test
-  public void eio() {
-    RuntimeException error = new RuntimeException("error");
-    MonadError<EIO<Throwable, ?>, Throwable> monadError = EIOInstances.monadThrow();
-
-    Kind<EIO<Throwable, ?>, String> pure = monadError.pure("is not ok");
-    Kind<EIO<Throwable, ?>, String> raiseError = monadError.raiseError(error);
-    Kind<EIO<Throwable, ?>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<EIO<Throwable, ?>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<EIO<Throwable, ?>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
-
-    assertAll(
-        () -> assertEquals(Either.<Throwable, String>left(error), EIOOf.toEIO(raiseError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>right("not an error"), EIOOf.toEIO(handleError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>left(error), EIOOf.toEIO(ensureError).safeRunSync()),
-        () -> assertEquals(Either.<Throwable, String>right("is not ok"), EIOOf.toEIO(ensureOk).safeRunSync()));
-  }
-
-  @Test
-  public void task() {
-    RuntimeException error = new RuntimeException("error");
-    MonadError<Task<?>, Throwable> monadError = TaskInstances.monadThrow();
-
-    Kind<Task<?>, String> pure = monadError.pure("is not ok");
-    Kind<Task<?>, String> raiseError = monadError.raiseError(error);
-    Kind<Task<?>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<Task<?>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<Task<?>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
-
-    assertAll(
-        () -> assertEquals(Try.<String>failure(error), TaskOf.toTask(raiseError).safeRunSync()),
-        () -> assertEquals(Try.success("not an error"), TaskOf.toTask(handleError).safeRunSync()),
-        () -> assertEquals(Try.<String>failure(error), TaskOf.toTask(ensureError).safeRunSync()),
-        () -> assertEquals(Try.success("is not ok"), TaskOf.toTask(ensureOk).safeRunSync()));
-  }
-
-  @Test
-  public void PureIO() {
-    RuntimeException error = new RuntimeException("error");
-    MonadError<PureIO<Void, Throwable, ?>, Throwable> monadError = PureIOInstances.monadThrow();
-
-    Kind<PureIO<Void, Throwable, ?>, String> pure = monadError.pure("is not ok");
-    Kind<PureIO<Void, Throwable, ?>, String> raiseError = monadError.raiseError(error);
-    Kind<PureIO<Void, Throwable, ?>, String> handleError = monadError.handleError(raiseError, e -> "not an error");
-    Kind<PureIO<Void, Throwable, ?>, String> ensureOk = monadError.ensure(pure, () -> error, "is not ok"::equals);
-    Kind<PureIO<Void, Throwable, ?>, String> ensureError = monadError.ensure(pure, () -> error, "is ok?"::equals);
-
-    assertAll(
-        () -> assertEquals(Either.<Throwable, String>left(error), PureIOOf.toPureIO(raiseError).provide(null)),
-        () -> assertEquals(Either.<Throwable, String>right("not an error"), PureIOOf.toPureIO(handleError).provide(null)),
-        () -> assertEquals(Either.<Throwable, String>left(error), PureIOOf.toPureIO(ensureError).provide(null)),
-        () -> assertEquals(Either.<Throwable, String>right("is not ok"), PureIOOf.toPureIO(ensureOk).provide(null)));
   }
 }

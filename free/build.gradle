@@ -3,7 +3,6 @@ dependencies {
   api projects.purefunCore
   api projects.purefunTypeclasses
   testImplementation projects.purefunMonad
-  testImplementation projects.purefunEffect
   testImplementation projects.purefunInstances
   testAnnotationProcessor projects.purefunProcessor
 }

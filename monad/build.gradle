@@ -3,7 +3,6 @@ dependencies {
   compileOnly(libs.jspecify)
   api projects.purefunCore
   api projects.purefunTypeclasses
-  testImplementation projects.purefunEffect
   testImplementation projects.purefunInstances
   testAnnotationProcessor projects.purefunProcessor
 }
